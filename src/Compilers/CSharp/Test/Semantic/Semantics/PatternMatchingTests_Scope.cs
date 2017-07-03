@@ -3707,15 +3707,9 @@ public class X
     // (11,25): error CS0841: Cannot use local variable 'x4' before it is declared
     //     void Test4(bool p = x4 && 4 is int x4)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(11, 25),
-    // (11,21): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'bool'
-    //     void Test4(bool p = x4 && 4 is int x4)
-    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "bool").WithLocation(11, 21),
-    // (15,35): error CS0128: A local variable named 'x5' is already defined in this scope
+    // (15,35): error CS0128: A local variable or function named 'x5' is already defined in this scope
     //                         52 is int x5 && 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(15, 35),
-    // (14,21): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'bool'
-    //     void Test5(bool p = 51 is int x5 && 
-    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "bool").WithLocation(14, 21),
     // (19,27): error CS1736: Default parameter value for 'p1' must be a compile-time constant
     //     void Test61(bool p1 = 6 is int x6 && x6 > 0, bool p2 = 6 is int x6 && x6 > 0)
     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "6 is int x6 && x6 > 0").WithArguments("p1").WithLocation(19, 27),

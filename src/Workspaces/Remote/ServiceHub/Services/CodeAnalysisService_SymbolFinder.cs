@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Text;
@@ -12,87 +13,105 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteSymbolFinder
     {
-        public async Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs)
+        public async Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs, CancellationToken cancellationToken)
         {
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
-
-            var symbolAndProjectId = await symbolAndProjectIdArg.TryRehydrateAsync(
-                solution, CancellationToken).ConfigureAwait(false);
-
-            var progressCallback = new FindReferencesProgressCallback(this);
-
-            if (!symbolAndProjectId.HasValue)
+            using (UserOperationBooster.Boost())
             {
-                await progressCallback.OnStartedAsync().ConfigureAwait(false);
-                await progressCallback.OnCompletedAsync().ConfigureAwait(false);
-                return;
+                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+
+                var symbolAndProjectId = await symbolAndProjectIdArg.TryRehydrateAsync(
+                    solution, cancellationToken).ConfigureAwait(false);
+
+                var progressCallback = new FindReferencesProgressCallback(this);
+
+                if (!symbolAndProjectId.HasValue)
+                {
+                    await progressCallback.OnStartedAsync().ConfigureAwait(false);
+                    await progressCallback.OnCompletedAsync().ConfigureAwait(false);
+                    return;
+                }
+
+                var documents = documentArgs?.Select(solution.GetDocument)
+                                             .ToImmutableHashSet();
+
+                await SymbolFinder.FindReferencesInCurrentProcessAsync(
+                    symbolAndProjectId.Value, solution,
+                    progressCallback, documents, cancellationToken).ConfigureAwait(false);
             }
-
-            var documents = documentArgs?.Select(solution.GetDocument)
-                                         .ToImmutableHashSet();
-
-            await SymbolFinder.FindReferencesInCurrentProcessAsync(
-                symbolAndProjectId.Value, solution, 
-                progressCallback, documents, CancellationToken).ConfigureAwait(false);
         }
 
-        public async Task FindLiteralReferencesAsync(object value, TypeCode typeCode)
+        public async Task FindLiteralReferencesAsync(object value, TypeCode typeCode, CancellationToken cancellationToken)
         {
-            var convertedType = System.Convert.ChangeType(value, typeCode);
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
+            using (UserOperationBooster.Boost())
+            {
+                var convertedType = System.Convert.ChangeType(value, typeCode);
+                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
 
-            var progressCallback = new FindLiteralReferencesProgressCallback(this);
-            await SymbolFinder.FindLiteralReferencesInCurrentProcessAsync(
-                convertedType, solution, progressCallback, CancellationToken).ConfigureAwait(false);
+                var progressCallback = new FindLiteralReferencesProgressCallback(this);
+                await SymbolFinder.FindLiteralReferencesInCurrentProcessAsync(
+                    convertedType, solution, progressCallback, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
-            ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria)
+            ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
-            var project = solution.GetProject(projectId);
-
-            using (var query = SearchQuery.Create(name, searchKind))
+            using (UserOperationBooster.Boost())
             {
-                var result = await DeclarationFinder.FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
-                    project, query, criteria, this.CancellationToken).ConfigureAwait(false);
+                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                var project = solution.GetProject(projectId);
+
+                using (var query = SearchQuery.Create(name, searchKind))
+                {
+                    var result = await DeclarationFinder.FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
+                        project, query, criteria, cancellationToken).ConfigureAwait(false);
+
+                    return result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                }
+            }
+        }
+
+        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
+            string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
+        {
+            using (UserOperationBooster.Boost())
+            {
+                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
+                    solution, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
 
                 return result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
-            string name, bool ignoreCase, SymbolFilter criteria)
-        {
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
-            var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
-                solution, name, ignoreCase, criteria, CancellationToken).ConfigureAwait(false);
-
-            return result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
-        }
-
         public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
-            ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria)
+            ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
-            var project = solution.GetProject(projectId);
+            using (UserOperationBooster.Boost())
+            {
+                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                var project = solution.GetProject(projectId);
 
-            var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
-                project, name, ignoreCase, criteria, CancellationToken).ConfigureAwait(false);
+                var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
+                    project, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
 
-            return result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                return result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+            }
         }
 
         public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
-            ProjectId projectId, string pattern, SymbolFilter criteria)
+            ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
-            var project = solution.GetProject(projectId);
+            using (UserOperationBooster.Boost())
+            {
+                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                var project = solution.GetProject(projectId);
 
-            var result = await DeclarationFinder.FindSourceDeclarationsWithPatternInCurrentProcessAsync(
-                project, pattern, criteria, CancellationToken).ConfigureAwait(false);
+                var result = await DeclarationFinder.FindSourceDeclarationsWithPatternInCurrentProcessAsync(
+                    project, pattern, criteria, cancellationToken).ConfigureAwait(false);
 
-            return result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                return result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+            }
         }
 
         private class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress

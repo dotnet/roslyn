@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
 
             var codeStyleOption = new CodeStyleOption<bool>(value: isEnabled, notification: notificationOption);
 
-            CodeStyleHelpers.TryParseEditorConfigCodeStyleOption(args, out var result);
+            CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(args, out var result);
             Assert.True(result.Value == isEnabled,
                         $"Expected {nameof(isEnabled)} to be {isEnabled}, was {result.Value}");
             Assert.True(result.Notification.Value == severity,

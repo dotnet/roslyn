@@ -3,12 +3,12 @@
 extern alias hub;
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Newtonsoft.Json;
@@ -59,6 +59,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public void TestDiagnosticArguments()
         {
             var arguments = new DiagnosticArguments(
+                forcedAnalysis: false,
                 reportSuppressedDiagnostics: true,
                 logAnalyzerExecutionTime: false,
                 projectId: ProjectId.CreateNewId("project"),
@@ -67,7 +68,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             VerifyJsonSerialization(arguments, (x, y) =>
             {
-                if (x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
+                if (x.ForcedAnalysis == y.ForcedAnalysis &&
+                    x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
                     x.LogAnalyzerExecutionTime == y.LogAnalyzerExecutionTime &&
                     x.ProjectId == y.ProjectId &&
                     x.OptionSetChecksum == y.OptionSetChecksum &&
@@ -123,6 +125,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 {
                     return x.SequenceEqual(y) ? 0 : 1;
                 });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestPinnedSolutionInfo()
+        {
+            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, solutionChecksum: new Checksum(new byte[] { 1, 2, 3, 4, 5, 6 })), (x, y) =>
+            {
+                return (x.ScopeId == y.ScopeId && x.FromPrimaryBranch == y.FromPrimaryBranch && x.SolutionChecksum == y.SolutionChecksum) ? 0 : 1;
+            });
         }
 
         private static void VerifyJsonSerialization<T>(T value, Comparison<T> equality = null)

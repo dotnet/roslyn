@@ -636,7 +636,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var start = DateTimeOffset.UtcNow;
             var solution4 = (IVsSolution4)_vsSolution;
             var solution7 = (IVsSolution7)_vsSolution;
-            var projectInfosOfProjectsThatFailed = projectInfos.Where(pi => DesignTimeBuildFailed(pi.Value) && !solution7.IsDeferredProjectLoadAllowed(pi.Key));
+            var projectInfosOfProjectsThatFailed = projectInfos.Where(pi => DesignTimeBuildFailed(pi.Value) && solution7.IsDeferredProjectLoadAllowed(pi.Key));
             var guidsOfProjectsThatFailed = projectInfosOfProjectsThatFailed.Select(pi => GetProjectGuid(pi.Key)).ToArray();
             OutputToOutputWindow($"\tForcing load of {guidsOfProjectsThatFailed.Length} projects.");
             OutputListToOutputWindow("\tIncluding ", projectInfosOfProjectsThatFailed.Select(pi => pi.Key));

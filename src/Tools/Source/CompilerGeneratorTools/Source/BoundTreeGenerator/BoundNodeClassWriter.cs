@@ -1546,8 +1546,8 @@ namespace BoundTreeGenerator
         {
             string genericType = GetGenericType(typeName);
 
-            if (_valueTypes.ContainsKey(genericType))
-                return _valueTypes[genericType];
+            if (_valueTypes.TryGetValue(genericType, out bool isValueType))
+                return isValueType;
             else
                 return false;
         }

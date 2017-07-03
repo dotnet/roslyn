@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class MetadataMemberTests : CSharpTestBase
     {
-        private static readonly string VTableGapClassIL = @"
+        private const string VTableGapClassIL = @"
 .class public auto ansi beforefieldinit Class
        extends [mscorlib]System.Object
 {

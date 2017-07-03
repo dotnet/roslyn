@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
@@ -90,7 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntaxReference: container,
                 nameLocation: new SourceLocation(container),
                 memberNames: memberNames,
-                children: ImmutableArray<SingleTypeDeclaration>.Empty);
+                children: ImmutableArray<SingleTypeDeclaration>.Empty,
+                diagnostics: ImmutableArray<Diagnostic>.Empty);
         }
 
         /// <summary>
@@ -181,7 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntaxReference: parentReference,
                 nameLocation: new SourceLocation(parentReference),
                 memberNames: memberNames,
-                children: children);
+                children: children,
+                diagnostics: ImmutableArray<Diagnostic>.Empty);
 
             for (int i = fullName.Length - 2; i >= 0; i--)
             {
@@ -279,9 +282,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations;
             }
 
-            if (node.ConstraintClauses.Count > 0)
+            var diagnostics = DiagnosticBag.GetInstance();
+            if (node.Arity == 0)
             {
-                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasConstraints;
+                Symbol.ReportErrorIfHasConstraints(node.ConstraintClauses, diagnostics);
             }
 
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
@@ -296,7 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: memberNames,
-                children: VisitTypeChildren(node));
+                children: VisitTypeChildren(node),
+                diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
         private ImmutableArray<SingleTypeDeclaration> VisitTypeChildren(TypeDeclarationSyntax node)
@@ -325,9 +330,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes 
                 : SingleTypeDeclaration.TypeDeclarationFlags.None;
 
-            if (node.ConstraintClauses.Count > 0)
+            var diagnostics = DiagnosticBag.GetInstance();
+            if (node.Arity == 0)
             {
-                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasConstraints;
+                Symbol.ReportErrorIfHasConstraints(node.ConstraintClauses, diagnostics);
             }
 
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
@@ -341,7 +347,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: SpecializedCollections.EmptyCollection<string>(),
-                children: ImmutableArray<SingleTypeDeclaration>.Empty);
+                children: ImmutableArray<SingleTypeDeclaration>.Empty,
+                diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitEnumDeclaration(EnumDeclarationSyntax node)
@@ -368,7 +375,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: memberNames,
-                children: ImmutableArray<SingleTypeDeclaration>.Empty);
+                children: ImmutableArray<SingleTypeDeclaration>.Empty,
+                diagnostics: ImmutableArray<Diagnostic>.Empty);
         }
 
         private static string[] GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)

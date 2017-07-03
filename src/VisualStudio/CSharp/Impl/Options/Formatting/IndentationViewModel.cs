@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Windows.Controls;
@@ -46,6 +46,21 @@ class MyClass
     }
 }";
 
+        private const string SwitchCaseWhenBlockPreview = @"
+class MyClass
+{
+    int Method(int foo){
+//[
+        switch (foo){
+        case 2:
+            {
+                break;
+            }
+        }
+//]
+    }
+}";
+
         private const string GotoLabelPreview = @"
 class MyClass
 {
@@ -63,6 +78,7 @@ class MyClass
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentBlock, CSharpVSResources.Indent_block_contents, BlockContentPreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentBraces, CSharpVSResources.Indent_open_and_close_braces, IndentBracePreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchCaseSection, CSharpVSResources.Indent_case_contents, SwitchCasePreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock, CSharpVSResources.Indent_case_contents_when_block, SwitchCaseWhenBlockPreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchSection, CSharpVSResources.Indent_case_labels, SwitchCasePreview, this, options));
 
             Items.Add(new TextBlock() { Text = CSharpVSResources.Label_Indentation });
