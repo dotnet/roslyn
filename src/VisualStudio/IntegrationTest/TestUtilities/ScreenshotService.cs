@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             int width = Screen.PrimaryScreen.Bounds.Width;
             int height = Screen.PrimaryScreen.Bounds.Height;
 
-            if (width < 0 || height < 0)
+            if (width <= 0 || height <= 0)
             {
                 // Don't try to take a screenshot if there is no screen.
                 // This may not be an interactive session.
