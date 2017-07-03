@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 
@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         IMethodSymbol Constructor { get; }
         /// <summary>
-        /// Explicitly-specified member initializers.
+        /// List of member or collection initializer expressions in the object initializer, if any.
         /// </summary>
-        ImmutableArray<ISymbolInitializer> MemberInitializers { get; }
+        ImmutableArray<IOperation> Initializers { get; }
     }
 }
 

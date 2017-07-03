@@ -1,10 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         private struct MetadataInfo
         {
             /// <summary>
-            /// Note: can be <code>null</code> if were unable to create a SymbolTreeInfo
-            /// (for example, if the metadata was bogus and we couldn't read it in).
+            /// Can't be null.  Even if we weren't able to read in metadata, we'll still create an empty
+            /// index.
             /// </summary>
             public readonly SymbolTreeInfo SymbolTreeInfo;
 
@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public MetadataInfo(SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
             {
+                Contract.ThrowIfNull(info);
                 SymbolTreeInfo = info;
                 ReferencingProjects = referencingProjects;
             }
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // If we didn't have it in our cache, see if we can load it from disk.
                 // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
                 // try to create the metadata.
-                var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
+                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                     solution, reference, checksum, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return info;
             }
@@ -181,16 +182,13 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
-                if (project.Solution.Workspace.Kind != "Test" &&
-                    project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
-                    project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed))
+                if (!project.SupportsCompilation)
                 {
-                    // if GoTo feature is set to run on remote host, then we don't need to build inproc cache.
-                    // remote host will build this cache in remote host.
+                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
                     return;
                 }
 
-                if (!project.SupportsCompilation)
+                if (!RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace))
                 {
                     return;
                 }
@@ -210,6 +208,9 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 {
                     projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
                         project, checksum, cancellationToken).ConfigureAwait(false);
+
+                    Contract.ThrowIfNull(projectInfo);
+                    Contract.ThrowIfTrue(projectInfo.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
 
                     // Mark that we're up to date with this project.  Future calls with the same 
                     // semantic version can bail out immediately.
@@ -240,8 +241,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 if (!_metadataPathToInfo.TryGetValue(key, out var metadataInfo) ||
                     metadataInfo.SymbolTreeInfo.Checksum != checksum)
                 {
-                    var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
+                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                         project.Solution, reference, checksum, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                    Contract.ThrowIfNull(info);
+                    Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
 
                     // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
                     // We still want to cache that result so that don't try to continuously produce

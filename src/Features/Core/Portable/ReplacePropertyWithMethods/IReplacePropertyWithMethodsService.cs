@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         Task ReplaceReferenceAsync(
             Document document,
-            SyntaxEditor editor, SyntaxToken nameToken,
+            SyntaxEditor editor, SyntaxNode identifierName,
             IPropertySymbol property, IFieldSymbol propertyBackingField,
             string desiredGetMethodName, string desiredSetMethodName,
             CancellationToken cancellationToken);

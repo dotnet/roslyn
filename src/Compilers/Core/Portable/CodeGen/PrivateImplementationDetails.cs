@@ -12,6 +12,7 @@ using System.Threading;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -469,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal abstract class DefaultTypeDef : Cci.ITypeDefinition
     {
-        public IEnumerable<Cci.IEventDefinition> Events
+        public IEnumerable<Cci.IEventDefinition> GetEvents(EmitContext context)
             => SpecializedCollections.EmptyEnumerable<Cci.IEventDefinition>();
 
         public IEnumerable<Cci.MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)

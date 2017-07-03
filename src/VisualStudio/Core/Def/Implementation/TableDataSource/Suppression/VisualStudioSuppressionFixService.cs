@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -276,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 // We have different suppression fixers for every language.
                 // So we need to group diagnostics by the containing project language and apply fixes separately.
-                languages = new HashSet<string>(projectDiagnosticsToFixMap.Keys.Select(p => p.Language).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.Language)));
+                languages = new HashSet<string>(projectDiagnosticsToFixMap.Select(p => p.Key.Language).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.Language)));
 
                 foreach (var language in languages)
                 {

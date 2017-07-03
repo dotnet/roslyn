@@ -7,8 +7,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Test.Utilities.VBInstrumentationChecker
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
-Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.DynamicAnalysis.UnitTests
 
@@ -51,6 +49,7 @@ End Module
                 True().
                 True().
                 True().
+                True().
                 True()
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, checker.ExpectedOutput)
@@ -58,8 +57,7 @@ End Module
 
             verifier.VerifyIL(
                 "Program.TestMain",
-            <![CDATA[
-{
+            <![CDATA[{
   // Code size       57 (0x39)
   .maxstack  5
   .locals init (Boolean() V_0)
@@ -85,6 +83,7 @@ End Module
   IL_0038:  ret
 }
                 ]]>.Value)
+
             verifier.VerifyIL(
                 ".cctor",
             <![CDATA[
@@ -138,6 +137,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -235,6 +235,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -311,6 +312,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -450,6 +452,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -520,6 +523,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -703,6 +707,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1024,6 +1029,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -1094,6 +1100,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1190,6 +1197,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -1246,6 +1254,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1332,22 +1341,23 @@ True
 True
 True
 True
-Method 9
+True
+Method 10
 File 1
 True
-True
-Method 14
-File 1
 True
 Method 15
 File 1
 True
-True
-True
-True
-True
-True
 Method 16
+File 1
+True
+True
+True
+True
+True
+True
+Method 17
 File 1
 True
 True
@@ -1413,6 +1423,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1505,6 +1516,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1625,6 +1637,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -1705,6 +1718,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1837,6 +1851,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -2368,6 +2383,413 @@ End Class
             AssertInstrumented(verifier, "D.M")
         End Sub
 
+        <Fact>
+        Public Sub TestPartialMethodsWithImplementation()
+            Dim testSource = <file name="c.vb">
+                                 <![CDATA[
+Imports System
+
+Partial Class Class1
+    Private Partial Sub Method1(x as Integer)
+    End Sub
+    Public Sub Method2(x as Integer)
+        Console.WriteLine("Method2: x = {0}", x)
+        Method1(x)
+    End Sub
+End Class
+
+Partial Class Class1
+    Private Sub Method1(x as Integer)
+        Console.WriteLine("Method1: x = {0}", x)
+        If x > 0
+            Console.WriteLine("Method1: x > 0")
+            Method1(0)
+        ElseIf x < 0
+            Console.WriteLine("Method1: x < 0")
+        End If
+    End Sub
+End Class
+
+Module Program
+    Public Sub Main()
+        Test()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub Test()
+        Console.WriteLine("Test")
+        Dim c = new Class1()
+        c.Method2(1)
+    End Sub
+End Module
+]]>
+                             </file>
+
+            Dim source = <compilation>
+                             <%= testSource %>
+                             <%= InstrumentationHelperSource %>
+                         </compilation>
+
+            Dim checker = New VBInstrumentationChecker()
+            checker.Method(1, 1, "New", expectBodySpan:=False)
+            checker.Method(2, 1, "Private Sub Method1(x as Integer)").
+                True("Console.WriteLine(""Method1: x = {0}"", x)").
+                True("Console.WriteLine(""Method1: x > 0"")").
+                True("Method1(0)").
+                False("Console.WriteLine(""Method1: x < 0"")").
+                True("x < 0").
+                True("x > 0")
+            checker.Method(3, 1, "Public Sub Method2(x as Integer)").
+                True("Console.WriteLine(""Method2: x = {0}"", x)").
+                True("Method1(x)")
+            checker.Method(4, 1, "Public Sub Main()").
+                True("Test()").
+                True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()")
+            checker.Method(5, 1, "Sub Test()").
+                True("Console.WriteLine(""Test"")").
+                True("new Class1()").
+                True("c.Method2(1)")
+            checker.Method(8, 1).
+                True().
+                False().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True()
+
+            Dim expectedOutput = "Test
+Method2: x = 1
+Method1: x = 1
+Method1: x > 0
+Method1: x = 0
+" + XCDataToString(checker.ExpectedOutput)
+
+            Dim verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.ReleaseExe)
+            checker.CompleteCheck(verifier.Compilation, testSource)
+            verifier.VerifyDiagnostics()
+
+            verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.DebugExe)
+            checker.CompleteCheck(verifier.Compilation, testSource)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestPartialMethodsWithoutImplementation()
+            Dim testSource = <file name="c.vb">
+                                 <![CDATA[
+Imports System
+
+Partial Class Class1
+    Private Partial Sub Method1(x as Integer)
+    End Sub
+    Public Sub Method2(x as Integer)
+        Console.WriteLine("Method2: x = {0}", x)
+        Method1(x)
+    End Sub
+End Class
+
+Module Program
+    Public Sub Main()
+        Test()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub Test()
+        Console.WriteLine("Test")
+        Dim c = new Class1()
+        c.Method2(1)
+    End Sub
+End Module
+]]>
+                             </file>
+
+            Dim source = <compilation>
+                             <%= testSource %>
+                             <%= InstrumentationHelperSource %>
+                         </compilation>
+
+            Dim checker = New VBInstrumentationChecker()
+            checker.Method(1, 1, "New", expectBodySpan:=False)
+            checker.Method(2, 1, "Public Sub Method2(x as Integer)").
+                True("Console.WriteLine(""Method2: x = {0}"", x)")
+            checker.Method(3, 1, "Public Sub Main()").
+                True("Test()").
+                True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()")
+            checker.Method(4, 1, "Sub Test()").
+                True("Console.WriteLine(""Test"")").
+                True("new Class1()").
+                True("c.Method2(1)")
+            checker.Method(7, 1).
+                True().
+                False().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True()
+
+            Dim expectedOutput = "Test
+Method2: x = 1
+" + XCDataToString(checker.ExpectedOutput)
+
+            Dim verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.ReleaseExe)
+            checker.CompleteCheck(verifier.Compilation, testSource)
+            verifier.VerifyDiagnostics()
+
+            verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.DebugExe)
+            checker.CompleteCheck(verifier.Compilation, testSource)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestSynthesizedConstructorWithSpansInMultipleFilesCoverage()
+            Dim source1 = <file name="aa.vb">
+                              <![CDATA[
+Imports System
+
+Partial Class Class1
+    Dim a As Action(Of Integer) =
+            Sub(i As Integer)
+                Console.WriteLine(i)
+            End Sub
+End Class
+
+Module Program
+    Public Sub Main()
+        Test()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub Test()
+        Console.WriteLine("Test")
+        Dim c = new Class1()
+        c.Method1(1)
+    End Sub
+End Module
+]]>
+                          </file>
+
+            Dim source2 = <file name="bb.vb">
+                              <![CDATA[
+Imports System
+
+Partial Class Class1
+    Dim x As Integer = 1
+
+    Sub Method1(i As Integer)
+        a(i)
+        Console.WriteLine(x)
+        Console.WriteLine(y)
+        Console.WriteLine(z)
+    End Sub
+End Class
+]]>
+                          </file>
+
+            Dim source3 = <file name="cc.vb">
+                              <![CDATA[
+Partial Class Class1
+    Dim y As Integer = 2
+    Dim z As Integer = 3
+End Class
+]]>
+                          </file>
+
+            Dim source = <compilation>
+                             <%= source1 %>
+                             <%= source2 %>
+                             <%= source3 %>
+                             <%= InstrumentationHelperSource %>
+                         </compilation>
+
+            Dim expectedOutput = <![CDATA[Test
+1
+1
+2
+3
+Flushing
+Method 1
+File 1
+File 2
+File 3
+True
+True
+True
+True
+True
+Method 2
+File 2
+True
+True
+True
+True
+True
+Method 3
+File 1
+True
+True
+True
+Method 4
+File 1
+True
+True
+True
+True
+Method 7
+File 4
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            Dim verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.ReleaseExe)
+            verifier.VerifyDiagnostics()
+
+            verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.DebugExe)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestSynthesizedStaticConstructorWithSpansInMultipleFilesCoverage()
+            Dim source1 = <file name="aa.vb">
+                              <![CDATA[
+Imports System
+
+Partial Class Class1
+    Shared Dim a As Action(Of Integer) =
+            Sub(i As Integer)
+                Console.WriteLine(i)
+            End Sub
+End Class
+
+Module Program
+    Public Sub Main()
+        Test()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub Test()
+        Console.WriteLine("Test")
+        Dim c = new Class1()
+        Class1.Method1(1)
+    End Sub
+End Module
+]]>
+                          </file>
+
+            Dim source2 = <file name="bb.vb">
+                              <![CDATA[
+Imports System
+
+Partial Class Class1
+    Shared Dim x As Integer = 1
+
+    Shared Sub Method1(i As Integer)
+        a(i)
+        Console.WriteLine(x)
+        Console.WriteLine(y)
+        Console.WriteLine(z)
+    End Sub
+End Class
+]]>
+                          </file>
+
+            Dim source3 = <file name="cc.vb">
+                              <![CDATA[
+Partial Class Class1
+    Shared Dim y As Integer = 2
+    Shared Dim z As Integer = 3
+End Class
+]]>
+                          </file>
+
+            Dim source = <compilation>
+                             <%= source1 %>
+                             <%= source2 %>
+                             <%= source3 %>
+                             <%= InstrumentationHelperSource %>
+                         </compilation>
+
+            Dim expectedOutput = <![CDATA[Test
+1
+1
+2
+3
+Flushing
+Method 1
+File 1
+File 2
+File 3
+True
+True
+True
+True
+True
+Method 2
+File 1
+Method 3
+File 2
+True
+True
+True
+True
+True
+Method 4
+File 1
+True
+True
+True
+Method 5
+File 1
+True
+True
+True
+True
+Method 8
+File 4
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            Dim verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.ReleaseExe)
+            verifier.VerifyDiagnostics()
+
+            verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.DebugExe)
+            verifier.VerifyDiagnostics()
+        End Sub
+
         Private Shared Sub AssertNotInstrumented(verifier As CompilationVerifier, qualifiedMethodName As String)
             AssertInstrumented(verifier, qualifiedMethodName, expected:=False)
         End Sub
@@ -2390,6 +2812,14 @@ End Class
             Return CompileAndVerify(source,
                                     LatestVbReferences,
                                     XCDataToString(expectedOutput),
+                                    options:=If(options, TestOptions.ReleaseExe).WithDeterministic(True),
+                                    emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
+        End Function
+
+        Private Overloads Function CompileAndVerify(source As XElement, Optional expectedOutput As String = Nothing, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
+            Return CompileAndVerify(source,
+                                    LatestVbReferences,
+                                    expectedOutput,
                                     options:=If(options, TestOptions.ReleaseExe).WithDeterministic(True),
                                     emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
         End Function

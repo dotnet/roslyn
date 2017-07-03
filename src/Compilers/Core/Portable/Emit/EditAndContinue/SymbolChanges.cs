@@ -188,11 +188,13 @@ namespace Microsoft.CodeAnalysis.Emit
         public IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
         {
             var module = (CommonPEModuleBuilder)context.Module;
+
             foreach (var container in module.GetDelegateCacheContainers())
             {
                 yield return container;
             }
-            foreach (var type in module.GetAnonymousTypes())
+
+            foreach (var type in module.GetAnonymousTypes(context))
             {
                 yield return type;
             }

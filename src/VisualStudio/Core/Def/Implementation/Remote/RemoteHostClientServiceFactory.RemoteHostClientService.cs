@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -137,11 +138,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 client?.Shutdown();
             }
 
-            public Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
-            {
-                return TryGetRemoteHostClientAsync(cancellationToken);
-            }
-
             public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -171,13 +167,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return null;
                 }
 
-                client.ConnectionChanged += OnConnectionChanged;
+                client.StatusChanged += OnStatusChanged;
 
                 // set global assets on remote host
                 var checksums = AddGlobalAssets(cancellationToken);
 
                 // send over global asset
-                await client.RunOnRemoteHostAsync(
+                await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
                     (object)checksums, cancellationToken).ConfigureAwait(false);
@@ -191,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
-                    var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
+                    var snapshotService = _workspace.Services.GetService<IRemotableDataService>();
                     var assetBuilder = new CustomAssetBuilder(_workspace);
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
@@ -210,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_RemoveGlobalAssets, CancellationToken.None))
                 {
-                    var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
+                    var snapshotService = _workspace.Services.GetService<IRemotableDataService>();
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {
@@ -219,9 +215,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            private void OnConnectionChanged(object sender, bool connected)
+            private void OnStatusChanged(object sender, bool started)
             {
-                if (connected)
+                if (started)
                 {
                     return;
                 }
@@ -251,10 +247,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     FatalError.ReportWithoutCrash(new Exception("Connection to remote host closed"));
 
                     // use info bar to show warning to users
-                    var infoBarUIs = new List<ErrorReportingUI>();
+                    var infoBarUIs = new List<InfoBarUI>();
 
                     infoBarUIs.Add(
-                        new ErrorReportingUI(ServicesVSResources.Learn_more, ErrorReportingUI.UIKind.HyperLink, () =>
+                        new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink, () =>
                             BrowserHelper.StartBrowser(new Uri(OOPKilledMoreInfoLink)), closeAfterAction: false));
 
                     var allowRestarting = _workspace.Options.GetOption(RemoteHostOptions.RestartRemoteHostAllowed);
@@ -263,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         // this is hidden restart option. by default, user can't restart remote host that got killed
                         // by users
                         infoBarUIs.Add(
-                            new ErrorReportingUI("Restart external process", ErrorReportingUI.UIKind.Button, () =>
+                            new InfoBarUI("Restart external process", InfoBarUI.UIKind.Button, () =>
                             {
                                 // start off new remote host
                                 var unused = RequestNewRemoteHostAsync(CancellationToken.None);
@@ -288,7 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 Logger.Log(FunctionId.RemoteHostClientService_Restarted, KeyValueLogMessage.NoProperty);
 
                 // we are going to kill the existing remote host, connection change is expected
-                existingClient.ConnectionChanged -= OnConnectionChanged;
+                existingClient.StatusChanged -= OnStatusChanged;
 
                 lock (_gate)
                 {

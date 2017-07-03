@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -18,9 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             new SimplePool<MultiDictionary<string, ISymbol>>(() => new MultiDictionary<string, ISymbol>());
 
         private static MultiDictionary<string, ISymbol> AllocateSymbolMap()
-        {
-            return s_symbolMapPool.Allocate();
-        }
+            => s_symbolMapPool.Allocate();
 
         private static void FreeSymbolMap(MultiDictionary<string, ISymbol> symbolMap)
         {
@@ -28,14 +27,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             s_symbolMapPool.Free(symbolMap);
         }
 
-        public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
+        public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
             Project project, Checksum checksum, CancellationToken cancellationToken)
         {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            return await LoadOrCreateSourceSymbolTreeInfoAsync(
-                project.Solution, compilation.Assembly, checksum, project.FilePath,
-                loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var result = TryLoadOrCreateAsync(
+                project.Solution,
+                checksum,
+                loadOnly: false,
+                createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
+                keySuffix: "_Source_" + project.FilePath,
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(project.Solution, checksum, project.FilePath, names, nodes)),
+                cancellationToken: cancellationToken);
+            Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
+            return result;
         }
 
         public static async Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
@@ -49,7 +53,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var serializer = new Serializer(project.Solution.Workspace);
             var projectStateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
-            var textChecksumsTasks = project.Documents.Select(async d =>
+            // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
+            // to be ordered by Guid (which is not consistent across VS sessions).
+            var textChecksumsTasks = project.Documents.OrderBy(d => d.FilePath, StringComparer.Ordinal).Select(async d =>
             {
                 var documentStateChecksum = await d.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 return documentStateChecksum.Text;
@@ -66,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 allChecksums.Add(compilationOptionsChecksum);
                 allChecksums.Add(parseOptionsChecksum);
 
-                var checksum = Checksum.Create(nameof(SymbolTreeInfo), allChecksums);
+                var checksum = Checksum.Create(WellKnownSynchronizationKind.SymbolTreeInfo, allChecksums);
                 return checksum;
             }
             finally
@@ -75,13 +81,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static SymbolTreeInfo CreateSourceSymbolTreeInfo(
-            Solution solution, Checksum checksum, IAssemblySymbol assembly,
-            string filePath, CancellationToken cancellationToken)
+        internal static async Task<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(
+            Project project, Checksum checksum, CancellationToken cancellationToken)
         {
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var assembly = compilation.Assembly;
             if (assembly == null)
             {
-                return null;
+                return CreateEmpty(checksum);
             }
 
             var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
@@ -90,7 +97,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
             return CreateSymbolTreeInfo(
-                solution, checksum, filePath, unsortedNodes.ToImmutableAndFree(), 
+                project.Solution, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(), 
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>());
         }
 

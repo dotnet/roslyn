@@ -1,6 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -134,6 +136,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_braces"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferBraces)}")});
 
+        public static readonly Option<CodeStyleOption<bool>> PreferSimpleDefaultExpression = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferSimpleDefaultExpression), defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_simple_default_expression"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferSimpleDefaultExpression)}")});
+
+        private static readonly SyntaxKind[] s_preferredModifierOrderDefault =
+            {
+                SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,
+                SyntaxKind.StaticKeyword,
+                SyntaxKind.ExternKeyword,
+                SyntaxKind.NewKeyword,
+                SyntaxKind.VirtualKeyword, SyntaxKind.AbstractKeyword, SyntaxKind.SealedKeyword, SyntaxKind.OverrideKeyword,
+                SyntaxKind.ReadOnlyKeyword,
+                SyntaxKind.UnsafeKeyword,
+                SyntaxKind.VolatileKeyword,
+                SyntaxKind.AsyncKeyword
+            };
+
+        public static readonly Option<CodeStyleOption<string>> PreferredModifierOrder = new Option<CodeStyleOption<string>>(
+            nameof(CodeStyleOptions), nameof(PreferredModifierOrder),
+            defaultValue: new CodeStyleOption<string>(string.Join(",", s_preferredModifierOrderDefault.Select(SyntaxFacts.GetText)), NotificationOption.None),
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForStringCodeStyleOption("csharp_preferred_modifier_order"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredModifierOrder)}")});
+
         public static IEnumerable<Option<CodeStyleOption<bool>>> GetCodeStyleOptions()
         {
             yield return UseImplicitTypeForIntrinsicTypes;
@@ -143,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferPatternMatchingOverAsWithNullCheck;
             yield return PreferPatternMatchingOverIsWithCastCheck;
             yield return PreferBraces;
+            yield return PreferSimpleDefaultExpression;
         }
 
         public static IEnumerable<Option<CodeStyleOption<ExpressionBodyPreference>>> GetExpressionBodyOptions()

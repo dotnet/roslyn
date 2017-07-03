@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -394,6 +394,26 @@ End Class
 Public Class Type2
     Public Shared A As Type1
     Public Shared B As Type1
+End Class
+]]></Text>.Value
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
+        <WorkItem(18787, "https://github.com/dotnet/roslyn/issues/18787")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NotAfterDot() As Task
+            Dim markup = <Text><![CDATA[
+Public Class Program
+     Private Shared field1 As Integer
+ 
+    ''' <summary>
+    ''' </summary>
+    ''' <completionList cref="Program"></completionList>
+    Public Class Program2
+Public Async Function TestM() As Task
+            Dim obj As Program2 = Program.$$
+        End Sub
+    End Class
 End Class
 ]]></Text>.Value
             Await VerifyNoItemsExistAsync(markup)

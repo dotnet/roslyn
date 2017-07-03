@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -234,7 +235,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_lazyChecksum == null)
                     {
-                        _lazyChecksum = Checksum.Create(nameof(DocumentAttributes), this);
+                        _lazyChecksum = Checksum.Create(WellKnownSynchronizationKind.DocumentAttributes, this);
                     }
 
                     return _lazyChecksum;

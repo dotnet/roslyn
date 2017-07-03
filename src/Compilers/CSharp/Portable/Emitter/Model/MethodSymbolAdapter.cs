@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -582,10 +583,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            ImmutableArray<CSharpAttributeData> userDefined;
+            ImmutableArray<CSharpAttributeData> userDefined = this.GetReturnTypeAttributes();
             ArrayBuilder<SynthesizedAttributeData> synthesized = null;
-
-            userDefined = this.GetReturnTypeAttributes();
             this.AddSynthesizedReturnTypeAttributes(ref synthesized);
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 

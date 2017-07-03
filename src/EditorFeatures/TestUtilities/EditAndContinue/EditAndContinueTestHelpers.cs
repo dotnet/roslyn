@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -205,6 +205,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             IEnumerable<string> additionalOldSources = null,
             IEnumerable<string> additionalNewSources = null,
             SemanticEditDescription[] expectedSemanticEdits = null,
+            DiagnosticDescription expectedDeclarationError = null,
             RudeEditDiagnosticDescription[] expectedDiagnostics = null)
         {
             var editMap = Analyzer.BuildEditMap(editScript);
@@ -233,18 +234,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var oldCompilation = CreateLibraryCompilation("Old", oldTrees);
             var newCompilation = CreateLibraryCompilation("New", newTrees);
-
-            if (oldCompilation is CSharpCompilation)
-            {
-                oldCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
-                newCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
-            }
-            else
-            {
-                // TODO: verify all compilation diagnostics like C# does (tests need to be updated)
-                oldTrees.SelectMany(tree => tree.GetDiagnostics()).Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
-                newTrees.SelectMany(tree => tree.GetDiagnostics()).Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
-            }
 
             var oldModel = oldCompilation.GetSemanticModel(oldRoot.SyntaxTree);
             var newModel = newCompilation.GetSemanticModel(newRoot.SyntaxTree);
@@ -297,7 +286,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 newModel,
                 actualSemanticEdits,
                 diagnostics,
+                out var firstDeclarationErrorOpt,
                 default(CancellationToken));
+
+            var actualDeclarationErrors = (firstDeclarationErrorOpt != null) ? new[] { firstDeclarationErrorOpt } : Array.Empty<Diagnostic>();
+            var expectedDeclarationErrors = (expectedDeclarationError != null) ? new[] { expectedDeclarationError } : Array.Empty<DiagnosticDescription>();
+            actualDeclarationErrors.Verify(expectedDeclarationErrors);
 
             diagnostics.Verify(newSource, expectedDiagnostics);
 

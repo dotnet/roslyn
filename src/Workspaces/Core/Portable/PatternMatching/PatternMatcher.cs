@@ -1,9 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
             }
 
-            var isLowercase = !ContainsUpperCaseLetter(patternChunk.Text);
+            var isLowercase = patternChunk.IsLowercase;
             if (isLowercase)
             {
                 if (caseInsensitiveIndex > 0)

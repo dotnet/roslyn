@@ -10,9 +10,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Symbol.UnitTests</AssemblyName>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net452</PackageTargetFallback>
     <NoStdLib>true</NoStdLib>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

@@ -37,11 +37,8 @@ try
     
     switch ($branchName)
     {
-        "dev15.0.x" { } 
-        "dev15.1.x" { } 
-        "dev15.2.x" { } 
-        "dev15.3-preview1" { } 
-        "master" { } 
+        "dev15.3.x" { }
+        "master" { }
         default
         {
             if (-not $test)

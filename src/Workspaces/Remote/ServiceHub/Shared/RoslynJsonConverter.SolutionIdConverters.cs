@@ -8,10 +8,15 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class AggregateJsonConverter : JsonConverter
     {
-        private abstract class WorkspaceIdJsonConverter : BaseJsonConverter
+        private abstract class WorkspaceIdJsonConverter<T> : BaseJsonConverter<T>
         {
-            protected (Guid, string) ReadFromJsonObject(JsonReader reader)
+            protected (Guid, string)? ReadFromJsonObject(JsonReader reader)
             {
+                if (reader.TokenType == JsonToken.Null)
+                {
+                    return null;
+                }
+
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
                 var (id, debugName) = ReadIdAndName(reader);
@@ -47,46 +52,39 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private class SolutionIdJsonConverter : WorkspaceIdJsonConverter
+        private class SolutionIdJsonConverter : WorkspaceIdJsonConverter<SolutionId>
         {
-            public override bool CanConvert(Type objectType) => typeof(SolutionId) == objectType;
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override SolutionId ReadValue(JsonReader reader, JsonSerializer serializer)
             {
-                var (id, debugName) = ReadFromJsonObject(reader);
-                return SolutionId.CreateFromSerialized(id, debugName);
+                (Guid id, string debugName)? tuple = ReadFromJsonObject(reader);
+                return tuple == null ? null : SolutionId.CreateFromSerialized(tuple.Value.id, tuple.Value.debugName);
             }
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-            {
-                var solutionId = (SolutionId)value;
-                WriteToJsonObject(writer, solutionId.Id, solutionId.DebugName);
-            }
+            protected override void WriteValue(JsonWriter writer, SolutionId solutionId, JsonSerializer serializer)
+                => WriteToJsonObject(writer, solutionId.Id, solutionId.DebugName);
         }
 
-        private class ProjectIdJsonConverter : WorkspaceIdJsonConverter
+        private class ProjectIdJsonConverter : WorkspaceIdJsonConverter<ProjectId>
         {
-            public override bool CanConvert(Type objectType) => typeof(ProjectId) == objectType;
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override ProjectId ReadValue(JsonReader reader, JsonSerializer serializer)
             {
-                var (id, debugName) = ReadFromJsonObject(reader);
-                return ProjectId.CreateFromSerialized(id, debugName);
+                (Guid id, string debugName)? tuple = ReadFromJsonObject(reader);
+                return tuple == null ? null : ProjectId.CreateFromSerialized(tuple.Value.id, tuple.Value.debugName);
             }
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-            {
-                var projectId = (ProjectId)value;
-                WriteToJsonObject(writer, projectId.Id, projectId.DebugName);
-            }
+            protected override void WriteValue(JsonWriter writer, ProjectId projectId, JsonSerializer serializer)
+                => WriteToJsonObject(writer, projectId.Id, projectId.DebugName);
         }
 
-        private class DocumentIdJsonConverter : WorkspaceIdJsonConverter
+        private class DocumentIdJsonConverter : WorkspaceIdJsonConverter<DocumentId>
         {
-            public override bool CanConvert(Type objectType) => typeof(DocumentId) == objectType;
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override DocumentId ReadValue(JsonReader reader, JsonSerializer serializer)
             {
+                if (reader.TokenType == JsonToken.Null)
+                {
+                    return null;
+                }
+
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
                 var projectId = ReadProperty<ProjectId>(serializer, reader);
@@ -99,10 +97,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return DocumentId.CreateFromSerialized(projectId, id, debugName);
             }
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            protected override void WriteValue(JsonWriter writer, DocumentId documentId, JsonSerializer serializer)
             {
-                var documentId = (DocumentId)value;
-
                 writer.WriteStartObject();
 
                 writer.WritePropertyName("projectId");

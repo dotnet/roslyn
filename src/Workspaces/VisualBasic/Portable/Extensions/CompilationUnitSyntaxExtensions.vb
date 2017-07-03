@@ -3,6 +3,7 @@
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -45,43 +46,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return root
             End If
 
-            Dim comparer = If(placeSystemNamespaceFirst,
-                              ImportsStatementComparer.SystemFirstInstance,
-                              ImportsStatementComparer.NormalInstance)
+            Dim systemFirstInstance = ImportsStatementComparer.SystemFirstInstance
+            Dim normalInstance = ImportsStatementComparer.NormalInstance
+
+            Dim comparers = If(placeSystemNamespaceFirst,
+                               (systemFirstInstance, normalInstance),
+                               (normalInstance, systemFirstInstance))
 
             Dim [imports] = AddImportsStatements(root, importsStatements)
 
-            ' If the user likes to have their Imports statements unsorted, allow them to
-            If root.Imports.IsSorted(comparer) Then
-                [imports].Sort(comparer)
+            ' First, see if the imports were sorted according to the user's preference.  If so,
+            ' keep the same sorting after we add the import.  However, if the imports weren't sorted
+            ' according to their preference, then see if they're sorted in the other way.  If so
+            ' preserve that sorting as well.  That way if the user is working with a file that 
+            ' was written on a machine with a different default, the imports will stay in a 
+            ' reasonable order.
+            If root.Imports.IsSorted(comparers.Item1) Then
+                [imports].Sort(comparers.Item1)
+            ElseIf root.Imports.IsSorted(comparers.Item2) Then
+                [imports].Sort(comparers.Item2)
             End If
 
-            ' If any using we added was moved to the first location, then take the trivia from
-            ' the start of the first token And add it to the using we added.  This way things
-            ' Like #define's and #r's will stay above the using.
-            If root.Imports.Count = 0 OrElse [imports](0) IsNot root.Imports(0) Then
-                Dim firstToken = root.GetFirstToken
+            root = AddImportHelpers.MoveTrivia(
+                VisualBasicSyntaxFactsService.Instance, root, root.Imports, [imports])
 
-                ' Move the leading directives from the first directive to the New using.
-                Dim firstImport = [imports](0).WithLeadingTrivia(firstToken.LeadingTrivia.Where(Function(t) Not t.IsKind(SyntaxKind.DocumentationCommentTrivia) AndAlso Not t.IsElastic))
-
-                ' Remove the leading directives from the first token.
-                Dim newFirstToken = firstToken.WithLeadingTrivia(firstToken.LeadingTrivia.Where(Function(t) t.IsKind(SyntaxKind.DocumentationCommentTrivia) OrElse t.IsElastic))
-
-                ' Remove the leading trivia from the first token from the tree.
-                root = root.ReplaceToken(firstToken, newFirstToken)
-
-                ' Create the New list of imports
-                Dim finalImports = New List(Of ImportsStatementSyntax)
-                finalImports.Add(firstImport)
-                finalImports.AddRange(root.Imports)
-                finalImports.AddRange(importsStatements.Except({[imports](0)}))
-                finalImports.Sort(comparer)
-                [imports] = finalImports
-            End If
-
-            Return root.WithImports([imports].ToSyntaxList).WithAdditionalAnnotations(annotations)
+            Return root.WithImports(
+                [imports].Select(Function(u) u.WithAdditionalAnnotations(annotations)).ToSyntaxList())
         End Function
+
+        Private Function IsDocCommentOrElastic(t As SyntaxTrivia) As Boolean
+            Return t.Kind() = SyntaxKind.DocumentationCommentTrivia OrElse t.IsElastic()
+        End Function
+
 
         Private Function AddImportsStatements(root As CompilationUnitSyntax, importsStatements As IList(Of ImportsStatementSyntax)) As List(Of ImportsStatementSyntax)
             ' We need to try and not place the using inside of a directive if possible.

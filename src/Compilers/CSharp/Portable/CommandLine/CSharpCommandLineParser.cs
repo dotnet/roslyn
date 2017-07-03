@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool displayLogo = true;
             bool displayHelp = false;
             bool displayVersion = false;
+            bool displayLangVersions = false;
             bool optimize = false;
             bool checkOverflow = false;
             bool allowUnsafe = false;
@@ -67,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             string outputDirectory = baseDirectory;
             ImmutableArray<KeyValuePair<string, string>> pathMap = ImmutableArray<KeyValuePair<string, string>>.Empty;
             string outputFileName = null;
+            string outputRefFilePath = null;
+            bool refOnly = false;
             string documentationPath = null;
             string errorLogPath = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
@@ -381,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             continue;
+
                         case "out":
                             if (string.IsNullOrWhiteSpace(value))
                             {
@@ -391,6 +396,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ParseOutputFile(value, diagnostics, baseDirectory, out outputFileName, out outputDirectory);
                             }
 
+                            continue;
+
+                        case "refout":
+                            value = RemoveQuotesAndSlashes(value);
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
+                            }
+                            else
+                            {
+                                outputRefFilePath = ParseGenericPathToFile(value, diagnostics, baseDirectory);
+                            }
+
+                            continue;
+
+                        case "refonly":
+                            if (value != null)
+                                break;
+
+                            refOnly = true;
                             continue;
 
                         case "t":
@@ -813,6 +838,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // treat them as identifiers (behaviour in native compiler). This error helps users identify that breaking change.
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes, value);
                             }
+                            else if (value == "?")
+                            {
+                                displayLangVersions = true;
+                            }
                             else if (!value.TryParse(out languageVersion))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadCompatMode, value);
@@ -1150,6 +1179,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnosticOptions[o.Key] = o.Value;
             }
 
+            if (refOnly && outputRefFilePath != null)
+            {
+                AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoRefOutWhenRefOnly);
+            }
+
+            if (outputKind == OutputKind.NetModule && (refOnly || outputRefFilePath != null))
+            {
+                AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoNetModuleOutputWhenRefOutOrRefOnly);
+            }
+
             if (!IsScriptRunner && !sourceFilesSpecified && (outputKind.IsNetModule() || !resourcesOrModulesSpecified))
             {
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.WRN_NoSources);
@@ -1193,12 +1232,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory);
             }
 
-            if (sourceLink != null)
+            if (sourceLink != null && !emitPdb)
             {
-                if (!emitPdb || !debugInformationFormat.IsPortable())
-                {
-                    AddDiagnostic(diagnostics, ErrorCode.ERR_SourceLinkRequiresPortablePdb);
-                }
+                AddDiagnostic(diagnostics, ErrorCode.ERR_SourceLinkRequiresPdb);
             }
             
             if (embedAllSourceFiles)
@@ -1264,7 +1300,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var emitOptions = new EmitOptions
             (
-                metadataOnly: false,
+                metadataOnly: refOnly,
+                includePrivateMembers: !refOnly && outputRefFilePath == null,
                 debugInformationFormat: debugInformationFormat,
                 pdbFilePath: null, // to be determined later
                 outputNameOverride: null, // to be determined later
@@ -1290,8 +1327,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Utf8Output = utf8output,
                 CompilationName = compilationName,
                 OutputFileName = outputFileName,
+                OutputRefFilePath = outputRefFilePath,
                 PdbPath = pdbPath,
-                EmitPdb = emitPdb,
+                EmitPdb = emitPdb && !refOnly, // silently ignore emitPdb when refOnly is set
                 SourceLink = sourceLink,
                 RuleSetPath = ruleSetPath,
                 OutputDirectory = outputDirectory,
@@ -1314,6 +1352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DisplayLogo = displayLogo,
                 DisplayHelp = displayHelp,
                 DisplayVersion = displayVersion,
+                DisplayLangVersions = displayLangVersions,
                 ManifestResources = managedResources.AsImmutable(),
                 CompilationOptions = options,
                 ParseOptions = parseOptions,

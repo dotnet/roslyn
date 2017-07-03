@@ -12,6 +12,7 @@ using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -803,11 +804,11 @@ namespace Microsoft.Cci
 
         private void EmbedSourceLink(Stream stream)
         {
-            // TODO: be more efficient: https://github.com/dotnet/roslyn/issues/12853
-            var memoryStream = new MemoryStream();
+            byte[] bytes;
+
             try
             {
-                stream.CopyTo(memoryStream);
+                bytes = stream.ReadAllBytes();
             }
             catch (Exception e) when (!(e is OperationCanceledException))
             {
@@ -817,7 +818,7 @@ namespace Microsoft.Cci
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.SourceLink),
-                value: _debugMetadataOpt.GetOrAddBlob(memoryStream.ToArray()));
+                value: _debugMetadataOpt.GetOrAddBlob(bytes));
         }
     }
 }

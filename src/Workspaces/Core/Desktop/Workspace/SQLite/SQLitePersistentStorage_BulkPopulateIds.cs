@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -202,6 +203,14 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             void AddIfUnknownId(string value, HashSet<string> stringsToAdd)
             {
+                // Null strings are not supported at all.  Just ignore these. Any read/writes 
+                // to null values will fail and will return 'false/null' to indicate failure
+                // (which is part of the documented contract of the persistence layer API).
+                if (value == null)
+                {
+                    return;
+                }
+
                 if (!_stringToIdMap.TryGetValue(value, out var id))
                 {
                     stringsToAdd.Add(value);

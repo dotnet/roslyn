@@ -295,6 +295,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return (TNode)rewriter.Visit(node);
         }
 
+        public static bool IsAsyncSupportingFunctionSyntax(this SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.MethodDeclaration)
+                || node.IsAnyLambdaOrAnonymousMethod()
+                || node.IsKind(SyntaxKind.LocalFunctionStatement);
+        }
+
         public static bool IsAnyArgumentList(this SyntaxNode node)
         {
             return node.IsKind(SyntaxKind.ArgumentList) ||

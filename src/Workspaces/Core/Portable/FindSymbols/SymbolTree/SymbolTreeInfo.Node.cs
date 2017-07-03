@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         private struct BuilderNode
         {
+            public static readonly BuilderNode RootNode = new BuilderNode("", RootNodeParentIndex);
+
             public readonly string Name;
             public readonly int ParentIndex;
 

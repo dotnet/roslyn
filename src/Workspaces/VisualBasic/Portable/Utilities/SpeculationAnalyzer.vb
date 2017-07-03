@@ -19,8 +19,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     ''' the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     ''' </summary>
     Friend Class SpeculationAnalyzer
-        Inherits AbstractSpeculationAnalyzer(Of SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
-                                             ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax, SemanticModel, Conversion)
+        Inherits AbstractSpeculationAnalyzer(Of
+            ExpressionSyntax,
+            TypeSyntax,
+            AttributeSyntax,
+            ArgumentSyntax,
+            ForEachStatementSyntax,
+            ThrowStatementSyntax,
+            Conversion)
 
         ''' <summary>
         ''' Creates a semantic analyzer for speculative syntax replacement.

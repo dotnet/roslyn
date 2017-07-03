@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
+#pragma warning disable CS0618 // Type or member is obsolete
 namespace Microsoft.CodeAnalysis.Editor.Structure
 {
     [Name(nameof(RoslynBlockContextProvider)), Order]
@@ -192,3 +193,4 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
         }
     }
 }
+#pragma warning restore CS0618 // Type or member is obsolete

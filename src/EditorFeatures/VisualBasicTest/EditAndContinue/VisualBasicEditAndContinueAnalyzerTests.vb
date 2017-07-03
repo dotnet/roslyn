@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Differencing
@@ -543,8 +543,8 @@ End Class
             End Using
         End Function
 
-        <Fact>
-        Public Async Function AnalyzeDocumentAsync_SemanticError_Change() As Threading.Tasks.Task
+        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        Public Async Function AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change() As Task
             Dim source1 = "
 Class C
     Public Shared Sub Main()
@@ -558,6 +558,38 @@ Class C
     Public Shared Sub Main()
         System.Console.WriteLine(2)
         Bar()
+    End Sub
+End Class
+"
+
+            Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
+            Using workspace = TestWorkspace.CreateVisualBasic(source1)
+                Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
+                Dim oldSolution = workspace.CurrentSolution
+                Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
+
+                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), Nothing)
+
+                ' no declaration errors (error in method body is only reported when emitting)
+                Assert.False(result.HasChangesAndErrors)
+                Assert.False(result.HasChangesAndCompilationErrors)
+            End Using
+        End Function
+
+        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        Public Async Function AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change() As Task
+            Dim source1 = "
+Class C
+    Public Shared Sub Main(x As Bar)
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim source2 = "
+Class C
+    Public Shared Sub Main(x As Bar)
+        System.Console.WriteLine(2)
     End Sub
 End Class
 "

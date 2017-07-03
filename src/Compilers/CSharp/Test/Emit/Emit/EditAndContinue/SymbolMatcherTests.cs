@@ -434,7 +434,7 @@ class C
             var displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single();
             Assert.Equal("<>c__DisplayClass0_0", displayClass.Name);
 
-            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag());
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var fields = displayClass.GetFields(emitContext).ToArray();
             var x1 = fields[0];
@@ -504,7 +504,7 @@ class C
             var displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single();
             Assert.Equal("<>c__DisplayClass0_0", displayClass.Name);
 
-            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag());
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var fields = displayClass.GetFields(emitContext).ToArray();
             AssertEx.SetEqual(fields.Select(f => f.Name), new[] { "x1", "x2" });
@@ -769,7 +769,7 @@ public class C
     public delegate (int, int) F();
 }";
             var source1 = @"
-public struct C
+public class C
 {
     public delegate (int, bool) F();
 }";
@@ -799,7 +799,7 @@ public class C
     public delegate (int, int) F();
 }";
             var source1 = @"
-public struct C
+public class C
 {
     public delegate (int x, int y) F();
 }";

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
@@ -6,8 +6,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     {
         private static object s_systemCaptionTextColorKey = "SystemCaptionTextColor";
         private static object s_checkBoxTextBrushKey = "CheckboxTextBrush";
-        private static object s_renameResolvableConflictTextBrushKey = "RenameResolvableConflictTextBrush";
-        private static object s_renameErrorTextBrushKey = "RenameErrorTextBrush";
         private static object s_systemCaptionTextBrushKey = "SystemCaptionTextBrush";
         private static object s_backgroundBrushKey = "BackgroundBrush";
         private static object s_buttonStyleKey = "ButtonStyle";
@@ -49,32 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             set
             {
                 s_checkBoxTextBrushKey = value;
-            }
-        }
-
-        public static object RenameResolvableConflictTextBrushKey
-        {
-            get
-            {
-                return s_renameResolvableConflictTextBrushKey;
-            }
-
-            set
-            {
-                s_renameResolvableConflictTextBrushKey = value;
-            }
-        }
-
-        public static object RenameErrorTextBrushKey
-        {
-            get
-            {
-                return s_renameErrorTextBrushKey;
-            }
-
-            set
-            {
-                s_renameErrorTextBrushKey = value;
             }
         }
 

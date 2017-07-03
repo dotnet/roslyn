@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
             VisitArray(operation.ArgumentsInEvaluationOrder);
-            VisitArray(operation.MemberInitializers);
+            VisitArray(operation.Initializers);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)

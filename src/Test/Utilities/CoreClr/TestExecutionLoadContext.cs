@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             }
         }
 
-        internal (int ExitCode, string Output) Execute(ImmutableArray<byte> mainImage, int expectedOutputLength)
+        internal (int ExitCode, string Output) Execute(ImmutableArray<byte> mainImage, string[] mainArgs, int? expectedOutputLength)
         {
             var mainAssembly = LoadImageAsAssembly(mainImage);
             var entryPoint = mainAssembly.EntryPoint;
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 }
                 else if (count == 1)
                 {
-                    args = new[] { Array.Empty<string>() };
+                    args = new[] { mainArgs ?? Array.Empty<string>() };
                 }
                 else
                 {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 }
 
                 exitCode = entryPoint.Invoke(null, args) is int exit ? exit : 0;
-            }, expectedOutputLength, out var stdOut, out var stdErr);
+            }, expectedOutputLength ?? 0, out var stdOut, out var stdErr);
 
             var output = stdOut + stdErr;
             return (exitCode, output);

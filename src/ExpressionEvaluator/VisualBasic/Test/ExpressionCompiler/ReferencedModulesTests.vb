@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
@@ -491,7 +492,7 @@ End Namespace"
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 Nothing,
-                Function(moduleBuilder) New PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, objectType),
+                Function(moduleBuilder, emitOptions) New PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
                 peBytes,
                 pdbBytes)
 
@@ -595,8 +596,8 @@ End Class"
             Private ReadOnly _builder As CommonPEModuleBuilder
             Private ReadOnly _objectType As NamespaceTypeDefinitionNoBase
 
-            Friend Sub New(builder As CommonPEModuleBuilder, objectType As INamespaceTypeDefinition)
-                MyBase.New(DirectCast(builder.CommonSourceModule, SourceModuleSymbol), builder.EmitOptions, builder.OutputKind, builder.SerializationProperties, builder.ManifestResources)
+            Friend Sub New(builder As CommonPEModuleBuilder, emitOptions As EmitOptions, objectType As INamespaceTypeDefinition)
+                MyBase.New(DirectCast(builder.CommonSourceModule, SourceModuleSymbol), emitOptions, builder.OutputKind, builder.SerializationProperties, builder.ManifestResources)
 
                 _builder = builder
                 _objectType = New NamespaceTypeDefinitionNoBase(objectType)
