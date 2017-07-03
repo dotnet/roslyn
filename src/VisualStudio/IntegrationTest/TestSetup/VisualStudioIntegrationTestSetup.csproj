@@ -21,7 +21,6 @@
     <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'" />

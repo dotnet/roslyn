@@ -9,7 +9,6 @@
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

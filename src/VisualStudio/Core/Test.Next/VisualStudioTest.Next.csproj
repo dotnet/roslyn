@@ -13,7 +13,6 @@
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
     <RoslynProjectType>UnitTest</RoslynProjectType>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">

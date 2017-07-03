@@ -12,7 +12,6 @@
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7;ubuntu.14.04;osx.10.10</RuntimeIdentifiers>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

@@ -12,7 +12,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.Remote.Razor.ServiceHub</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Remote.Razor.ServiceHub</AssemblyName>
     <TargetFramework>net46</TargetFramework>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

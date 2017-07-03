@@ -9,7 +9,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Scripting</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.Scripting</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

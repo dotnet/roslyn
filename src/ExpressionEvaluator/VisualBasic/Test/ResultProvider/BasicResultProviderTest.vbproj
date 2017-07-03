@@ -12,7 +12,6 @@
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <VBRuntime>Default</VBRuntime>
     <RoslynProjectType>UnitTest</RoslynProjectType>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Xml.Linq" />

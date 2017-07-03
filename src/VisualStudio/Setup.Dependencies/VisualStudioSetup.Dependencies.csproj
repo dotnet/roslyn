@@ -23,7 +23,6 @@
     <Ngen>true</Ngen>
     <NgenArchitecture>All</NgenArchitecture>
     <NgenPriority>3</NgenPriority>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup>
     <StartAction>Program</StartAction>

@@ -13,7 +13,6 @@
     <!-- Package Microsoft.VisualStudio.Debugger.Engine 15.0.26201-gamma is not compatible with netstandard1.3 -->
     <PackageTargetFallback>portable-net46</PackageTargetFallback>
     <DefineConstants>$(DefineConstants);EXPRESSIONCOMPILER</DefineConstants>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">

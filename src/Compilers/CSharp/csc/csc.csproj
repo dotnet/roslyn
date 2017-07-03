@@ -12,7 +12,6 @@
     <StartupObject>Microsoft.CodeAnalysis.CSharp.CommandLine.Program</StartupObject>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj">

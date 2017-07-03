@@ -69,7 +69,6 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

@@ -13,7 +13,6 @@
     <NoStdLib>true</NoStdLib>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">

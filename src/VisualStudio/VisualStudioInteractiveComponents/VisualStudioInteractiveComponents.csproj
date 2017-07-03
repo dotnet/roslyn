@@ -21,7 +21,6 @@
     <IsProductComponent>true</IsProductComponent>
     <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\InteractiveComponents</ExtensionInstallationFolder>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\CSharp\Repl\CSharpVisualStudioRepl.csproj">

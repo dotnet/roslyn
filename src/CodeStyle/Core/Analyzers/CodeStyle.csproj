@@ -9,7 +9,6 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CodeStyle</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

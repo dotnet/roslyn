@@ -11,7 +11,6 @@
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7-x86</RuntimeIdentifiers>
     <Nonshipping>true</Nonshipping>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'" />

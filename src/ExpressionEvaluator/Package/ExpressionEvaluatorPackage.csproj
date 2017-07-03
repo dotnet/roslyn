@@ -22,7 +22,6 @@
     <IsProductComponent>true</IsProductComponent>
     <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\ExpressionEvaluators</ExtensionInstallationFolder>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\VisualStudio\Core\Impl\ServicesVisualStudioImpl.csproj">

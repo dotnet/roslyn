@@ -13,7 +13,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

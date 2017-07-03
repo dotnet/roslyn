@@ -9,7 +9,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures</AssemblyName>
     <TargetFramework>net46</TargetFramework>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

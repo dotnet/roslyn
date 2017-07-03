@@ -12,7 +12,6 @@
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">

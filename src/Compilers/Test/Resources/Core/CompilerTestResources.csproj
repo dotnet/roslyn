@@ -10,7 +10,6 @@
     <AssemblyName>Roslyn.Compilers.Test.Resources</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
     <RootNamespace></RootNamespace>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

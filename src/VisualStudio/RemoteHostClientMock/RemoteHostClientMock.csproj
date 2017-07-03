@@ -21,7 +21,6 @@
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>Vsix</RoslynProjectType>
-    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
