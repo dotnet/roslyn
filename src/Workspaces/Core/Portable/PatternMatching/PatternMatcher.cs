@@ -331,62 +331,53 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             //
             // 2) For each word try to match the word against the candidate value.
             //
-            // 3) Matching is as follows:
-            //
-            //   a) Check if the word matches the candidate entirely, in an case insensitive or
-            //    sensitive manner.  If it does, return that there was an exact match.
-            //
-            //   b) Check if the word is a prefix of the candidate, in a case insensitive or
-            //      sensitive manner.  If it does, return that there was a prefix match.
-            //
-            //   c) If the word is entirely lowercase, then check if it is contained anywhere in the
-            //      candidate in a case insensitive manner.  If so, return that there was a substring
-            //      match. 
-            //
-            //      Note: We only have a substring match if the lowercase part is prefix match of
-            //      some word part. That way we don't match something like 'Class' when the user
-            //      types 'a'. But we would match 'FooAttribute' (since 'Attribute' starts with
-            //      'a').
-            //
-            //   d) If the word was not entirely lowercase, then check if it is contained in the
-            //      candidate in a case *sensitive* manner. If so, return that there was a substring
-            //      match.
-            //
-            //   e) If the word was entirely lowercase, then attempt a special lower cased camel cased 
-            //      match.  i.e. cofipro would match CodeFixProvider.
-            //
-            //   f) If the word was not entirely lowercase, then attempt a normal camel cased match.
-            //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
-            //
-            //   g) The word is all lower case. Is it a case insensitive substring of the candidate starting 
-            //      on a part boundary of the candidate?
+            // 3) Matching logic is outlined in NonFuzzyMatchPatternChunk. It's not repeated here to
+            //    prevent having multiple places to keep up to date.
             //
             // Only if all words have some sort of match is the pattern considered matched.
 
-            var tempMatches = ArrayBuilder<PatternMatch>.GetInstance();
+            // Special case a simple pattern (alpha-numeric with no spaces).  This is the common
+            // case and we want to prevent unnecessary overhead.
+            var subWordTextChunks = segment.SubWordTextChunks;
 
-            try
+            if (subWordTextChunks.Length == 1)
             {
-                var subWordTextChunks = segment.SubWordTextChunks;
-                foreach (var subWordTextChunk in subWordTextChunks)
+                var result = MatchPatternChunk(
+                    candidate, subWordTextChunks[0], punctuationStripped: true, fuzzyMatch: fuzzyMatch);
+                if (result == null)
                 {
-                    // Try to match the candidate with this word
-                    var result = MatchPatternChunk(
-                        candidate, subWordTextChunk, punctuationStripped: true, fuzzyMatch: fuzzyMatch);
-                    if (result == null)
-                    {
-                        return false;
-                    }
-
-                    tempMatches.Add(result.Value);
+                    return false;
                 }
 
-                matches.AddRange(tempMatches);
-                return tempMatches.Count > 0;
+                matches.Add(result.Value);
+                return true;
             }
-            finally
+            else
             {
-                tempMatches.Free();
+                var tempMatches = ArrayBuilder<PatternMatch>.GetInstance();
+
+                try
+                {
+                    foreach (var subWordTextChunk in subWordTextChunks)
+                    {
+                        // Try to match the candidate with this word
+                        var result = MatchPatternChunk(
+                            candidate, subWordTextChunk, punctuationStripped: true, fuzzyMatch: fuzzyMatch);
+                        if (result == null)
+                        {
+                            return false;
+                        }
+
+                        tempMatches.Add(result.Value);
+                    }
+
+                    matches.AddRange(tempMatches);
+                    return tempMatches.Count > 0;
+                }
+                finally
+                {
+                    tempMatches.Free();
+                }
             }
         }
 
