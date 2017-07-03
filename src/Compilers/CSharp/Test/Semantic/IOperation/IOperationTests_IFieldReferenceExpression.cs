@@ -27,7 +27,8 @@ class C
 ";
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'Conditional(field)')
-  Children(1): IFieldReferenceExpression: System.String C.field (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: ""field"") (Syntax: 'field')
+  Children(1):
+IFieldReferenceExpression: System.String C.field (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: ""field"") (Syntax: 'field')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

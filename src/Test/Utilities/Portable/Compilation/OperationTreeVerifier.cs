@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var elementCount = logElementCount ? $"({list.Length})" : string.Empty;
             Indent();
-            LogString($"{header}{elementCount}: ");
+            LogString($"{header}{elementCount}:"+Environment.NewLine);
             VisitArray(list);
             Unindent();
         }

@@ -41,7 +41,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"Only text part"')
-  Parts(1): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'Only text part')
+  Parts(1):
+IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'Only text part')
       Text: ILiteralExpression (Text: Only text part) (OperationKind.LiteralExpression, Type: System.String, Constant: "Only text part") (Syntax: 'Only text part')
 ]]>.Value
 
@@ -63,7 +64,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{1}"')
-  Parts(1): IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
+  Parts(1):
+IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
       Expression: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
@@ -85,7 +87,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid) (Syntax: '$"{}"')
-  Parts(1): IInterpolation (OperationKind.Interpolation, IsInvalid) (Syntax: '{}')
+  Parts(1):
+IInterpolation (OperationKind.Interpolation, IsInvalid) (Syntax: '{}')
       Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
 ]]>.Value
 
@@ -111,7 +114,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
-  Parts(4): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+  Parts(4):
+IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
       Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
     IInterpolation (OperationKind.Interpolation) (Syntax: '{x}')
       Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -142,7 +146,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
-  Parts(6): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+  Parts(6):
+IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
       Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
     IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20}')
       Expression: IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
@@ -180,7 +185,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x,20:D3}"')
-  Parts(2): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+  Parts(2):
+IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
       Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
     IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20:D3}')
       Expression: IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
@@ -213,7 +219,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
-  Parts(6): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+  Parts(6):
+IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
       Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
     IInterpolation (OperationKind.Interpolation) (Syntax: '{x}')
       Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x')
@@ -222,7 +229,8 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
     IInterpolation (OperationKind.Interpolation) (Syntax: '{M2(y)}')
       Expression: IInvocationExpression ( Function [Class].M2(z As System.Int32) As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'M2(y)')
           Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'M2')
-          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'y')
+          Arguments(1):
+IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'y')
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
     IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
       Text: ILiteralExpression (Text:  and constant ) (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
@@ -254,14 +262,17 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {M2($"{y}")}"')
-  Parts(2): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+  Parts(2):
+IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
       Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
     IInterpolation (OperationKind.Interpolation) (Syntax: '{M2($"{y}")}')
       Expression: IInvocationExpression ( Function [Class].M2(z As System.String) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'M2($"{y}")')
           Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'M2')
-          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: '$"{y}"')
+          Arguments(1):
+IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: '$"{y}"')
               IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{y}"')
-                Parts(1): IInterpolation (OperationKind.Interpolation) (Syntax: '{y}')
+                Parts(1):
+IInterpolation (OperationKind.Interpolation) (Syntax: '{y}')
                     Expression: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ]]>.Value
 
@@ -283,7 +294,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid) (Syntax: '$"String {x ...  {[Class]}"')
-  Parts(4): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+  Parts(4):
+IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
       Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
     IInterpolation (OperationKind.Interpolation, IsInvalid) (Syntax: '{x1}')
       Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x1')
