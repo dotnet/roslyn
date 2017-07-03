@@ -108,8 +108,9 @@ namespace Roslyn.Utilities
         private static readonly ThreadLocal<int[,]> t_matrixPool = 
             new ThreadLocal<int[,]>(() => InitializeMatrix(new int[MaxMatrixPoolDimension, MaxMatrixPoolDimension]));
 
-        private static ThreadLocal<Dictionary<char, int>> t_dictionaryPool = 
-            new ThreadLocal<Dictionary<char, int>>(() => new Dictionary<char, int>());
+        private const int LastSeenIndexLength = 128;
+        private static ThreadLocal<int[]> t_lastSeenIndexPool = 
+            new ThreadLocal<int[]>(() => new int[LastSeenIndexLength]);
 
         private static int[,] GetMatrix(int width, int height)
         {
@@ -487,8 +488,8 @@ namespace Roslyn.Utilities
 
             var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
 
-            var characterToLastSeenIndex_inSource = t_dictionaryPool.Value;
-            characterToLastSeenIndex_inSource.Clear();
+            var characterToLastSeenIndex_inSource = t_lastSeenIndexPool.Value;
+            Array.Clear(characterToLastSeenIndex_inSource, 0, LastSeenIndexLength);
 
             for (int i = 1; i <= sourceLength; i++)
             {
@@ -517,7 +518,7 @@ namespace Roslyn.Utilities
                 {
                     var targetChar = target[j - 1];
 
-                    var i1 = GetValue(characterToLastSeenIndex_inSource, targetChar);
+                    var i1 = targetChar < LastSeenIndexLength ? 0 : characterToLastSeenIndex_inSource[targetChar];
                     var j1 = lastMatchIndex_inTarget;
 
                     var matched = sourceChar == targetChar;
@@ -533,7 +534,10 @@ namespace Roslyn.Utilities
                         matrix[i1, j1] + (i - i1 - 1) + 1 + (j - j1 - 1));
                 }
 
-                characterToLastSeenIndex_inSource[sourceChar] = i;
+                if (sourceChar < LastSeenIndexLength)
+                {
+                    characterToLastSeenIndex_inSource[sourceChar] = i;
+                }
 
                 // Recall that minimumEditCount is simply the difference in length of our two
                 // strings.  So matrix[i+1,i+1] is the cost for the upper-left diagonal of the
