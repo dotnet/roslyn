@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private readonly CompareInfo _compareInfo;
         private readonly TextInfo _textInfo;
 
+        private readonly CompareOptions _ignoreCaseCompareOptions;
+        private readonly CompareOptions _compareOptions;
+
         private bool _invalidPattern;
 
         /// <summary>
@@ -57,7 +60,13 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             culture = culture ?? CultureInfo.CurrentCulture;
             if (culture.Name == "en-US")
             {
-                culture = CultureInfo.InvariantCulture;
+                _compareOptions = CompareOptions.Ordinal;
+                _ignoreCaseCompareOptions = CompareOptions.OrdinalIgnoreCase;
+            }
+            else
+            {
+                _compareOptions = CompareOptions.None;
+                _ignoreCaseCompareOptions = CompareOptions.IgnoreCase;
             }
 
             _compareInfo = culture.CompareInfo;
@@ -176,7 +185,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             TextChunk patternChunk,
             bool punctuationStripped)
         {
-            int caseInsensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.IgnoreCase);
+            int caseInsensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, _ignoreCaseCompareOptions);
             if (caseInsensitiveIndex == 0)
             {
                 if (patternChunk.Text.Length == candidate.Length)
@@ -192,7 +201,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     // b) Check if the part is a prefix of the candidate, in a case insensitive or sensitive
                     //    manner.  If it does, return that there was a prefix match.
                     return new PatternMatch(
-                        PatternMatchKind.Prefix, punctuationStripped, isCaseSensitive: _compareInfo.IsPrefix(candidate, patternChunk.Text),
+                        PatternMatchKind.Prefix, punctuationStripped, 
+                        isCaseSensitive: _compareInfo.IsPrefix(candidate, patternChunk.Text, _compareOptions),
                         matchedSpan: GetMatchedSpan(0, patternChunk.Text.Length));
                 }
             }
@@ -221,7 +231,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                             PatternMatchKind.Substring, punctuationStripped,
                             isCaseSensitive: PartStartsWith(
                                 candidate, new TextSpan(caseInsensitiveIndex, patternChunk.Text.Length),
-                                patternChunk.Text, CompareOptions.None),
+                                patternChunk.Text, _compareOptions),
                             matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
                     }
 
@@ -229,10 +239,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     for (int i = 0, n = candidateHumps.GetCount(); i < n; i++)
                     {
                         var hump = candidateHumps[i];
-                        if (PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.IgnoreCase))
+                        if (PartStartsWith(candidate, hump, patternChunk.Text, _ignoreCaseCompareOptions))
                         {
                             return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
-                                isCaseSensitive: PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.None),
+                                isCaseSensitive: PartStartsWith(candidate, hump, patternChunk.Text, _compareOptions),
                                 matchedSpan: GetMatchedSpan(hump.Start, patternChunk.Text.Length));
                         }
                     }
@@ -248,7 +258,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 // don't bother searching if the first case insensitive match failed.
                 if (caseInsensitiveIndex > 0)
                 {
-                    var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text);
+                    var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, _compareOptions);
                     if (caseSensitiveIndex > 0)
                     {
                         return new PatternMatch(
@@ -438,7 +448,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return false;
             }
 
-            return _compareInfo.Compare(candidate, candidatePart.Start, patternPart.Length, pattern, patternPart.Start, patternPart.Length, compareOptions) == 0;
+            return _compareInfo.Compare(
+                candidate, candidatePart.Start, patternPart.Length, 
+                pattern, patternPart.Start, patternPart.Length, compareOptions) == 0;
         }
 
         /// <summary>
@@ -477,7 +489,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 if (patternChunk.PatternHumps.Count > 0)
                 {
                     var candidateHumps = GetCandidateHumps(candidate);
-                    var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
+                    var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, _compareOptions, out var matchedSpans);
                     if (camelCaseKind.HasValue)
                     {
                         return new PatternMatch(
@@ -485,7 +497,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                             matchedSpans: matchedSpans);
                     }
 
-                    camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
+                    camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, _ignoreCaseCompareOptions, out matchedSpans);
                     if (camelCaseKind.HasValue)
                     {
                         return new PatternMatch(
