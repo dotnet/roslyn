@@ -318,14 +318,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitPlaceholderExpression(operation);
         }
 
-        public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
-        {
-            var member = operation.Member;
-            var property = operation.Property;
-
-            base.VisitIndexedPropertyReferenceExpression(operation);
-        }
-
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
@@ -458,9 +450,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitArrayInitializer(operation);
         }
 
-        public override void VisitAssignmentExpression(IAssignmentExpression operation)
+        public override void VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation)
         {
-            base.VisitAssignmentExpression(operation);
+            base.VisitSimpleAssignmentExpression(operation);
         }
 
         public override void VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation)
@@ -476,7 +468,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var binaryOperationKind = operation.BinaryOperationKind;
             var incrementOperationKind = operation.IncrementOperationKind;
 
             base.VisitIncrementExpression(operation);

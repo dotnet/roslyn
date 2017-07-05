@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IBaseAssignmentExpression : IOperation
+    public interface IAssignmentExpression : IOperation
     {
         /// <summary>
         /// Target of the assignment.
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IAssignmentExpression : IBaseAssignmentExpression
+    public interface ISimpleAssignmentExpression : IAssignmentExpression
     {
     }
 }

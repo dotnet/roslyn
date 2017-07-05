@@ -142,7 +142,7 @@ class Program
             string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x = nul ... }')
   Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x = null')
-      IAssignmentExpression (OperationKind.AssignmentExpression, Type: Program) (Syntax: 'x = null')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: Program) (Syntax: 'x = null')
         Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
         Right: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: Program, Constant: null) (Syntax: 'null')
             ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')

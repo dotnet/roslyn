@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -26,15 +27,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             return ImmutableArray.Create(Create(statement));
-        }
-
-        private ILiteralExpression CreateIncrementOneLiteralExpression(BoundIncrementOperator increment)
-        {
-            string text = increment.Syntax.ToString();
-            SyntaxNode syntax = increment.Syntax;
-            ITypeSymbol type = increment.Type;
-            Optional<object> constantValue = ConvertToOptional(Semantics.Expression.SynthesizeNumeric(increment.Type, 1));
-            return new LiteralExpression(text, syntax, type, constantValue);
         }
 
         internal static IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
@@ -73,8 +65,14 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             //TODO: https://github.com/dotnet/roslyn/issues/18722
             //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
-            //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid invocation instead.
-            if (boundNode.HasErrors || (object)optionalParametersMethod == null)
+            //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid 
+            //      invocation instead.
+            //      Note this check doesn't cover all scenarios. For example, when a parameter is a generic type but the type of the type argument 
+            //      is undefined.
+            if ((object)optionalParametersMethod == null 
+                || boundNode.HasAnyErrors
+                || parameters.Any(p => p.Type.IsErrorType())
+                || optionalParametersMethod.GetUseSiteDiagnostic()?.DefaultSeverity == DiagnosticSeverity.Error)
             {
                 // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
                 // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
@@ -136,6 +134,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 case CSharp.ConversionKind.PointerToPointer:
                 case CSharp.ConversionKind.PointerToVoid:
                     return Semantics.ConversionKind.CSharp;
+
+                case CSharp.ConversionKind.InterpolatedString:
+                    return Semantics.ConversionKind.InterpolatedString;
 
                 default:
                     return Semantics.ConversionKind.Invalid;

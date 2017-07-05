@@ -5,11 +5,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using EnvDTE;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Process = System.Diagnostics.Process;
@@ -37,7 +40,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 15.0 and later.");
             }
-
         }
 
         public VisualStudioInstanceFactory()
@@ -50,14 +52,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             try
             {
-                var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
-                var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+                var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                var fileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}.png";
+                var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
+                var baseFileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}";
+                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
 
-                var fullPath = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots", fileName);
+                var exception = eventArgs.Exception;
+                File.WriteAllText(
+                    Path.Combine(logDir, $"{baseFileName}.log"),
+                    $"{exception}.GetType().Name{Environment.NewLine}{exception.StackTrace}");
 
-                ScreenshotService.TakeScreenshot(fullPath);
             }
             catch (Exception e)
             {
@@ -152,6 +157,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 installationPath = instance.GetInstallationPath();
 
                 hostProcess = StartNewVisualStudioProcess(installationPath);
+
+                var procDumpPath = Environment.GetEnvironmentVariable(ProcDumpRunner.ProcDumpPathEnvironmentVariableKey);
+                ProcDumpRunner.StartProcDump(procDumpPath, hostProcess.Id, hostProcess.ProcessName, Path.Combine(GetAssemblyDirectory(), "xUnitResults"), s => Debug.WriteLine(s));
+
                 // We wait until the DTE instance is up before we're good
                 dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).Result;
             }
@@ -270,10 +279,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             IntegrationHelper.KillProcess("dexplore");
 
             var process = Process.Start(vsExeFile, VsLaunchArgs);
-
             Debug.WriteLine($"Launched a new instance of Visual Studio. (ID: {process.Id})");
 
             return process;
+        }
+
+        private static string GetAssemblyDirectory()
+        {
+            var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
+            return Path.GetDirectoryName(assemblyPath);
         }
 
         public void Dispose()

@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim syntax As SyntaxNode = boundAssignmentOperator.Syntax
                 Dim type As ITypeSymbol = boundAssignmentOperator.Type
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
-                Return New LazyAssignmentExpression(target, value, syntax, type, constantValue)
+                Return New LazySimpleAssignmentExpression(target, value, syntax, type, constantValue)
             End If
         End Function
 
@@ -491,7 +491,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyArrayInitializer(elementValues, syntax, type, constantValue)
         End Function
 
-        Private Function CreateBoundPropertyAccessOperation(boundPropertyAccess As BoundPropertyAccess) As IBasePropertyReferenceExpression
+        Private Function CreateBoundPropertyAccessOperation(boundPropertyAccess As BoundPropertyAccess) As IPropertyReferenceExpression
             Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(
                 Function()
                     If boundPropertyAccess.PropertySymbol.IsShared Then
@@ -503,13 +503,16 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             Dim [property] As IPropertySymbol = boundPropertyAccess.PropertySymbol
             Dim member As ISymbol = boundPropertyAccess.PropertySymbol
-            Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(Function() DeriveArguments(boundPropertyAccess.Arguments, boundPropertyAccess.PropertySymbol.Parameters))
+            Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(
+                Function()
+                    Return If(boundPropertyAccess.Arguments.Length = 0,
+                        ImmutableArray(Of IArgument).Empty,
+                        DeriveArguments(boundPropertyAccess.Arguments, boundPropertyAccess.PropertySymbol.Parameters))
+                End Function)
             Dim syntax As SyntaxNode = boundPropertyAccess.Syntax
             Dim type As ITypeSymbol = boundPropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundPropertyAccess.ConstantValueOpt)
-            Return If(boundPropertyAccess.Arguments.Length > 0,
-                DirectCast(New LazyIndexedPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, syntax, type, constantValue), IBasePropertyReferenceExpression),
-                New LazyPropertyReferenceExpression([property], instance, member, syntax, type, constantValue))
+            Return New LazyPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundEventAccessOperation(boundEventAccess As BoundEventAccess) As IEventReferenceExpression

@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 default(Optional<object>));
         }
 
-        public static IExpressionStatement CreateAssignmentExpressionStatement(IOperation target, IOperation value, SyntaxNode syntax)
+        public static IExpressionStatement CreateSimpleAssignmentExpressionStatement(IOperation target, IOperation value, SyntaxNode syntax)
         {
-            var expression = new AssignmentExpression(target, value, syntax, target.Type, default(Optional<object>));
+            var expression = new SimpleAssignmentExpression(target, value, syntax, target.Type, default(Optional<object>));
             return new ExpressionStatement(expression, syntax, type: null, constantValue: default(Optional<object>));
         }
 
