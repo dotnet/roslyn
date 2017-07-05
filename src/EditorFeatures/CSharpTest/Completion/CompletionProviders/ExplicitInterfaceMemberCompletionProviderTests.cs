@@ -100,6 +100,7 @@ class Bar : IFoo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(19947, "https://github.com/dotnet/roslyn/issues/19947")]
         public async Task ExplicitInterfaceMemberCompletionContainsOnlyValidValues()
         {
             var markup = @"
