@@ -104,7 +104,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<VisualStudioTodoListTable>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
 
-            this.ComponentModel.GetService<HACK_ThemeColorFixer>();
             this.ComponentModel.GetExtensions<IDefinitionsAndReferencesPresenter>();
             this.ComponentModel.GetExtensions<INavigableItemsPresenter>();
             this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
