@@ -1782,28 +1782,6 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
         End Sub
 
         <Fact()>
-        Public Sub Test_UnaryOperatorExpression_With_CustomType_NoRightOperator()
-            Dim source = <![CDATA[
-Class A
-    Function Method() As CustomType
-        Dim i As CustomType = Nothing
-        Return +i 'BIND:"+i"
-    End Function
-End Class
-
-Public Class CustomType
-End Class]]>.Value
-
-            Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: CustomType, IsInvalid) (Syntax: '+i')
-  IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
-    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType) (Syntax: 'i')
-]]>.Value
-
-            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
-        End Sub
-
-        <Fact()>
         Public Sub Test_UnaryOperatorExpression_With_CustomType_DerivedTypes()
             Dim source = <![CDATA[
 Class A
