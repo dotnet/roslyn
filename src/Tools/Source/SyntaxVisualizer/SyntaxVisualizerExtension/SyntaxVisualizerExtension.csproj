@@ -143,7 +143,6 @@
       <Project>{afe45e23-e7ee-48c5-8143-ebe2ff67070f}</Project>
       <Name>SyntaxVisualizerControl</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\SyntaxVisualizerDgmlHelper\SyntaxVisualizerDgmlHelper.vbproj">
       <Project>{da4f74af-2694-4ac9-a8cc-18382de8215e}</Project>
