@@ -106,8 +106,5 @@
     <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
     <PackageReference Include="System.Xml.XPath.XDocument" Version="$(SystemXmlXPathXDocumentVersion)" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="ProvideRoslynBindingRedirection.cs" />
-  </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

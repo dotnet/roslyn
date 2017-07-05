@@ -117,12 +117,6 @@
   <ItemGroup>
     <PackageReference Include="System.Reflection" Version="$(SystemReflectionVersion)" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="CodeRefactorings\AbstractCodeRefactoringService.cs" />
-    <Compile Remove="Completion\AbstractCompletionService.cs" />
-    <Compile Remove="Completion\ICompletionService.cs" />
-    <Compile Remove="Shared\Extensions\ILanguageMetadataExtensions.cs" />
-  </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

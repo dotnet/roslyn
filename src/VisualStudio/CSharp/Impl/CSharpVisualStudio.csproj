@@ -149,8 +149,5 @@
   <ItemGroup>
     <Content Include="CSharpPackageRegistration.pkgdef" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Options\CSharpSettingsSerializer.cs" />
-  </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -117,9 +117,5 @@
       <LastGenOutput>WorkspaceDesktopResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Utilities\FilePathUtilities.cs" />
-    <Compile Remove="Workspace\Host\Metadata\MetadataServiceFactory.cs" />
-  </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

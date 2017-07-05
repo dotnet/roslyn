@@ -210,8 +210,8 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
-    <!--<Compile Include="ExtractInterface\ExtractInterfaceViewModelTests.vb" />-->
     <Content Include="Debugging\ProximityExpressionsGetterTestFile.vb" />
+    <Compile Remove="Debugging\ProximityExpressionsGetterTestFile.vb" />
     <Compile Update="Debugging\Resources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -227,9 +227,6 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Debugging\ProximityExpressionsGetterTestFile.vb" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

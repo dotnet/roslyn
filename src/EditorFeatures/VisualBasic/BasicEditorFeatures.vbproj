@@ -96,9 +96,5 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Extensions\ClassificationExtensions.vb" />
-    <Compile Remove="GenerateMember\GenerateVariable\VisualBasicGenerateVariableService.vb" />
-  </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

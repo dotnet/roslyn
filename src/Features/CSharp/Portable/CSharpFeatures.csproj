@@ -76,13 +76,6 @@
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="AddImport\CSharpAddImportDiagnosticProvider.cs" />
-    <Compile Remove="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastDiagnosticProvider.cs" />
-    <Compile Remove="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesDiagnosticProvider.cs" />
-    <Compile Remove="CodeRefactorings\CSharpCodeRefactoringService.cs" />
-    <Compile Remove="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -91,10 +91,5 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="CodeActions\GenerateVariable\GenerateVariableCodeIssueProvider.cs" />
-    <Compile Remove="Extensions\ClassificationExtensions.cs" />
-    <Compile Remove="GenerateMember\GenerateVariable\CSharpGenerateVariableService.cs" />
-  </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -167,11 +167,5 @@
   <ItemGroup>
     <Folder Include="Extensibility\Navigation\" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Implementation\CodeRefactorings\CodeFix.cs" />
-    <Compile Remove="Implementation\CodeRefactorings\CodeRefactoringProducer.cs" />
-    <Compile Remove="Shared\Utilities\TextViewVisibleSpanTracker.cs" />
-    <Compile Remove="Shared\Utilities\VisibleSpansChangedEventArgs.cs" />
-  </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

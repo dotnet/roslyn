@@ -198,6 +198,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Debugging\ProximityExpressionsGetterTestFile.cs" />
+    <Compile Remove="Debugging\ProximityExpressionsGetterTestFile.cs" />
     <Compile Update="Debugging\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -213,10 +214,6 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="CompilationErrorTelemetry\CompilationErrorTelemetryTests.cs" />
-    <Compile Remove="Debugging\ProximityExpressionsGetterTestFile.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
