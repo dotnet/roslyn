@@ -92,7 +92,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void VerifyAnalyzeNodeCalledForAllSyntaxKinds(HashSet<TLanguageKindEnum> syntaxKindsPatterns)
         {
             var expectedSyntaxKinds = AllSyntaxKinds.Where(IsAnalyzeNodeSupported);
-            var actualSyntaxKinds = _callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind).Concat(syntaxKindsPatterns).Distinct();
+            var actualSyntaxKinds = new HashSet<TLanguageKindEnum>(_callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind));
+            var savedSyntaxKindsPatterns = new HashSet<TLanguageKindEnum>(syntaxKindsPatterns);
+            syntaxKindsPatterns.IntersectWith(actualSyntaxKinds);
+            Assert.True(syntaxKindsPatterns.Count == 0, "AllInOne test contains ignored SyntaxKinds: " + string.Join(", ", syntaxKindsPatterns));
+            actualSyntaxKinds.UnionWith(savedSyntaxKindsPatterns);
             AssertIsSuperset(expectedSyntaxKinds, actualSyntaxKinds);
         }
 
