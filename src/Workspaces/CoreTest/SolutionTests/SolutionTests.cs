@@ -1465,6 +1465,34 @@ public class C : A {
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(18697, "https://github.com/dotnet/roslyn/issues/18697")]
+        public void TestWithSyntaxTree()
+        {
+            // get one to get to syntax tree factory
+            var dummyProject = CreateNotKeptAliveSolution().AddProject("dummy", "dummy", LanguageNames.CSharp);
+
+            var factory = dummyProject.LanguageServices.SyntaxTreeFactory;
+
+            // create the origin tree
+            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), CancellationToken.None);
+
+            // create recoverable tree off the original tree
+            var recoverableTree = factory.CreateRecoverableTree(
+                dummyProject.Id, 
+                strongTree.FilePath, 
+                strongTree.Options, 
+                new ConstantValueSource<TextAndVersion>(TextAndVersion.Create(strongTree.GetText(), VersionStamp.Create(), strongTree.FilePath)), 
+                strongTree.GetText().Encoding, 
+                strongTree.GetRoot());
+
+            // create new tree before it ever getting root node
+            var newTree = recoverableTree.WithFilePath("different/dummy");
+
+            // this shouldn't throw
+            var root = newTree.GetRoot();
+        }
+
         private static void GetMultipleProjects(
             out Project csBrokenProject,
             out Project vbNormalProject,
