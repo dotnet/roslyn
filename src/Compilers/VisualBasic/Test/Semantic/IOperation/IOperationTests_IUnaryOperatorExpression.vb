@@ -28,7 +28,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_System_Byte()
             Dim source = <![CDATA[
@@ -48,7 +47,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_System_Int16()
@@ -70,7 +68,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_System_UInt16()
             Dim source = <![CDATA[
@@ -90,7 +87,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_System_Int32()
@@ -112,7 +108,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_System_UInt32()
             Dim source = <![CDATA[
@@ -132,7 +127,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_System_Int64()
@@ -154,7 +148,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_System_UInt64()
             Dim source = <![CDATA[
@@ -174,7 +167,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_System_Decimal()
@@ -196,7 +188,6 @@ IUnaryOperatorExpression (UnaryOperationKind.DecimalPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_System_Single()
             Dim source = <![CDATA[
@@ -216,7 +207,6 @@ IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryO
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_System_Double()
@@ -238,7 +228,6 @@ IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryO
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_System_Object()
             Dim source = <![CDATA[
@@ -258,7 +247,6 @@ IUnaryOperatorExpression (UnaryOperationKind.ObjectPlus) (OperationKind.UnaryOpe
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Minus_System_SByte()
@@ -280,7 +268,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Minus_System_Int16()
             Dim source = <![CDATA[
@@ -300,7 +287,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Minus_System_Int32()
@@ -322,7 +308,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Minus_System_Int64()
             Dim source = <![CDATA[
@@ -342,7 +327,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Minus_System_Decimal()
@@ -364,7 +348,6 @@ IUnaryOperatorExpression (UnaryOperationKind.DecimalMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Minus_System_Single()
             Dim source = <![CDATA[
@@ -384,7 +367,6 @@ IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.Unary
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Minus_System_Double()
@@ -406,7 +388,6 @@ IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.Unary
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Minus_System_Object()
             Dim source = <![CDATA[
@@ -426,7 +407,6 @@ IUnaryOperatorExpression (UnaryOperationKind.ObjectMinus) (OperationKind.UnaryOp
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Not_System_SByte()
@@ -448,7 +428,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Not_System_Byte()
             Dim source = <![CDATA[
@@ -468,7 +447,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Not_System_Int16()
@@ -490,7 +468,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Not_System_UInt16()
             Dim source = <![CDATA[
@@ -510,7 +487,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Not_System_Int32()
@@ -532,7 +508,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Not_System_UInt32()
             Dim source = <![CDATA[
@@ -552,7 +527,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Not_System_Int64()
@@ -574,7 +548,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Not_System_UInt64()
             Dim source = <![CDATA[
@@ -594,7 +567,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Not_System_Boolean()
@@ -616,7 +588,6 @@ IUnaryOperatorExpression (UnaryOperationKind.BooleanBitwiseNegation) (OperationK
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Not_System_Object()
             Dim source = <![CDATA[
@@ -636,7 +607,6 @@ IUnaryOperatorExpression (UnaryOperationKind.ObjectNot) (OperationKind.UnaryOper
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_System_SByte()
@@ -659,7 +629,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_System_Byte()
             Dim source = <![CDATA[
@@ -680,7 +649,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_System_Int16()
@@ -703,7 +671,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_System_UInt16()
             Dim source = <![CDATA[
@@ -724,7 +691,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_System_Int32()
@@ -747,7 +713,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_System_UInt32()
             Dim source = <![CDATA[
@@ -768,7 +733,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_System_Int64()
@@ -791,7 +755,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_System_UInt64()
             Dim source = <![CDATA[
@@ -812,7 +775,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_System_Decimal()
@@ -835,7 +797,6 @@ IUnaryOperatorExpression (UnaryOperationKind.DecimalPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_System_Single()
             Dim source = <![CDATA[
@@ -856,7 +817,6 @@ IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryO
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_System_Double()
@@ -879,7 +839,6 @@ IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryO
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_System_Object()
             Dim source = <![CDATA[
@@ -900,7 +859,6 @@ IUnaryOperatorExpression (UnaryOperationKind.ObjectPlus) (OperationKind.UnaryOpe
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Minus_System_SByte()
@@ -923,7 +881,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Minus_System_Int16()
             Dim source = <![CDATA[
@@ -944,7 +901,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Minus_System_Int32()
@@ -967,7 +923,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Minus_System_Int64()
             Dim source = <![CDATA[
@@ -988,7 +943,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Minus_System_Decimal()
@@ -1011,7 +965,6 @@ IUnaryOperatorExpression (UnaryOperationKind.DecimalMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Minus_System_Single()
             Dim source = <![CDATA[
@@ -1032,7 +985,6 @@ IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.Unary
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Minus_System_Double()
@@ -1055,7 +1007,6 @@ IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.Unary
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Minus_System_Object()
             Dim source = <![CDATA[
@@ -1076,7 +1027,6 @@ IUnaryOperatorExpression (UnaryOperationKind.ObjectMinus) (OperationKind.UnaryOp
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Not_System_SByte()
@@ -1099,7 +1049,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Not_System_Byte()
             Dim source = <![CDATA[
@@ -1120,7 +1069,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Not_System_Int16()
@@ -1143,7 +1091,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Not_System_UInt16()
             Dim source = <![CDATA[
@@ -1164,7 +1111,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Not_System_Int32()
@@ -1187,7 +1133,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Not_System_UInt32()
             Dim source = <![CDATA[
@@ -1208,7 +1153,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Not_System_Int64()
@@ -1231,7 +1175,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Not_System_UInt64()
             Dim source = <![CDATA[
@@ -1252,7 +1195,6 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Not_System_Boolean()
@@ -1275,7 +1217,6 @@ IUnaryOperatorExpression (UnaryOperationKind.BooleanBitwiseNegation) (OperationK
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Not_System_Object()
             Dim source = <![CDATA[
@@ -1296,7 +1237,6 @@ IUnaryOperatorExpression (UnaryOperationKind.ObjectNot) (OperationKind.UnaryOper
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_E()
@@ -1323,7 +1263,6 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Minus_E()
             Dim source = <![CDATA[
@@ -1349,7 +1288,6 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Not_E()
             Dim source = <![CDATA[
@@ -1372,7 +1310,6 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_E()
@@ -1400,7 +1337,6 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Minus_E()
             Dim source = <![CDATA[
@@ -1427,7 +1363,6 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Not_E()
             Dim source = <![CDATA[
@@ -1451,7 +1386,6 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Plus_CustomType()
@@ -1487,7 +1421,6 @@ IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodPlus) (OperatorMethod
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Minus_CustomType()
             Dim source = <![CDATA[
@@ -1522,7 +1455,6 @@ IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperatorMetho
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Type_Not_CustomType()
             Dim source = <![CDATA[
@@ -1556,7 +1488,6 @@ IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodBitwiseNegation) (Ope
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Plus_CustomType()
@@ -1593,7 +1524,6 @@ IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodPlus) (OperatorMethod
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Minus_CustomType()
             Dim source = <![CDATA[
@@ -1629,7 +1559,6 @@ IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperatorMetho
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact()>
         Public Sub Test_UnaryOperatorExpression_Method_Not_CustomType()
             Dim source = <![CDATA[
@@ -1664,7 +1593,6 @@ IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodBitwiseNegation) (Ope
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact(), WorkItem(18135, "https://github.com/dotnet/roslyn/issues/18135")>
         Public Sub Test_UnaryOperatorExpression_Type_And_TrueFalse()
@@ -1710,7 +1638,6 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x AndAls ... End If')
 
             VerifyOperationTreeForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree)
         End Sub
-
 
         <Fact(), WorkItem(18135, "https://github.com/dotnet/roslyn/issues/18135")>
         Public Sub Test_UnaryOperatorExpression_Type_Or_TrueFalse()
