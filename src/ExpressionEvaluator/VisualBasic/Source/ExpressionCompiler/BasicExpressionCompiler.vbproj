@@ -59,9 +59,6 @@
       <ExcludeAssets>compile</ExcludeAssets>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Symbols\PseudoVariables.vb" />
-  </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Vsdconfig.targets" />
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

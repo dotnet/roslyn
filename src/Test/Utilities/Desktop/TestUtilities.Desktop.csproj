@@ -90,8 +90,5 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="SerializableModuleData.cs" />
-  </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

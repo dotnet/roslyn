@@ -63,8 +63,5 @@
       <Name>TestUtilities</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="IMetadataImportPrivateComVisible.cs" />
-  </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
