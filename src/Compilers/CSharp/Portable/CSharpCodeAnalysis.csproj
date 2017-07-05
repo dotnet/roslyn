@@ -96,12 +96,6 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Compiler\Compiler.cs" />
-    <Compile Remove="FlowAnalysis\AbstractFlowPass.AbstractLocalState.cs" />
-    <Compile Remove="Lowering\StateMachineRewriter\StateMachineHoistedLocalSymbol.cs" />
-    <Compile Remove="Lowering\TempHelpers.cs" />
-  </ItemGroup>
   <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
