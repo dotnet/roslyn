@@ -28,39 +28,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         private static ArgumentSyntax SimplifyTupleName(ArgumentSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
+            if (CanSimplifyTupleElementName(node))
+            {
+                return node.WithNameColon(null).WithTriviaFrom(node);
+            }
+            return node;
+        }
+
+        internal static bool CanSimplifyTupleElementName(ArgumentSyntax node)
+        {
             // Tuple elements are arguments in a tuple expression
             if (node.NameColon == null || !node.IsParentKind(SyntaxKind.TupleExpression))
             {
-                return node;
+                return false;
             }
 
             var inferredName = node.Expression.TryGetInferredMemberName();
 
             if (inferredName == null || inferredName != node.NameColon.Name.Identifier.ValueText)
             {
-                return node;
+                return false;
             }
 
-            return node.WithNameColon(null).WithTriviaFrom(node);
+            return true;
         }
 
         private static readonly Func<AnonymousObjectMemberDeclaratorSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyAnonymousTypeMemberName = SimplifyAnonymousTypeMemberName;
 
         private static SyntaxNode SimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken canellationToken)
         {
+            if (CanSimplifyAnonymousTypeMemberName(node))
+            {
+                return node.WithNameEquals(null).WithTriviaFrom(node);
+            }
+
+            return node;
+        }
+
+        internal static bool CanSimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node)
+        {
             if (node.NameEquals == null)
             {
-                return node;
+                return false;
             }
 
             var inferredName = node.Expression.TryGetInferredMemberName();
 
             if (inferredName == null || inferredName != node.NameEquals.Name.Identifier.ValueText)
             {
-                return node;
+                return false;
             }
 
-            return node.WithNameEquals(null).WithTriviaFrom(node);
+            return true;
         }
     }
 }
