@@ -901,8 +901,8 @@ class Z
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        [WorkItem(13749, "https://github.com/dotnet/roslyn/issues/13749")]
-        public async Task AbstractContructor()
+        [WorkItem(20595, "https://github.com/dotnet/roslyn/issues/20595")]
+        public async Task ProtectedConstructorShouldBeGeneratedForAbstractClass()
         {
             await TestInRegularAndScriptAsync(
 @"abstract class C 
@@ -913,7 +913,7 @@ class Z
 {
     protected C(int prop) 
     {
-        Prop = prop ;
+        Prop = prop;
     } 
 
     public int Prop { get; set; }
