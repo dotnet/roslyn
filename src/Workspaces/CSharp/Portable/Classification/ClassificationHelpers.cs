@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         /// <returns>The correct syntactic classification for the token.</returns>
         public static string GetClassification(SyntaxToken token)
         {
+            if (token.IsKind(SyntaxKind.DiscardDesignation, SyntaxKind.UnderscoreToken))
+            {
+                return ClassificationTypeNames.Identifier;
+            }
             if (SyntaxFacts.IsKeywordKind(token.Kind()))
             {
                 return ClassificationTypeNames.Keyword;
@@ -287,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return false;
         }
 
-        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var text2 = text.ToString(textSpan);
             var tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition: textSpan.Start);

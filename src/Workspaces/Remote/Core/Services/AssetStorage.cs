@@ -23,14 +23,13 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly TimeSpan _cleanupIntervalTimeSpan;
         private readonly TimeSpan _purgeAfterTimeSpan;
 
-        private readonly ConcurrentDictionary<int, AssetSource> _assetSources =
-            new ConcurrentDictionary<int, AssetSource>(concurrencyLevel: 4, capacity: 10);
-
         private readonly ConcurrentDictionary<Checksum, Entry> _globalAssets =
             new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
 
         private readonly ConcurrentDictionary<Checksum, Entry> _assets =
             new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
+
+        private volatile AssetSource _assetSource;
 
         public AssetStorage()
         {
@@ -45,26 +44,14 @@ namespace Microsoft.CodeAnalysis.Remote
             Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
 
-        public AssetSource TryGetAssetSource(int sessionId)
+        public AssetSource AssetSource
         {
-            AssetSource source;
-            if (_assetSources.TryGetValue(sessionId, out source))
-            {
-                return source;
-            }
-
-            return null;
+            get { return _assetSource; }
         }
 
-        public void RegisterAssetSource(int sessionId, AssetSource assetSource)
+        public void SetAssetSource(AssetSource assetSource)
         {
-            Contract.ThrowIfFalse(_assetSources.TryAdd(sessionId, assetSource));
-        }
-
-        public void UnregisterAssetSource(int sessionId)
-        {
-            AssetSource dummy;
-            _assetSources.TryRemove(sessionId, out dummy);
+            _assetSource = assetSource;
         }
 
         public bool TryAddGlobalAsset(Checksum checksum, object value)

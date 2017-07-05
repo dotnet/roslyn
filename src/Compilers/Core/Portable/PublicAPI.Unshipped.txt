@@ -697,6 +697,7 @@ abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.R
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.IOperation
 const Microsoft.CodeAnalysis.LanguageNames.FSharp = "F#" -> string
+override Microsoft.CodeAnalysis.Optional<T>.ToString() -> string
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.Visit(Microsoft.CodeAnalysis.IOperation operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitAddressOfExpression(Microsoft.CodeAnalysis.Semantics.IAddressOfExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitArgument(Microsoft.CodeAnalysis.Semantics.IArgument operation) -> void
@@ -962,3 +963,4 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation, TArgument argument) -> TResult
+Microsoft.CodeAnalysis.CommandLineArguments.DisplayLangVersions.get -> bool

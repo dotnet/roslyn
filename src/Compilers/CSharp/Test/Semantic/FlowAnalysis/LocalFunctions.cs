@@ -580,9 +580,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,14): warning CS0168: The variable 'Local' is declared but never used
+                // (7,14): warning CS8321: The local function 'Local' is declared but never used
                 //         bool Local() => x == 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(7, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(7, 14));
         }
 
         [Fact]

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver;
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly CompilationWithAnalyzersOptions _analysisOptions;
         private readonly CancellationToken _cancellationToken;
+        private readonly AnalyzerManager _analyzerManager;
 
         /// <summary>
         /// Pool of <see cref="AnalyzerDriver"/>s used for analyzer execution.
@@ -131,7 +133,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilationData = new CompilationData(_compilation);
             _analysisState = new AnalysisState(analyzers, _compilationData, _compilation.Options);
             _analysisResultBuilder = new AnalysisResultBuilder(analysisOptions.LogAnalyzerExecutionTime, analyzers);
-            _driverPool = new ObjectPool<AnalyzerDriver>(() => _compilation.AnalyzerForLanguage(analyzers, AnalyzerManager.Instance));
+            _analyzerManager = new AnalyzerManager(analyzers);
+            _driverPool = new ObjectPool<AnalyzerDriver>(() => _compilation.AnalyzerForLanguage(analyzers, _analyzerManager));
             _executingConcurrentTreeTasksOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<SyntaxTree, Tuple<Task, CancellationTokenSource>>() : null;
             _concurrentTreeTaskTokensOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<Task, int>() : null;
             _executingCompilationOrNonConcurrentTreeTask = null;
@@ -399,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = true;
-                driver = compilation.AnalyzerForLanguage(analyzers, AnalyzerManager.Instance);
+                driver = compilation.AnalyzerForLanguage(analyzers, _analyzerManager);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
                 var analysisScope = new AnalysisScope(compilation, analyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue, analysisScope, cancellationToken);
@@ -439,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = false;
-                driver = compilation.AnalyzerForLanguage(analyzers, AnalyzerManager.Instance);
+                driver = compilation.AnalyzerForLanguage(analyzers, _analyzerManager);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
                 var analysisScope = new AnalysisScope(compilation, analyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue, analysisScope, cancellationToken);
@@ -1129,8 +1132,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance);
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, AnalyzerManager.Instance, analyzerExecutor);
+            var analyzerManager = new AnalyzerManager(analyzer);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, analyzerManager);
+            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, analyzerManager, analyzerExecutor);
         }
 
         /// <summary>
@@ -1138,11 +1142,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It clears the cached internal state (supported descriptors, registered actions, exception handlers, etc.) for analyzers.
         /// </summary>
         /// <param name="analyzers">Analyzers whose state needs to be cleared.</param>
+        [Obsolete("This API is no longer required to be invoked. Analyzer state is automatically cleaned up when CompilationWithAnalyzers instance is released.")]
         public static void ClearAnalyzerState(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            VerifyAnalyzersArgumentForStaticApis(analyzers, allowDefaultOrEmpty: true);
-
-            AnalyzerManager.Instance.ClearAnalyzerState(analyzers);
         }
 
         /// <summary>

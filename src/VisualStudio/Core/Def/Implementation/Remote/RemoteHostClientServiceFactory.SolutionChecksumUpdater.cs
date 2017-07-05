@@ -109,23 +109,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _event.Release();
             }
 
-            private async Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
+            private Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
             {
-                var remoteHostClient = await _service.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-                if (remoteHostClient == null)
-                {
-                    return;
-                }
-
-                using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
-                {
-                    var solution = _service.Workspace.CurrentSolution;
-                    var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-
-                    await remoteHostClient.RunOnRemoteHostAsync(
-                        WellKnownRemoteHostServices.RemoteHostService, solution,
-                        nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken).ConfigureAwait(false);
-                }
+                return _service.Workspace.SynchronizePrimaryWorkspaceAsync(_service.Workspace.CurrentSolution, cancellationToken);
             }
 
             private static void CancelAndDispose(CancellationTokenSource cancellationSource)
