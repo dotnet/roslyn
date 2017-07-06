@@ -4008,8 +4008,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded,
                 argsToParamsOpt,
                 resultKind,
-                boundMember.Type,
-                hasErrors);
+                binderOpt: this,
+                useSetterForDefaultArgumentGeneration: true,
+                type: boundMember.Type,
+                hasErrors: hasErrors);
         }
 
         private static bool CheckNestedObjectInitializerPropertySymbol(

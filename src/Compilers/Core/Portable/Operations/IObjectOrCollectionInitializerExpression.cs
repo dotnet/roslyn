@@ -5,22 +5,19 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a new/New expression.
+    /// Represents a C# or VB object or collection initializer expression.
+    /// For example, object initializer "{ X = x }" within object creation "new Class() { X = x }" and
+    /// collection initializer "{ x, y, 3 }" within collection creation "new MyList() { x, y, 3 }".
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IObjectCreationExpression : IHasArgumentsExpression
+    public interface IObjectOrCollectionInitializerExpression : IOperation
     {
         /// <summary>
-        /// Constructor to be invoked on the created instance.
+        /// Object member or collection initializers.
         /// </summary>
-        IMethodSymbol Constructor { get; }
-        /// <summary>
-        /// Object or collection initializer, if any.
-        /// </summary>
-        IObjectOrCollectionInitializerExpression Initializer { get; }
+        ImmutableArray<IOperation> Initializers { get; }
     }
 }
-

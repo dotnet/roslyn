@@ -238,6 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 memberInit.Expanded,
                                 memberInit.ArgsToParamsOpt,
                                 memberInit.ResultKind,
+                                memberInit.BinderOpt,
+                                memberInit.UseSetterForDefaultArgumentGeneration,
                                 memberInit.Type);
                         }
 

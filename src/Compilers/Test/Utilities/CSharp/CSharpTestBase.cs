@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         }
 
         public static MetadataReference CreateMetadataReferenceFromIlSource(string ilSource)
-        {                                        
+        {
             using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
             {
                 return MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             StringBuilder sb = new StringBuilder();
             var ilBytes = bodyBlock.GetILContent();
-            
+
             var ehHandlerRegions = ILVisualizer.GetHandlerSpans(bodyBlock.ExceptionRegions);
 
             var methodDecoder = new MetadataDecoder(peModule, peMethod);

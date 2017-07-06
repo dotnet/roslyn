@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         private ImmutableArray<IArgument> DeriveArguments(
-            BoundExpression boundNode,
+            bool hasErrors,
             Binder binder,
             Symbol methodOrIndexer,
             MethodSymbol optionalParametersMethod,
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             //      Note this check doesn't cover all scenarios. For example, when a parameter is a generic type but the type of the type argument 
             //      is undefined.
             if ((object)optionalParametersMethod == null 
-                || boundNode.HasAnyErrors
+                || hasErrors
                 || parameters.Any(p => p.Type.IsErrorType())
                 || optionalParametersMethod.GetUseSiteDiagnostic()?.DefaultSeverity == DiagnosticSeverity.Error)
             {
@@ -119,11 +119,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             return builder.ToImmutableAndFree();
-        }
-
-        private ImmutableArray<IOperation> GetObjectCreationInitializers(BoundObjectCreationExpression expression)
-        {
-            return BoundObjectCreationExpression.GetChildInitializers(expression.InitializerExpressionOpt).SelectAsArray(n => Create(n));
         }
 
         private static ConversionKind GetConversionKind(CSharp.ConversionKind kind)

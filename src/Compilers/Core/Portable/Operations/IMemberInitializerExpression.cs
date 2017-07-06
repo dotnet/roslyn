@@ -5,22 +5,24 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a new/New expression.
+    /// Represents a C# or VB member initializer expression within an object initializer expression.
+    /// For example, given an object creation with initializer "new Class() { X = x, Y = { x, y, 3 }, Z = { X = z } }",
+    /// member initializers for Y and Z, i.e. "Y = { x, y, 3 }", and "Z = { X = z }" are nested member initializers represented by this operation.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IObjectCreationExpression : IHasArgumentsExpression
+    public interface IMemberInitializerExpression : IOperation
     {
         /// <summary>
-        /// Constructor to be invoked on the created instance.
+        /// Initialized member.
         /// </summary>
-        IMethodSymbol Constructor { get; }
+        IMemberReferenceExpression InitializedMember { get; }
+        
         /// <summary>
-        /// Object or collection initializer, if any.
+        /// Member initializer.
         /// </summary>
         IObjectOrCollectionInitializerExpression Initializer { get; }
     }
 }
-
