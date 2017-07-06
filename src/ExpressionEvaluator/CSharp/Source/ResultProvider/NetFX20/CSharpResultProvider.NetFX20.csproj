@@ -33,10 +33,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Core\Source\ResultProvider\NetFX20\ResultProvider.NetFX20.csproj">
-      <Project>{BEDC5A4A-809E-4017-9CFD-6C8D4E1847F0}</Project>
-      <Name>ResultProvider.NetFX20</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Core\Source\ResultProvider\NetFX20\ResultProvider.NetFX20.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />

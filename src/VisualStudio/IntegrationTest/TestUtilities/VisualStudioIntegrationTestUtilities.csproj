@@ -61,46 +61,16 @@
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
-      <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
-      <Name>EditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
-      <Project>{76c6f005-c89d-4348-bb4a-39189ddbeb52}</Project>
-      <Name>ServicesTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
-      <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
-      <Name>Features</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Diagnostics\Diagnostics.csproj">
-      <Project>{e2e889a5-2489-4546-9194-47c63e49eaeb}</Project>
-      <Name>Diagnostics</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
-      <Name>Workspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Core\Def\ServicesVisualStudio.csproj">
-      <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
-      <Name>ServicesVisualStudio</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CSharp\Repl\CSharpVisualStudioRepl.csproj">
-      <Project>{737ff62c-f068-4317-84d0-bfb210c17a4e}</Project>
-      <Name>CSharpVisualStudioRepl</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveServices\VisualStudioInteractiveServices.csproj">
-      <Project>{a31228bb-f05c-4d4a-b98a-0e681d876b7c}</Project>
-      <Name>VisualStudioInteractiveServices</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj" />
+    <ProjectReference Include="..\..\..\Test\Diagnostics\Diagnostics.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\..\Core\Def\ServicesVisualStudio.csproj" />
+    <ProjectReference Include="..\..\CSharp\Repl\CSharpVisualStudioRepl.csproj" />
+    <ProjectReference Include="..\..\InteractiveServices\VisualStudioInteractiveServices.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" />

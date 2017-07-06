@@ -53,6 +53,7 @@ namespace BuildBoss
                 // Items which are not necessary anymore in the new SDK
                 if (_projectUtil.IsNewSdk)
                 {
+                    allGood &= CheckForProperty(textWriter, "ProjectGuid");
                     allGood &= CheckForProperty(textWriter, "ProjectTypeGuids");
                     allGood &= CheckForProperty(textWriter, "TargetFrameworkProfile");
                 }
@@ -153,6 +154,7 @@ namespace BuildBoss
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
             allGood &= CheckTransitiveReferences(textWriter, declaredList);
             allGood &= CheckProjectReferencesHaveCorrectGuid(textWriter, declaredEntryList);
+            allGood &= CheckNewSdkSimplified(textWriter, declaredEntryList);
 
             return allGood;
         }
@@ -163,6 +165,11 @@ namespace BuildBoss
         /// </summary>
         private bool CheckProjectReferencesHaveCorrectGuid(TextWriter textWriter, List<ProjectReferenceEntry> entryList)
         {
+            if (_projectUtil.IsNewSdk)
+            {
+                return true;
+            }
+
             var allGood = true;
             foreach (var entry in entryList)
             {
@@ -179,6 +186,26 @@ namespace BuildBoss
                     textWriter.WriteLine($"Project Reference GUID for {entry.ProjectKey.FileName} doesn't match ProjectGuid");
                     textWriter.WriteLine($"\tProject Guid {dataGuid}");
                     textWriter.WriteLine($"\tReference Guid {entry.Project}");
+                    allGood = false;
+                }
+            }
+
+            return allGood;
+        }
+
+        private bool CheckNewSdkSimplified(TextWriter textWriter, List<ProjectReferenceEntry> entryList)
+        {
+            if (!_projectUtil.IsNewSdk)
+            {
+                return true;
+            }
+
+            var allGood = true;
+            foreach (var entry in entryList)
+            {
+                if (entry.Project != null)
+                {
+                    textWriter.WriteLine($"Project reference for {entry.ProjectKey.FileName} should not have a GUID");
                     allGood = false;
                 }
             }

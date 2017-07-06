@@ -20,10 +20,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
-      <Name>Workspaces</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToRazor Include="Microsoft.VisualStudio.LanguageServices.Razor" />

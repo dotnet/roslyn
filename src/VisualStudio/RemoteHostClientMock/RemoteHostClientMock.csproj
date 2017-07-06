@@ -23,35 +23,21 @@
     <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
-      <Project>{76c6f005-c89d-4348-bb4a-39189ddbeb52}</Project>
-      <Name>ServicesTestUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj" />
     <ProjectReference Include="..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj">
-      <Project>{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}</Project>
-      <Name>ServicesVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
-      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
-      <Name>Workspaces.Desktop</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
-      <Name>Workspaces</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
-      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
-      <Name>ServiceHub</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Next\ServicesVisualStudio.Next.csproj">
-      <Project>{fe0d4bdd-1c30-488e-a870-854f5b8c5014}</Project>
-      <Name>ServicesVisualStudio.Next</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Core\Next\ServicesVisualStudio.Next.csproj" />
   </ItemGroup>
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="Nerdbank.FullDuplexStream" />
