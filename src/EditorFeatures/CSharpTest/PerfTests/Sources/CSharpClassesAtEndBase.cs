@@ -1,4 +1,4 @@
-namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
+﻿namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 {
 	/// <summary>
 	/// 

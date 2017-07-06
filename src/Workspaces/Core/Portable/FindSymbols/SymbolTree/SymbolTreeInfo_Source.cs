@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
             // to be ordered by Guid (which is not consistent across VS sessions).
-            var textChecksumsTasks = project.Documents.OrderBy(d => d.FilePath).Select(async d =>
+            var textChecksumsTasks = project.Documents.OrderBy(d => d.FilePath, StringComparer.Ordinal).Select(async d =>
             {
                 var documentStateChecksum = await d.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 return documentStateChecksum.Text;

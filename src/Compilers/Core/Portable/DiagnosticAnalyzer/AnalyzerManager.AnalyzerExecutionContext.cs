@@ -14,13 +14,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             private readonly object _gate = new object();
 
-            // Task to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
-            // These are run only once per every analyzer.
+            /// <summary>
+            /// Task to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
+            /// These are run only once per every analyzer. 
+            /// </summary>
             private Task<HostSessionStartAnalysisScope> _lazySessionScopeTask;
 
-            // This map stores the tasks to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
-            // Compilation start actions will get executed once per-each AnalyzerAndOptions as user might want to return different set of custom actions for each compilation/analyzer options.
-            private ConditionalWeakTable<Compilation, Dictionary<AnalyzerOptions, Task<HostCompilationStartAnalysisScope>>> _lazyCompilationScopeCache;
+            /// <summary>
+            /// Task to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
+            /// </summary>
+            private Task<HostCompilationStartAnalysisScope> _lazyCompilationScopeTask;
 
             /// <summary>
             /// Supported descriptors for diagnostic analyzer.
@@ -63,30 +66,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 lock (_gate)
                 {
-                    _lazyCompilationScopeCache = _lazyCompilationScopeCache ?? new ConditionalWeakTable<Compilation, Dictionary<AnalyzerOptions, Task<HostCompilationStartAnalysisScope>>>();
-                    var compilationActionsMap = _lazyCompilationScopeCache.GetOrCreateValue(analyzerExecutor.Compilation);
-                    Task<HostCompilationStartAnalysisScope> task;
-                    if (!compilationActionsMap.TryGetValue(analyzerExecutor.AnalyzerOptions, out task))
+                    if (_lazyCompilationScopeTask == null)
                     {
-                        task = Task.Run(() =>
+                        _lazyCompilationScopeTask = Task.Run(() =>
                         {
                             var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
                             analyzerExecutor.ExecuteCompilationStartActions(sessionScope.CompilationStartActions, compilationAnalysisScope);
                             return compilationAnalysisScope;
                         }, analyzerExecutor.CancellationToken);
-
-                        compilationActionsMap.Add(analyzerExecutor.AnalyzerOptions, task);
                     }
 
-                    return task;
+                    return _lazyCompilationScopeTask;
                 }
             }
 
-            public void ClearCompilationScopeMap(Compilation compilation)
+            public void ClearCompilationScopeTask()
             {
                 lock (_gate)
                 {
-                    _lazyCompilationScopeCache?.Remove(compilation);
+                    _lazyCompilationScopeTask = null;
                 }
             }
 

@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected override PropertyDeclarationSyntax WithGenerateBody(
-            PropertyDeclarationSyntax declaration, OptionSet options)
+            PropertyDeclarationSyntax declaration, OptionSet options, ParseOptions parseOptions)
         {
-            return WithAccessorList(declaration, options);
+            return WithAccessorList(declaration, options, parseOptions);
         }
 
         protected override bool CreateReturnStatementForExpression(PropertyDeclarationSyntax declaration) => true;

@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis
         ForEachArrayIndex = 8,
 
         /// <summary>
-        /// Local variable that holds a pinned handle of a string passed to a fixed statement (C#).
+        /// Local variable that holds a pinned handle of a managed reference passed to a fixed statement (C#).
         /// </summary>
-        FixedString = 9,
+        FixedReference = 9,
 
         /// <summary>
         /// Local variable that holds the object passed to With statement (VB). 

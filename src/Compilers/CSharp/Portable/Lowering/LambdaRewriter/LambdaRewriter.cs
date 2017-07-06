@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
@@ -332,9 +333,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var closure in closures)
             {
                 var capturedVars = _analysis.CapturedVariablesByLambda[closure];
+                bool canTakeRefParams = _analysis.CanTakeRefParameters(closure);
 
-                if (closure.MethodKind == MethodKind.LocalFunction &&
-                    OnlyCapturesThis((LocalFunctionSymbol)closure, capturedVars))
+                if (canTakeRefParams && OnlyCapturesThis((LocalFunctionSymbol)closure, capturedVars))
                 {
                     continue;
                 }
@@ -343,6 +344,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundNode scope;
                     if (!_analysis.VariableScope.TryGetValue(captured, out scope))
+                    {
+                        continue;
+                    }
+
+                    // If this is a local function that can take ref params, skip
+                    // frame creation for local function calls. This is semantically
+                    // important because otherwise we may create a struct frame which
+                    // is empty, which crashes in emit.
+                    // This is not valid for lambdas or local functions which can't take
+                    // take ref params since they will be lowered into their own frames.
+                    if (canTakeRefParams && captured.Kind == SymbolKind.Method)
                     {
                         continue;
                     }
@@ -1338,15 +1350,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureKind = ClosureKind.Static;
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
-                structClosures = default(ImmutableArray<TypeSymbol>);
+                structClosures = default;
             }
             else
             {
+                // GetStructClosures is currently overly aggressive in gathering
+                // closures since the only information it has at this point is
+                // NeedsParentFrame, which doesn't say what exactly is needed from
+                // the parent frame. If `this` is captured, that's enough to mark
+                // NeedsParentFrame for the current closure, so we need to gather
+                // struct closures for all intermediate frames, even if they only
+                // strictly need `this`.
+                if (_analysis.CanTakeRefParameters(node.Symbol))
+                {
+                    lambdaScope = _analysis.ScopeParent[node.Body];
+                    _ = _frames.TryGetValue(lambdaScope, out containerAsFrame);
+                    structClosures = GetStructClosures(containerAsFrame, lambdaScope);
+                }
+                else
+                {
+                    structClosures = default;
+                }
+
                 containerAsFrame = null;
                 translatedLambdaContainer = _topLevelMethod.ContainingType;
                 closureKind = ClosureKind.ThisOnly;
                 closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
-                structClosures = default(ImmutableArray<TypeSymbol>);
             }
 
             // Move the body of the lambda to a freshly generated synthetic method on its frame.

@@ -238,7 +238,6 @@ string.Format(@"<symbols>
           <slot kind=""5"" offset=""17"" />
           <slot kind=""0"" offset=""59"" />
           <slot kind=""0"" offset=""62"" />
-          <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -247,17 +246,17 @@ string.Format(@"<symbols>
         <entry offset=""0x2"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""15"" />
         <entry offset=""0x9"" hidden=""true"" />
         <entry offset=""0xb"" startLine=""6"" startColumn=""13"" endLine=""6"" endColumn=""23"" />
-        <entry offset=""0x20"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
-        <entry offset=""0x22"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""15"" />
-        <entry offset=""0x2c"" hidden=""true"" />
-        <entry offset=""0x36"" hidden=""true"" />
-        <entry offset=""0x37"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
+        <entry offset=""0x1e"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x1f"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
+        <entry offset=""0x20"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""15"" />
+        <entry offset=""0x2a"" hidden=""true"" />
+        <entry offset=""0x34"" hidden=""true"" />
+        <entry offset=""0x35"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x38"">
-        <scope startOffset=""0xb"" endOffset=""0x22"">
-          <local name=""a"" il_index=""1"" il_start=""0xb"" il_end=""0x22"" attributes=""0"" />
-          <local name=""b"" il_index=""2"" il_start=""0xb"" il_end=""0x22"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x36"">
+        <scope startOffset=""0xb"" endOffset=""0x20"">
+          <local name=""a"" il_index=""1"" il_start=""0xb"" il_end=""0x20"" attributes=""0"" />
+          <local name=""b"" il_index=""2"" il_start=""0xb"" il_end=""0x20"" attributes=""0"" />
         </scope>
       </scope>
     </method>

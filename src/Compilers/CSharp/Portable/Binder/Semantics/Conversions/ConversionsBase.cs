@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -1429,22 +1430,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(conversion.Kind == ConversionKind.NoConversion);
                     return false;
             }
-        }
-
-        private enum NumericType
-        {
-            SByte,
-            Byte,
-            Short,
-            UShort,
-            Int,
-            UInt,
-            Long,
-            ULong,
-            Char,
-            Float,
-            Double,
-            Decimal
         }
 
         private const bool F = false;

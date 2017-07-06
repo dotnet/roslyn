@@ -29,7 +29,11 @@ IOperation:  (OperationKind.None) (Syntax: '(x, x + y)')
       Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
       Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = new[] {
+                // file.cs(6,13): warning CS0219: The variable 'tuple' is assigned but its value is never used
+                //         var tuple = /*<bind>*/(x, x + y)/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "tuple").WithArguments("tuple").WithLocation(6, 13)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
