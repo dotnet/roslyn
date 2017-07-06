@@ -12,43 +12,43 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     internal sealed class QuickInfoTextBlock
     {
         public string Kind { get; }
-        public ImmutableArray<TaggedText> Text { get; }
+        public ImmutableArray<TaggedText> TaggedParts { get; }
 
-        private QuickInfoTextBlock(string kind, ImmutableArray<TaggedText> text)
+        private QuickInfoTextBlock(string kind, ImmutableArray<TaggedText> taggedParts)
         {
             this.Kind = kind ?? string.Empty;
-            this.Text = text.IsDefault ? ImmutableArray<TaggedText>.Empty : text;
+            this.TaggedParts = taggedParts.NullToEmpty();
         }
 
         /// <summary>
         /// Creates a new instance of <see cref="QuickInfoTextBlock"/>.
         /// </summary>
         /// <param name="kind">The kind of the text. Use <see cref="QuickInfoTextKinds"/> for the most common kinds.</param>
-        /// <param name="text">The text</param>
-        public static QuickInfoTextBlock Create(string kind, ImmutableArray<TaggedText> text)
+        /// <param name="taggedParts">The text</param>
+        public static QuickInfoTextBlock Create(string kind, ImmutableArray<TaggedText> taggedParts)
         {
-            return new QuickInfoTextBlock(kind, text);
+            return new QuickInfoTextBlock(kind, taggedParts);
         }
 
-        private string _rawText;
+        private string _text;
 
-        public string RawText
+        public string Text
         {
             get
             {
-                if (_rawText == null)
+                if (_text == null)
                 {
-                    if (this.Text.Length == 0)
+                    if (this.TaggedParts.Length == 0)
                     {
-                        _rawText = string.Empty;
+                        _text = string.Empty;
                     }
                     else
                     {
-                        Interlocked.CompareExchange(ref _rawText, string.Concat(this.Text.Select(t => t.Text)), null);
+                        Interlocked.CompareExchange(ref _text, string.Concat(this.TaggedParts.Select(t => t.Text)), null);
                     }
                 }
 
-                return _rawText;
+                return _text;
             }
         }
     }

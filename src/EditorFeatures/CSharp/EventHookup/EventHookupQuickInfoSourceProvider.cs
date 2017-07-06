@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
-            return textBuffer.Properties.GetOrCreateSingletonProperty<EventHookupQuickInfoSource>(() => new EventHookupQuickInfoSource(textBuffer, _classificationTypeMap));
+            return textBuffer.Properties.GetOrCreateSingletonProperty(() => new EventHookupQuickInfoSource(textBuffer, _classificationTypeMap));
         }
     }
 }

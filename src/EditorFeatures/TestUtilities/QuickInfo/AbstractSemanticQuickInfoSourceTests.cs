@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             Tuple<string, string>[] expectedClassifications = null)
         {
             var textBlock = textBlocks.FirstOrDefault(tb => tb.Kind == textBlockKind);
-            var text = textBlock != null ? textBlock.Text : ImmutableArray<TaggedText>.Empty;
+            var text = textBlock != null ? textBlock.TaggedParts : ImmutableArray<TaggedText>.Empty;
             AssertTaggedText(expectedText, text, expectedClassifications);
         }
 

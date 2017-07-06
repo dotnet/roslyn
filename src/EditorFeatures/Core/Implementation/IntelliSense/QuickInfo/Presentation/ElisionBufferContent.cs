@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
     /// used to create an elision buffer out that will then be displayed in the quick info
     /// window.
     /// </summary>
-    internal class ElisionBufferContent
+    internal class ElisionBufferContent : ForegroundThreadAffinitizedObject
     {
         private readonly ImmutableArray<SnapshotSpan> _spans;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
@@ -64,13 +64,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
 
         private ContentControl Create()
         {
+            AssertIsForeground();
+
             return new ViewHostingControl(CreateView, CreateBuffer);
         }
 
         private IWpfTextView CreateView(ITextBuffer buffer)
         {
-            var view = _textEditorFactoryService.CreateTextView(
-                buffer, _roleSet);
+            var view = _textEditorFactoryService.CreateTextView(buffer, _roleSet);
 
             view.SizeToFit();
             view.Background = Brushes.Transparent;

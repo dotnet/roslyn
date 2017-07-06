@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 var linkedDocument = document.Project.Solution.GetDocument(link);
                 var linkedToken = await FindTokenInLinkedDocument(token, document, linkedDocument, cancellationToken).ConfigureAwait(false);
 
-                if (linkedToken != default(SyntaxToken))
+                if (linkedToken != default)
                 {
                     // Not in an inactive region, so this file is a candidate.
                     candidateProjects.Add(link.ProjectId);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         {
             if (!linkedDocument.SupportsSyntaxTree)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             var root = await linkedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 FatalError.Report(linkedFileException);
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         protected async Task<QuickInfoItem> CreateContentAsync(
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             if (workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>().IsAwaitKeyword(token) &&
                 (symbols.First() as INamedTypeSymbol)?.SpecialType == SpecialType.System_Void)
             {
-                documentationContent = default(ImmutableArray<TaggedText>);
+                documentationContent = default;
                 showSymbolGlyph = false;
             }
 
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 }
             }
 
-            return default(ImmutableArray<TaggedText>);
+            return default;
         }
 
         private async Task<ValueTuple<SemanticModel, ImmutableArray<ISymbol>>> BindTokenAsync(

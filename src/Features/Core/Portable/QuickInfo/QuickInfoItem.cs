@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// <summary>
         /// The span of the document that the item is based on.
         /// </summary>
-        public TextSpan Span { get; set; }
+        public TextSpan Span { get; }
 
         /// <summary>
         /// Descriptive tags from the <see cref="Microsoft.CodeAnalysis.Completion.CompletionTags"/> type.
@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         public static QuickInfoItem Create(
             TextSpan span,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
-            ImmutableArray<QuickInfoTextBlock> textBlocks = default(ImmutableArray<QuickInfoTextBlock>),
-            ImmutableArray<TextSpan> relatedSpans = default(ImmutableArray<TextSpan>))
+            ImmutableArray<string> tags = default,
+            ImmutableArray<QuickInfoTextBlock> textBlocks = default,
+            ImmutableArray<TextSpan> relatedSpans = default)
         {
             return new QuickInfoItem(span, tags, textBlocks, relatedSpans);
         }
@@ -54,13 +54,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             get
             {
                 return this == Empty
-                    || (this.Span == default(TextSpan)
+                    || (this.Span == default
                     && this.Tags.Length == 0
                     && this.TextBlocks.Length == 0
                     && this.RelatedSpans.Length == 0);
             }
         }
 
-        public static readonly QuickInfoItem Empty = Create(default(TextSpan));
+        public static readonly QuickInfoItem Empty = Create(default);
     }
 }

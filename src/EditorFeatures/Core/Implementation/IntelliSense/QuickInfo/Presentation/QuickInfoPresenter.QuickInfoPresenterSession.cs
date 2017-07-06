@@ -1,20 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Projection;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation
@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
                 var documentSpan = quickInfo.RelatedSpans.Length > 0 ? CreateDocumentSpanPresentation(quickInfo, snapshot) : null;
 
                 return new QuickInfoDisplayPanel(
-                    symbolGlyph: symbolGlyph != default(Glyph) ? CreateSymbolPresentation(symbolGlyph) : null,
-                    warningGlyph: warningGlyph != default(Glyph) ? CreateSymbolPresentation(warningGlyph) : null,
+                    symbolGlyph: symbolGlyph != default ? CreateSymbolPresentation(symbolGlyph) : null,
+                    warningGlyph: warningGlyph != default ? CreateSymbolPresentation(warningGlyph) : null,
                     textBlocks: quickInfo.TextBlocks.Select(tb => new TextBlockElement(tb.Kind, CreateTextPresentation(tb))).ToImmutableArray(),
                     documentSpan: documentSpan);
             }
@@ -165,11 +165,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             {
                 if (block.Kind == QuickInfoTextKinds.DocumentationComments)
                 {
-                    return CreateDocumentationCommentPresentation(block.Text);
+                    return CreateDocumentationCommentPresentation(block.TaggedParts);
                 }
                 else
                 {
-                    return CreateTextPresentation(block.Text);
+                    return CreateTextPresentation(block.TaggedParts);
                 }
             }
 
