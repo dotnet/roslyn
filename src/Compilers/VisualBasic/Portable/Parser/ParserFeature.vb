@@ -34,7 +34,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Tuples
         IOperation
         InferredTupleNames
-        FEATURE_InterpolatedStrings
     End Enum
 
     Friend Module FeatureExtensions
