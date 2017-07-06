@@ -93,11 +93,11 @@ try {
     & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config 
     Run-MSBuild (Join-Path $repoDir "src\NuGet\NuGet.proj")
 
-    $setupStep2Args = ""
+    $buildArgs = Join-Path $repoDir "src\Setup\SetupStep2.proj"
     if (-not $official) { 
-        $setupStep2Args = "/p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
+        $buildArgs += " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
     }
-    Run-MSBuild (Join-Path $repoDir "src\Setup\SetupStep2.proj") $setupStep2Args
+    Run-MSBuild $buildArgs
 
     if ($testDesktop) {
         & (Join-Path $scriptDir "build.ps1") -testDesktop -test32
