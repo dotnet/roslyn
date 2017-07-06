@@ -94,7 +94,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "") {
     }
 
     $args += " $buildArgs"
-    Exec-Command $msbuild $args
+    Exec-Console $msbuild $args
 }
 
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap buil 
@@ -174,7 +174,7 @@ function Test-XUnitCoreClr() {
     $args += " -xml $logFile"
 
     Write-Host "Running CoreClr tests"
-    Exec-Command $corerun $args | Out-Host
+    Exec-Console $corerun $args
 }
 
 # Core function for running our unit / integration tests tests
@@ -247,7 +247,7 @@ function Test-XUnit() {
     }
     
     try {
-        Exec-Command $runTests $args | Out-Host 
+        Exec-Console $runTests $args
     }
     finally {
         Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process    
@@ -293,7 +293,7 @@ function Deploy-VsixViaTool() {
         $filePath = Join-Path $configDir $e
         $fullArg = "$baseArgs $filePath"
         Write-Host "`tInstalling $name"
-        Exec-Command $vsixExe $fullArg | Out-Host
+        Exec-Console $vsixExe $fullArg
     }
 }
 
