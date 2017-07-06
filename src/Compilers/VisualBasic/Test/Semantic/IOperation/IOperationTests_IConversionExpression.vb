@@ -1,4 +1,6 @@
-﻿Imports Microsoft.CodeAnalysis.Semantics
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -1911,12 +1913,11 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'SByt
                            ~
 ]]>.Value
 
-            Dim verifier = New ExpectedSymbolVerifier With {
-                .OperationSelector = Function(operation As IOperation) As IConversionExpression
-                                         Dim initializer As IOperation = DirectCast(operation, IVariableDeclarationStatement).Declarations.Single().Initializer
-                                         Return DirectCast(initializer, IInvalidExpression).Children.Cast(Of IConversionExpression).Single()
-                                     End Function
-            }
+            Dim verifier = New ExpectedSymbolVerifier(operationSelector:=
+                                                        Function(operation As IOperation) As IConversionExpression
+                                                            Dim initializer As IOperation = DirectCast(operation, IVariableDeclarationStatement).Declarations.Single().Initializer
+                                                            Return DirectCast(initializer, IInvalidExpression).Children.Cast(Of IConversionExpression).Single()
+                                                        End Function)
 
             ' TODO: We're not comparing types because the semantic model doesn't return the correct ConvertedType for this expression. See
             ' https://github.com/dotnet/roslyn/issues/20523
@@ -2063,11 +2064,20 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'SByt
                 Return conv.Operand
             End Function
 
-            Public Property OperationSelector As Func(Of IOperation, IConversionExpression)
+            Private ReadOnly _operationSelector As Func(Of IOperation, IConversionExpression)
 
-            Public Property ConversionChildSelector As Func(Of IConversionExpression, IOperation) = AddressOf ConversionExpressionChildSelector
+            Private ReadOnly _conversionChildSelector As Func(Of IConversionExpression, IOperation)
 
-            Public Property SyntaxSelector As Func(Of SyntaxNode, SyntaxNode)
+            Private ReadOnly _syntaxSelector As Func(Of SyntaxNode, SyntaxNode)
+
+            Public Sub New(Optional operationSelector As Func(Of IOperation, IConversionExpression) = Nothing,
+                           Optional conversionChildSelector As Func(Of IConversionExpression, IOperation) = Nothing,
+                           Optional syntaxSelector As Func(Of SyntaxNode, SyntaxNode) = Nothing)
+                _operationSelector = operationSelector
+                _conversionChildSelector = If(conversionChildSelector = Nothing, AddressOf ConversionExpressionChildSelector, conversionChildSelector)
+                _syntaxSelector = syntaxSelector
+
+            End Sub
 
             Public Sub Verify(operation As IOperation, compilation As Compilation, syntaxNode As SyntaxNode)
                 Dim finalSyntax = GetAndInvokeSyntaxSelector(syntaxNode)
@@ -2077,12 +2087,12 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'SByt
                 Dim conversion = GetAndInvokeOperationSelector(operation)
 
                 Assert.Equal(conversion.Type, typeInfo.ConvertedType)
-                Assert.Equal(ConversionChildSelector(conversion).Type, typeInfo.Type)
+                Assert.Equal(_conversionChildSelector(conversion).Type, typeInfo.Type)
             End Sub
 
             Private Function GetAndInvokeSyntaxSelector(syntax As SyntaxNode) As SyntaxNode
-                If SyntaxSelector IsNot Nothing Then
-                    Return SyntaxSelector(syntax)
+                If _syntaxSelector IsNot Nothing Then
+                    Return _syntaxSelector(syntax)
                 Else
                     Select Case syntax.Kind()
                         Case SyntaxKind.LocalDeclarationStatement
@@ -2096,8 +2106,8 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'SByt
             End Function
 
             Private Function GetAndInvokeOperationSelector(operation As IOperation) As IConversionExpression
-                If OperationSelector IsNot Nothing Then
-                    Return OperationSelector(operation)
+                If _operationSelector IsNot Nothing Then
+                    Return _operationSelector(operation)
                 Else
                     Select Case operation.Kind
                         Case OperationKind.VariableDeclarationStatement
