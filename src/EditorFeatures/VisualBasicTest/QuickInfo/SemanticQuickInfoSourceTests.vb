@@ -575,7 +575,7 @@ End class",
             MainDescription("Integer()"))
         End Function
 
-        <WorkItem(539240, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")>
+        <WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOnArrayCreation2() As Task
             Await TestAsync(<Text>
