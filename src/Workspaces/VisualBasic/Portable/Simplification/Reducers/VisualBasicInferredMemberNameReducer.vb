@@ -31,9 +31,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             cancellationToken As CancellationToken
         ) As SimpleArgumentSyntax
 
+            If CanSimplifyTupleName(node) Then
+                Return node.WithNameColonEquals(Nothing).WithTriviaFrom(node)
+            End If
+
+            Return node
+        End Function
+
+        Friend Shared Function CanSimplifyTupleName(node As SimpleArgumentSyntax) As Boolean
             ' Tuple elements are arguments in a tuple expression
             If node.NameColonEquals Is Nothing OrElse Not node.IsParentKind(SyntaxKind.TupleExpression) Then
-                Return node
+                Return False
             End If
 
             Dim inferredName = node.Expression.TryGetInferredMemberName()
@@ -41,23 +49,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             If inferredName Is Nothing OrElse
                 Not CaseInsensitiveComparison.Equals(inferredName, node.NameColonEquals.Name.Identifier.ValueText) Then
 
-                Return node
+                Return False
             End If
 
-            Return node.WithNameColonEquals(Nothing).WithTriviaFrom(node)
+            Return True
         End Function
 
         Private Shared ReadOnly s_simplifyNamedFieldInitializer As Func(Of NamedFieldInitializerSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyNamedFieldInitializer
 
         Private Shared Function SimplifyNamedFieldInitializer(node As NamedFieldInitializerSyntax, arg2 As SemanticModel, arg3 As OptionSet, arg4 As CancellationToken) As SyntaxNode
+            If CanSimplifyNamedFieldInitializer(node) Then
+                Return SyntaxFactory.InferredFieldInitializer(node.Expression).WithTriviaFrom(node)
+            End If
+
+            Return node
+        End Function
+
+        Friend Shared Function CanSimplifyNamedFieldInitializer(node As NamedFieldInitializerSyntax) As Boolean
             Dim inferredName = node.Expression.TryGetInferredMemberName()
 
             If inferredName Is Nothing OrElse
                     Not CaseInsensitiveComparison.Equals(inferredName, node.Name.Identifier.ValueText) Then
-                Return node
+                Return False
             End If
 
-            Return SyntaxFactory.InferredFieldInitializer(node.Expression).WithTriviaFrom(node)
+            Return True
         End Function
     End Class
 End Namespace
