@@ -166,6 +166,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundInterpolatedStringExpressionOperation(DirectCast(boundNode, BoundInterpolatedStringExpression))
                 Case BoundKind.Interpolation
                     Return CreateBoundInterpolationOperation(DirectCast(boundNode, BoundInterpolation))
+                Case BoundKind.AnonymousTypeCreationExpression
+                    Return CreateBoundAnonymousTypeCreationExpressionOperation(DirectCast(boundNode, BoundAnonymousTypeCreationExpression))
+                Case BoundKind.AnonymousTypeFieldInitializer
+                    Return Create(DirectCast(boundNode, BoundAnonymousTypeFieldInitializer).Value)
+                Case BoundKind.AnonymousTypePropertyAccess
+                    Return CreateBoundAnonymousTypePropertyAccessOperation(DirectCast(boundNode, BoundAnonymousTypePropertyAccess))
                 Case Else
                     Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
                     Return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax, constantValue, Function() GetIOperationChildren(boundNode))
@@ -207,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim syntax As SyntaxNode = boundAssignmentOperator.Syntax
                 Dim type As ITypeSymbol = boundAssignmentOperator.Type
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
-                Return New LazyAssignmentExpression(target, value, isInvalid, syntax, type, constantValue)
+                Return New LazySimpleAssignmentExpression(target, value, isInvalid, syntax, type, constantValue)
             End If
         End Function
 
@@ -532,14 +538,17 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             Dim [property] As IPropertySymbol = boundPropertyAccess.PropertySymbol
             Dim member As ISymbol = boundPropertyAccess.PropertySymbol
-            Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(Function() DeriveArguments(boundPropertyAccess.Arguments, boundPropertyAccess.PropertySymbol.Parameters))
+            Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(
+                Function()
+                    Return If(boundPropertyAccess.Arguments.Length = 0,
+                        ImmutableArray(Of IArgument).Empty,
+                        DeriveArguments(boundPropertyAccess.Arguments, boundPropertyAccess.PropertySymbol.Parameters))
+                End Function)
             Dim isInvalid As Boolean = boundPropertyAccess.HasErrors
             Dim syntax As SyntaxNode = boundPropertyAccess.Syntax
             Dim type As ITypeSymbol = boundPropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundPropertyAccess.ConstantValueOpt)
-            Return If(boundPropertyAccess.Arguments.Length > 0,
-                DirectCast(New LazyIndexedPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue), IPropertyReferenceExpression),
-                New LazyPropertyReferenceExpression([property], instance, member, isInvalid, syntax, type, constantValue))
+            Return New LazyPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundEventAccessOperation(boundEventAccess As BoundEventAccess) As IEventReferenceExpression
@@ -1064,6 +1073,31 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = Nothing
             Return New LazyInterpolatedStringText(text, isInvalid, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundAnonymousTypeCreationExpressionOperation(boundAnonymousTypeCreationExpression As BoundAnonymousTypeCreationExpression) As IAnonymousObjectCreationExpression
+            Dim initializers As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function()
+                    Return GetAnonymousTypeCreationInitializers(boundAnonymousTypeCreationExpression)
+                End Function)
+
+            Dim isInvalid As Boolean = boundAnonymousTypeCreationExpression.HasErrors
+            Dim syntax As SyntaxNode = boundAnonymousTypeCreationExpression.Syntax
+            Dim type As ITypeSymbol = boundAnonymousTypeCreationExpression.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypeCreationExpression.ConstantValueOpt)
+            Return New LazyAnonymousObjectCreationExpression(initializers, isInvalid, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundAnonymousTypePropertyAccessOperation(boundAnonymousTypePropertyAccess As BoundAnonymousTypePropertyAccess) As IPropertyReferenceExpression
+            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Nothing)
+            Dim [property] As IPropertySymbol = DirectCast(boundAnonymousTypePropertyAccess.ExpressionSymbol, IPropertySymbol)
+            Dim member As ISymbol = boundAnonymousTypePropertyAccess.ExpressionSymbol
+            Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(Function() ImmutableArray(Of IArgument).Empty)
+            Dim isInvalid As Boolean = boundAnonymousTypePropertyAccess.HasErrors
+            Dim syntax As SyntaxNode = boundAnonymousTypePropertyAccess.Syntax
+            Dim type As ITypeSymbol = boundAnonymousTypePropertyAccess.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
+            Return New LazyPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue)
         End Function
     End Class
 End Namespace

@@ -666,6 +666,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($": {operation.Property.ToTestDisplayString()}");
 
             VisitMemberReferenceExpressionCommon(operation);
+
+            if (operation.ArgumentsInEvaluationOrder.Length > 0)
+            {
+                VisitArguments(operation);
+            }
         }
 
         public override void VisitEventReferenceExpression(IEventReferenceExpression operation)
@@ -711,16 +716,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitPlaceholderExpression(operation);
-        }
-
-        public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
-        {
-            LogString(nameof(IIndexedPropertyReferenceExpression));
-
-            LogString($": {operation.Property.ToTestDisplayString()}");
-
-            VisitMemberReferenceExpressionCommon(operation);
-            VisitArguments(operation);
         }
 
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
@@ -882,6 +877,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Initializers, "Initializers", logElementCount: true);
         }
 
+        public override void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
+        {
+            LogString(nameof(IAnonymousObjectCreationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Initializers, "Initializers", logElementCount: true);
+        }
+
         public override void VisitFieldInitializer(IFieldInitializer operation)
         {
             LogString(nameof(IFieldInitializer));
@@ -955,9 +958,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.ElementValues, "Element Values", logElementCount: true);
         }
 
-        public override void VisitAssignmentExpression(IAssignmentExpression operation)
+        public override void VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation)
         {
-            LogString(nameof(IAssignmentExpression));
+            LogString(nameof(ISimpleAssignmentExpression));
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Target, "Left");
@@ -982,13 +985,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IIncrementExpression));
 
             var unaryKindStr = $"{nameof(UnaryOperandKind)}.{operation.IncrementOperationKind}";
-            var binaryKindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
-            LogString($" ({unaryKindStr}) ({binaryKindStr})");
+            LogString($" ({unaryKindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Target, "Left");
-            Visit(operation.Value, "Right");
         }
 
         public override void VisitParenthesizedExpression(IParenthesizedExpression operation)

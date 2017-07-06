@@ -90,11 +90,15 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'new { Amoun ... ello"" + y }')
-  Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-    IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '""Hello"" + y')
-      Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Hello"") (Syntax: '""Hello""')
-      Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'y')
+IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 Amount, System.String Message>) (Syntax: 'new { Amoun ... ello"" + y }')
+  Initializers(2): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'Amount = x')
+      Left: IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 Amount, System.String Message>.Amount { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Amount')
+      Right: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 'Message = ""Hello"" + y')
+      Left: IPropertyReferenceExpression: System.String <anonymous type: System.Int32 Amount, System.String Message>.Message { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Message')
+      Right: IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '""Hello"" + y')
+          Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Hello"") (Syntax: '""Hello""')
+          Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -165,10 +169,10 @@ internal class Class
 ";
             string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCreationExpression, Type: Class) (Syntax: 'new Class() ... { X = z } }')
-  Initializers(4): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32) (Syntax: 'X = x')
+  Initializers(4): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'X = x')
       Left: IOperation:  (OperationKind.None) (Syntax: 'X')
       Right: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-    IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y = { x, y, 3 }')
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y = { x, y, 3 }')
       Left: IOperation:  (OperationKind.None) (Syntax: 'Y')
       Right: IOperation:  (OperationKind.None) (Syntax: '{ x, y, 3 }')
           Children(3): IOperation:  (OperationKind.None) (Syntax: 'x')
@@ -177,16 +181,16 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
               Children(1): IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
             IOperation:  (OperationKind.None) (Syntax: '3')
               Children(1): ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
-    IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: 'Z = { { x, y } }')
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: 'Z = { { x, y } }')
       Left: IOperation:  (OperationKind.None) (Syntax: 'Z')
       Right: IOperation:  (OperationKind.None) (Syntax: '{ { x, y } }')
           Children(1): IOperation:  (OperationKind.None) (Syntax: '{ x, y }')
               Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
                 IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
-    IAssignmentExpression (OperationKind.AssignmentExpression, Type: Class) (Syntax: 'C = { X = z }')
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: Class) (Syntax: 'C = { X = z }')
       Left: IOperation:  (OperationKind.None) (Syntax: 'C')
       Right: IOperation:  (OperationKind.None) (Syntax: '{ X = z }')
-          Children(1): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32) (Syntax: 'X = z')
+          Children(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'X = z')
               Left: IOperation:  (OperationKind.None) (Syntax: 'X')
               Right: IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')
 ";
@@ -303,7 +307,7 @@ internal class Class
 ";
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: '{ X = { { x, y } } }')
-  Children(1): IAssignmentExpression (OperationKind.AssignmentExpression, Type: dynamic) (Syntax: 'X = { { x, y } }')
+  Children(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: dynamic) (Syntax: 'X = { { x, y } }')
       Left: IOperation:  (OperationKind.None) (Syntax: 'X')
       Right: IOperation:  (OperationKind.None) (Syntax: '{ { x, y } }')
           Children(1): IOperation:  (OperationKind.None) (Syntax: '{ x, y }')

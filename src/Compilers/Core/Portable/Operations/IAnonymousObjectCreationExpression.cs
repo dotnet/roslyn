@@ -5,14 +5,18 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a reference to an indexed property.
+    /// Represents a C# "new { ... }" or VB "New With { ... }" anonymous object creation expression.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IIndexedPropertyReferenceExpression : IPropertyReferenceExpression, IHasArgumentsExpression
+    public interface IAnonymousObjectCreationExpression : IOperation
     {
+        /// <summary>
+        /// Property initializers.
+        /// </summary>
+        ImmutableArray<IOperation> Initializers { get; }
     }
 }
 

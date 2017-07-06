@@ -251,6 +251,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
         {
             Visit(operation.Instance);
+            VisitArray(operation.ArgumentsInEvaluationOrder);
         }
 
         public override void VisitEventReferenceExpression(IEventReferenceExpression operation)
@@ -276,12 +277,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitPlaceholderExpression(IPlaceholderExpression operation)
         {
-        }
-
-        public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
-        {
-            Visit(operation.Instance);
-            VisitArray(operation.ArgumentsInEvaluationOrder);
         }
 
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
@@ -353,6 +348,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             VisitArray(operation.Initializers);
         }
 
+        public override void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
+        {
+            VisitArray(operation.Initializers);
+        }
+
         public override void VisitFieldInitializer(IFieldInitializer operation)
         {
             Visit(operation.Value);
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             VisitArray(operation.ElementValues);
         }
 
-        public override void VisitAssignmentExpression(IAssignmentExpression operation)
+        public override void VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation)
         {
             Visit(operation.Target);
             Visit(operation.Value);
@@ -394,7 +394,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitIncrementExpression(IIncrementExpression operation)
         {
             Visit(operation.Target);
-            Visit(operation.Value);
         }
 
         public override void VisitParenthesizedExpression(IParenthesizedExpression operation)
