@@ -1,4 +1,4 @@
-#r "System.Xml.XDocument.dll"
+﻿#r "System.Xml.XDocument.dll"
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
