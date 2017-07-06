@@ -87,10 +87,10 @@ try {
     $config = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDir $config
 
-    & (Join-Path $scriptDir "build.ps1") -restore:$restore -build -official:$official -msbuildDir $msbuildDir -release:$release
-    & (Join-Path $scriptDir "create-perftests.ps1") -buildDir $configDir
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -build -official:$official -msbuildDir $msbuildDir -release:$release }
+    Exec-Block { & (Join-Path $scriptDir "create-perftests.ps1") -buildDir $configDir }
     Run-MSBuild (Join-Path $repoDir "src\Setup\SetupStep1.proj")
-    & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config 
+    Exec-Block { & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config }
     Run-MSBuild (Join-Path $repoDir "src\NuGet\NuGet.proj")
 
     $buildArgs = Join-Path $repoDir "src\Setup\SetupStep2.proj"
@@ -100,18 +100,18 @@ try {
     Run-MSBuild $buildArgs
 
     if ($testDesktop) {
-        & (Join-Path $scriptDir "build.ps1") -testDesktop -test32
+        Exec-Block { & (Join-Path $scriptDir "build.ps1") -testDesktop -test32 }
     }
 
-    & (Join-Path $scriptDir "check-toolset-insertion.ps1") -sourcePath $repoDir -binariesPath $configDir
+    Exec-Block { & (Join-Path $scriptDir "check-toolset-insertion.ps1") -sourcePath $repoDir -binariesPath $configDir }
 
     # Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
     # and ready to be inserted -->
-    & .\write-test-sentinel-file.ps1 -binariesPath $configDir
+    Exec-Block { & .\write-test-sentinel-file.ps1 -binariesPath $configDir }
 
-    & .\stop-compiler-server.ps1 
-    & .\publish-assets.ps1 -binariesPath $configDir -branchName $branchName -apiKey $nugetApiKey -test:$(-not $official)
-    & .\copy-insertion-items.ps1 -binariesPath $configDir -test:$(-not $official)
+    Exec-Block { & .\stop-compiler-server.ps1 }
+    Exec-Block { & .\publish-assets.ps1 -binariesPath $configDir -branchName $branchName -apiKey $nugetApiKey -test:$(-not $official) }
+    Exec-Block { & .\copy-insertion-items.ps1 -binariesPath $configDir -test:$(-not $official) }
 
     exit 0
 }
