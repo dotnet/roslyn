@@ -58,27 +58,30 @@ namespace Microsoft.CodeAnalysis.AddImport
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
-            var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
-            var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<AddImportFixData>>(
-                RemoteFeatureOptions.AddImportEnabled,
-                callbackTarget,
-                nameof(IRemoteAddImportFeatureService.GetFixesAsync),
-                new object[]
-                {
+            if (RemoteSupportedLanguages.IsSupported(document.Project.Language))
+            {
+                var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
+                var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<AddImportFixData>>(
+                    RemoteFeatureOptions.AddImportEnabled,
+                    callbackTarget,
+                    nameof(IRemoteAddImportFeatureService.GetFixesAsync),
+                    new object[]
+                    {
                     document.Id,
                     span,
                     diagnosticId,
                     placeSystemNamespaceFirst,
                     searchReferenceAssemblies,
                     packageSources
-                },
-                cancellationToken).ConfigureAwait(false);
+                    },
+                    cancellationToken).ConfigureAwait(false);
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!result.IsDefault)
-            {
-                return result;
+                if (!result.IsDefault)
+                {
+                    return result;
+                }
             }
 
             return await GetFixesInCurrentProcessAsync(

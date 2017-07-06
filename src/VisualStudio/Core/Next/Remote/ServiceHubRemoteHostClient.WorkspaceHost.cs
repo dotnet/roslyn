@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             public void ClearSolution() { }
             public void OnAdditionalDocumentAdded(DocumentInfo documentInfo) { }
             public void OnAdditionalDocumentClosed(DocumentId documentId, ITextBuffer textBuffer, TextLoader loader) { }
-            public void OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer, bool isCurrentContext) { }
+            public void OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer) { }
             public void OnAdditionalDocumentRemoved(DocumentId documentInfo) { }
             public void OnAdditionalDocumentTextUpdatedOnDisk(DocumentId id) { }
             public void OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference) { }
