@@ -1682,6 +1682,67 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode NullableTypeExpression(SyntaxNode type);
 
         /// <summary>
+        /// Creates an expression that denotes a tuple type.
+        /// </summary>
+        public SyntaxNode TupleTypeExpression(IEnumerable<SyntaxNode> elements)
+        {
+            if (elements == null)
+            {
+                throw new ArgumentNullException(nameof(elements));
+            }
+            if (elements.Count() <= 1)
+            {
+                throw new ArgumentException("Tuples must have at least two elements.", nameof(elements));
+            }
+
+            return CreateTupleType(elements);
+        }
+
+        internal abstract SyntaxNode CreateTupleType(IEnumerable<SyntaxNode> elements);
+
+        /// <summary>
+        /// Creates an expression that denotes a tuple type.
+        /// </summary>
+        public SyntaxNode TupleTypeExpression(params SyntaxNode[] elements)
+            => TupleTypeExpression((IEnumerable<SyntaxNode>)elements);
+
+        /// <summary>
+        /// Creates an expression that denotes a tuple type.
+        /// </summary>
+        public SyntaxNode TupleTypeExpression(IEnumerable<ITypeSymbol> elementTypes, IEnumerable<string> elementNames = null)
+        {
+            if (elementTypes == null)
+            {
+                throw new ArgumentNullException(nameof(elementTypes));
+            }
+
+            if (elementNames != null)
+            {
+                if (elementNames.Count() != elementTypes.Count())
+                {
+                    throw new ArgumentException("The number of element names must match the cardinality of the tuple.", nameof(elementNames));
+                }
+
+                return TupleTypeExpression(elementTypes.Zip(elementNames, (type, name) => TupleElementExpression(type, name)));
+            }
+
+            return TupleTypeExpression(elementTypes.Select(type => TupleElementExpression(type, name: null)));
+        }
+
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Creates an expression that denotes a tuple element.
+        /// </summary>
+        public abstract SyntaxNode TupleElementExpression(SyntaxNode type, string name = null);
+
+        /// <summary>
+        /// Creates an expression that denotes a tuple element.
+        /// </summary>
+        public SyntaxNode TupleElementExpression(ITypeSymbol type, string name = null)
+            => TupleElementExpression(TypeExpression(type), name);
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        /// <summary>
         /// Creates an expression that denotes an assignment from the right argument to left argument.
         /// </summary>
         public abstract SyntaxNode AssignmentStatement(SyntaxNode left, SyntaxNode right);
@@ -2070,6 +2131,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an nameof expression.
         /// </summary>
         public abstract SyntaxNode NameOfExpression(SyntaxNode expression);
+
+        /// <summary>
+        /// Creates an tuple expression.
+        /// </summary>
+        public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
 
         #endregion
     }

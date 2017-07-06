@@ -190,12 +190,12 @@ namespace RunTests
             }
 
             Console.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
-
             if (!string.IsNullOrEmpty(options.ProcDumpPath))
             {
                 var dumpDir = options.LogFilePath != null
                     ? Path.GetDirectoryName(options.LogFilePath)
                     : Directory.GetCurrentDirectory();
+                Console.WriteLine($"Dump file location is {dumpDir}");
 
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))

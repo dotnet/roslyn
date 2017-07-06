@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -133,6 +133,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_guides_for_code_level_constructs
             => ServicesVSResources.Show_guides_for_code_level_constructs;
+
+        public static string Option_Fading
+            => ServicesVSResources.Fading;
+
+        public static string Option_Fade_out_unused_usings
+            => CSharpVSResources.Fade_out_unused_usings;
+
+        public static string Option_Fade_out_unreachable_code
+            => ServicesVSResources.Fade_out_unreachable_code;
 
         public static string Option_Performance
         {

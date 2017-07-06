@@ -1,4 +1,4 @@
-<ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf($saferootidentifiername$CodeRefactoringProvider)), [Shared]>
+﻿<ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf($saferootidentifiername$CodeRefactoringProvider)), [Shared]>
 Friend Class $saferootidentifiername$CodeRefactoringProvider
     Inherits CodeRefactoringProvider
 

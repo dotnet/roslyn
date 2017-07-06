@@ -2,8 +2,8 @@
 
 using System;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Host.TemporaryStorageServiceFactory;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

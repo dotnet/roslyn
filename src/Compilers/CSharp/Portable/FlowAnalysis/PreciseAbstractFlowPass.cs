@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -801,11 +802,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 labelStateChanged = true;
                 _labels[label] = state;
             }
-        }
-
-        private bool ResolveBranches(BoundLabeledStatement target)
-        {
-            return ResolveBranches(target.Label, target);
         }
 
         protected struct SavedPending

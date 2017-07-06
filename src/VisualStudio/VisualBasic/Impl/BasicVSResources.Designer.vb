@@ -164,6 +164,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Fade out unused imports.
+        '''</summary>
+        Friend Shared ReadOnly Property Fade_out_unused_imports() As String
+            Get
+                Return ResourceManager.GetString("Fade_out_unused_imports", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to _Generate XML documentation comments for &apos;&apos;&apos;.
         '''</summary>
         Friend Shared ReadOnly Property Generate_XML_documentation_comments_for() As String

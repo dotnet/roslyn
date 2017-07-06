@@ -513,4 +513,10 @@
   <data name="When_possible" xml:space="preserve">
     <value>When possible</value>
   </data>
+  <data name="Indent_case_contents_when_block" xml:space="preserve">
+    <value>Indent case contents (when block)</value>
+  </data>
+  <data name="Fade_out_unused_usings" xml:space="preserve">
+    <value>Fade out unused usings</value>
+  </data>
 </root>
