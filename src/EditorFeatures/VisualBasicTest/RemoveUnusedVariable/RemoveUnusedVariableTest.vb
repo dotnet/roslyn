@@ -2,9 +2,10 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnusedVariable
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.RemoveUnusedVariableTest
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedVariable
     Partial Public Class RemoveUnusedVariableTest
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
