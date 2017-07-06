@@ -45,7 +45,7 @@ namespace Test.Utilities
                 }
             }
 
-            AnalyzerDriver driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, null, false, out Compilation newCompilation, CancellationToken.None);
+            AnalyzerDriver driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, new AnalyzerManager(analyzersArray), onAnalyzerException, null, false, out Compilation newCompilation, CancellationToken.None);
 
             ImmutableArray<Diagnostic> diagnostics = newCompilation.GetDiagnostics();
             if (validationMode != TestValidationMode.AllowCompileErrors)
