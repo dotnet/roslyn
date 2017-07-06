@@ -190,6 +190,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <returns>Return the node with the diagnostic attached to it.</returns>
         <Extension>
         Friend Function ReportFeatureUnavailable(Of TNode As VisualBasicSyntaxNode)(feature As Feature, options As VisualBasicParseOptions, node As TNode) As TNode
+            Debug.Assert(options IsNot Nothing, $"{NameOf(options)} was expected to be non null.")
+            Debug.Assert(System.Enum.IsDefined(GetType(Feature), feature), $"Unknown Feature: {feature}")
             Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
             Dim requiredVersion As New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
             Return Parser.ReportSyntaxError(node, ERRID.ERR_LanguageVersion, options.LanguageVersion.GetErrorName(), featureName, requiredVersion)
@@ -203,6 +205,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="options">The parse options being used.</param>
         <Extension>
         Friend Function IsAvailable(feature As Feature, options As VisualBasicParseOptions) As Boolean
+            Debug.Assert(options IsNot Nothing, $"{NameOf(options)} was expected to be non null.")
+            Debug.Assert(System.Enum.IsDefined(GetType(Feature), feature), $"Unknown Feature: {feature}")
             Return feature.CheckFeatures(options) OrElse feature.IsInLanguageVersion(options)
         End Function
 
@@ -215,6 +219,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="options">The parse options being used.</param>
         <Extension>
         Friend Function CheckFeatureAvailable(Of TNode As VisualBasicSyntaxNode)(node As TNode, feature As Feature, options As VisualBasicParseOptions) As TNode
+            Debug.Assert(node IsNot Nothing, $"{NameOf(node)} was expected to be non null.")
+            Debug.Assert(options IsNot Nothing, $"{NameOf(options)} was expected to be non null.")
+            Debug.Assert(System.Enum.IsDefined(GetType(Feature), feature), $"Unknown Feature: {feature}")
             Return If(feature.IsAvailable(options), node, feature.ReportFeatureUnavailable(options, node))
         End Function
 
@@ -225,6 +232,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="location">The location to report the diagnostic.</param>
         <Extension>
         Friend Function IsAvailable(feature As Feature, options As VisualBasicParseOptions, diagnostics As DiagnosticBag, location As Location) As Boolean
+            Debug.Assert(options IsNot Nothing, $"{NameOf(options)} was expected to be non null.")
+            Debug.Assert(System.Enum.IsDefined(GetType(Feature), feature), $"Unknown Feature: {feature}")
             If feature.IsAvailable(options) Then Return True
             Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
             Dim requiredVersion As New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
