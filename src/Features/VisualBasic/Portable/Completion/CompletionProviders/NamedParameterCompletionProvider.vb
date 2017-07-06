@@ -43,12 +43,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             If token.Kind = SyntaxKind.CommaToken Then
-                For Each n In argumentList.Arguments.GetWithSeparators()
-                    If n.IsNode AndAlso DirectCast(n.AsNode(), ArgumentSyntax).IsNamed Then
-                        context.IsExclusive = True
-                        Exit For
-                    End If
-                Next
+                ' Consider refining this logic to mandate completion with an argument name, if preceded by an out-of-position name
+                ' See https://github.com/dotnet/roslyn/issues/20657
+                Dim languageVersion = DirectCast(document.Project.ParseOptions, VisualBasicParseOptions).LanguageVersion
+                If languageVersion < LanguageVersion.VisualBasic15_5 AndAlso token.IsMandatoryNamedParameterPosition() Then
+                    context.IsExclusive = True
+                End If
             End If
 
             Dim semanticModel = Await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(False)

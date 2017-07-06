@@ -2524,6 +2524,60 @@ Anonymous Types:
             End Using
         End Function
 
+        <WpfFact>
+        Public Async Function TestNonTrailingNamedArgumentInVB15_3() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                 <Workspace>
+                     <Project Language="Visual Basic" LanguageVersion="VisualBasic15_3" CommonReferences="true" AssemblyName="VBProj">
+                         <Document FilePath="C.vb">
+Class C
+    Sub M()
+        Dim better As Integer = 2
+        M(a:=1, $$)
+    End Sub
+    Sub M(a As Integer, bar As Integer, c As Integer)
+    End Sub
+End Class
+                         </Document>
+                     </Project>
+                 </Workspace>)
+
+                state.SendTypeChars("b")
+                Await state.AssertSelectedCompletionItem(displayText:="bar:=", isHardSelected:=True)
+                state.SendTypeChars("e")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function TestNonTrailingNamedArgumentInVB15_5() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                 <Workspace>
+                     <Project Language="Visual Basic" LanguageVersion="VisualBasic15_5" CommonReferences="true" AssemblyName="VBProj">
+                         <Document FilePath="C.vb">
+Class C
+    Sub M()
+        Dim better As Integer = 2
+        M(a:=1, $$)
+    End Sub
+    Sub M(a As Integer, bar As Integer, c As Integer)
+    End Sub
+End Class
+                         </Document>
+                     </Project>
+                 </Workspace>)
+
+                state.SendTypeChars("bar")
+                Await state.AssertSelectedCompletionItem(displayText:="bar:=", isHardSelected:=True)
+                state.SendBackspace()
+                state.SendBackspace()
+                state.SendTypeChars("et")
+                Await state.AssertSelectedCompletionItem(displayText:="better", isHardSelected:=True)
+                state.SendTypeChars(", ")
+                Assert.Contains("M(a:=1, better,", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSymbolInTupleLiteral() As Task
             Using state = TestState.CreateVisualBasicTestState(
