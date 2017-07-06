@@ -100,6 +100,7 @@
     <Compile Include="Diagnostics\DiagnosticTests.vb" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.vb" />
     <Compile Include="IOperation\IOperationTests_IArgument.vb" />
+    <Compile Include="IOperation\IOperationTests_IConversionExpression.vb" />
     <Compile Include="IOperation\IOperationTests_IFieldReferenceExpression.vb" />
     <Compile Include="IOperation\IOperationTests_IObjectCreationExpression.vb" />
     <Compile Include="IOperation\IOperationTests_IInterpolatedStringExpression.vb" />
