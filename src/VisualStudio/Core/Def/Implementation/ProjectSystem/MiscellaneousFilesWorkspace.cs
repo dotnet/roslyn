@@ -369,7 +369,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 hostProject,
                 moniker,
                 parseOptionsOpt?.Kind ?? SourceCodeKind.Regular,
-                isAdditionalFile: false,
                 getFolderNames: _ => SpecializedCollections.EmptyReadOnlyList<string>(),
                 canUseTextBuffer: _ => true);
 
