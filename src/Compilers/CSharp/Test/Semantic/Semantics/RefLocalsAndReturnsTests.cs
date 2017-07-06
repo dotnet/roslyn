@@ -1853,6 +1853,9 @@ struct Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (10,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         return ref d;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "d").WithArguments("this").WithLocation(10, 20)
             );
         }
 
