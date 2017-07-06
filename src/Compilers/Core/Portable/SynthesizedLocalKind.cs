@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis
         ForEachArrayIndex = 8,
 
         /// <summary>
-        /// Local variable that holds a pinned handle of a string passed to a fixed statement (C#).
+        /// Local variable that holds a pinned handle of a managed reference passed to a fixed statement (C#).
         /// </summary>
-        FixedString = 9,
+        FixedReference = 9,
 
         /// <summary>
         /// Local variable that holds the object passed to With statement (VB). 
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis
         /// Temp created for pattern matching by type. This holds the value of an input value provisionally
         /// converted to the type against which it is being matched.
         /// </summary>
-        PatternMatching = 35,
+        SwitchCasePatternMatching = 35,
 
         /// <summary>
         /// All values have to be less than or equal to <see cref="MaxValidValueForLocalVariableSerializedToDebugInformation"/> 

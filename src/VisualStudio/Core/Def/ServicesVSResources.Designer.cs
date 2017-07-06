@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ServicesVSResources {
@@ -194,6 +194,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string ALL_UPPER {
             get {
                 return ResourceManager.GetString("ALL_UPPER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analysis.
+        /// </summary>
+        internal static string Analysis {
+            get {
+                return ResourceManager.GetString("Analysis", resourceCulture);
             }
         }
         
@@ -623,6 +632,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable full solution _analysis.
+        /// </summary>
+        internal static string Enable_full_solution_analysis {
+            get {
+                return ResourceManager.GetString("Enable_full_solution_analysis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to --- End of inner exception stack trace ---.
         /// </summary>
         internal static string End_of_inner_exception_stack {
@@ -756,6 +774,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Extract_Interface {
             get {
                 return ResourceManager.GetString("Extract_Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fade out unreachable code.
+        /// </summary>
+        internal static string Fade_out_unreachable_code {
+            get {
+                return ResourceManager.GetString("Fade_out_unreachable_code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fading.
+        /// </summary>
+        internal static string Fading {
+            get {
+                return ResourceManager.GetString("Fading", resourceCulture);
             }
         }
         
@@ -1260,6 +1296,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Never show this again.
+        /// </summary>
+        internal static string Never_show_this_again {
+            get {
+                return ResourceManager.GetString("Never_show_this_again", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to New _file name:.
         /// </summary>
         internal static string New_file_name_colon {
@@ -1449,6 +1494,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Perform editor _feature analysis in external process (experimental).
+        /// </summary>
+        internal static string Perform_editor_feature_analysis_in_external_process {
+            get {
+                return ResourceManager.GetString("Perform_editor_feature_analysis_in_external_process", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pick members.
         /// </summary>
         internal static string Pick_members {
@@ -1557,6 +1611,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer simple &apos;default&apos; expression.
+        /// </summary>
+        internal static string Prefer_simple_default_expression {
+            get {
+                return ResourceManager.GetString("Prefer_simple_default_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to prefer throwing properties.
         /// </summary>
         internal static string prefer_throwing_properties {
@@ -1580,6 +1643,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Preview_method_signature_colon {
             get {
                 return ResourceManager.GetString("Preview_method_signature_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preview pane.
+        /// </summary>
+        internal static string Preview_pane {
+            get {
+                return ResourceManager.GetString("Preview_pane", resourceCulture);
             }
         }
         
@@ -2137,6 +2209,16 @@ namespace Microsoft.VisualStudio.LanguageServices {
             get {
                 return ResourceManager.GetString("To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragrap" +
                         "h_follows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues.
+        /// </summary>
+        internal static string Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues {
+            get {
+                return ResourceManager.GetString("Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_f" +
+                        "ixes_for_common_API_design_naming_performance_and_reliability_issues", resourceCulture);
             }
         }
         

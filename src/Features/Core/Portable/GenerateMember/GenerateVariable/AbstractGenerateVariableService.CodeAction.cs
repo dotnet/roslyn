@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
                         type: _state.TypeMemberType,
                         returnsByRef: _returnsByRef,
-                        explicitInterfaceSymbol: null,
+                        explicitInterfaceImplementations: default,
                         name: _state.IdentifierToken.ValueText,
                         isIndexer: _state.IsIndexer,
                         parameters: _state.Parameters,

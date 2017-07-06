@@ -1,9 +1,13 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
@@ -22,30 +26,59 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
 
+        private readonly AutomationDelegatingListView symbolKindsListView;
+        private readonly AutomationDelegatingListView accessibilitiesListView;
+        private readonly AutomationDelegatingListView modifiersListView;
+
         internal SymbolSpecificationDialog(SymbolSpecificationViewModel viewModel)
         {
             _viewModel = viewModel;
             InitializeComponent();
             DataContext = viewModel;
 
-            SymbolKinds.AddHandler(UIElement.PreviewKeyDownEvent, (KeyEventHandler)HandleSymbolKindsPreviewKeyDown, true);
-            Accessibilities.AddHandler(UIElement.PreviewKeyDownEvent, (KeyEventHandler)HandleAccessibilitiesPreviewKeyDown, true);
-            Modifiers.AddHandler(UIElement.PreviewKeyDownEvent, (KeyEventHandler)HandleModifiersPreviewKeyDown, true);
+            // AutomationDelegatingListView is defined in ServicesVisualStudio, which has
+            // InternalsVisibleTo this project. But, the markup compiler doesn't consider the IVT 
+            // relationship, so declaring the AutomationDelegatingListView in XAML would require 
+            // duplicating that type in this project. Declaring and setting it here avoids the 
+            // markup compiler completely, allowing us to reference the internal 
+            // AutomationDelegatingListView without issue.
+
+            symbolKindsListView = CreateAutomationDelegatingListView(nameof(SymbolSpecificationViewModel.SymbolKindList));
+            symbolKindsContentControl.Content = symbolKindsListView;
+
+            accessibilitiesListView = CreateAutomationDelegatingListView(nameof(SymbolSpecificationViewModel.AccessibilityList));
+            accessibilitiesContentControl.Content = accessibilitiesListView;
+
+            modifiersListView = CreateAutomationDelegatingListView(nameof(SymbolSpecificationViewModel.ModifierList));
+            modifiersContentControl.Content = modifiersListView;
+
+            symbolKindsListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleSymbolKindsPreviewKeyDown, true);
+            accessibilitiesListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleAccessibilitiesPreviewKeyDown, true);
+            modifiersListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleModifiersPreviewKeyDown, true);
+        }
+
+        private AutomationDelegatingListView CreateAutomationDelegatingListView(string itemsSourceName)
+        {
+            var listView = new AutomationDelegatingListView();
+            listView.SelectionMode = SelectionMode.Extended;
+            listView.SetBinding(ItemsControl.ItemsSourceProperty, new Binding(itemsSourceName));
+            listView.SetResourceReference(ItemsControl.ItemTemplateProperty, "listViewDataTemplate");
+            return listView;
         }
 
         private void HandleSymbolKindsPreviewKeyDown(object sender, KeyEventArgs e)
         {
-            HandlePreviewKeyDown(e, SymbolKinds.SelectedItems.OfType<SymbolSpecificationViewModel.SymbolKindViewModel>());
+            HandlePreviewKeyDown(e, symbolKindsListView.SelectedItems.OfType<SymbolSpecificationViewModel.SymbolKindViewModel>());
         }
 
         private void HandleAccessibilitiesPreviewKeyDown(object sender, KeyEventArgs e)
         {
-            HandlePreviewKeyDown(e, Accessibilities.SelectedItems.OfType<SymbolSpecificationViewModel.AccessibilityViewModel>());
+            HandlePreviewKeyDown(e, accessibilitiesListView.SelectedItems.OfType<SymbolSpecificationViewModel.AccessibilityViewModel>());
         }
 
         private void HandleModifiersPreviewKeyDown(object sender, KeyEventArgs e)
         {
-            HandlePreviewKeyDown(e, Modifiers.SelectedItems.OfType<SymbolSpecificationViewModel.ModifierViewModel>());
+            HandlePreviewKeyDown(e, modifiersListView.SelectedItems.OfType<SymbolSpecificationViewModel.ModifierViewModel>());
         }
 
         private void HandlePreviewKeyDown<T>(KeyEventArgs e, IEnumerable<T> selectedItems) where T : SymbolSpecificationViewModel.ISymbolSpecificationViewModelPart
@@ -64,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         private void SelectAllSymbolKinds(object sender, RoutedEventArgs e)
         {
-            foreach (var item in SymbolKinds.Items.OfType<SymbolSpecificationViewModel.SymbolKindViewModel>())
+            foreach (var item in symbolKindsListView.Items.OfType<SymbolSpecificationViewModel.SymbolKindViewModel>())
             {
                 item.IsChecked = true;
             }
@@ -72,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         private void DeselectAllSymbolKinds(object sender, RoutedEventArgs e)
         {
-            foreach (var item in SymbolKinds.Items.OfType<SymbolSpecificationViewModel.SymbolKindViewModel>())
+            foreach (var item in symbolKindsListView.Items.OfType<SymbolSpecificationViewModel.SymbolKindViewModel>())
             {
                 item.IsChecked = false;
             }
@@ -80,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         private void SelectAllAccessibilities(object sender, RoutedEventArgs e)
         {
-            foreach (var item in Accessibilities.Items.OfType<SymbolSpecificationViewModel.AccessibilityViewModel>())
+            foreach (var item in accessibilitiesListView.Items.OfType<SymbolSpecificationViewModel.AccessibilityViewModel>())
             {
                 item.IsChecked = true;
             }
@@ -88,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         private void DeselectAllAccessibilities(object sender, RoutedEventArgs e)
         {
-            foreach (var item in Accessibilities.Items.OfType<SymbolSpecificationViewModel.AccessibilityViewModel>())
+            foreach (var item in accessibilitiesListView.Items.OfType<SymbolSpecificationViewModel.AccessibilityViewModel>())
             {
                 item.IsChecked = false;
             }
@@ -96,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         private void SelectAllModifiers(object sender, RoutedEventArgs e)
         {
-            foreach (var item in Modifiers.Items.OfType<SymbolSpecificationViewModel.ModifierViewModel>())
+            foreach (var item in modifiersListView.Items.OfType<SymbolSpecificationViewModel.ModifierViewModel>())
             {
                 item.IsChecked = true;
             }
@@ -104,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         private void DeselectAllModifiers(object sender, RoutedEventArgs e)
         {
-            foreach (var item in Modifiers.Items.OfType<SymbolSpecificationViewModel.ModifierViewModel>())
+            foreach (var item in modifiersListView.Items.OfType<SymbolSpecificationViewModel.ModifierViewModel>())
             {
                 item.IsChecked = false;
             }

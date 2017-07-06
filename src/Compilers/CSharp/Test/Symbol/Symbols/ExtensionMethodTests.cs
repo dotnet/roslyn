@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -1984,10 +1984,12 @@ static class S
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (6,9): error CS1928: 'int' does not contain a definition for 'E2' and the best extension method overload 'S.E2(double)' has some invalid arguments
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "E2").WithArguments("int", "E2", "S.E2(double)").WithLocation(6, 11),
-                // (7,9): error CS1928: 'int' does not contain a definition for 'E3' and the best extension method overload 'S.E3(long, params object[])' has some invalid arguments
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "E3").WithArguments("int", "E3", "S.E3(long, params object[])").WithLocation(7, 11));
+                // (6,9): error CS1929: 'int' does not contain a definition for 'E2' and the best extension method overload 'S.E2(double)' requires a receiver of type 'double'
+                //         2.E2();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "2").WithArguments("int", "E2", "S.E2(double)", "double").WithLocation(6, 9),
+                // (7,9): error CS1929: 'int' does not contain a definition for 'E3' and the best extension method overload 'S.E3(long, params object[])' requires a receiver of type 'long'
+                //         3.E3();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "3").WithArguments("int", "E3", "S.E3(long, params object[])", "long").WithLocation(7, 9));
         }
 
         [ClrOnlyFact]

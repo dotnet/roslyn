@@ -11,8 +11,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nonshipping>true</Nonshipping>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net452</PackageTargetFallback>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <DefineConstants>$(DefineConstants);DNX</DefineConstants>
     <NoStdLib>true</NoStdLib>
     <RootNamespace></RootNamespace>
@@ -21,10 +19,6 @@
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
       <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -47,7 +41,6 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.WinRT.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.EnC.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.PerformanceTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Semantic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Symbol.UnitTests" />
@@ -99,7 +92,7 @@
     <Compile Include="Assert\EqualityUtil`1.cs" />
     <Compile Include="Assert\TestExceptionUtilities.cs" />
     <Compile Include="Assert\WorkItemAttribute.cs" />
-    <Compile Include="CommonTestBase.CompilationVerifier.cs" />
+    <Compile Include="CompilationVerifier.cs" />
     <Compile Include="CommonTestBase.cs" />
     <Compile Include="Compilation\CompilationDifference.cs" />
     <Compile Include="Compilation\CompilationExtensions.cs" />
@@ -135,10 +128,11 @@
     <Compile Include="FX\CappedStringWriter.cs" />
     <Compile Include="FX\CultureHelpers.cs" />
     <Compile Include="FX\DirectoryHelper.cs" />
+    <Compile Include="FX\DumpProcRunner.cs" />
     <Compile Include="FX\EncodingUtilities.cs" />
     <Compile Include="FX\EnsureEnglishUICulture.cs" />
     <Compile Include="FX\EnsureInvariantCulture.cs" />
-    <Compile Include="FX\EventWaiter.cs" />    
+    <Compile Include="FX\EventWaiter.cs" />
     <Compile Include="FX\HResult.cs" />
     <Compile Include="FX\ImmutableArrayTestExtensions.cs" />
     <Compile Include="FX\MonoHelpers.cs" />
@@ -151,12 +145,14 @@
     <Compile Include="ICompilationVerifier.cs" />
     <Compile Include="MarkedSource\MarkupTestFile.cs" />
     <Compile Include="MarkedSource\SourceWithMarkedNodes.cs" />
-    <Compile Include="MetadataSignatureUnitTestHelper.cs" />
+    <Compile Include="Metadata\AggregatedMetadataReader.cs" />
+    <Compile Include="Metadata\MetadataSignatureUnitTestHelper.cs" />
     <Compile Include="Metadata\CustomAttributeRow.cs" />
     <Compile Include="Metadata\DynamicAnalysisDataReader.cs" />
     <Compile Include="Metadata\EncValidation.cs" />
     <Compile Include="Metadata\IlasmUtilities.cs" />
     <Compile Include="Metadata\ILBuilderVisualizer.cs" />
+    <Compile Include="Metadata\ILValidation.cs" />
     <Compile Include="Metadata\MetadataReaderUtils.cs" />
     <Compile Include="Metadata\MetadataValidation.cs" />
     <Compile Include="Metadata\ModuleData.cs" />
@@ -173,9 +169,6 @@
     <Compile Include="Mocks\TestStream.cs" />
     <Compile Include="Mocks\VirtualizedRelativePathResolver.cs" />
     <Compile Include="ObjectReference.cs" />
-    <Compile Include="Pdb\MockSymWriter.cs" />
-    <Compile Include="Pdb\PdbTestUtilities.cs" />
-    <Compile Include="Pdb\PdbValidation.cs" />
     <Compile Include="Pe\BrokenStream.cs" />
     <Compile Include="ReflectionAssert.cs" />
     <Compile Include="Syntax\ISyntaxNodeKindProvider.cs" />
@@ -233,7 +226,6 @@
     <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
   <ProjectExtensions />

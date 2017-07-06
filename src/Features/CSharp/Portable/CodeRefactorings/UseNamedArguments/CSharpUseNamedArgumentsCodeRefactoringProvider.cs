@@ -19,11 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseNamedArguments
             where TSyntax : SyntaxNode
             where TSyntaxList : SyntaxNode 
         {
-            protected override SyntaxNode GetReceiver(SyntaxNode argument)
+            protected sealed override SyntaxNode GetReceiver(SyntaxNode argument)
                 => argument.Parent.Parent;
 
-            protected override bool IsLegalToAddNamedArguments(ImmutableArray<IParameterSymbol> parameters, int argumentCount)
+            protected sealed override bool IsLegalToAddNamedArguments(ImmutableArray<IParameterSymbol> parameters, int argumentCount)
                 => !parameters.Last().IsParams || parameters.Length >= argumentCount;
+
+            protected sealed override bool IsCloseParenOrComma(SyntaxToken token)
+                => token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken);
         }
 
         private class ArgumentAnalyzer :

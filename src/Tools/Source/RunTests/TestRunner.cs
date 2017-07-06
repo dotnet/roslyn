@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -103,7 +103,11 @@ namespace RunTests
                     Console.Write($", {failures, 2} failures");
                 }
                 Console.WriteLine();
-                Task.WaitAny(running.ToArray());
+
+                if (running.Count > 0)
+                {
+                    await Task.WhenAny(running.ToArray());
+                }
             } while (running.Count > 0);
 
             Print(completed);

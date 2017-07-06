@@ -2,16 +2,15 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private abstract partial class SymbolReference : Reference
         {
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected abstract bool ShouldAddWithExistingImport(Document document);
 
             public SymbolReference(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 SymbolResult<INamespaceOrTypeSymbol> symbolResult)
                 : base(provider, new SearchResult(symbolResult))
             {
@@ -43,27 +42,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
-            }
+                => Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
 
-            private async Task<CodeActionOperation> GetOperationAsync(
-                Document document, SyntaxNode node, 
-                bool placeSystemNamespaceFirst, bool hasExistingImport,
-                CancellationToken cancellationToken)
-            {
-                var newDocument = await UpdateDocumentAsync(
-                    document, node, placeSystemNamespaceFirst, hasExistingImport, cancellationToken).ConfigureAwait(false);
-                var updatedSolution = GetUpdatedSolution(newDocument);
-
-                var operation = new ApplyChangesOperation(updatedSolution);
-                return operation;
-            }
-
-            protected virtual Solution GetUpdatedSolution(Document newDocument)
-                => newDocument.Project.Solution;
-
-            private async Task<Document> UpdateDocumentAsync(
+            private async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
                 Document document, SyntaxNode contextNode, 
                 bool placeSystemNamespaceFirst, bool hasExistingImport,
                 CancellationToken cancellationToken)
@@ -71,18 +52,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // Defer to the language to add the actual import/using.
                 if (hasExistingImport)
                 {
-                    return document;
+                    return ImmutableArray<TextChange>.Empty;
                 }
 
                 (var newContextNode, var newDocument) = await ReplaceNameNodeAsync(
                     contextNode, document, cancellationToken).ConfigureAwait(false);
 
-                return await provider.AddImportAsync(
+                var updatedDocument = await provider.AddImportAsync(
                     newContextNode, this.SymbolResult.Symbol, newDocument, 
                     placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+
+                var cleanedDocument = await CodeAction.CleanupDocumentAsync(
+                    updatedDocument, cancellationToken).ConfigureAwait(false);
+
+                var textChanges = await cleanedDocument.GetTextChangesAsync(
+                    document, cancellationToken).ConfigureAwait(false);
+
+                return textChanges.ToImmutableArray();
             }
 
-            public override async Task<CodeAction> CreateCodeActionAsync(
+            public sealed override async Task<AddImportFixData> TryGetFixDataAsync(
                 Document document, SyntaxNode node,
                 bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
@@ -105,22 +94,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     description = $"{this.SearchResult.DesiredName} - {description}";
                 }
 
-                var getOperation = new AsyncLazy<CodeActionOperation>(
-                    c => this.GetOperationAsync(document, node, placeSystemNamespaceFirst, hasExistingImport, c),
-                    cacheResult: true);
+                var textChanges = await GetTextChangesAsync(
+                    document, node, placeSystemNamespaceFirst, hasExistingImport, cancellationToken).ConfigureAwait(false);
 
-                return new SymbolReferenceCodeAction(
-                    description, GetTags(document), GetPriority(document),
-                    getOperation,
-                    this.GetIsApplicableCheck(document.Project));
+                return GetFixData(
+                    document, textChanges, description,
+                    GetTags(document), GetPriority(document));
             }
+
+            protected abstract AddImportFixData GetFixData(
+                Document document, ImmutableArray<TextChange> textChanges, 
+                string description, ImmutableArray<string> tags, CodeActionPriority priority);
 
             protected abstract CodeActionPriority GetPriority(Document document);
-
-            protected virtual Func<Workspace, bool> GetIsApplicableCheck(Project project)
-            {
-                return null;
-            }
 
             protected virtual (string description, bool hasExistingImport) GetDescription(
                 Document document, SyntaxNode node,

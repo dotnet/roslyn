@@ -4,7 +4,7 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -12,7 +12,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -53,54 +53,22 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
-    <PackageReference Include="System.Collections.Immutable">
-      <Version>$(SystemCollectionsImmutableVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
-      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
-      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy">
-      <Version>$(MicrosoftVisualStudioLanguageCallHierarchyVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
-      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
-      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
-      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Imaging">
-      <Version>$(MicrosoftVisualStudioImagingVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime">
-      <Version>$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
-      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
-      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Utilities">
-      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Validation">
-      <Version>$(MicrosoftVisualStudioValidationVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Threading">
-      <Version>$(MicrosoftVisualStudioThreadingVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.Elfie">
-      <Version>$(MicrosoftCodeAnalysisElfieVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.RemoteControl">
-      <Version>$(MicrosoftVisualStudioRemoteControlVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost" />
@@ -127,6 +95,14 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Ide" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Ide.Tests" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring.Tests" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding.Tests" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding.Tests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -153,22 +129,36 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FindUsages\AbstractFindUsagesService.cs" />
-    <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpan.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.DefinitionTrackingContext.cs" />
+    <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpanFactory.cs" />
     <Compile Include="FindUsages\FindUsagesHelpers.cs" />
     <Compile Include="FindUsages\FindUsagesContext.cs" />
     <Compile Include="FindUsages\IDefinitionsAndReferencesFactory.cs" />
     <Compile Include="FindUsages\IFindUsagesContext.cs" />
     <Compile Include="FindUsages\IFindUsagesService.cs" />
     <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
+    <Compile Include="Implementation\CommentSelection\CommentSelectionServiceProxy.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardAutomationPeer.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameConflictTag.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameConflictTagDefinition.cs" />
     <Compile Include="Implementation\Intellisense\QuickInfo\Providers\LinkedFileDiscrepancyException.cs" />
     <Compile Include="Implementation\Intellisense\Completion\CompletionFilterReason.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FilterResult.cs" />
+    <Compile Include="ReferenceHighlighting\IDocumentHighlightsService.cs" />
     <Compile Include="Implementation\Structure\BlockTagState.cs" />
+    <Compile Include="Implementation\Suggestions\ISuggestedActionCallback.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionSetComparer.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionsSource.cs" />
+    <Compile Include="ReferenceHighlighting\NagivateToHighlightReferenceCommandHandler.cs" />
+    <Compile Include="ReferenceHighlighting\NagivateToHighlightReferenceCommandHandler.StartComparer.cs" />
+    <Compile Include="ReferenceHighlighting\ReferenceHighlightingViewTaggerProvider.cs" />
+    <Compile Include="ReferenceHighlighting\Tags\DefinitionHighlightTag.cs" />
+    <Compile Include="ReferenceHighlighting\Tags\DefinitionHighlightTagDefinition.cs" />
+    <Compile Include="ReferenceHighlighting\Tags\ReferenceHighlightTag.cs" />
+    <Compile Include="ReferenceHighlighting\Tags\WrittenReferenceHighlightTag.cs" />
+    <Compile Include="ReferenceHighlighting\Tags\WrittenReferenceHighlightTagDefinition.cs" />
     <Compile Include="Implementation\InfoBar\EditorInfoBarService.cs" />
+    <Compile Include="Shared\Extensions\ITextBufferEditExtensions.cs" />
     <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
     <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
     <Compile Include="SymbolSearch\IDelayService.cs" />
@@ -329,8 +319,6 @@
     <Compile Include="Implementation\CodeFixes\ICodeFixService.cs" />
     <Compile Include="Implementation\Diagnostics\AbstractDiagnosticsAdornmentTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSuggestionTaggerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.ProgressAdapter.cs" />
     <Compile Include="GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
@@ -405,7 +393,6 @@
     <Compile Include="Implementation\CallHierarchy\Finders\MethodCallFinder.cs" />
     <Compile Include="Implementation\CallHierarchy\Finders\OverridingMemberFinder.cs" />
     <Compile Include="Implementation\ChangeSignature\AbstractChangeSignatureCommandHandler.cs" />
-    <Compile Include="Implementation\Classification\AbstractEditorClassificationService.cs" />
     <Compile Include="Implementation\Classification\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\Classification\ClassificationUtilities.cs" />
     <Compile Include="Implementation\Classification\IEditorClassificationService.cs" />
@@ -419,7 +406,6 @@
     <Compile Include="Implementation\CodeRefactorings\ICodeActionEditHandlerService.cs" />
     <Compile Include="Implementation\Commands\CommandHandlerService.cs" />
     <Compile Include="Implementation\Commands\CommandHandlerServiceFactory.cs" />
-    <Compile Include="Implementation\CommentSelection\AbstractCommentUncommentService.cs" />
     <Compile Include="Implementation\CommentSelection\CommentUncommentSelectionCommandHandler.cs" />
     <Compile Include="Implementation\CommentSelection\ICommentUncommentService.cs" />
     <Compile Include="Implementation\ContentTypes\ContentTypeDefinitions.cs" />
@@ -502,10 +488,10 @@
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardSeverity.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardViewModel.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\RenameShortcutKeys.cs" />
-    <Compile Include="Implementation\InlineRename\HighlightTags\FixupTag.cs" />
-    <Compile Include="Implementation\InlineRename\HighlightTags\FixupTagDefinition.cs" />
-    <Compile Include="Implementation\InlineRename\HighlightTags\ValidTag.cs" />
-    <Compile Include="Implementation\InlineRename\HighlightTags\ValidTagDefinition.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameFixupTag.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameFixupTagDefinition.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameFieldBackgroundAndBorderTag.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameFieldBackgroundAndBorderTagDefinition.cs" />
     <Compile Include="Implementation\InlineRename\IEditorInlineRenameService.cs" />
     <Compile Include="Implementation\InlineRename\InlineRenameService.cs" />
     <Compile Include="Implementation\InlineRename\InlineRenameSession.cs" />
@@ -631,8 +617,6 @@
     <Compile Include="Implementation\Peek\PeekableItemSource.cs" />
     <Compile Include="Implementation\Peek\PeekableItemSourceProvider.cs" />
     <Compile Include="Implementation\Peek\PeekHelpers.cs" />
-    <Compile Include="Implementation\ReferenceHighlighting\WrittenReferenceHighlightTag.cs" />
-    <Compile Include="Implementation\ReferenceHighlighting\WrittenReferenceHighlightTagDefinition.cs" />
     <Compile Include="Implementation\RenameTracking\IRenameTrackingLanguageHeuristicsService.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingCancellationCommandHandler.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTagDefinition.cs" />
@@ -644,15 +628,6 @@
     <Compile Include="Implementation\Preview\PreviewConflictViewTaggerProvider.cs" />
     <Compile Include="Implementation\Preview\PreviewFactoryService.cs" />
     <Compile Include="Implementation\Preview\PreviewWarningViewTaggerProvider.cs" />
-    <Compile Include="Implementation\ReferenceHighlighting\AbstractDocumentHighlightsService.cs" />
-    <Compile Include="Implementation\ReferenceHighlighting\DefinitionHighlightTag.cs" />
-    <Compile Include="Implementation\ReferenceHighlighting\DefinitionHighlightTagDefinition.cs" />
-    <Compile Include="Implementation\ReferenceHighlighting\IDocumentHighlightsService.cs" />
-    <Compile Include="Implementation\ReferenceHighlighting\IReferenceHighlightingAdditionalReferenceProvider.cs" />
-    <Compile Include="Implementation\ReferenceHighlighting\NagivateToHighlightReferenceCommandHandler.cs" />
-    <Compile Include="Implementation\ReferenceHighlighting\NagivateToHighlightReferenceCommandHandler.StartComparer.cs" />
-    <Compile Include="Implementation\ReferenceHighlighting\ReferenceHighlightingViewTaggerProvider.cs" />
-    <Compile Include="Implementation\ReferenceHighlighting\ReferenceHighlightTag.cs" />
     <Compile Include="Implementation\RenameTracking\AbstractRenameTrackingCodeFixProvider.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingDiagnosticAnalyzer.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.cs" />
@@ -805,9 +780,6 @@
     <Compile Include="Shared\Utilities\ResettableDelay.cs" />
     <Compile Include="Shared\Utilities\ViewHostingControl.cs" />
     <Compile Include="Shared\Utilities\VirtualTreePoint.cs" />
-    <Compile Include="SymbolMapping\ISymbolMappingService.cs" />
-    <Compile Include="SymbolMapping\SymbolMappingResult.cs" />
-    <Compile Include="SymbolMapping\SymbolMappingServiceFactory.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.SymbolRenameInfo.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.InlineRenameLocationSet.cs" />
     <Compile Include="TextViewRoles.cs" />

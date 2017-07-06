@@ -75,7 +75,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A list of methods that are associated with the event.
         /// </summary>
-        IEnumerable<IMethodReference> Accessors { get; }
+        IEnumerable<IMethodReference> GetAccessors(EmitContext context);
 
         /// <summary>
         /// The method used to add a handler to the event.
