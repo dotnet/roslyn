@@ -1197,10 +1197,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
-
+            bool isGenericName = node.Kind() == SyntaxKind.GenericName;
             // If the syntax tree is ill-formed and the identifier is missing then we've already
             // given a parse error. Just return an error local and continue with analysis.
-            if (node.IsMissing)
+            if (node.IsMissing || isGenericName && node.ContainsDiagnostics)
             {
                 return BadExpression(node);
             }
@@ -1231,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<TypeSyntax> typeArgumentList = default(SeparatedSyntaxList<TypeSyntax>);
             bool isUnboundTypeInNameof = false;
 
-            if (node.Kind() == SyntaxKind.GenericName)
+            if (isGenericName)
             {
                 genericName = (GenericNameSyntax)node;
                 typeArgumentList = genericName.TypeArgumentList.Arguments;
