@@ -29,8 +29,12 @@ function Print-Usage() {
     Write-Host "  -help                     Print this message"
 }
 
-function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "") {
-    $args = "/nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /p:DeployExtension=false";
+function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$parallel = $true) {
+    $args = "/nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /p:DeployExtension=false";
+
+    if ($parallel) { 
+        $args += " /m"
+    }
 
     if ($official) {
         $args += " /p:OfficialBuild=true"
@@ -56,6 +60,37 @@ function Run-SignTool() {
         Exec-Command $signTool $signToolArgs
     }
     finally { 
+        Pop-Location
+    }
+}
+
+# Not all of our artifacts needed for signing are included inside Roslyn.sln. Need to 
+# finish building these before we can run signing.
+function Build-ExtraSignArtifacts() { 
+
+    Push-Location $setupDir
+    try {
+        # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
+        Run-MSBuild "..\Compilers\CSharp\CscCore\CscCore.csproj /t:PublishWithoutBuilding"
+        Run-MSBuild "..\Compilers\VisualBasic\VbcCore\VbcCore.csproj /t:PublishWithoutBuilding"
+
+        # No need to build references here as we just built the rest of the source tree. 
+        # We build these serially to work around https://github.com/dotnet/roslyn/issues/11856,
+        # where building multiple projects that produce VSIXes larger than 10MB will race against each other
+        Run-MSBuild "Deployment\Current\Roslyn.Deployment.Full.csproj /p:BuildProjectReferences=false" -parallel:$false
+        Run-MSBuild "Deployment\Next\Roslyn.Deployment.Full.Next.csproj /p:BuildProjectReferences=false" -parallel:$false
+
+        $dest = @(
+            $configDir,
+            "Templates\CSharp\Diagnostic\Analyzer",
+            "Templates\VisualBasic\Diagnostic\Analyzer\tools")
+        foreach ($dir in $dest) { 
+            Copy-Item "PowerShell\*.ps1" $dir
+        }
+
+        Run-MSBuild "Templates\Templates.sln"
+    }
+    finally {
         Pop-Location
     }
 }
@@ -86,10 +121,11 @@ try {
     $scriptDir = Join-Path $repoDir "build\scripts"
     $config = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDir $config
+    $setupDir = Join-Path $repoDir "src\Setup"
 
     Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -build -official:$official -msbuildDir $msbuildDir -release:$release }
     Exec-Block { & (Join-Path $scriptDir "create-perftests.ps1") -buildDir $configDir }
-    Run-MSBuild (Join-Path $repoDir "src\Setup\SetupStep1.proj")
+    Build-ExtraSignArtifacts
     Exec-Block { & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config }
     Run-MSBuild (Join-Path $repoDir "src\NuGet\NuGet.proj")
 
@@ -99,6 +135,8 @@ try {
     }
     Run-MSBuild $buildArgs
 
+    # The desktop tests need to run after signing so that tests run against fully signed 
+    # assemblies.
     if ($testDesktop) {
         Exec-Block { & (Join-Path $scriptDir "build.ps1") -testDesktop -test32 }
     }
