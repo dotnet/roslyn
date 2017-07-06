@@ -106,10 +106,11 @@ try {
     Exec-Block { & (Join-Path $scriptDir "check-toolset-insertion.ps1") -sourcePath $repoDir -binariesPath $configDir }
 
     # Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
-    # and ready to be inserted -->
-    Exec-Block { & .\write-test-sentinel-file.ps1 -binariesPath $configDir }
+    # and ready to be inserted 
+    $sentinelFile = Join-Path $configDir AllTestsPassed.sentinel
+    New-Item -Force $sentinelFile -type file
 
-    Exec-Block { & .\stop-compiler-server.ps1 }
+    Get-Process vbcscompiler -ErrorAction SilentlyContinue | Stop-Process
     Exec-Block { & .\publish-assets.ps1 -binariesPath $configDir -branchName $branchName -apiKey $nugetApiKey -test:$(-not $official) }
     Exec-Block { & .\copy-insertion-items.ps1 -binariesPath $configDir -test:$(-not $official) }
 
