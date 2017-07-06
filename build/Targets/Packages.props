@@ -46,7 +46,7 @@
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-61531-03</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
     <MicrosoftNetCompilersVersion>2.3.0-beta3-61821-14</MicrosoftNetCompilersVersion>
-    <MicrosoftNetRoslynDiagnosticsVersion>2.3.0-beta1</MicrosoftNetRoslynDiagnosticsVersion>
+    <MicrosoftNetRoslynDiagnosticsVersion>2.5.0-beta1-61906-01</MicrosoftNetRoslynDiagnosticsVersion>
     <MicrosoftNetCoreILAsmVersion>1.1.0</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCoreCompilersVersion>2.3.0-beta3-61821-14</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
