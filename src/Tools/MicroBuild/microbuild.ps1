@@ -79,6 +79,14 @@ try {
     $config = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDir $config
 
+    # On Jenkins runs we deliberately run microbuild with a clean NuGet cache. This means at least 
+    # one job runs with a clean cache and assures all packages we depend on are restored during 
+    # the restore phase. As opposed to getting lucky based on a NuGet being available in the cache.
+    if ($cibuild) {
+        $nuget = Ensure-NuGet
+        Exec-Block { & $nuget locals all -clear } | Out-Host
+    }
+
     & (Join-Path $scriptDir "build.ps1") -restore:$restore -build -official:$official -msbuildDir $msbuildDir -release:$release
     & (Join-Path $scriptDir "create-perftests.ps1") -buildDir $configDir
     Run-MSBuild (Join-Path $repoDir "src\Setup\SetupStep1.proj")
@@ -116,7 +124,7 @@ catch {
 finally {
     Pop-Location
     if ($cibuild) {
-        Stop-VSProcesses
-        Stop-BuildProcesses
+        Get-Process msbuild -ErrorAction SilentlyContinue | Stop-Process
+        Get-Process vbcscompiler -ErrorAction SilentlyContinue | Stop-Process
     }
 }
