@@ -5381,7 +5381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if ((object)leftType != null)
                             {
                                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
-                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics);
+                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics, isUnboundTypeInNameof);
                             }
                             break;
                         }
