@@ -1618,7 +1618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 yield break;
             }
 
-            List<string> paths = ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)).ToList();
+            IEnumerable<string> paths = ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path));
 
             foreach (string path in paths)
             {
