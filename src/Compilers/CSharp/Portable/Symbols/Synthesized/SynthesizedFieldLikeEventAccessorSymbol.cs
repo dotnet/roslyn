@@ -4,6 +4,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -51,12 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        protected override SourceMethodSymbol BoundAttributesSource
+        protected override SourceMemberMethodSymbol BoundAttributesSource
         {
             get
             {
                 return this.MethodKind == MethodKind.EventAdd
-                    ? (SourceMethodSymbol)this.AssociatedEvent.RemoveMethod
+                    ? (SourceMemberMethodSymbol)this.AssociatedEvent.RemoveMethod
                     : null;
             }
         }

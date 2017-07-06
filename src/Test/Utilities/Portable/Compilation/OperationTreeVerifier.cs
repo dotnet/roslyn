@@ -879,6 +879,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Initializers, "Initializers", logElementCount: true);
         }
 
+        public override void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
+        {
+            LogString(nameof(IAnonymousObjectCreationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Initializers, "Initializers", logElementCount: true);
+        }
+
         public override void VisitFieldInitializer(IFieldInitializer operation)
         {
             LogString(nameof(IFieldInitializer));

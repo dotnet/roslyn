@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Semantics
@@ -166,6 +167,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundInterpolatedStringExpressionOperation(DirectCast(boundNode, BoundInterpolatedStringExpression))
                 Case BoundKind.Interpolation
                     Return CreateBoundInterpolationOperation(DirectCast(boundNode, BoundInterpolation))
+                Case BoundKind.AnonymousTypeCreationExpression
+                    Return CreateBoundAnonymousTypeCreationExpressionOperation(DirectCast(boundNode, BoundAnonymousTypeCreationExpression))
+                Case BoundKind.AnonymousTypeFieldInitializer
+                    Return Create(DirectCast(boundNode, BoundAnonymousTypeFieldInitializer).Value)
+                Case BoundKind.AnonymousTypePropertyAccess
+                    Return CreateBoundAnonymousTypePropertyAccessOperation(DirectCast(boundNode, BoundAnonymousTypePropertyAccess))
                 Case Else
                     Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
                     Return Operation.CreateOperationNone(boundNode.Syntax, constantValue, Function() GetIOperationChildren(boundNode))
@@ -992,6 +999,29 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = Nothing
             Return New LazyInterpolatedStringText(text, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundAnonymousTypeCreationExpressionOperation(boundAnonymousTypeCreationExpression As BoundAnonymousTypeCreationExpression) As IAnonymousObjectCreationExpression
+            Dim initializers As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function()
+                    Return GetAnonymousTypeCreationInitializers(boundAnonymousTypeCreationExpression)
+                End Function)
+
+            Dim syntax As SyntaxNode = boundAnonymousTypeCreationExpression.Syntax
+            Dim type As ITypeSymbol = boundAnonymousTypeCreationExpression.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypeCreationExpression.ConstantValueOpt)
+            Return New LazyAnonymousObjectCreationExpression(initializers, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundAnonymousTypePropertyAccessOperation(boundAnonymousTypePropertyAccess As BoundAnonymousTypePropertyAccess) As IPropertyReferenceExpression
+            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Nothing)
+            Dim [property] As IPropertySymbol = DirectCast(boundAnonymousTypePropertyAccess.ExpressionSymbol, IPropertySymbol)
+            Dim member As ISymbol = boundAnonymousTypePropertyAccess.ExpressionSymbol
+            Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(Function() ImmutableArray(Of IArgument).Empty)
+            Dim syntax As SyntaxNode = boundAnonymousTypePropertyAccess.Syntax
+            Dim type As ITypeSymbol = boundAnonymousTypePropertyAccess.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
+            Return New LazyPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, syntax, type, constantValue)
         End Function
     End Class
 End Namespace

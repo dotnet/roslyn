@@ -327,9 +327,9 @@ ILocalFunctionStatement (Local Function: void Foo(out System.Int32 y)) (Operatio
                 // CS0177: The out parameter 'y' must be assigned to before control leaves the current method
                 //         /*<bind>*/void Foo(out int y) => ;/*</bind>*/
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "Foo").WithArguments("y").WithLocation(6, 24),
-                // CS0168: The variable 'Foo' is declared but never used
+                // CS8321: The local function 'Foo' is declared but never used
                 //         /*<bind>*/void Foo(out int y) => ;/*</bind>*/
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 24)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(6, 24)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -356,9 +356,9 @@ ILocalFunctionStatement (Local Function: void Foo()) (OperationKind.LocalFunctio
                 // CS1026: ) expected
                 //         /*<bind>*/void Foo( { }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(6, 29),
-                // CS0168: The variable 'Foo' is declared but never used
+                // CS8321: The local function 'Foo' is declared but never used
                 //         /*<bind>*/void Foo( { }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 24)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(6, 24)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -387,9 +387,9 @@ ILocalFunctionStatement (Local Function: X Foo()) (OperationKind.LocalFunctionSt
                 // CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/X Foo() { }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 19),
-                // CS0168: The variable 'Foo' is declared but never used
+                // CS8321: The local function 'Foo' is declared but never used
                 //         /*<bind>*/X Foo() { }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 21)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(6, 21)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);

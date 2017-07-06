@@ -415,6 +415,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitObjectCreationExpression(operation);
         }
 
+        public override void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
+        {
+            base.VisitAnonymousObjectCreationExpression(operation);
+        }
+
         public override void VisitFieldInitializer(IFieldInitializer operation)
         {
             foreach (var field in operation.InitializedFields)

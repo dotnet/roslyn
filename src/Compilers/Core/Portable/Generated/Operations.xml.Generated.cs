@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -2974,6 +2974,63 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public override ImmutableArray<IArgument> ArgumentsInEvaluationOrder => _lazyArgumentsInEvaluationOrder.Value;
+    }
+
+    /// <summary>
+    /// Represents a C# or VB new/New anonymous object creation expression.
+    /// </summary>
+    internal abstract partial class BaseAnonymousObjectCreationExpression : Operation, IAnonymousObjectCreationExpression
+    {
+        protected BaseAnonymousObjectCreationExpression(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.AnonymousObjectCreationExpression, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Explicitly-specified member initializers.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> Initializers { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitAnonymousObjectCreationExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitAnonymousObjectCreationExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# or VB new/New anonymous object creation expression.
+    /// </summary>
+    internal sealed partial class AnonymousObjectCreationExpression : BaseAnonymousObjectCreationExpression, IAnonymousObjectCreationExpression
+    {
+        public AnonymousObjectCreationExpression(ImmutableArray<IOperation> initializers, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            Initializers = initializers;
+        }
+        /// <summary>
+        /// Explicitly-specified member initializers.
+        /// </summary>
+        public override ImmutableArray<IOperation> Initializers { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# or VB new/New anonymous object creation expression.
+    /// </summary>
+    internal sealed partial class LazyAnonymousObjectCreationExpression : BaseAnonymousObjectCreationExpression, IAnonymousObjectCreationExpression
+    {
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyInitializers;
+
+        public LazyAnonymousObjectCreationExpression(Lazy<ImmutableArray<IOperation>> initializers, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : 
+            base(syntax, type, constantValue)
+        {
+            _lazyInitializers = initializers;
+        }
+        /// <summary>
+        /// Explicitly-specified member initializers.
+        /// </summary>
+        public override ImmutableArray<IOperation> Initializers => _lazyInitializers.Value;
     }
 
     /// <summary>

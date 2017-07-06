@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -179,12 +181,16 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundInterpolationOperation((BoundStringInsert)boundNode);
                 case BoundKind.LocalFunctionStatement:
                     return CreateBoundLocalFunctionStatementOperation((BoundLocalFunctionStatement)boundNode);
+                case BoundKind.AnonymousObjectCreationExpression:
+                    return CreateBoundAnonymousObjectCreationExpressionOperation((BoundAnonymousObjectCreationExpression)boundNode);
+                case BoundKind.AnonymousPropertyDeclaration:
+                    return CreateBoundAnonymousPropertyDeclarationOperation((BoundAnonymousPropertyDeclaration)boundNode);
                 case BoundKind.ConstantPattern:
                     return CreateBoundConstantPatternOperation((BoundConstantPattern)boundNode);
                 case BoundKind.DeclarationPattern:
                     return CreateBoundDeclarationPatternOperation((BoundDeclarationPattern)boundNode);
                 case BoundKind.WildcardPattern:
-                    return null;
+                    throw ExceptionUtilities.Unreachable;
                 case BoundKind.PatternSwitchStatement:
                     return CreateBoundPatternSwitchStatementOperation((BoundPatternSwitchStatement)boundNode);
                 case BoundKind.PatternSwitchLabel:
@@ -338,6 +344,27 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundLiteral.Type;
             Optional<object> constantValue = ConvertToOptional(boundLiteral.ConstantValue);
             return new LiteralExpression(text, syntax, type, constantValue);
+        }
+
+        private IAnonymousObjectCreationExpression CreateBoundAnonymousObjectCreationExpressionOperation(BoundAnonymousObjectCreationExpression boundAnonymousObjectCreationExpression)
+        {
+            Lazy<ImmutableArray<IOperation>> memberInitializers = new Lazy<ImmutableArray<IOperation>>(() => GetAnonymousObjectCreationInitializers(boundAnonymousObjectCreationExpression));
+            SyntaxNode syntax = boundAnonymousObjectCreationExpression.Syntax;
+            ITypeSymbol type = boundAnonymousObjectCreationExpression.Type;
+            Optional<object> constantValue = ConvertToOptional(boundAnonymousObjectCreationExpression.ConstantValue);
+            return new LazyAnonymousObjectCreationExpression(memberInitializers, syntax, type, constantValue);
+        }
+
+        private IPropertyReferenceExpression CreateBoundAnonymousPropertyDeclarationOperation(BoundAnonymousPropertyDeclaration boundAnonymousPropertyDeclaration)
+        {
+            PropertySymbol property = boundAnonymousPropertyDeclaration.Property;
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => null);
+            ISymbol member = boundAnonymousPropertyDeclaration.Property;
+            Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() => ImmutableArray<IArgument>.Empty);
+            SyntaxNode syntax = boundAnonymousPropertyDeclaration.Syntax;
+            ITypeSymbol type = boundAnonymousPropertyDeclaration.Type;
+            Optional<object> constantValue = ConvertToOptional(boundAnonymousPropertyDeclaration.ConstantValue);
+            return new LazyPropertyReferenceExpression(property, instance, member, argumentsInEvaluationOrder, syntax, type, constantValue);
         }
 
         private IObjectCreationExpression CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)
