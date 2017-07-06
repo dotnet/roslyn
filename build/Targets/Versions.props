@@ -77,34 +77,35 @@
   </Choose>
 
   <Choose>
-    <When Condition="'$(OfficialBuild)' != 'true'">
-      <!-- On non-official builds we don't burn in a git sha.  In large part because it
-           hurts our determinism efforts as binaries which should be the same between
-           builds will not (due to developers building against different HEAD
-           values). -->
-      <PropertyGroup>
-        <GitHeadSha>&lt;developer build&gt;</GitHeadSha>
-      </PropertyGroup>
-    </When>
     <When Condition="'$(BUILD_SOURCEVERSION)' != ''">
       <PropertyGroup>
-        <GitHeadSha>$(BUILD_SOURCEVERSION)</GitHeadSha>
+        <GitHeadShaRaw>$(BUILD_SOURCEVERSION)</GitHeadShaRaw>
       </PropertyGroup>
     </When>
     <When Condition="'$(BUILD_SOURCEVERSION)' == '' AND '$(GIT_COMMIT)' != ''">
       <PropertyGroup>
-        <GitHeadSha>$(GIT_COMMIT)</GitHeadSha>
+        <GitHeadShaRaw>$(GIT_COMMIT)</GitHeadShaRaw>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
-        <GitHeadSha>Not found</GitHeadSha>
+        <GitHeadShaRaw>Not found</GitHeadShaRaw>
         <DotGitDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../.git'))</DotGitDir>
         <HeadFileContent Condition="Exists('$(DotGitDir)/HEAD')">$([System.IO.File]::ReadAllText('$(DotGitDir)/HEAD').Trim())</HeadFileContent>
         <RefPath Condition="$(HeadFileContent.StartsWith('ref: '))">$(DotGitDir)/$(HeadFileContent.Substring(5))</RefPath>
-        <GitHeadSha Condition="'$(RefPath)' != '' AND Exists('$(RefPath)')">$([System.IO.File]::ReadAllText('$(RefPath)').Trim())</GitHeadSha>
-        <GitHeadSha Condition="'$(HeadFileContent)' != '' AND '$(RefPath)' == ''">$(HeadFileContent)</GitHeadSha>
+        <GitHeadShaRaw Condition="'$(RefPath)' != '' AND Exists('$(RefPath)')">$([System.IO.File]::ReadAllText('$(RefPath)').Trim())</GitHeadShaRaw>
+        <GitHeadShaRaw Condition="'$(HeadFileContent)' != '' AND '$(RefPath)' == ''">$(HeadFileContent)</GitHeadShaRaw>
       </PropertyGroup>
     </Otherwise>
   </Choose>
+
+  <PropertyGroup>
+    <!-- On non-official builds we don't burn in a git sha.  In large part because it
+         hurts our determinism efforts as binaries which should be the same between
+         builds will not (due to developers building against different HEAD
+         values). -->
+    <GitHeadSha>&lt;developer build&gt;</GitHeadSha>
+    <GitHeadSha Condition="'$(OfficialBuild)' == 'true'">$(GitHeadShaRaw)</GitHeadSha>
+  </PropertyGroup>
+
 </Project>

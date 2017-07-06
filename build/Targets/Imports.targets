@@ -310,6 +310,7 @@
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
   <Import Project="DisableTransitiveReferences.targets" Condition="'$(RoslynProjectType)' == 'Vsix' AND '$(RoslynSdkProject)' == 'true'" />
+  <Import Project="$(NuGetPackageRoot)\SourceLink.Create.CommandLine\$(SourceLinkCreateCommandLineVersion)\build\SourceLink.Create.CommandLine.targets" Condition="'$(SourceLinkCreate)' == 'true'" />
 
   <!-- 
        Work around some UI delays in the new project system

@@ -185,7 +185,7 @@ function Run-Test() {
     $altRootDir = Join-Path "$repoDir\Binaries" "q"
     Remove-Item -re -fo $altRootDir -ErrorAction SilentlyContinue
     & robocopy $repoDir $altRootDir /E /XD $binariesDir /XD ".git" /njh /njs /ndl /nc /ns /np /nfl
-    $pathMapBuildOption = "/p:PathMap=`"$altRootDir=$repoDir`""
+    $pathMapBuildOption = "/p:PathMap=`"$altRootDir=$repoDir` /p:SourceLinkRootDirectory=$altRootDir"
     Test-Build -rootDir $altRootDir -dataMap $dataMap -pathMapBuildOption $pathMapBuildOption -restore
 }
 

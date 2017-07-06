@@ -81,6 +81,16 @@
     <ProjectAssetsFile Condition="'$(BuildingForLiveUnitTesting)' == 'true'">$(LiveUnitTestingOriginalBaseIntermediateOutputPath)project.assets.json</ProjectAssetsFile>
   </PropertyGroup>
 
+  <!-- Utilize source linking whenever there is a valid git commit available. Won't be available during rebase, 
+       or build from zip for example -->
+  <PropertyGroup Condition="'$(GitHeadShaRaw)' != ''">
+    <SourceLinkCreate>true</SourceLinkCreate>
+    <SourceLinkRootDirectory Condition="'$(SourceLinkRootDirectory)' == ''">$(RepoRoot)</SourceLinkRootDirectory>
+    <SourceLinkOriginUrl>https://github.com/dotnet/roslyn</SourceLinkOriginUrl>
+    <SourceLinkUrl>https://raw.githubusercontent.com/dotnet/roslyn/$(GitHeadShaRaw)/*</SourceLinkUrl>
+    <SourceLinkCommit>$(GitHeadShaRaw)</SourceLinkCommit>
+  </PropertyGroup>
+
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <BaseNuGetRuntimeIdentifier>win7</BaseNuGetRuntimeIdentifier>
