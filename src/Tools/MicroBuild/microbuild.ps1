@@ -7,6 +7,7 @@ param (
     [switch]$cibuild = $false,
     [string]$branchName = "master",
     [string]$nugetApiKey = "",
+    [string]$assemblyVersion = "42.42.42.4242",
     [switch]$testDesktop = $false,
     [switch]$publish = $false,
     [switch]$help = $false,
@@ -88,7 +89,33 @@ function Build-ExtraSignArtifacts() {
             Copy-Item "PowerShell\*.ps1" $dir
         }
 
-        Run-MSBuild "Templates\Templates.sln"
+        Run-MSBuild "Templates\Templates.sln /p:VersionType=Release"
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Build-InsertionItems() { 
+    Push-Location $setupDir
+    try { 
+        Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln"
+
+        Exec-Command (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "`"$configDir`" `"$setupDir`" `"$(Get-PackagesDir)`" `"$assemblyVersion`"" | Out-Host
+        
+        # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
+        # matter, just that it's provided some value.
+        $extraArgs = ""
+        if (-not $official) { 
+            $extraArgs = " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
+        }
+
+        Run-MSBuild "DevDivPackages\Roslyn.proj"
+        Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj" $extraArgs
+        Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" $extraArgs
+        Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" $extraArgs
+        Run-MSBuild "..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj"
+        Run-MSBuild "Vsix\Vsix.proj" 
     }
     finally {
         Pop-Location
@@ -147,12 +174,7 @@ try {
     Build-ExtraSignArtifacts
     Exec-Block { & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config }
     Run-MSBuild (Join-Path $repoDir "src\NuGet\NuGet.proj")
-
-    $buildArgs = Join-Path $repoDir "src\Setup\SetupStep2.proj"
-    if (-not $official) { 
-        $buildArgs += " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
-    }
-    Run-MSBuild $buildArgs
+    Build-InsertionItems
 
     # The desktop tests need to run after signing so that tests run against fully signed 
     # assemblies.

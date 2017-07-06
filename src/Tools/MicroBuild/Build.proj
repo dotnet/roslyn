@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <Target Name="Build">
-    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)microbuild.ps1 -restore -official -testDesktop -publish -msbuildDir &quot;$(MSBuildBinPath)&quot; $(ScriptArgs) " />
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)microbuild.ps1 -restore -official -testDesktop -publish -assemblyVersion $(AssemblyVersion) -msbuildDir &quot;$(MSBuildBinPath)&quot; $(ScriptArgs) " />
   </Target>
 
 </Project>
