@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UpgradeProject;
 using Roslyn.Utilities;
 
@@ -26,9 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         private const string CS8302 = nameof(CS8302); // error CS8302: Feature is not available in C# 7.1. Please use language version X or greater.
         private const string CS8306 = nameof(CS8306); // error CS8306: ... Please use language version 7.1 or greater to access a un-named element by its inferred name.
         private const string CS8314 = nameof(CS8314); // error CS9003: An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.
+        private const string CS8320 = nameof(CS8320); // error CS8320: Feature is not available in C# 7.2. Please use language version X or greater.
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059, CS8107, CS8302, CS8306, CS8314);
+            ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059, CS8107, CS8302, CS8306, CS8314, CS8320);
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;
         public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;

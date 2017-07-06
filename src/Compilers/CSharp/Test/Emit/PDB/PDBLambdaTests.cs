@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1314,8 +1314,10 @@ class C
         <entry offset=""0x4f"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""25"" />
         <entry offset=""0x61"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" />
         <entry offset=""0x64"" hidden=""true"" />
+        <entry offset=""0x78"" hidden=""true"" />
         <entry offset=""0x79"" hidden=""true"" />
         <entry offset=""0x7b"" hidden=""true"" />
+        <entry offset=""0x8f"" hidden=""true"" />
         <entry offset=""0x90"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x91"">

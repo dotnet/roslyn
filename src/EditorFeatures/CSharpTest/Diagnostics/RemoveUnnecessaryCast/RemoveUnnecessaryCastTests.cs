@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -3910,6 +3910,62 @@ class Program
     {
         if ([|(int)TransferTypeKey.TransferToBeneficiary|] != p.TYP)
           throw new InvalidOperationException();
+    }
+}");
+        }
+
+        [WorkItem(18978, "https://github.com/dotnet/roslyn/issues/18978")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnCallToMethodWithParamsArgs()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var takesArgs = new[] { ""Hello"", ""World"" };
+        TakesParams([|(object)|]takesArgs);
+    }
+
+    private static void TakesParams(params object[] foo)
+    {
+        Console.WriteLine(foo.Length);
+    }
+}");
+        }
+
+        [WorkItem(18978, "https://github.com/dotnet/roslyn/issues/18978")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastOnCallToMethodWithParamsArgsIfImplicitConversionExists()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var takesArgs = new[] { ""Hello"", ""World"" };
+        TakesParams([|(System.IComparable[])|]takesArgs);
+    }
+
+    private static void TakesParams(params object[] foo)
+    {
+        System.Console.WriteLine(foo.Length);
+    }
+}",
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var takesArgs = new[] { ""Hello"", ""World"" };
+        TakesParams(takesArgs);
+    }
+
+    private static void TakesParams(params object[] foo)
+    {
+        System.Console.WriteLine(foo.Length);
     }
 }");
         }

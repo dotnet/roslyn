@@ -906,10 +906,37 @@ Additional information: {1}</value>
   <data name="prefer_throwing_properties" xml:space="preserve">
     <value>prefer throwing properties</value>
   </data>
-    <data name="When_generating_properties" xml:space="preserve">
+  <data name="When_generating_properties" xml:space="preserve">
     <value>When generating properties:</value>
-    </data>
+  </data>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
+  </data>
+  <data name="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues" xml:space="preserve">
+    <value>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</value>
+  </data>
+  <data name="Never_show_this_again" xml:space="preserve">
+    <value>Never show this again</value>
+  </data>
+  <data name="Prefer_simple_default_expression" xml:space="preserve">
+    <value>Prefer simple 'default' expression</value>
+  </data>
+  <data name="Preview_pane" xml:space="preserve">
+    <value>Preview pane</value>
+  </data>
+  <data name="Analysis" xml:space="preserve">
+    <value>Analysis</value>
+  </data>
+  <data name="Enable_full_solution_analysis" xml:space="preserve">
+    <value>Enable full solution _analysis</value>
+  </data>
+  <data name="Perform_editor_feature_analysis_in_external_process" xml:space="preserve">
+    <value>Perform editor _feature analysis in external process (experimental)</value>
+  </data>
+  <data name="Fade_out_unreachable_code" xml:space="preserve">
+    <value>Fade out unreachable code</value>
+  </data>
+  <data name="Fading" xml:space="preserve">
+    <value>Fading</value>
   </data>
 </root>

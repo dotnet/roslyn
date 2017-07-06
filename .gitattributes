@@ -12,6 +12,8 @@
 # files must be hard-coded to be cloned with LF
 src/Compilers/CSharp/CscCore/csc text eol=lf
 src/Compilers/VisualBasic/VbcCore/vbc text eol=lf
+build/NuGetAdditionalFiles/RunCsc text eol=lf
+build/NuGetAdditionalFiles/RunVbc text eol=lf
 
 ###############################################################################
 # Set default behavior for command prompt diff.

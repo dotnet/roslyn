@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -465,24 +466,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private bool IsInteractiveCodeFixProvider(CodeFixProvider provider)
         {
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
-            if (provider is FullyQualify.AbstractFullyQualifyCodeFixProvider)
-            {
-                return true;
-            }
-
-            var providerType = provider?.GetType();
-            while (providerType != null)
-            {
-                if (providerType.IsConstructedGenericType &&
-                    providerType.GetGenericTypeDefinition() == typeof(AddImport.AbstractAddImportCodeFixProvider<>))
-                {
-                    return true;
-                }
-
-                providerType = providerType.GetTypeInfo().BaseType;
-            }
-
-            return false;
+            return provider is FullyQualify.AbstractFullyQualifyCodeFixProvider ||
+                   provider is AddImport.AbstractAddImportCodeFixProvider;
         }
 
         private static readonly Func<DiagnosticId, List<CodeFixProvider>> s_createList = _ => new List<CodeFixProvider>();

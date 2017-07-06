@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // to compute the classified spans for the locations of the definition.  So it's totally 
             // fine to pass in CancellationToken.None and block on the result.
             return ToDefinitionItemAsync(definition, solution, includeHiddenLocations,
-                includeClassifiedSpans: false, cancellationToken: CancellationToken.None).Result;
+                includeClassifiedSpans: false, cancellationToken: CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
         }
 
         public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                         {
                             var documentLocation = !includeClassifiedSpans
                                 ? new DocumentSpan(document, location.SourceSpan)
-                                : await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+                                : await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                                     document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
 
                             sourceLocations.Add(documentLocation);
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var document = referenceLocation.Document;
             var sourceSpan = location.SourceSpan;
 
-            var documentSpan = await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+            var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                 document, sourceSpan, cancellationToken).ConfigureAwait(false);
 
             return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.IsWrittenTo);

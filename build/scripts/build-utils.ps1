@@ -27,41 +27,36 @@ function Exec-Block([scriptblock]$cmd) {
     } 
 }
 
-# Handy function for executing a windows command which needs to go through 
-# windows command line parsing.  
-#
-# Use this when the command arguments are stored in a variable.  Particularly 
-# when the variable needs reparsing by the windows command line. Example:
-#
-#   $args = "/p:ManualBuild=true Test.proj"
-#   Exec-Command $msbuild $args
-# 
-function Exec-Command([string]$command, [string]$commandArgs) {
+function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true) {
     $startInfo = New-Object System.Diagnostics.ProcessStartInfo
     $startInfo.FileName = $command
     $startInfo.Arguments = $commandArgs
 
-    $startInfo.RedirectStandardOutput = $true
     $startInfo.UseShellExecute = $false
-    $startInfo.CreateNoWindow = $true
     $startInfo.WorkingDirectory = Get-Location
+
+    if (-not $useConsole) {
+       $startInfo.RedirectStandardOutput = $true
+       $startInfo.CreateNoWindow = $true
+    }
 
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo
-    $process.StartInfo.RedirectStandardOutput = $true;
     $process.Start() | Out-Null
 
     $finished = $false
     try {
-        # The OutputDataReceived event doesn't fire as events are sent by the 
-        # process in powershell.  Possibly due to subtlties of how Powershell
-        # manages the thread pool that I'm not aware of.  Using blocking
-        # reading here as an alternative which is fine since this blocks 
-        # on completion already.
-        $out = $process.StandardOutput
-        while (-not $out.EndOfStream) {
-            $line = $out.ReadLine()
-            Write-Output $line
+        if (-not $useConsole) { 
+            # The OutputDataReceived event doesn't fire as events are sent by the 
+            # process in powershell.  Possibly due to subtlties of how Powershell
+            # manages the thread pool that I'm not aware of.  Using blocking
+            # reading here as an alternative which is fine since this blocks 
+            # on completion already.
+            $out = $process.StandardOutput
+            while (-not $out.EndOfStream) {
+                $line = $out.ReadLine()
+                Write-Output $line
+            }
         }
 
         while (-not $process.WaitForExit(100)) { 
@@ -82,6 +77,29 @@ function Exec-Command([string]$command, [string]$commandArgs) {
     }
 }
 
+# Handy function for executing a windows command which needs to go through 
+# windows command line parsing.  
+#
+# Use this when the command arguments are stored in a variable.  Particularly 
+# when the variable needs reparsing by the windows command line. Example:
+#
+#   $args = "/p:ManualBuild=true Test.proj"
+#   Exec-Command $msbuild $args
+# 
+function Exec-Command([string]$command, [string]$commandArgs) {
+    Exec-CommandCore -command $command -commandArgs $commandargs -useConsole:$false
+}
+
+# Functions exactly like Exec-Command but lets the process re-use the current 
+# console. This means items like colored output will function correctly.
+#
+# In general this command should be used in place of
+#   Exec-Command $msbuild $args | Out-Host
+#
+function Exec-Console([string]$command, [string]$commandArgs) {
+    Exec-CommandCore -command $command -commandArgs $commandargs -useConsole:$true
+}
+
 # Handy function for executing a powershell script in a clean environment with 
 # arguments.  Prefer this over & sourcing a script as it will both use a clean
 # environment and do proper error checking
@@ -99,7 +117,11 @@ function Ensure-NuGet() {
 
 # Ensure a basic tool used for building our Repo is installed and 
 # return the path to it.
-function Ensure-BasicTool([string]$name, [string]$version) {
+function Ensure-BasicTool([string]$name, [string]$version = "") {
+    if ($version -eq "") { 
+        $version = Get-PackageVersion $name
+    }
+
     $p = Join-Path (Get-PackagesDir) "$($name).$($version)"
     if (-not (Test-Path $p)) {
         $nuget = Ensure-NuGet
@@ -137,12 +159,15 @@ function Get-PackageVersion([string]$name) {
     $deps = Join-Path $repoDir "build\Targets\Packages.props"
     $nodeName = "$($name)Version"
     $x = [xml](Get-Content -raw $deps)
-    $node = $x.Project.PropertyGroup[$nodeName]
-    if ($node -eq $null) { 
-        throw "Cannot find package $name in Packages.props"
+    $node = $x.Project.PropertyGroup.FirstChild
+    while ($node -ne $null) {
+        if ($node.Name -eq $nodeName) {
+            return $node.InnerText
+        }
+        $node = $node.NextSibling
     }
 
-    return $node.InnerText
+    throw "Cannot find package $name in Packages.props"
 }
 
 # Locate the directory where our NuGet packages will be deployed.  Needs to be kept in sync
@@ -224,9 +249,7 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
 
 # Locate the xcopy version of MSBuild
 function Get-MSBuildDirXCopy() {
-    $version = "0.2.0-alpha"
-    $name = "RoslynTools.MSBuild"
-    $p = Ensure-BasicTool $name $version
+    $p = Ensure-BasicTool "RoslynTools.MSBuild"
     $p = Join-Path $p "tools\msbuild"
     return $p
 }
@@ -236,18 +259,25 @@ function Get-MSBuildDir([switch]$xcopy = $false) {
     return $both[1]
 }
 
-# Get the directory of the first Visual Studio which meets our minimal 
-# requirements for the Roslyn repo
-function Get-VisualStudioDir() {
-    $vswhere = Join-Path (Ensure-BasicTool "vswhere" "1.0.50") "tools\vswhere.exe"
+# Get the directory and instance ID of the first Visual Studio version which 
+# meets our minimal requirements for the Roslyn repo.
+function Get-VisualStudioDirAndId() {
+    $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\vswhere.exe"
     $output = & $vswhere -requires Microsoft.Component.MSBuild -format json | Out-String
     if (-not $?) {
         throw "Could not locate a valid Visual Studio"
     }
 
     $j = ConvertFrom-Json $output
-    $p = $j[0].installationPath
-    return $p
+    Write-Output $j[0].installationPath
+    Write-Output $j[0].instanceId
+}
+
+# Get the directory of the first Visual Studio which meets our minimal 
+# requirements for the Roslyn repo
+function Get-VisualStudioDir() {
+    $both = Get-VisualStudioDirAndId
+    return $both[0]
 }
 
 # Clear out the NuGet package cache
@@ -265,7 +295,7 @@ function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir)
         $filePath = Join-Path $repoDir $fileName
     }
 
-    Exec-Block { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath }
+    Exec-Block { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath } | Write-Host
 }
 
 # Restore all of the projects that the repo consumes
@@ -284,7 +314,6 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
     else {
         $all = @(
             "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
-            "Closed Toolset:build\ToolsetPackages\ClosedToolset.csproj",
             "Roslyn:Roslyn.sln",
             "Samples:src\Samples\Samples.sln",
             "Templates:src\Setup\Templates\Templates.sln",

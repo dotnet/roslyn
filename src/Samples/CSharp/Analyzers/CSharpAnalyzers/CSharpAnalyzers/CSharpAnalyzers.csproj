@@ -10,9 +10,7 @@
     <RootNamespace>CSharpAnalyzers</RootNamespace>
     <AssemblyName>CSharpAnalyzers</AssemblyName>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -79,7 +77,7 @@
     <InternalsVisibleToTest Include="CSharpAnalyzers.Test" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Composition" Version="$(MicrosoftCompositionVersion)" />
+    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
   </ItemGroup>
   <Target Name="AfterBuild">
     <GetAssemblyIdentity AssemblyFiles="$(OutDir)\CSharpAnalyzers.dll">

@@ -26,4 +26,9 @@
     <!-- Do not use generic CodeAction.Create to create CodeAction - not useful for tests -->
     <Rule Id="RS0005" Action="None" />
   </Rules>
+  
+  <Rules AnalyzerId="Microsoft.CodeQuality.Analyzers.QualityGuidelines" RuleNamespace="Microsoft.CodeQuality.Analyzers.QualityGuidelines">
+    <!-- Mark constant field as 'const' instead of static readonly - not useful for tests -->
+    <Rule Id="CA1802" Action="None" />
+  </Rules>  
 </RuleSet>

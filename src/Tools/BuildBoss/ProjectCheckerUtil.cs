@@ -49,6 +49,13 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "Deterministic");
                 allGood &= CheckForProperty(textWriter, "HighEntropyVA");
                 allGood &= CheckForProperty(textWriter, "DocumentationFile");
+
+                // Items which are not necessary anymore in the new SDK
+                if (_projectUtil.IsNewSdk)
+                {
+                    allGood &= CheckForProperty(textWriter, "ProjectTypeGuids");
+                    allGood &= CheckForProperty(textWriter, "TargetFrameworkProfile");
+                }
                 
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);

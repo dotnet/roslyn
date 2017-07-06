@@ -1,4 +1,4 @@
-namespace Roslyn.SyntaxVisualizer.Extension
+﻿namespace Roslyn.SyntaxVisualizer.Extension
 {
     internal static class PkgCmdIDList
     {

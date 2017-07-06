@@ -596,37 +596,46 @@ public class Test
         }
     }
   
-
+    public class C
+    {
+        public ref C M()
+        {
+            return ref this;
+        }
+    }
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-    // (10,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
-    //             return ref this;
-    Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(10, 24),
-    // (15,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
-    //             return ref x;
-    Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(15, 24),
-    // (20,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
-    //             return ref this.x;
-    Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.x").WithArguments("this").WithLocation(20, 24),
-    // (36,32): error CS8168: Cannot return local 'M1' by reference because it is not a ref local
-    //             return ref Foo(ref M1);
-    Diagnostic(ErrorCode.ERR_RefReturnLocal, "M1").WithArguments("M1").WithLocation(36, 32),
-    // (36,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
-    //             return ref Foo(ref M1);
-    Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M1)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(36, 24),
-    // (41,32): error CS8169: Cannot return a member of local 'M2' by reference because it is not a ref local
-    //             return ref Foo(ref M2.x);
-    Diagnostic(ErrorCode.ERR_RefReturnLocal2, "M2").WithArguments("M2").WithLocation(41, 32),
-    // (41,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
-    //             return ref Foo(ref M2.x);
-    Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M2.x)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(41, 24),
-    // (46,32): error CS8168: Cannot return local 'M2' by reference because it is not a ref local
-    //             return ref Foo(ref M2).x;
-    Diagnostic(ErrorCode.ERR_RefReturnLocal, "M2").WithArguments("M2").WithLocation(46, 32),
-    // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
-    //             return ref Foo(ref M2).x;
-    Diagnostic(ErrorCode.ERR_RefReturnCall2, "Foo(ref M2)").WithArguments("Test.Foo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24));
+                // (10,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //             return ref this;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(10, 24),
+                // (15,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //             return ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(15, 24),
+                // (20,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //             return ref this.x;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.x").WithArguments("this").WithLocation(20, 24),
+                // (36,32): error CS8168: Cannot return local 'M1' by reference because it is not a ref local
+                //             return ref Foo(ref M1);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "M1").WithArguments("M1").WithLocation(36, 32),
+                // (36,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Foo(ref M1);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M1)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(36, 24),
+                // (41,32): error CS8169: Cannot return a member of local 'M2' by reference because it is not a ref local
+                //             return ref Foo(ref M2.x);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal2, "M2").WithArguments("M2").WithLocation(41, 32),
+                // (41,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Foo(ref M2.x);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M2.x)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(41, 24),
+                // (46,32): error CS8168: Cannot return local 'M2' by reference because it is not a ref local
+                //             return ref Foo(ref M2).x;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "M2").WithArguments("M2").WithLocation(46, 32),
+                // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Foo(ref M2).x;
+                Diagnostic(ErrorCode.ERR_RefReturnCall2, "Foo(ref M2)").WithArguments("Test.Foo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
+                // (58,24): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //             return ref this;
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(58, 24));
         }
 
         [Fact]
@@ -850,15 +859,15 @@ public class Test
                 // (19,13): error CS8150: By-value returns may only be used in methods that return by value
                 //             return c;
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(19, 13),
-                // (6,18): warning CS0168: The variable 'Foo' is declared but never used
+                // (6,18): warning CS8321: The local function 'Foo' is declared but never used
                 //         ref char Foo(ref char a, ref char b)
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 18),
-                // (12,14): warning CS0168: The variable 'Foo1' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(6, 18),
+                // (12,14): warning CS8321: The local function 'Foo1' is declared but never used
                 //         char Foo1(ref char a, ref char b)
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo1").WithArguments("Foo1").WithLocation(12, 14),
-                // (17,18): warning CS0168: The variable 'Foo2' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo1").WithArguments("Foo1").WithLocation(12, 14),
+                // (17,18): warning CS8321: The local function 'Foo2' is declared but never used
                 //         ref char Foo2(ref char c, ref char b)
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo2").WithArguments("Foo2").WithLocation(17, 18));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo2").WithArguments("Foo2").WithLocation(17, 18));
         }
 
         [Fact]
@@ -904,21 +913,21 @@ public class Test
                 // (17,46): error CS0266: Cannot implicitly convert type 'int' to 'char'. An explicit conversion exists (are you missing a cast?)
                 //         char Moo3(ref char a, ref char b) => r;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "r").WithArguments("int", "char").WithLocation(17, 46),
-                // (7,18): warning CS0168: The variable 'Foo' is declared but never used
+                // (7,18): warning CS8321: The local function 'Foo' is declared but never used
                 //         ref char Foo(ref char a, ref char b) => ref a;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(7, 18),
-                // (9,14): warning CS0168: The variable 'Foo1' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(7, 18),
+                // (9,14): warning CS8321: The local function 'Foo1' is declared but never used
                 //         char Foo1(ref char a, ref char b) => ref b;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo1").WithArguments("Foo1").WithLocation(9, 14),
-                // (11,18): warning CS0168: The variable 'Foo2' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo1").WithArguments("Foo1").WithLocation(9, 14),
+                // (11,18): warning CS8321: The local function 'Foo2' is declared but never used
                 //         ref char Foo2(ref char c, ref char b) => c;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo2").WithArguments("Foo2").WithLocation(11, 18),
-                // (16,18): warning CS0168: The variable 'Moo1' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo2").WithArguments("Foo2").WithLocation(11, 18),
+                // (16,18): warning CS8321: The local function 'Moo1' is declared but never used
                 //         ref char Moo1(ref char a, ref char b) => ref r;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Moo1").WithArguments("Moo1").WithLocation(16, 18),
-                // (17,14): warning CS0168: The variable 'Moo3' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Moo1").WithArguments("Moo1").WithLocation(16, 18),
+                // (17,14): warning CS8321: The local function 'Moo3' is declared but never used
                 //         char Moo3(ref char a, ref char b) => r;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Moo3").WithArguments("Moo3").WithLocation(17, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Moo3").WithArguments("Moo3").WithLocation(17, 14));
         }
 
         [Fact, WorkItem(13062, "https://github.com/dotnet/roslyn/issues/13062")]

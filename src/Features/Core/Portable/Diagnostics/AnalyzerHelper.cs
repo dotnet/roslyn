@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -54,6 +54,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (builtInAnalyzer != null)
             {
                 return builtInAnalyzer.OpenFileOnly(workspace);
+            }
+
+            return false;
+        }
+
+        public static bool ContainsOpenFileOnlyAnalyzers(this CompilationWithAnalyzers analyzerDriverOpt, Workspace workspace)
+        {
+            if (analyzerDriverOpt == null)
+            {
+                // not Roslyn. no open file only analyzers
+                return false;
+            }
+
+            foreach (var analyzer in analyzerDriverOpt.Analyzers)
+            {
+                if (analyzer.IsOpenFileOnly(workspace))
+                {
+                    return true;
+                }
             }
 
             return false;

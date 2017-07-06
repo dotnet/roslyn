@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -2278,8 +2279,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         hasErrors = True
                     Else
                         Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-
-                        If Not Me.IsAccessible(method, useSiteDiagnostics, If(actualEventAccess.ReceiverOpt IsNot Nothing, actualEventAccess.ReceiverOpt.Type, eventSymbol.ContainingType)) Then
+                        Dim accessThroughType = GetAccessThroughType(actualEventAccess.ReceiverOpt)
+                        If Not Me.IsAccessible(method, useSiteDiagnostics, accessThroughType) Then
                             Debug.Assert(eventSymbol.DeclaringCompilation IsNot Me.Compilation)
                             ReportDiagnostic(diagnostics, node.EventExpression, GetInaccessibleErrorInfo(method))
                         End If
