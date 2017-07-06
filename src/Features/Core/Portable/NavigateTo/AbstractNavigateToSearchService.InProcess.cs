@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
@@ -60,9 +61,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // use the last computed results we have for that project.  If so, it can
                     // be much faster to reuse and filter that result than to compute it from
                     // scratch.
+#if true
                     var task = searchDocument != null
                         ? ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, nameMatches, containerMatches, cancellationToken)
                         : TryFilterPreviousSearchResultsAsync(project, searchDocument, pattern, nameMatcher, containerMatcherOpt, nameMatches, containerMatches, cancellationToken);
+#else
+                    var task = ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, nameMatches, containerMatches, cancellationToken);
+#endif
 
                     var searchResults = await task.ConfigureAwait(false);
                     return ImmutableArray<INavigateToSearchResult>.CastUp(searchResults);
@@ -199,9 +204,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var kind = GetItemKind(declaredSymbolInfo);
             var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
 
+            var matchedSpans = ArrayBuilder<TextSpan>.GetInstance();
+            foreach (var match in nameMatches)
+            {
+                matchedSpans.AddRange(match.MatchedSpans);
+            }
+
             return new SearchResult(
                 document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem,
-                nameMatches.SelectMany(m => m.MatchedSpans).ToImmutableArray());
+                matchedSpans.ToImmutableAndFree());
         }
 
         private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)
