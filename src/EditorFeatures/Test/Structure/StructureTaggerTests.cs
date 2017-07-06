@@ -155,7 +155,7 @@ End Module";
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 
                 var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().ToArray();
-                Assert.Equal("Sub Main(args As String())\r\nEnd Sub", hints[1].ToString()); // method
+                Assert.Equal("Sub Main(args As String())\r\nEnd Sub", hints[1].GetText_TestOnly()); // method
                 hints.Do(v => v.TextView_TestOnly.Close());
             }
         }
