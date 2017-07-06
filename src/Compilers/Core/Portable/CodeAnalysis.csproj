@@ -44,6 +44,7 @@
     <Compile Include="Operations\IAddressOfExpression.cs" />
     <Compile Include="Operations\IArgument.cs" />
     <Compile Include="Operations\IArrayCreationExpression.cs" />
+    <Compile Include="Operations\IAnonymousObjectCreationExpression.cs" />
     <Compile Include="Operations\IArrayElementReferenceExpression.cs" />
     <Compile Include="Operations\IArrayInitializer.cs" />
     <Compile Include="Operations\IAssignmentExpression.cs" />

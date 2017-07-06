@@ -159,6 +159,29 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return If(expression.InitializerOpt IsNot Nothing, expression.InitializerOpt.Initializers.SelectAsArray(Function(n) Create(n)), ImmutableArray(Of IOperation).Empty)
         End Function
 
+        Private Function GetAnonymousTypeCreationInitializers(expression As BoundAnonymousTypeCreationExpression) As ImmutableArray(Of IOperation)
+            Debug.Assert(expression.Arguments.Length >= expression.Declarations.Length)
+
+            Dim builder = ArrayBuilder(Of IOperation).GetInstance(expression.Arguments.Length)
+            For i As Integer = 0 To expression.Arguments.Length - 1
+                Dim value As IOperation = Create(expression.Arguments(i))
+                If i >= expression.Declarations.Length Then
+                    builder.Add(value)
+                    Continue For
+                End If
+
+                Dim target As IOperation = Create(expression.Declarations(i))
+                Dim isInvalid = target.IsInvalid OrElse value.IsInvalid
+                Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
+                Dim type As ITypeSymbol = target.Type
+                Dim constantValue As [Optional](Of Object) = value.ConstantValue
+                Dim assignment = New SimpleAssignmentExpression(target, value, isInvalid, syntax, type, constantValue)
+                builder.Add(assignment)
+            Next i
+
+            Return builder.ToImmutableAndFree()
+        End Function
+
         Private Function GetSwitchStatementCases(statement As BoundSelectStatement) As ImmutableArray(Of ISwitchCase)
             Return statement.CaseBlocks.SelectAsArray(
                 Function(boundCaseBlock)

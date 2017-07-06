@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -90,6 +92,33 @@ namespace Microsoft.CodeAnalysis.Semantics
                  expanded: expanded,
                  argsToParamsOpt: argumentsToParametersOpt,
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
+        }
+
+        private ImmutableArray<IOperation> GetAnonymousObjectCreationInitializers(BoundAnonymousObjectCreationExpression expression)
+        {
+            // For error cases, the binder generates only the argument.
+            Debug.Assert(expression.Arguments.Length >= expression.Declarations.Length);
+
+            var builder = ArrayBuilder<IOperation>.GetInstance(expression.Arguments.Length);
+            for (int i = 0; i < expression.Arguments.Length; i++)
+            {
+                IOperation value = Create(expression.Arguments[i]);
+                if (i >= expression.Declarations.Length)
+                {
+                    builder.Add(value);
+                    continue;
+                }
+
+                IOperation target = Create(expression.Declarations[i]);
+                bool isInvalid = target.IsInvalid || value.IsInvalid;
+                SyntaxNode syntax = value.Syntax?.Parent ?? expression.Syntax;
+                ITypeSymbol type = target.Type;
+                Optional<object> constantValue = value.ConstantValue;
+                var assignment = new SimpleAssignmentExpression(target, value, isInvalid, syntax, type, constantValue);
+                builder.Add(assignment);
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         private ImmutableArray<IOperation> GetObjectCreationInitializers(BoundObjectCreationExpression expression)
