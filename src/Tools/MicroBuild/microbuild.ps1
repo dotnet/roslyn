@@ -95,6 +95,25 @@ function Build-ExtraSignArtifacts() {
     }
 }
 
+# Create the PerfTests directory under Binaries\$(Configuration).  There are still a number
+# of tools (in roslyn and roslyn-internal) that depend on this combined directory.
+function Create-PerfTests() {
+    $target = Join-Path $configDir "PerfTests"
+    Write-Host "PerfTests: $target"
+    Create-Directory $target
+
+    Push-Location $configDir
+    foreach ($subDir in @("Dlls", "UnitTests")) {
+        Push-Location $subDir
+        foreach ($path in Get-ChildItem -re -in "PerfTests") {
+            Write-Host "`tcopying $path"
+            Copy-Item -force -recurse "$path\*" $target
+        }
+        Pop-Location
+    }
+    Pop-Location
+}
+
 Push-Location $PSScriptRoot
 try {
     . (Join-Path $PSScriptRoot "..\..\..\build\scripts\build-utils.ps1")
@@ -124,7 +143,7 @@ try {
     $setupDir = Join-Path $repoDir "src\Setup"
 
     Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -build -official:$official -msbuildDir $msbuildDir -release:$release }
-    Exec-Block { & (Join-Path $scriptDir "create-perftests.ps1") -buildDir $configDir }
+    Create-PerfTests
     Build-ExtraSignArtifacts
     Exec-Block { & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config }
     Run-MSBuild (Join-Path $repoDir "src\NuGet\NuGet.proj")
