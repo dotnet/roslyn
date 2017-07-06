@@ -7,7 +7,6 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{9C0660D9-48CA-40E1-BABA-8F6A1F11FE10}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BuildBoss</RootNamespace>
     <AssemblyName>BuildBoss</AssemblyName>
     <TargetFramework>net46</TargetFramework>
@@ -24,6 +23,7 @@
     <Reference Include="WindowsBase" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Microsoft.Build.Logging.StructuredLogger" Version="$(MicrosoftBuildLoggingStructuredLoggerVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ICheckerUtil.cs" />
@@ -46,9 +46,6 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="README.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
