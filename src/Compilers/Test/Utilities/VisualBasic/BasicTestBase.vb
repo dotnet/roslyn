@@ -336,7 +336,7 @@ Public MustInherit Class BasicTestBase
     ''' <summary>
     ''' Compile sources and adds a custom reference using a custom IL
     ''' </summary>
-    ''' <param name="sources">The sources compile according to the following schema        
+    ''' <param name="sources">The sources compile according to the following schema
     ''' &lt;compilation name="assemblyname[optional]"&gt;
     ''' &lt;file name="file1.vb[optional]"&gt;
     ''' source
@@ -350,7 +350,7 @@ Public MustInherit Class BasicTestBase
     ''' <summary>
     ''' Compile sources and adds a custom reference using a custom IL
     ''' </summary>
-    ''' <param name="sources">The sources compile according to the following schema        
+    ''' <param name="sources">The sources compile according to the following schema
     ''' &lt;compilation name="assemblyname[optional]"&gt;
     ''' &lt;file name="file1.vb[optional]"&gt;
     ''' source
@@ -491,7 +491,7 @@ Public MustInherit Class BasicTestBaseBase
 .class public auto ansi beforefieldinit B
        extends [mscorlib]System.Object
 {
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance int32  get_P_rw_r_w() cil managed
   {
     // Code size       2 (0x2)
@@ -500,7 +500,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method B::get_P_rw_r_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance void  set_P_rw_r_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -508,7 +508,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method B::set_P_rw_r_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance int32  get_P_rw_rw_w() cil managed
   {
     // Code size       2 (0x2)
@@ -517,7 +517,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method B::get_P_rw_rw_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance void  set_P_rw_rw_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -525,7 +525,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method B::set_P_rw_rw_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance int32  get_P_rw_rw_r() cil managed
   {
     // Code size       2 (0x2)
@@ -534,7 +534,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method B::get_P_rw_rw_r
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance void  set_P_rw_rw_r(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -542,7 +542,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method B::set_P_rw_rw_r
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -572,7 +572,7 @@ Public MustInherit Class BasicTestBaseBase
 .class public auto ansi beforefieldinit D1
        extends B
 {
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_r_w() cil managed
   {
     // Code size       2 (0x2)
@@ -581,7 +581,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method D1::get_P_rw_r_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_rw_w() cil managed
   {
     // Code size       2 (0x2)
@@ -590,7 +590,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method D1::get_P_rw_rw_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_rw_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -598,7 +598,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method D1::set_P_rw_rw_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_rw_r() cil managed
   {
     // Code size       2 (0x2)
@@ -607,7 +607,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method D1::get_P_rw_rw_r
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_rw_r(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -615,7 +615,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method D1::set_P_rw_rw_r
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -644,7 +644,7 @@ Public MustInherit Class BasicTestBaseBase
 .class public auto ansi beforefieldinit D2
        extends D1
 {
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_r_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -652,7 +652,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method D2::set_P_rw_r_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_rw_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -660,7 +660,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method D2::set_P_rw_rw_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_rw_r() cil managed
   {
     // Code size       2 (0x2)
@@ -669,7 +669,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method D2::get_P_rw_rw_r
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -831,8 +831,8 @@ Public MustInherit Class BasicTestBaseBase
     End Sub
 
     Friend Shared Sub VerifyNoOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0)
-        Dim actualOperationTree = GetOperationTreeForTest(Of TSyntaxNode)(testSrc, compilationOptions, parseOptions, which)
-        Assert.Null(actualOperationTree)
+        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(testSrc, compilationOptions, parseOptions, which)
+        Assert.Null(operationTree.tree)
     End Sub
 
     Friend Shared Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, expectedDiagnostics As String, Optional which As Integer = 0, Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing)
