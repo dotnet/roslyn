@@ -46,10 +46,10 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key Amount As System.Int32, Key Message As System.String>) (Syntax: 'New With {' ... }')
-  Initializers(2): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32) (Syntax: 'Key .Amount = x')
+  Initializers(2): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'Key .Amount = x')
       Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Amount As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Amount')
       Right: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-    IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.String) (Syntax: 'Key .Messag ... "Hello" + y')
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 'Key .Messag ... "Hello" + y')
       Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Message As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Message')
       Right: IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '"Hello" + y')
           Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')

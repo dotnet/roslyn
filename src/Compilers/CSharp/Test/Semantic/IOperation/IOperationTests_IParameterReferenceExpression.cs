@@ -91,10 +91,10 @@ class Class1
 ";
             string expectedOperationTree = @"
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 Amount, System.String Message>) (Syntax: 'new { Amoun ... ello"" + y }')
-  Initializers(2): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32) (Syntax: 'Amount = x')
+  Initializers(2): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'Amount = x')
       Left: IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 Amount, System.String Message>.Amount { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Amount')
       Right: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-    IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.String) (Syntax: 'Message = ""Hello"" + y')
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 'Message = ""Hello"" + y')
       Left: IPropertyReferenceExpression: System.String <anonymous type: System.Int32 Amount, System.String Message>.Message { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Message')
       Right: IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '""Hello"" + y')
           Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Hello"") (Syntax: '""Hello""')
