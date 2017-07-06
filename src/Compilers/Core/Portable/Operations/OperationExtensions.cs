@@ -10,18 +10,20 @@ namespace Microsoft.CodeAnalysis.Semantics
 {
     public static class OperationExtensions
     {
+        /// <summary>
+        /// This will check whether context around the operation has any error such as syntax or semantic error
+        /// </summary>
         public static bool IsInvalid(this IOperation operation, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // once we made sure every operation has Syntax, we will return this condition
+            // once we made sure every operation has Syntax, we will remove this condition
             if (operation.Syntax == null)
             {
                 return true;
             }
 
-            var model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
-
             // if given compilation is wrong, we will throw null ref exception
-            return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any();
+            var model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
+            return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error);
         }
 
         public static IEnumerable<IOperation> Descendants(this IOperation operation)
