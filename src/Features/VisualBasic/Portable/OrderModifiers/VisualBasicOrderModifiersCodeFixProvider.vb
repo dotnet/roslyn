@@ -15,9 +15,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
                        VisualBasicCodeStyleOptions.PreferredModifierOrder,
                        VisualBasicOrderModifiersHelper.Instance)
         End Sub
-
-        Protected Overrides Function TokenList(tokens As IEnumerable(Of SyntaxToken)) As SyntaxTokenList
-            Return SyntaxFactory.TokenList(tokens)
-        End Function
     End Class
 End Namespace

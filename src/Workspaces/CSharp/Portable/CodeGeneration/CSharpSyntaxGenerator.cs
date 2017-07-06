@@ -1720,12 +1720,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return list;
         }
 
-        private static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
-        {
-            // return tokens from newList, but use original tokens of kind matches
-            return SyntaxFactory.TokenList(newList.Select(token => original.Any(token.Kind()) ? original.First(tk => tk.IsKind(token.Kind())) : token));
-        }
-
         private static void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers)
         {
             accessibility = Accessibility.NotApplicable;
