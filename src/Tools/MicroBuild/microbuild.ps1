@@ -101,7 +101,7 @@ function Build-InsertionItems() {
     try { 
         Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln"
 
-        Exec-Command (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "`"$configDir`" `"$setupDir`" `"$(Get-PackagesDir)`" `"$assemblyVersion`"" | Out-Host
+        Exec-Command (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $setupDir $(Get-PackagesDir) `"$assemblyVersion`"" | Out-Host
         
         # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
         # matter, just that it's provided some value.
