@@ -46,7 +46,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
     }
 
     $args += " $buildArgs"
-    Exec-Command $msbuild $args
+    Exec-Console $msbuild $args
 }
 
 function Run-SignTool() { 
@@ -111,9 +111,9 @@ function Build-InsertionItems() {
         }
 
         Run-MSBuild "DevDivPackages\Roslyn.proj"
-        Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj" $extraArgs
-        Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" $extraArgs
-        Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" $extraArgs
+        Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj $extraArgs"
+        Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj $extraArgs"
+        Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj $extraArgs"
         Run-MSBuild "..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj"
         Run-MSBuild "Vsix\Vsix.proj" 
     }
