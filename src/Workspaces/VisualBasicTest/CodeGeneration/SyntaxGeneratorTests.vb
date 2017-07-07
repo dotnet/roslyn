@@ -2,9 +2,6 @@
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
