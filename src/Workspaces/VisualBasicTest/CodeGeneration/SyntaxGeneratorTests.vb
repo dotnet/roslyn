@@ -1088,6 +1088,66 @@ End Property</x>.Value)
         End Sub
 
         <Fact>
+        Public Sub TestAccessorDeclarations2()
+            VerifySyntax(Of PropertyStatementSyntax)(
+                _g.WithAccessorDeclarations(_g.PropertyDeclaration("p", _g.IdentifierName("x"))),
+                "Property p As x")
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.NotApplicable, {_g.ReturnStatement()})),
+<x>Property p As x
+    Get
+        Return
+    End Get
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.Protected, {_g.ReturnStatement()})),
+<x>Property p As x
+    Protected Get
+        Return
+    End Get
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.SetAccessorDeclaration(Accessibility.Protected, {_g.ReturnStatement()})),
+<x>Property p As x
+    Protected Set
+        Return
+    End Set
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyStatementSyntax)(
+                _g.WithAccessorDeclarations(_g.IndexerDeclaration({_g.ParameterDeclaration("p", _g.IdentifierName("t"))}, _g.IdentifierName("x"))),
+                "Default Property Item(p As t) As x")
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(_g.IndexerDeclaration({_g.ParameterDeclaration("p", _g.IdentifierName("t"))}, _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.Protected, {_g.ReturnStatement()})),
+<x>Default Property Item(p As t) As x
+    Protected Get
+        Return
+    End Get
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.IndexerDeclaration({_g.ParameterDeclaration("p", _g.IdentifierName("t"))}, _g.IdentifierName("x")),
+                    _g.SetAccessorDeclaration(Accessibility.Protected, {_g.ReturnStatement()})),
+<x>Default Property Item(p As t) As x
+    Protected Set
+        Return
+    End Set
+End Property</x>.Value)
+        End sub 
+
+        <Fact>
         Public Sub TestIndexerDeclarations()
             VerifySyntax(Of PropertyStatementSyntax)(
                 _g.IndexerDeclaration({_g.ParameterDeclaration("z", _g.IdentifierName("y"))}, _g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract + DeclarationModifiers.ReadOnly),
@@ -2075,7 +2135,7 @@ Delegate Sub d()</x>.Value)
         End Sub
 
         <Fact>
-        <WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
+                                                                                                            <WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
         Public Sub TestAddAttributesOnAccessors()
             Dim prop = _g.PropertyDeclaration("P", _g.IdentifierName("T"))
 
@@ -3050,7 +3110,7 @@ End Interface</x>.Value)
         End Sub
 
         <Fact>
-        <WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
+                                                                                                                                                                                                                                                            <WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
         Public Sub TestAddInterfaceWithEOLs()
             Dim classC = SyntaxFactory.ParseCompilationUnit("
 Public Class C

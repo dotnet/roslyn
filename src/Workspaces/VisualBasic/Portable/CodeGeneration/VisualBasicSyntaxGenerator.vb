@@ -864,6 +864,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return tokens
         End Function
 
+        Public Overrides Function GetAccessorDeclaration(Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return SyntaxFactory.GetAccessorBlock(
+                SyntaxFactory.GetAccessorStatement().WithModifiers(GetModifierList(accessibility, DeclarationModifiers.None, DeclarationKind.Property)),
+                GetStatementList(statements))
+        End Function
+
+        Public Overrides Function SetAccessorDeclaration(Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return SyntaxFactory.SetAccessorBlock(
+                SyntaxFactory.SetAccessorStatement().WithModifiers(GetModifierList(accessibility, DeclarationModifiers.None, DeclarationKind.Property)),
+                GetStatementList(statements))
+        End Function
+
+        Public Overrides Function WithAccessorDeclarations(declaration As SyntaxNode, accessorDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim propertyBlock = GetPropertyBlock(declaration)
+            If propertyBlock Is Nothing Then
+                Return declaration
+            End If
+
+            propertyBlock = propertyBlock.WithAccessors(
+                SyntaxFactory.List(accessorDeclarations.OfType(Of AccessorBlockSyntax)))
+
+            Return If(propertyBlock.Accessors.Count = 0,
+                      propertyBlock.PropertyStatement,
+                      DirectCast(propertyBlock, SyntaxNode))
+        End Function
+
+        Private Function GetPropertyBlock(declaration As SyntaxNode) As PropertyBlockSyntax
+            Dim propertyBlock = TryCast(declaration, PropertyBlockSyntax)
+            If propertyBlock IsNot Nothing Then
+                Return propertyBlock
+            End If
+
+            Dim propertyStatement = TryCast(declaration, PropertyStatementSyntax)
+            If propertyStatement IsNot Nothing Then
+                Return SyntaxFactory.PropertyBlock(propertyStatement, SyntaxFactory.List(Of AccessorBlockSyntax))
+            End If
+
+            Return Nothing
+        End Function
+
         Public Overrides Function PropertyDeclaration(
             identifier As String,
             type As SyntaxNode,
