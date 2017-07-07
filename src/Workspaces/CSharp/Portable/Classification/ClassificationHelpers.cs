@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         {
             if (token.IsKind(SyntaxKind.DiscardDesignation, SyntaxKind.UnderscoreToken))
             {
-                return ClassificationTypeNames.Identifier;
+                return ClassificationTypeKind.Identifier;
             }
             if (SyntaxFacts.IsKeywordKind(token.Kind()))
             {
