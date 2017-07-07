@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -14,38 +15,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// 
     /// Immutable, since this object is used as a key into some dictionaries.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq")]
     internal class DocumentKey : IEquatable<DocumentKey>
     {
-        private readonly IVisualStudioHostProject _hostProject;
-        private readonly string _moniker;
+        public IVisualStudioHostProject HostProject { get; }
+        public string Moniker { get; }
+        public bool IsAdditionalFile { get; }
 
-        public IVisualStudioHostProject HostProject { get { return _hostProject; } }
-        public string Moniker { get { return _moniker; } }
-
-        public DocumentKey(IVisualStudioHostProject hostProject, string moniker)
+        public DocumentKey(IVisualStudioHostProject hostProject, string moniker, bool isAdditionalFile)
         {
             Contract.ThrowIfNull(hostProject);
             Contract.ThrowIfNull(moniker);
 
-            _hostProject = hostProject;
-            _moniker = moniker;
+            HostProject = hostProject;
+            Moniker = moniker;
+            IsAdditionalFile = isAdditionalFile;
         }
 
         public bool Equals(DocumentKey other)
         {
             return other != null &&
                 HostProject == other.HostProject &&
-                Moniker.Equals(other.Moniker, StringComparison.OrdinalIgnoreCase);
+                Moniker.Equals(other.Moniker, StringComparison.OrdinalIgnoreCase) &&
+                IsAdditionalFile.Equals(other.IsAdditionalFile);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(HostProject.GetHashCode(), StringComparer.OrdinalIgnoreCase.GetHashCode(Moniker));
+            return Hash.Combine(HostProject.GetHashCode(),
+                Hash.Combine(
+                    StringComparer.OrdinalIgnoreCase.GetHashCode(Moniker),
+                    IsAdditionalFile.GetHashCode()));
         }
 
         public override bool Equals(object obj)
         {
             return this.Equals(obj as DocumentKey);
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return $"{Moniker} (additional: {IsAdditionalFile})";
         }
     }
 }
