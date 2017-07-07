@@ -160,6 +160,7 @@ class Derived : BaseClass
             await TestAsync(markup, expectedOrderedItems);
         }
 
+        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestThisInvocation()
         {
@@ -178,6 +179,26 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
+        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestThisInvocationWithNonEmptyArgumentList()
+        {
+            var markup = @"
+class Foo
+{
+    public Foo(int a, int b) [|: this($$|]) { }
+    public Foo() { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithoutClosingParen()
         {
@@ -191,6 +212,25 @@ class Foo
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
                 new SignatureHelpTestItem("Foo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestThisInvocationWithoutClosingParenWithNonEmptyArgumentList()
+        {
+            var markup = @"
+class Foo
+{
+    public Foo() { }
+    public Foo(int a, int b)  [|: this($$
+|]}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
             };
 
             await TestAsync(markup, expectedOrderedItems);
@@ -217,6 +257,7 @@ class Foo
 
         #region "Trigger tests"
 
+        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnTriggerParens()
         {
@@ -235,6 +276,26 @@ class Foo
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
+        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationOnTriggerParensWithNonEmptyArgumentList()
+        {
+            var markup = @"
+class Foo
+{
+    public Foo(int a) : this($$
+    public Foo() { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnTriggerComma()
         {
@@ -248,6 +309,25 @@ class Foo
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
                 new SignatureHelpTestItem("Foo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1),
+            };
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationOnTriggerCommaWithNonEmptyArgumentList()
+        {
+            var markup = @"
+class Foo
+{
+    public Foo(int a, int b) : this($$
+    public Foo() { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
             };
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
