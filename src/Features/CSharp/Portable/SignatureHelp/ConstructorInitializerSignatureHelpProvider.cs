@@ -82,8 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
+            var currentCunstructor = semanticModel.GetDeclaredSymbol(( constructorInitializer.Parent as ConstructorDeclarationSyntax ));
+
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var accessibleConstructors = type.InstanceConstructors
+                                             .WhereAsArray(c => c != currentCunstructor)
                                              .WhereAsArray(c => c.IsAccessibleWithin(within))
                                              .WhereAsArray(c => c.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
                                              .Sort(symbolDisplayService, semanticModel, constructorInitializer.SpanStart);

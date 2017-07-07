@@ -172,7 +172,6 @@ class Foo
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 1),
                 new SignatureHelpTestItem("Foo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1),
             };
 
@@ -191,7 +190,6 @@ class Foo
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 1),
                 new SignatureHelpTestItem("Foo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1),
             };
 
@@ -231,7 +229,6 @@ class Foo
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
                 new SignatureHelpTestItem("Foo(int a)", string.Empty, string.Empty, currentParameterIndex: 0),
             };
 
@@ -250,7 +247,6 @@ class Foo
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 1),
                 new SignatureHelpTestItem("Foo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1),
             };
 
