@@ -94,6 +94,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindAllDeclarationsWithNormalQueryInRemoteProcessAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
+            {
+                return (false, ImmutableArray<SymbolAndProjectId>.Empty);
+            }
+
             var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
                 RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),

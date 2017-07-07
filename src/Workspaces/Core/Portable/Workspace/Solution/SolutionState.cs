@@ -1128,10 +1128,10 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(folders));
             }
 
-            folders = folders != null ? folders.WhereNotNull().ToReadOnlyCollection() : null;
+            var folderCollection = folders.WhereNotNull().ToReadOnlyCollection();
 
             var oldDocument = this.GetDocumentState(documentId);
-            var newDocument = oldDocument.UpdateFolders(folders.WhereNotNull().ToReadOnlyCollection());
+            var newDocument = oldDocument.UpdateFolders(folderCollection);
 
             return this.WithDocumentState(newDocument);
         }
