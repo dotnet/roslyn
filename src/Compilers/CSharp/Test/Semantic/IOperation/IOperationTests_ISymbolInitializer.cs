@@ -45,7 +45,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1')
+IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -67,7 +67,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 2')
+IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializer) (Syntax: '= 2')
   ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -92,7 +92,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IPropertyInitializer (Property: System.Int32 C.P1 { get; }) (OperationKind.PropertyInitializerAtDeclaration) (Syntax: '= 1')
+IPropertyInitializer (Property: System.Int32 C.P1 { get; }) (OperationKind.PropertyInitializer) (Syntax: '= 1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -110,7 +110,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IParameterInitializer (Parameter: [System.Int32 p1 = 0]) (OperationKind.ParameterInitializerAtDeclaration) (Syntax: '= 0')
+IParameterInitializer (Parameter: [System.Int32 p1 = 0]) (OperationKind.ParameterInitializer) (Syntax: '= 0')
   ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -132,7 +132,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IParameterInitializer (Parameter: params System.Int32[] p2) (OperationKind.ParameterInitializerAtDeclaration) (Syntax: '= null')
+IParameterInitializer (Parameter: params System.Int32[] p2) (OperationKind.ParameterInitializer) (Syntax: '= null')
   IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null) (Syntax: 'null')
     ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
 ";
@@ -157,7 +157,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1 + F()')
+IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (static System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
@@ -181,7 +181,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1 + F()')
+IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (static System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
@@ -203,7 +203,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1 + F()')
+IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (static System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
@@ -230,7 +230,7 @@ partial class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1')
+IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -268,7 +268,7 @@ partial class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 2')
+IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializer) (Syntax: '= 2')
   ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -301,7 +301,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= MakeAction(1)')
+IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializer) (Syntax: '= MakeAction(1)')
   IInvocationExpression (static System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(1)')
     Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -323,7 +323,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= MakeAction(2)')
+IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializer) (Syntax: '= MakeAction(2)')
   IInvocationExpression (static System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(2)')
     Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '2')
         ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')

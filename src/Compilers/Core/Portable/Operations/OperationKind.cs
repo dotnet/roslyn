@@ -161,11 +161,11 @@ namespace Microsoft.CodeAnalysis
         // Unused 0x400 and 0x402
 
         /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
-        FieldInitializerAtDeclaration = 0x401,
+        FieldInitializer = 0x401,
         /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
-        PropertyInitializerAtDeclaration = 0x403,
+        PropertyInitializer = 0x403,
         /// <summary>Indicates an <see cref="IParameterInitializer"/>.</summary>
-        ParameterInitializerAtDeclaration = 0x404,
+        ParameterInitializer = 0x404,
         /// <summary>Indicates an <see cref="IArrayInitializer"/>.</summary>
         ArrayInitializer = 0x405,
 

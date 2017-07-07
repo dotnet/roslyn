@@ -1208,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          operationContext.ReportDiagnostic(Diagnostic.Create(EqualsValueDescriptor, equalsValue.Syntax.GetLocation()));
                      }
                  },
-                 OperationKind.FieldInitializerAtDeclaration);
+                 OperationKind.FieldInitializer);
 
             context.RegisterOperationAction(
                  (operationContext) =>
@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          operationContext.ReportDiagnostic(Diagnostic.Create(EqualsValueDescriptor, equalsValue.Syntax.GetLocation()));
                      }
                  },
-                 OperationKind.ParameterInitializerAtDeclaration);
+                 OperationKind.ParameterInitializer);
         }
     }
 

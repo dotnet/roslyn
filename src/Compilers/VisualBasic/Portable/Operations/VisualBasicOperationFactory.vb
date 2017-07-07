@@ -639,7 +639,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundFieldInitializerOperation(boundFieldInitializer As BoundFieldInitializer) As IFieldInitializer
             Dim initializedFields As ImmutableArray(Of IFieldSymbol) = ImmutableArray(Of IFieldSymbol).CastUp(boundFieldInitializer.InitializedFields)
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundFieldInitializer.InitialValue))
-            Dim kind As OperationKind = OperationKind.FieldInitializerAtDeclaration
+            Dim kind As OperationKind = OperationKind.FieldInitializer
             Dim isInvalid As Boolean = boundFieldInitializer.HasErrors
             Dim syntax As SyntaxNode = boundFieldInitializer.Syntax
             Dim type As ITypeSymbol = Nothing
@@ -650,7 +650,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundPropertyInitializerOperation(boundPropertyInitializer As BoundPropertyInitializer) As IPropertyInitializer
             Dim initializedProperty As IPropertySymbol = boundPropertyInitializer.InitializedProperties.FirstOrDefault()
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundPropertyInitializer.InitialValue))
-            Dim kind As OperationKind = OperationKind.PropertyInitializerAtDeclaration
+            Dim kind As OperationKind = OperationKind.PropertyInitializer
             Dim isInvalid As Boolean = boundPropertyInitializer.HasErrors
             Dim syntax As SyntaxNode = boundPropertyInitializer.Syntax
             Dim type As ITypeSymbol = Nothing
@@ -661,7 +661,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundParameterEqualsValueOperation(boundParameterEqualsValue As BoundParameterEqualsValue) As IParameterInitializer
             Dim parameter As IParameterSymbol = boundParameterEqualsValue.Parameter
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundParameterEqualsValue.Value))
-            Dim kind As OperationKind = OperationKind.ParameterInitializerAtDeclaration
+            Dim kind As OperationKind = OperationKind.ParameterInitializer
             Dim isInvalid As Boolean = boundParameterEqualsValue.Value.HasErrors
             Dim syntax As SyntaxNode = boundParameterEqualsValue.Syntax
             Dim type As ITypeSymbol = Nothing

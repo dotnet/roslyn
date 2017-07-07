@@ -44,7 +44,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1')
+IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
@@ -61,7 +61,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 2')
+IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 2')
   ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
@@ -78,7 +78,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializerAtDeclaration) (Syntax: '= 1')
+IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializer) (Syntax: '= 1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
@@ -96,7 +96,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParameterInitializer (Parameter: [p1 As System.Int32 = 0]) (OperationKind.ParameterInitializerAtDeclaration) (Syntax: '= 0')
+IParameterInitializer (Parameter: [p1 As System.Int32 = 0]) (OperationKind.ParameterInitializer) (Syntax: '= 0')
   ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
@@ -121,7 +121,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParameterInitializer (Parameter: [ParamArray p2 As System.Int32() = Nothing]) (OperationKind.ParameterInitializerAtDeclaration) (Syntax: '= Nothing')
+IParameterInitializer (Parameter: [ParamArray p2 As System.Int32() = Nothing]) (OperationKind.ParameterInitializer) (Syntax: '= Nothing')
   IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null) (Syntax: 'Nothing')
     ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
@@ -146,7 +146,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldInitializer (2 initialized fields) (OperationKind.FieldInitializerAtDeclaration)  (Syntax: 'As New Object')
+IFieldInitializer (2 initialized fields) (OperationKind.FieldInitializer)  (Syntax: 'As New Object')
   Field_1: C.x As System.Object
   Field_2: C.y As System.Object
   IObjectCreationExpression (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'New Object')
@@ -169,7 +169,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1 + F()')
+IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (static Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
@@ -192,7 +192,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldInitializer (Field: C.i1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1 + F()')
+IFieldInitializer (Field: C.i1 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (static Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
@@ -215,7 +215,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializerAtDeclaration) (Syntax: '= 1 + F()')
+IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (static Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
@@ -239,7 +239,7 @@ Partial Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1')
+IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
@@ -261,7 +261,7 @@ Partial Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 2')
+IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 2')
   ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
