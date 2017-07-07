@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedVariable;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnusedVar
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
 {
     public partial class RemoveUnusedVariableTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
@@ -171,6 +171,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnuse
 {
     void Method()
     {
+    }
+}");
+        }
+
+        [WorkItem(20466, "https://github.com/dotnet/roslyn/issues/20466")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedCatchVariable()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        try
+        {
+        }
+        catch (System.Exception [|e|])
+        {
+        }
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        {
+        }
     }
 }");
         }

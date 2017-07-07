@@ -61,7 +61,8 @@
     <Compile Include="AddImport\CSharpAddImportFeatureService.cs" />
     <Compile Include="AddPackage\CSharpAddSpecificPackageCodeFixProvider.cs" />
     <Compile Include="AddParameter\CSharpAddParameterCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\RemoveUnusedVariable\CSharpRemoveUnusedVariableCodeFixProvider.cs" />
+    <Compile Include="RemoveUnusedLocalFunction\CSharpRemoveUnusedLocalFunctionCodeFixProvider.cs" />
+    <Compile Include="RemoveUnusedVariable\CSharpRemoveUnusedVariableCodeFixProvider.cs" />
     <Compile Include="CommentSelection\CSharpCommentSelectionService.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.NameGenerator.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.DeclarationInfo.cs" />

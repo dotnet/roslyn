@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -31,7 +32,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
                 }
 
+                // NOTE: In projection scenarios, we might get a set of documents to search
+                // that are not all the same language and might not exist in the OOP process
+                // (like the JS parts of a .cshtml file). Filter them out here.  This will
+                // need to be revisited if we someday support FAR between these languages.
                 var documents = documentArgs?.Select(solution.GetDocument)
+                                             .WhereNotNull()
                                              .ToImmutableHashSet();
 
                 await SymbolFinder.FindReferencesInCurrentProcessAsync(

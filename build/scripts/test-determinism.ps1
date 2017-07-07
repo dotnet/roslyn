@@ -22,7 +22,7 @@ function Run-Build([string]$rootDir, [string]$pathMapBuildOption, [switch]$resto
 
         # Clean out the previous run
         Write-Host "Cleaning the Binaries"
-        Exec-Command $msbuild "/nologo /v:m /nodeReuse:false /t:clean Roslyn.sln" 
+        Exec-Console $msbuild "/nologo /v:m /nodeReuse:false /t:clean Roslyn.sln" 
 
         if ($restore) {
             Write-Host "Restoring the packages"
@@ -30,7 +30,7 @@ function Run-Build([string]$rootDir, [string]$pathMapBuildOption, [switch]$resto
         }
 
         Write-Host "Building the Solution"
-        Exec-Command $msbuild "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false $pathMapBuildOption Roslyn.sln"
+        Exec-Console $msbuild "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false $pathMapBuildOption Roslyn.sln"
     }
     finally {
         Pop-Location

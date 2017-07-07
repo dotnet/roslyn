@@ -92,7 +92,7 @@
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateParameterizedMemberCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateType\GenerateTypeCodeFixProvider.vb" />
     <Compile Include="GenerateVariable\VisualBasicGenerateVariableCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\RemoveUnusedVariable\VisualBasicRemoveUnusedVariableCodeFixProvider.vb" />
+    <Compile Include="RemoveUnusedVariable\VisualBasicRemoveUnusedVariableCodeFixProvider.vb" />
     <Compile Include="ConvertIfToSwitch\VisualBasicConvertIfToSwitchCodeRefactoringProvider.Pattern.vb" />
     <Compile Include="ConvertIfToSwitch\VisualBasicConvertIfToSwitchCodeRefactoringProvider.vb" />
     <Compile Include="ConvertNumericLiteral\VisualBasicConvertNumericLiteralCodeRefactoringProvider.vb" />

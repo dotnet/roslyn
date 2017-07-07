@@ -261,7 +261,7 @@ Next
             Assert.Empty(model.LookupLabels(source.Length - 1))
         End Sub
 
-        <WorkItem(3795, "https:'github.com/dotnet/roslyn/issues/3795")>
+        <WorkItem(3795, "https://github.com/dotnet/roslyn/issues/3795")>
         <Fact>
         Public Sub ErrorInUsing()
             Dim submission = VisualBasicCompilation.CreateScriptCompilation("sub1", Parse("Imports Unknown", options:=TestOptions.Script), {MscorlibRef})

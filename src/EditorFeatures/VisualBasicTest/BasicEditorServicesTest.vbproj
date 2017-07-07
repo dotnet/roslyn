@@ -195,7 +195,7 @@
     <Compile Include="CodeActions\ConvertIfToSwitch\ConvertIfToSwitchTests.vb" />
     <Compile Include="CodeActions\ConvertNumericLiteral\ConvertNumericLiteralTests.vb" />
     <Compile Include="CodeActions\UseNamedArguments\UseNamedArgumentsTests.vb" />
-    <Compile Include="Diagnostics\RemoveUnusedVariable\RemoveUnusedVariableTest.vb" />
+    <Compile Include="RemoveUnusedVariable\RemoveUnusedVariableTest.vb" />
     <Compile Include="InitializeParameter\AddParameterCheckTests.vb" />
     <Compile Include="OrderModifiers\OrderModifiersTests.vb" />
     <Compile Include="Structure\CollectionInitializerStructureProviderTests.vb" />

@@ -35,6 +35,7 @@
     <Compile Include="InternalUtilities\NoThrowStreamDisposer.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
     <Compile Include="InternalUtilities\PlatformInformation.cs" />
+    <Compile Include="InternalUtilities\SemaphoreExtensions.cs" />
     <Compile Include="Operations\ArgumentKind.cs" />
     <Compile Include="Operations\BinaryOperandsKind.cs" />
     <Compile Include="Operations\BinaryOperationKind.cs" />

@@ -27,41 +27,36 @@ function Exec-Block([scriptblock]$cmd) {
     } 
 }
 
-# Handy function for executing a windows command which needs to go through 
-# windows command line parsing.  
-#
-# Use this when the command arguments are stored in a variable.  Particularly 
-# when the variable needs reparsing by the windows command line. Example:
-#
-#   $args = "/p:ManualBuild=true Test.proj"
-#   Exec-Command $msbuild $args
-# 
-function Exec-Command([string]$command, [string]$commandArgs) {
+function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true) {
     $startInfo = New-Object System.Diagnostics.ProcessStartInfo
     $startInfo.FileName = $command
     $startInfo.Arguments = $commandArgs
 
-    $startInfo.RedirectStandardOutput = $true
     $startInfo.UseShellExecute = $false
-    $startInfo.CreateNoWindow = $true
     $startInfo.WorkingDirectory = Get-Location
+
+    if (-not $useConsole) {
+       $startInfo.RedirectStandardOutput = $true
+       $startInfo.CreateNoWindow = $true
+    }
 
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo
-    $process.StartInfo.RedirectStandardOutput = $true;
     $process.Start() | Out-Null
 
     $finished = $false
     try {
-        # The OutputDataReceived event doesn't fire as events are sent by the 
-        # process in powershell.  Possibly due to subtlties of how Powershell
-        # manages the thread pool that I'm not aware of.  Using blocking
-        # reading here as an alternative which is fine since this blocks 
-        # on completion already.
-        $out = $process.StandardOutput
-        while (-not $out.EndOfStream) {
-            $line = $out.ReadLine()
-            Write-Output $line
+        if (-not $useConsole) { 
+            # The OutputDataReceived event doesn't fire as events are sent by the 
+            # process in powershell.  Possibly due to subtlties of how Powershell
+            # manages the thread pool that I'm not aware of.  Using blocking
+            # reading here as an alternative which is fine since this blocks 
+            # on completion already.
+            $out = $process.StandardOutput
+            while (-not $out.EndOfStream) {
+                $line = $out.ReadLine()
+                Write-Output $line
+            }
         }
 
         while (-not $process.WaitForExit(100)) { 
@@ -80,6 +75,29 @@ function Exec-Command([string]$command, [string]$commandArgs) {
             $process.Kill()
         }
     }
+}
+
+# Handy function for executing a windows command which needs to go through 
+# windows command line parsing.  
+#
+# Use this when the command arguments are stored in a variable.  Particularly 
+# when the variable needs reparsing by the windows command line. Example:
+#
+#   $args = "/p:ManualBuild=true Test.proj"
+#   Exec-Command $msbuild $args
+# 
+function Exec-Command([string]$command, [string]$commandArgs) {
+    Exec-CommandCore -command $command -commandArgs $commandargs -useConsole:$false
+}
+
+# Functions exactly like Exec-Command but lets the process re-use the current 
+# console. This means items like colored output will function correctly.
+#
+# In general this command should be used in place of
+#   Exec-Command $msbuild $args | Out-Host
+#
+function Exec-Console([string]$command, [string]$commandArgs) {
+    Exec-CommandCore -command $command -commandArgs $commandargs -useConsole:$true
 }
 
 # Handy function for executing a powershell script in a clean environment with 
@@ -296,7 +314,6 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
     else {
         $all = @(
             "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
-            "Closed Toolset:build\ToolsetPackages\ClosedToolset.csproj",
             "Roslyn:Roslyn.sln",
             "Samples:src\Samples\Samples.sln",
             "Templates:src\Setup\Templates\Templates.sln",
