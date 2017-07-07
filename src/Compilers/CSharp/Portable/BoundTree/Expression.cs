@@ -109,11 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments.Insert(0, this.Expression));
     }
 
-    internal partial class BoundDynamicCollectionElementInitializer
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments);
-    }
-
     internal partial class BoundFixedLocalCollectionInitializer
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Expression);
