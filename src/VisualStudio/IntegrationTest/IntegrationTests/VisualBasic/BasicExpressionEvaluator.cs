@@ -142,10 +142,14 @@ End Module
             VisualStudio.Debugger.CheckExpression("GetType(T) = GetType(String)", "Boolean", "True");
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
-            base.Dispose();
+            if (disposing)
+            {
+                VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

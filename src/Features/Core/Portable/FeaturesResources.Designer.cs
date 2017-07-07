@@ -1585,6 +1585,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to in {0} (project {1}).
+        /// </summary>
+        internal static string in_0_project_1 {
+            get {
+                return ResourceManager.GetString("in_0_project_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to in Source.
         /// </summary>
         internal static string in_Source {
@@ -2347,11 +2356,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to project .
+        ///   Looks up a localized string similar to project {0}.
         /// </summary>
-        internal static string project_space {
+        internal static string project_0 {
             get {
-                return ResourceManager.GetString("project_space", resourceCulture);
+                return ResourceManager.GetString("project_0", resourceCulture);
             }
         }
         
@@ -3017,15 +3026,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Type_Sharphelp_for_more_information {
             get {
                 return ResourceManager.GetString("Type_Sharphelp_for_more_information", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to type .
-        /// </summary>
-        internal static string type_space {
-            get {
-                return ResourceManager.GetString("type_space", resourceCulture);
             }
         }
         

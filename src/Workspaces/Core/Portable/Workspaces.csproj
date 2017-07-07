@@ -216,6 +216,7 @@
     <Compile Include="Formatting\IFormattingService.cs" />
     <Compile Include="Remote\RemoteHostSessionHelpers.cs" />
     <Compile Include="Remote\RemoteFeatureOptions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxTokenListExtensions.cs" />
     <Compile Include="Shared\Extensions\SyntaxTriviaListExtensions.cs" />
     <Compile Include="Utilities\ReferenceCountedDisposable.cs" />
   </ItemGroup>

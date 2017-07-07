@@ -502,8 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 block = null;
                 hasErrors = true;
-                // TODO(https://github.com/dotnet/roslyn/issues/14900): Better error message
-                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, localSymbol.Locations[0], localSymbol);
+                diagnostics.Add(ErrorCode.ERR_LocalFunctionMissingBody, localSymbol.Locations[0], localSymbol);
             }
 
             if (block != null)
@@ -2135,7 +2134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return false;
                             }
                             else if (RequiresVariableReceiver(receiver, eventSymbol.AssociatedField) && // NOTE: using field, not event
-                                !CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignment, diagnostics))
+                                !CheckIsValidReceiverForVariable(eventSyntax, receiver, valueKind, diagnostics))
                             {
                                 return false;
                             }
