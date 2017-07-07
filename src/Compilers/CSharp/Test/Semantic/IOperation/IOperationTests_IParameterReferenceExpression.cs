@@ -29,7 +29,11 @@ IOperation:  (OperationKind.None) (Syntax: '(x, x + y)')
       Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
       Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = new[] {
+                // file.cs(6,13): warning CS0219: The variable 'tuple' is assigned but its value is never used
+                //         var tuple = /*<bind>*/(x, x + y)/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "tuple").WithArguments("tuple").WithLocation(6, 13)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -826,6 +830,72 @@ IOperation:  (OperationKind.None) (Syntax: '__arglist(x, y)')
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(19790, "https://github.com/dotnet/roslyn/issues/19790")]
+        public void ParameterReference_IsPatternExpression()
+        {
+            string source = @"
+class Class1
+{
+    public void Method1(object x)
+    {
+        if (/*<bind>*/x is int y/*</bind>*/) { }
+    }
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'x is int y')
+  Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+    IOperation:  (OperationKind.None) (Syntax: 'int y')
+      Children(1): ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'int y')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(19902, "https://github.com/dotnet/roslyn/issues/19902")]
+        public void ParameterReference_LocalFunctionStatement()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+
+class Class
+{
+    static IEnumerable<T> MyIterator<T>(IEnumerable<T> source, Func<T, bool> predicate)
+    {
+        /*<bind>*/IEnumerable<T> Iterator()
+        {
+            foreach (var element in source)
+                if (predicate(element))
+                    yield return element;
+        }/*</bind>*/
+
+        return Iterator();
+    }
+}
+
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'IEnumerable ... }')
+  Children(1): IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IForEachLoopStatement (Iteration variable: T element) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... rn element;')
+        Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
+            IParameterReferenceExpression: source (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
+        Body: IIfStatement (OperationKind.IfStatement) (Syntax: 'if (predica ... rn element;')
+            Condition: IInvocationExpression (virtual System.Boolean System.Func<T, System.Boolean>.Invoke(T arg)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'predicate(element)')
+                Instance Receiver: IParameterReferenceExpression: predicate (OperationKind.ParameterReferenceExpression, Type: System.Func<T, System.Boolean>) (Syntax: 'predicate')
+                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument) (Syntax: 'element')
+                    ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
+            IfTrue: IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return element;')
+                ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
+      YieldBreakStatement (OperationKind.YieldBreakStatement) (Syntax: '{ ... }')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

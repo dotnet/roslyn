@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict On
 
@@ -1315,7 +1315,7 @@ End Class")
 
         <WorkItem(2196, "https://github.com/dotnet/roslyn/issues/2196")>
         <WorkItem(2197, "https://github.com/dotnet/roslyn/issues/2197")>
-        <WorkItem(29, "https: //github.com/dotnet/roslyn/issues/29")>
+        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestNullableSimplificationInsideCref() As Task
             ' NOTE: This will probably stop working if issues 2196 / 2197 related to VB compiler and semantic model are fixed.

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Design;
@@ -31,6 +31,7 @@ using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
+using Microsoft.CodeAnalysis.Experiments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
@@ -64,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             var componentModel = (IComponentModel)this.GetService(typeof(SComponentModel));
             _workspace = componentModel.GetService<VisualStudioWorkspace>();
+            _workspace.Services.GetService<IExperimentationService>();
 
             RegisterFindResultsLibraryManager();
 
@@ -89,8 +91,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.SystemCaptionTextColorKey = EnvironmentColors.SystemWindowTextColorKey;
             CodeAnalysisColors.SystemCaptionTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
             CodeAnalysisColors.CheckBoxTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            CodeAnalysisColors.RenameErrorTextBrushKey = VSCodeAnalysisColors.RenameErrorTextBrushKey;
-            CodeAnalysisColors.RenameResolvableConflictTextBrushKey = VSCodeAnalysisColors.RenameResolvableConflictTextBrushKey;
             CodeAnalysisColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
             CodeAnalysisColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;

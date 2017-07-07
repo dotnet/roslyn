@@ -361,7 +361,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = 0;
             var storage = new AssetStorage();
-            var source = new TestAssetSource(storage, sessionId, map);
+            var source = new TestAssetSource(storage, map);
             var service = new SolutionService(new AssetService(sessionId, storage));
 
             return service;

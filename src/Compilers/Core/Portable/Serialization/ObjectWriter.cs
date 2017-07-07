@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
@@ -487,7 +488,15 @@ namespace Roslyn.Utilities
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
-                    task.Wait();
+
+                    // We must not proceed until the additional task completes. After returning from a write, the underlying
+                    // stream providing access to raw memory will be closed; if this occurs before the separate thread
+                    // completes its write then an access violation can occur attempting to write to unmapped memory.
+                    //
+                    // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
+                    // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
+                    // so the wait can complete.
+                    task.GetAwaiter().GetResult();
                 }
                 else
                 {
@@ -747,7 +756,15 @@ namespace Roslyn.Utilities
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
-                    task.Wait(_cancellationToken);
+
+                    // We must not proceed until the additional task completes. After returning from a write, the underlying
+                    // stream providing access to raw memory will be closed; if this occurs before the separate thread
+                    // completes its write then an access violation can occur attempting to write to unmapped memory.
+                    //
+                    // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
+                    // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
+                    // so the wait can complete.
+                    task.GetAwaiter().GetResult();
                 }
                 else
                 {
@@ -825,22 +842,22 @@ namespace Roslyn.Utilities
         /// <summary>
         /// byte marker mask for encoding compressed uint 
         /// </summary>
-        internal static readonly byte ByteMarkerMask = 3 << 6;
+        internal const byte ByteMarkerMask = 3 << 6;
 
         /// <summary>
         /// byte marker bits for uint encoded in 1 byte.
         /// </summary>
-        internal static readonly byte Byte1Marker = 0;
+        internal const byte Byte1Marker = 0;
 
         /// <summary>
         /// byte marker bits for uint encoded in 2 bytes.
         /// </summary>
-        internal static readonly byte Byte2Marker = 1 << 6;
+        internal const byte Byte2Marker = 1 << 6;
 
         /// <summary>
         /// byte marker bits for uint encoded in 4 bytes.
         /// </summary>
-        internal static readonly byte Byte4Marker = 2 << 6;
+        internal const byte Byte4Marker = 2 << 6;
 
         internal enum EncodingKind : byte
         {

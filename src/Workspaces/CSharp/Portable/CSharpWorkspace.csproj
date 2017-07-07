@@ -11,8 +11,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -98,6 +96,10 @@
     <Compile Include="CodeStyle\TypeStyle\TypeStyle.cs" />
     <Compile Include="CodeStyle\TypeStyle\TypeStyleHelper.cs" />
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
+    <Compile Include="Extensions\BaseMethodDeclarationSyntaxExtensions.cs" />
+    <Compile Include="Extensions\UsingDirectiveSyntaxExtensions.cs" />
+    <Compile Include="Formatting\CSharpFormattingService.cs" />
+    <Compile Include="FindSymbols\CSharpDeclaredSymbolInfoFactoryService.cs" />
     <Compile Include="Simplification\Reducers\CSharpDefaultExpressionReducer.Rewriter.cs" />
     <Compile Include="Diagnostics\CSharpDiagnosticPropertiesService.cs" />
     <Compile Include="Execution\CSharpOptionsSerializationService.cs" />

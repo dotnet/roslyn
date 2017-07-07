@@ -10414,10 +10414,7 @@ public class X
                 // (11,25): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     void Test4(bool p = x4 && TakeOutParam(4, out int x4))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(11, 25),
-                // (11,21): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'bool'
-                //     void Test4(bool p = x4 && TakeOutParam(4, out int x4))
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "bool").WithLocation(11, 21),
-                // (15,50): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (15,50): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                         TakeOutParam(52, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(15, 50),
                 // (14,25): error CS1736: Default parameter value for 'p' must be a compile-time constant
@@ -10525,10 +10522,7 @@ public class X
                 // (11,25): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     void Test4(bool p = x4 && TakeOutParam(4, out var x4))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(11, 25),
-                // (11,21): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'bool'
-                //     void Test4(bool p = x4 && TakeOutParam(4, out var x4))
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "bool").WithLocation(11, 21),
-                // (15,50): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (15,50): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                         TakeOutParam(52, out var x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(15, 50),
                 // (14,25): error CS1736: Default parameter value for 'p' must be a compile-time constant
@@ -19309,9 +19303,9 @@ public class Cls
                 // (10,16): warning CS0168: The variable 'e' is declared but never used
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(10, 16),
-                // (7,13): warning CS0168: The variable 'b' is declared but never used
+                // (7,13): warning CS8321: The local function 'b' is declared but never used
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(7, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "b").WithArguments("b").WithLocation(7, 13)
                 );
         }
 
@@ -31362,9 +31356,6 @@ class C
                 // (6,61): error CS0103: The name 'z1' does not exist in the current context
                 //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 61),
-                // (6,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(6, 56),
                 // (7,75): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 75),
@@ -31374,21 +31365,18 @@ class C
                 // (7,61): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 61),
-                // (7,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 56),
                 // (9,17): error CS0103: The name 'z1' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 17),
                 // (9,22): error CS0103: The name 'z2' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
-                // (6,14): warning CS0168: The variable 'Local2' is declared but never used
+                // (6,14): warning CS8321: The local function 'Local2' is declared but never used
                 //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(6, 14),
-                // (7,14): warning CS0168: The variable 'Local5' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local2").WithArguments("Local2").WithLocation(6, 14),
+                // (7,14): warning CS8321: The local function  'Local5' is declared but never used
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(7, 14)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local5").WithArguments("Local5").WithLocation(7, 14)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -32048,9 +32036,6 @@ class C
                 // (6,69): error CS0103: The name 'z1' does not exist in the current context
                 //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 69),
-                // (6,64): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(6, 64),
                 // (7,83): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 83),
@@ -32063,21 +32048,18 @@ class C
                 // (7,69): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 69),
-                // (7,64): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 64),
                 // (9,17): error CS0103: The name 'z1' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 17),
                 // (9,22): error CS0103: The name 'z2' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
-                // (6,14): warning CS0168: The variable 'Local2' is declared but never used
+                // (6,14): warning CS8321: The local function 'Local2' is declared but never used
                 //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(6, 14),
-                // (7,14): warning CS0168: The variable 'Local5' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local2").WithArguments("Local2").WithLocation(6, 14),
+                // (7,14): warning CS8321: The local function 'Local5' is declared but never used
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(7, 14)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local5").WithArguments("Local5").WithLocation(7, 14)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -32769,6 +32751,53 @@ class C
             VerifyModelForOutVarInNotExecutableCode(model, decl);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
             Assert.Equal("var", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(445600, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=445600")]
+        public void GetEnclosingBinderInternalRecovery_11()
+        {
+            var text = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach 
+        other(some().F(a => TestOutVar(out var x) ? x : 1));
+    }
+
+    static void TestOutVar(out int a)
+    {
+        a = 0;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,16): error CS1003: Syntax error, '(' expected
+                //         foreach 
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "").WithLocation(6, 16),
+                // (7,60): error CS1515: 'in' expected
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_InExpected, ";").WithLocation(7, 60),
+                // (7,60): error CS0230: Type and identifier are both required in a foreach statement
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ";").WithLocation(7, 60),
+                // (7,60): error CS1525: Invalid expression term ';'
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(7, 60),
+                // (7,60): error CS1026: ) expected
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(7, 60)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var xDecl = GetOutVarDeclaration(tree, "x");
+            var xRef = GetReferences(tree, "x", 1);
+            VerifyModelForOutVarWithoutDataFlow(model, xDecl, xRef);
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(xRef[0]).Type.ToTestDisplayString());
         }
 
         [Fact]

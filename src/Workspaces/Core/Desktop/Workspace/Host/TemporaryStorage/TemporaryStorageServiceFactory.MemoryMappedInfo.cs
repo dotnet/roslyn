@@ -33,9 +33,6 @@ namespace Microsoft.CodeAnalysis.Host
         /// </remarks>
         internal sealed class MemoryMappedInfo : IDisposable
         {
-            private readonly string _name;
-            private readonly long _size;
-
             /// <summary>
             /// The memory mapped file.
             /// </summary>
@@ -44,43 +41,54 @@ namespace Microsoft.CodeAnalysis.Host
             /// However, the operating system does not actually close the views which are in use until the view handles
             /// are closed as well, even if the <see cref="MemoryMappedFile"/> is disposed first.</para>
             /// </remarks>
-            private readonly MemoryMappedFile _memoryMappedFile;
+            private readonly ReferenceCountedDisposable<MemoryMappedFile> _memoryMappedFile;
 
             /// <summary>
-            /// actual memory accessor that owns the VM
+            /// A weak reference to a read-only view for the memory mapped file.
             /// </summary>
             /// <remarks>
-            /// <para>It is possible for this accessor to be disposed prior to the streams which use it. However, the
-            /// streams interact directly with the underlying memory buffer, and keep a
-            /// <see cref="CopiedMemoryMappedViewHandle"/> to prevent that buffer from being released while still in
-            /// use. The <see cref="SafeHandle"/> used by this accessor is reference counted, and is not finally
-            /// released until the reference count reaches zero.</para>
+            /// <para>This holds a weak counted reference to current <see cref="MemoryMappedViewAccessor"/>, which
+            /// allows additional accessors for the same address space to be obtained up until the point when no
+            /// external code is using it. When the memory is no longer being used by any
+            /// <see cref="SharedReadableStream"/> objects, the view of the memory mapped file is unmapped, making the
+            /// process address space it previously claimed available for other purposes. If/when it is needed again, a
+            /// new view is created.</para>
+            ///
+            /// <para>This view is read-only, so it is only used by <see cref="CreateReadableStream"/>.</para>
             /// </remarks>
-            private MemoryMappedViewAccessor _accessor;
+            private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _weakReadAccessor;
 
-            public MemoryMappedInfo(long size)
+            public MemoryMappedInfo(ReferenceCountedDisposable<MemoryMappedFile> memoryMappedFile, string name, long offset, long size)
             {
-                _name = CreateUniqueName(size);
-                _size = size;
-
-                _memoryMappedFile = MemoryMappedFile.CreateNew(_name, size);
+                _memoryMappedFile = memoryMappedFile;
+                Name = name;
+                Offset = offset;
+                Size = size;
             }
 
-            public MemoryMappedInfo(string name, long size)
+            public MemoryMappedInfo(string name, long offset, long size)
+                : this(new ReferenceCountedDisposable<MemoryMappedFile>(MemoryMappedFile.OpenExisting(name)), name, offset, size)
             {
-                _name = name;
-                _size = size;
-
-                _memoryMappedFile = MemoryMappedFile.OpenExisting(_name);
             }
 
             /// <summary>
-            /// Name and Size of memory map file
+            /// The name of the memory mapped file.
             /// </summary>
-            public string Name => _name;
-            public long Size => _size;
+            public string Name { get; }
 
-            private void ForceCompactingGC()
+            /// <summary>
+            /// The offset into the memory mapped file of the region described by the current
+            /// <see cref="MemoryMappedInfo"/>.
+            /// </summary>
+            public long Offset { get; }
+
+            /// <summary>
+            /// The size of the region of the memory mapped file described by the current
+            /// <see cref="MemoryMappedInfo"/>.
+            /// </summary>
+            public long Size { get; }
+
+            private static void ForceCompactingGC()
             {
                 // repeated GC.Collect / WaitForPendingFinalizers till memory freed delta is super small, ignore the return value
                 GC.GetTotalMemory(forceFullCollection: true);
@@ -96,27 +104,22 @@ namespace Microsoft.CodeAnalysis.Host
             /// </summary>
             public Stream CreateReadableStream()
             {
-                // CreateViewStream is not guaranteed to be thread-safe
-                lock (_memoryMappedFile)
+                // CreateViewAccessor is not guaranteed to be thread-safe
+                lock (_memoryMappedFile.Target)
                 {
-                    if (_accessor == null)
+                    // Note: TryAddReference behaves according to its documentation even if the target object has been
+                    // disposed. If it returns non-null, then the object will not be disposed before the returned
+                    // reference is disposed (see comments on _memoryMappedFile and TryAddReference).
+                    var streamAccessor = _weakReadAccessor.TryAddReference();
+                    if (streamAccessor == null)
                     {
-                        try
-                        {
-                            _accessor = _memoryMappedFile.CreateViewAccessor(0, _size, MemoryMappedFileAccess.Read);
-                        }
-                        catch (IOException)
-                        {
-                            // CreateViewAccessor will use a native memory map - which can't trigger a GC.
-                            // In this case, we'd otherwise crash with OOM, so we don't care about creating a UI delay with a full forced compacting GC.
-                            // If it crashes the second try, it means we're legitimately out of resources.
-                            this.ForceCompactingGC();
-                            _accessor = _memoryMappedFile.CreateViewAccessor(0, _size, MemoryMappedFileAccess.Read);
-                        }
+                        var rawAccessor = RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read), this);
+                        streamAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>(rawAccessor);
+                        _weakReadAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
                     }
 
-                    Contract.Assert(_accessor.CanRead);
-                    return new SharedReadableStream(this, new CopiedMemoryMappedViewHandle(_accessor.SafeMemoryMappedViewHandle), _accessor.PointerOffset, _size);
+                    Contract.Assert(streamAccessor.Target.CanRead);
+                    return new SharedReadableStream(this, streamAccessor, Size);
                 }
             }
 
@@ -127,9 +130,39 @@ namespace Microsoft.CodeAnalysis.Host
             public Stream CreateWritableStream()
             {
                 // CreateViewStream is not guaranteed to be thread-safe
-                lock (_memoryMappedFile)
+                lock (_memoryMappedFile.Target)
                 {
-                    return _memoryMappedFile.CreateViewStream(0, _size, MemoryMappedFileAccess.Write);
+                    return RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write), this);
+                }
+            }
+
+            /// <summary>
+            /// Run a function which may fail with an <see cref="IOException"/> if not enough memory is available to
+            /// satisfy the request. In this case, a full compacting GC pass is forced and the function is attempted
+            /// again.
+            /// </summary>
+            /// <remarks>
+            /// <para><see cref="MemoryMappedFile.CreateViewAccessor(long, long, MemoryMappedFileAccess)"/> and
+            /// <see cref="MemoryMappedFile.CreateViewStream(long, long, MemoryMappedFileAccess)"/> will use a native
+            /// memory map, which can't trigger a GC. In this case, we'd otherwise crash with OOM, so we don't care
+            /// about creating a UI delay with a full forced compacting GC. If it crashes the second try, it means we're
+            /// legitimately out of resources.</para>
+            /// </remarks>
+            /// <typeparam name="TArg">The type of argument to pass to the callback.</typeparam>
+            /// <typeparam name="T">The type returned by the function.</typeparam>
+            /// <param name="function">The function to execute.</param>
+            /// <param name="argument">The argument to pass to the function.</param>
+            /// <returns>The value returned by <paramref name="function"/>.</returns>
+            private static T RunWithCompactingGCFallback<TArg, T>(Func<TArg, T> function, TArg argument)
+            {
+                try
+                {
+                    return function(argument);
+                }
+                catch (IOException)
+                {
+                    ForceCompactingGC();
+                    return function(argument);
                 }
             }
 
@@ -143,38 +176,24 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 if (disposing)
                 {
-                    lock (_memoryMappedFile)
-                    {
-                        if (_accessor != null)
-                        {
-                            // (see remarks on accessor for relation between _accessor and the streams)
-                            _accessor.Dispose();
-                            _accessor = null;
-                        }
-                    }
-
-                    // (see remarks on accessor for relation between _memoryMappedFile and the views/streams)
+                    // See remarks on field for relation between _memoryMappedFile and the views/streams. There is no
+                    // need to write _weakReadAccessor here since lifetime of the target is not owned by this instance.
                     _memoryMappedFile.Dispose();
                 }
             }
 
-            public static string CreateUniqueName(long size)
-            {
-                return "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
-            }
-
             private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess
             {
-                private readonly CopiedMemoryMappedViewHandle _handle;
+                private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
 
                 private byte* _start;
                 private byte* _current;
                 private readonly byte* _end;
 
-                public SharedReadableStream(MemoryMappedInfo owner, CopiedMemoryMappedViewHandle handle, long offset, long length)
+                public SharedReadableStream(MemoryMappedInfo owner, ReferenceCountedDisposable<MemoryMappedViewAccessor> accessor, long length)
                 {
-                    _handle = handle;
-                    _current = _start = handle.Pointer + offset;
+                    _accessor = accessor;
+                    _current = _start = (byte*)_accessor.Target.SafeMemoryMappedViewHandle.DangerousGetHandle() + _accessor.Target.PointerOffset;
                     _end = checked(_start + length);
                 }
 
@@ -312,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                     if (disposing)
                     {
-                        _handle.Dispose();
+                        _accessor.Dispose();
                     }
 
                     _start = null;

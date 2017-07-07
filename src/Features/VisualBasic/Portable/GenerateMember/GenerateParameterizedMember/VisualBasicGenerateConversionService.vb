@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 modifiers:=Nothing,
                 returnType:=typeToGenerateIn,
                 returnsByRef:=False,
-                explicitInterfaceSymbol:=Nothing,
+                explicitInterfaceImplementations:=Nothing,
                 name:=Nothing,
                 typeParameters:=ImmutableArray(Of ITypeParameterSymbol).Empty,
                 parameters:=ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(parameterSymbol, "v")),

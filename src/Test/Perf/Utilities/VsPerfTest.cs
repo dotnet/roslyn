@@ -7,7 +7,7 @@ namespace Roslyn.Test.Performance.Utilities
 {
     public abstract class VsPerfTest : PerfTest
     {
-        private static readonly string _rootSuffix = "RoslynPerf";
+        private const string _rootSuffix = "RoslynPerf";
 
         private readonly ILogger _logger;
         private readonly string _testTemplateName;
@@ -19,7 +19,7 @@ namespace Roslyn.Test.Performance.Utilities
         private readonly string[] _scenarios;
         private static readonly string _nugetPackagesPath = System.Environment.GetEnvironmentVariable("NUGET_PACKAGES") ??
             Path.Combine(System.Environment.GetEnvironmentVariable("UserProfile"), ".nuget", "packages");
-        private static readonly string _installerPath = Path.Combine(_nugetPackagesPath, "roslyntools.microsoft.vsixexpinstaller", "0.2.4-beta", "tools", "vsixexpinstaller.exe");
+        private static readonly string _installerPath = Path.Combine(_nugetPackagesPath, "roslyntools.microsoft.vsixexpinstaller", "0.4.0-beta", "tools", "vsixexpinstaller.exe");
 
         public VsPerfTest(
             string testTemplateName,

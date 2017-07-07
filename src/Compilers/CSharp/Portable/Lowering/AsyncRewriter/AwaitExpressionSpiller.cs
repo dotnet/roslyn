@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
@@ -590,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expr = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(expr, node.IsFixedStatementAddressOf, node.Type));
+            return UpdateExpression(builder, node.Update(expr, node.Type));
         }
 
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)

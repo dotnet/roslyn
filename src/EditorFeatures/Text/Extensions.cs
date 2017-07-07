@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Text
             => TryGetTextBuffer(textContainer) ?? throw new ArgumentException(TextEditorResources.textContainer_is_not_a_SourceTextContainer_that_was_created_from_an_ITextBuffer, nameof(textContainer));
 
         public static ITextBuffer TryGetTextBuffer(this SourceTextContainer textContainer)
-            => (textContainer as TextBufferContainer)?.EditorTextBuffer;
+            => (textContainer as TextBufferContainer)?.TryFindEditorTextBuffer();
 
         /// <summary>
         /// Returns the ITextSnapshot behind this SourceText, or null if it wasn't created from one.
@@ -28,7 +28,10 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         /// <returns>The underlying ITextSnapshot.</returns>
         public static ITextSnapshot FindCorrespondingEditorTextSnapshot(this SourceText text)
-            => (text as SnapshotSourceText)?.EditorSnapshot;
+            => (text as SnapshotSourceText)?.TryFindEditorSnapshot();
+
+        internal static ITextImage TryFindCorrespondingEditorTextImage(this SourceText text)
+            => (text as SnapshotSourceText)?.TextImage;
 
         internal static TextLine AsTextLine(this ITextSnapshotLine line)
             => line.Snapshot.AsText().Lines[line.LineNumber];
@@ -37,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Text
             => SnapshotSourceText.From(textSnapshot);
 
         internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, Encoding encoding)
-            => new SnapshotSourceText.ClosedSnapshotSourceText(textSnapshot, encoding);
+            => new SnapshotSourceText.ClosedSnapshotSourceText(((ITextSnapshot2)textSnapshot).TextImage, encoding);
 
         /// <summary>
         /// Gets the workspace corresponding to the text buffer.

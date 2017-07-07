@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
@@ -193,7 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasExternAliases: false,
                     syntaxReference: parentReference,
                     nameLocation: new SourceLocation(parentReference),
-                    children: ImmutableArray.Create<SingleNamespaceOrTypeDeclaration>(decl));
+                    children: ImmutableArray.Create(decl),
+                    diagnostics: ImmutableArray<Diagnostic>.Empty);
             }
 
             return decl;
@@ -234,13 +236,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasExternAliases: hasExterns,
                     syntaxReference: _syntaxTree.GetReference(currentNode),
                     nameLocation: new SourceLocation(dotted.Right),
-                    children: children);
+                    children: children,
+                    diagnostics: ImmutableArray<Diagnostic>.Empty);
 
                 var nsDeclaration = new[] { ns };
                 children = nsDeclaration.AsImmutableOrNull<SingleNamespaceOrTypeDeclaration>();
                 currentNode = name = dotted.Left;
                 hasUsings = false;
                 hasExterns = false;
+            }
+
+            var diagnostics = DiagnosticBag.GetInstance();
+            if (ContainsGeneric(node.Name))
+            {
+                // We're not allowed to have generics.
+                diagnostics.Add(ErrorCode.ERR_UnexpectedGenericName, node.Name.GetLocation());
+            }
+
+            if (ContainsAlias(node.Name))
+            {
+                diagnostics.Add(ErrorCode.ERR_UnexpectedAliasedName, node.Name.GetLocation());
             }
 
             // NOTE: *Something* has to happen for alias-qualified names.  It turns out that we
@@ -252,7 +267,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasExternAliases: hasExterns,
                 syntaxReference: _syntaxTree.GetReference(currentNode),
                 nameLocation: new SourceLocation(name),
-                children: children);
+                children: children,
+                diagnostics: diagnostics.ToReadOnlyAndFree());
+        }
+
+        private static bool ContainsAlias(NameSyntax name)
+        {
+            switch (name.Kind())
+            {
+                case SyntaxKind.GenericName:
+                    return false;
+                case SyntaxKind.AliasQualifiedName:
+                    return true;
+                case SyntaxKind.QualifiedName:
+                    var qualifiedName = (QualifiedNameSyntax)name;
+                    return ContainsAlias(qualifiedName.Left);
+            }
+
+            return false;
+        }
+
+        private static bool ContainsGeneric(NameSyntax name)
+        {
+            switch (name.Kind())
+            {
+                case SyntaxKind.GenericName:
+                    return true;
+                case SyntaxKind.AliasQualifiedName:
+                    return ContainsGeneric(((AliasQualifiedNameSyntax)name).Name);
+                case SyntaxKind.QualifiedName:
+                    var qualifiedName = (QualifiedNameSyntax)name;
+                    return ContainsGeneric(qualifiedName.Left) || ContainsGeneric(qualifiedName.Right);
+            }
+
+            return false;
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitClassDeclaration(ClassDeclarationSyntax node)

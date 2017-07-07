@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         /// <returns>The correct syntactic classification for the token.</returns>
         public static ClassificationTypeKind? GetClassification(SyntaxToken token)
         {
+            if (token.IsKind(SyntaxKind.DiscardDesignation, SyntaxKind.UnderscoreToken))
+            {
+                return ClassificationTypeNames.Identifier;
+            }
             if (SyntaxFacts.IsKeywordKind(token.Kind()))
             {
                 return ClassificationTypeKind.Keyword;

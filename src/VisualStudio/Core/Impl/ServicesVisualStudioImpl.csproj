@@ -6,7 +6,7 @@
          even in WPF's build of a temporary project, where it won't be able to determine it based on the file extension. -->
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -53,7 +53,7 @@
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.Implementation</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.Implementation</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -88,39 +88,17 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
-    <PackageReference Include="EnvDTE">
-      <Version>$(EnvDTEVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="EnvDTE80">
-      <Version>$(EnvDTE80Version)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build">
-      <Version>$(MicrosoftBuildVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
-      <Version>$(MicrosoftVisualStudioShell150Version)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime">
-      <Version>$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Composition">
-      <Version>$(MicrosoftVisualStudioCompositionVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <Version>$(MicrosoftVisualStudioComponentModelHostVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
-      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
-      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
-      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
-      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
+    <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeModel\AbstractCodeModelObject.cs" />

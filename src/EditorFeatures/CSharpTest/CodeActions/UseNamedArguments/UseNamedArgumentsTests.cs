@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -358,5 +358,18 @@ class C
     void M(int arg1, int arg2) => M(arg1: arg1, arg2: arg2);
 }");
         }
+
+        [WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestMissingOnTuple()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Linq;
+class C
+{
+    void M(int[] arr) => arr.Zip(arr, (p1, p2) =>  ([||]p1, p2));
+}
+");
+        } 
     }
 }

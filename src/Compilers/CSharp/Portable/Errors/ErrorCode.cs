@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1481,16 +1481,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_NoRefOutWhenRefOnly = 8308,
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
-        // Available = 8310,
+        ERR_BadOpOnNullOrDefault = 8310,
         ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
         WRN_DefaultInSwitch = 8313,
         ERR_PatternWrongGenericTypeInVersion = 8314,
+        ERR_AmbigBinaryOpsOnDefault = 8315,
 
         #endregion diagnostics introduced for C# 7.1
 
         #region diagnostics introduced for C# 7.2
         ERR_FeatureNotAvailableInVersion7_2 = 8320,
+        WRN_UnreferencedLocalFunction = 8321,
         #endregion diagnostics introduced for C# 7.2
     }
 }
