@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnicodeCategory.OtherNotAssigned:
                 case UnicodeCategory.ParagraphSeparator:
                 case UnicodeCategory.LineSeparator:
+                case UnicodeCategory.Surrogate:
                     replaceWith = "\\u" + ((int)c).ToString("x4");
                     return true;
                 default:

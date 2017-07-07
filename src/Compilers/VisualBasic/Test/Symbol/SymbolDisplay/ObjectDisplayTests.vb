@@ -179,6 +179,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         <Fact>
+        Public Sub TextForEscapedStringLiterals()
+            Dim literal = SyntaxFactory.Literal(ChrW(&H2028) & "x") ' U+2028 is a line separator
+            Assert.Equal("ChrW(8232) & ""x""", literal.Text)
+            literal = SyntaxFactory.Literal(ChrW(&HDBFF)) ' U+DBFF is a unicode surrogate
+            Assert.Equal("ChrW(56319)", literal.Text)
+        End Sub
+
+        <Fact>
         Public Sub Strings_QuotesAndEscaping()
             Assert.Equal(QuoteAndEscapingCombinations("a"), {"a", """a""", """a"""})
             Assert.Equal(QuoteAndEscapingCombinations(vbTab), {vbTab, """" & vbTab & """", "vbTab"})

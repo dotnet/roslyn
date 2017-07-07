@@ -472,8 +472,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         End Function
 
         Friend Function IsPrintable(c As Char) As Boolean
-            Dim category = CharUnicodeInfo.GetUnicodeCategory(c)
-            Return category <> UnicodeCategory.OtherNotAssigned AndAlso category <> UnicodeCategory.ParagraphSeparator AndAlso category <> UnicodeCategory.Control
+            Select Case CharUnicodeInfo.GetUnicodeCategory(c)
+                Case UnicodeCategory.OtherNotAssigned,
+                     UnicodeCategory.ParagraphSeparator,
+                     UnicodeCategory.Control,
+                     UnicodeCategory.LineSeparator,
+                     UnicodeCategory.Surrogate
+                    Return False
+                Case Else
+                    Return True
+            End Select
         End Function
 
         Friend Function GetWellKnownCharacterName(c As Char) As String
