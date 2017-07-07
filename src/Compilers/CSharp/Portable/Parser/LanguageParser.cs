@@ -5360,7 +5360,12 @@ tryAgain:
                             // 
                             // Additionally, If we have X<Y?,  or X<Y?>, then this is definitely a type argument list.
 
-                            isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                            if (!isDefinitelyTypeArgumentList)
+                            {
+                                isDefinitelyTypeArgumentList =
+                                    this.CurrentToken.Kind == SyntaxKind.CommaToken ||
+                                    this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
+                            }
                             result = ScanTypeFlags.GenericTypeOrMethod;
                             break;
 
@@ -5393,18 +5398,6 @@ tryAgain:
             }
 
             return ScanTypeFlags.NonGenericTypeOrExpression;
-        }
-
-        private bool DetermineIfDefinitelyTypeArgumentList(bool isDefinitelyTypeArgumentList)
-        {
-            if (!isDefinitelyTypeArgumentList)
-            {
-                isDefinitelyTypeArgumentList =
-                    this.CurrentToken.Kind == SyntaxKind.CommaToken ||
-                    this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
-            }
-
-            return isDefinitelyTypeArgumentList;
         }
 
         // ParseInstantiation: Parses the generic argument/parameter parts of the name.
