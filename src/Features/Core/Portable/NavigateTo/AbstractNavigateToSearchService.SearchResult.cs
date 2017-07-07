@@ -45,9 +45,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 NameMatchSpans = nameMatchSpans;
                 SecondarySort = ConstructSecondarySortString(document, declaredSymbolInfo);
 
-                var declaredNavigableItem = navigableItem as NavigableItemFactory.DeclaredSymbolNavigableItem;
-                Debug.Assert(declaredNavigableItem != null);
-
                 _lazyAdditionalInfo = new Lazy<string>(() =>
                 {
                     switch (declaredSymbolInfo.Kind)
@@ -57,10 +54,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         case DeclaredSymbolInfoKind.Interface:
                         case DeclaredSymbolInfoKind.Module:
                         case DeclaredSymbolInfoKind.Struct:
-                            return FeaturesResources.project_space + document.Project.Name;
-                        default:
-                            return FeaturesResources.type_space + declaredSymbolInfo.ContainerDisplayName;
+                            if (!declaredSymbolInfo.IsNestedType)
+                            {
+                                return string.Format(FeaturesResources.project_0, document.Project.Name);
+                            }
+                            break;
                     }
+
+                    return string.Format(FeaturesResources.in_0_project_1, declaredSymbolInfo.ContainerDisplayName, document.Project.Name);
                 });
             }
 

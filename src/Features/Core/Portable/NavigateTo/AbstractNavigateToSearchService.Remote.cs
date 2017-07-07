@@ -38,6 +38,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         private static async Task<RemoteHostClient> TryGetRemoteHostClientAsync(Project project, CancellationToken cancellationToken)
         {
+            // This service is only defined for C# and VB, but we'll be a bit paranoid.
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
+            {
+                return null;
+            }
+
             return await project.Solution.Workspace.TryGetRemoteHostClientAsync(RemoteFeatureOptions.NavigateToEnabled, cancellationToken).ConfigureAwait(false);
         }
     }
