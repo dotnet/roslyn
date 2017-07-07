@@ -119,7 +119,63 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         DeclaredSymbolInfoKind.Class,
                         GetAccessibility(classDecl, classDecl.ClassStatement.Modifiers),
                         classDecl.ClassStatement.Identifier.Span,
-                        GetInheritanceNames(stringTable, classDecl))
+                        GetInheritanceNames(stringTable, classDecl),
+                        IsNestedType(classDecl))
+                    Return True
+                Case SyntaxKind.EnumBlock
+                    Dim enumDecl = CType(node, EnumBlockSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        stringTable,
+                        enumDecl.EnumStatement.Identifier.ValueText, Nothing,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Enum,
+                        GetAccessibility(enumDecl, enumDecl.EnumStatement.Modifiers),
+                        enumDecl.EnumStatement.Identifier.Span,
+                        ImmutableArray(Of String).Empty,
+                        IsNestedType(enumDecl))
+                    Return True
+                Case SyntaxKind.InterfaceBlock
+                    Dim interfaceDecl = CType(node, InterfaceBlockSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        stringTable,
+                        interfaceDecl.InterfaceStatement.Identifier.ValueText,
+                        GetTypeParameterSuffix(interfaceDecl.InterfaceStatement.TypeParameterList),
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Interface,
+                        GetAccessibility(interfaceDecl, interfaceDecl.InterfaceStatement.Modifiers),
+                        interfaceDecl.InterfaceStatement.Identifier.Span,
+                        GetInheritanceNames(stringTable, interfaceDecl),
+                        IsNestedType(interfaceDecl))
+                    Return True
+                Case SyntaxKind.ModuleBlock
+                    Dim moduleDecl = CType(node, ModuleBlockSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        stringTable,
+                        moduleDecl.ModuleStatement.Identifier.ValueText,
+                        GetTypeParameterSuffix(moduleDecl.ModuleStatement.TypeParameterList),
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Module,
+                        GetAccessibility(moduleDecl, moduleDecl.ModuleStatement.Modifiers),
+                        moduleDecl.ModuleStatement.Identifier.Span,
+                        GetInheritanceNames(stringTable, moduleDecl),
+                        IsNestedType(moduleDecl))
+                    Return True
+                Case SyntaxKind.StructureBlock
+                    Dim structDecl = CType(node, StructureBlockSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        stringTable,
+                        structDecl.StructureStatement.Identifier.ValueText,
+                        GetTypeParameterSuffix(structDecl.StructureStatement.TypeParameterList),
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Struct,
+                        GetAccessibility(structDecl, structDecl.StructureStatement.Modifiers),
+                        structDecl.StructureStatement.Identifier.Span,
+                        GetInheritanceNames(stringTable, structDecl),
+                        IsNestedType(structDecl))
                     Return True
                 Case SyntaxKind.ConstructorBlock
                     Dim constructor = CType(node, ConstructorBlockSyntax)
@@ -150,18 +206,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         DeclaredSymbolInfoKind.Delegate,
                         GetAccessibility(delegateDecl, delegateDecl.Modifiers),
                         delegateDecl.Identifier.Span,
-                        ImmutableArray(Of String).Empty)
-                    Return True
-                Case SyntaxKind.EnumBlock
-                    Dim enumDecl = CType(node, EnumBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
-                        stringTable,
-                        enumDecl.EnumStatement.Identifier.ValueText, Nothing,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Enum,
-                        GetAccessibility(enumDecl, enumDecl.EnumStatement.Modifiers),
-                        enumDecl.EnumStatement.Identifier.Span,
                         ImmutableArray(Of String).Empty)
                     Return True
                 Case SyntaxKind.EnumMemberDeclaration
@@ -205,19 +249,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         parameterCount:=If(funcDecl.SubOrFunctionStatement.ParameterList?.Parameters.Count, 0),
                         typeParameterCount:=If(funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.Count, 0))
                     Return True
-                Case SyntaxKind.InterfaceBlock
-                    Dim interfaceDecl = CType(node, InterfaceBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
-                        stringTable,
-                        interfaceDecl.InterfaceStatement.Identifier.ValueText,
-                        GetTypeParameterSuffix(interfaceDecl.InterfaceStatement.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Interface,
-                        GetAccessibility(interfaceDecl, interfaceDecl.InterfaceStatement.Modifiers),
-                        interfaceDecl.InterfaceStatement.Identifier.Span,
-                        GetInheritanceNames(stringTable, interfaceDecl))
-                    Return True
                 Case SyntaxKind.ModifiedIdentifier
                     Dim modifiedIdentifier = CType(node, ModifiedIdentifierSyntax)
                     Dim variableDeclarator = TryCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
@@ -236,19 +267,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                             ImmutableArray(Of String).Empty)
                         Return True
                     End If
-                Case SyntaxKind.ModuleBlock
-                    Dim moduleDecl = CType(node, ModuleBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
-                        stringTable,
-                        moduleDecl.ModuleStatement.Identifier.ValueText,
-                        GetTypeParameterSuffix(moduleDecl.ModuleStatement.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Module,
-                        GetAccessibility(moduleDecl, moduleDecl.ModuleStatement.Modifiers),
-                        moduleDecl.ModuleStatement.Identifier.Span,
-                        GetInheritanceNames(stringTable, moduleDecl))
-                    Return True
                 Case SyntaxKind.PropertyStatement
                     Dim propertyDecl = CType(node, PropertyStatementSyntax)
                     Dim statementOrBlock = If(TypeOf node.Parent Is PropertyBlockSyntax, node.Parent, node)
@@ -263,23 +281,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         propertyDecl.Identifier.Span,
                         ImmutableArray(Of String).Empty)
                     Return True
-                Case SyntaxKind.StructureBlock
-                    Dim structDecl = CType(node, StructureBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
-                        stringTable,
-                        structDecl.StructureStatement.Identifier.ValueText,
-                        GetTypeParameterSuffix(structDecl.StructureStatement.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Struct,
-                        GetAccessibility(structDecl, structDecl.StructureStatement.Modifiers),
-                        structDecl.StructureStatement.Identifier.Span,
-                        GetInheritanceNames(stringTable, structDecl))
-                    Return True
             End Select
 
             declaredSymbolInfo = Nothing
             Return False
+        End Function
+
+        Private Function IsNestedType(node As DeclarationStatementSyntax) As Boolean
+            Return TypeOf node.Parent Is TypeBlockSyntax
         End Function
 
         Private Function GetAccessibility(node As SyntaxNode, modifiers As SyntaxTokenList) As Accessibility
