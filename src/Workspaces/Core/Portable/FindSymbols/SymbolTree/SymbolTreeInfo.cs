@@ -374,6 +374,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             tmp = null;
 
             var result = ArrayBuilder<Node>.GetInstance(unsortedNodes.Length);
+            result.Count = unsortedNodes.Length;
+
             var concatenatedNamesBuilder = new StringBuilder();
             string lastName = null;
 
