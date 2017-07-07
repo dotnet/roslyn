@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -514,12 +514,12 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... Else')
-  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(m > 20)')
-      IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 20')
-        Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
-        Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If (m > 20) ... Else')
+IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If (m > 20) ... Else')
+  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, IsInvalid) (Syntax: '(m > 20)')
+      IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid) (Syntax: 'm > 20')
+        Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'm')
+        Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, IsInvalid) (Syntax: '20')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'If (m > 20) ... Else')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ("Result1")')
         IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
           Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
@@ -554,7 +554,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If () Then' ... En
   Condition: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '()')
       IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: ?, IsInvalid) (Syntax: '()')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If () Then' ... End If')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'If () Then' ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ("Result1")')
         IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
           Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')

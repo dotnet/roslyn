@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -356,7 +356,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'New EventHandler(x)')
-  Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+  Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -534,9 +534,9 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'Case x')
-  Children(1): IOperation:  (OperationKind.None) (Syntax: 'Case x')
-      Children(1): ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.IntegerEquals) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause) (Syntax: 'x')
-          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Case x')
+      Children(1): ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.IntegerEquals) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'x')
+          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -714,8 +714,8 @@ End Structure
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: I, IsInvalid) (Syntax: 'New I(x)')
-  Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
-    IOperation:  (OperationKind.None) (Syntax: 'New I(x)')
+  Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
+    IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New I(x)')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

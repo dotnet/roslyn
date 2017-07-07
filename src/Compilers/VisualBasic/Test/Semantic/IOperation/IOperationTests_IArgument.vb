@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -548,7 +548,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2()')
-  Children(1): IOperation:  (OperationKind.None) (Syntax: 'M2')
+  Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -576,7 +576,7 @@ End Class]]>.Value
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1, 2)')
   Children(3): IOperation:  (OperationKind.None) (Syntax: 'M2')
     ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-    ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+    ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -606,7 +606,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvali
     ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
     IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: null) (Syntax: '')
     IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: null) (Syntax: '')
-    IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: null) (Syntax: '')
+    IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: null, IsInvalid) (Syntax: '')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -634,7 +634,7 @@ End Class]]>.Value
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(0, )')
   Children(3): IOperation:  (OperationKind.None) (Syntax: 'M2')
     ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-    IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: null) (Syntax: '')
+    IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: null, IsInvalid) (Syntax: '')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -689,7 +689,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(y:=1)')
-  Children(2): IOperation:  (OperationKind.None) (Syntax: 'M2')
+  Children(2): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
     ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
