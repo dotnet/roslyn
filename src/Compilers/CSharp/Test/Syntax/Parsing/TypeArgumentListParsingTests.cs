@@ -16,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(text, options: options);
         }
 
-        private ExpressionSyntax ParseExpression(string text, ParseOptions options = null)
-        {
-            return SyntaxFactory.ParseExpression(text, options: options);
-        }
-
         [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
         public void TestPredefinedType()
         {
