@@ -1727,7 +1727,7 @@ class P
     }
 }
 ";
-            string expectedOperationTree = @"IInvocationExpression (static void P.M2([System.Boolean[missing]? x = null])) (OperationKind.InvocationExpression, Type: System.Void[missing]) (Syntax: 'M2()')";
+            string expectedOperationTree = @"IInvocationExpression (static void P.M2([System.Boolean[missing]? x = null])) (OperationKind.InvocationExpression, Type: System.Void[missing], IsInvalid) (Syntax: 'M2()')";
 
             var expectedDiagnostics = new DiagnosticDescription[] { 
                 // (3,7): error CS0518: Predefined type 'System.Object' is not defined or imported
