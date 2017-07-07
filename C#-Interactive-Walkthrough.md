@@ -138,7 +138,7 @@ var prices = csv.Split('\n').Skip(1)
 
 ```csharp
 foreach (var p in prices.Take(10))
-  WriteLine(p)
+    Console.WriteLine(p)
 ```
 
 Here is what your final session should look like:
@@ -165,7 +165,7 @@ var prices = csv.Split('\n').Skip(1)
                 });
 
 foreach (var p in prices.Take(10))
-   WriteLine(p);
+     Console.WriteLine(p);
 ```
 
 You're done. Enjoy using the REPL and please provide feedback! If you are interested in learning more about the C# Interactive window, watch [this video](https://channel9.msdn.com/Events/Visual-Studio/Connect-event-2015/103) or check out [our documentation](https://github.com/dotnet/roslyn/wiki/Interactive-Window).
