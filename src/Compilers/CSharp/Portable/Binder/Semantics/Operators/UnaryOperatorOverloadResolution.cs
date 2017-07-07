@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -54,8 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorOverloadResolution(operand, result, ref useSiteDiagnostics);
         }
 
-
-
         // Takes a list of candidates and mutates the list to throw out the ones that are worse than
         // another applicable candidate.
         private void UnaryOperatorOverloadResolution(
@@ -63,11 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorOverloadResolutionResult result,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            // SPEC: Given the set of applicable candidate function members, the best function
-            // member in that set is located. SPEC: If the set contains only one function member,
-            // then that function member is the best function member. 
+            // SPEC: Given the set of applicable candidate function members, the best function member in that set is located. 
+            // SPEC: If the set contains only one function member, then that function member is the best function member. 
 
-            if (result.GetValidCount() == 1)
+            if (result.SingleValid())
             {
                 return;
             }
@@ -78,8 +76,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: better than all other function members, then the function member invocation is ambiguous and a binding-time 
             // SPEC: error occurs.
 
-            // UNDONE: This is a naive quadratic algorithm; there is a linear algorithm that works. Consider using it.
             var candidates = result.Results;
+            // Try to find a single best candidate
+            int bestIndex = GetTheBestCandidateIndex(operand, candidates, ref useSiteDiagnostics);
+            if (bestIndex != -1)
+            {
+                // Mark all other candidates as worse
+                for (int index = 0; index < candidates.Count; ++index)
+                {
+                    if (candidates[index].Kind != OperatorAnalysisResultKind.Inapplicable && index != bestIndex)
+                    {
+                        candidates[index] = candidates[index].Worse();
+                    }
+                }
+
+                return;
+            }
+
             for (int i = 1; i < candidates.Count; ++i)
             {
                 if (candidates[i].Kind != OperatorAnalysisResultKind.Applicable)
@@ -94,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         continue;
                     }
+
                     var better = BetterOperator(candidates[i].Signature, candidates[j].Signature, operand, ref useSiteDiagnostics);
                     if (better == BetterResult.Left)
                     {
@@ -105,6 +119,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private int GetTheBestCandidateIndex(
+            BoundExpression operand,
+            ArrayBuilder<UnaryOperatorAnalysisResult> candidates,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            int currentBestIndex = -1;
+            for (int index = 0; index < candidates.Count; index++)
+            {
+                if (candidates[index].Kind != OperatorAnalysisResultKind.Applicable)
+                {
+                    continue;
+                }
+
+                // Assume that the current candidate is the best if we don't have any
+                if (currentBestIndex == -1)
+                {
+                    currentBestIndex = index;
+                }
+                else
+                {
+                    var better = BetterOperator(candidates[currentBestIndex].Signature, candidates[index].Signature, operand, ref useSiteDiagnostics);
+                    if (better == BetterResult.Right)
+                    {
+                        // The current best is worse
+                        currentBestIndex = index;
+                    }
+                    else if (better != BetterResult.Left)
+                    {
+                        // The current best is not better
+                        currentBestIndex = -1;
+                    }
+                }
+            }
+
+            // Make sure that every candidate up to the current best is worse
+            for (int index = 0; index < currentBestIndex; index++)
+            {
+                if (candidates[index].Kind == OperatorAnalysisResultKind.Inapplicable)
+                {
+                    continue;
+                }
+
+                var better = BetterOperator(candidates[currentBestIndex].Signature, candidates[index].Signature, operand, ref useSiteDiagnostics);
+                if (better != BetterResult.Left)
+                {
+                    // The current best is not better
+                    return -1;
+                }
+            }
+
+            return currentBestIndex;
         }
 
         private BetterResult BetterOperator(UnaryOperatorSignature op1, UnaryOperatorSignature op2, BoundExpression operand, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

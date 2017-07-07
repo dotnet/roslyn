@@ -9,6 +9,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1141,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(node.InitializerExpressionOpt == null);
 
             return node.Update(constructor, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt,
-                node.Expanded, node.ArgsToParamsOpt, node.ConstantValue, null, node.Type);
+                node.Expanded, node.ArgsToParamsOpt, node.ConstantValue, null, node.BinderOpt, node.Type);
         }
 
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
@@ -1609,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
             BoundExpression visitedOperand = this.VisitExpression(node.Operand, ExprContext.Address);
-            return node.Update(visitedOperand, node.IsFixedStatementAddressOf, node.Type);
+            return node.Update(visitedOperand, node.Type);
         }
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
@@ -1963,7 +1964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             Debug.Assert(node.InitializerExpressionOpt == null);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, null, type);
+            return node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, null, node.BinderOpt, type);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)

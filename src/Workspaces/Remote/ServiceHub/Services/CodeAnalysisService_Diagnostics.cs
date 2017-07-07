@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -21,49 +21,45 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public async Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName)
+        public async Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, CancellationToken))
+            // if this analysis is explicitly asked by user, boost priority of this request
+            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
+            using (arguments.ForcedAnalysis ? UserOperationBooster.Boost() : default)
             {
                 try
                 {
                     // entry point for diagnostic service
-                    var solution = await GetSolutionAsync().ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
 
-                    var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.OptionSetChecksum, CancellationToken).ConfigureAwait(false);
+                    var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.OptionSetChecksum, cancellationToken).ConfigureAwait(false);
                     var projectId = arguments.ProjectId;
-                    var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(CancellationToken);
+                    var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(cancellationToken);
 
                     var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
-                        analyzers, optionSet, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
+                        analyzers, optionSet, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
 
-                    await SerializeDiagnosticResultAsync(streamName, result).ConfigureAwait(false);
+                    await SerializeDiagnosticResultAsync(streamName, result, cancellationToken).ConfigureAwait(false);
                 }
                 catch (IOException)
                 {
-                    // stream to send over result has closed before we
+                    // direct stream to send over result has closed before we
                     // had chance to check cancellation
-                }
-                catch (OperationCanceledException)
-                {
-                    // rpc connection has closed.
-                    // this can happen if client side cancelled the
-                    // operation
                 }
             }
         }
 
-        private async Task SerializeDiagnosticResultAsync(string streamName, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result)
+        private async Task SerializeDiagnosticResultAsync(string streamName, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_SerializeDiagnosticResultAsync, GetResultLogInfo, result, CancellationToken))
-            using (var stream = await DirectStream.GetAsync(streamName, CancellationToken).ConfigureAwait(false))
+            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_SerializeDiagnosticResultAsync, GetResultLogInfo, result, cancellationToken))
+            using (var stream = await DirectStream.GetAsync(streamName, cancellationToken).ConfigureAwait(false))
             {
                 using (var writer = new ObjectWriter(stream))
                 {
-                    DiagnosticResultSerializer.Serialize(writer, result, CancellationToken);
+                    DiagnosticResultSerializer.Serialize(writer, result, cancellationToken);
                 }
 
-                await stream.FlushAsync(CancellationToken).ConfigureAwait(false);
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 

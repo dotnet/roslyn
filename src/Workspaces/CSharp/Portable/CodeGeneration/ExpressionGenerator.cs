@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -46,9 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ExpressionSyntax GenerateNullLiteral()
-        {
-            return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
-        }
+            => SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
         internal static ExpressionSyntax GenerateExpression(
             ITypeSymbol type,
@@ -97,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return type == null || type.IsReferenceType || type.IsPointerType() || type.IsNullable()
                 ? GenerateNullLiteral()
-                : SyntaxFactory.DefaultExpression(type.GenerateTypeSyntax());
+                : (ExpressionSyntax)CSharpSyntaxGenerator.Instance.DefaultExpression(type);
         }
 
         private static ExpressionSyntax GenerateBooleanLiteralExpression(bool val)

@@ -11,6 +11,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         #region Options
         private string _lastParsedCompilerOptions;
+
+        /// Can be null if there is no <see cref="CommandLineParserService" /> available.
         private CommandLineArguments _lastParsedCommandLineArguments;
         private CompilationOptions _currentCompilationOptions;
         private ParseOptions _currentParseOptions;
@@ -47,23 +49,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #endregion
 
         /// <summary>
-        /// Creates and sets new options using the last parsed command line arguments.
+        /// Creates and sets new options using the last parsed command line arguments.  In the case that the last
+        /// parsed options are <see langword="null"/> then this call is a NOP.
         /// </summary>
         protected void UpdateOptions()
         {
             AssertIsForeground();
 
             CommandLineArguments lastParsedCommandLineArguments = _lastParsedCommandLineArguments;
-            Contract.ThrowIfNull(lastParsedCommandLineArguments);
-
-            var newParseOptions = CreateParseOptions(lastParsedCommandLineArguments);
-            var newCompilationOptions = CreateCompilationOptions(lastParsedCommandLineArguments, newParseOptions);
-            if (newCompilationOptions == CurrentCompilationOptions && newParseOptions == CurrentParseOptions)
+            if (lastParsedCommandLineArguments != null)
             {
-                return;
-            }
+                // do nothing if the last parsed arguments aren't present, which is the case for languages that don't
+                // export an ICommandLineParserService like F#
+                var newParseOptions = CreateParseOptions(lastParsedCommandLineArguments);
+                var newCompilationOptions = CreateCompilationOptions(lastParsedCommandLineArguments, newParseOptions);
+                if (newCompilationOptions == CurrentCompilationOptions && newParseOptions == CurrentParseOptions)
+                {
+                    return;
+                }
 
-            SetOptions(newCompilationOptions, newParseOptions);
+                SetOptions(newCompilationOptions, newParseOptions);
+            }
         }
 
         /// <summary>

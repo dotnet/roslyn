@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal class DashboardAdornmentProvider : IWpfTextViewConnectionListener
     {
         private readonly InlineRenameService _renameService;
-
+        private readonly IEditorFormatMapService _editorFormatMapService;
         public const string AdornmentLayerName = "RoslynRenameDashboard";
 
         [Export]
@@ -33,15 +34,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         [ImportingConstructor]
         public DashboardAdornmentProvider(
-            InlineRenameService renameService)
+            InlineRenameService renameService,
+            IEditorFormatMapService editorFormatMapService)
         {
             _renameService = renameService;
+            _editorFormatMapService = editorFormatMapService;
         }
 
         public void SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
         {
             // Create it for the view if we don't already have one
-            textView.GetOrCreateAutoClosingProperty(v => new DashboardAdornmentManager(_renameService, v));
+            textView.GetOrCreateAutoClosingProperty(v => new DashboardAdornmentManager(_renameService, _editorFormatMapService, v));
         }
 
         public void SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)

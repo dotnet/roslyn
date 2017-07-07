@@ -16,7 +16,7 @@ namespace ObjectFormatterFixtures
         {
             public readonly int A = 1;
             public readonly int B = 2;
-            public static readonly int S = 3;
+            public const int S = 3;
         }
     }
 

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -1127,10 +1128,10 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(folders));
             }
 
-            folders = folders != null ? folders.WhereNotNull().ToReadOnlyCollection() : null;
+            var folderCollection = folders.WhereNotNull().ToReadOnlyCollection();
 
             var oldDocument = this.GetDocumentState(documentId);
-            var newDocument = oldDocument.UpdateFolders(folders.WhereNotNull().ToReadOnlyCollection());
+            var newDocument = oldDocument.UpdateFolders(folderCollection);
 
             return this.WithDocumentState(newDocument);
         }

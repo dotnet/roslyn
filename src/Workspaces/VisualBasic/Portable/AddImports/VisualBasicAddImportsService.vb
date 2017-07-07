@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 

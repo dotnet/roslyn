@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -100,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             return parenthesizedLambda;
         }
+
         private static readonly Func<BlockSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyBlock = SimplifyBlock;
 
         private static SyntaxNode SimplifyBlock(

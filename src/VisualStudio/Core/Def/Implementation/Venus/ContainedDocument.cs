@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 _itemMoniker = moniker;
             }
 
-            this.Key = new DocumentKey(Project, filePath);
+            this.Key = new DocumentKey(Project, filePath, isAdditionalFile: false);
             this.Id = DocumentId.CreateNewId(Project.Id, filePath);
             this.Folders = containedLanguage.Project.GetFolderNamesFromHierarchy(itemId);
             this.Loader = TextLoader.From(containedLanguage.SubjectBuffer.AsTextContainer(), VersionStamp.Create(), filePath);
@@ -775,7 +775,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     affectedSpans.Add(currentVisibleSpanIndex);
                 }
 
-                edit.Apply();
+                edit.ApplyAndLogExceptions();
             }
         }
 

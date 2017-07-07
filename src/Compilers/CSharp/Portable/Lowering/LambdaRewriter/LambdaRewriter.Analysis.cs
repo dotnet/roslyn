@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis;
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly HashSet<MethodSymbol> MethodsConvertedToDelegates = new HashSet<MethodSymbol>();
 
             /// <summary>
-            /// True if the method signature can't be rewritten to contain ref/out parameters.
+            /// True if the method signature can be rewritten to contain ref/out parameters.
             /// </summary>
             public bool CanTakeRefParameters(MethodSymbol closure) => !(closure.IsAsync
                                                                         || closure.IsIterator
@@ -533,25 +534,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void ReferenceVariable(SyntaxNode syntax, Symbol symbol)
             {
-                var localSymbol = symbol as LocalSymbol;
-                if ((object)localSymbol != null && localSymbol.IsConst)
+                if (symbol is LocalSymbol localSymbol && localSymbol.IsConst)
                 {
                     // "constant variables" need not be captured
                     return;
                 }
 
-                // using generic MethodSymbol here and not LambdaSymbol because of local functions
-                MethodSymbol lambda = _currentParent as MethodSymbol;
                 // "symbol == lambda" could happen if we're recursive
-                if ((object)lambda != null && symbol != lambda && symbol.ContainingSymbol != lambda)
+                if (_currentParent is MethodSymbol lambda && symbol != lambda && symbol.ContainingSymbol != lambda)
                 {
                     CapturedVariables.Add(symbol, syntax);
 
                     // mark the variable as captured in each enclosing lambda up to the variable's point of declaration.
-                    for (; (object)lambda != null && symbol != lambda && symbol.ContainingSymbol != lambda; lambda = lambda.ContainingSymbol as MethodSymbol)
+                    while ((object)lambda != null &&
+                           symbol != lambda &&
+                           symbol.ContainingSymbol != lambda &&
+                           // Necessary because the EE can insert non-closure synthesized method symbols
+                           IsClosure(lambda))
                     {
                         CapturedVariablesByLambda.Add(lambda, symbol);
+                        lambda = lambda.ContainingSymbol as MethodSymbol;
                     }
+                }
+            }
+
+            private static bool IsClosure(MethodSymbol symbol)
+            {
+                switch (symbol.MethodKind)
+                {
+                    case MethodKind.LambdaMethod:
+                    case MethodKind.LocalFunction:
+                        return true;
+
+                    default:
+                        return false;
                 }
             }
 

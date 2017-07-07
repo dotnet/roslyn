@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -163,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression);
                     case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel);
                     case SwitchStatementSyntax switchStatement: return InferTypeInSwitchStatement(switchStatement);
+                    case ThrowExpressionSyntax throwExpression: return InferTypeInThrowExpression(throwExpression);
                     case ThrowStatementSyntax throwStatement: return InferTypeInThrowStatement(throwStatement);
                     case UsingStatementSyntax usingStatement: return InferTypeInUsingStatement(usingStatement);
                     case WhileStatementSyntax whileStatement: return InferTypeInWhileStatement(whileStatement);
@@ -1969,6 +1971,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInThrowExpression(ThrowExpressionSyntax throwExpression, SyntaxToken? previousToken = null)
+            {
+                // If we have a position, it has to be after the 'throw' keyword.
+                if (previousToken.HasValue && previousToken.Value != throwExpression.ThrowKeyword)
+                {
+                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
+
+                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.ExceptionType()));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInThrowStatement(ThrowStatementSyntax throwStatement, SyntaxToken? previousToken = null)

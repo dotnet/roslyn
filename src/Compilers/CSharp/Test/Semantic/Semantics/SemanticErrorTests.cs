@@ -1055,19 +1055,27 @@ namespace X
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (9,17): error CS0023: Operator '!' cannot be applied to operand of type 'object'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!q").WithArguments("!", "object"),
-                // (12,26): error CS0023: Operator '-' cannot be applied to operand of type '<null>'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-null").WithArguments("-", "<null>"),
-                // (13,19): error CS0023: Operator '!' cannot be applied to operand of type '<null>'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!null").WithArguments("!", "<null>"),
-                // (14,19): error CS0023: Operator '~' cannot be applied to operand of type '<null>'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "~null").WithArguments("~", "<null>"),
+                //             if (!q) // CS0023
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!q").WithArguments("!", "object").WithLocation(9, 17),
+                // (12,26): error CS8310: Operator '-' cannot be applied to operand '<null>'
+                //             object obj = -null; // CS0023
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "-null").WithArguments("-", "<null>").WithLocation(12, 26),
+                // (13,19): error CS8310: Operator '!' cannot be applied to operand '<null>'
+                //             obj = !null; // CS0023
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(13, 19),
+                // (14,19): error CS8310: Operator '~' cannot be applied to operand '<null>'
+                //             obj = ~null; // CS0023
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "~null").WithArguments("~", "<null>").WithLocation(14, 19),
                 // (16,13): error CS0023: Operator '++' cannot be applied to operand of type 'object'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "obj++").WithArguments("++", "object"),
+                //             obj++; // CS0023
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "obj++").WithArguments("++", "object").WithLocation(16, 13),
                 // (17,13): error CS0023: Operator '--' cannot be applied to operand of type 'object'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "--obj").WithArguments("--", "object"),
-                // (18,20): error CS0023: Operator '+' cannot be applied to operand of type '<null>'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+null").WithArguments("+", "<null>"));
+                //             --obj; // CS0023
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "--obj").WithArguments("--", "object").WithLocation(17, 13),
+                // (18,20): error CS8310: Operator '+' cannot be applied to operand '<null>'
+                //             return +null; // CS0023
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "+null").WithArguments("+", "<null>").WithLocation(18, 20)
+                );
         }
 
         [WorkItem(539590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539590")]
@@ -1092,18 +1100,19 @@ public class Test
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (6,19): error CS0023: Operator '!' cannot be applied to operand of type '<null>'
+                // (6,19): error CS8310: Operator '!' cannot be applied to operand '<null>'
                 //         bool? b = !null;   // CS0023
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!null").WithArguments("!", "<null>"),
-                // (7,18): error CS0023: Operator '~' cannot be applied to operand of type '<null>'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(6, 19),
+                // (7,18): error CS8310: Operator '~' cannot be applied to operand '<null>'
                 //         int? n = ~null;    // CS0023
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "~null").WithArguments("~", "<null>"),
-                // (8,20): error CS0023: Operator '+' cannot be applied to operand of type '<null>'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "~null").WithArguments("~", "<null>").WithLocation(7, 18),
+                // (8,20): error CS8310: Operator '+' cannot be applied to operand '<null>'
                 //         float? f = +null;  // CS0023
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+null").WithArguments("+", "<null>"),
-                // (9,19): error CS0023: Operator '-' cannot be applied to operand of type '<null>'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "+null").WithArguments("+", "<null>").WithLocation(8, 20),
+                // (9,19): error CS8310: Operator '-' cannot be applied to operand '<null>'
                 //         long? u = -null;   // CS0023
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-null").WithArguments("-", "<null>"));
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "-null").WithArguments("-", "<null>").WithLocation(9, 19)
+                );
         }
 
         [WorkItem(539590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539590")]
@@ -2209,13 +2218,11 @@ class NamedExample
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (7,54): error CS0103: The name 'weight' does not exist in the current context
                 //     static int CalculateBMI(int weight, int height = weight)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "weight").WithArguments("weight"),
-                // (7,45): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //     static int CalculateBMI(int weight, int height = weight)
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "height").WithArguments("?", "int"),
-                // (1,1): info CS8019: Unnecessary using directive.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "weight").WithArguments("weight").WithLocation(7, 54),
+                // (1,1): hidden CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -15915,9 +15922,11 @@ static class S
     internal static void F(this double d) { }
 }";
             var compilation = CreateStandardCompilation(text, references: new[] { SystemCoreRef });
+            // Previously ERR_BadExtensionArgTypes.
             compilation.VerifyDiagnostics(
-                // (5,9): error CS1928: 'float' does not contain a definition for 'F' and the best extension method overload 'S.F(double)' has some invalid arguments
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "F").WithArguments("float", "F", "S.F(double)").WithLocation(5, 11));
+                // (5,9): error CS1929: 'float' does not contain a definition for 'F' and the best extension method overload 'S.F(double)' requires a receiver of type 'double'
+                //         f.F();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "f").WithArguments("float", "F", "S.F(double)", "double").WithLocation(5, 9));
         }
 
         [Fact]
@@ -23293,14 +23302,14 @@ class Program
 }
 ";
             var compilation = CreateStandardCompilation(text);
-            compilation.GetParseDiagnostics().Verify(
-                // (6,41): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //         if (((string)obj).Length == 0)  value: new Program();
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "value: new Program();").WithLocation(6, 41));
+            compilation.GetParseDiagnostics().Verify();
 
             // Make sure the compiler can handle producing method body diagnostics for this pattern when 
             // queried via an API (command line compile would exit after parse errors were reported). 
             compilation.GetMethodBodyDiagnostics().Verify(
+                // (6,41): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         if (((string)obj).Length == 0)  value: new Program();
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "value: new Program();").WithLocation(6, 41),
                 // (6,41): warning CS0164: This label has not been referenced
                 //         if (((string)obj).Length == 0)  value: new Program();
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "value").WithLocation(6, 41),

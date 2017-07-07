@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6877,6 +6877,154 @@ class C
             }
         }
 
+        [Fact]
+        public void BrokenOutputStreams()
+        {
+            var source0 =
+@"class C
+{
+    static string F()
+    {
+        return null;
+    }
+}";
+            var source1 =
+@"class C
+{
+    static string F()
+    {
+        var o = new { X = 1 };
+        return o.ToString();
+    }
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+            var bytes0 = compilation0.EmitToArray();
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                var generation0 = EmitBaseline.CreateInitialBaseline(
+                    md0,
+                    EmptyLocalsProvider);
+                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
+
+                using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream())
+                {
+                    var updatedMethods = new List<MethodDefinitionHandle>();
+                    var isAddedSymbol = new Func<ISymbol, bool>(s => false);
+
+                    var badStream = new BrokenStream();
+                    badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+
+                    var result = compilation1.EmitDifference(
+                        generation0,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
+                        isAddedSymbol,
+                        badStream,
+                        ilStream,
+                        pdbStream,
+                        updatedMethods,
+                        new CompilationTestData(),
+                        default);
+                    Assert.False(result.Success);
+                    result.Diagnostics.Verify(
+                        // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
+                        Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(badStream.ThrownException.ToString()).WithLocation(1, 1)
+                        );
+
+                    result = compilation1.EmitDifference(
+                        generation0,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
+                        isAddedSymbol,
+                        mdStream,
+                        badStream,
+                        pdbStream,
+                        updatedMethods,
+                        new CompilationTestData(),
+                        default);
+                    Assert.False(result.Success);
+                    result.Diagnostics.Verify(
+                        // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
+                        Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(badStream.ThrownException.ToString()).WithLocation(1, 1)
+                        );
+
+                    result = compilation1.EmitDifference(
+                        generation0,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
+                        isAddedSymbol,
+                        mdStream,
+                        ilStream,
+                        badStream,
+                        updatedMethods,
+                        new CompilationTestData(),
+                        default);
+                    Assert.False(result.Success);
+                    result.Diagnostics.Verify(
+                        // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
+                        Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1)
+                        );
+                }
+            }
+        }
+
+        [Fact]
+        public void BrokenPortablePdbStream()
+        {
+            var source0 =
+@"class C
+{
+    static string F()
+    {
+        return null;
+    }
+}";
+            var source1 =
+@"class C
+{
+    static string F()
+    {
+        var o = new { X = 1 };
+        return o.ToString();
+    }
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+            var bytes0 = compilation0.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                var generation0 = EmitBaseline.CreateInitialBaseline(
+                    md0,
+                    EmptyLocalsProvider);
+                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
+
+                using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream())
+                {
+                    var updatedMethods = new List<MethodDefinitionHandle>();
+                    var isAddedSymbol = new Func<ISymbol, bool>(s => false);
+
+                    var badStream = new BrokenStream();
+                    badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+
+                    var result = compilation1.EmitDifference(
+                        generation0,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
+                        isAddedSymbol,
+                        mdStream,
+                        ilStream,
+                        badStream,
+                        updatedMethods,
+                        new CompilationTestData(),
+                        default);
+                    Assert.False(result.Success);
+                    result.Diagnostics.Verify(
+                        // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
+                        Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1)
+                        );
+                }
+            }
+        }
+
         [Fact, WorkItem(923492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923492")]
         public void SymWriterErrors()
         {
@@ -7454,36 +7602,39 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.F", @"
 {
-  // Code size       43 (0x2b)
-  .maxstack  1
+  // Code size       40 (0x28)
+  .maxstack  2
   .locals init (int V_0, //i
                 bool V_1,
-                int? V_2,
+                object V_2,
                 int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int?""
-  IL_0007:  unbox.any  ""int?""
-  IL_000c:  stloc.2
-  IL_000d:  ldloca.s   V_2
-  IL_000f:  call       ""int int?.GetValueOrDefault()""
-  IL_0014:  stloc.0
-  IL_0015:  ldloca.s   V_2
-  IL_0017:  call       ""bool int?.HasValue.get""
-  IL_001c:  stloc.1
-  IL_001d:  ldloc.1
-  IL_001e:  brfalse.s  IL_0025
-  IL_0020:  nop
-  IL_0021:  ldloc.0
-  IL_0022:  stloc.3
-  IL_0023:  br.s       IL_0029
-  IL_0025:  ldc.i4.0
-  IL_0026:  stloc.3
-  IL_0027:  br.s       IL_0029
-  IL_0029:  ldloc.3
-  IL_002a:  ret
-}
-");
+  IL_0002:  stloc.2
+  IL_0003:  ldloc.2
+  IL_0004:  isinst     ""int""
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0012
+  IL_000f:  ldc.i4.0
+  IL_0010:  br.s       IL_0018
+  IL_0012:  ldloc.2
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  stloc.0
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  brfalse.s  IL_0022
+  IL_001d:  nop
+  IL_001e:  ldloc.0
+  IL_001f:  stloc.3
+  IL_0020:  br.s       IL_0026
+  IL_0022:  ldc.i4.0
+  IL_0023:  stloc.3
+  IL_0024:  br.s       IL_0026
+  IL_0026:  ldloc.3
+  IL_0027:  ret
+}");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
@@ -7495,44 +7646,47 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       57 (0x39)
-  .maxstack  1
+  // Code size       56 (0x38)
+  .maxstack  2
   .locals init ([int] V_0,
                 [bool] V_1,
-                [unchanged] V_2,
+                [object] V_2,
                 [int] V_3,
                 bool V_4, //i
                 bool V_5,
-                bool? V_6,
+                object V_6,
                 int V_7)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  isinst     ""bool?""
-  IL_0007:  unbox.any  ""bool?""
-  IL_000c:  stloc.s    V_6
-  IL_000e:  ldloca.s   V_6
-  IL_0010:  call       ""bool bool?.GetValueOrDefault()""
-  IL_0015:  stloc.s    V_4
-  IL_0017:  ldloca.s   V_6
-  IL_0019:  call       ""bool bool?.HasValue.get""
-  IL_001e:  stloc.s    V_5
-  IL_0020:  ldloc.s    V_5
-  IL_0022:  brfalse.s  IL_0031
-  IL_0024:  nop
-  IL_0025:  ldloc.s    V_4
-  IL_0027:  brtrue.s   IL_002c
-  IL_0029:  ldc.i4.0
-  IL_002a:  br.s       IL_002d
-  IL_002c:  ldc.i4.1
-  IL_002d:  stloc.s    V_7
-  IL_002f:  br.s       IL_0036
-  IL_0031:  ldc.i4.0
-  IL_0032:  stloc.s    V_7
-  IL_0034:  br.s       IL_0036
-  IL_0036:  ldloc.s    V_7
-  IL_0038:  ret
-}
-");
+  IL_0002:  stloc.s    V_6
+  IL_0004:  ldloc.s    V_6
+  IL_0006:  isinst     ""bool""
+  IL_000b:  ldnull
+  IL_000c:  cgt.un
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldc.i4.0
+  IL_0012:  br.s       IL_001b
+  IL_0014:  ldloc.s    V_6
+  IL_0016:  unbox.any  ""bool""
+  IL_001b:  stloc.s    V_4
+  IL_001d:  stloc.s    V_5
+  IL_001f:  ldloc.s    V_5
+  IL_0021:  brfalse.s  IL_0030
+  IL_0023:  nop
+  IL_0024:  ldloc.s    V_4
+  IL_0026:  brtrue.s   IL_002b
+  IL_0028:  ldc.i4.0
+  IL_0029:  br.s       IL_002c
+  IL_002b:  ldc.i4.1
+  IL_002c:  stloc.s    V_7
+  IL_002e:  br.s       IL_0035
+  IL_0030:  ldc.i4.0
+  IL_0031:  stloc.s    V_7
+  IL_0033:  br.s       IL_0035
+  IL_0035:  ldloc.s    V_7
+  IL_0037:  ret
+}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -7541,44 +7695,47 @@ class C
 
             diff2.VerifyIL("C.F", @"
 {
-  // Code size       51 (0x33)
-  .maxstack  1
+  // Code size       50 (0x32)
+  .maxstack  2
   .locals init ([int] V_0,
                 [bool] V_1,
-                [unchanged] V_2,
+                [object] V_2,
                 [int] V_3,
                 [bool] V_4,
                 [bool] V_5,
-                [unchanged] V_6,
+                [object] V_6,
                 [int] V_7,
                 int V_8, //j
                 bool V_9,
-                int? V_10,
+                object V_10,
                 int V_11)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int?""
-  IL_0007:  unbox.any  ""int?""
-  IL_000c:  stloc.s    V_10
-  IL_000e:  ldloca.s   V_10
-  IL_0010:  call       ""int int?.GetValueOrDefault()""
-  IL_0015:  stloc.s    V_8
-  IL_0017:  ldloca.s   V_10
-  IL_0019:  call       ""bool int?.HasValue.get""
-  IL_001e:  stloc.s    V_9
-  IL_0020:  ldloc.s    V_9
-  IL_0022:  brfalse.s  IL_002b
-  IL_0024:  nop
-  IL_0025:  ldloc.s    V_8
-  IL_0027:  stloc.s    V_11
-  IL_0029:  br.s       IL_0030
-  IL_002b:  ldc.i4.0
-  IL_002c:  stloc.s    V_11
-  IL_002e:  br.s       IL_0030
-  IL_0030:  ldloc.s    V_11
-  IL_0032:  ret
-}
-");
+  IL_0002:  stloc.s    V_10
+  IL_0004:  ldloc.s    V_10
+  IL_0006:  isinst     ""int""
+  IL_000b:  ldnull
+  IL_000c:  cgt.un
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldc.i4.0
+  IL_0012:  br.s       IL_001b
+  IL_0014:  ldloc.s    V_10
+  IL_0016:  unbox.any  ""int""
+  IL_001b:  stloc.s    V_8
+  IL_001d:  stloc.s    V_9
+  IL_001f:  ldloc.s    V_9
+  IL_0021:  brfalse.s  IL_002a
+  IL_0023:  nop
+  IL_0024:  ldloc.s    V_8
+  IL_0026:  stloc.s    V_11
+  IL_0028:  br.s       IL_002f
+  IL_002a:  ldc.i4.0
+  IL_002b:  stloc.s    V_11
+  IL_002d:  br.s       IL_002f
+  IL_002f:  ldloc.s    V_11
+  IL_0031:  ret
+}");
         }
 
         [Fact]
@@ -7612,36 +7769,39 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.F", @"
 {
-  // Code size       43 (0x2b)
-  .maxstack  1
+  // Code size       40 (0x28)
+  .maxstack  2
   .locals init (int V_0, //i
                 bool V_1,
-                int? V_2,
+                object V_2,
                 int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int?""
-  IL_0007:  unbox.any  ""int?""
-  IL_000c:  stloc.2
-  IL_000d:  ldloca.s   V_2
-  IL_000f:  call       ""int int?.GetValueOrDefault()""
-  IL_0014:  stloc.0
-  IL_0015:  ldloca.s   V_2
-  IL_0017:  call       ""bool int?.HasValue.get""
-  IL_001c:  stloc.1
-  IL_001d:  ldloc.1
-  IL_001e:  brfalse.s  IL_0025
-  IL_0020:  nop
-  IL_0021:  ldloc.0
-  IL_0022:  stloc.3
-  IL_0023:  br.s       IL_0029
-  IL_0025:  ldc.i4.0
-  IL_0026:  stloc.3
-  IL_0027:  br.s       IL_0029
-  IL_0029:  ldloc.3
-  IL_002a:  ret
-}
-");
+  IL_0002:  stloc.2
+  IL_0003:  ldloc.2
+  IL_0004:  isinst     ""int""
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0012
+  IL_000f:  ldc.i4.0
+  IL_0010:  br.s       IL_0018
+  IL_0012:  ldloc.2
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  stloc.0
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  brfalse.s  IL_0022
+  IL_001d:  nop
+  IL_001e:  ldloc.0
+  IL_001f:  stloc.3
+  IL_0020:  br.s       IL_0026
+  IL_0022:  ldc.i4.0
+  IL_0023:  stloc.3
+  IL_0024:  br.s       IL_0026
+  IL_0026:  ldloc.3
+  IL_0027:  ret
+}");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
@@ -7657,7 +7817,7 @@ class C
   .maxstack  2
   .locals init ([int] V_0,
                 [bool] V_1,
-                [unchanged] V_2,
+                [object] V_2,
                 [int] V_3,
                 bool V_4,
                 int V_5)
@@ -7688,42 +7848,45 @@ class C
 
             diff2.VerifyIL("C.F", @"
 {
-  // Code size       51 (0x33)
-  .maxstack  1
+  // Code size       50 (0x32)
+  .maxstack  2
   .locals init ([int] V_0,
                 [bool] V_1,
-                [unchanged] V_2,
+                [object] V_2,
                 [int] V_3,
                 [bool] V_4,
                 [int] V_5,
                 int V_6, //i
                 bool V_7,
-                int? V_8,
+                object V_8,
                 int V_9)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int?""
-  IL_0007:  unbox.any  ""int?""
-  IL_000c:  stloc.s    V_8
-  IL_000e:  ldloca.s   V_8
-  IL_0010:  call       ""int int?.GetValueOrDefault()""
-  IL_0015:  stloc.s    V_6
-  IL_0017:  ldloca.s   V_8
-  IL_0019:  call       ""bool int?.HasValue.get""
-  IL_001e:  stloc.s    V_7
-  IL_0020:  ldloc.s    V_7
-  IL_0022:  brfalse.s  IL_002b
-  IL_0024:  nop
-  IL_0025:  ldloc.s    V_6
-  IL_0027:  stloc.s    V_9
-  IL_0029:  br.s       IL_0030
-  IL_002b:  ldc.i4.0
-  IL_002c:  stloc.s    V_9
-  IL_002e:  br.s       IL_0030
-  IL_0030:  ldloc.s    V_9
-  IL_0032:  ret
-}
-");
+  IL_0002:  stloc.s    V_8
+  IL_0004:  ldloc.s    V_8
+  IL_0006:  isinst     ""int""
+  IL_000b:  ldnull
+  IL_000c:  cgt.un
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldc.i4.0
+  IL_0012:  br.s       IL_001b
+  IL_0014:  ldloc.s    V_8
+  IL_0016:  unbox.any  ""int""
+  IL_001b:  stloc.s    V_6
+  IL_001d:  stloc.s    V_7
+  IL_001f:  ldloc.s    V_7
+  IL_0021:  brfalse.s  IL_002a
+  IL_0023:  nop
+  IL_0024:  ldloc.s    V_6
+  IL_0026:  stloc.s    V_9
+  IL_0028:  br.s       IL_002f
+  IL_002a:  ldc.i4.0
+  IL_002b:  stloc.s    V_9
+  IL_002d:  br.s       IL_002f
+  IL_002f:  ldloc.s    V_9
+  IL_0031:  ret
+}");
         }
 
         [Fact]
@@ -8034,7 +8197,7 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.G", @"
 {
-  // Code size       72 (0x48)
+  // Code size       70 (0x46)
   .maxstack  2
   .locals init ((int, (bool, double))[] V_0,
                 int V_1,
@@ -8048,38 +8211,36 @@ class C
   IL_0007:  stloc.0
   IL_0008:  ldc.i4.0
   IL_0009:  stloc.1
-  IL_000a:  br.s       IL_0041
+  IL_000a:  br.s       IL_003f
   IL_000c:  ldloc.0
   IL_000d:  ldloc.1
   IL_000e:  ldelem     ""System.ValueTuple<int, (bool, double)>""
   IL_0013:  dup
   IL_0014:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
   IL_0019:  stloc.s    V_5
-  IL_001b:  dup
-  IL_001c:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
-  IL_0021:  stloc.2
-  IL_0022:  ldloc.s    V_5
-  IL_0024:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
-  IL_0029:  stloc.3
-  IL_002a:  ldloc.s    V_5
-  IL_002c:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
-  IL_0031:  stloc.s    V_4
-  IL_0033:  pop
-  IL_0034:  nop
-  IL_0035:  ldloc.2
-  IL_0036:  call       ""void System.Console.WriteLine(int)""
-  IL_003b:  nop
-  IL_003c:  nop
-  IL_003d:  ldloc.1
-  IL_003e:  ldc.i4.1
-  IL_003f:  add
-  IL_0040:  stloc.1
-  IL_0041:  ldloc.1
-  IL_0042:  ldloc.0
-  IL_0043:  ldlen
-  IL_0044:  conv.i4
-  IL_0045:  blt.s      IL_000c
-  IL_0047:  ret
+  IL_001b:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.s    V_5
+  IL_0023:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_0028:  stloc.3
+  IL_0029:  ldloc.s    V_5
+  IL_002b:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0030:  stloc.s    V_4
+  IL_0032:  nop
+  IL_0033:  ldloc.2
+  IL_0034:  call       ""void System.Console.WriteLine(int)""
+  IL_0039:  nop
+  IL_003a:  nop
+  IL_003b:  ldloc.1
+  IL_003c:  ldc.i4.1
+  IL_003d:  add
+  IL_003e:  stloc.1
+  IL_003f:  ldloc.1
+  IL_0040:  ldloc.0
+  IL_0041:  ldlen
+  IL_0042:  conv.i4
+  IL_0043:  blt.s      IL_000c
+  IL_0045:  ret
 }
 ");
 
@@ -8093,7 +8254,7 @@ class C
 
             diff1.VerifyIL("C.G", @"
 {
-  // Code size       80 (0x50)
+  // Code size       78 (0x4e)
   .maxstack  2
   .locals init ([unchanged] V_0,
                 [int] V_1,
@@ -8110,38 +8271,36 @@ class C
   IL_0007:  stloc.s    V_6
   IL_0009:  ldc.i4.0
   IL_000a:  stloc.s    V_7
-  IL_000c:  br.s       IL_0047
+  IL_000c:  br.s       IL_0045
   IL_000e:  ldloc.s    V_6
   IL_0010:  ldloc.s    V_7
   IL_0012:  ldelem     ""System.ValueTuple<int, (bool, double)>""
   IL_0017:  dup
   IL_0018:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
   IL_001d:  stloc.s    V_8
-  IL_001f:  dup
-  IL_0020:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
-  IL_0025:  stloc.2
-  IL_0026:  ldloc.s    V_8
-  IL_0028:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
-  IL_002d:  stloc.3
-  IL_002e:  ldloc.s    V_8
-  IL_0030:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
-  IL_0035:  stloc.s    V_4
-  IL_0037:  pop
-  IL_0038:  nop
-  IL_0039:  ldloc.2
-  IL_003a:  call       ""void System.Console.WriteLine(int)""
-  IL_003f:  nop
-  IL_0040:  nop
-  IL_0041:  ldloc.s    V_7
-  IL_0043:  ldc.i4.1
-  IL_0044:  add
-  IL_0045:  stloc.s    V_7
-  IL_0047:  ldloc.s    V_7
-  IL_0049:  ldloc.s    V_6
-  IL_004b:  ldlen
-  IL_004c:  conv.i4
-  IL_004d:  blt.s      IL_000e
-  IL_004f:  ret
+  IL_001f:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.s    V_8
+  IL_0027:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_002c:  stloc.3
+  IL_002d:  ldloc.s    V_8
+  IL_002f:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  nop
+  IL_0037:  ldloc.2
+  IL_0038:  call       ""void System.Console.WriteLine(int)""
+  IL_003d:  nop
+  IL_003e:  nop
+  IL_003f:  ldloc.s    V_7
+  IL_0041:  ldc.i4.1
+  IL_0042:  add
+  IL_0043:  stloc.s    V_7
+  IL_0045:  ldloc.s    V_7
+  IL_0047:  ldloc.s    V_6
+  IL_0049:  ldlen
+  IL_004a:  conv.i4
+  IL_004b:  blt.s      IL_000e
+  IL_004d:  ret
 }
 ");
 
@@ -8152,7 +8311,7 @@ class C
 
             diff2.VerifyIL("C.G", @"
 {
-  // Code size       66 (0x42)
+  // Code size       61 (0x3d)
   .maxstack  2
   .locals init ([unchanged] V_0,
                 [int] V_1,
@@ -8165,40 +8324,37 @@ class C
                 [unchanged] V_8,
                 (int, (bool, double))[] V_9,
                 int V_10,
-                System.ValueTuple<bool, double> V_11, //yz
-                System.ValueTuple<int, (bool, double)> V_12)
+                System.ValueTuple<bool, double> V_11) //yz
   IL_0000:  nop
   IL_0001:  nop
   IL_0002:  call       ""(int, (bool, double))[] C.F()""
   IL_0007:  stloc.s    V_9
   IL_0009:  ldc.i4.0
   IL_000a:  stloc.s    V_10
-  IL_000c:  br.s       IL_0039
+  IL_000c:  br.s       IL_0034
   IL_000e:  ldloc.s    V_9
   IL_0010:  ldloc.s    V_10
   IL_0012:  ldelem     ""System.ValueTuple<int, (bool, double)>""
-  IL_0017:  stloc.s    V_12
-  IL_0019:  ldloc.s    V_12
-  IL_001b:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.s    V_12
-  IL_0023:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
-  IL_0028:  stloc.s    V_11
-  IL_002a:  nop
-  IL_002b:  ldloc.2
-  IL_002c:  call       ""void System.Console.WriteLine(int)""
-  IL_0031:  nop
-  IL_0032:  nop
-  IL_0033:  ldloc.s    V_10
-  IL_0035:  ldc.i4.1
-  IL_0036:  add
-  IL_0037:  stloc.s    V_10
-  IL_0039:  ldloc.s    V_10
-  IL_003b:  ldloc.s    V_9
-  IL_003d:  ldlen
-  IL_003e:  conv.i4
-  IL_003f:  blt.s      IL_000e
-  IL_0041:  ret
+  IL_0017:  dup
+  IL_0018:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_001d:  stloc.2
+  IL_001e:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
+  IL_0023:  stloc.s    V_11
+  IL_0025:  nop
+  IL_0026:  ldloc.2
+  IL_0027:  call       ""void System.Console.WriteLine(int)""
+  IL_002c:  nop
+  IL_002d:  nop
+  IL_002e:  ldloc.s    V_10
+  IL_0030:  ldc.i4.1
+  IL_0031:  add
+  IL_0032:  stloc.s    V_10
+  IL_0034:  ldloc.s    V_10
+  IL_0036:  ldloc.s    V_9
+  IL_0038:  ldlen
+  IL_0039:  conv.i4
+  IL_003a:  blt.s      IL_000e
+  IL_003c:  ret
 }
 ");
         }

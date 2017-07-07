@@ -15,10 +15,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.SubmitText("#cls");
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
-            base.Dispose();
+            if (disposing)
+            {
+                VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
+            }
+
+            base.Dispose(disposing);
         }
 
         [Fact]

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -39,17 +39,10 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal static class Environment
     {
-        public static void FailFast(string message)
-        {
-            System.Environment.FailFast(message);
-        }
-
-        public static void FailFast(string message, Exception exception)
-        {
-            System.Environment.FailFast(exception.ToString());
-        }
-
-        public static string NewLine { get { return System.Environment.NewLine; } }
+        public static void FailFast(string message) => System.Environment.FailFast(message);
+        public static void FailFast(string message, Exception exception) => System.Environment.FailFast(exception.ToString());
+        public static string NewLine => System.Environment.NewLine;
+        public static int ProcessorCount => System.Environment.ProcessorCount;
     }
 }
 
