@@ -103,6 +103,31 @@ class C : I
 ");
         }
 
+        [Fact, WorkItem(20266, "https://github.com/dotnet/roslyn/issues/20266")]
+        public void ConditionalAccessInMethodGroupConversion()
+        {
+            var source = @"
+class C
+{
+    void M(object o)
+    {
+        System.Func<int, string> filter = new C(o?.ToString()).Method;
+        filter(0);
+    }
+    string Method(int x)
+    {
+        throw null;
+    }
+    C(string x)
+    {
+    }
+}
+";
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp);
+        }
+
         [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void ConditionalDelegateInterfaceUnification2()
         {
