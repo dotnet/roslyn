@@ -124,24 +124,23 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 foreach (var attribute in GetAttributes(xmlEmpty))
                 {
-                    if (attribute is TXmlCrefAttributeSyntax xmlCref)
+                    switch (attribute)
                     {
-                        AddSpaceIfNotAlreadyThere(sb);
-                        sb.Append(GetCref(xmlCref).ToString());
-                    }
-                    else if (attribute is TXmlNameAttributeSyntax xmlName)
-                    {
-                        AddSpaceIfNotAlreadyThere(sb);
-                        sb.Append(GetIdentifier(xmlName).Text);
-                    }
-                    else if (attribute is TXmlTextAttributeSyntax xmlTextAttribute)
-                    {
-                        AddSpaceIfNotAlreadyThere(sb);
-                        AppendTextTokens(sb, GetTextTokens(xmlTextAttribute));
-                    }
-                    else
-                    {
-                        Debug.Assert(false, $"Unexpected XML syntax kind {attribute.RawKind}");
+                        case TXmlCrefAttributeSyntax xmlCref:
+                            AddSpaceIfNotAlreadyThere(sb);
+                            sb.Append(GetCref(xmlCref).ToString());
+                            break;
+                        case TXmlNameAttributeSyntax xmlName:
+                            AddSpaceIfNotAlreadyThere(sb);
+                            sb.Append(GetIdentifier(xmlName).Text);
+                            break;
+                        case TXmlTextAttributeSyntax xmlTextAttribute:
+                            AddSpaceIfNotAlreadyThere(sb);
+                            AppendTextTokens(sb, GetTextTokens(xmlTextAttribute));
+                            break;
+                        default:
+                            Debug.Assert(false, $"Unexpected XML syntax kind {attribute.RawKind}");
+                            break;
                     }
                 }
             }
