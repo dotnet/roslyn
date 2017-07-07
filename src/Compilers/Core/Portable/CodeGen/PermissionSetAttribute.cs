@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -28,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         private readonly Cci.ICustomAttribute _sourceAttribute;
         private readonly string _resolvedPermissionSetFilePath;
-        internal static readonly string FilePropertyName = "File";
-        internal static readonly string HexPropertyName = "Hex";
+        internal const string FilePropertyName = "File";
+        internal const string HexPropertyName = "Hex";
 
         public PermissionSetAttributeWithFileReference(Cci.ICustomAttribute sourceAttribute, string resolvedPermissionSetFilePath)
         {

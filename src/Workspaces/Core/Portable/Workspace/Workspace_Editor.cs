@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -152,6 +152,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Open the specified additional document in the host environment.
         /// </summary>
+        /// <param name="documentId">The <see cref="DocumentId"/> to open.</param>
+        /// <param name="activate">Ignored - not necessary for additional documents.</param>
         public virtual void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
         {
             this.CheckCanOpenDocuments();
@@ -497,11 +499,14 @@ namespace Microsoft.CodeAnalysis
                 : TextAndVersion.Create(newText, version.GetNewerVersion(), filePath);
         }
 
-        private void SignupForTextChanges(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, Action<Workspace, DocumentId, SourceText, PreservationMode> onChangedHandler)
+        private void SignupForTextChanges(DocumentId documentId, SourceTextContainer textContainer, bool? isCurrentContext, Action<Workspace, DocumentId, SourceText, PreservationMode> onChangedHandler)
         {
             var tracker = new TextTracker(this, documentId, textContainer, onChangedHandler);
             _textTrackers.Add(documentId, tracker);
-            this.UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext);
+            if (isCurrentContext != null)
+            {
+                this.UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext.Value);
+            }
             tracker.Connect();
         }
 
@@ -521,6 +526,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// To be called by the host when an ="AdditionalDocument" is opened in the editor.
+        /// </summary>
+        /// <param name="documentId">The <see cref="DocumentId"/>.</param>
+        /// <param name="textContainer">The <see cref="SourceTextContainer"/> for the open file additional document.</param>
+        /// <param name="isCurrentContext">Ignored - not necessary for Additional Files.</param>
         protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
             CheckAdditionalDocumentIsInCurrentSolution(documentId);
@@ -550,7 +561,7 @@ namespace Microsoft.CodeAnalysis
 
                 var newSolution = this.SetCurrentSolution(currentSolution);
 
-                SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnAdditionalDocumentTextChanged(id, text, mode));
+                SignupForTextChanges(documentId, textContainer, isCurrentContext: null, onChangedHandler: (w, id, text, mode) => w.OnAdditionalDocumentTextChanged(id, text, mode));
 
                 // Fire and forget.
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);

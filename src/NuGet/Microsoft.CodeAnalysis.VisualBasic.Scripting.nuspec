@@ -5,6 +5,8 @@
     <summary>Microsoft .NET Compiler Platform ("Roslyn") Visual Basic scripting package.</summary>
     <description>
       Microsoft .NET Compiler Platform ("Roslyn") Visual Basic scripting package.
+      
+      $commitPathMessage$
     </description>
 
     <language>en-US</language>

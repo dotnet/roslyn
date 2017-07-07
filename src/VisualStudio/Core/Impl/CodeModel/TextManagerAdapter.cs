@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return null;
             }
 
-            using (var invisibleEditor = new InvisibleEditor(fileCodeModel.ServiceProvider, hostDocument.FilePath, needsSave: false, needsUndoDisabled: false))
+            using (var invisibleEditor = new InvisibleEditor(fileCodeModel.ServiceProvider, hostDocument.FilePath, hostDocument.Project, needsSave: false, needsUndoDisabled: false))
             {
                 var vsTextLines = invisibleEditor.VsTextLines;
 

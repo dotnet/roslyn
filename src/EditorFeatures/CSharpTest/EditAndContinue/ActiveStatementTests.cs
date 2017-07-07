@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    public class ActiveStatementTests : RudeEditTestBase
+    public class ActiveStatementTests : EditingTestBase
     {
         #region Update
 
@@ -8457,7 +8457,7 @@ class C
         #region C# 7.0
 
         [Fact]
-        public void MethodUpdate_IsPattern()
+        public void UpdateAroundActiveStatement_IsPattern()
         {
             string src1 = @"
 class C
@@ -8486,7 +8486,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_DeconstructionDeclarationStatement()
+        public void UpdateAroundActiveStatement_DeconstructionDeclarationStatement()
         {
             string src1 = @"
 class C
@@ -8515,7 +8515,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_DeconstructionForEach()
+        public void UpdateAroundActiveStatement_DeconstructionForEach()
         {
             string src1 = @"
 class C
@@ -8544,7 +8544,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_VarDeconstruction()
+        public void UpdateAroundActiveStatement_VarDeconstruction()
         {
             string src1 = @"
 class C
@@ -8573,7 +8573,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_TypedDeconstruction()
+        public void UpdateAroundActiveStatement_TypedDeconstruction()
         {
             string src1 = @"
 class C
@@ -8602,7 +8602,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_Tuple()
+        public void UpdateAroundActiveStatement_Tuple()
         {
             string src1 = @"
 class C
@@ -8631,7 +8631,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_LocalFunction()
+        public void UpdateAroundActiveStatement_LocalFunction()
         {
             string src1 = @"
 class C
@@ -8661,7 +8661,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_OutVar()
+        public void UpdateAroundActiveStatement_OutVar()
         {
             string src1 = @"
 class C
@@ -8690,7 +8690,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_OutVarRemoved()
+        public void UpdateAroundActiveStatement_OutVarRemoved()
         {
             string src1 = @"
 class C
@@ -8718,7 +8718,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_Ref()
+        public void UpdateAroundActiveStatement_Ref()
         {
             string src1 = @"
 class C
@@ -8747,7 +8747,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_DeconstructionDeclaration()
+        public void UpdateAroundActiveStatement_DeconstructionDeclaration()
         {
             string src1 = @"
 class C
@@ -8776,7 +8776,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_DeconstructionAssignment()
+        public void UpdateAroundActiveStatement_DeconstructionAssignment()
         {
             string src1 = @"
 class C
@@ -8807,7 +8807,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_SwitchWithPattern()
+        public void UpdateAroundActiveStatement_SwitchWithPattern()
         {
             string src1 = @"
 class C

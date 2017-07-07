@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var members = semanticModel.LookupSymbols(
                 position: name.SpanStart,
                 container: symbol)
-                    .WhereAsArray(s => !s.IsStatic)
+                    .WhereAsArray(s => !s.IsStatic && s.ContainingType.Equals(symbol))
                     .FilterToVisibleAndBrowsableSymbols(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation);
 
             // We're going to create a entry for each one, including the signature

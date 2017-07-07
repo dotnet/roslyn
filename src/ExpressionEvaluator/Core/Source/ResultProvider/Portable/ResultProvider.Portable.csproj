@@ -10,8 +10,8 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
+    <!-- Package Microsoft.VisualStudio.Debugger.Engine 15.0.26201-gamma is not compatible with netstandard1.3 -->
     <PackageTargetFallback>portable-net45+win8</PackageTargetFallback>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>

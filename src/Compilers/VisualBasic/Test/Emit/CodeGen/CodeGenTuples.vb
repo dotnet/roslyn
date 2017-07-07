@@ -19327,6 +19327,7 @@ Class C
         Dim y13 As (String, String) = ("hello", "world")
         Dim tuple As (String, String) = ("hello", "world")
         Dim y14 As (String, String) = tuple
+        Dim y15 = (2, 3)
     End Sub
 End Class
 
@@ -20285,6 +20286,114 @@ End Class
   IL_0015:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")>
+        Public Sub TypelessTupleWithNoImplicitConversion()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+option strict on
+Imports System
+Module C
+    Sub M()
+        Dim e As Integer? = 5
+        Dim x as (Integer, String) = (e, Nothing) ' No implicit conversion
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+            comp.AssertTheseDiagnostics(<errors>
+BC30512: Option Strict On disallows implicit conversions from 'Integer?' to 'Integer'.
+        Dim x as (Integer, String) = (e, Nothing) ' No implicit conversion
+                                      ~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Assert.Equal("(e, Nothing)", node.ToString())
+            Assert.Null(model.GetTypeInfo(node).Type)
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.NarrowingTuple, model.GetConversion(node).Kind)
+        End Sub
+
+        <Fact>
+        <WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")>
+        Public Sub TypelessTupleWithNoImplicitConversion2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+option strict on
+Imports System
+Module C
+    Sub M()
+        Dim e As Integer? = 5
+        Dim x as (Integer, String, Integer) = (e, Nothing) ' No conversion
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+            comp.AssertTheseDiagnostics(<errors>
+BC30311: Value of type '(e As Integer?, Object)' cannot be converted to '(Integer, String, Integer)'.
+        Dim x as (Integer, String, Integer) = (e, Nothing) ' No conversion
+                                              ~~~~~~~~~~~~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Assert.Equal("(e, Nothing)", node.ToString())
+            Assert.Null(model.GetTypeInfo(node).Type)
+            Assert.Equal("(System.Int32, System.String, System.Int32)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.DelegateRelaxationLevelNone, model.GetConversion(node).Kind)
+        End Sub
+
+        <Fact>
+        <WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")>
+        Public Sub TypedTupleWithNoImplicitConversion()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+option strict on
+Imports System
+Module C
+    Sub M()
+        Dim e As Integer? = 5
+        Dim x as (Integer, String, Integer) = (e, "") ' No conversion
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+            comp.AssertTheseDiagnostics(<errors>
+BC30311: Value of type '(e As Integer?, String)' cannot be converted to '(Integer, String, Integer)'.
+        Dim x as (Integer, String, Integer) = (e, "") ' No conversion
+                                              ~~~~~~~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Assert.Equal("(e, """")", node.ToString())
+            Assert.Equal("(e As System.Nullable(Of System.Int32), System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
+            Assert.Equal("(System.Int32, System.String, System.Int32)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.DelegateRelaxationLevelNone, model.GetConversion(node).Kind)
         End Sub
 
     End Class

@@ -991,6 +991,45 @@ IInvocationExpression ( void P.M2(System.String x)) (OperationKind.InvocationExp
         }
 
         [Fact]
+        public void VarArgsCall()
+        {
+            string source = @"
+using System;
+
+public class P
+{
+    void M()
+    {
+        /*<bind>*/Console.Write(""{0} {1} {2} {3} {4}"", 1, 2, 3, 4, __arglist(5))/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void System.Console.Write(System.String format, System.Object arg0, System.Object arg1, System.Object arg2, System.Object arg3, __arglist)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... arglist(5))')
+  Arguments(6): IArgument (ArgumentKind.Explicit, Matching Parameter: format) (OperationKind.Argument) (Syntax: '""{0} {1} {2} {3} {4}""')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""{0} {1} {2} {3} {4}"") (Syntax: '""{0} {1} {2} {3} {4}""')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument) (Syntax: '1')
+      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
+        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument) (Syntax: '2')
+      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '2')
+        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: arg2) (OperationKind.Argument) (Syntax: '3')
+      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '3')
+        ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: arg3) (OperationKind.Argument) (Syntax: '4')
+      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '4')
+        ILiteralExpression (Text: 4) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '__arglist(5)')
+      IOperation:  (OperationKind.None) (Syntax: '__arglist(5)')
+        Children(1): ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
         public void InvalidConversionForDefaultArgument_InSource()
         {
             string source = @"
@@ -1670,6 +1709,164 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTestWithIL<InvocationExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        public void DefaultValueNullForNullableTypeParameterWithMissingNullableReference()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2()/*</bind>*/;
+    }
+
+    static void M2(bool? x = null)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"IInvocationExpression (static void P.M2([System.Boolean[missing]? x = null])) (OperationKind.InvocationExpression, Type: System.Void[missing]) (Syntax: 'M2()')";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                // (3,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (10,20): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     static void M2(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 20),
+                // (10,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                //     static void M2(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 20),
+                // (10,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     static void M2(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(9, 12),
+                // (5,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     static void M1()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(4, 12),
+                // (7,19): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //         /*<bind>*/M2()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Object").WithLocation(6, 19),
+                // (3,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // class P
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
+            };
+
+            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        public void DefaultValueWithParameterErrorType()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(1)/*</bind>*/;
+    }
+
+    static void M2(int x, S s = 0)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2(System.Int32 x, [S s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                      // file.cs(9,27): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                      //     static void M2(int x, S s = 0)
+                      Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 27),
+                      // file.cs(9,29): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'S'
+                      //     static void M2(int x, S s = 0)
+                      Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "S").WithLocation(9, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(18722, "https://github.com/dotnet/roslyn/issues/18722")]
+        public void DefaultValueForGenericWithUndefinedTypeArgument()
+        {
+            // TODO: https://github.com/dotnet/roslyn/issues/18722
+            //       This should be treated as invalid invocation.
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(1)/*</bind>*/;
+    }
+
+    static void M2(int x, G<S> s = null)
+    {
+    }
+}
+
+class G<T>
+{
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2(System.Int32 x, [G<S> s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument) (Syntax: 'M2(1)')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: G<S>, Constant: null) (Syntax: 'M2(1)')";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                      // file.cs(9,29): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                      //     static void M2(int x, G<S> s = null)
+                      Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(18722, "https://github.com/dotnet/roslyn/issues/18722")]
+        public void DefaultValueForNullableGenericWithUndefinedTypeArgument()
+        {
+            // TODO: https://github.com/dotnet/roslyn/issues/18722
+            //       This should be treated as invalid invocation.
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(1)/*</bind>*/;
+    }
+
+    static void M2(int x, G<S>? s = null)
+    {
+    }
+}
+
+struct G<T>
+{
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument) (Syntax: 'M2(1)')
+      IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: G<S>?) (Syntax: 'M2(1)')";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                      // file.cs(9,29): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                      //     static void M2(int x, G<S> s = null)
+                      Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         private class IndexerAccessArgumentVerifier : OperationWalker

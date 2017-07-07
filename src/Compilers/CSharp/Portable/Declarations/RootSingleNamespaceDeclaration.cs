@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    syntaxReference,
                    fullDeclarationSyntaxReference: syntaxReference,
                    nameLocation: new SourceLocation(syntaxReference),
-                   children: children)
+                   children: children,
+                   diagnostics: ImmutableArray<Diagnostic>.Empty)
         {
             Debug.Assert(!referenceDirectives.IsDefault);
 

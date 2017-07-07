@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         {
             if (this.CurrentSolution.ContainsAdditionalDocument(documentId))
             {
-                OpenAdditionalDocument(documentId, activate);
+                OpenAdditionalDocument(documentId);
                 return;
             }
 
@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             this.OnDocumentOpened(documentId, text.Container);
         }
 
+        /// <summary>
+        /// Puts the specified additional document into the open state.
+        /// </summary>
+        /// <param name="documentId">The <see cref="DocumentId"/> to open.</param>
+        /// <param name="activate">Ignored - not necessary for additional documents.</param>
         public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
         {
             var document = this.CurrentSolution.GetAdditionalDocument(documentId);

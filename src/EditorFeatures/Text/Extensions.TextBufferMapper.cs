@@ -1,9 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -16,48 +14,32 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         private static class TextBufferMapper
         {
-            private static readonly ConditionalWeakTable<ITextSnapshot, ITextSnapshot> s_editorToRoslynSnapshotMap = new ConditionalWeakTable<ITextSnapshot, ITextSnapshot>();
-            private static readonly ConditionalWeakTable<ITextSnapshot, WeakReference<ITextSnapshot>> s_roslynToEditorSnapshotMap = new ConditionalWeakTable<ITextSnapshot, WeakReference<ITextSnapshot>>();
-            private static readonly ConditionalWeakTable<ITextSnapshot, ITextSnapshot>.CreateValueCallback s_createSnapshotCallback = CreateSnapshot;
+            private static readonly ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>> s_roslynToEditorSnapshotMap = new ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>>();
 
-            public static ITextSnapshot ToRoslyn(ITextSnapshot editorSnapshot)
+            public static ITextImage RecordTextSnapshotAndGetImage(ITextSnapshot editorSnapshot)
             {
                 Contract.ThrowIfNull(editorSnapshot);
 
-                var roslynSnapshot = s_editorToRoslynSnapshotMap.GetValue(editorSnapshot, s_createSnapshotCallback);
-                if (roslynSnapshot == null)
+                var textImage = ((ITextSnapshot2)editorSnapshot).TextImage;
+                Contract.ThrowIfNull(textImage);
+
+                // If we're already in the map, there's nothing to update.  Do a quick check
+                // to avoid two allocations per call to RecordTextSnapshotAndGetImage.
+                if (!s_roslynToEditorSnapshotMap.TryGetValue(textImage, out var weakReference) ||
+                    weakReference.GetTarget() != editorSnapshot)
                 {
-                    return editorSnapshot;
+                    // put reverse entry that won't hold onto anything
+                    s_roslynToEditorSnapshotMap.GetValue(
+                        textImage, _ => new WeakReference<ITextSnapshot>(editorSnapshot));
                 }
 
-                return roslynSnapshot;
+                return textImage;
             }
 
-            private static ITextSnapshot CreateSnapshot(ITextSnapshot editorSnapshot)
+            public static ITextSnapshot TryFindEditorSnapshot(ITextImage textImage)
             {
-                var factory = TextBufferFactory;
-
-                // We might not have a factory if there is no primary workspace (for example, under the unit test harness,
-                // or in CodeSense where they are just using the parsers by themselves). In that case, just use the editor
-                // snapshot as-is.
-                //
-                // Creating a buffer off a given snapshot should be cheap, so it should be okay to create a dummy buffer here
-                // just to host the snapshot we want.
-                var roslynSnapshot = factory != null
-                                        ? factory.Clone(editorSnapshot.GetFullSpan()).CurrentSnapshot
-                                        : editorSnapshot;
-
-                // put reverse entry that won't hold onto anything
-                var weakEditorSnapshot = new WeakReference<ITextSnapshot>(editorSnapshot);
-                s_roslynToEditorSnapshotMap.GetValue(roslynSnapshot, _ => weakEditorSnapshot);
-
-                return roslynSnapshot;
-            }
-
-            public static ITextSnapshot ToEditor(ITextSnapshot roslynSnapshot)
-            {
-                Contract.ThrowIfNull(roslynSnapshot);
-                if (!s_roslynToEditorSnapshotMap.TryGetValue(roslynSnapshot, out var weakReference) ||
+                Contract.ThrowIfNull(textImage);
+                if (!s_roslynToEditorSnapshotMap.TryGetValue(textImage, out var weakReference) ||
                     !weakReference.TryGetTarget(out var editorSnapshot))
                 {
                     return null;

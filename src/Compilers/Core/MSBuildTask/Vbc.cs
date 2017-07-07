@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -428,7 +428,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/removeintchecks", this._store, "RemoveIntegerChecks");
             commandLine.AppendSwitchIfNotNull("/rootnamespace:", this.RootNamespace);
             commandLine.AppendSwitchIfNotNull("/sdkpath:", this.SdkPath);
-            commandLine.AppendSwitchIfNotNull("/langversion:", this.LangVersion);
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", this.ModuleAssemblyName);
             commandLine.AppendWhenTrue("/netcf", this._store, "TargetCompactFramework");
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", this.PreferredUILang);

@@ -9,9 +9,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Workspaces</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
     <ServiceablePackage>true</ServiceablePackage>
-    <NoWarn>$(NoWarn);40057</NoWarn>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -53,11 +51,11 @@
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionService.vb" />
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionServiceFactory.vb" />
     <Compile Include="Classification\ClassificationHelpers.vb" />
-    <Compile Include="Classification\Classifiers\AbstractSyntaxClassifier.vb" />
-    <Compile Include="Classification\Classifiers\IdentifierNameSyntaxClassifier.vb" />
-    <Compile Include="Classification\Classifiers\ImportAliasClauseSyntaxClassifier.vb" />
-    <Compile Include="Classification\Classifiers\NameSyntaxClassifier.vb" />
-    <Compile Include="Classification\SyntaxClassifier.vb" />
+    <Compile Include="Classification\SyntaxClassification\AbstractSyntaxClassifier.vb" />
+    <Compile Include="Classification\SyntaxClassification\IdentifierNameSyntaxClassifier.vb" />
+    <Compile Include="Classification\SyntaxClassification\ImportAliasClauseSyntaxClassifier.vb" />
+    <Compile Include="Classification\SyntaxClassification\NameSyntaxClassifier.vb" />
+    <Compile Include="Classification\SyntaxClassification\VisualBasicSyntaxClassificationService.vb" />
     <Compile Include="Classification\VisualBasicClassificationService.vb" />
     <Compile Include="Classification\Worker.DocumentationCommentClassifier.vb" />
     <Compile Include="Classification\Worker.vb" />
@@ -97,6 +95,7 @@
     <Compile Include="CodeGeneration\VisualBasicCodeGenerationServiceFactory.vb" />
     <Compile Include="CodeGeneration\VisualBasicDeclarationComparer.vb" />
     <Compile Include="CodeGeneration\VisualBasicSyntaxGenerator.vb" />
+    <Compile Include="CodeStyle\VisualBasicCodeStyleOptions.vb" />
     <Compile Include="Composition\VisualBasicWorkspaceFeatures.vb" />
     <Compile Include="Editing\VisualBasicImportAdder.vb" />
     <Compile Include="Execution\VisualBasicOptionsSerializationService.vb" />
@@ -164,9 +163,11 @@
     <Compile Include="Formatting\Rules\ElasticTriviaFormattingRule.vb" />
     <Compile Include="Formatting\Rules\NodeBasedFormattingRule.vb" />
     <Compile Include="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
+    <Compile Include="Formatting\VisualBasicFormattingService.vb" />
     <Compile Include="Formatting\VisualBasicSyntaxFormattingService.vb" />
     <Compile Include="LanguageServices\VisualBasicCompilationFactoryService.vb" />
     <Compile Include="LanguageServices\VisualBasicCommandLineParserService.vb" />
+    <Compile Include="FindSymbols\VisualBasicDeclaredSymbolInfoFactoryService.vb" />
     <Compile Include="LanguageServices\VisualBasicDocumentationCommentService.vb" />
     <Compile Include="LanguageServices\VisualBasicSemanticFactsService.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDeclarationService.vb" />

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using System.Diagnostics;
 

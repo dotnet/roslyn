@@ -1959,8 +1959,57 @@ public class a {
     }
 }
 ";
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         for (int i=0; i < 3; i++) MyLabel: {}
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "MyLabel: {}").WithLocation(6, 35),
+                // (6,35): warning CS0164: This label has not been referenced
+                //         for (int i=0; i < 3; i++) MyLabel: {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "MyLabel").WithLocation(6, 35));
+        }
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "MyLabel: {}"));
+        [Fact]
+        public void CS1023ERR_BadEmbeddedStmt2()
+        {
+            var test = @"
+struct S {
+}
+public class a {
+    public static int Main() {
+        for (int i=0; i < 3; i++) int j;
+        return 1;
+    }
+}
+";
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         for (int i=0; i < 3; i++) int j;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int j;").WithLocation(6, 35),
+                // (6,39): warning CS0168: The variable 'j' is declared but never used
+                //         for (int i=0; i < 3; i++) int j;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "j").WithArguments("j").WithLocation(6, 39));
+        }
+
+        [Fact]
+        public void CS1023ERR_BadEmbeddedStmt3()
+        {
+            var test = @"
+struct S {
+}
+public class a {
+    public static int Main() {
+        for (int i=0; i < 3; i++) void j() { }
+        return 1;
+    }
+}
+";
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         for (int i=0; i < 3; i++) void j() { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "void j() { }").WithLocation(6, 35),
+                // (6,40): warning CS8321: The local function 'j' is declared but never used
+                //         for (int i=0; i < 3; i++) void j() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "j").WithArguments("j").WithLocation(6, 40));
         }
 
         // Preprocessor:
@@ -2241,9 +2290,9 @@ namespace x
 }
 ";
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(7, 25),
                 // (7,26): error CS8124: Tuple must contain at least two elements.
                 //             var e = new ();
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
@@ -2417,9 +2466,9 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(4, 41),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(4, 41),
                 // (4,42): error CS8124: Tuple must contain at least two elements.
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
@@ -3975,9 +4024,9 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (3,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7").WithLocation(3, 41),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7.0").WithLocation(3, 41),
                 // (3,47): error CS8124: Tuple must contain at least two elements.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
@@ -4639,9 +4688,9 @@ class A<out T>
                 // (5,20): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
                 //         void Local<in T>() { }
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(5, 20),
-                // (5,14): warning CS0168: The variable 'Local' is declared but never used
+                // (5,14): warning CS8321: The local function 'Local' is declared but never used
                 //         void Local<in T>() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(5, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(5, 14));
         }
 
         [Fact]
@@ -4666,13 +4715,22 @@ namespace N1
 ";
 
             // Native compiler : CS1003
-            ParseAndValidate(test,
-    // (6,15): error CS7000: Unexpected use of an aliased name
-    //     namespace N1Alias::N2 {}
-    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N1Alias::N2"),
-    // (12,22): error CS7000: Unexpected use of an aliased name
-    //             N1.global::Test.M1();
-    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (12,22): error CS7000: Unexpected use of an aliased name
+                //             N1.global::Test.M1();
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(12, 22),
+                // (6,15): error CS7000: Unexpected use of an aliased name
+                //     namespace N1Alias::N2 {}
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N1Alias::N2").WithLocation(6, 15),
+                // (12,13): error CS0234: The type or namespace name 'global' does not exist in the namespace 'N1' (are you missing an assembly reference?)
+                //             N1.global::Test.M1();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "N1.global").WithArguments("global", "N1").WithLocation(12, 13),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N1Alias = N1;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1Alias = N1;").WithLocation(2, 1),
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
         }
 
         [Fact]
@@ -5059,17 +5117,82 @@ class MyClass
             var test = @"
 class MyClass
 {
-    public static int Main()
+    public static int Main(System.Collections.IEnumerable e)
     {
-        for (int i = 0; i < 10; i += 1);   // CS0642, semicolon intentional?
-        if(true);
+        for (int i = 0; i < 10; i += 1);
+        foreach (var v in e);
         while(false);
+
+        if(true);else;
+        using(null);
+        lock(null);
+        do;while(false);
+
+        for (int i = 0; i < 10; i += 1);{}   // CS0642, semicolon intentional?
+        foreach (var v in e);{}
+        while(false);{}
+
         return 0;
     }
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (10,17): warning CS0642: Possible mistaken empty statement
+                //         if(true);else;
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(10, 17),
+                // (10,22): warning CS0642: Possible mistaken empty statement
+                //         if(true);else;
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(10, 22),
+                // (11,20): warning CS0642: Possible mistaken empty statement
+                //         using(null);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(11, 20),
+                // (12,19): warning CS0642: Possible mistaken empty statement
+                //         lock(null);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(12, 19),
+                // (13,11): warning CS0642: Possible mistaken empty statement
+                //         do;while(false);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(13, 11),
+                // (15,40): warning CS0642: Possible mistaken empty statement
+                //         for (int i = 0; i < 10; i += 1);{}   // CS0642, semicolon intentional?
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(15, 40),
+                // (16,29): warning CS0642: Possible mistaken empty statement
+                //         foreach (var v in e);{}
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(16, 29),
+                // (17,21): warning CS0642: Possible mistaken empty statement
+                //         while(false);{}
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(17, 21));
+        }
+
+        [Fact]
+        public void CS0642_DoNotWarnForMissingEmptyStatement()
+        {
+            var test = @"
+class MyClass
+{
+    public static int Main(bool b)
+    {
+        if (b)
+    
+    public
+";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,15): error CS1002: ; expected
+                //         if (b)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 15),
+                // (6,15): error CS1513: } expected
+                //         if (b)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 15),
+                // (9,1): error CS1519: Invalid token '' in class, struct, or interface member declaration
+                // 
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(9, 1),
+                // (8,11): error CS1513: } expected
+                //     public
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 11),
+                // (4,23): error CS0161: 'MyClass.Main(bool)': not all code paths return a value
+                //     public static int Main(bool b)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("MyClass.Main(bool)").WithLocation(4, 23));
         }
 
         [Fact, WorkItem(529895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529895")]

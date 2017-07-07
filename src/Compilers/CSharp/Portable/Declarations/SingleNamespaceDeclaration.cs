@@ -22,8 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxReference syntaxReference,
             SyntaxReference fullDeclarationSyntaxReference,
             SourceLocation nameLocation,
-            ImmutableArray<SingleNamespaceOrTypeDeclaration> children)
-            : base(name, syntaxReference, nameLocation, diagnostics: ImmutableArray<Diagnostic>.Empty)
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics)
+            : base(name, syntaxReference, nameLocation, diagnostics)
         {
             FullDeclarationSyntaxReference = fullDeclarationSyntaxReference;
             _children = children;
@@ -65,7 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxReference syntaxReference,
             SyntaxReference fullDeclarationSyntaxReference,
             SourceLocation nameLocation,
-            ImmutableArray<SingleNamespaceOrTypeDeclaration> children)
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics)
         {
             // By far the most common case is "no usings and no extern aliases", so optimize for
             // that to minimize space. The other cases are not frequent enough to warrant their own
@@ -73,12 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!hasUsings && !hasExternAliases)
             {
                 return new SingleNamespaceDeclaration(
-                    name, syntaxReference, fullDeclarationSyntaxReference, nameLocation, children);
+                    name, syntaxReference, fullDeclarationSyntaxReference, nameLocation, children, diagnostics);
             }
             else
             {
                 return new SingleNamespaceDeclarationEx(
-                    name, hasUsings, hasExternAliases, syntaxReference, fullDeclarationSyntaxReference, nameLocation, children);
+                    name, hasUsings, hasExternAliases, syntaxReference, fullDeclarationSyntaxReference, nameLocation, children, diagnostics);
             }
         }
     }

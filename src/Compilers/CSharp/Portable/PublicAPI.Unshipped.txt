@@ -1,4 +1,5 @@
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_1 = 701 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_2 = 702 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConflictMarkerTrivia = 8564 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultLiteralExpression = 8755 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

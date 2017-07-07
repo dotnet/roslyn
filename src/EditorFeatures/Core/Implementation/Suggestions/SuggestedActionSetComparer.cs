@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private static int Distance(Span? textSpan, SnapshotPoint? targetPoint)
         {
             // If we don't have a text span or target point we cannot calculate the distance between them
-            if (textSpan == null || !textSpan.HasValue || targetPoint == null || !targetPoint.HasValue)
+            if (!textSpan.HasValue || !targetPoint.HasValue)
             {
                 return int.MaxValue;
             }

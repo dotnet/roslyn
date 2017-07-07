@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -2688,7 +2688,7 @@ public class C
 
             v.VerifyIL("C.Main", @"
 {
-  // Code size       72 (0x48)
+  // Code size       70 (0x46)
   .maxstack  2
   .locals init ((int, (bool, double))[] V_0,
                 int V_1,
@@ -2706,7 +2706,7 @@ public class C
   IL_0008:  ldc.i4.0
   IL_0009:  stloc.1
   // sequence point: <hidden>
-  IL_000a:  br.s       IL_0041
+  IL_000a:  br.s       IL_003f
   // sequence point: var (c, (d, e))
   IL_000c:  ldloc.0
   IL_000d:  ldloc.1
@@ -2714,37 +2714,35 @@ public class C
   IL_0013:  dup
   IL_0014:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
   IL_0019:  stloc.s    V_5
-  IL_001b:  dup
-  IL_001c:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
-  IL_0021:  stloc.2
-  IL_0022:  ldloc.s    V_5
-  IL_0024:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
-  IL_0029:  stloc.3
-  IL_002a:  ldloc.s    V_5
-  IL_002c:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
-  IL_0031:  stloc.s    V_4
-  IL_0033:  pop
+  IL_001b:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.s    V_5
+  IL_0023:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_0028:  stloc.3
+  IL_0029:  ldloc.s    V_5
+  IL_002b:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0030:  stloc.s    V_4
   // sequence point: {
-  IL_0034:  nop
+  IL_0032:  nop
   // sequence point: System.Console.WriteLine(c);
-  IL_0035:  ldloc.2
-  IL_0036:  call       ""void System.Console.WriteLine(int)""
-  IL_003b:  nop
+  IL_0033:  ldloc.2
+  IL_0034:  call       ""void System.Console.WriteLine(int)""
+  IL_0039:  nop
   // sequence point: }
-  IL_003c:  nop
+  IL_003a:  nop
   // sequence point: <hidden>
-  IL_003d:  ldloc.1
-  IL_003e:  ldc.i4.1
-  IL_003f:  add
-  IL_0040:  stloc.1
+  IL_003b:  ldloc.1
+  IL_003c:  ldc.i4.1
+  IL_003d:  add
+  IL_003e:  stloc.1
   // sequence point: in
-  IL_0041:  ldloc.1
-  IL_0042:  ldloc.0
-  IL_0043:  ldlen
-  IL_0044:  conv.i4
-  IL_0045:  blt.s      IL_000c
+  IL_003f:  ldloc.1
+  IL_0040:  ldloc.0
+  IL_0041:  ldlen
+  IL_0042:  conv.i4
+  IL_0043:  blt.s      IL_000c
   // sequence point: }
-  IL_0047:  ret
+  IL_0045:  ret
 }
 ", sequencePoints: "C.Main", source: source);
 
@@ -2779,18 +2777,18 @@ public class C
         <entry offset=""0x2"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""40"" />
         <entry offset=""0xa"" hidden=""true"" />
         <entry offset=""0xc"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""33"" />
-        <entry offset=""0x34"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x35"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
-        <entry offset=""0x3c"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x3d"" hidden=""true"" />
-        <entry offset=""0x41"" startLine=""8"" startColumn=""34"" endLine=""8"" endColumn=""36"" />
-        <entry offset=""0x47"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x32"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x33"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
+        <entry offset=""0x3a"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0x3b"" hidden=""true"" />
+        <entry offset=""0x3f"" startLine=""8"" startColumn=""34"" endLine=""8"" endColumn=""36"" />
+        <entry offset=""0x45"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x48"">
-        <scope startOffset=""0xc"" endOffset=""0x3d"">
-          <local name=""c"" il_index=""2"" il_start=""0xc"" il_end=""0x3d"" attributes=""0"" />
-          <local name=""d"" il_index=""3"" il_start=""0xc"" il_end=""0x3d"" attributes=""0"" />
-          <local name=""e"" il_index=""4"" il_start=""0xc"" il_end=""0x3d"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x46"">
+        <scope startOffset=""0xc"" endOffset=""0x3b"">
+          <local name=""c"" il_index=""2"" il_start=""0xc"" il_end=""0x3b"" attributes=""0"" />
+          <local name=""d"" il_index=""3"" il_start=""0xc"" il_end=""0x3b"" attributes=""0"" />
+          <local name=""e"" il_index=""4"" il_start=""0xc"" il_end=""0x3b"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -2982,6 +2980,436 @@ class Student : Person { public double GPA; }
     </method>
   </methods>
 </symbols>");
+        }
+
+        [Fact, WorkItem(17090, "https://github.com/dotnet/roslyn/issues/17090"), WorkItem(19731, "https://github.com/dotnet/roslyn/issues/19731")]
+        public void SwitchWithConstantPattern()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        M1();
+        M2();
+    }
+
+    static void M1()
+    {
+        switch
+            (1)
+        {
+            case 0 when true:
+                ;
+            case 1:
+                Console.Write(1);
+                break;
+            case 2:
+                ;
+        }
+    }
+
+    static void M2()
+    {
+        switch
+            (nameof(M2))
+        {
+            case nameof(M1) when true:
+                ;
+            case nameof(M2):
+                Console.Write(nameof(M2));
+                break;
+            case nameof(Main):
+                ;
+        }
+    }
+}
+";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            c.VerifyDiagnostics();
+            var verifier = CompileAndVerify(c, expectedOutput: "1M2");
+
+            verifier.VerifyIL(qualifiedMethodName: "Program.M1", sequencePoints: "Program.M1", source: source,
+expectedIL: @"{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (int V_0)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch ...           (1
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  // sequence point: Console.Write(1);
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  nop
+  // sequence point: break;
+  IL_000c:  br.s       IL_000e
+  // sequence point: }
+  IL_000e:  ret
+}");
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2", sequencePoints: "Program.M2", source: source,
+expectedIL: @"{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (string V_0)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch ...  (nameof(M2)
+  IL_0001:  ldstr      ""M2""
+  IL_0006:  stloc.0
+  IL_0007:  br.s       IL_0009
+  // sequence point: Console.Write(nameof(M2));
+  IL_0009:  ldstr      ""M2""
+  IL_000e:  call       ""void System.Console.Write(string)""
+  IL_0013:  nop
+  // sequence point: break;
+  IL_0014:  br.s       IL_0016
+  // sequence point: }
+  IL_0016:  ret
+}");
+
+            // Check the release code generation too.
+            c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            c.VerifyDiagnostics();
+            verifier = CompileAndVerify(c, expectedOutput: "1M2");
+
+            verifier.VerifyIL("Program.M1",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(int)""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("Program.M2",
+@"{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      ""M2""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ret
+}");
+        }
+
+        [Fact, WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
+        public void SwitchWithConstantGenericPattern_01()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        M1<int>();    // 1
+        M1<long>();   // 2
+        M2<string>(); // 3
+        M2<int>();    // 4
+    }
+
+    static void M1<T>()
+    {
+        switch (1)
+        {
+            case T t:
+                Console.Write(1);
+                break;
+            case int i:
+                Console.Write(2);
+                break;
+        }
+    }
+
+    static void M2<T>()
+    {
+        switch (nameof(M2))
+        {
+            case T t:
+                Console.Write(3);
+                break;
+            case string s:
+                Console.Write(4);
+                break;
+            case null:
+                ;
+        }
+    }
+}
+";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            c.VerifyDiagnostics();
+            var verifier = CompileAndVerify(c, expectedOutput: "1234");
+
+            verifier.VerifyIL(qualifiedMethodName: "Program.M1<T>", sequencePoints: "Program.M1", source: source,
+expectedIL: @"{
+  // Code size       80 (0x50)
+  .maxstack  2
+  .locals init (T V_0,
+                int V_1,
+                T V_2, //t
+                int V_3, //i
+                int V_4,
+                object V_5,
+                T V_6)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch (1)
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldc.i4.1
+  IL_0005:  box        ""int""
+  IL_000a:  stloc.s    V_5
+  IL_000c:  ldloc.s    V_5
+  IL_000e:  isinst     ""T""
+  IL_0013:  ldnull
+  IL_0014:  cgt.un
+  IL_0016:  dup
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloca.s   V_6
+  IL_001b:  initobj    ""T""
+  IL_0021:  ldloc.s    V_6
+  IL_0023:  br.s       IL_002c
+  IL_0025:  ldloc.s    V_5
+  IL_0027:  unbox.any  ""T""
+  IL_002c:  stloc.0
+  IL_002d:  brfalse.s  IL_0031
+  IL_002f:  br.s       IL_0035
+  IL_0031:  ldc.i4.1
+  IL_0032:  stloc.1
+  IL_0033:  br.s       IL_0042
+  // sequence point: <hidden>
+  IL_0035:  ldloc.0
+  IL_0036:  stloc.2
+  IL_0037:  br.s       IL_0039
+  // sequence point: Console.Write(1);
+  IL_0039:  ldc.i4.1
+  IL_003a:  call       ""void System.Console.Write(int)""
+  IL_003f:  nop
+  // sequence point: break;
+  IL_0040:  br.s       IL_004f
+  // sequence point: <hidden>
+  IL_0042:  ldloc.1
+  IL_0043:  stloc.3
+  IL_0044:  br.s       IL_0046
+  // sequence point: Console.Write(2);
+  IL_0046:  ldc.i4.2
+  IL_0047:  call       ""void System.Console.Write(int)""
+  IL_004c:  nop
+  // sequence point: break;
+  IL_004d:  br.s       IL_004f
+  // sequence point: }
+  IL_004f:  ret
+}");
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
+expectedIL: @"{
+  // Code size       87 (0x57)
+  .maxstack  2
+  .locals init (T V_0,
+                string V_1,
+                T V_2, //t
+                string V_3, //s
+                string V_4,
+                object V_5,
+                T V_6)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch (nameof(M2))
+  IL_0001:  ldstr      ""M2""
+  IL_0006:  stloc.s    V_4
+  IL_0008:  ldstr      ""M2""
+  IL_000d:  stloc.s    V_5
+  IL_000f:  ldloc.s    V_5
+  IL_0011:  isinst     ""T""
+  IL_0016:  ldnull
+  IL_0017:  cgt.un
+  IL_0019:  dup
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloca.s   V_6
+  IL_001e:  initobj    ""T""
+  IL_0024:  ldloc.s    V_6
+  IL_0026:  br.s       IL_002f
+  IL_0028:  ldloc.s    V_5
+  IL_002a:  unbox.any  ""T""
+  IL_002f:  stloc.0
+  IL_0030:  brfalse.s  IL_0034
+  IL_0032:  br.s       IL_003c
+  IL_0034:  ldstr      ""M2""
+  IL_0039:  stloc.1
+  IL_003a:  br.s       IL_0049
+  // sequence point: <hidden>
+  IL_003c:  ldloc.0
+  IL_003d:  stloc.2
+  IL_003e:  br.s       IL_0040
+  // sequence point: Console.Write(3);
+  IL_0040:  ldc.i4.3
+  IL_0041:  call       ""void System.Console.Write(int)""
+  IL_0046:  nop
+  // sequence point: break;
+  IL_0047:  br.s       IL_0056
+  // sequence point: <hidden>
+  IL_0049:  ldloc.1
+  IL_004a:  stloc.3
+  IL_004b:  br.s       IL_004d
+  // sequence point: Console.Write(4);
+  IL_004d:  ldc.i4.4
+  IL_004e:  call       ""void System.Console.Write(int)""
+  IL_0053:  nop
+  // sequence point: break;
+  IL_0054:  br.s       IL_0056
+  // sequence point: }
+  IL_0056:  ret
+}");
+
+            // Check the release code generation too.
+            c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            c.VerifyDiagnostics();
+            verifier = CompileAndVerify(c, expectedOutput: "1234");
+
+            verifier.VerifyIL("Program.M1<T>",
+@"{
+  // Code size       57 (0x39)
+  .maxstack  2
+  .locals init (T V_0,
+                int V_1,
+                object V_2,
+                T V_3)
+  IL_0000:  ldc.i4.1
+  IL_0001:  box        ""int""
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  isinst     ""T""
+  IL_000d:  ldnull
+  IL_000e:  cgt.un
+  IL_0010:  dup
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloca.s   V_3
+  IL_0015:  initobj    ""T""
+  IL_001b:  ldloc.3
+  IL_001c:  br.s       IL_0024
+  IL_001e:  ldloc.2
+  IL_001f:  unbox.any  ""T""
+  IL_0024:  stloc.0
+  IL_0025:  brtrue.s   IL_002b
+  IL_0027:  ldc.i4.1
+  IL_0028:  stloc.1
+  IL_0029:  br.s       IL_0032
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       ""void System.Console.Write(int)""
+  IL_0031:  ret
+  IL_0032:  ldc.i4.2
+  IL_0033:  call       ""void System.Console.Write(int)""
+  IL_0038:  ret
+}");
+            verifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (T V_0,
+                string V_1,
+                object V_2,
+                T V_3)
+  IL_0000:  ldstr      ""M2""
+  IL_0005:  stloc.2
+  IL_0006:  ldloc.2
+  IL_0007:  isinst     ""T""
+  IL_000c:  ldnull
+  IL_000d:  cgt.un
+  IL_000f:  dup
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloca.s   V_3
+  IL_0014:  initobj    ""T""
+  IL_001a:  ldloc.3
+  IL_001b:  br.s       IL_0023
+  IL_001d:  ldloc.2
+  IL_001e:  unbox.any  ""T""
+  IL_0023:  stloc.0
+  IL_0024:  brtrue.s   IL_002e
+  IL_0026:  ldstr      ""M2""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_0035
+  IL_002e:  ldc.i4.3
+  IL_002f:  call       ""void System.Console.Write(int)""
+  IL_0034:  ret
+  IL_0035:  ldc.i4.4
+  IL_0036:  call       ""void System.Console.Write(int)""
+  IL_003b:  ret
+}");
+        }
+
+        [Fact, WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
+        public void SwitchWithConstantGenericPattern_02()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        M2<string>(); // 6
+        M2<int>();    // 6
+    }
+
+    static void M2<T>()
+    {
+        const string x = null;
+        switch (x)
+        {
+            case T t:
+                ;
+            case string s:
+                ;
+            case null:
+                Console.Write(6);
+                break;
+        }
+    }
+}
+";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            c.VerifyDiagnostics();
+            var verifier = CompileAndVerify(c, expectedOutput: "66");
+
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
+expectedIL: @"{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (T V_0, //t
+                string V_1, //s
+                string V_2)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch (x)
+  IL_0001:  ldnull
+  IL_0002:  stloc.2
+  IL_0003:  br.s       IL_0005
+  // sequence point: Console.Write(6);
+  IL_0005:  ldc.i4.6
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  nop
+  // sequence point: break;
+  IL_000c:  br.s       IL_000e
+  // sequence point: }
+  IL_000e:  ret
+}");
+
+            // Check the release code generation too.
+            c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            c.VerifyDiagnostics();
+            verifier = CompileAndVerify(c, expectedOutput: "66");
+
+            verifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.6
+  IL_0001:  call       ""void System.Console.Write(int)""
+  IL_0006:  ret
+}");
         }
 
         #endregion
@@ -5013,8 +5441,7 @@ unsafe class C
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -5025,24 +5452,25 @@ unsafe class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
           <slot kind=""0"" offset=""47"" />
+          <slot kind=""9"" offset=""47"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""23"" />
-        <entry offset=""0x7"" startLine=""11"" startColumn=""16"" endLine=""11"" endColumn=""29"" />
-        <entry offset=""0xe"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" />
-        <entry offset=""0xf"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""20"" />
-        <entry offset=""0x13"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
-        <entry offset=""0x14"" hidden=""true"" />
-        <entry offset=""0x17"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""32"" />
-        <entry offset=""0x23"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+        <entry offset=""0xe"" startLine=""11"" startColumn=""16"" endLine=""11"" endColumn=""29"" />
+        <entry offset=""0x11"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" />
+        <entry offset=""0x12"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""20"" />
+        <entry offset=""0x15"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
+        <entry offset=""0x16"" hidden=""true"" />
+        <entry offset=""0x19"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""32"" />
+        <entry offset=""0x25"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x24"">
+      <scope startOffset=""0x0"" endOffset=""0x26"">
         <namespace name=""System"" />
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x24"" attributes=""0"" />
-        <scope startOffset=""0x7"" endOffset=""0x17"">
-          <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x17"" attributes=""0"" />
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x26"" attributes=""0"" />
+        <scope startOffset=""0x7"" endOffset=""0x19"">
+          <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x19"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -5143,18 +5571,18 @@ unsafe class C
         <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""23"" />
         <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""31"" />
         <entry offset=""0x15"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""28"" />
-        <entry offset=""0x31"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x32"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" />
+        <entry offset=""0x32"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
+        <entry offset=""0x33"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" />
         <entry offset=""0x39"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
         <entry offset=""0x3a"" hidden=""true"" />
-        <entry offset=""0x3d"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" />
-        <entry offset=""0x4b"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
+        <entry offset=""0x3c"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" />
+        <entry offset=""0x4a"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x4c"">
+      <scope startOffset=""0x0"" endOffset=""0x4b"">
         <namespace name=""System"" />
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x4c"" attributes=""0"" />
-        <scope startOffset=""0x15"" endOffset=""0x3d"">
-          <local name=""p"" il_index=""1"" il_start=""0x15"" il_end=""0x3d"" attributes=""0"" />
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x4b"" attributes=""0"" />
+        <scope startOffset=""0x15"" endOffset=""0x3c"">
+          <local name=""p"" il_index=""1"" il_start=""0x15"" il_end=""0x3c"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -5195,8 +5623,7 @@ unsafe class C
 ";
             // NOTE: stop on each declarator.
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -5208,27 +5635,29 @@ unsafe class C
           <slot kind=""0"" offset=""13"" />
           <slot kind=""0"" offset=""47"" />
           <slot kind=""0"" offset=""57"" />
+          <slot kind=""9"" offset=""47"" />
+          <slot kind=""9"" offset=""57"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
         <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""23"" />
-        <entry offset=""0x7"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""29"" />
-        <entry offset=""0xe"" startLine=""12"" startColumn=""31"" endLine=""12"" endColumn=""39"" />
-        <entry offset=""0x15"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x16"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" />
-        <entry offset=""0x1a"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""20"" />
-        <entry offset=""0x1e"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" />
-        <entry offset=""0x1f"" hidden=""true"" />
-        <entry offset=""0x25"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""38"" />
-        <entry offset=""0x38"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
+        <entry offset=""0xe"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""29"" />
+        <entry offset=""0x19"" startLine=""12"" startColumn=""31"" endLine=""12"" endColumn=""39"" />
+        <entry offset=""0x1d"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
+        <entry offset=""0x1e"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" />
+        <entry offset=""0x21"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""20"" />
+        <entry offset=""0x24"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" />
+        <entry offset=""0x25"" hidden=""true"" />
+        <entry offset=""0x2c"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""38"" />
+        <entry offset=""0x3f"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x39"">
+      <scope startOffset=""0x0"" endOffset=""0x40"">
         <namespace name=""System"" />
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x39"" attributes=""0"" />
-        <scope startOffset=""0x7"" endOffset=""0x25"">
-          <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x25"" attributes=""0"" />
-          <local name=""q"" il_index=""2"" il_start=""0x7"" il_end=""0x25"" attributes=""0"" />
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x40"" attributes=""0"" />
+        <scope startOffset=""0x7"" endOffset=""0x2c"">
+          <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x2c"" attributes=""0"" />
+          <local name=""q"" il_index=""2"" il_start=""0x7"" il_end=""0x2c"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -5321,8 +5750,7 @@ unsafe class C
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -5344,22 +5772,22 @@ unsafe class C
         <entry offset=""0x7"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""31"" />
         <entry offset=""0x15"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""31"" />
         <entry offset=""0x23"" startLine=""14"" startColumn=""16"" endLine=""14"" endColumn=""28"" />
-        <entry offset=""0x3f"" startLine=""14"" startColumn=""30"" endLine=""14"" endColumn=""37"" />
-        <entry offset=""0x5e"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x5f"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""20"" />
-        <entry offset=""0x63"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""20"" />
+        <entry offset=""0x40"" startLine=""14"" startColumn=""30"" endLine=""14"" endColumn=""37"" />
+        <entry offset=""0x60"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
+        <entry offset=""0x61"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""20"" />
+        <entry offset=""0x64"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""20"" />
         <entry offset=""0x67"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" />
         <entry offset=""0x68"" hidden=""true"" />
-        <entry offset=""0x6e"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""31"" />
-        <entry offset=""0x7c"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""31"" />
-        <entry offset=""0x8a"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
+        <entry offset=""0x6d"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""31"" />
+        <entry offset=""0x7b"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""31"" />
+        <entry offset=""0x89"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x8b"">
+      <scope startOffset=""0x0"" endOffset=""0x8a"">
         <namespace name=""System"" />
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x8b"" attributes=""0"" />
-        <scope startOffset=""0x23"" endOffset=""0x6e"">
-          <local name=""p"" il_index=""1"" il_start=""0x23"" il_end=""0x6e"" attributes=""0"" />
-          <local name=""q"" il_index=""2"" il_start=""0x23"" il_end=""0x6e"" attributes=""0"" />
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x8a"" attributes=""0"" />
+        <scope startOffset=""0x23"" endOffset=""0x6d"">
+          <local name=""p"" il_index=""1"" il_start=""0x23"" il_end=""0x6d"" attributes=""0"" />
+          <local name=""q"" il_index=""2"" il_start=""0x23"" il_end=""0x6d"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -5400,8 +5828,7 @@ unsafe class C
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <methods>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -5413,6 +5840,7 @@ unsafe class C
           <slot kind=""0"" offset=""48"" />
           <slot kind=""0"" offset=""58"" />
           <slot kind=""0"" offset=""67"" />
+          <slot kind=""9"" offset=""48"" />
           <slot kind=""temp"" />
           <slot kind=""9"" offset=""67"" />
         </encLocalSlotMap>
@@ -5420,24 +5848,24 @@ unsafe class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
         <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""23"" />
-        <entry offset=""0x7"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""30"" />
-        <entry offset=""0xe"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""39"" />
-        <entry offset=""0x34"" startLine=""12"" startColumn=""41"" endLine=""12"" endColumn=""52"" />
-        <entry offset=""0x43"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x44"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""36"" />
-        <entry offset=""0x4d"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""36"" />
-        <entry offset=""0x56"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""36"" />
-        <entry offset=""0x5e"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
-        <entry offset=""0x5f"" hidden=""true"" />
-        <entry offset=""0x68"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
+        <entry offset=""0xf"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""30"" />
+        <entry offset=""0x13"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""39"" />
+        <entry offset=""0x3a"" startLine=""12"" startColumn=""41"" endLine=""12"" endColumn=""52"" />
+        <entry offset=""0x49"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
+        <entry offset=""0x4a"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""36"" />
+        <entry offset=""0x52"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""36"" />
+        <entry offset=""0x5a"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""36"" />
+        <entry offset=""0x62"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
+        <entry offset=""0x63"" hidden=""true"" />
+        <entry offset=""0x6d"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x69"">
+      <scope startOffset=""0x0"" endOffset=""0x6e"">
         <namespace name=""System"" />
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x69"" attributes=""0"" />
-        <scope startOffset=""0x7"" endOffset=""0x68"">
-          <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x68"" attributes=""0"" />
-          <local name=""q"" il_index=""2"" il_start=""0x7"" il_end=""0x68"" attributes=""0"" />
-          <local name=""r"" il_index=""3"" il_start=""0x7"" il_end=""0x68"" attributes=""0"" />
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x6e"" attributes=""0"" />
+        <scope startOffset=""0x7"" endOffset=""0x6d"">
+          <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x6d"" attributes=""0"" />
+          <local name=""q"" il_index=""2"" il_start=""0x7"" il_end=""0x6d"" attributes=""0"" />
+          <local name=""r"" il_index=""3"" il_start=""0x7"" il_end=""0x6d"" attributes=""0"" />
         </scope>
       </scope>
     </method>

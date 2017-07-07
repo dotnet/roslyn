@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -233,6 +234,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _name
             End Get
         End Property
+
+        Friend NotOverridable Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            Dim compilation = Me.DeclaringCompilation
+            If Type.ContainsTupleNames() AndAlso
+                compilation.HasTupleNamesAttributes AndAlso
+                compilation.CanEmitSpecialType(SpecialType.System_String) Then
+                AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(Type))
+            End If
+        End Sub
     End Class
 
     ''' <summary>

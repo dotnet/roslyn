@@ -1720,12 +1720,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return list;
         }
 
-        private static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
-        {
-            // return tokens from newList, but use original tokens of kind matches
-            return SyntaxFactory.TokenList(newList.Select(token => original.Any(token.Kind()) ? original.First(tk => tk.IsKind(token.Kind())) : token));
-        }
-
         private static void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers)
         {
             accessibility = Accessibility.NotApplicable;
@@ -1852,6 +1846,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return declaration;
             }
         }
+
+        internal override SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
+        {
+            switch (declaration)
+            {
+                case MethodDeclarationSyntax methodDeclaration:
+                    return WithAccessibility(
+                        methodDeclaration.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
+                        Accessibility.NotApplicable);
+            }
+
+            return declaration;
+        }
+
+        private ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
+            => SyntaxFactory.ExplicitInterfaceSpecifier(
+                explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax());
 
         public override SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode> types)
         {
@@ -3558,10 +3569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ArgumentSyntax AsArgument(SyntaxNode argOrExpression)
-        {
-            var arg = argOrExpression as ArgumentSyntax;
-            return arg ?? SyntaxFactory.Argument((ExpressionSyntax)argOrExpression);
-        }
+            => argOrExpression as ArgumentSyntax ?? SyntaxFactory.Argument((ExpressionSyntax)argOrExpression);
 
         public override SyntaxNode InvocationExpression(SyntaxNode expression, IEnumerable<SyntaxNode> arguments)
         {
@@ -3905,6 +3913,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
+        internal override SyntaxNode CreateTupleType(IEnumerable<SyntaxNode> elements)
+            => SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast<TupleElementSyntax>()));
+
+        public override SyntaxNode TupleElementExpression(SyntaxNode type, string name = null)
+            => SyntaxFactory.TupleElement((TypeSyntax)type, name?.ToIdentifierToken() ?? default(SyntaxToken));
+
         public override SyntaxNode Argument(string nameOpt, RefKind refKind, SyntaxNode expression)
         {
             return SyntaxFactory.Argument(
@@ -4081,6 +4095,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode RefExpression(SyntaxNode expression)
             => SyntaxFactory.RefExpression((ExpressionSyntax)expression);
+
+        public override SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments)
+            => SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AsArgument)));
 
         #endregion
     }

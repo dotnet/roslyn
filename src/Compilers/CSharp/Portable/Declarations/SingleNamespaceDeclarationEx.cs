@@ -16,8 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxReference syntaxReference,
             SyntaxReference fullDeclarationSyntaxReference,
             SourceLocation nameLocation,
-            ImmutableArray<SingleNamespaceOrTypeDeclaration> children) 
-            : base(name, syntaxReference, fullDeclarationSyntaxReference, nameLocation, children)
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics) 
+            : base(name, syntaxReference, fullDeclarationSyntaxReference, nameLocation, children, diagnostics)
         {
             _hasUsings = hasUsings;
             _hasExternAliases = hasExternAliases;

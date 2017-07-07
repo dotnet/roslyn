@@ -135,16 +135,21 @@ Module Module1
 End Module
 ");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudio.LocalsWindow.Verify.CheckEntry("Type variables", "", "");
             VisualStudio.LocalsWindow.Verify.CheckEntry( new string[] { "Type variables", "T" }, "String", "String");
 
             // It is better to use the Immediate Window but DTE does not provide an access to it.
             VisualStudio.Debugger.CheckExpression("GetType(T) = GetType(String)", "Boolean", "True");
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
-            base.Dispose();
+            if (disposing)
+            {
+                VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

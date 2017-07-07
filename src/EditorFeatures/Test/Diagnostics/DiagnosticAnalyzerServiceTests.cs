@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -41,6 +44,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         [Fact]
+        public async Task TestHasSuccessfullyLoadedBeingFalseFSAOn()
+        {
+            var workspace = new AdhocWorkspace();
+            workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, true);
+            var document = GetDocumentFromIncompleteProject(workspace);
+
+            // open document
+            workspace.OpenDocument(document.Id);
+
+            await TestAnalyzerAsync(workspace, document, new Analyzer(), AnalyzerResultSetter, expectedSyntax: true, expectedSemantic: true);
+        }
+
+        [Fact]
         public async Task TestHasSuccessfullyLoadedBeingFalseWhenFileOpened()
         {
             var workspace = new AdhocWorkspace();
@@ -49,9 +65,41 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // open document
             workspace.OpenDocument(document.Id);
 
+            await TestAnalyzerAsync(workspace, document, new Analyzer(), AnalyzerResultSetter, expectedSyntax: true, expectedSemantic: true);
+        }
+
+        [Fact]
+        public async Task TestHasSuccessfullyLoadedBeingFalseWhenFileOpenedWithCompilerAnalyzer()
+        {
+            var workspace = new AdhocWorkspace();
+            var document = GetDocumentFromIncompleteProject(workspace);
+
+            // open document
+            workspace.OpenDocument(document.Id);
+
+            await TestAnalyzerAsync(workspace, document, new CSharpCompilerDiagnosticAnalyzer(), CompilerAnalyzerResultSetter, expectedSyntax: true, expectedSemantic: false);
+        }
+
+        [Fact]
+        public async Task TestHasSuccessfullyLoadedBeingFalseWithCompilerAnalyzerFSAOn()
+        {
+            var workspace = new AdhocWorkspace();
+            workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, true);
+            var document = GetDocumentFromIncompleteProject(workspace);
+
+            await TestAnalyzerAsync(workspace, document, new CSharpCompilerDiagnosticAnalyzer(), CompilerAnalyzerResultSetter, expectedSyntax: true, expectedSemantic: false);
+        }
+
+        private static async Task TestAnalyzerAsync(
+            AdhocWorkspace workspace,
+            Document document,
+            DiagnosticAnalyzer diagnosticAnalyzer,
+            Func<bool, bool, ImmutableArray<DiagnosticData>, (bool, bool)> resultSetter,
+            bool expectedSyntax, bool expectedSemantic)
+        {
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(new Analyzer(), listener);
+            var service = new MyDiagnosticAnalyzerService(diagnosticAnalyzer, listener);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
             bool syntax = false;
@@ -60,18 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
             {
-                switch (a.Diagnostics.Length)
-                {
-                    case 0:
-                        return;
-                    case 1:
-                        syntax |= a.Diagnostics[0].Id == Analyzer.s_syntaxRule.Id;
-                        semantic |= a.Diagnostics[0].Id == Analyzer.s_semanticRule.Id;
-                        return;
-                    default:
-                        AssertEx.Fail("shouldn't reach here");
-                        return;
-                }
+                (syntax, semantic) = resultSetter(syntax, semantic, a.Diagnostics);
             };
 
             // now call each analyze method. none of them should run.
@@ -81,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await listener.CreateWaitTask().ConfigureAwait(false);
 
             // two should have been called.
-            Assert.True(syntax);
-            Assert.True(semantic);
+            Assert.Equal(expectedSyntax, syntax);
+            Assert.Equal(expectedSemantic, semantic);
         }
 
         [Fact]
@@ -215,7 +252,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                 "CSharpProject",
                                 LanguageNames.CSharp).WithHasAllInformation(hasAllInformation: false));
 
-            return workspace.AddDocument(project.Id, "Empty.cs", SourceText.From(""));
+            return workspace.AddDocument(project.Id, "Empty.cs", SourceText.From("class A { B B {get} }"));
+        }
+
+        private static (bool, bool) AnalyzerResultSetter(bool syntax, bool semantic, ImmutableArray<DiagnosticData> diagnostics)
+        {
+            switch (diagnostics.Length)
+            {
+                case 0:
+                    break;
+                case 1:
+                    syntax |= diagnostics[0].Id == Analyzer.s_syntaxRule.Id;
+                    semantic |= diagnostics[0].Id == Analyzer.s_semanticRule.Id;
+                    break;
+                default:
+                    AssertEx.Fail("shouldn't reach here");
+                    break;
+            }
+
+            return (syntax, semantic);
+        }
+
+        private static (bool, bool) CompilerAnalyzerResultSetter(bool syntax, bool semantic, ImmutableArray<DiagnosticData> diagnostics)
+        {
+            syntax |= diagnostics.Any(d => d.Properties["Origin"] == "Syntactic");
+            semantic |= diagnostics.Any(d => d.Properties["Origin"] != "Syntactic");
+
+            return (syntax, semantic);
         }
 
         private static async Task RunAllAnalysisAsync(IIncrementalAnalyzer analyzer, Document document)

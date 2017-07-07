@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParamModThis, modifier.GetLocation());
                         }
-                        else if (seenRef || seenOut || seenThis)
+                        else if (seenRef || seenOut)
                         {
                             diagnostics.Add(ErrorCode.ERR_MultiParamMod, modifier.GetLocation());
                         }

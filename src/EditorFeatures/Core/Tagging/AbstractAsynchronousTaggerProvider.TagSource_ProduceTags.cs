@@ -261,11 +261,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             /// <summary>
-            /// Called on the foreground thread.  Can be passed an optional cancellationToken
-            /// that controls the work being done.  If no cancellation token is passed, the one
-            /// from the <see cref="_workQueue"/> is used.
+            /// Called on the foreground thread.
             /// </summary>
-            private void RecomputeTagsForeground(CancellationToken? cancellationTokenOpt)
+            private void RecomputeTagsForeground()
             {
                 _workQueue.AssertIsForeground();
 
@@ -277,8 +275,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // Mark that we're not up to date. We'll remain in that state until the next 
                     // tag production stage finally completes.
                     this.UpToDate = false;
+                    var cancellationToken = _workQueue.CancellationToken;
 
-                    var cancellationToken = cancellationTokenOpt ?? _workQueue.CancellationToken;
                     var spansToTag = GetSpansAndDocumentsToTag();
 
                     // Make a copy of all the data we need while we're on the foreground.  Then
@@ -586,6 +584,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Ignore any tag spans reported for any buffers we weren't interested in.
                 var newTagsByBuffer = context.tagSpans.Where(ts => buffersToTag.Contains(ts.Span.Snapshot.TextBuffer))
                                                       .ToLookup(t => t.Span.Snapshot.TextBuffer);
+
 
                 var newTagTrees = ConvertToTagTrees(oldTagTrees, newTagsByBuffer, context._spansTagged);
                 ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, context.State, context.CancellationToken);

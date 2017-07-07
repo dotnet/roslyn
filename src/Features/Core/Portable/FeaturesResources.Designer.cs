@@ -1585,6 +1585,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to in {0} (project {1}).
+        /// </summary>
+        internal static string in_0_project_1 {
+            get {
+                return ResourceManager.GetString("in_0_project_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to in Source.
         /// </summary>
         internal static string in_Source {
@@ -1891,7 +1900,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make method synchronous..
+        ///   Looks up a localized string similar to Make method synchronous.
         /// </summary>
         internal static string Make_method_synchronous {
             get {
@@ -1923,6 +1932,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Methods {
             get {
                 return ResourceManager.GetString("Methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifiers are not ordered.
+        /// </summary>
+        internal static string Modifiers_are_not_ordered {
+            get {
+                return ResourceManager.GetString("Modifiers_are_not_ordered", resourceCulture);
             }
         }
         
@@ -2202,6 +2220,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Order modifiers.
+        /// </summary>
+        internal static string Order_modifiers {
+            get {
+                return ResourceManager.GetString("Order_modifiers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to overload.
         /// </summary>
         internal static string overload {
@@ -2329,11 +2356,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to project .
+        ///   Looks up a localized string similar to project {0}.
         /// </summary>
-        internal static string project_space {
+        internal static string project_0 {
             get {
-                return ResourceManager.GetString("project_space", resourceCulture);
+                return ResourceManager.GetString("project_0", resourceCulture);
             }
         }
         
@@ -2473,6 +2500,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove unreachable code.
+        /// </summary>
+        internal static string Remove_unreachable_code {
+            get {
+                return ResourceManager.GetString("Remove_unreachable_code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove unused variable.
         /// </summary>
         internal static string Remove_unused_variable {
@@ -2571,6 +2607,26 @@ namespace Microsoft.CodeAnalysis {
         internal static string Replace_0_with_property {
             get {
                 return ResourceManager.GetString("Replace_0_with_property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location &apos;{1}&apos; in file &apos;{2}&apos;, which is outside of the given file..
+        /// </summary>
+        internal static string Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file {
+            get {
+                return ResourceManager.GetString("Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_g" +
+                        "iven_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location in file &apos;{1}&apos;, which is not part of the compilation being analyzed..
+        /// </summary>
+        internal static string Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed {
+            get {
+                return ResourceManager.GetString("Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_co" +
+                        "mpilation_being_analyzed", resourceCulture);
             }
         }
         
@@ -2974,15 +3030,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to type .
-        /// </summary>
-        internal static string type_space {
-            get {
-                return ResourceManager.GetString("type_space", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unable to create hosting process..
         /// </summary>
         internal static string Unable_to_create_hosting_process {
@@ -3033,6 +3080,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unknown_symbol_kind {
             get {
                 return ResourceManager.GetString("Unknown_symbol_kind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unreachable code detected.
+        /// </summary>
+        internal static string Unreachable_code_detected {
+            get {
+                return ResourceManager.GetString("Unreachable_code_detected", resourceCulture);
             }
         }
         
