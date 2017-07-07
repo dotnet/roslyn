@@ -104,13 +104,13 @@ Note that we can have asynchronous code inside the REPL. The REPL will wait for 
   
   The REPL displays the length of the ```csv``` string on the next line.
   
-1. Ok, there's a lot of data, so maybe we can break it up. Let's see how many lines there are:
+11. Ok, there's a lot of data, so maybe we can break it up. Let's see how many lines there are:
 
 ```csharp
 > csv.Split('\n').Length
 ```
 
-11. Still a lot of lines, so let's peek at the first couple of hundred characters and see if we can glean something of the string's structure or how long the lines are. Enter the following code:
+12. Still a lot of lines, so let's peek at the first couple of hundred characters and see if we can glean something of the string's structure or how long the lines are. Enter the following code:
 
 ```csharp
 > Console.Write(csv.Substring(0,200))
@@ -125,7 +125,7 @@ Date,Open,High,Low,Close,Volume
 29-Jun-17,69.38,69.49,68.09,68.49,28918715
 ```
 
-12. Now we can see what the structure of the data is. Let's build a query to extract the volume from the last column (Skip(1) skips header row). You can use ```Shift+Enter``` at the end of a line to avoid executing the input until you�ve entered everything; ```Enter``` only evaluates if the expression looks complete:
+13. Now we can see what the structure of the data is. Let's build a query to extract the volume from the last column (Skip(1) skips header row). You can use ```Shift+Enter``` at the end of a line to avoid executing the input until you�ve entered everything; ```Enter``` only evaluates if the expression looks complete:
 
 ```csharp
 var prices = csv.Split('\n').Skip(1)
@@ -134,7 +134,7 @@ var prices = csv.Split('\n').Skip(1)
                 .Select(values => new { date = DateTime.Parse(values[0]), price = float.Parse(values[6]) });
 ```
 
-13. Let's print out a bit of the prices from the query. You can use ```Shift+Enter``` after the first to lines to avoid executing them immediately. If you use ```Enter``` inside the 'foreach' loop, the code won't execute until you type the final curly brace and then press ```Enter```.
+14. Let's print out a bit of the prices from the query. You can use ```Shift+Enter``` after the first to lines to avoid executing them immediately. If you use ```Enter``` inside the 'foreach' loop, the code won't execute until you type the final curly brace and then press ```Enter```.
 
 ```csharp
 foreach (var p in prices.Take(10))
