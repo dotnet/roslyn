@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
+            Debug.Assert(false);
             return node;
         }
 
