@@ -305,8 +305,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Initializer: INullCoalescingExpression (OperationKind.NullCoalescingExpression, Type: System.Object) (Syntax: 'new object( ... Exception()')
         Left: IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'new object()')
         Right: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'throw new Exception()')
-            IOperation:  (OperationKind.None) (Syntax: 'throw new Exception()')
-              Children(1): IObjectCreationExpression (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'new Exception()')
+            IThrowExpression (OperationKind.ThrowExpression, Type: null) (Syntax: 'throw new Exception()')
+              IObjectCreationExpression (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'new Exception()')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

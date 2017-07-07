@@ -42,6 +42,8 @@
     <Compile Include="Operations\BranchKind.cs" />
     <Compile Include="Operations\CaseKind.cs" />
     <Compile Include="Operations\ConversionKind.cs" />
+    <Compile Include="Operations\IThrowExpression.cs" />
+    <Compile Include="Operations\INameOfExpression.cs" />
     <Compile Include="Operations\IAddressOfExpression.cs" />
     <Compile Include="Operations\IArgument.cs" />
     <Compile Include="Operations\IArrayCreationExpression.cs" />
