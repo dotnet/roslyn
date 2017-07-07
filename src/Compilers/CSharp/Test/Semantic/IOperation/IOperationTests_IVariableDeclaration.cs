@@ -203,10 +203,10 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i,/*</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int i,/*</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
     Variables: Local_1: System.Int32 i
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '')
     Variables: Local_1: System.Int32 
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -342,8 +342,8 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int[2, 3] a/*</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int[2, 3] a/*</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int[2, 3] a/*</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'int[2, 3] a/*</bind>*/;')
     Variables: Local_1: System.Int32[,] a
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -374,7 +374,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int[2, 3] a ... *</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int[2, 3] a ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: System.Int32[,] a
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b')
@@ -1520,8 +1520,8 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'const /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
     Variables: Local_1: System.Int32 i1
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1549,10 +1549,10 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
     Variables: Local_1: System.Int32 i1
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2')
     Variables: Local_1: System.Int32 i2
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1586,10 +1586,10 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
     Variables: Local_1: System.Int32 i1
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '')
     Variables: Local_1: System.Int32 
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1626,9 +1626,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'const /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
     Variables: Local_1: System.Int32 i1
-    Initializer: IInvocationExpression (static System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
+    Initializer: IInvocationExpression (static System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0133: The expression being assigned to 'i1' must be constant
@@ -1655,12 +1655,12 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = GetInt()')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = GetInt()')
     Variables: Local_1: System.Int32 i1
-    Initializer: IInvocationExpression (static System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = GetInt()')
+    Initializer: IInvocationExpression (static System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2 = GetInt()')
     Variables: Local_1: System.Int32 i2
-    Initializer: IInvocationExpression (static System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
+    Initializer: IInvocationExpression (static System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0133: The expression being assigned to 'i1' must be constant

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -282,7 +282,7 @@ class Class
 ";
             string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: Class.Delegate, IsInvalid) (Syntax: 'new Delegate(x)')
-  Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0149: Method name expected
@@ -798,7 +798,7 @@ struct S
                 references: new[] { MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes: true) });
 
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'new I(x)')
+IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'new I(x)')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                     // (6,25): error CS1729: 'I' does not contain a constructor that takes 1 arguments

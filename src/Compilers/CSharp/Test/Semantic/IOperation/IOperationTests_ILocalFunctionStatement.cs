@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -318,7 +318,7 @@ ILocalFunctionStatement (Local Function: void Foo(out System.Int32 y)) (Operatio
   IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '=> ')
     IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
       IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: '=> ')
+    IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '=> ')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -348,9 +348,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: void Foo()) (OperationKind.LocalFunctionStatement) (Syntax: 'void Foo( { }')
-  IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
+ILocalFunctionStatement (Local Function: void Foo()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void Foo( { }')
+  IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
+    IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1026: ) expected
@@ -377,7 +377,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: X Foo()) (OperationKind.LocalFunctionStatement) (Syntax: 'X Foo() { }')
+ILocalFunctionStatement (Local Function: X Foo()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'X Foo() { }')
   IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

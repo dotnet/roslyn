@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -310,7 +310,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
       Text: ILiteralExpression (Text:  and constant ) (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
     IInterpolation (OperationKind.Interpolation, IsInvalid) (Syntax: '{Class}')
       Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: Class, IsInvalid) (Syntax: 'Class')
-          Children(1): IOperation:  (OperationKind.None) (Syntax: 'Class')
+          Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Class')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0103: The name 'x1' does not exist in the current context
