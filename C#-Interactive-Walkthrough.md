@@ -125,7 +125,7 @@ Date,Open,High,Low,Close,Volume
 29-Jun-17,69.38,69.49,68.09,68.49,28918715
 ```
 
-13. Now we can see what the structure of the data is. Let's build a query to extract the volume from the last column (Skip(1) skips header row). You can use ```Shift+Enter``` at the end of a line to avoid executing the input until you�ve entered everything; ```Enter``` only evaluates if the expression looks complete:
+13. Now we can see what the structure of the data is. Let's build a query to extract the volume from the last column (Skip(1) skips header row). You can use ```Shift+Enter``` at the end of a line to avoid executing the input until you've entered everything; ```Enter``` only evaluates if the expression looks complete:
 
 ```csharp
 var prices = csv.Split('\n').Skip(1)
