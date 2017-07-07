@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -15,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract class AbstractInternalsVisibleToCompletionProvider : CommonCompletionProvider
     {
         private const string ProjectGuidKey = nameof(ProjectGuidKey);
+
+        protected abstract IImmutableList<SyntaxNode> GetAssemblyScopedAttributeSyntaxNodesOfDocument(SyntaxNode documentRoot);
+        protected abstract SyntaxNode GetConstructorArgumentOfInternalsVisibleToAttribute(SyntaxNode internalsVisibleToAttribute);
 
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
         {
@@ -88,9 +92,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return type.Equals(internalsVisibleToAttributeSymbol);
         }
 
-        private static async Task AddAssemblyCompletionItemsAsync(CompletionContext context, CancellationToken cancellationToken)
+        private async Task AddAssemblyCompletionItemsAsync(CompletionContext context, CancellationToken cancellationToken)
         {
             var currentProject = context.Document.Project;
+            var allInternalsVisibleToAttributesOfProject = await GetAllInternalsVisibleToAssemblyNamesOfProjectAsync(context, cancellationToken).ConfigureAwait(false);
             var currentCompilation = await currentProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var currentAssemblyInfo = currentCompilation.Assembly;
             foreach (var project in context.Document.Project.Solution.Projects)
@@ -100,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     continue;
                 }
 
-                if (await HasProjectAlreadyAccessToInternals(currentAssemblyInfo, project, cancellationToken).ConfigureAwait(false))
+                if (allInternalsVisibleToAttributesOfProject.Contains(project.AssemblyName) == true)
                 {
                     continue;
                 }
@@ -115,10 +120,60 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private static async Task<bool> HasProjectAlreadyAccessToInternals(IAssemblySymbol sourceAssembly, Project project, CancellationToken cancellationToken)
+        private async Task<IImmutableSet<string>> GetAllInternalsVisibleToAssemblyNamesOfProjectAsync(CompletionContext completionContext, CancellationToken cancellationToken)
         {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            return sourceAssembly.GivesAccessTo(compilation.Assembly);
+            var project = completionContext.Document.Project;
+            var resultBuilder = default(ImmutableHashSet<string>.Builder);
+            foreach (var document in project.Documents)
+            {
+                var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var assemblyScopedAttributes = GetAssemblyScopedAttributeSyntaxNodesOfDocument(syntaxRoot);
+                foreach (var attribute in assemblyScopedAttributes)
+                {
+                    if (await CheckTypeInfoOfAttributeAsync(completionContext, attribute).ConfigureAwait(false))
+                    {
+                        // See Microsoft.CodeAnalysis.PEAssembly.BuildInternalsVisibleToMap for reference on how
+                        // the 'real' InternalsVisibleTo logic extracts and compares the assemblyName:
+                        // * Extract the assemblyName by AssemblyIdentity.TryParseDisplayName
+                        // * Compare with StringComparer.OrdinalIgnoreCase
+                        // We take the same approach, but we do only a limited check of the PublicKey. 
+                        // The PublicKey is checked by AssemblyIdentity.TryParseDisplayName to be a 
+                        // parseable (length, can be converted to bytes, etc.), but it is not tested whether 
+                        // the public key actually fits to the assembly.
+                        var assemblyName = await GetAssemblyNameFromInternalsVisibleToAttributeAsync(attribute, completionContext).ConfigureAwait(false);
+                        if (!string.IsNullOrWhiteSpace(assemblyName))
+                        {
+                            resultBuilder = resultBuilder ?? ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
+                            resultBuilder.Add(assemblyName);
+                        }
+                    }
+                }
+            }
+
+            return resultBuilder == null
+                ? ImmutableHashSet<string>.Empty
+                : resultBuilder.ToImmutable();
+        }
+
+        private async Task<string> GetAssemblyNameFromInternalsVisibleToAttributeAsync(SyntaxNode node, CompletionContext completionContext)
+        {
+            var constructorArgument = GetConstructorArgumentOfInternalsVisibleToAttribute(node);
+            if (constructorArgument == null)
+            {
+                return string.Empty;
+            }
+
+            var semModel = await completionContext.Document.GetSemanticModelForNodeAsync(constructorArgument, completionContext.CancellationToken).ConfigureAwait(false);
+            var constantCandidate = semModel.GetConstantValue(constructorArgument);
+            if (constantCandidate.HasValue && constantCandidate.Value is string argument)
+            {
+                if (AssemblyIdentity.TryParseDisplayName(argument, out var assemblyIdentity))
+                {
+                    return assemblyIdentity.Name;
+                }
+            }
+
+            return string.Empty;
         }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))
