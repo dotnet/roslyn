@@ -120,7 +120,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SortNodes(unsortedNodes, out var concatenatedNames, out var sortedNodes);
 
             return new SymbolTreeInfo(checksum, concatenatedNames, sortedNodes,
-                CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes));
+                CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes),
+                new OrderPreservingMultiDictionary<string, string>());
         }
 
         public Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
