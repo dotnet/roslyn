@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public override bool Equals(object obj) 
-            => obj is ClassifiedSpanSlim && Equals((ClassifiedSpanSlim)obj);
+            => obj is ClassifiedSpanSlim classifiedSpan && Equals(classifiedSpan);
 
         public bool Equals(ClassifiedSpanSlim other) 
             => Kind == other.Kind && TextSpan.Equals(other.TextSpan);
