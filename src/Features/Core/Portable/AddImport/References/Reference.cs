@@ -1,25 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private abstract class Reference : IEquatable<Reference>
         {
-            protected readonly AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider;
+            protected readonly AbstractAddImportFeatureService<TSimpleNameSyntax> provider;
             public readonly SearchResult SearchResult;
 
             protected Reference(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 SearchResult searchResult)
             {
                 this.provider = provider;
@@ -115,7 +117,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return (newContextNode, newDocument);
             }
 
-            public abstract Task<CodeAction> CreateCodeActionAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
+            public abstract Task<AddImportFixData> TryGetFixDataAsync(
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
+
+            protected async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            {
+                var originalDocument = document;
+
+                (node, document) = await this.ReplaceNameNodeAsync(
+                    node, document, cancellationToken).ConfigureAwait(false);
+
+                var newDocument = await this.provider.AddImportAsync(
+                    node, this.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+
+                var cleanedDocument = await CodeAction.CleanupDocumentAsync(
+                    newDocument, cancellationToken).ConfigureAwait(false);
+
+                var textChanges = await cleanedDocument.GetTextChangesAsync(
+                    originalDocument, cancellationToken).ConfigureAwait(false);
+
+                return textChanges.ToImmutableArray();
+            }
         }
     }
 }

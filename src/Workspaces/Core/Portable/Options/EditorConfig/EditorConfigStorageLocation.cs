@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Options
         public static EditorConfigStorageLocation<CodeStyleOption<bool>> ForBoolCodeStyleOption(string keyName)
             => new EditorConfigStorageLocation<CodeStyleOption<bool>>(keyName, s_parseBoolCodeStyleOption);
 
+        public static EditorConfigStorageLocation<CodeStyleOption<string>> ForStringCodeStyleOption(string keyName)
+            => new EditorConfigStorageLocation<CodeStyleOption<string>>(keyName, s_parseStringCodeStyleOption);
+
         private static Func<string, Optional<bool>> s_parseBool = ParseBool;
         private static Optional<bool> ParseBool(string str)
             => bool.TryParse(str, out var result) ? result : new Optional<bool>();
@@ -26,6 +29,10 @@ namespace Microsoft.CodeAnalysis.Options
 
         private static Func<string, Optional<CodeStyleOption<bool>>> s_parseBoolCodeStyleOption = ParseBoolCodeStyleOption;
         private static Optional<CodeStyleOption<bool>> ParseBoolCodeStyleOption(string str)
-            => CodeStyleHelpers.TryParseEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption<bool>>();
+            => CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption<bool>>();
+
+        private static Func<string, Optional<CodeStyleOption<string>>> s_parseStringCodeStyleOption = ParseStringCodeStyleOption;
+        private static Optional<CodeStyleOption<string>> ParseStringCodeStyleOption(string str)
+            => CodeStyleHelpers.TryParseStringEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption<string>>();
     }
 }

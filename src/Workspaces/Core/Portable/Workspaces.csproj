@@ -11,11 +11,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
-    <!-- Temporary workaround for CLR bug, VSO #290723. Please remove the below line once this bug is fixed. -->
-    <SkipApplyOptimizations>true</SkipApplyOptimizations>
     <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -129,6 +125,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs">
       <Link>InternalUtilities\ReferenceEqualityComparer.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreExtensions.cs">
+      <Link>InternalUtilities\SemaphoreExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs">
       <Link>InternalUtilities\SemaphoreSlimExtensions.cs</Link>
     </Compile>
@@ -180,6 +179,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs">
       <Link>InternalUtilities\StringExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringTable.cs" Link="Utilities\StringTable.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\TextChangeRangeExtensions.cs">
       <Link>InternalUtilities\TextChangeRangeExtensions.cs</Link>
     </Compile>
@@ -207,7 +207,18 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs">
       <Link>InternalUtilities\SyntaxTreeExtensions.cs</Link>
     </Compile>
+    <Compile Include="AddImports\AddImportHelpers.cs" />
+    <Compile Include="Classification\AbstractClassificationService.cs" />
+    <Compile Include="Classification\IClassificationService.cs" />
     <Compile Include="ExtensionManager\IInfoBarService.cs" />
+    <Compile Include="FindSymbols\FindReferences\DependentTypeFinder_ProjectIndex.cs" />
+    <Compile Include="Formatting\AbstractFormattingService.cs" />
+    <Compile Include="Formatting\IFormattingService.cs" />
+    <Compile Include="Remote\RemoteHostSessionHelpers.cs" />
+    <Compile Include="Remote\RemoteFeatureOptions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxTokenListExtensions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxTriviaListExtensions.cs" />
+    <Compile Include="Utilities\ReferenceCountedDisposable.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="csi" />
@@ -297,15 +308,15 @@
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
     <Compile Include="CaseCorrection\CaseCorrector.cs" />
     <Compile Include="CaseCorrection\ICaseCorrectionService.cs" />
-    <Compile Include="Classification\AbstractClassificationService.cs" />
-    <Compile Include="Classification\AbstractClassificationService.Worker.cs" />
+    <Compile Include="Classification\SyntaxClassification\AbstractSyntaxClassificationService.cs" />
+    <Compile Include="Classification\SyntaxClassification\AbstractSyntaxClassificationService.Worker.cs" />
     <Compile Include="Classification\ClassificationExtensions.cs" />
     <Compile Include="Classification\ClassificationTypeNames.cs" />
     <Compile Include="Classification\ClassifiedSpan.cs" />
     <Compile Include="Classification\ClassifiedText.cs" />
     <Compile Include="Classification\Classifier.cs" />
-    <Compile Include="Classification\Classifiers\ISyntaxClassifier.cs" />
-    <Compile Include="Classification\IClassificationService.cs" />
+    <Compile Include="Classification\SyntaxClassification\ISyntaxClassifier.cs" />
+    <Compile Include="Classification\SyntaxClassification\ISyntaxClassificationService.cs" />
     <Compile Include="CodeActions\Annotations\SuppressDiagnosticsAnnotation.cs" />
     <Compile Include="CodeActions\CodeActionPriority.cs" />
     <Compile Include="CodeActions\Operations\PreviewOperation.cs" />
@@ -383,7 +394,6 @@
     <Compile Include="FindSymbols\SymbolFinder_Declarations_CustomQueries.cs" />
     <Compile Include="FindSymbols\SymbolFinder_FindReferences_Current.cs" />
     <Compile Include="FindSymbols\SymbolFinder_FindRenamableReferences.cs" />
-    <Compile Include="FindSymbols\SymbolFinder_Remote.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.LiteralInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractDocumentationCommentService.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" />
@@ -459,7 +469,6 @@
     <Compile Include="FindSymbols\FindReferences\StreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\SymbolAndProjectId.cs" />
-    <Compile Include="FindSymbols\SymbolFinderOptions.cs" />
     <Compile Include="FindSymbols\SymbolFinder_FindLiteralReferences.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
@@ -638,7 +647,6 @@
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Versions\Extensions.cs" />
-    <Compile Include="Versions\ISemanticVersionTrackingService.cs" />
     <Compile Include="Versions\PersistedVersionStampLogger.cs" />
     <Compile Include="Workspace\AdhocWorkspace.cs" />
     <Compile Include="Workspace\DocumentActiveContextChangedEventArgs.cs" />
@@ -1145,7 +1153,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Composition" Version="$(MicrosoftCompositionVersion)" />
+    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageReference Include="System.Diagnostics.Contracts" Version="$(SystemDiagnosticsContractsVersion)" />
     <PackageReference Include="System.Linq.Parallel" Version="$(SystemLinqParallelVersion)" />
     <PackageReference Include="System.ObjectModel" Version="$(SystemObjectModelVersion)" />

@@ -25,7 +25,7 @@ try {
     # Need to parse out the current NuGet package version of Structured Logger
     $structuredLoggerPath = Join-Path (Get-PackageDir "Microsoft.Build.Logging.StructuredLogger") "lib\net46\StructuredLogger.dll"
     $configDir = Join-Path $binariesDir $config
-    $logPath = Join-Path $configDir "build.xml"
+    $logPath = Join-Path $configDir "roslyn.buildlog"
     $solution = Join-Path $repoDir "Roslyn.sln"
 
     if ($msbuild -eq "") {
@@ -33,13 +33,13 @@ try {
     }
 
     Write-Host "Building Roslyn.sln with logging support"
-    Exec-Command $msbuild "/v:m /m /p:Configuration=$config /logger:StructuredLogger,$structuredLoggerPath;$logPath /nodeReuse:false /p:DeployExtension=false $solution"
+    Exec-Console $msbuild "/noconlog /v:m /m /p:Configuration=$config /logger:StructuredLogger,$structuredLoggerPath;$logPath /nodeReuse:false /p:DeployExtension=false $solution"
     Write-Host ""
 
     # Verify the state of our various build artifacts
     Write-Host "Running BuildBoss"
     $buildBossPath = Join-Path $configDir "Exes\BuildBoss\BuildBoss.exe"
-    Exec-Command $buildBossPath "Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln build\Targets $logPath"
+    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln build\Targets $logPath"
     Write-Host ""
 
     # Verify the state of our generated syntax files

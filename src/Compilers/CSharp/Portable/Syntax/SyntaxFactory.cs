@@ -1239,7 +1239,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SyntaxList<TNode>(node);
         }
 
-
         /// <summary>
         /// Creates a list of syntax nodes.
         /// </summary>
@@ -1247,20 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodes">A sequence of element nodes.</param>
         public static SyntaxList<TNode> List<TNode>(IEnumerable<TNode> nodes) where TNode : SyntaxNode
         {
-            if (nodes != null)
-            {
-                var collection = nodes as ICollection<TNode>;
-                var builder = (collection != null) ? new SyntaxListBuilder<TNode>(collection.Count) : SyntaxListBuilder<TNode>.Create();
-
-                foreach (TNode node in nodes)
-                {
-                    builder.Add(node);
-                }
-
-                return builder.ToList();
-            }
-
-            return default(SyntaxList<TNode>);
+            return new SyntaxList<TNode>(nodes);
         }
 
         /// <summary>
@@ -1286,18 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="tokens">An array of tokens.</param>
         public static SyntaxTokenList TokenList(params SyntaxToken[] tokens)
         {
-            if (tokens == null)
-            {
-                return default(SyntaxTokenList);
-            }
-
-            SyntaxTokenListBuilder builder = new SyntaxTokenListBuilder(tokens.Length);
-            for (int i = 0; i < tokens.Length; i++)
-            {
-                builder.Add((InternalSyntax.SyntaxToken)tokens[i].Node);
-            }
-
-            return builder.ToList();
+            return new SyntaxTokenList(tokens);
         }
 
         /// <summary>
@@ -1307,18 +1282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public static SyntaxTokenList TokenList(IEnumerable<SyntaxToken> tokens)
         {
-            if (tokens == null)
-            {
-                return default(SyntaxTokenList);
-            }
-
-            SyntaxTokenListBuilder builder = SyntaxTokenListBuilder.Create();
-            foreach (SyntaxToken token in tokens)
-            {
-                builder.Add((InternalSyntax.SyntaxToken)token.Node);
-            }
-
-            return builder.ToList();
+            return new SyntaxTokenList(tokens);
         }
 
         /// <summary>
@@ -1351,23 +1315,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="trivias">An array of trivia.</param>
         public static SyntaxTriviaList TriviaList(params SyntaxTrivia[] trivias)
-        {
-            if (trivias != null)
-            {
-                SyntaxTriviaListBuilder builder = new SyntaxTriviaListBuilder(trivias.Length);
-                builder.Add(trivias);
-                return builder.ToList();
-            }
-
-            return default(SyntaxTriviaList);
-        }
+            => new SyntaxTriviaList(trivias);
 
         /// <summary>
         /// Creates a list of trivia.
         /// </summary>
         /// <param name="trivias">A sequence of trivia.</param>
         public static SyntaxTriviaList TriviaList(IEnumerable<SyntaxTrivia> trivias)
-            => SyntaxTriviaListBuilder.Create(trivias);
+            => new SyntaxTriviaList(trivias);
 
         /// <summary>
         /// Creates an empty separated list.
@@ -1561,14 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodesAndTokens">The sequence of nodes and tokens</param>
         public static SyntaxNodeOrTokenList NodeOrTokenList(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
         {
-            if (nodesAndTokens == null)
-            {
-                throw new ArgumentNullException(nameof(nodesAndTokens));
-            }
-
-            var builder = new SyntaxNodeOrTokenListBuilder(8);
-            builder.Add(nodesAndTokens);
-            return builder.ToList();
+            return new SyntaxNodeOrTokenList(nodesAndTokens);
         }
 
         /// <summary>
@@ -1577,7 +1525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodesAndTokens">The nodes and tokens</param>
         public static SyntaxNodeOrTokenList NodeOrTokenList(params SyntaxNodeOrToken[] nodesAndTokens)
         {
-            return NodeOrTokenList((IEnumerable<SyntaxNodeOrToken>)nodesAndTokens);
+            return new SyntaxNodeOrTokenList(nodesAndTokens);
         }
 
         /// <summary>

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Simplification
     {
         internal interface IReductionRewriter : IDisposable
         {
-            void Initialize(OptionSet optionSet, CancellationToken cancellationToken);
+            void Initialize(ParseOptions parseOptions, OptionSet optionSet, CancellationToken cancellationToken);
 
             SyntaxNodeOrToken VisitNodeOrToken(SyntaxNodeOrToken nodeOrTokenToReduce, SemanticModel semanticModel, bool simplifyAllDescendants);
 

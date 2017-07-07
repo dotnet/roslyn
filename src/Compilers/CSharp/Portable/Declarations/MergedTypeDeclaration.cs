@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -117,22 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (decl.AnyMemberHasAttributes)
                         return true;
-                }
-
-                return false;
-            }
-        }
-
-        public bool HasConstraints
-        {
-            get
-            {
-                foreach (var decl in this.Declarations)
-                {
-                    if (decl.HasConstraints)
-                    {
-                        return true;
-                    }
                 }
 
                 return false;

@@ -28,15 +28,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private OLE.Interop.IOleUndoManager _manager;
         private readonly bool _needsUndoRestored;
 
-        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, bool needsSave, bool needsUndoDisabled)
+        /// <remarks>
+        /// <para>The optional project is used to obtain an <see cref="IVsProject"/> 1nstance. When this instance is
+        /// provided, Visual Studio will use <see cref="IVsProject.IsDocumentInProject"/> to attempt to locate the
+        /// specified file within a project. If no project is specified, Visual Studio falls back to using
+        /// <see cref="IVsUIShellOpenDocument4.IsDocumentInAProject2"/>, which performs a much slower query of all
+        /// projects in the solution.</para>
+        /// </remarks>
+        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, IVisualStudioHostProject projectOpt, bool needsSave, bool needsUndoDisabled)
         {
             _serviceProvider = serviceProvider;
             _filePath = filePath;
             _needsSave = needsSave;
 
             var invisibleEditorManager = (IIntPtrReturningVsInvisibleEditorManager)serviceProvider.GetService(typeof(SVsInvisibleEditorManager));
+            var vsProject = projectOpt?.Hierarchy as IVsProject;
             var invisibleEditorPtr = IntPtr.Zero;
-            Marshal.ThrowExceptionForHR(invisibleEditorManager.RegisterInvisibleEditor(filePath, null, 0, null, out invisibleEditorPtr));
+            Marshal.ThrowExceptionForHR(invisibleEditorManager.RegisterInvisibleEditor(filePath, vsProject, 0, null, out invisibleEditorPtr));
 
             try
             {
@@ -145,9 +153,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+#pragma warning disable CA1821 // Remove empty Finalizers
+#if DEBUG
         ~InvisibleEditor()
         {
             Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
         }
+#endif
+#pragma warning restore CA1821 // Remove empty Finalizers
     }
 }

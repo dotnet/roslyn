@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
@@ -590,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expr = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(expr, node.IsFixedStatementAddressOf, node.Type));
+            return UpdateExpression(builder, node.Update(expr, node.Type));
         }
 
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
@@ -1041,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.InitializerExpressionOpt == null);
             BoundSpillSequenceBuilder builder = null;
             var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
-            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, node.InitializerExpressionOpt, node.Type));
+            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, node.InitializerExpressionOpt, node.BinderOpt, node.Type));
         }
 
         public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)

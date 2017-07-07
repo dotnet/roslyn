@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -26,8 +26,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TypeInferrer
                 useNodeStartPosition,
                 typeInference.InferType(Await document.GetSemanticModelForSpanAsync(New TextSpan(node.SpanStart, 0), CancellationToken.None), node.SpanStart, objectAsDefault:=True, cancellationToken:=CancellationToken.None),
                 typeInference.InferType(Await document.GetSemanticModelForSpanAsync(node.Span, CancellationToken.None), node, objectAsDefault:=True, cancellationToken:=CancellationToken.None))
+
             Dim typeSyntax = inferredType.GenerateTypeSyntax().NormalizeWhitespace()
-            Assert.Equal(expectedType, typeSyntax.ToString())
         End Function
 
         Private Async Function TestInClassAsync(text As String, expectedType As String) As Tasks.Task
@@ -772,6 +772,19 @@ class C
     end sub
 end class"
             Await TestAsync(text, "System.Boolean", testNode:=False)
+        End Function
+
+        <WorkItem(431509, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=431509&_a=edit&triage=true")>
+        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function InvocationWithNoArguments() As Task
+            Dim text =
+"Module Program
+    Sub Main(args As String())
+        Dim z As IEnumerable(Of Integer)
+        [|z|].Select
+    End Sub
+End Module"
+            Await TestAsync(text, "System.Object", testNode:=False)
         End Function
     End Class
 End Namespace

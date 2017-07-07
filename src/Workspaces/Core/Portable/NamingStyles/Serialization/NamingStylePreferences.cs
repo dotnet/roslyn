@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     /// </summary>
     internal class NamingStylePreferences : IEquatable<NamingStylePreferences>
     {
-        private readonly static int s_serializationVersion = 4;
+        private const int s_serializationVersion = 4;
 
         private static readonly Func<XElement, SymbolSpecification> s_symbolSpecificationFromXElement = SymbolSpecification.FromXElement;
         private static readonly Func<XElement, NamingStyle> s_namingStyleFromXElement = NamingStyle.FromXElement;

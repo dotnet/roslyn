@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: default(ImmutableArray<int>),
                 constantValueOpt: null,
                 initializerExpressionOpt: null,
+                binderOpt: null,
                 type: node.Type);
         }
     }

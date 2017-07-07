@@ -1311,7 +1311,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(710, "#710")]
+        [WorkItem(710, "https://github.com/dotnet/roslyn/issues/710")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task DontRemoveLineContinuationInStringInterpolation1()
         {
@@ -1332,7 +1332,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(710, "#710")]
+        [WorkItem(710, "https://github.com/dotnet/roslyn/issues/710")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task DontRemoveLineContinuationInStringInterpolation2()
         {
@@ -1353,7 +1353,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(710, "#710")]
+        [WorkItem(710, "https://github.com/dotnet/roslyn/issues/710")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task DontRemoveLineContinuationInStringInterpolation3()
         {

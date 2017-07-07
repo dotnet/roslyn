@@ -1,4 +1,4 @@
-Namespace Microsoft.CodeAnalysis.VisualBasic
+﻿Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Module ErrorFacts
         Public Function IsWarning(code as ERRID) As Boolean
             Select Case code

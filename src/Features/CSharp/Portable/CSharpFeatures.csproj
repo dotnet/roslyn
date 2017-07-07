@@ -11,8 +11,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.Features</AssemblyName>
     <TargetExt>.dll</TargetExt>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -60,9 +58,12 @@
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
+    <Compile Include="AddImport\CSharpAddImportFeatureService.cs" />
     <Compile Include="AddPackage\CSharpAddSpecificPackageCodeFixProvider.cs" />
     <Compile Include="AddParameter\CSharpAddParameterCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\RemoveUnusedVariable\CSharpRemoveUnusedVariableCodeFixProvider.cs" />
+    <Compile Include="RemoveUnusedLocalFunction\CSharpRemoveUnusedLocalFunctionCodeFixProvider.cs" />
+    <Compile Include="RemoveUnusedVariable\CSharpRemoveUnusedVariableCodeFixProvider.cs" />
+    <Compile Include="CommentSelection\CSharpCommentSelectionService.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.NameGenerator.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.DeclarationInfo.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider_BuiltInStyles.cs" />
@@ -81,11 +82,18 @@
     </Compile>
     <Compile Include="DesignerAttributes\CSharpDesignerAttributeService.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.cs" />
+    <Compile Include="DocumentHighlighting\CSharpDocumentHighlightsService.cs" />
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="InitializeParameter\CSharpAddParameterCheckCodeRefactoringProvider.cs" />
     <Compile Include="InitializeParameter\CSharpInitializeMemberFromParameterCodeRefactoringProvider.cs" />
     <Compile Include="InitializeParameter\InitializeParameterHelpers.cs" />
+    <Compile Include="OrderModifiers\CSharpOrderModifiersCodeFixProvider.cs" />
+    <Compile Include="OrderModifiers\CSharpOrderModifiersDiagnosticAnalyzer.cs" />
+    <Compile Include="OrderModifiers\CSharpOrderModifiersHelper.cs" />
+    <Compile Include="RemoveUnreachableCode\CSharpRemoveUnreachableCodeCodeFixProvider.cs" />
+    <Compile Include="RemoveUnreachableCode\CSharpRemoveUnreachableCodeDiagnosticAnalyzer.cs" />
+    <Compile Include="RemoveUnreachableCode\RemoveUnreachableCodeHelpers.cs" />
     <Compile Include="Structure\Providers\ArrowExpressionClauseStructureProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\CSharpConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
@@ -95,6 +103,7 @@
     <Compile Include="UpgradeProject\CSharpUpgradeProjectCodeFixProvider.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />
     <Compile Include="UseExpressionBody\Helpers\UseExpressionBodyHelper.cs" />
     <Compile Include="UseExpressionBody\UseExpressionBodyCodeRefactoringProvider.cs" />
     <Compile Include="UseExpressionBody\UseExpressionBodyDiagnosticAnalyzer.cs" />
@@ -109,6 +118,7 @@
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerDiagnosticAnalyzer.cs" />
+    <Compile Include="UseDefaultLiteral\CSharpUseDefaultLiteralDiagnosticAnalyzer.cs" />
     <Compile Include="UseNullPropagation\CSharpUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="UseNullPropagation\CSharpUseNullPropagationDiagnosticAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\UseInitializerHelpers.cs" />
