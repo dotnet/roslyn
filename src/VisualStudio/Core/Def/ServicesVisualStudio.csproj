@@ -31,8 +31,7 @@
     <ItemGroup>
       <_NuGetVisualStudioPackageReference Include="@(Reference)" Condition="'%(Filename)' == 'NuGet.VisualStudio'" />
     </ItemGroup>
-    <Error Condition="'@(_NuGetVisualStudioPackageReference)' == ''" Text="Could not find NuGet.VisualStudio package to add EmbedInteropTypes to." />
-    <ItemGroup>
+    <ItemGroup Condition="'@(_NuGetVisualStudioPackageReference)' != ''">
       <Reference Remove="@(_NuGetVisualStudioPackageReference)" />
       <Reference Include="@(_NuGetVisualStudioPackageReference)">
         <EmbedInteropTypes>True</EmbedInteropTypes>
