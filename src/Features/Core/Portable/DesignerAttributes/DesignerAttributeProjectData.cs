@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
     internal class DesignerAttributeProjectData
     {
         private const string StreamName = "<DesignerAttribute>";
-        private const string FormatVersion = "3";
+        private const string FormatVersion = "4";
 
         public readonly VersionStamp SemanticVersion;
         public readonly ImmutableDictionary<string, DesignerAttributeDocumentData> PathToDocumentData;
@@ -51,10 +51,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                             {
                                 var filePath = reader.ReadString();
                                 var attribute = reader.ReadString();
-                                var containsErrors = reader.ReadBoolean();
-                                var notApplicable = reader.ReadBoolean();
 
-                                builder[filePath] = new DesignerAttributeDocumentData(filePath, attribute, containsErrors, notApplicable);
+                                builder[filePath] = new DesignerAttributeDocumentData(filePath, attribute);
                             }
 
                             return new DesignerAttributeProjectData(semanticVersion, builder.ToImmutable());
@@ -91,8 +89,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         var result = kvp.Value;
                         writer.WriteString(result.FilePath);
                         writer.WriteString(result.DesignerAttributeArgument);
-                        writer.WriteBoolean(result.ContainsErrors);
-                        writer.WriteBoolean(result.NotApplicable);
                     }
 
                     stream.Position = 0;
