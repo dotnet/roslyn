@@ -210,17 +210,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             expressionBody.TryConvertToBlock(GetSemicolonToken(declaration), CreateReturnStatementForExpression(declaration), out var block);
 
-            AccessorDeclarationSyntax accessor;
-            if (block == null)
-            {
-                accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                        .WithExpressionBody(expressionBody)
-                                        .WithSemicolonToken(semicolonToken);
-            }
-            else
-            {
-                accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, block);
-            }
+            var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);
+            accessor = block != null
+                ? accessor.WithBody(block)
+                : accessor.WithExpressionBody(expressionBody)
+                          .WithSemicolonToken(semicolonToken);
 
             return WithAccessorList(declaration, SyntaxFactory.AccessorList(
                 SyntaxFactory.SingletonList(accessor)));
