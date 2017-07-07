@@ -232,17 +232,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        private void VisitArray<T>(ImmutableArray<T> list, string header, bool logElementCount)
+        private void VisitArray<T>(IEnumerable<T> list, string header, bool logElementCount)
             where T : IOperation
         {
             Debug.Assert(!string.IsNullOrEmpty(header));
 
-            if (list.IsDefaultOrEmpty)
-            {
-                return;
-            }
-
-            var elementCount = logElementCount ? $"({list.Length})" : string.Empty;
+            var elementCount = logElementCount ? $"({list.Count()})" : string.Empty;
             Indent();
             LogString($"{header}{elementCount}: ");
             VisitArray(list);
