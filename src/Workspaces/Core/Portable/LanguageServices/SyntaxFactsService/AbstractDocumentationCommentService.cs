@@ -167,23 +167,28 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             foreach (var token in textTokens)
             {
                 var tokenText = token.ToString();
-                var trimmed = tokenText.Trim();
 
                 // Collapse all preceding trivia or whitespace for this token to a single space.
-                if (token.LeadingTrivia.Count > 0 || tokenText.TrimStart() != tokenText)
+                if (token.LeadingTrivia.Count > 0 || HasLeadingWhitespace(tokenText))
                 {
                     AddSpaceIfNotAlreadyThere(sb);
                 }
 
-                sb.Append(trimmed);
+                sb.Append(tokenText.Trim());
 
                 // Collapse all trailing trivia or whitespace for this token to a single space.
-                if (token.TrailingTrivia.Count > 0 || tokenText.TrimEnd() != tokenText)
+                if (token.TrailingTrivia.Count > 0 || HasTrailingWhitespace(tokenText))
                 {
                     AddSpaceIfNotAlreadyThere(sb);
                 }
             }
         }
+
+        private static bool HasLeadingWhitespace(string tokenText)
+            => tokenText.Length > 0 && char.IsWhiteSpace(tokenText[0]);
+
+        private static bool HasTrailingWhitespace(string tokenText)
+            => tokenText.Length > 0 && char.IsWhiteSpace(tokenText[tokenText.Length - 1]);
 
         public string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken)
             => GetBannerText((TDocumentationCommentTriviaSyntax)documentationCommentTriviaSyntax, cancellationToken);
