@@ -726,10 +726,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var initializer = (ISymbolInitializer)operationContext.Operation;
-                     Report(operationContext, initializer.Syntax, initializer.Kind == OperationKind.FieldInitializerInCreation ? DoNotUseFieldInitializerDescriptor : DoNotUsePropertyInitializerDescriptor);
+                     Report(operationContext, initializer.Syntax, initializer.Kind == OperationKind.FieldReferenceExpression ? DoNotUseFieldInitializerDescriptor : DoNotUsePropertyInitializerDescriptor);
                  },
-                 OperationKind.FieldInitializerInCreation,
-                 OperationKind.PropertyInitializerInCreation);
+                 OperationKind.FieldReferenceExpression,
+                 OperationKind.PropertyReferenceExpression);
         }
 
         private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)

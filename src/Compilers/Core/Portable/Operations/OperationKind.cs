@@ -157,12 +157,11 @@ namespace Microsoft.CodeAnalysis
 
         // Operations that are constituents of statements, expressions, or declarations.
 
-        /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
-        FieldInitializerInCreation = 0x400,
+
+        // Unused 0x400 and 0x402
+
         /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
         FieldInitializerAtDeclaration = 0x401,
-        /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
-        PropertyInitializerInCreation = 0x402,
         /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
         PropertyInitializerAtDeclaration = 0x403,
         /// <summary>Indicates an <see cref="IParameterInitializer"/>.</summary>
