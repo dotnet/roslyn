@@ -503,15 +503,143 @@ class C
         }
 
         [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
-        public void TestTupleType()
+        public void TestTwoItemTupleType()
         {
             UsingTree(@"
 class C
 {
     void M()
     {
-        // Currently not supported, but might be nice to have in the future.
         var added = ImmutableDictionary<(int, string), IImmutableDictionary<X, Y>>
+
+        ProjectChange = projectChange;
+    }
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "added");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "ImmutableDictionary");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.TupleType);
+                                                    {
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.TupleElement);
+                                                        {
+                                                            N(SyntaxKind.PredefinedType);
+                                                            {
+                                                                N(SyntaxKind.IntKeyword);
+                                                            }
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        N(SyntaxKind.TupleElement);
+                                                        {
+                                                            N(SyntaxKind.PredefinedType);
+                                                            {
+                                                                N(SyntaxKind.StringKeyword);
+                                                            }
+                                                        }
+                                                        N(SyntaxKind.CloseParenToken);
+                                                    }
+                                                    N(SyntaxKind.CommaToken);
+                                                    N(SyntaxKind.GenericName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "IImmutableDictionary");
+                                                        N(SyntaxKind.TypeArgumentList);
+                                                        {
+                                                            N(SyntaxKind.LessThanToken);
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "X");
+                                                            }
+                                                            N(SyntaxKind.CommaToken);
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "Y");
+                                                            }
+                                                            N(SyntaxKind.GreaterThanToken);
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "ProjectChange");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "projectChange");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        public void TestOneItemTupleType()
+        {
+            UsingTree(@"
+class C
+{
+    void M()
+    {
+        var added = ImmutableDictionary<(A), IImmutableDictionary<X, Y>>
 
         ProjectChange = projectChange;
     }
@@ -560,23 +688,12 @@ class C
                                                     N(SyntaxKind.IdentifierToken, "ImmutableDictionary");
                                                 }
                                                 N(SyntaxKind.LessThanToken);
-                                                N(SyntaxKind.TupleExpression);
+                                                N(SyntaxKind.ParenthesizedExpression);
                                                 {
                                                     N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.Argument);
+                                                    N(SyntaxKind.IdentifierName);
                                                     {
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                    }
-                                                    N(SyntaxKind.CommaToken);
-                                                    N(SyntaxKind.Argument);
-                                                    {
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.StringKeyword);
-                                                        }
+                                                        N(SyntaxKind.IdentifierToken, "A");
                                                     }
                                                     N(SyntaxKind.CloseParenToken);
                                                 }
@@ -1019,7 +1136,7 @@ class C
         }
 
         [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
-        public void TestGenericArg()
+        public void TestGenericArgWithComma()
         {
             UsingTree(@"
 class C
@@ -1068,49 +1185,48 @@ class C
                                         N(SyntaxKind.EqualsValueClause);
                                         {
                                             N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.LessThanExpression);
+                                            N(SyntaxKind.GenericName);
                                             {
-                                                N(SyntaxKind.IdentifierName);
+                                                N(SyntaxKind.IdentifierToken, "ImmutableDictionary");
+                                                N(SyntaxKind.TypeArgumentList);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken, "ImmutableDictionary");
-                                                }
-                                                N(SyntaxKind.LessThanToken);
-                                                N(SyntaxKind.GenericName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "T");
-                                                    N(SyntaxKind.TypeArgumentList);
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.GenericName);
                                                     {
-                                                        N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.IdentifierName);
+                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                        N(SyntaxKind.TypeArgumentList);
                                                         {
-                                                            N(SyntaxKind.IdentifierToken, "S");
+                                                            N(SyntaxKind.LessThanToken);
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "S");
+                                                            }
+                                                            N(SyntaxKind.GreaterThanToken);
                                                         }
-                                                        N(SyntaxKind.GreaterThanToken);
                                                     }
+                                                    N(SyntaxKind.CommaToken);
+                                                    N(SyntaxKind.GenericName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "IImmutableDictionary");
+                                                        N(SyntaxKind.TypeArgumentList);
+                                                        {
+                                                            N(SyntaxKind.LessThanToken);
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "X");
+                                                            }
+                                                            N(SyntaxKind.CommaToken);
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "Y");
+                                                            }
+                                                            N(SyntaxKind.GreaterThanToken);
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
                                                 }
                                             }
                                         }
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "IImmutableDictionary");
-                                    }
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
-                                N(SyntaxKind.LessThanExpression);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "X");
                                     }
                                 }
                                 M(SyntaxKind.SemicolonToken);
@@ -1119,22 +1235,115 @@ class C
                             {
                                 N(SyntaxKind.SimpleAssignmentExpression);
                                 {
-                                    N(SyntaxKind.RightShiftExpression);
+                                    N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Y");
-                                        }
-                                        N(SyntaxKind.GreaterThanGreaterThanToken);
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "ProjectChange");
-                                        }
+                                        N(SyntaxKind.IdentifierToken, "ProjectChange");
                                     }
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "projectChange");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(19456, "https://github.com/dotnet/roslyn/issues/19456")]
+        public void TestGenericArgWithGreaterThan()
+        {
+            UsingTree(@"
+class C
+{
+    void M()
+    {
+        var added = ImmutableDictionary<T<S>>
+
+        ProjectChange = projectChange;
+    }
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "added");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleAssignmentExpression);
+                                            {
+                                                N(SyntaxKind.LessThanExpression);
+                                                {
+                                                    N(SyntaxKind.LessThanExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "ImmutableDictionary");
+                                                        }
+                                                        N(SyntaxKind.LessThanToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "T");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.RightShiftExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "S");
+                                                        }
+                                                        N(SyntaxKind.GreaterThanGreaterThanToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "ProjectChange");
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.EqualsToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "projectChange");
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
