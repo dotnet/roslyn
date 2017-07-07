@@ -5497,4 +5497,8 @@
   <data name="WRN_Experimental_Title" xml:space="preserve">
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>
+  <data name="ERR_InvalidDebugInfo" xml:space="preserve">
+    <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
+  </data>
 </root>
+

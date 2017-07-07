@@ -306,22 +306,27 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                         {
                             return loadedAssemblyWithEqualNameAndVersionOpt.Assembly;
                         }
-
-                        // TODO: localize
+                        
                         // error: attempt to load an assembly with the same identity as already loaded assembly but different content
                         throw new InteractiveAssemblyLoaderException(
-                            $"Assembly '{identity.Name}, Version={identity.Version}' has already been loaded from '{loadedAssemblyWithEqualNameAndVersionOpt.LocationOpt}'. " +
-                            $"A different assembly with the same name and version can't be loaded: '{assemblyFilePathOpt}'.");
+                            string.Format(null, ScriptingResources.AssemblyAlreadyLoaded, 
+                            identity.Name, 
+                            identity.Version, 
+                            loadedAssemblyWithEqualNameAndVersionOpt.LocationOpt, 
+                            assemblyFilePathOpt)
+                        );
                     }
 
                     // TODO: Desktop FX only
                     if (!conflictingLoadedAssemblyOpt.IsDefault)
                     {
-                        // TODO: localize
                         // error: attempt to load an assembly with the same identity as already loaded assembly but different content
                         throw new InteractiveAssemblyLoaderException(
-                            $"Assembly '{identity.Name}' has already been loaded from '{conflictingLoadedAssemblyOpt.LocationOpt}'. " +
-                            $"A different assembly with the same name can't be loaded unless it's signed: '{assemblyFilePathOpt}'.");
+                            string.Format(null, ScriptingResources.AssemblyAlreadyLoadedNotSigned,
+                            identity.Name,
+                            conflictingLoadedAssemblyOpt.LocationOpt,
+                            assemblyFilePathOpt)
+                        );
                     }
 
                     assembly = ShadowCopyAndLoadDependency(assemblyFilePathOpt).Assembly;
