@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
@@ -728,7 +729,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // well, give up and insert at the top
-            return new TextSpan(_firstLineBlank ? this.StartPosition : this.EndPosition, 0);
+            Debug.Assert(!_firstLineBlank);
+            return new TextSpan(this.EndPosition, 0);
         }
 
         private void AddWhitespaceTrivia(
