@@ -5323,7 +5323,7 @@ tryAgain:
                             return ScanTypeFlags.NotType;
 
                         case ScanTypeFlags.MustBeType:
-                            // We're currently scannling a possible type-argument list.  But we're
+                            // We're currently scanning a possible type-argument list.  But we're
                             // not sure if this is actually a type argument list, or is maybe some
                             // complex relational expression with <'s and >'s.  One thing we can
                             // tell though is that if we have a predefined type (like 'int' or 'string')
