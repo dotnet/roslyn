@@ -105,6 +105,7 @@
     <Compile Include="Operations\IObjectCreationExpression.cs" />
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
     <Compile Include="Operations\IOperationWithChildren.cs" />
+    <Compile Include="Operations\IDefaultCaseClause.cs" />
     <Compile Include="Operations\Operation.cs" />
     <Compile Include="Operations\OperationKind.cs" />
     <Compile Include="Operations\IParameterInitializer.cs" />

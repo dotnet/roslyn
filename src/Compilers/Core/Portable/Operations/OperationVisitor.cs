@@ -65,6 +65,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitDefaultCaseClause(IDefaultCaseClause operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitIfStatement(IIfStatement operation)
         {
             DefaultVisit(operation);
@@ -491,6 +496,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitRangeCaseClause(IRangeCaseClause operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDefaultCaseClause(IDefaultCaseClause operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
