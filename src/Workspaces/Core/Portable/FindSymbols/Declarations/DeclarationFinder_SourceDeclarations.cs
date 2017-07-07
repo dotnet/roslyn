@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         #region Dispatch Members
 
         // These are the public entrypoints to finding source declarations.  They will attempt to
-        // remove the query to the OOP process, and will fallback to local processing if they can't.
+        // remote the query to the OOP process, and will fallback to local processing if they can't.
 
         public static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryAsync(
             Solution solution, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
@@ -134,6 +134,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
             Project project, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
+            {
+                return (false, ImmutableArray<SymbolAndProjectId>.Empty);
+            }
+
             var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
                 RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
@@ -153,6 +158,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindSourceDeclarationsWithPatternInRemoteProcessAsync(
             Project project, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
+            {
+                return (false, ImmutableArray<SymbolAndProjectId>.Empty);
+            }
+
             var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
                 RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
