@@ -118,9 +118,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
             else if (node is TXmlElementSyntax xmlElement)
             {
-                //AddSpaceIfNotAlreadyThere(sb);
                 HandleElement(xmlElement, sb);
-                //AddSpaceIfNotAlreadyThere(sb);
             }
             else if (node is TXmlEmptyElementSyntax xmlEmpty)
             {
