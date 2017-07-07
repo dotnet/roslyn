@@ -885,6 +885,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             propertyBlock = propertyBlock.WithAccessors(
                 SyntaxFactory.List(accessorDeclarations.OfType(Of AccessorBlockSyntax)))
 
+            Dim hasGetAccessor = propertyBlock.Accessors.Any(SyntaxKind.GetAccessorBlock)
+            Dim hasSetAccessor = propertyBlock.Accessors.Any(SyntaxKind.SetAccessorBlock)
+
+            If hasGetAccessor AndAlso Not hasSetAccessor Then
+                propertyBlock = DirectCast(WithModifiers(propertyBlock, GetModifiers(propertyBlock) Or DeclarationModifiers.ReadOnly), PropertyBlockSyntax)
+            ElseIf Not hasGetAccessor AndAlso hasSetAccessor Then
+                propertyBlock = DirectCast(WithModifiers(propertyBlock, GetModifiers(propertyBlock) Or DeclarationModifiers.WriteOnly), PropertyBlockSyntax)
+            ElseIf hasGetAccessor AndAlso hasSetAccessor Then
+                propertyBlock = DirectCast(WithModifiers(propertyBlock, GetModifiers(propertyBlock).WithIsReadOnly(False).WithIsWriteOnly(False)), PropertyBlockSyntax)
+            End If
+
             Return If(propertyBlock.Accessors.Count = 0,
                       propertyBlock.PropertyStatement,
                       DirectCast(propertyBlock, SyntaxNode))
