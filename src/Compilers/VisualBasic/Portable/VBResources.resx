@@ -5500,7 +5500,4 @@
   <data name="FEATURE_InterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
   </data>
-  <data name="ERRWRN_Last_Title" xml:space="preserve">
-    <value>** Title for ErrWrn_Last **</value>
-  </data>
 </root>
