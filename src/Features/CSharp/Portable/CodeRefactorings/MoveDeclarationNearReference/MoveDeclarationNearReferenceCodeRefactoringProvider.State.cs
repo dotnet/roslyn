@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                 LocalDeclarationStatementSyntax node,
                 CancellationToken cancellationToken)
             {
-                if (node == null)
+                if (node.Declaration.Variables.Count != 1)
                 {
                     return false;
                 }

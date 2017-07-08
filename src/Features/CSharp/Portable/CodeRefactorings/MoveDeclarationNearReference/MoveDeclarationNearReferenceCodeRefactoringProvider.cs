@@ -49,22 +49,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                 return;
             }
 
-            if (statement.Declaration.Variables.Count != 1)
-            {
-                return;
-            }
-
-            // Only offer the refactoring when somewhere in the type+name of the local variable.
-            if (position < statement.SpanStart || position > statement.Declaration.Variables[0].Identifier.Span.End)
-            {
-                return;
-            }
-
             var state = await State.GenerateAsync(document, statement, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
                 return;
             }
+
+            // Only offer the refactoring when somewhere in the type+name of the local variable.
+            if (position < statement.SpanStart || position > state.VariableDeclarator.Identifier.Span.End)
+            {
+                return;
+            }
+
 
             context.RegisterRefactoring(
                 new MyCodeAction(c => MoveDeclarationNearReferenceAsync(document, state, root, c)));
