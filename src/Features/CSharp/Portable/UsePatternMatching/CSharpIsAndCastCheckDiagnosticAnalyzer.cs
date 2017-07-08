@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var severity = styleOption.Notification.Value;
 
-            var isExpression = (BinaryExpressionSyntax)syntaxContext.Node;
-
             // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
             // in projects targetting a lesser version.
-            if (((CSharpParseOptions)isExpression.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
+            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
             {
                 return;
             }
+
+            var isExpression = (BinaryExpressionSyntax)syntaxContext.Node;
 
             // The is check has to be in an if check: "if (x is Type)
             if (!isExpression.Parent.IsKind(SyntaxKind.IfStatement))
