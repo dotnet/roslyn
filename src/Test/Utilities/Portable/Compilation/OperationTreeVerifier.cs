@@ -235,9 +235,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Debug.Assert(!string.IsNullOrEmpty(header));
 
             Indent();
-            if (!list.IsDefaultOrEmpty)
+            if (!list.IsEmpty())
             {
-                var elementCount = logElementCount ? $"({list.Length})" : string.Empty;
+                var elementCount = logElementCount ? $"({list.Count()})" : string.Empty;
                 LogString($"{header}{elementCount}:");
                 LogNewLine();
                 Indent();

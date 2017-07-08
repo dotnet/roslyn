@@ -298,20 +298,19 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'object /*<b ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'object /*<b ... *</bind>*/;')
     Variables: Local_1: System.Object o
     Initializer: INullCoalescingExpression (OperationKind.NullCoalescingExpression, Type: System.Object) (Syntax: 'new object( ... Exception()')
         Left: IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'new object()')
             Arguments(0)
-            Initializers(0)
+            Initializer: null
         Right: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'throw new Exception()')
-            IOperation:  (OperationKind.None) (Syntax: 'throw new Exception()')
-              Children(1):
-                  IObjectCreationExpression (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'new Exception()')
-                    Arguments(0)
-                    Initializers(0)
+            IThrowExpression (OperationKind.ThrowExpression, Type: null) (Syntax: 'throw new Exception()')
+              IObjectCreationExpression (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'new Exception()')
+                Arguments(0)
+                Initializer: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -708,14 +707,14 @@ class C1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'object /*<b ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'object /*<b ... *</bind>*/;')
     Variables: Local_1: System.Object o1
     Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'new C1()')
         IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1) (Syntax: 'new C1()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -737,14 +736,14 @@ class C1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'dynamic /*< ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'dynamic /*< ... *</bind>*/;')
     Variables: Local_1: dynamic d1
     Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: dynamic) (Syntax: 'new C1()')
         IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1) (Syntax: 'new C1()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -770,14 +769,14 @@ class C2 : C1
 {
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C1 /*<bind> ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'C1 /*<bind> ... *</bind>*/;')
     Variables: Local_1: C1 c1
     Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: C1) (Syntax: 'new C2()')
         IObjectCreationExpression (Constructor: C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'new C2()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -803,14 +802,14 @@ class C2
 {
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'C1 /*<bind> ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'C1 /*<bind> ... *</bind>*/;')
     Variables: Local_1: C1 c1
     Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: C1, IsInvalid) (Syntax: 'new C2()')
-        IObjectCreationExpression (Constructor: C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'new C2()')
+        IObjectCreationExpression (Constructor: C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'new C2()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C2' to 'C1'
@@ -875,14 +874,14 @@ class C1 : I1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
     Variables: Local_1: I1 i1
     Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: I1) (Syntax: 'new C1()')
         IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1) (Syntax: 'new C1()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -908,14 +907,14 @@ class C1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
     Variables: Local_1: I1 i1
     Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: I1, IsInvalid) (Syntax: 'new C1()')
-        IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1) (Syntax: 'new C1()')
+        IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid) (Syntax: 'new C1()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'C1' to 'I1'. An explicit conversion exists (are you missing a cast?)
@@ -1165,14 +1164,14 @@ struct S1 : I1
 {
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'I1[] /*<bin ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'I1[] /*<bin ... *</bind>*/;')
     Variables: Local_1: I1[] i1arr
     Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: I1[], IsInvalid) (Syntax: 'new S1[10]')
-        IArrayCreationExpression (Element Type: S1) (OperationKind.ArrayCreationExpression, Type: S1[]) (Syntax: 'new S1[10]')
+        IArrayCreationExpression (Element Type: S1) (OperationKind.ArrayCreationExpression, Type: S1[], IsInvalid) (Syntax: 'new S1[10]')
           Dimension Sizes(1):
-              ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+              ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
           Initializer: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1259,14 +1258,14 @@ class C1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Array /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Array /*<bi ... *</bind>*/;')
     Variables: Local_1: System.Array a1
     Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Array, IsInvalid) (Syntax: 'new object()')
-        IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'new object()')
+        IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid) (Syntax: 'new object()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'object' to 'System.Array'. An explicit conversion exists (are you missing a cast?)
@@ -1322,14 +1321,14 @@ class C1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'IList<int>  ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'IList<int>  ... *</bind>*/;')
     Variables: Local_1: System.Collections.Generic.IList<System.Int32> a1
     Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<System.Int32>, IsInvalid) (Syntax: 'new object()')
-        IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'new object()')
+        IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid) (Syntax: 'new object()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'object' to 'System.Collections.Generic.IList<int>'. An explicit conversion exists (are you missing a cast?)
@@ -1394,13 +1393,13 @@ class C1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Delegate /* ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Delegate /* ... *</bind>*/;')
     Variables: Local_1: System.Delegate d2
     Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Delegate, IsInvalid) (Syntax: 'd1()')
-        IInvocationExpression (virtual void C1.DType.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'd1()')
-          Instance Receiver: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: C1.DType) (Syntax: 'd1')
+        IInvocationExpression (virtual void C1.DType.Invoke()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'd1()')
+          Instance Receiver: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: C1.DType, IsInvalid) (Syntax: 'd1')
           Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1586,7 +1585,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'DType /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'DType /*<bi ... *</bind>*/;')
     Variables: Local_1: Program.DType d1
@@ -1596,7 +1595,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
                 Children(0)
-            IReturnStatement (OperationKind.ReturnStatement) (Syntax: '')
+            IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '')
             null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1661,14 +1660,14 @@ class C3 : C2
 {
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C1 /*<bind> ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'C1 /*<bind> ... *</bind>*/;')
     Variables: Local_1: C1 c1
     Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: C1) (Syntax: 'new C3()')
         IObjectCreationExpression (Constructor: C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3) (Syntax: 'new C3()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1866,14 +1865,14 @@ class C1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'IList<strin ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'IList<strin ... *</bind>*/;')
     Variables: Local_1: System.Collections.Generic.IList<System.String> list
     Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<System.String>) (Syntax: 'new List<string>()')
         IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.String>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.String>) (Syntax: 'new List<string>()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2214,14 +2213,14 @@ struct S1
 }
 
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'ValueType / ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ValueType / ... *</bind>*/;')
     Variables: Local_1: System.ValueType v1
     Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.ValueType) (Syntax: 'new S1()')
         IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1) (Syntax: 'new S1()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2244,14 +2243,14 @@ class C1
 }
 
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'ValueType / ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'ValueType / ... *</bind>*/;')
     Variables: Local_1: System.ValueType v1
     Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.ValueType, IsInvalid) (Syntax: 'new C1()')
-        IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1) (Syntax: 'new C1()')
+        IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid) (Syntax: 'new C1()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C1' to 'System.ValueType'
@@ -2279,14 +2278,14 @@ struct S1 : I1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
     Variables: Local_1: I1 i1
     Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: I1) (Syntax: 'new S1()')
         IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1) (Syntax: 'new S1()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2310,14 +2309,14 @@ struct S1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
     Variables: Local_1: I1 i1
     Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: I1, IsInvalid) (Syntax: 'new S1()')
-        IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1) (Syntax: 'new S1()')
+        IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1, IsInvalid) (Syntax: 'new S1()')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'S1' to 'I1'
@@ -3462,12 +3461,12 @@ enum E2 : byte
 
             // Note: The lack of a constant value for the conversion is expected here, it matches the semantic model.
             // Because the enum value is larger than the destination enum, the conversion is bad
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'E2 /*<bind> ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'E2 /*<bind> ... *</bind>*/;')
     Variables: Local_1: E2 e2
-    Initializer: IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: E2, Constant: null) (Syntax: '(E2)E1.One')
-        IFieldReferenceExpression: E1.One (Static) (OperationKind.FieldReferenceExpression, Type: E1, Constant: 1000) (Syntax: 'E1.One')
+    Initializer: IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: E2, Constant: null, IsInvalid) (Syntax: '(E2)E1.One')
+        IFieldReferenceExpression: E1.One (Static) (OperationKind.FieldReferenceExpression, Type: E1, Constant: 1000, IsInvalid) (Syntax: 'E1.One')
           Instance Receiver: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -4608,7 +4607,7 @@ class C1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action /*<b ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action /*<b ... *</bind>*/;')
     Variables: Local_1: System.Action a
@@ -4616,8 +4615,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: '() => 1')
           IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '1')
             IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '1')
-              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-            IReturnStatement (OperationKind.ReturnStatement) (Syntax: '1')
+              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '1')
             null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -4702,15 +4701,15 @@ class C1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action( ... )(() => 1))')
   Children(1):
       IConversionExpression (ConversionKind.Invalid, Explicit) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)(() => 1)')
         ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: '() => 1')
           IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '1')
             IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '1')
-              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-            IReturnStatement (OperationKind.ReturnStatement) (Syntax: '1')
+              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '1')
             null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -4736,12 +4735,12 @@ class C1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action( ... s) => { }))')
   Children(1):
       IConversionExpression (ConversionKind.Invalid, Explicit) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)((s ...  s) => { })')
-        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '(string s) => { }')
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: '(string s) => { }')
+          IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1593: Delegate 'Action' does not take 1 arguments
@@ -4893,11 +4892,11 @@ class C1
     void M2(int i) { }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action((Action)M2)')
   Children(1):
       IConversionExpression (ConversionKind.Invalid, Explicit) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M2')
-        IOperation:  (OperationKind.None) (Syntax: 'M2')
+        IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'method' to 'Action'
@@ -4924,11 +4923,11 @@ class C1
     int M2() { }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action((Action)M2)')
   Children(1):
       IMethodBindingExpression: System.Int32 C1.M2() (OperationKind.MethodBindingExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M2')
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
+        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int C1.M2()' has the wrong return type

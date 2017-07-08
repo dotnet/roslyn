@@ -45,8 +45,9 @@ class C
 }
 ";
 string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1')
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')";
+IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1')
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0414: The field 'C.s1' is assigned but its value is never used
                 //     static int s1 /*<bind>*/= 1/*</bind>*/;
@@ -66,7 +67,7 @@ class C
 }
 ";
 string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 2')
+IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializer) (Syntax: '= 2')
   ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -156,7 +157,7 @@ class C
 }
 ";
 string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1 + F()')
+IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
@@ -182,7 +183,7 @@ class C
 }
 ";
 string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1 + F()')
+IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
@@ -206,7 +207,7 @@ class C
 }
 ";
 string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1 + F()')
+IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
@@ -235,7 +236,7 @@ partial class C
 }
 ";
 string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1')
+IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -273,7 +274,7 @@ partial class C
 }
 ";
 string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 2')
+IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializer) (Syntax: '= 2')
   ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -306,7 +307,7 @@ class C
 }
 ";
 string expectedOperationTree = @"
-IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= MakeAction(1)')
+IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializer) (Syntax: '= MakeAction(1)')
   IInvocationExpression (System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(1)')
     Instance Receiver: null
     Arguments(1):
@@ -332,7 +333,7 @@ class C
 }
 ";
 string expectedOperationTree = @"
-IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= MakeAction(2)')
+IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializer) (Syntax: '= MakeAction(2)')
   IInvocationExpression (System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(2)')
     Instance Receiver: null
     Arguments(1):

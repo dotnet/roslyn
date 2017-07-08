@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -376,12 +376,12 @@ Module Program
     End Sub
 End Module]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i As Integer = A.Two')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
     Variables: Local_1: i As System.Int32
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 2) (Syntax: 'A.Two')
-        IFieldReferenceExpression: Program.A.Two (Static) (OperationKind.FieldReferenceExpression, Type: Program.A, Constant: 2) (Syntax: 'A.Two')
+    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: 'A.Two')
+        IFieldReferenceExpression: Program.A.Two (Static) (OperationKind.FieldReferenceExpression, Type: Program.A, Constant: 2, IsInvalid) (Syntax: 'A.Two')
           Instance Receiver: null
 ]]>.Value
 
@@ -770,16 +770,16 @@ Module Program
     End Sub
 End Module]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... End Sub')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: 'Sub(i As In ... End Sub')
-        ILambdaExpression (Signature: Sub (i As System.Int32)) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Sub(i As In ... End Sub')
-          IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'Sub(i As In ... End Sub')
-            ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
+        ILambdaExpression (Signature: Sub (i As System.Int32)) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
+          IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
+            ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'End Sub')
             null
-            IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+            IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'End Sub')
             null
 ]]>.Value
 
@@ -875,16 +875,16 @@ Module Program
     End Sub
 End Module]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Fu ... End Sub')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Func(Of System.Int32)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32)) (Syntax: 'Sub()'BIND: ... End Sub')
-        ILambdaExpression (Signature: Sub ()) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
-          IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'Sub()'BIND: ... End Sub')
-            ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32), IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
+        ILambdaExpression (Signature: Sub ()) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
+          IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
+            ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'End Sub')
             null
-            IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+            IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'End Sub')
             null
 ]]>.Value
 
@@ -1172,14 +1172,14 @@ Module Program
     End Sub
 End Module]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ar ...  New Object')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Array
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Array) (Syntax: 'New Object')
-        IObjectCreationExpression (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'New Object')
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Array, IsInvalid) (Syntax: 'New Object')
+        IObjectCreationExpression (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid) (Syntax: 'New Object')
           Arguments(0)
-          Initializers(0)
+          Initializer: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1924,14 +1924,14 @@ Module Module1
 End Module
 ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const s As SByte = i')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's')
     Variables: Local_1: s As System.SByte
     Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i')
         Children(1):
-            IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.SByte) (Syntax: 'i')
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+            IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid) (Syntax: 'i')
+              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2005,7 +2005,7 @@ Module Module1
 End Module
 ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim expr As ... on(num) num')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'expr')
     Variables: Local_1: expr As System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))
@@ -2013,13 +2013,13 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         ILambdaExpression (Signature: Function (num As System.Int32) As System.Boolean) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Function(num) num')
           IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function(num) num')
             Locals: Local_1: <anonymous local> As System.Boolean
-            IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'num')
-              IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean) (Syntax: 'num')
-                IParameterReferenceExpression: num (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'num')
-            ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'Function(num) num')
+            IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'num')
+              IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'num')
+                IParameterReferenceExpression: num (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'num')
+            ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'Function(num) num')
             null
-            IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function(num) num')
-              ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'Function(num) num')
+            IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function(num) num')
+              ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Boolean, IsInvalid) (Syntax: 'Function(num) num')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2096,14 +2096,17 @@ Module Program
     End Sub
 End Module]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim formatt ... o world!"}"')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'formattable')
     Variables: Local_1: formattable As System.IFormattable
     Initializer: IConversionExpression (ConversionKind.InterpolatedString, Implicit) (OperationKind.ConversionExpression, Type: System.IFormattable) (Syntax: '$"{"Hello world!"}"')
         IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{"Hello world!"}"')
-          Parts(1): IInterpolation (OperationKind.Interpolation) (Syntax: '{"Hello world!"}')
-              Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello world!") (Syntax: '"Hello world!"')
+          Parts(1):
+              IInterpolation (OperationKind.Interpolation) (Syntax: '{"Hello world!"}')
+                Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello world!") (Syntax: '"Hello world!"')
+                Alignment: null
+                FormatString: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

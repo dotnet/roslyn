@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -87,7 +87,10 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"IReturnStatement (OperationKind.YieldBreakStatement) (Syntax: 'yield break;')";
+string expectedOperationTree = @"
+IReturnStatement (OperationKind.YieldBreakStatement) (Syntax: 'yield break;')
+null
+";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<YieldStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);

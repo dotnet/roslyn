@@ -333,7 +333,7 @@ ILocalFunctionStatement (Local Function: void Foo(out System.Int32 y)) (Operatio
     IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
       IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
         Children(0)
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: '=> ')
+    IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '=> ')
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -364,9 +364,9 @@ class C
 }
 ";
 string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: void Foo()) (OperationKind.LocalFunctionStatement) (Syntax: 'void Foo( { }')
-  IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
+ILocalFunctionStatement (Local Function: void Foo()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void Foo( { }')
+  IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
+    IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '{ }')
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
