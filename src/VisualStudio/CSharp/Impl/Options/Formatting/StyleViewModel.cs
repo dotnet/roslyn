@@ -451,10 +451,10 @@ class Customer
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        var tuple = (age, name); 
+        var tuple = (age, name);
 
         // {ServicesVSResources.Over_colon}
-        var tuple = (age: age, name: name); 
+        var tuple = (age: age, name: name);
 //]
     }}
 }}
@@ -469,10 +469,10 @@ class Customer
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        var anon = new {{ age, name }}; 
+        var anon = new {{ age, name }};
 
         // {ServicesVSResources.Over_colon}
-        var anon = new {{ age=age, name=name }}; 
+        var anon = new {{ age = age, name = name }};
 //]
     }}
 }}

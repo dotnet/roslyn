@@ -54,16 +54,24 @@ End Class")
         End Function
 
         <Fact>
-        Public Async Function TestNoFixAllInferredTupleName() As Task
-            Await TestActionCountAsync(
+        Public Async Function TestFixAllInferredTupleName() As Task
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Sub M()
-        Dim a As Integer = 2
-        Dim t = (1, [||]a:=a)
+        Dim a As Integer = 1
+        Dim b As Integer = 2
+        Dim t = ({|FixAllInDocument:a:=|}a, b:=b)
     End Sub
 End Class",
-count:=1)
+"
+Class C
+    Sub M()
+        Dim a As Integer = 1
+        Dim b As Integer = 2
+        Dim t = (a, b)
+    End Sub
+End Class")
         End Function
 
         <Fact>
@@ -86,16 +94,25 @@ End Class")
         End Function
 
         <Fact>
-        Public Async Function TestNoFixAllInferredAnonymousTypeMemberName() As Task
-            Await TestActionCountAsync(
+        Public Async Function TestFixAllInferredAnonymousTypeMemberName() As Task
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Sub M()
         Dim a As Integer = 1
-        Dim t = New With {[||].a = a, .b = 2}
+        Dim b As Integer = 2
+        Dim t = New With {{|FixAllInDocument:.a =|} a, .b = b}
     End Sub
 End Class",
-count:=1)
+"
+Class C
+    Sub M()
+        Dim a As Integer = 1
+        Dim b As Integer = 2
+        Dim t = New With { a, b }
+    End Sub
+End Class")
         End Function
+
     End Class
 End Namespace

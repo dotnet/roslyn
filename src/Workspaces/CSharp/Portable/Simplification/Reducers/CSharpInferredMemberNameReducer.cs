@@ -2,6 +2,7 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
@@ -24,18 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        private static readonly Func<ArgumentSyntax, SemanticModel, OptionSet, CancellationToken, ArgumentSyntax> s_simplifyTupleName = SimplifyTupleName;
-
-        private static ArgumentSyntax SimplifyTupleName(ArgumentSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
-        {
-            if (CanSimplifyTupleElementName(node))
-            {
-                return node.WithNameColon(null).WithTriviaFrom(node);
-            }
-            return node;
-        }
-
-        internal static bool CanSimplifyTupleElementName(ArgumentSyntax node)
+        internal static bool CanSimplifyTupleElementName(ArgumentSyntax node, CSharpParseOptions parseOptions, OptionSet optionSet)
         {
             // Tuple elements are arguments in a tuple expression
             if (node.NameColon == null || !node.IsParentKind(SyntaxKind.TupleExpression))
@@ -43,8 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return false;
             }
 
-            var inferredName = node.Expression.TryGetInferredMemberName();
+            if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_1 ||
+                !optionSet.GetOption(CSharpCodeStyleOptions.PreferInferredTupleNames).Value)
+            {
+                return false;
+            }
 
+            var inferredName = node.Expression.TryGetInferredMemberName();
             if (inferredName == null || inferredName != node.NameColon.Name.Identifier.ValueText)
             {
                 return false;
@@ -53,27 +48,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return true;
         }
 
-        private static readonly Func<AnonymousObjectMemberDeclaratorSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyAnonymousTypeMemberName = SimplifyAnonymousTypeMemberName;
-
-        private static SyntaxNode SimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken canellationToken)
-        {
-            if (CanSimplifyAnonymousTypeMemberName(node))
-            {
-                return node.WithNameEquals(null).WithTriviaFrom(node);
-            }
-
-            return node;
-        }
-
-        internal static bool CanSimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node)
+        internal static bool CanSimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, OptionSet optionSet)
         {
             if (node.NameEquals == null)
             {
                 return false;
             }
 
-            var inferredName = node.Expression.TryGetInferredMemberName();
+            if (!optionSet.GetOption(CSharpCodeStyleOptions.PreferInferredAnonymousTypeMemberNames).Value)
+            {
+                return false;
+            }
 
+            var inferredName = node.Expression.TryGetInferredMemberName();
             if (inferredName == null || inferredName != node.NameEquals.Name.Identifier.ValueText)
             {
                 return false;

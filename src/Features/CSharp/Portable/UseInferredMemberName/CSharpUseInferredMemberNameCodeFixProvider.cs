@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             foreach (var diagnostic in diagnostics)
             {
                 var nameColon = root.FindNode(diagnostic.Location.SourceSpan);
-                editor.RemoveNode(nameColon);
+                editor.RemoveNode(nameColon, SyntaxRemoveOptions.KeepExteriorTrivia);
             }
 
             return SpecializedTasks.EmptyTask;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_inferred_member_name, createChangedDocument)
+                : base(FeaturesResources.Use_inferred_member_name, createChangedDocument, FeaturesResources.Use_inferred_member_name)
             {
             }
         }

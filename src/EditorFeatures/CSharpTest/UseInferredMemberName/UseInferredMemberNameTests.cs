@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InferredMemberName
             => (new CSharpUseInferredMemberNameDiagnosticAnalyzer(), new CSharpUseInferredMemberNameCodeFixProvider());
 
         private static readonly CSharpParseOptions s_parseOptions =
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7);
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1);
 
         [Fact]
         public async Task TestInferredTupleName()
@@ -45,9 +45,9 @@ class C
         }
 
         [Fact]
-        public async Task TestInferredTupleName2()
+        public async Task TestInferredTupleNameAfterCommaWithCSharp6()
         {
-            await TestAsync(
+            await TestActionCountAsync(
 @"
 class C
 {
@@ -56,20 +56,11 @@ class C
         int a = 2;
         var t = (1, [||]a: a);
     }
-}",
-@"
-class C
-{
-    void M()
-    {
-        int a = 2;
-        var t = (1, a);
-    }
-}", parseOptions: s_parseOptions);
+}", count: 0, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
         [Fact]
-        public async Task TestNoFixAllInferredTupleName()
+        public async Task TestInferredTupleNameAfterCommaWithCSharp7()
         {
             await TestActionCountAsync(
 @"
@@ -77,12 +68,36 @@ class C
 {
     void M()
     {
+        int a = 2;
+        var t = (1, [||]a: a);
+    }
+}", count: 0, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
+        }
+
+        [Fact]
+        public async Task TestFixAllInferredTupleNameWithTrivia()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
         int a = 1;
         int b = 2;
-        var t = ([||]a: a, b: b);
+        var t = ( /*before*/ {|FixAllInDocument:a:|} /*middle*/ a /*after*/, /*before*/ b: /*middle*/ b /*after*/);
     }
 }",
-count: 1);
+@"
+class C
+{
+    void M()
+    {
+        int a = 1;
+        int b = 2;
+        var t = ( /*before*/  /*middle*/ a /*after*/, /*before*/  /*middle*/ b /*after*/);
+    }
+}", parseOptions: s_parseOptions, ignoreTrivia: false);
         }
 
         [Fact]
@@ -109,10 +124,11 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
+
         [Fact]
-        public async Task TestNoFixAllInferredAnonymousTypeMemberName()
+        public async Task TestFixAllInferredAnonymousTypeMemberNameWithTrivia()
         {
-            await TestActionCountAsync(
+            await TestAsync(
 @"
 class C
 {
@@ -120,10 +136,19 @@ class C
     {
         int a = 1;
         int b = 2;
-        var t = new { [||]a=a, b=b };
+        var t = new { /*before*/ {|FixAllInDocument:a =|} /*middle*/ a /*after*/, /*before*/ b = /*middle*/ b /*after*/ };
     }
 }",
-count: 1);
+@"
+class C
+{
+    void M()
+    {
+        int a = 1;
+        int b = 2;
+        var t = new { /*before*/  /*middle*/ a /*after*/, /*before*/  /*middle*/ b /*after*/ };
+    }
+}", parseOptions: s_parseOptions, ignoreTrivia: false);
         }
     }
 }

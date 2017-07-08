@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 {
-    // REVIEW Ignoring VB for now. Can I factor the logic with IOperation?
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpUseInferredMemberNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
@@ -54,17 +53,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             }
         }
 
-        private bool ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context, OptionSet optionSet, SyntaxTree syntaxTree)
+        private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context, OptionSet optionSet, SyntaxTree syntaxTree)
         {
             if (!nameColon.IsParentKind(SyntaxKind.Argument))
             {
-                return false;
+                return;
             }
 
             var argument = (ArgumentSyntax)nameColon.Parent;
-            if (!CSharpInferredMemberNameReducer.CanSimplifyTupleElementName(argument))
+            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
+            if (!CSharpInferredMemberNameReducer.CanSimplifyTupleElementName(argument, parseOptions, optionSet))
             {
-                return false;
+                return;
             }
 
             // Create a normal diagnostic
@@ -79,21 +79,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 Diagnostic.Create(
                     UnnecessaryWithoutSuggestionDescriptor,
                     syntaxTree.GetLocation(fadeSpan)));
-
-            return true;
         }
 
-        private bool ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context, OptionSet optionSet, SyntaxTree syntaxTree)
+        private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context, OptionSet optionSet, SyntaxTree syntaxTree)
         {
             if (!nameEquals.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator))
             {
-                return false;
+                return;
             }
 
             var anonCtor = (AnonymousObjectMemberDeclaratorSyntax)nameEquals.Parent;
-            if (!CSharpInferredMemberNameReducer.CanSimplifyAnonymousTypeMemberName(anonCtor))
+            if (!CSharpInferredMemberNameReducer.CanSimplifyAnonymousTypeMemberName(anonCtor, optionSet))
             {
-                return false;
+                return;
             }
 
             // Create a normal diagnostic
@@ -108,8 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 Diagnostic.Create(
                     UnnecessaryWithoutSuggestionDescriptor,
                     syntaxTree.GetLocation(fadeSpan)));
-
-            return true;
         }
     }
 }

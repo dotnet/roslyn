@@ -184,6 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferPatternMatchingOverIsWithCastCheck;
             yield return PreferBraces;
             yield return PreferSimpleDefaultExpression;
+            yield return PreferInferredTupleNames;
+            yield return PreferInferredAnonymousTypeMemberNames;
         }
 
         public static IEnumerable<Option<CodeStyleOption<ExpressionBodyPreference>>> GetExpressionBodyOptions()

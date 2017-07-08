@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             Dim parseOptions = DirectCast(syntaxTree.Options, VisualBasicParseOptions)
             Select Case context.Node.Kind()
                 Case SyntaxKind.NameColonEquals
-                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NameColonEqualsSyntax), context, optionSet, syntaxTree)
+                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NameColonEqualsSyntax), context, optionSet, syntaxTree, parseOptions)
                     Exit Select
                 Case SyntaxKind.NamedFieldInitializer
                     ReportDiagnosticsIfNeeded(DirectCast(context.Node, NamedFieldInitializerSyntax), context, optionSet, syntaxTree)
@@ -55,16 +55,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             End Select
         End Sub
 
-        Private Function ReportDiagnosticsIfNeeded(nameColonEquals As NameColonEqualsSyntax, context As SyntaxNodeAnalysisContext,
-                                                   optionSet As OptionSet, syntaxTree As SyntaxTree) As Boolean
+        Private Sub ReportDiagnosticsIfNeeded(nameColonEquals As NameColonEqualsSyntax, context As SyntaxNodeAnalysisContext,
+            optionSet As OptionSet, syntaxTree As SyntaxTree, parseOptions As VisualBasicParseOptions)
 
             If Not nameColonEquals.IsParentKind(SyntaxKind.SimpleArgument) Then
-                Return False
+                Return
             End If
 
             Dim argument = DirectCast(nameColonEquals.Parent, SimpleArgumentSyntax)
-            If Not VisualBasicInferredMemberNameReducer.CanSimplifyTupleName(argument) Then
-                Return False
+            If Not VisualBasicInferredMemberNameReducer.CanSimplifyTupleName(argument, parseOptions, optionSet) Then
+                Return
             End If
 
             ' Create a normal diagnostic
@@ -79,15 +79,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 Diagnostic.Create(
                     UnnecessaryWithoutSuggestionDescriptor,
                     syntaxTree.GetLocation(fadeSpan)))
+        End Sub
 
-            Return True
-        End Function
+        Private Sub ReportDiagnosticsIfNeeded(fieldInitializer As NamedFieldInitializerSyntax, context As SyntaxNodeAnalysisContext,
+                                                   optionSet As OptionSet, syntaxTree As SyntaxTree)
 
-        Private Function ReportDiagnosticsIfNeeded(fieldInitializer As NamedFieldInitializerSyntax, context As SyntaxNodeAnalysisContext,
-                                                   optionSet As OptionSet, syntaxTree As SyntaxTree) As Boolean
-
-            If Not VisualBasicInferredMemberNameReducer.CanSimplifyNamedFieldInitializer(fieldInitializer) Then
-                Return False
+            If Not VisualBasicInferredMemberNameReducer.CanSimplifyNamedFieldInitializer(fieldInitializer, optionSet) Then
+                Return
             End If
 
             ' Create a normal diagnostic
@@ -102,8 +100,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 Diagnostic.Create(
                     UnnecessaryWithoutSuggestionDescriptor,
                     syntaxTree.GetLocation(fadeSpan)))
-
-            Return True
-        End Function
+        End Sub
     End Class
 End Namespace

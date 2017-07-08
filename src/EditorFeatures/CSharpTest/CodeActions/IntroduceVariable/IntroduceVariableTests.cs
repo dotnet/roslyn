@@ -4073,7 +4073,7 @@ class Program
     {
         int a = 1;
         int {|Rename:y1|} = C.y;
-        var t = (a, x: y1);
+        var t = (a: a, x: y1);
     }
 }";
 
@@ -4102,7 +4102,7 @@ class Program
     {
         int x = 1;
         int {|Rename:y1|} = C.y;
-        var t = (x, y: y1);
+        var t = (x: x, y: y1);
     }
 }";
 
@@ -4132,7 +4132,7 @@ class Program
     {
         int x = 1;
         int {|Rename:y1|} = C.y;
-        var t = (x, y: y1);
+        var t = (x: x, y: y1);
         var t2 = (y: y1, x);
     }
 }";

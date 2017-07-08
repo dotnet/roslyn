@@ -14,11 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
     Friend Class VisualBasicUseInferredMemberNameCodeFixProvider
         Inherits SyntaxEditorBasedCodeFixProvider
 
-        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
-            Get
-                Return ImmutableArray.Create(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId)
-            End Get
-        End Property
+        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
+            ImmutableArray.Create(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId)
 
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             context.RegisterCodeFix(New MyCodeAction(
@@ -37,12 +34,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 Dim node = root.FindNode(diagnostic.Location.SourceSpan)
                 Select Case node.Kind
                     Case SyntaxKind.NameColonEquals
-                        editor.RemoveNode(node)
+                        editor.RemoveNode(node, SyntaxRemoveOptions.KeepExteriorTrivia)
                         Exit Select
 
                     Case SyntaxKind.NamedFieldInitializer
                         Dim namedFieldInitializer = DirectCast(node, NamedFieldInitializerSyntax)
-                        Dim inferredFieldInitializer = SyntaxFactory.InferredFieldInitializer(namedFieldInitializer.Expression).WithTriviaFrom(namedFieldInitializer)
+                        Dim inferredFieldInitializer = SyntaxFactory.InferredFieldInitializer(namedFieldInitializer.Expression).
+                            WithTriviaFrom(namedFieldInitializer)
                         editor.ReplaceNode(namedFieldInitializer, inferredFieldInitializer)
                         Exit Select
                 End Select
@@ -54,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
         Private Class MyCodeAction
             Inherits CodeAction.DocumentChangeAction
             Public Sub New(createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(FeaturesResources.Use_inferred_member_name, createChangedDocument)
+                MyBase.New(FeaturesResources.Use_inferred_member_name, createChangedDocument, FeaturesResources.Use_inferred_member_name)
 
             End Sub
         End Class
