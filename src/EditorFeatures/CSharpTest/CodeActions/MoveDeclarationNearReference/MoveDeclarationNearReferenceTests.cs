@@ -544,7 +544,7 @@ class X
     {
         unchecked
         {
-            var a = Foo(X => (byte)X.Value, (object)null);
+            {|Warning:var a = Foo(X => (byte)X.Value, (object)null);|}
             Console.WriteLine(a);
         }
     }

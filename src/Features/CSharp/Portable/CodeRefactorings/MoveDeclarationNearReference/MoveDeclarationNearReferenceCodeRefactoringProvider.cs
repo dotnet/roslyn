@@ -152,25 +152,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
             var firstStatement = state.FirstStatementAffectedInInnermostBlock;
             var localSymbol = state.LocalSymbol;
 
-            if (firstStatement is ExpressionStatementSyntax expressionStatement &&
-                expressionStatement.Expression is AssignmentExpressionSyntax assignmentExpression &&
-                assignmentExpression.Kind() == SyntaxKind.SimpleAssignmentExpression &&
-                assignmentExpression.Left is IdentifierNameSyntax identifierName &&
-                identifierName.Identifier.ValueText == localSymbol.Name)
+            if (state.VariableDeclarator.Initializer == null ||
+                state.VariableDeclarator.Initializer.Value is LiteralExpressionSyntax)
             {
-
-                // Can only merge if the declaration had a non-var type, or if it was 'var' and the
-                // types match.
-                var type = state.VariableDeclaration.Type;
-                if (type.IsVar)
+                if (firstStatement is ExpressionStatementSyntax expressionStatement &&
+                    expressionStatement.Expression is AssignmentExpressionSyntax assignmentExpression &&
+                    assignmentExpression.Kind() == SyntaxKind.SimpleAssignmentExpression &&
+                    assignmentExpression.Left is IdentifierNameSyntax identifierName &&
+                    identifierName.Identifier.ValueText == localSymbol.Name)
                 {
-                    // Type inference.  Only merge if types match.
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var rightType = semanticModel.GetTypeInfo(assignmentExpression.Right, cancellationToken);
-                    return Equals(localSymbol.Type, rightType.Type);
-                }
 
-                return true;
+                    // Can only merge if the declaration had a non-var type, or if it was 'var' and the
+                    // types match.
+                    var type = state.VariableDeclaration.Type;
+                    if (type.IsVar)
+                    {
+                        // Type inference.  Only merge if types match.
+                        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        var rightType = semanticModel.GetTypeInfo(assignmentExpression.Right, cancellationToken);
+                        return Equals(localSymbol.Type, rightType.Type);
+                    }
+
+                    return true;
+                }
             }
 
             return false;
