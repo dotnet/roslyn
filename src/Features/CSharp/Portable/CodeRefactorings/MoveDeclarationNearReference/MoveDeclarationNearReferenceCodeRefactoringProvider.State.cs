@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearReference
 {
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
             public StatementSyntax FirstStatementAffectedInInnermostBlock { get; private set; }
 
             internal static async Task<State> GenerateAsync(
-                SemanticDocument document,
+                Document document,
                 LocalDeclarationStatementSyntax statement,
                 CancellationToken cancellationToken)
             {
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
             }
 
             private async Task<bool> TryInitializeAsync(
-                SemanticDocument document,
+                Document document,
                 LocalDeclarationStatementSyntax node,
                 CancellationToken cancellationToken)
             {
@@ -49,16 +50,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                 }
 
                 this.DeclarationStatement = node;
-                if (!(this.DeclarationStatement.IsParentKind(SyntaxKind.Block) &&
-                      this.DeclarationStatement.Declaration.Variables.Count == 1))
+                if (!this.DeclarationStatement.IsParentKind(SyntaxKind.Block))
                 {
                     return false;
                 }
 
                 this.VariableDeclaration = this.DeclarationStatement.Declaration;
                 this.VariableDeclarator = this.VariableDeclaration.Variables[0];
-                this.OutermostBlock = (BlockSyntax)this.DeclarationStatement.Parent;
-                this.LocalSymbol = (ILocalSymbol)document.SemanticModel.GetDeclaredSymbol(this.VariableDeclarator, cancellationToken);
+                this.OutermostBlock = this.DeclarationStatement.Parent as BlockSyntax;
+                if (OutermostBlock == null)
+                {
+                    return false;
+                }
+
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                this.LocalSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(this.VariableDeclarator, cancellationToken);
                 if (this.LocalSymbol == null)
                 {
                     // This can happen in broken code, for example: "{ object x; object }"
@@ -78,13 +84,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                     return false;
                 }
 
-                var syntaxTree = document.SyntaxTree;
+                var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var referencingStatements =
                     (from r in references
-                     let token = document.Root.FindToken(r.Location.SourceSpan.Start)
+                     let token = syntaxRoot.FindToken(r.Location.SourceSpan.Start)
                      let statement = token.GetAncestor<StatementSyntax>()
                      where statement != null
-                     select statement).ToList();
+                     select statement).ToSet();
 
                 if (referencingStatements.Count == 0)
                 {
@@ -133,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                     ? this.InnermostBlock.OpenBraceToken
                     : (SyntaxNodeOrToken)this.InnermostBlock.Statements[firstStatementIndexAffectedInBlock - 1];
                 var affectedSpan = TextSpan.FromBounds(previousNodeOrToken.SpanStart, FirstStatementAffectedInInnermostBlock.Span.End);
-                if (syntaxTree.OverlapsHiddenPosition(affectedSpan, cancellationToken))
+                if (semanticModel.SyntaxTree.OverlapsHiddenPosition(affectedSpan, cancellationToken))
                 {
                     return false;
                 }
