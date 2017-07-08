@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
 
                 if (block.Parent is ParenthesizedLambdaExpressionSyntax ||
                     block.Parent is SimpleLambdaExpressionSyntax ||
+                    block.Parent is LocalFunctionStatementSyntax ||
                     block.Parent is AnonymousMethodExpressionSyntax ||
                     block.Parent is CommonForEachStatementSyntax ||
                     block.Parent is ForStatementSyntax ||
@@ -152,44 +153,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
         {
             var firstStatement = state.FirstStatementAffectedInInnermostBlock;
             var localSymbol = state.LocalSymbol;
-            if (firstStatement.Kind() != SyntaxKind.ExpressionStatement)
-            {
-                return false;
-            }
 
-            var expressionStatement = (ExpressionStatementSyntax)firstStatement;
-            if (expressionStatement.Expression.Kind() != SyntaxKind.SimpleAssignmentExpression)
+            if (firstStatement is ExpressionStatementSyntax expressionStatement &&
+                expressionStatement.Expression is AssignmentExpressionSyntax assignmentExpression &&
+                assignmentExpression.Kind() == SyntaxKind.SimpleAssignmentExpression &&
+                assignmentExpression.Left is IdentifierNameSyntax identifierName &&
+                identifierName.Identifier.ValueText == localSymbol.Name)
             {
-                return false;
-            }
 
-            var expression = (AssignmentExpressionSyntax)expressionStatement.Expression;
-            if (expression.Left.Kind() != SyntaxKind.IdentifierName)
-            {
-                return false;
-            }
+                // Can only merge if the declaration had a non-var type, or if it was 'var' and the
+                // types match.
+                var type = state.VariableDeclaration.Type;
+                if (type.IsVar)
+                {
+                    // Type inference.  Only merge if types match.
+                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var rightType = semanticModel.GetTypeInfo(assignmentExpression.Right, cancellationToken);
+                    return Equals(localSymbol.Type, rightType.Type);
+                }
 
-            var identifierName = (IdentifierNameSyntax)expression.Left;
-            if (identifierName.Identifier.ValueText != localSymbol.Name)
-            {
-                return false;
-            }
-
-            // Can only merge if the declaration had a non-var type, or if it was 'var' and the
-            // types match.
-            var type = state.VariableDeclaration.Type;
-            if (type.IsVar)
-            {
-                // Type inference.  Only merge if types match.
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var rightType = semanticModel.GetTypeInfo(expression.Right, cancellationToken);
-                return (localSymbol.Type == null && rightType.Type == null) || localSymbol.Type.Equals(rightType.Type);
-            }
-            else
-            {
-                // No type inference, so we can definitely merge these
                 return true;
             }
+
+            return false;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
