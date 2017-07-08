@@ -18,6 +18,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
+    /// <summary>
+    /// Refactoring that looks for is-tests and cast-expressions, and offers to convert them
+    /// to use patterns.  i.e. if the user has <code>obj is TestFile &amp;&amp; ((TestFile)obj).Name == "Test"</code>
+    /// it will offer to convert that <code>obj is TestFile file &amp;&amp; file.Name == "Test"</code>.
+    /// 
+    /// Complements <see cref="CSharpIsAndCastCheckDiagnosticAnalyzer"/> (which does the same,
+    /// but only for code cases where the user has provided an appropriate variable name in
+    /// code that can be used).
+    /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
     internal class CSharpIsAndCastCheckCodeRefactoringProvider : CodeRefactoringProvider
     {
