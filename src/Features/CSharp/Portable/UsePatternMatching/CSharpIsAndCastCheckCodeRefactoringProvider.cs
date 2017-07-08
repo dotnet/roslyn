@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpIsAndCastCodeRefactoringProvider : CodeRefactoringProvider
+    internal class CSharpIsAndCastCheckCodeRefactoringProvider : CodeRefactoringProvider
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
         private static readonly SyntaxAnnotation s_referenceAnnotation = new SyntaxAnnotation();
@@ -69,16 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // our new local.
             var matches = new HashSet<CastExpressionSyntax>();
             AddMatches(container, expr, type, matches);
-
-            //if (container is StatementSyntax containingStatement &&
-            //    containingStatement.Parent is BlockSyntax block)
-            //{
-            //    var statementIndex = block.Statements.IndexOf(containingStatement);
-            //    for (int i = statementIndex + 1, n = block.Statements.Count; i < n; i++)
-            //    {
-            //        AddMatches(block.Statements[i], expr, type, matches);
-            //    }
-            //}
 
             if (matches.Count == 0)
             {
@@ -153,9 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var localReference = SyntaxFactory.IdentifierName(localName);
             foreach (var castExpression in matches)
             {
+                var castRoot = castExpression.WalkUpParentheses();
+
                 editor.ReplaceNode(
-                    castExpression.WalkUpParentheses(),
-                    localReference.WithTriviaFrom(castExpression)
+                    castRoot,
+                    localReference.WithTriviaFrom(castRoot)
                                   .WithAdditionalAnnotations(s_referenceAnnotation));
             }
 

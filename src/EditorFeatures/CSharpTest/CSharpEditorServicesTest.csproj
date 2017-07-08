@@ -384,6 +384,7 @@
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForOperatorsRefactoringTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForMethodsRefactoringTests.cs" />
     <Compile Include="UseNullPropagation\UseNullPropagationTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeRefactoringProviderTests.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzerTests_FixAllTests.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzerTests.cs" />
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckTests.cs" />

@@ -414,7 +414,7 @@
     <Compile Include="UseExpressionBody\Helpers\UseExpressionBodyHelper`1.cs" />
     <Compile Include="UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="SignatureHelp\TupleConstructionSignatureHelpProvider.cs" />
-    <Compile Include="UsePatternMatching\CSharpIsAndCastCodeRefactoringProvider.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeRefactoringProvider.cs" />
     <Compile Include="UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="Structure\CSharpBlockStructureProvider.cs" />
     <Compile Include="Structure\CSharpStructureHelpers.cs" />
