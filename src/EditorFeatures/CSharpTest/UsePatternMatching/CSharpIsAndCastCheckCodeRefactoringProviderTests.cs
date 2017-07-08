@@ -365,5 +365,137 @@ class TestFile
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestNamingNoConflict1()
+        {
+            await TestInRegularAndScript1Async(
+@"class TestFile
+{
+    int i;
+    bool M(object obj)
+    {
+        if ([||]obj is TestFile)
+        {
+            var v = new { file = 0 };
+            M(((TestFile)obj).i);
+        }
+    }
+}",
+@"class TestFile
+{
+    int i;
+    bool M(object obj)
+    {
+        if (obj is TestFile {|Rename:file|})
+        {
+            var v = new { file = 0 };
+            M(file.i);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestNamingNoConflict2()
+        {
+            await TestInRegularAndScript1Async(
+@"class TestFile
+{
+    int i;
+    bool M(object obj)
+    {
+        if ([||]obj is TestFile)
+        {
+            var v = (file: 0, x: 1);
+            M(((TestFile)obj).i);
+        }
+    }
+}",
+@"class TestFile
+{
+    int i;
+    bool M(object obj)
+    {
+        if (obj is TestFile {|Rename:file|})
+        {
+            var v = (file: 0, x: 1);
+            M(file.i);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestNamingNoConflict3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class X { public int file; }
+
+class TestFile
+{
+    int i;
+    bool M(object obj, X x)
+    {
+        if ([||]obj is TestFile)
+        {
+            var v = new { x.file };
+            M(((TestFile)obj).i);
+        }
+    }
+}",
+@"
+class X { public int file; }
+
+class TestFile
+{
+    int i;
+    bool M(object obj, X x)
+    {
+        if (obj is TestFile {|Rename:file|})
+        {
+            var v = new { x.file };
+            M(file.i);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestNamingNoConflict4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class X { public int file; }
+
+class TestFile
+{
+    int i;
+    bool M(object obj, X x)
+    {
+        if ([||]obj is TestFile)
+        {
+            var v = (x.file, 0);
+            M(((TestFile)obj).i);
+        }
+    }
+}",
+@"
+class X { public int file; }
+
+class TestFile
+{
+    int i;
+    bool M(object obj, X x)
+    {
+        if (obj is TestFile {|Rename:file|})
+        {
+            var v = (x.file, 0);
+            M(file.i);
+        }
+    }
+}");
+        }
     }
 }
