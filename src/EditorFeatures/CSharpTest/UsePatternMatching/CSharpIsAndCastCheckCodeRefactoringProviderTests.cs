@@ -287,5 +287,83 @@ class TestFile
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestArrayNaming()
+        {
+            await TestInRegularAndScript1Async(
+@"class TestFile
+{
+    int i;
+    bool M(object obj)
+    {
+        return [||]obj is int[] && ((int[])obj) > 0;
+    }
+}",
+
+@"class TestFile
+{
+    int i;
+    bool M(object obj)
+    {
+        return obj is int[] {|Rename:v|} && v > 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestNamingConflict1()
+        {
+            await TestInRegularAndScript1Async(
+@"class TestFile
+{
+    int i;
+    bool M(object obj)
+    {
+        TestFile file = null;
+        return [||]obj is TestFile && ((TestFile)obj).i > 0;
+    }
+}",
+
+@"class TestFile
+{
+    int i;
+    bool M(object obj)
+    {
+        TestFile file = null;
+        return obj is TestFile {|Rename:file1|} && file1.i > 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestNamingConflict2()
+        {
+            await TestInRegularAndScript1Async(
+@"class TestFile
+{
+    int i;
+    bool M(object obj)
+    {
+        if ([||]obj is TestFile)
+        {
+            TestFile file = null;
+            M(((TestFile)obj).i);
+        }
+    }
+}",
+@"class TestFile
+{
+    int i;
+    bool M(object obj)
+    {
+        if (obj is TestFile {|Rename:file1|})
+        {
+            TestFile file = null;
+            M(file1.i);
+        }
+    }
+}");
+        }
     }
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
@@ -78,9 +80,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // Find a reasonable name for the local we're going to make.  It should ideally 
             // relate to the type the user is casting to, and it should not collisde with anything
             // in scope.
-            var localName = NameGenerator.GenerateUniqueName(
+            var reservedNames = semanticModel.LookupSymbols(isExpression.SpanStart)
+                                             .Concat(GetExistingSymbols(semanticModel, container, cancellationToken))
+                                             .Select(s => s.Name)
+                                             .ToSet();
+
+            var localName = NameGenerator.EnsureUniqueness(
                 ICodeDefinitionFactoryExtensions.GetLocalName(typeSymbol),
-                name => semanticModel.LookupSymbols(isExpression.SpanStart, name: name).IsEmpty).EscapeIdentifier();
+                reservedNames).EscapeIdentifier();
 
             // Now, go and actually try to make the change.  This will allow us to see all the
             // locations that we updated to see if that caused an error.
@@ -107,6 +114,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             context.RegisterRefactoring(new MyCodeAction(
                 c => ReplaceMatchesAsync(
                     document, root, isExpression, localName, matches, c)));
+        }
+
+        private static IEnumerable<ISymbol> GetExistingSymbols(
+            SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
+        {
+            // Ignore an annonymous type property.  It's ok if they have a name that 
+            // matches the name of the local we're introducing.
+            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
+                                .Where(s => !s.IsAnonymousTypeProperty());
         }
 
         private async Task<bool> ReplacementCausesErrorAsync(
