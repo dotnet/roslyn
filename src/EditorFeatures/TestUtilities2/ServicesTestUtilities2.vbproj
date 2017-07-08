@@ -12,7 +12,6 @@
     <OptionStrict>Off</OptionStrict>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

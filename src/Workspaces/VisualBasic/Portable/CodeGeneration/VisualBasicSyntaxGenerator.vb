@@ -2467,11 +2467,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Function Merge(original As SyntaxTokenList, newList As SyntaxTokenList) As SyntaxTokenList
-            '' return tokens from newList, but use original tokens if kind matches
-            Return SyntaxFactory.TokenList(newList.Select(Function(token) If(original.Any(token.Kind), original.First(Function(tk) tk.IsKind(token.Kind)), token)))
-        End Function
-
         Private Function GetModifierTokens(declaration As SyntaxNode) As SyntaxTokenList
             Select Case declaration.Kind
                 Case SyntaxKind.ClassBlock

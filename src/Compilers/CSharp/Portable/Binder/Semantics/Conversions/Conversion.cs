@@ -236,6 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion InterpolatedString => new Conversion(ConversionKind.InterpolatedString);
         internal static Conversion Deconstruction => new Conversion(ConversionKind.Deconstruction);
         internal static Conversion IdentityValue => new Conversion(ConversionKind.IdentityValue);
+        internal static Conversion PinnedObjectToPointer => new Conversion(ConversionKind.PinnedObjectToPointer);
 
         // trivial conversions that could be underlying in nullable conversion
         // NOTE: tuple conversions can be underlying as well, but they are not trivial 

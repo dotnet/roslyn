@@ -5919,6 +5919,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Unable to read debug information of method &apos;{0}&apos; (token 0x{1}) from assembly &apos;{2}&apos;.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidDebugInfo() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidDebugInfo", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Invalid debug information format: {0}.
         '''</summary>
         Friend ReadOnly Property ERR_InvalidDebugInformationFormat() As String

@@ -11,7 +11,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CompilerServer.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
@@ -69,7 +68,6 @@
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalyzerConsistencyCheckerTests.cs" />

@@ -16,8 +16,5 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
             : base(CSharpSyntaxFactsService.Instance, CSharpCodeStyleOptions.PreferredModifierOrder, CSharpOrderModifiersHelper.Instance)
         {
         }
-
-        protected override SyntaxTokenList TokenList(IEnumerable<SyntaxToken> tokens)
-            => SyntaxFactory.TokenList(tokens);
     }
 }

@@ -1253,7 +1253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (specialType <= SpecialType.None || specialType > SpecialType.Count)
             {
-                throw new ArgumentOutOfRangeException(nameof(specialType));
+                throw new ArgumentOutOfRangeException(nameof(specialType), $"Unexpected SpecialType: '{(int)specialType}'.");
             }
 
             var result = Assembly.GetSpecialType(specialType);

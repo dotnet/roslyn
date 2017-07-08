@@ -881,6 +881,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 names.Push(GetName(parent, options, containsGlobalKeyword:=False))
                 parent = parent.Parent
             End While
+
             If (options And DisplayNameOptions.IncludeNamespaces) <> 0 Then
                 ' containing namespace(s) in source (if any)
                 Dim containsGlobalKeyword As Boolean = False
@@ -894,6 +895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     builder.Append(s_dotToken)
                 End If
             End If
+
             While Not names.IsEmpty()
                 Dim name = names.Pop()
                 If name IsNot Nothing Then

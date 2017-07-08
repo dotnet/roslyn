@@ -16,8 +16,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static void TakeScreenshot(string fullPath)
         {
-            using (var bitmap = CaptureFullScreen())
+            using (var bitmap = TryCaptureFullScreen())
             {
+                if (bitmap == null)
+                {
+                    return;
+                }
+
                 var directory = Path.GetDirectoryName(fullPath);
                 Directory.CreateDirectory(directory);
 
@@ -28,12 +33,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// Captures the full screen to a <see cref="Bitmap"/>.
         /// </summary>
-        /// <returns>A <see cref="Bitmap"/> containing the screen capture of the desktop.</returns>
-        private static Bitmap CaptureFullScreen()
+        /// <returns>
+        /// A <see cref="Bitmap"/> containing the screen capture of the desktop, or null if a screen
+        /// capture can't be created.
+        /// </returns>
+        private static Bitmap TryCaptureFullScreen()
         {
-            var bitmap = new Bitmap(
-                width: Screen.PrimaryScreen.Bounds.Width,
-                height: Screen.PrimaryScreen.Bounds.Height);
+            int width = Screen.PrimaryScreen.Bounds.Width;
+            int height = Screen.PrimaryScreen.Bounds.Height;
+
+            if (width <= 0 || height <= 0)
+            {
+                // Don't try to take a screenshot if there is no screen.
+                // This may not be an interactive session.
+                return null;
+            }
+
+            var bitmap = new Bitmap(width, height);
 
             using (var graphics = Graphics.FromImage(bitmap))
             {

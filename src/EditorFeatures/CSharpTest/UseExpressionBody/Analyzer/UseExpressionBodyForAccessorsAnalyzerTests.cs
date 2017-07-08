@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -296,6 +296,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
     }
 }", ignoreTrivia: false, options: UseBlockBodyIncludingPropertiesAndIndexers);
+        }
+
+        [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestAccessorListFormatting()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int Foo { get [|=>|] Bar(); }
+}",
+@"class C
+{
+    int Foo
+    {
+        get
+        {
+            return Bar();
+        }
+    }
+}", options: UseBlockBodyIncludingPropertiesAndIndexers, ignoreTrivia: false);
+        }
+
+        [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestAccessorListFormatting_FixAll()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int Foo { get {|FixAllInDocument:=>|} Bar(); set => Bar(); }
+}",
+@"class C
+{
+    int Foo
+    {
+        get
+        {
+            return Bar();
+        }
+
+        set
+        {
+            Bar();
+        }
+    }
+}", options: UseBlockBodyIncludingPropertiesAndIndexers, ignoreTrivia: false);
         }
     }
 }

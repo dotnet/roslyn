@@ -257,15 +257,6 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>
-    
-    <!-- 
-      Normal address-of operators can only operate on non-moveable variables. 
-      Fixed statement address-of operators (note: only applies to the top-level
-      expression in the initializer, not nested expressions) can only operate
-      on moveable variables.  This flag indicates which sort of address-of
-      operator we're dealing with.
-      -->
-    <Field Name="IsFixedStatementAddressOf" Type="bool"/>
   </Node>
   <Node Name="BoundPointerIndirectionOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
@@ -396,6 +387,7 @@
 
     <Field Name="Left" Type="BoundTupleExpression" Null="disallow"/>
     <Field Name="Right" Type="BoundConversion" Null="disallow"/>
+    <Field Name="IsUsed" Type="Boolean" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
