@@ -297,12 +297,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode GetAccessorDeclaration(Accessibility accessibility, IEnumerable<SyntaxNode> statements)
-            => AccessorDeclaratation(SyntaxKind.GetAccessorDeclaration, accessibility, statements);
+            => AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, accessibility, statements);
 
         public override SyntaxNode SetAccessorDeclaration(Accessibility accessibility, IEnumerable<SyntaxNode> statements)
-            => AccessorDeclaratation(SyntaxKind.SetAccessorDeclaration, accessibility, statements);
+            => AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, accessibility, statements);
 
-        private static SyntaxNode AccessorDeclaratation(
+        private static SyntaxNode AccessorDeclaration(
             SyntaxKind kind, Accessibility accessibility, IEnumerable<SyntaxNode> statements)
         {
             var accessor = SyntaxFactory.AccessorDeclaration(kind);
