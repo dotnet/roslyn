@@ -264,5 +264,28 @@ class TestFile
     }
 }", ignoreTrivia: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestFixOnlyAfterIsCheck()
+        {
+            await TestInRegularAndScript1Async(
+@"class TestFile
+{
+    int i;
+    bool M(object obj)
+    {
+        return ((TestFile)obj).i > 0 && [||]obj is TestFile && ((TestFile)obj).i > 0;
+    }
+}",
+
+@"class TestFile
+{
+    int i;
+    bool M(object obj)
+    {
+        return ((TestFile)obj).i > 0 && obj is TestFile {|Rename:file|} && file.i > 0;
+    }
+}");
+        }
     }
 }
