@@ -464,6 +464,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
+
+        public virtual void VisitConditionalGotoStatement(IConditionalGotoStatement operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -931,6 +936,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitTupleExpression(ITupleExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitConditionalGotoStatement(IConditionalGotoStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

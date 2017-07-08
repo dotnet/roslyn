@@ -858,6 +858,82 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a conditional goto statement
+    /// </summary>
+    internal abstract partial class BaseConditionalGotoStatement : Operation, IConditionalGotoStatement
+    {
+        public BaseConditionalGotoStatement(ILabelSymbol target, bool jumpIfTrue, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.ConditionalGotoStatement, syntax, type, constantValue)
+        {
+            Target = target;
+            JumpIfTrue = jumpIfTrue;
+        }
+        /// <summary>
+        /// Condition of the branch.
+        /// </summary>
+        public abstract IOperation Condition { get; }
+        /// <summary>
+        /// Label that is the target of the branch.
+        /// </summary>
+        public ILabelSymbol Target { get; }
+        /// <summary>
+        /// Jump if the condition is true.
+        /// </summary>
+        public bool JumpIfTrue { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Condition;
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitConditionalGotoStatement(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitConditionalGotoStatement(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a conditional goto statement
+    /// </summary>
+    internal sealed partial class ConditionalGotoStatement : BaseConditionalGotoStatement, IConditionalGotoStatement
+    {
+        public ConditionalGotoStatement(IOperation condition, ILabelSymbol target, bool jumpIfTrue, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(target, jumpIfTrue, syntax, type, constantValue)
+        {
+            Condition = condition;
+        }
+        /// <summary>
+        /// Condition of the branch.
+        /// </summary>
+        public override IOperation Condition { get; }
+    }
+
+    /// <summary>
+    /// Represents a conditional goto statement
+    /// </summary>
+    internal sealed partial class LazyConditionalGotoStatement : BaseConditionalGotoStatement, IConditionalGotoStatement
+    {
+        private readonly Lazy<IOperation> _lazyCondition;
+
+        public LazyConditionalGotoStatement(Lazy<IOperation> condition, ILabelSymbol target, bool jumpIfTrue, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(target, jumpIfTrue, syntax, type, constantValue)
+        {
+            _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
+        }
+        /// <summary>
+        /// Condition of the branch.
+        /// </summary>
+        public override IOperation Condition => _lazyCondition.Value;
+    }
+
+    /// <summary>
     /// Represents a C# goto, break, or continue statement, or a VB GoTo, Exit ***, or Continue *** statement
     /// </summary>
     internal sealed partial class BranchStatement : Operation, IBranchStatement
