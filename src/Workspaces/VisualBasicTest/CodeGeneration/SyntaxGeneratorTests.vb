@@ -2,9 +2,6 @@
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -1086,6 +1083,81 @@ End Property</x>.Value)
     End Set
 End Property</x>.Value)
         End Sub
+
+        <Fact>
+        Public Sub TestAccessorDeclarations2()
+            VerifySyntax(Of PropertyStatementSyntax)(
+                _g.WithAccessorDeclarations(_g.PropertyDeclaration("p", _g.IdentifierName("x"))),
+                "Property p As x")
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.NotApplicable, {_g.ReturnStatement()})),
+<x>ReadOnly Property p As x
+    Get
+        Return
+    End Get
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.NotApplicable, {_g.ReturnStatement()}),
+                    _g.SetAccessorDeclaration(Accessibility.NotApplicable, {_g.ReturnStatement()})),
+<x>Property p As x
+    Get
+        Return
+    End Get
+
+    Set
+        Return
+    End Set
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.Protected, {_g.ReturnStatement()})),
+<x>ReadOnly Property p As x
+    Protected Get
+        Return
+    End Get
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.SetAccessorDeclaration(Accessibility.Protected, {_g.ReturnStatement()})),
+<x>WriteOnly Property p As x
+    Protected Set
+        Return
+    End Set
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyStatementSyntax)(
+                _g.WithAccessorDeclarations(_g.IndexerDeclaration({_g.ParameterDeclaration("p", _g.IdentifierName("t"))}, _g.IdentifierName("x"))),
+                "Default Property Item(p As t) As x")
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(_g.IndexerDeclaration({_g.ParameterDeclaration("p", _g.IdentifierName("t"))}, _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.Protected, {_g.ReturnStatement()})),
+<x>Default ReadOnly Property Item(p As t) As x
+    Protected Get
+        Return
+    End Get
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.IndexerDeclaration({_g.ParameterDeclaration("p", _g.IdentifierName("t"))}, _g.IdentifierName("x")),
+                    _g.SetAccessorDeclaration(Accessibility.Protected, {_g.ReturnStatement()})),
+<x>Default WriteOnly Property Item(p As t) As x
+    Protected Set
+        Return
+    End Set
+End Property</x>.Value)
+        End sub 
 
         <Fact>
         Public Sub TestIndexerDeclarations()
