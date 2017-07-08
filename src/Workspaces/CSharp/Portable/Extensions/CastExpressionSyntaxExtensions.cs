@@ -213,6 +213,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
+        private static bool EnumCastDefinitelyCantBeRemoved(CastExpressionSyntax cast, ITypeSymbol expressionType)
+        {
+            if (expressionType != null 
+                && expressionType.IsEnumType() 
+                && cast.WalkUpParentheses().IsParentKind(SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private static bool HaveSameUserDefinedConversion(Conversion conversion1, Conversion conversion2)
         {
             return conversion1.IsUserDefined
@@ -311,6 +323,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var expressionTypeInfo = semanticModel.GetTypeInfo(cast.Expression, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
+
+            if (EnumCastDefinitelyCantBeRemoved(cast, expressionType))
+            {
+                return false;
+            }
 
             // We do not remove any cast on 
             // 1. Dynamic Expressions
