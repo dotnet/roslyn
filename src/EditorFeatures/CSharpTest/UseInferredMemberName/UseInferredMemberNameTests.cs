@@ -124,7 +124,6 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-
         [Fact]
         public async Task TestFixAllInferredAnonymousTypeMemberNameWithTrivia()
         {

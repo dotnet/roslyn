@@ -81,7 +81,7 @@ End Class")
 Class C
     Sub M()
         Dim a As Integer = 1
-        Dim t = New With {[||].a = a, .b = 2}
+        Dim t = New With {[|.a =|] a, .b = 2}
     End Sub
 End Class",
 "

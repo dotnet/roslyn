@@ -4133,7 +4133,7 @@ class Program
         int x = 1;
         int {|Rename:y1|} = C.y;
         var t = (x: x, y: y1);
-        var t2 = (y: y1, x);
+        var t2 = (y: y1, x:x);
     }
 }";
             await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);

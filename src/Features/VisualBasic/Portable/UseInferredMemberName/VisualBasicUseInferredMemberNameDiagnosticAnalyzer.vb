@@ -88,14 +88,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 Return
             End If
 
+            Dim fadeSpan = TextSpan.FromBounds(fieldInitializer.Name.SpanStart, fieldInitializer.EqualsToken.Span.End)
+
             ' Create a normal diagnostic
             context.ReportDiagnostic(
                 Diagnostic.Create(GetDescriptorWithSeverity(
                     optionSet.GetOption(VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames).Notification.Value),
-                    fieldInitializer.GetLocation()))
+                    syntaxTree.GetLocation(fadeSpan)))
 
             ' Also fade out the part of the name-equals syntax
-            Dim fadeSpan = TextSpan.FromBounds(fieldInitializer.Name.SpanStart, fieldInitializer.EqualsToken.Span.End)
             context.ReportDiagnostic(
                 Diagnostic.Create(
                     UnnecessaryWithoutSuggestionDescriptor,
