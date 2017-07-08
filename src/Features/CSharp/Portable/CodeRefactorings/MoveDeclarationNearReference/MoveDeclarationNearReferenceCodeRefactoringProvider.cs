@@ -71,10 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
         {
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
-            //var innermostStatements =
-            //    state.InnermostBlock.Statements.Where(s => s != state.DeclarationStatement).ToList();
-            //var innermostAffectedIndex = innermostStatements.IndexOf(state.FirstStatementAffectedInInnermostBlock);
-
             var crossesMeaningfulBlock = CrossesMeaningfulBlock(state);
             var warningAnnotation = crossesMeaningfulBlock
                 ? WarningAnnotation.Create(CSharpFeaturesResources.Warning_colon_Declaration_changes_scope_and_may_change_meaning)
