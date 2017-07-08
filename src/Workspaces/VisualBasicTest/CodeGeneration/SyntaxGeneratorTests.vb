@@ -2147,7 +2147,7 @@ Delegate Sub d()</x>.Value)
         End Sub
 
         <Fact>
-                                                                                                            <WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
+        <WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
         Public Sub TestAddAttributesOnAccessors()
             Dim prop = _g.PropertyDeclaration("P", _g.IdentifierName("T"))
 
@@ -3122,7 +3122,7 @@ End Interface</x>.Value)
         End Sub
 
         <Fact>
-                                                                                                                                                                                                                                                            <WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
+        <WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
         Public Sub TestAddInterfaceWithEOLs()
             Dim classC = SyntaxFactory.ParseCompilationUnit("
 Public Class C
