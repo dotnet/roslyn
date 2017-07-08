@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                 return;
             }
 
-
             context.RegisterRefactoring(
                 new MyCodeAction(c => MoveDeclarationNearReferenceAsync(document, state, root, c)));
         }
@@ -122,14 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                     break;
                 }
 
-                if (block.Parent is ParenthesizedLambdaExpressionSyntax ||
-                    block.Parent is SimpleLambdaExpressionSyntax ||
+                if (block.Parent is AnonymousFunctionExpressionSyntax ||
                     block.Parent is LocalFunctionStatementSyntax ||
-                    block.Parent is AnonymousMethodExpressionSyntax ||
                     block.Parent is CommonForEachStatementSyntax ||
                     block.Parent is ForStatementSyntax ||
                     block.Parent is WhileStatementSyntax ||
-                    block.Parent is DoStatementSyntax)
+                    block.Parent is DoStatementSyntax ||
+                    block.Parent is CheckedStatementSyntax)
                 {
                     return true;
                 }
