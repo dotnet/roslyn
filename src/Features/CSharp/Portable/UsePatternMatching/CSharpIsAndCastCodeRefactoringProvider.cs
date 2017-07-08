@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
@@ -21,8 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     internal class CSharpIsAndCastCodeRefactoringProvider : CodeRefactoringProvider
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
-
-        private static readonly SyntaxAnnotation s_referenceAnnotation = new SyntaxAnnotation();
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -67,13 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            // Find a reasonable name for the local we're going to make.  It should ideally 
-            // relate to the type the user is casting to, and it should not collisde with anything
-            // in scope.
-            var localName = NameGenerator.GenerateUniqueName(
-                ICodeDefinitionFactoryExtensions.GetLocalName(typeSymbol),
-                name => semanticModel.LookupSymbols(isExpression.SpanStart, name: name).IsEmpty).EscapeIdentifier();
-
+            // First, find all the potential cast locations we can replace with a reference to
+            // our new local.
             var matches = new HashSet<CastExpressionSyntax>();
             AddMatches(container, expr, type, matches);
 
@@ -87,48 +81,82 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 }
             }
 
-            var finalMatches = new HashSet<CastExpressionSyntax>();
-            var tempSet = new HashSet<CastExpressionSyntax>();
-            foreach  (var castExpression in matches)
+            if (matches.Count == 0)
             {
-                var causesError = await ReplacementCausesDefiniteAssignmentErrorAsync(
-                    document, root, isExpression, localName, castExpression, cancellationToken).ConfigureAwait(false);
-
-                if (!causesError)
-                {
-                    finalMatches.Add(castExpression);
-                }
+                return;
             }
 
-            if (finalMatches.Count == 0)
+            // Find a reasonable name for the local we're going to make.  It should ideally 
+            // relate to the type the user is casting to, and it should not collisde with anything
+            // in scope.
+            var localName = NameGenerator.GenerateUniqueName(
+                ICodeDefinitionFactoryExtensions.GetLocalName(typeSymbol),
+                name => semanticModel.LookupSymbols(isExpression.SpanStart, name: name).IsEmpty).EscapeIdentifier();
+
+            // Now, go and actually try to make the change.  This will allow us to see all the
+            // locations that we updated to see if that caused an error.
+            var annotationToCastExpression = new Dictionary<SyntaxAnnotation, CastExpressionSyntax>();
+            var updatedDocument = await ReplaceMatchesAsync(
+                document, root, isExpression, localName, 
+                matches, annotationToCastExpression, cancellationToken).ConfigureAwait(false);
+
+            // Remove any replacements that caused problems.
+            await RemoveMatchesThatCauseDefiniteAssignmentErrorsAsync(
+                updatedDocument, matches, annotationToCastExpression, cancellationToken).ConfigureAwait(false);
+
+            if (matches.Count == 0)
             {
                 return;
             }
 
             context.RegisterRefactoring(new MyCodeAction(
-                c => ReplaceMatchesAsync(document, root, isExpression, localName, finalMatches, c)));
+                c => ReplaceMatchesAsync(
+                    document, root, isExpression, localName, matches,
+                    annotationToCastExpressionOpt: null, cancellationToken: c)));
         }
 
-        private async Task<bool> ReplacementCausesDefiniteAssignmentErrorAsync(
-            Document document, SyntaxNode root, BinaryExpressionSyntax isExpression,
-            string localName, CastExpressionSyntax castExpression, CancellationToken cancellationToken)
+        private async Task RemoveMatchesThatCauseDefiniteAssignmentErrorsAsync(
+            Document updatedDocument, HashSet<CastExpressionSyntax> matches,
+            Dictionary<SyntaxAnnotation, CastExpressionSyntax> annotationToCastExpression, 
+            CancellationToken cancellationToken)
         {
-            var matches = new HashSet<CastExpressionSyntax> { castExpression };
+            var semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var updatedDocument = await ReplaceMatchesAsync(
-                document, root, isExpression, localName, matches, cancellationToken).ConfigureAwait(false);
+            foreach (var (annotation, castExpression) in annotationToCastExpression)
+            {
+                var currentNode = root.GetAnnotatedNodes(annotation).Single();
+                var diagnostics = semanticModel.GetDiagnostics(currentNode.Span, cancellationToken);
 
-            var updatedSemanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var updatedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var updatedReference = updatedRoot.GetAnnotatedNodes(s_referenceAnnotation).Single();
-
-            var diagnostics = updatedSemanticModel.GetDiagnostics(updatedReference.Span);
-            return diagnostics.Any(d => d.Id == CS0165);
+                if (diagnostics.Any(d => d.Id == CS0165))
+                {
+                    matches.Remove(castExpression);
+                }
+            }
         }
+
+        //private async Task<bool> ReplacementCausesDefiniteAssignmentErrorAsync(
+        //    Document document, SyntaxNode root, BinaryExpressionSyntax isExpression,
+        //    string localName, CastExpressionSyntax castExpression, CancellationToken cancellationToken)
+        //{
+        //    var matches = new HashSet<CastExpressionSyntax> { castExpression };
+
+        //    var updatedDocument = await ReplaceMatchesAsync(
+        //        document, root, isExpression, localName, matches, cancellationToken).ConfigureAwait(false);
+
+        //    var updatedSemanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        //    var updatedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        //    var updatedReference = updatedRoot.GetAnnotatedNodes(s_referenceAnnotation).Single();
+
+        //    var diagnostics = updatedSemanticModel.GetDiagnostics(updatedReference.Span);
+        //    return diagnostics.Any(d => d.Id == CS0165);
+        //}
 
         private Task<Document> ReplaceMatchesAsync(
-            Document document, SyntaxNode root, BinaryExpressionSyntax isExpression, 
-            string localName, HashSet<CastExpressionSyntax> matches, CancellationToken cancellationToken)
+            Document document, SyntaxNode root, BinaryExpressionSyntax isExpression,
+            string localName, HashSet<CastExpressionSyntax> matches,
+            Dictionary<SyntaxAnnotation, CastExpressionSyntax> annotationToCastExpressionOpt,
+            CancellationToken cancellationToken)
         {
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
@@ -147,10 +175,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var localReference = SyntaxFactory.IdentifierName(localName);
             foreach (var castExpression in matches)
             {
+                var annotation = new SyntaxAnnotation();
+                annotationToCastExpressionOpt?.Add(annotation, castExpression);
+
                 editor.ReplaceNode(
                     castExpression.WalkUpParentheses(),
                     localReference.WithTriviaFrom(castExpression)
-                                  .WithAdditionalAnnotations(s_referenceAnnotation));
+                                  .WithAdditionalAnnotations(annotation));
             }
 
             var changedRoot = editor.GetChangedRoot();
