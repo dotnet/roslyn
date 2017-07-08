@@ -12,14 +12,17 @@ param (
     # Test options 
     [switch]$test32 = $false,
     [switch]$test64 = $false,
-    [switch]$testDeterminism = $false,
-    [switch]$testBuildCorrectness = $false,
-    [switch]$testPerfCorrectness = $false,
-    [switch]$testPerfRun = $false,
     [switch]$testVsi = $false,
     [switch]$testVsiNetCore = $false,
     [switch]$testDesktop = $false,
     [switch]$testCoreClr = $false,
+
+    # Special test options
+    [switch]$testDeterminism = $false,
+    [switch]$testBuildCorrectness = $false,
+    [switch]$testPerfCorrectness = $false,
+    [switch]$testPerfRun = $false,
+
     [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
 Set-StrictMode -version 2.0
@@ -41,8 +44,12 @@ function Print-Usage() {
     Write-Host "  -testCoreClr              Run CoreClr unit tests"
     Write-Host "  -testVsi                  Run all integration tests"
     Write-Host "  -testVsiNetCore           Run just dotnet core integration tests"
+    Write-Host ""
+    Write-Host "Special Test options" 
     Write-Host "  -testBuildCorrectness     Run build correctness tests"
+    Write-Host "  -testDeterminism          Run determinism tests"
     Write-Host "  -testPerfCorrectness      Run perf correctness tests"
+    Write-Host "  -testPerfCorrectness      Run perf tests"
 }
 
 # Process the command line arguments and establish defaults for the values which
@@ -66,12 +73,14 @@ function Process-Arguments() {
         exit 1
     }
 
+    $script:isAnyTestSpecial = $testBuildCorrectness -or $testDeterminism -or $testPerfCorrectness -or $testPerfRun
+    if ($isAnyTestSpecial -and ($anyUnit -or $anyVsi)) {
+        Write-Host "Cannot combine special testing with any other action"
+        exit 1
+    }
+
     $script:test32 = -not $test64
     $script:debug = -not $release
-
-    if ($testDeterminism) {
-        $script:bootstrap = $true
-    }
 }
 
 function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "") {
@@ -120,6 +129,44 @@ function Make-BootstrapBuild() {
     Run-MSBuild "/t:Clean build\Toolset\Toolset.csproj /p:Configuration=$buildConfiguration"
     Stop-BuildProcesses
     return $dir
+}
+
+function Build-Artifacts() { 
+    Run-MSBuild "Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
+
+    if ($testDesktop) { 
+        Run-MSBuild "src\Samples\Samples.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
+    }
+
+    Stop-BuildProcesses
+}
+
+# These are tests that don't follow our standard restore, build, test pattern. They customize 
+# the processes in order to test specific elements of our build and hence are handled 
+# separately from our other tests
+function Test-Special() {
+
+    if ($restore) { 
+        Write-Host "Running restore"
+        Restore-All -msbuildDir $msbuildDir 
+    }
+
+    if ($testBuildCorrectness) {
+        Exec-Block { & ".\build\scripts\test-build-correctness.ps1" -config $buildConfiguration } | Out-Host
+    }
+    elseif ($testDeterminism) {
+        $bootstrapDir = Make-BootstrapBuild
+        Exec-Block { & ".\build\scripts\test-determinism.ps1" -bootstrapDir $bootstrapDir } | Out-Host
+    } 
+    elseif ($testPerfCorrectness) {
+        Test-PerfCorrectness
+    }
+    elseif ($testPerfRun) {
+        Test-PerfRun
+    }
+    else {
+        throw "Not a special test"
+    }
 }
 
 function Test-PerfCorrectness() {
@@ -189,25 +236,7 @@ function Test-XUnit() {
         return
     }
 
-    # To help the VS SDK team track down their issues around install via build temporarily 
-    # re-enabling the build based deployment
-    # 
-    # https://github.com/dotnet/roslyn/issues/17456
-    $deployExtensionViaBuild = $false
-
-    if ($build) {
-        $deployArg = if ($deployExtensionViaBuild) { "true" } else { "false" }
-        Run-MSBuild "Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=$deployArg"
-        
-        if ($testDesktop) { 
-            Run-MSBuild "src\Samples\Samples.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
-        }
-
-        Stop-BuildProcesses
-    }
-
-    $anyVsi = $testVsi -or $TestVsiNetCore
-    if ($anyVsi -and (-not $deployExtensionViaBuild)) {
+    if ($testVsi -or $testVsiNetCore) {
         Deploy-VsixViaTool
     }
 
@@ -397,44 +426,27 @@ try {
         Redirect-Temp
     }
 
+    if ($isAnyTestSpecial) {
+        Test-Special
+        exit 0
+    }
+
     if ($restore) { 
         Write-Host "Running restore"
         Restore-All -msbuildDir $msbuildDir 
     }
 
-    if ($testBuildCorrectness) {
-        Exec-Block { & ".\build\scripts\test-build-correctness.ps1" -config $buildConfiguration } | Out-Host
-        exit 0
-    }
-
     if ($bootstrap) {
-        Write-Host "Making bootstrap"
         $bootstrapDir = Make-BootstrapBuild
     }
 
-    if ($testDeterminism) {
-        Exec-Block { & ".\build\scripts\test-determinism.ps1" -bootstrapDir $bootstrapDir } | Out-Host
-        exit 0
-    }
-
-    if ($testPerfCorrectness) {
-        Test-PerfCorrectness
-        exit 0
-    }
-
-    if ($testPerfRun) {
-        Test-PerfRun
-        exit 0
+    if ($build) {
+        Build-Artifacts
     }
 
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore) {
         Test-XUnit
-        exit 0
     } 
-
-    if ($build) {
-        Run-MSBuild "Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
-    }
 
     exit 0
 }
