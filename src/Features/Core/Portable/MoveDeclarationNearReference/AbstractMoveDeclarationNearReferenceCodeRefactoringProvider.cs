@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,7 +83,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             var canMergeDeclarationAndAssignment = await CanMergeDeclarationAndAssignmentAsync(document, state, cancellationToken).ConfigureAwait(false);
             if (canMergeDeclarationAndAssignment)
             {
-                MergeDeclarationAndAssignment(state, editor, warningAnnotation);
+                MergeDeclarationAndAssignment(
+                    document, state, editor, warningAnnotation);
             }
             else
             {
@@ -135,7 +136,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             }
         }
 
-        private void MergeDeclarationAndAssignment(State state, SyntaxEditor editor, SyntaxAnnotation warningAnnotation)
+        private void MergeDeclarationAndAssignment(
+            Document document, State state, SyntaxEditor editor, SyntaxAnnotation warningAnnotation)
         {
             // Replace the first reference with a new declaration.
             var declarationStatement = CreateMergedDeclarationStatement(state.DeclarationStatement, state.FirstStatementAffectedInInnermostBlock);
@@ -143,9 +145,21 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 ? declarationStatement
                 : declarationStatement.WithAdditionalAnnotations(warningAnnotation);
 
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            declarationStatement = declarationStatement.WithLeadingTrivia(
+                GetMergedTrivia(syntaxFacts, state.DeclarationStatement, state.FirstStatementAffectedInInnermostBlock));
+
             editor.ReplaceNode(
                 state.FirstStatementAffectedInInnermostBlock,
                 declarationStatement.WithAdditionalAnnotations(Formatter.Annotation));
+        }
+
+        private ImmutableArray<SyntaxTrivia> GetMergedTrivia(
+            ISyntaxFactsService syntaxFacts, TStatementSyntax statement1, TStatementSyntax statement2)
+        {
+            return syntaxFacts.GetLeadingBlankLines(statement2).Concat(
+                   syntaxFacts.GetTriviaAfterLeadingBlankLines(statement1)).Concat(
+                   syntaxFacts.GetTriviaAfterLeadingBlankLines(statement2));
         }
 
         private bool CrossesMeaningfulBlock(State state)
