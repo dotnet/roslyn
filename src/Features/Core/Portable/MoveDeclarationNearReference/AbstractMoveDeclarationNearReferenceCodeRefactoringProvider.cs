@@ -150,25 +150,24 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             State state,
             CancellationToken cancellationToken)
         {
-            var firstStatement = state.FirstStatementAffectedInInnermostBlock;
-            var localSymbol = state.LocalSymbol;
-
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(state.VariableDeclarator);
             if (initializer == null ||
                 syntaxFacts.IsLiteralExpression(syntaxFacts.GetValueOfEqualsValueClause(initializer)))
             {
+                var firstStatement = state.FirstStatementAffectedInInnermostBlock;
                 if (syntaxFacts.IsSimpleAssignmentStatement(firstStatement))
                 {
                     syntaxFacts.GetPartsOfAssignmentStatement(firstStatement, out var left, out var right);
                     if (syntaxFacts.IsIdentifierName(left))
                     {
+                        var localSymbol = state.LocalSymbol;
                         var name = syntaxFacts.GetIdentifierOfSimpleName(left).ValueText;
                         if (syntaxFacts.StringComparer.Equals(name, localSymbol.Name))
                         {
                             return await TypesAreCompatibleAsync(
-                                document, state.LocalSymbol, state.DeclarationStatement, right, cancellationToken).ConfigureAwait(false);
+                                document, localSymbol, state.DeclarationStatement, right, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
