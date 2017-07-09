@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         where TLocalDeclarationStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
+        protected abstract bool IsMeaningfulBlock(SyntaxNode node);
+        protected abstract SyntaxNode GetVariableDeclaratorSymbolNode(TVariableDeclaratorSyntax variableDeclarator);
+        protected abstract bool IsValidVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
+        protected abstract SyntaxToken GetIdentifierOfVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
+        protected abstract Task<bool> TypesAreCompatibleAsync(Document document, ILocalSymbol localSymbol, TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode right, CancellationToken cancellationToken);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
@@ -180,13 +186,6 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 
             return false;
         }
-
-        protected abstract bool IsMeaningfulBlock(SyntaxNode node);
-        protected abstract SyntaxNode GetVariableDeclaratorSymbolNode(TVariableDeclaratorSyntax variableDeclarator);
-        protected abstract bool IsValidVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
-        protected abstract SyntaxToken GetIdentifierOfVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
-
-        protected abstract Task<bool> TypesAreCompatibleAsync(Document document, ILocalSymbol localSymbol, TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode right, CancellationToken cancellationToken);
 
         private async Task<bool> CanMergeDeclarationAndAssignmentAsync(
             Document document,
