@@ -119,6 +119,8 @@
     <Compile Include="AddPackage\InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageParentCodeAction.cs" />
     <Compile Include="AddParameter\AbstractAddParameterCodeFixProvider.cs" />
+    <Compile Include="MoveDeclarationNearReference\AbstractMoveDeclarationNearReferenceCodeRefactoringProvider.cs" />
+    <Compile Include="MoveDeclarationNearReference\AbstractMoveDeclarationNearReferenceCodeRefactoringProvider.State.cs" />
     <Compile Include="RemoveUnusedVariable\AbstractRemoveUnusedVariableCodeFixProvider.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\ISymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="CommentSelection\AbstractCommentSelectionService.cs" />

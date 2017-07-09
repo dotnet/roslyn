@@ -1740,5 +1740,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers)
             => node.WithModifiers(modifiers);
+
+        public bool IsLiteralExpression(SyntaxNode node)
+            => node is LiteralExpressionSyntax;
+
+        public SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node)
+            => ((LocalDeclarationStatementSyntax)node).Declaration.Variables;
+
+        public SyntaxNode GetInitializerOfVariableDeclarator(SyntaxNode node)
+            => ((VariableDeclaratorSyntax)node).Initializer;
+
+        public SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node)
+            => ((EqualsValueClauseSyntax)node).Value;
+
+        public bool IsExecutableBlock(SyntaxNode node)
+            => node.IsKind(SyntaxKind.Block);
+
+        public SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node)
+            => ((BlockSyntax)node).Statements;
+
+        public SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
+            => nodes.FindInnermostCommonBlock();
     }
 }

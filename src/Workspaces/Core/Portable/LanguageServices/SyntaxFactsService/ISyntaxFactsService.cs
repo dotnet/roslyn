@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
         bool IsNullLiteralExpression(SyntaxNode node);
+        bool IsLiteralExpression(SyntaxNode node);
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -187,7 +188,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
 
         bool IsLocalDeclarationStatement(SyntaxNode node);
-        bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declator, SyntaxNode localDeclarationStatement);
+        bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement);
+        SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node);
+        SyntaxNode GetInitializerOfVariableDeclarator(SyntaxNode node);
+        SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node);
 
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);
@@ -224,6 +228,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsMethodLevelMember(SyntaxNode node);
         bool IsTopLevelNodeWithMembers(SyntaxNode node);
         bool HasIncompleteParentMember(SyntaxNode node);
+
+        bool IsExecutableBlock(SyntaxNode node);
+        SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
+        SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
+
 
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
         bool AreEquivalent(SyntaxNode node1, SyntaxNode node2);

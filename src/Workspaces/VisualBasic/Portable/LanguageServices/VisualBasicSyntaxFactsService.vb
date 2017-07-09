@@ -1603,5 +1603,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function WithModifiers(node As SyntaxNode, modifiers As SyntaxTokenList) As SyntaxNode Implements ISyntaxFactsService.WithModifiers
             Return node.WithModifiers(modifiers)
         End Function
+
+        Public Function IsLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLiteralExpression
+            Return TypeOf node Is LiteralExpressionSyntax
+        End Function
+
+        Public Function GetVariablesOfLocalDeclarationStatement(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetVariablesOfLocalDeclarationStatement
+            Return DirectCast(node, LocalDeclarationStatementSyntax).Declarators
+        End Function
+
+        Public Function GetInitializerOfVariableDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetInitializerOfVariableDeclarator
+            Return DirectCast(node, VariableDeclaratorSyntax).Initializer
+        End Function
+
+        Public Function GetValueOfEqualsValueClause(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetValueOfEqualsValueClause
+            Return DirectCast(node, EqualsValueSyntax).Value
+        End Function
+
+        Public Function IsExecutableBlock(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExecutableBlock
+            Return node.IsExecutableBlock()
+        End Function
+
+        Public Function GetExecutableBlockStatements(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetExecutableBlockStatements
+            Return node.GetExecutableBlockStatements()
+        End Function
+
+        Public Function FindInnermostCommonExecutableBlock(nodes As IEnumerable(Of SyntaxNode)) As SyntaxNode Implements ISyntaxFactsService.FindInnermostCommonExecutableBlock
+            Return nodes.FindInnermostCommonExecutableBlock()
+        End Function
     End Class
 End Namespace
