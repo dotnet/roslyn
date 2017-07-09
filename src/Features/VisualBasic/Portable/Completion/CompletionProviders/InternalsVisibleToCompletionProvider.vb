@@ -10,57 +10,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend NotInheritable Class InternalsVisibleToCompletionProvider
         Inherits AbstractInternalsVisibleToCompletionProvider
 
-        Private Shared ReadOnly ExtractAttribute As AttributeNodeExtractor = New AttributeNodeExtractor()
-        Private Shared ReadOnly ExtractAttributeConstructorArgument As AttributeConstructorArgumentExtractor = New AttributeConstructorArgumentExtractor()
-
         Protected Overrides Function GetAssemblyScopedAttributeSyntaxNodesOfDocument(documentRoot As SyntaxNode) As IImmutableList(Of SyntaxNode)
-            Dim result = TryCast(documentRoot, VisualBasicSyntaxNode).Accept(ExtractAttribute)
-            Return result.ToImmutableListOrEmpty()
+            Dim builder As ImmutableList(Of SyntaxNode).Builder = Nothing
+            Dim compilationUnit = TryCast(documentRoot, CompilationUnitSyntax)
+            If Not compilationUnit Is Nothing Then
+                For Each attributeStatement In compilationUnit.Attributes
+                    For Each attributeList In attributeStatement.AttributeLists
+                        builder = If(builder, ImmutableList.CreateBuilder(Of SyntaxNode)())
+                        builder.AddRange(attributeList.Attributes)
+                    Next
+                Next
+            End If
+
+            Return If(builder Is Nothing, ImmutableList(Of SyntaxNode).Empty, builder.ToImmutable())
         End Function
 
         Protected Overrides Function GetConstructorArgumentOfInternalsVisibleToAttribute(internalsVisibleToAttribute As SyntaxNode) As SyntaxNode
-            Return TryCast(internalsVisibleToAttribute, VisualBasicSyntaxNode).Accept(ExtractAttributeConstructorArgument)
-        End Function
-
-        Private Class AttributeNodeExtractor
-            Inherits VisualBasicSyntaxVisitor(Of IEnumerable(Of SyntaxNode))
-
-            Public Overrides Iterator Function VisitCompilationUnit(node As CompilationUnitSyntax) As IEnumerable(Of SyntaxNode)
-                For Each attributeStatement In node.Attributes
-                    For Each attribute In attributeStatement.Accept(Me)
-                        Yield attribute
-                    Next
-                Next
-            End Function
-
-            Public Overrides Iterator Function VisitAttributesStatement(node As AttributesStatementSyntax) As IEnumerable(Of SyntaxNode)
-                For Each attributeList In node.AttributeLists
-                    For Each attribute In attributeList.Accept(Me)
-                        Yield attribute
-                    Next
-                Next
-            End Function
-
-            Public Overrides Function VisitAttributeList(node As AttributeListSyntax) As IEnumerable(Of SyntaxNode)
-                Return node.Attributes
-            End Function
-        End Class
-
-        Private Class AttributeConstructorArgumentExtractor
-            Inherits VisualBasicSyntaxVisitor(Of SyntaxNode)
-
-            Public Overrides Function VisitAttribute(node As AttributeSyntax) As SyntaxNode
-                Return node.ArgumentList.Accept(Me)
-            End Function
-
-            Public Overrides Function VisitArgumentList(node As ArgumentListSyntax) As SyntaxNode
-                For Each argument In node.Arguments
+            Dim attributeSyntax = TryCast(internalsVisibleToAttribute, AttributeSyntax)
+            If Not attributeSyntax Is Nothing Then
+                For Each argument In attributeSyntax.ArgumentList.Arguments
                     If Not argument.IsNamed Then
                         Return argument.GetExpression()
                     End If
                 Next
-                Return Nothing
-            End Function
-        End Class
+            End If
+
+            Return Nothing
+        End Function
     End Class
 End Namespace
