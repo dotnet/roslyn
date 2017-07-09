@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             Document document, State state, SyntaxEditor editor, SyntaxAnnotation warningAnnotation)
         {
             // Replace the first reference with a new declaration.
-            var declarationStatement = CreateMergedDeclarationStatement(state.DeclarationStatement, state.FirstStatementAffectedInInnermostBlock);
+            var declarationStatement = CreateMergedDeclarationStatement(document, state);
             declarationStatement = warningAnnotation == null
                 ? declarationStatement
                 : declarationStatement.WithAdditionalAnnotations(warningAnnotation);
@@ -186,8 +186,6 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         protected abstract bool IsValidVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
         protected abstract SyntaxToken GetIdentifierOfVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
 
-        protected abstract TLocalDeclarationStatementSyntax CreateMergedDeclarationStatement(
-            TLocalDeclarationStatementSyntax localDeclaration, TStatementSyntax statementSyntax);
         protected abstract Task<bool> TypesAreCompatibleAsync(Document document, ILocalSymbol localSymbol, TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode right, CancellationToken cancellationToken);
 
         private async Task<bool> CanMergeDeclarationAndAssignmentAsync(
@@ -219,6 +217,23 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             }
 
             return false;
+        }
+
+        private TLocalDeclarationStatementSyntax CreateMergedDeclarationStatement(
+            Document document, State state)
+        {
+            var generator = SyntaxGenerator.GetGenerator(document);
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            syntaxFacts.GetPartsOfAssignmentStatement(
+                state.FirstStatementAffectedInInnermostBlock, 
+                out var left, out var operatorToken, out var right);
+
+            return state.DeclarationStatement.ReplaceNode(
+                state.VariableDeclarator,
+                generator.WithInitializer(
+                    state.VariableDeclarator,
+                    generator.EqualsValueClause(operatorToken, right)));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

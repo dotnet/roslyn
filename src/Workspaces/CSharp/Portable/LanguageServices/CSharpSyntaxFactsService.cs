@@ -1450,10 +1450,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((ExpressionStatementSyntax)statement).Expression.IsKind(SyntaxKind.SimpleAssignmentExpression);
         }
 
-        public void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxNode right)
+        public void GetPartsOfAssignmentStatement(
+            SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
             var assignment = (AssignmentExpressionSyntax)((ExpressionStatementSyntax)statement).Expression;
             left = assignment.Left;
+            operatorToken = assignment.OperatorToken;
             right = assignment.Right;
         }
 

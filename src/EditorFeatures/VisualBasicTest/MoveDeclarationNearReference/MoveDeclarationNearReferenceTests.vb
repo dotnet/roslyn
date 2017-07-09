@@ -1,11 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MoveDeclarationNearReference
     Public Class MoveDeclarationNearReferenceTests

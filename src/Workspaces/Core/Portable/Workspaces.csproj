@@ -915,7 +915,7 @@
     <Compile Include="Shared\Extensions\ISymbolExtensions.IsUnsafeVisitor.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_2.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_Accessibility.cs" />
-    <Compile Include="Shared\Extensions\ISyntaxFactsServiceExtensions.cs" />
+    <Compile Include="LanguageServices\SyntaxFactsService\ISyntaxFactsServiceExtensions.cs" />
     <Compile Include="Shared\Extensions\ITypeGenerator.cs" />
     <Compile Include="Shared\Extensions\ITypeInferenceServiceExtensions.cs" />
     <Compile Include="Shared\Extensions\ITypeParameterSymbolExtensions.cs" />

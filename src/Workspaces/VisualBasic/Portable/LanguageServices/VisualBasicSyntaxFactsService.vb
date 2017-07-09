@@ -1352,9 +1352,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return statement.IsKind(SyntaxKind.SimpleAssignmentStatement)
         End Function
 
-        Public Sub GetPartsOfAssignmentStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentStatement
+        Public Sub GetPartsOfAssignmentStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentStatement
             Dim assignment = DirectCast(statement, AssignmentStatementSyntax)
             left = assignment.Left
+            operatorToken = assignment.OperatorToken
             right = assignment.Right
         End Sub
 

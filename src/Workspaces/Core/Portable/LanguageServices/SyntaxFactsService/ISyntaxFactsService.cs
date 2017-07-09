@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLeftSideOfAssignment(SyntaxNode node);
 
         bool IsSimpleAssignmentStatement(SyntaxNode statement);
-        void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxNode right);
+        void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
 
         // Left side of any assignment (for example  *=  or += )
         bool IsLeftSideOfAnyAssignment(SyntaxNode node);

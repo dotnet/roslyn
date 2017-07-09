@@ -38,21 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference
         protected override SyntaxToken GetIdentifierOfVariableDeclarator(VariableDeclaratorSyntax variableDeclarator)
             => variableDeclarator.Identifier;
 
-        protected override LocalDeclarationStatementSyntax CreateMergedDeclarationStatement(
-            LocalDeclarationStatementSyntax localDeclaration, StatementSyntax statementSyntax)
-        {
-            var assignExpression = (AssignmentExpressionSyntax)((ExpressionStatementSyntax)statementSyntax).Expression;
-            var declaration = localDeclaration.Declaration;
-            var declarator = declaration.Variables[0];
-
-            return localDeclaration.ReplaceNode(
-                declarator, 
-                declarator.WithInitializer(
-                    SyntaxFactory.EqualsValueClause(
-                        assignExpression.OperatorToken,
-                        assignExpression.Right)));
-        }
-
         protected override async Task<bool> TypesAreCompatibleAsync(
             Document document, ILocalSymbol localSymbol,
             LocalDeclarationStatementSyntax declarationStatement,
