@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             editor.ReplaceNode(
                 newNextStatement,
                 newNextStatement.WithAdditionalAnnotations(Formatter.Annotation).WithLeadingTrivia(
-                    newNextStatement.GetLeadingTrivia().Skip(syntaxFacts.GetLeadingBlankLines(newNextStatement).Length)));
+                    syntaxFacts.GetTriviaAfterLeadingBlankLines(newNextStatement)));
 
             // Move leading whitespace from the declaration statement to the next statement.
             var statementIndex = state.OutermostBlockStatements.IndexOf(state.DeclarationStatement);
