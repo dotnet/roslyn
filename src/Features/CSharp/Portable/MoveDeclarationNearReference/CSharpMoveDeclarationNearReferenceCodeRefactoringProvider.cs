@@ -3,7 +3,6 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
@@ -11,7 +10,7 @@ using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 namespace Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveDeclarationNearReference), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
+    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InlineTemporary)]
     internal partial class CSharpMoveDeclarationNearReferenceCodeRefactoringProvider :
         AbstractMoveDeclarationNearReferenceCodeRefactoringProvider<
             CSharpMoveDeclarationNearReferenceCodeRefactoringProvider,
