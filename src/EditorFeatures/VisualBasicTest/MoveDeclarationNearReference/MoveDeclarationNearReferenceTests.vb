@@ -239,7 +239,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
         Public Async Function TestWarnOnChangingScopes2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "using System
 using System.Linq
 
@@ -258,12 +258,12 @@ using System.Linq
 class Program
     sub M()
         for each (v in x)
-            {|Warning:dim i = 0|}
+            {|Warning:dim i = CInt(0)|}
             Console.Write(i)
             i = i + 1
         next
     end sub
-end class")
+end class", parseOptions:=Nothing)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>

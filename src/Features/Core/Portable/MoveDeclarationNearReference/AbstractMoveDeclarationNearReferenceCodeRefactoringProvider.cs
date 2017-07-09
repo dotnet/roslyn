@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     break;
                 }
 
-                if (IsMeaningfulBlock(block.Parent))
+                if (IsMeaningfulBlock(block))
                 {
                     return true;
                 }
@@ -172,27 +172,6 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                         }
                     }
                 }
-
-                //if (firstStatement is ExpressionStatementSyntax expressionStatement &&
-                //    expressionStatement.Expression is AssignmentExpressionSyntax assignmentExpression &&
-                //    assignmentExpression.Kind() == SyntaxKind.SimpleAssignmentExpression &&
-                //    assignmentExpression.Left is IdentifierNameSyntax identifierName &&
-                //    identifierName.Identifier.ValueText == localSymbol.Name)
-                //{
-
-                //    // Can only merge if the declaration had a non-var type, or if it was 'var' and the
-                //    // types match.
-                //    var type = state.VariableDeclaration.Type;
-                //    if (type.IsVar)
-                //    {
-                //        // Type inference.  Only merge if types match.
-                //        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                //        var rightType = semanticModel.GetTypeInfo(assignmentExpression.Right, cancellationToken);
-                //        return Equals(localSymbol.Type, rightType.Type);
-                //    }
-
-                //    return true;
-                //}
             }
 
             return false;
