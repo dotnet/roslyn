@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearReference
+namespace Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference
 {
     internal partial class CSharpMoveDeclarationNearReferenceCodeRefactoringProvider
     {

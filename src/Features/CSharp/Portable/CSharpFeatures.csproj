@@ -162,8 +162,8 @@
     <Compile Include="CodeRefactorings\InvertIf\InvertIfCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\LambdaSimplifier\LambdaSimplifierCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\LambdaSimplifier\LambdaSimplifierCodeRefactoringProvider.Rewriter.cs" />
-    <Compile Include="CodeRefactorings\MoveDeclarationNearReference\CSharpMoveDeclarationNearReferenceCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\MoveDeclarationNearReference\CSharpMoveDeclarationNearReferenceCodeRefactoringProvider.State.cs" />
+    <Compile Include="MoveDeclarationNearReference\CSharpMoveDeclarationNearReferenceCodeRefactoringProvider.cs" />
+    <Compile Include="MoveDeclarationNearReference\CSharpMoveDeclarationNearReferenceCodeRefactoringProvider.State.cs" />
     <Compile Include="CodeRefactorings\MoveType\CSharpMoveTypeService.cs" />
     <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\CompletionUtilities.cs" />

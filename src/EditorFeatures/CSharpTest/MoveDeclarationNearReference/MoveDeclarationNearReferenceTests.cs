@@ -2,12 +2,12 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearReference;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDeclarationNearReference
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearReference
 {
     public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest
     {

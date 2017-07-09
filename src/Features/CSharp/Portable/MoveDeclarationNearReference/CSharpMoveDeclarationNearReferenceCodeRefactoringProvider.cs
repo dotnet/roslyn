@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearReference
+namespace Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveDeclarationNearReference), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
