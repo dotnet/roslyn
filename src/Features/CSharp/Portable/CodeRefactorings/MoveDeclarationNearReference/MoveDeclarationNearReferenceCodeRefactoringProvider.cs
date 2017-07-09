@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Move_declaration_near_reference,
-                    (c) => MoveDeclarationNearReferenceAsync(document, state, c)));
+                    c => MoveDeclarationNearReferenceAsync(document, state, c)));
         }
 
         private async Task<Document> MoveDeclarationNearReferenceAsync(Document document, State state, CancellationToken cancellationToken)
