@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         private class State
         {
             public TLocalDeclarationStatementSyntax DeclarationStatement { get; private set; }
-            // public VariableDeclarationSyntax VariableDeclaration { get; private set; }
             public TVariableDeclaratorSyntax VariableDeclarator { get; private set; }
             public ILocalSymbol LocalSymbol { get; private set; }
             public SyntaxNode OutermostBlock { get; private set; }
