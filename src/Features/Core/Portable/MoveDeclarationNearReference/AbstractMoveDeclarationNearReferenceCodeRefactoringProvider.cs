@@ -34,16 +34,6 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 return;
             }
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
-
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-            {
-                return;
-            }
-
             var position = textSpan.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var statement = root.FindToken(position).GetAncestor<TLocalDeclarationStatementSyntax>();
