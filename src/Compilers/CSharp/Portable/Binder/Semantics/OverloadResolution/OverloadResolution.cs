@@ -1782,8 +1782,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   argument is more specific and no type argument is less specific than the
             //   corresponding type argument in the other. 
 
-            var n1 = t1 as NamedTypeSymbol;
-            var n2 = t2 as NamedTypeSymbol;
+            var n1 = t1.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
+            var n2 = t2.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
             Debug.Assert(((object)n1 == null) == ((object)n2 == null));
 
             if ((object)n1 == null)
