@@ -36,18 +36,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
             Return variableDeclarator.Names(0).Identifier
         End Function
 
-        Protected Overrides Function CreateMergedDeclarationStatement(
-                localDeclaration As LocalDeclarationStatementSyntax,
-                statementSyntax As StatementSyntax) As LocalDeclarationStatementSyntax
-
-            Dim assignment = DirectCast(statementSyntax, AssignmentStatementSyntax)
-            Dim declarator = localDeclaration.Declarators(0)
-            Return localDeclaration.ReplaceNode(
-                declarator,
-                declarator.WithInitializer(
-                    SyntaxFactory.EqualsValue(assignment.OperatorToken, assignment.Right)))
-        End Function
-
         Protected Overrides Function TypesAreCompatibleAsync(document As Document, localSymbol As ILocalSymbol, declarationStatement As LocalDeclarationStatementSyntax, right As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Boolean)
             Return SpecializedTasks.True
         End Function
