@@ -4,6 +4,7 @@ For each release, some steps to check:
 - review/triage issues that should be considered during that milestone (scrub unlabeled issues)
 - review public API changes
 - notify partners of preview and RTM packages being published to NuGet
+- announce the new features on the team blog and in the Visual Studio Preview release notes
 - remove any unused Language Version
 
 For each language feature:
@@ -15,3 +16,4 @@ For each language feature:
 - breaking changes need to be approved by the compat council and [documented](https://github.com/dotnet/roslyn/tree/master/docs/compilers/CSharp)
 - designated reviewer should document and validate a test plan
 - blocking issues should be identified and resolved before merging feature back to `master` (that includes resolving `PROTOTYPE` comments)
+- update the feature status when the feature is complete
