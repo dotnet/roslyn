@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 {
@@ -48,9 +49,14 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 return;
             }
 
-            // Only offer the refactoring when somewhere in the type+name of the local variable.
-            var identifier = this.GetIdentifierOfVariableDeclarator(state.VariableDeclarator);
-            if (position < statement.SpanStart || position > identifier.Span.End)
+            // Don't offer the refactoring inside the initializer for the variable.
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(state.VariableDeclarator);
+            var applicableSpan = initializer == null
+                ? statement.Span
+                : TextSpan.FromBounds(statement.SpanStart, initializer.SpanStart);
+
+            if (!applicableSpan.IntersectsWith(position))
             {
                 return;
             }
