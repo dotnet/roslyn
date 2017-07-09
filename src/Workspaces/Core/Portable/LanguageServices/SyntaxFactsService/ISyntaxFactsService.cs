@@ -298,6 +298,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
 
+        ImmutableArray<SyntaxTrivia> GetLeadingBlankLines(SyntaxNode node);
+        TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode;
+
         ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
 
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);

@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             public ILocalSymbol LocalSymbol { get; private set; }
             public SyntaxNode OutermostBlock { get; private set; }
             public SyntaxNode InnermostBlock { get; private set; }
+            public SyntaxList<TStatementSyntax> OutermostBlockStatements { get; private set; }
             public SyntaxList<TStatementSyntax> InnermostBlockStatements { get; private set; }
             public TStatementSyntax FirstStatementAffectedInInnermostBlock { get; private set; }
 
@@ -113,6 +114,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 }
 
                 this.InnermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(this.InnermostBlock);
+                this.OutermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(this.OutermostBlock);
 
                 var allAffectedStatements = new HashSet<TStatementSyntax>(referencingStatements.SelectMany(
                     expr => expr.GetAncestorsOrThis<TStatementSyntax>()));

@@ -1631,5 +1631,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function FindInnermostCommonExecutableBlock(nodes As IEnumerable(Of SyntaxNode)) As SyntaxNode Implements ISyntaxFactsService.FindInnermostCommonExecutableBlock
             Return nodes.FindInnermostCommonExecutableBlock()
         End Function
+
+        Private Function ISyntaxFactsService_GetLeadingBlankLines(node As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetLeadingBlankLines
+            Return MyBase.GetLeadingBlankLines(node)
+        End Function
+
+        Private Function ISyntaxFactsService_GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode Implements ISyntaxFactsService.GetNodeWithoutLeadingBlankLines
+            Return MyBase.GetNodeWithoutLeadingBlankLines(node)
+        End Function
     End Class
 End Namespace

@@ -270,6 +270,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract bool IsStringLiteral(SyntaxToken token);
         public abstract bool IsInterpolatedStringTextToken(SyntaxToken token);
 
+        public ImmutableArray<SyntaxTrivia> GetLeadingBlankLines(SyntaxNode node)
+            => GetLeadingBlankLines<SyntaxNode>(node);
+
         public ImmutableArray<SyntaxTrivia> GetLeadingBlankLines<TSyntaxNode>(TSyntaxNode node)
             where TSyntaxNode : SyntaxNode
         {

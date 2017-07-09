@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -80,35 +83,69 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             var canMergeDeclarationAndAssignment = await CanMergeDeclarationAndAssignmentAsync(document, state, cancellationToken).ConfigureAwait(false);
             if (canMergeDeclarationAndAssignment)
             {
-                // Replace the first reference with a new declaration.
-                var declarationStatement = CreateMergedDeclarationStatement(state.DeclarationStatement, state.FirstStatementAffectedInInnermostBlock);
-                declarationStatement = warningAnnotation == null
-                    ? declarationStatement
-                    : declarationStatement.WithAdditionalAnnotations(warningAnnotation);
-
-                editor.ReplaceNode(
-                    state.FirstStatementAffectedInInnermostBlock,
-                    declarationStatement.WithAdditionalAnnotations(Formatter.Annotation));
+                MergeDeclarationAndAssignment(state, editor, warningAnnotation);
             }
             else
             {
-                // If we're not merging with an existing declaration, make the declaration semantically
-                // explicit to improve the chances that it won't break code.
-                var explicitDeclarationStatement = await Simplifier.ExpandAsync(
-                    state.DeclarationStatement, document, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                // place the declaration above the first statement that references it.
-                var declarationStatement = warningAnnotation == null
-                    ? explicitDeclarationStatement
-                    : explicitDeclarationStatement.WithAdditionalAnnotations(warningAnnotation);
-
-                editor.InsertBefore(
-                    state.FirstStatementAffectedInInnermostBlock,
-                    declarationStatement.WithAdditionalAnnotations(Formatter.Annotation));
+                await MoveDeclarationToFirstReferenceAsync(
+                    document, state, editor, warningAnnotation, cancellationToken).ConfigureAwait(false);
             }
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private static async Task MoveDeclarationToFirstReferenceAsync(Document document, State state, SyntaxEditor editor, SyntaxAnnotation warningAnnotation, CancellationToken cancellationToken)
+        {
+            // If we're not merging with an existing declaration, make the declaration semantically
+            // explicit to improve the chances that it won't break code.
+            var explicitDeclarationStatement = await Simplifier.ExpandAsync(
+                state.DeclarationStatement, document, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // place the declaration above the first statement that references it.
+            var declarationStatement = warningAnnotation == null
+                ? explicitDeclarationStatement
+                : explicitDeclarationStatement.WithAdditionalAnnotations(warningAnnotation);
+            declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            var newNextStatement = state.FirstStatementAffectedInInnermostBlock;
+            declarationStatement = declarationStatement.WithPrependedLeadingTrivia(
+                syntaxFacts.GetLeadingBlankLines(newNextStatement));
+
+            editor.InsertBefore(
+                state.FirstStatementAffectedInInnermostBlock,
+                declarationStatement);
+
+            editor.ReplaceNode(
+                newNextStatement,
+                newNextStatement.WithAdditionalAnnotations(Formatter.Annotation).WithLeadingTrivia(
+                    newNextStatement.GetLeadingTrivia().Skip(syntaxFacts.GetLeadingBlankLines(newNextStatement).Length)));
+
+            // Move leading whitespace from the declaration statement to the next statement.
+            var statementIndex = state.OutermostBlockStatements.IndexOf(state.DeclarationStatement);
+            if (statementIndex + 1 < state.OutermostBlockStatements.Count)
+            {
+                var originalNextStatement = state.OutermostBlockStatements[statementIndex + 1];
+                editor.ReplaceNode(
+                    originalNextStatement,
+                    (current, generator) => current.WithAdditionalAnnotations(Formatter.Annotation).WithPrependedLeadingTrivia(
+                        syntaxFacts.GetLeadingBlankLines(state.DeclarationStatement)));
+            }
+        }
+
+        private void MergeDeclarationAndAssignment(State state, SyntaxEditor editor, SyntaxAnnotation warningAnnotation)
+        {
+            // Replace the first reference with a new declaration.
+            var declarationStatement = CreateMergedDeclarationStatement(state.DeclarationStatement, state.FirstStatementAffectedInInnermostBlock);
+            declarationStatement = warningAnnotation == null
+                ? declarationStatement
+                : declarationStatement.WithAdditionalAnnotations(warningAnnotation);
+
+            editor.ReplaceNode(
+                state.FirstStatementAffectedInInnermostBlock,
+                declarationStatement.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         private bool CrossesMeaningfulBlock(State state)
