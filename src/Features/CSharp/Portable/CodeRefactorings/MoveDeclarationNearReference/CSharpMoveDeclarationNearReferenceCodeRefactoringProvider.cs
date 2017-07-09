@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveDeclarationNearReference), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
-    internal partial class MoveDeclarationNearReferenceCodeRefactoringProvider : CodeRefactoringProvider
+    internal partial class CSharpMoveDeclarationNearReferenceCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearReference
 {
-    internal partial class MoveDeclarationNearReferenceCodeRefactoringProvider
+    internal partial class CSharpMoveDeclarationNearReferenceCodeRefactoringProvider
     {
         private class State
         {
