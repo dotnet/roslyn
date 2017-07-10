@@ -157,15 +157,31 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!document.SupportsSyntaxTree)
                 {
                     // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
-                    return SpecializedTasks.EmptyTask;
+                    return;
                 }
 
-                return UpdateSymbolTreeInfoAsync(document.Project, cancellationToken);
+                if (bodyOpt != null)
+                {
+                    // This was a method body edit.  We can reuse the existing SymbolTreeInfo if
+                    // we have one.  We can't just bail out here as the change in the document means
+                    // we'll have a new checksum.  We need to get that new checksum so that our
+                    // cached information is valid.
+                    if (_projectToInfo.TryGetValue(document.Project.Id, out var cachedInfo))
+                    {
+                        var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(
+                            document.Project, cancellationToken).ConfigureAwait(false);
+
+                        _projectToInfo.TryAdd(document.Project.Id, cachedInfo.WithChecksum(checksum));
+                        return;
+                    }
+                }
+
+                await UpdateSymbolTreeInfoAsync(document.Project, cancellationToken).ConfigureAwait(false);
             }
 
             public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
