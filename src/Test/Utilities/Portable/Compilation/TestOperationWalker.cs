@@ -409,6 +409,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAwaitExpression(operation);
         }
 
+        public override void VisitNameOfExpression(INameOfExpression operation)
+        {
+            base.VisitNameOfExpression(operation);
+        }
+
+        public override void VisitThrowExpression(IThrowExpression operation)
+        {
+            base.VisitThrowExpression(operation);
+        }
+
         public override void VisitAddressOfExpression(IAddressOfExpression operation)
         {
             base.VisitAddressOfExpression(operation);

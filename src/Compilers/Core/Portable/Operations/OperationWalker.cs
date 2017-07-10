@@ -341,6 +341,16 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.AwaitedValue);
         }
 
+        public override void VisitNameOfExpression(INameOfExpression operation)
+        {
+            Visit(operation.Argument);
+        }
+
+        public override void VisitThrowExpression(IThrowExpression operation)
+        {
+            Visit(operation.Expression);
+        }
+
         public override void VisitAddressOfExpression(IAddressOfExpression operation)
         {
             Visit(operation.Reference);

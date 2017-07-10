@@ -61,6 +61,114 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents C# nameof and VB NameOf expression.
+    /// </summary>
+    internal abstract partial class BaseNameOfExpression : Operation, INameOfExpression
+    {
+        protected BaseNameOfExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.NameOfExpression, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Argument to name of expression.
+        /// </summary>
+        public abstract IOperation Argument { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNameOfExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNameOfExpression(this, argument);
+        }
+    }
+    /// <summary>
+    /// Represents C# nameof and VB NameOf expression.
+    /// </summary>
+    internal sealed partial class NameOfExpression : BaseNameOfExpression, INameOfExpression
+    {
+        public NameOfExpression(IOperation argument, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Argument = argument;
+        }
+        /// <summary>
+        /// Argument to name of expression.
+        /// </summary>
+        public override IOperation Argument { get; }
+    }
+    /// <summary>
+    /// Represents C# nameof and VB NameOf expression.
+    /// </summary>
+    internal sealed partial class LazyNameOfExpression : BaseNameOfExpression, INameOfExpression
+    {
+        private readonly Lazy<IOperation> _lazyArgument;
+
+        public LazyNameOfExpression(Lazy<IOperation> argument, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyArgument = argument ?? throw new System.ArgumentNullException(nameof(argument));
+        }
+        /// <summary>
+        /// Argument to name of expression.
+        /// </summary>
+        public override IOperation Argument => _lazyArgument.Value;
+    }
+
+    /// <summary>
+    /// Represents C# throw expression.
+    /// </summary>
+    internal abstract partial class BaseThrowExpression : Operation, IThrowExpression
+    {
+        protected BaseThrowExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ThrowExpression, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Expression.
+        /// </summary>
+        public abstract IOperation Expression { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitThrowExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitThrowExpression(this, argument);
+        }
+    }
+    /// <summary>
+    /// Represents C# throw expression.
+    /// </summary>
+    internal sealed partial class ThrowExpression : BaseThrowExpression, IThrowExpression
+    {
+        public ThrowExpression(IOperation expression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Expression = expression;
+        }
+        /// <summary>
+        /// Expression.
+        /// </summary>
+        public override IOperation Expression { get; }
+    }
+    /// <summary>
+    /// Represents C# throw expression.
+    /// </summary>
+    internal sealed partial class LazyThrowExpression : BaseThrowExpression, IThrowExpression
+    {
+        private readonly Lazy<IOperation> _lazyExpression;
+
+        public LazyThrowExpression(Lazy<IOperation> expression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
+        }
+        /// <summary>
+        /// Expression.
+        /// </summary>
+        public override IOperation Expression => _lazyExpression.Value;
+    }
+
+    /// <summary>
     /// Represents an argument in a method invocation.
     /// </summary>
     internal abstract partial class BaseArgument : Operation, IArgument
