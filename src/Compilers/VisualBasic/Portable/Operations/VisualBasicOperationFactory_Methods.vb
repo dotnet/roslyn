@@ -439,15 +439,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 [event], instance, Create(statement.Handler), adds:=False, isInvalid:=statement.HasErrors, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
         End Function
 
-        Private Function GetConversionKind(kind As VisualBasic.ConversionKind) As Semantics.ConversionKind
+        Private Shared Function GetConversionKind(kind As VisualBasic.ConversionKind) As Semantics.ConversionKind
             Dim operationKind = Semantics.ConversionKind.Invalid
 
             If kind.HasFlag(VisualBasic.ConversionKind.UserDefined) Then
                 operationKind = Semantics.ConversionKind.OperatorMethod
-            ElseIf Conversions.IsIdentityConversion(kind) Or
-                   kind.HasFlag(VisualBasic.ConversionKind.Reference) Or
-                   kind.HasFlag(VisualBasic.ConversionKind.TypeParameter) Or
-                   kind.HasFlag(VisualBasic.ConversionKind.Array) Or
+            ElseIf Conversions.IsIdentityConversion(kind) OrElse
+                   kind.HasFlag(VisualBasic.ConversionKind.Reference) OrElse
+                   kind.HasFlag(VisualBasic.ConversionKind.TypeParameter) OrElse
+                   kind.HasFlag(VisualBasic.ConversionKind.Array) OrElse
                    kind.HasFlag(VisualBasic.ConversionKind.Value) Then
                 operationKind = Semantics.ConversionKind.Cast
             ElseIf Conversions.NoConversion(kind) Then
