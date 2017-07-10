@@ -81,7 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private void RemoveUnneededReferences2()
+            /// <summary>
+            /// Optimizes local functions such that if a local function only references other local functions without closures, it itself doesn't need a closure.
+            /// </summary>
+            private void RemoveUnneededReferences()
             {
                 var methodGraph = new MultiDictionary<MethodSymbol, MethodSymbol>();
                 var capturesThis = new HashSet<MethodSymbol>();
@@ -147,126 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var nested in scope.NestedScopes)
                 {
                     VisitClosures(nested, action);
-                }
-            }
-
-            private void ComputeLambdaScopesAndFrameCaptures2()
-            {
-                LambdaScopes = new Dictionary<MethodSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
-                NeedsParentFrame = new HashSet<BoundNode>();
-
-                VisitClosures(_scopeTree, (scope, closure) =>
-                {
-                    if (closure.CapturedVariables.Count > 0)
-                    {
-                        (Scope innermost, Scope outermost) = FindLambdaScopeRange(closure, scope);
-                        RecordClosureScope(innermost, outermost, closure);
-                    }
-                });
-
-                (Scope innermost, Scope outermost) FindLambdaScopeRange(Closure closure, Scope closureScope)
-                {
-                    Scope innermost = null;
-                    Scope outermost = null;
-
-                    var capturedVars = PooledHashSet<Symbol>.GetInstance();
-                    capturedVars.AddAll(closure.CapturedVariables);
-
-                    // If any of the captured variables are local functions we'll need
-                    // to add the captured variables of that local function to the current
-                    // set. This has the effect of ensuring that if the local function
-                    // captures anything "above" the current scope then parent frame
-                    // is itself captured (so that the current lambda can call that
-                    // local function).
-                    foreach (var captured in closure.CapturedVariables)
-                    {
-                        if (captured is LocalFunctionSymbol localFunc)
-                        {
-                            capturedVars.AddAll(FindClosureInScope(closureScope, localFunc).CapturedVariables);
-                        }
-                    }
-
-                    for (var curScope = closureScope;
-                         curScope != null && capturedVars.Count > 0;
-                         curScope = curScope.Parent)
-                    {
-                        if (!(capturedVars.Overlaps(curScope.DeclaredCapturedVariables) ||
-                              capturedVars.Overlaps(curScope.Closures.Select(c => c.Symbol))))
-                        {
-                            continue;
-                        }
-
-                        outermost = curScope;
-                        if (innermost == null)
-                        {
-                            innermost = curScope;
-                        }
-
-                        capturedVars.RemoveAll(curScope.DeclaredCapturedVariables);
-                        capturedVars.RemoveAll(curScope.Closures.Select(c => c.Symbol));
-                    }
-
-                    // If any captured variables are left, they're captured above method scope
-                    if (capturedVars.Count > 0)
-                    {
-                        outermost = null;
-                    }
-
-                    capturedVars.Free();
-
-                    return (innermost, outermost);
-                }
-
-                // Walk up the scope tree looking for a closure
-                Closure FindClosureInScope(Scope startingScope, MethodSymbol closureSymbol)
-                {
-                    var currentScope = startingScope;
-                    while (currentScope != null)
-                    {
-                        var found = currentScope.Closures.SingleOrDefault(c => c.Symbol == closureSymbol);
-                        if (found != null)
-                        {
-                            return found;
-                        }
-                        currentScope = currentScope.Parent;
-                    }
-                    return null;
-                }
-
-                void RecordClosureScope(Scope innermost, Scope outermost, Closure closure)
-                {
-                    // 1) if there is innermost scope, lambda goes there as we cannot go any higher.
-                    // 2) scopes in [innermostScope, outermostScope) chain need to have access to the parent scope.
-                    //
-                    // Example: 
-                    //   if a lambda captures a method's parameter and `this`, 
-                    //   its innermost scope depth is 0 (method locals and parameters) 
-                    //   and outermost scope is -1
-                    //   Such lambda will be placed in a closure frame that corresponds to the method's outer block
-                    //   and this frame will also lift original `this` as a field when created by its parent.
-                    //   Note that it is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
-                    if (innermost != null)
-                    {
-                        LambdaScopes.Add(closure.Symbol, innermost.BoundNode);
-
-                        // Disable struct closures on methods converted to delegates, as well as on async and iterator methods.
-                        var markAsNoStruct = !CanTakeRefParameters(closure.Symbol);
-                        if (markAsNoStruct)
-                        {
-                            ScopesThatCantBeStructs.Add(innermost.BoundNode);
-                        }
-
-                        while (innermost != outermost)
-                        {
-                            NeedsParentFrame.Add(innermost.BoundNode);
-                            innermost = innermost.Parent;
-                            if (markAsNoStruct && innermost != null)
-                            {
-                                ScopesThatCantBeStructs.Add(innermost.BoundNode);
-                            }
-                        }
-                    }
-
                 }
             }
 
