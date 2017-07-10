@@ -137,6 +137,7 @@
     <Compile Include="FindUsages\IFindUsagesContext.cs" />
     <Compile Include="FindUsages\IFindUsagesService.cs" />
     <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
+    <Compile Include="Implementation\CodeFixes\CodeFixService.FixAllDiagnosticProvider.cs" />
     <Compile Include="Implementation\CommentSelection\CommentSelectionServiceProxy.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardAutomationPeer.cs" />
     <Compile Include="Implementation\InlineRename\HighlightTags\RenameConflictTag.cs" />
