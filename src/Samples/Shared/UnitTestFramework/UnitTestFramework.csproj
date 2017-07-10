@@ -1,15 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <!-- dynamic -->
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{D571F126-F0B6-487E-BB79-E91EAEE46F4F}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Roslyn.UnitTestFramework</RootNamespace>
     <AssemblyName>Roslyn.UnitTestFramework</AssemblyName>
     <TargetFramework>net46</TargetFramework>
@@ -50,14 +48,6 @@
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CodeActionProviderTestFixture.cs" />
-    <Compile Include="CodeRefactoringProviderTestFixture.cs" />
-    <Compile Include="DictionaryExtensions.cs" />
-    <Compile Include="EnumerableExtensions.ComparisonComparer.cs" />
-    <Compile Include="EnumerableExtensions.cs" />
-    <Compile Include="MarkupTestFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

@@ -1,13 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{D4D09B9B-8421-40B9-B4A9-594DAD5AF8DD}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AssemblyName>RemoveByValVB.UnitTests</AssemblyName>
     <RootNamespace>RemoveByValVB.UnitTests</RootNamespace>
     <NonShipping>true</NonShipping>
     <MyType>Windows</MyType>
@@ -92,10 +90,6 @@
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Xml.Linq" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="My Project\AssemblyInfo.vb" />
-    <Compile Include="RemoveByValTests.vb" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

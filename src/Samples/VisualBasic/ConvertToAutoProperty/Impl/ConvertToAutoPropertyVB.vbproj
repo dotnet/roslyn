@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\..\src\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -22,10 +22,8 @@
     <ScrubbedSamplePath>VisualBasic\ConvertToAutoProperty</ScrubbedSamplePath>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{DA0874AB-377A-48CF-99FF-0B209916309D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>ConvertToAutoPropertyVB</RootNamespace>
-    <AssemblyName>ConvertToAutoPropertyVB</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <UseCodeBase>true</UseCodeBase>
@@ -46,7 +44,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
   <ItemGroup>
@@ -58,11 +55,6 @@
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Xml.Linq" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CodeRefactoringProvider.vb" />
-    <Compile Include="My Project\AssemblyInfo.vb" />
-    <Compile Include="ReferenceRewriter.vb" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">

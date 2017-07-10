@@ -1,35 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProductVersion>8.0.30703</ProductVersion>
-    <ProjectGuid>{E5603AB0-C831-4044-8E44-3CA853B6A152}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CSharpAnalyzers.Test</RootNamespace>
     <AssemblyName>CSharpAnalyzers.Tests</AssemblyName>
     <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <ItemGroup>
-    <Compile Include="Tests\CompilationStartedAnalyzerWithCompilationWideAnalysisUnitTests.cs" />
-    <Compile Include="Tests\CompilationStartedAnalyzerUnitTests.cs" />
-    <Compile Include="Tests\CodeBlockStartedAnalyzerUnitTests.cs" />
-    <Compile Include="Tests\CodeBlockAnalyzerUnitTests.cs" />
-    <Compile Include="Tests\SemanticModelAnalyzerUnitTests.cs" />
-    <Compile Include="Tests\CompilationAnalyzerUnitTests.cs" />
-    <Compile Include="Tests\SyntaxTreeAnalyzerUnitTests.cs" />
-    <Compile Include="Tests\SyntaxNodeAnalyzerUnitTests.cs" />
-    <Compile Include="Verifiers\DiagnosticVerifier.cs" />
-    <Compile Include="Helpers\DiagnosticResult.cs" />
-    <Compile Include="Helpers\DiagnosticVerifier.Helper.cs" />
-    <Compile Include="Tests\SymbolAnalyzerUnitTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CSharpAnalyzers\CSharpAnalyzers.csproj">
       <Project>{409C5A1C-D4DE-43C4-86E1-F598C60B794B}</Project>

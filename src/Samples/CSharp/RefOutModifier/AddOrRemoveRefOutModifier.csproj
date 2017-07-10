@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\src\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
@@ -33,9 +33,7 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{0101B6B7-FE1B-45E9-8C7F-5B4EFD12B030}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Roslyn.Samples.CodeAction.AddOrRemoveRefOutModifier</RootNamespace>
     <AssemblyName>Roslyn.Samples.CodeAction.AddOrRemoveRefOutModifier</AssemblyName>
     <TargetFramework>net46</TargetFramework>
@@ -57,16 +55,10 @@
   </PropertyGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Actions\AddOutOrRefCodeAction.cs" />
-    <Compile Include="Actions\RemoveOutOrRefCodeAction.cs" />
-    <Compile Include="ApplicableActionFinder.cs" />
-    <Compile Include="CodeRefactoringProvider.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
+    <Compile Update="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
@@ -84,7 +76,7 @@
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
+    <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>

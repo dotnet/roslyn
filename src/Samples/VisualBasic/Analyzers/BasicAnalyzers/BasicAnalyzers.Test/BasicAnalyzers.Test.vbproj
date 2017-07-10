@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{5399E7A8-F8F1-4F2E-A5D2-9C96F3DD2A2D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>BasicAnalyzers.Tests</AssemblyName>
     <MyType>Windows</MyType>
@@ -27,23 +26,10 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Tests\CodeBlockAnalyzerUnitTests.vb" />
-    <Compile Include="Tests\CodeBlockStartedAnalyzerUnitTests.vb" />
-    <Compile Include="Tests\CompilationAnalyzerUnitTests.vb" />
-    <Compile Include="Tests\CompilationStartedAnalyzerUnitTests.vb" />
-    <Compile Include="Tests\CompilationStartedAnalyzerWithCompilationWideAnalysisUnitTests.vb" />
-    <Compile Include="Helpers\DiagnosticResult.vb" />
-    <Compile Include="Helpers\DiagnosticVerifier.Helper.vb" />
-    <Compile Include="My Project\AssemblyInfo.vb" />
-    <Compile Include="My Project\Application.Designer.vb">
+    <Compile Update="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>
     </Compile>
-    <Compile Include="Tests\SemanticModelAnalyzerUnitTests.vb" />
-    <Compile Include="Tests\SymbolAnalyzerUnitTests.vb" />
-    <Compile Include="Tests\SyntaxNodeAnalyzerUnitTests.vb" />
-    <Compile Include="Tests\SyntaxTreeAnalyzerUnitTests.vb" />
-    <Compile Include="Verifiers\DiagnosticVerifier.vb" />
   </ItemGroup>
   <ItemGroup>
     <None Include="My Project\Application.myapp">
