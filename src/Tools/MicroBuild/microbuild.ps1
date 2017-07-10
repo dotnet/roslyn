@@ -58,6 +58,7 @@ function Build-InsertionItems() {
     try { 
         Create-PerfTests
         Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln"
+        Create-PerfTests
 
         Exec-Command (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $setupDir $(Get-PackagesDir) `"$assemblyVersion`"" | Out-Host
         

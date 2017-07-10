@@ -24,7 +24,7 @@ param (
     [switch]$build = $false,
     [switch]$buildAll = $false,
     [switch]$bootstrap = $false,
-    [switch]$sign = $false
+    [switch]$sign = $false,
     [string]$msbuildDir = "",
 
     # Test options 
@@ -404,7 +404,7 @@ function Run-SignTool() {
     Push-Location $repoDir
     try {
         $signTool = Join-Path (Get-PackageDir "RoslynTools.Microsoft.SignTool") "tools\SignTool.exe"
-        $signToolArgs = "-msbuildPath $msbuild"
+        $signToolArgs = "-msbuildPath `"$msbuild`""
         if (-not $official) {
             $signToolArgs += " -test"
         }
