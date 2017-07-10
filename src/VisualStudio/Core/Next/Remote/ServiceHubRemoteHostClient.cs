@@ -74,8 +74,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return;
             }
 
-            // Create a connection to the host in the BG to avoid taking the hit of loading 
-            // service hub on the UI thread.
+            // Create a connection to the host in the BG to avoid taking the hit of loading service 
+            // hub on the UI thread.  We'll initially set its ref count to 1, and we will decrement 
+            // that ref-count at the end of the using block.  During this time though, when the 
+            // projectTracker is sending events, the workspace host can then use that connection 
+            // instead of having to expensively spin up a fresh one.
             var currentConnection = await client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
             using (var refCountedConnection = new ReferenceCountedDisposable<Connection>(currentConnection))
             {
