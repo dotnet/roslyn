@@ -24,17 +24,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ImmutableArray<SymbolKind> possibleSymbolKinds,
                 Accessibility accessibility, 
                 DeclarationModifiers declarationModifiers, 
-                ITypeSymbol type) 
+                ITypeSymbol type, 
+                IAliasSymbol alias) 
             {
                 PossibleSymbolKinds = possibleSymbolKinds;
                 DeclaredAccessibility = accessibility;
                 Modifiers = declarationModifiers;
                 Type = type;
+                Alias = alias;
             }
 
             public ImmutableArray<SymbolKind> PossibleSymbolKinds { get; }
             public DeclarationModifiers Modifiers { get; }
             public ITypeSymbol Type { get; }
+            public IAliasSymbol Alias { get; }
             public Accessibility DeclaredAccessibility { get; }
 
             internal static async Task<NameDeclarationInfo> GetDeclarationInfo(Document document, int position, CancellationToken cancellationToken)
@@ -136,11 +139,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return default(NameDeclarationInfo);
                 }
 
+                var alias = semanticModel.GetAliasInfo(typeSyntax, cancellationToken);
+                var type = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
+
                 return new NameDeclarationInfo(
                     possibleDeclarationComputer(GetDeclarationModifiers(modifiers.Value)),
                     GetAccessibility(modifiers.Value),
                     GetDeclarationModifiers(modifiers.Value),
-                    semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type);
+                    type, 
+                    alias);
             }
 
             private static NameDeclarationInfo IsLastTokenOfType<TSyntaxNode>(
@@ -178,7 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     possibleDeclarationComputer(GetDeclarationModifiers(modifiers.Value)),
                     GetAccessibility(modifiers.Value),
                     GetDeclarationModifiers(modifiers.Value),
-                    semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type);
+                    semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type,
+                    semanticModel.GetAliasInfo(typeSyntax, cancellationToken));
             }
 
             private static bool IsFieldDeclaration(SyntaxToken token, SemanticModel semanticModel, 
@@ -224,7 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         ImmutableArray.Create(SymbolKind.TypeParameter),
                         Accessibility.NotApplicable,
                         new DeclarationModifiers(),
-                        type: null);
+                        type: null,
+                        alias: null);
 
                     return true;
                 }

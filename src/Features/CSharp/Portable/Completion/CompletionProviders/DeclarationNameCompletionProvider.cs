@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -37,14 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var nameInfo = await NameDeclarationInfo.GetDeclarationInfo(document, position, cancellationToken).ConfigureAwait(false);
-
-            if (!IsValidType(nameInfo.Type))
+            var baseNames = GetBaseNames(semanticModel, nameInfo);
+            if (baseNames == default)
             {
                 return;
             }
 
-            var type = UnwrapType(nameInfo.Type, semanticModel.Compilation);
-            var baseNames = NameGenerator.GetBaseNames(type);
             var recommendedNames = await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, cancellationToken).ConfigureAwait(false);
             int sortValue = 0;
             foreach (var (name, kind) in recommendedNames)
@@ -55,6 +54,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name, CompletionItemRules.Default);
+        }
+
+        private ImmutableArray<IEnumerable<string>> GetBaseNames(SemanticModel semanticModel,  NameDeclarationInfo nameInfo)
+        {
+            if (nameInfo.Alias != null)
+            {
+                return ImmutableArray.Create(SpecializedCollections.SingletonEnumerable(nameInfo.Alias.Name));
+            }
+
+            if (!IsValidType(nameInfo.Type))
+            {
+                return default;
+            }
+
+            var type = UnwrapType(nameInfo.Type, semanticModel.Compilation);
+            var baseNames = NameGenerator.GetBaseNames(type);
+            return baseNames;
         }
 
         private bool IsValidType(ITypeSymbol type)
