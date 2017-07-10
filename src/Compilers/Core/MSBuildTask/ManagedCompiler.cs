@@ -473,8 +473,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         buildPaths,
                         keepAlive: null,
                         libEnvVariable: LibDirectoryToUse(),
-                        cancellationToken: _sharedCompileCts.Token,
-                        sharedCompilationId: SharedCompilationId);
+                        sharedCompilationId: SharedCompilationId,
+                        cancellationToken: _sharedCompileCts.Token);
 
                     responseTask.Wait(_sharedCompileCts.Token);
 
