@@ -132,6 +132,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return default(NameDeclarationInfo);
                 }
 
+                if (!token.IsKind(SyntaxKind.CommaToken) && token != typeSyntax.GetLastToken())
+                {
+                    return default;
+                }
+
                 var modifiers = modifierGetter(target);
 
                 if (modifiers == null)

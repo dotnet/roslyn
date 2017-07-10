@@ -454,6 +454,7 @@ public class MyClass
             await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
+        [WorkItem(20273, "https://github.com/dotnet/roslyn/issues/20273")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void Alias1()
         {
@@ -468,7 +469,7 @@ public class C
             await VerifyItemExistsAsync(markup, "type");
             await VerifyItemExistsAsync(markup, "myType");
         }
-
+        [WorkItem(20273, "https://github.com/dotnet/roslyn/issues/20273")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void AliasWithInterfacePattern()
         {
@@ -482,6 +483,34 @@ public class C
             await VerifyItemExistsAsync(markup, "my");
             await VerifyItemExistsAsync(markup, "type");
             await VerifyItemExistsAsync(markup, "myType");
+        }
+
+        [WorkItem(20016, "https://github.com/dotnet/roslyn/issues/20016")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void NotAfterExistingName1()
+        {
+            var markup = @"
+using IMyType = System.String;
+public class C
+{
+    MyType myType $$
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(20016, "https://github.com/dotnet/roslyn/issues/20016")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void NotAfterExistingName2()
+        {
+            var markup = @"
+using IMyType = System.String;
+public class C
+{
+    MyType myType, MyType $$
+}
+";
+            await VerifyNoItemsExistAsync(markup);
         }
     }
 }
