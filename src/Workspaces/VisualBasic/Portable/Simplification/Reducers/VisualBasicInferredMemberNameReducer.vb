@@ -23,15 +23,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(s_pool)
         End Sub
 
-        Friend Shared Function CanSimplifyTupleName(node As SimpleArgumentSyntax, parseOptions As VisualBasicParseOptions, optionSet As OptionSet) As Boolean
+        Friend Shared Function CanSimplifyTupleName(node As SimpleArgumentSyntax, parseOptions As VisualBasicParseOptions) As Boolean
             ' Tuple elements are arguments in a tuple expression
             If node.NameColonEquals Is Nothing OrElse Not node.IsParentKind(SyntaxKind.TupleExpression) Then
                 Return False
             End If
 
-            If parseOptions.LanguageVersion < LanguageVersion.VisualBasic15_3 AndAlso
-                Not optionSet.GetOption(VisualBasicCodeStyleOptions.PreferInferredTupleNames).Value Then
-
+            If parseOptions.LanguageVersion < LanguageVersion.VisualBasic15_3 Then
                 Return False
             End If
 
@@ -48,20 +46,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Private Shared ReadOnly s_simplifyNamedFieldInitializer As Func(Of NamedFieldInitializerSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyNamedFieldInitializer
 
         Private Shared Function SimplifyNamedFieldInitializer(node As NamedFieldInitializerSyntax, arg2 As SemanticModel, optionSet As OptionSet, arg4 As CancellationToken) As SyntaxNode
-            If CanSimplifyNamedFieldInitializer(node, optionSet) Then
+            If CanSimplifyNamedFieldInitializer(node) Then
                 Return SyntaxFactory.InferredFieldInitializer(node.Expression).WithTriviaFrom(node)
             End If
 
             Return node
         End Function
 
-        Friend Shared Function CanSimplifyNamedFieldInitializer(node As NamedFieldInitializerSyntax, optionSet As OptionSet) As Boolean
+        Friend Shared Function CanSimplifyNamedFieldInitializer(node As NamedFieldInitializerSyntax) As Boolean
             Dim inferredName = node.Expression.TryGetInferredMemberName()
-
-            If Not optionSet.GetOption(VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames).Value Then
-                Return False
-            End If
-
             If inferredName Is Nothing OrElse
                     Not CaseInsensitiveComparison.Equals(inferredName, node.Name.Identifier.ValueText) Then
                 Return False

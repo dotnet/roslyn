@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InferredMemberName
             => (new CSharpUseInferredMemberNameDiagnosticAnalyzer(), new CSharpUseInferredMemberNameCodeFixProvider());
 
         private static readonly CSharpParseOptions s_parseOptions =
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1);
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
 
         [Fact]
         public async Task TestInferredTupleName()

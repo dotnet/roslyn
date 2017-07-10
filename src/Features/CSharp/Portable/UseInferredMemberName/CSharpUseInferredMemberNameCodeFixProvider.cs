@@ -33,13 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var generator = editor.Generator;
             var root = editor.OriginalRoot;
 
             foreach (var diagnostic in diagnostics)
             {
-                var nameColon = root.FindNode(diagnostic.Location.SourceSpan);
-                editor.RemoveNode(nameColon, SyntaxRemoveOptions.KeepExteriorTrivia);
+                var node = root.FindNode(diagnostic.Location.SourceSpan);
+                editor.RemoveNode(node, SyntaxRemoveOptions.KeepExteriorTrivia);
             }
 
             return SpecializedTasks.EmptyTask;

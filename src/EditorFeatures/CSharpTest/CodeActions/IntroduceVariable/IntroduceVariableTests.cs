@@ -4073,11 +4073,11 @@ class Program
     {
         int a = 1;
         int {|Rename:y1|} = C.y;
-        var t = (a: a, x: y1);
+        var t = (a, x: y1);
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestAsync(code, expected, ignoreTrivia: false, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4102,11 +4102,11 @@ class Program
     {
         int x = 1;
         int {|Rename:y1|} = C.y;
-        var t = (x: x, y: y1);
+        var t = (x, y: y1);
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestAsync(code, expected, ignoreTrivia: false, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4132,11 +4132,11 @@ class Program
     {
         int x = 1;
         int {|Rename:y1|} = C.y;
-        var t = (x: x, y: y1);
-        var t2 = (y: y1, x:x);
+        var t = (x, y: y1);
+        var t2 = (y: y1, x);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+            await TestAsync(code, expected, index: 1, ignoreTrivia: false, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]

@@ -5,7 +5,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private ArgumentSyntax SimplifyTupleName(ArgumentSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
             {
-                if (CanSimplifyTupleElementName(node, this.ParseOptions, optionSet))
+                if (CanSimplifyTupleElementName(node, this.ParseOptions))
                 {
                     return node.WithNameColon(null).WithTriviaFrom(node);
                 }
@@ -35,7 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private static SyntaxNode SimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken canellationToken)
             {
-                if (CanSimplifyAnonymousTypeMemberName(node, optionSet))
+
+                if (CanSimplifyAnonymousTypeMemberName(node))
                 {
                     return node.WithNameEquals(null).WithTriviaFrom(node);
                 }

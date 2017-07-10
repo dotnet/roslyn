@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
 
         public override bool OpenFileOnly(Workspace workspace)
             => false;
@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 
             var argument = (ArgumentSyntax)nameColon.Parent;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            if (!CSharpInferredMemberNameReducer.CanSimplifyTupleElementName(argument, parseOptions, optionSet))
+            if (!optionSet.GetOption(CSharpCodeStyleOptions.PreferInferredTupleNames).Value ||
+                !CSharpInferredMemberNameReducer.CanSimplifyTupleElementName(argument, parseOptions))
             {
                 return;
             }
@@ -89,7 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             }
 
             var anonCtor = (AnonymousObjectMemberDeclaratorSyntax)nameEquals.Parent;
-            if (!CSharpInferredMemberNameReducer.CanSimplifyAnonymousTypeMemberName(anonCtor, optionSet))
+            if (!optionSet.GetOption(CSharpCodeStyleOptions.PreferInferredAnonymousTypeMemberNames).Value ||
+                !CSharpInferredMemberNameReducer.CanSimplifyAnonymousTypeMemberName(anonCtor))
             {
                 return;
             }

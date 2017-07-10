@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
         End Sub
 
         Public Overrides Function GetAnalyzerCategory() As DiagnosticAnalyzerCategory
-            Return DiagnosticAnalyzerCategory.SemanticSpanAnalysis
+            Return DiagnosticAnalyzerCategory.SyntaxAnalysis
         End Function
 
         Public Overrides Function OpenFileOnly(workspace As Workspace) As Boolean
@@ -63,7 +63,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             End If
 
             Dim argument = DirectCast(nameColonEquals.Parent, SimpleArgumentSyntax)
-            If Not VisualBasicInferredMemberNameReducer.CanSimplifyTupleName(argument, parseOptions, optionSet) Then
+            If Not optionSet.GetOption(VisualBasicCodeStyleOptions.PreferInferredTupleNames).Value OrElse
+                Not VisualBasicInferredMemberNameReducer.CanSimplifyTupleName(argument, parseOptions) Then
                 Return
             End If
 
@@ -82,9 +83,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
         End Sub
 
         Private Sub ReportDiagnosticsIfNeeded(fieldInitializer As NamedFieldInitializerSyntax, context As SyntaxNodeAnalysisContext,
-                                                   optionSet As OptionSet, syntaxTree As SyntaxTree)
+            optionSet As OptionSet, syntaxTree As SyntaxTree)
 
-            If Not VisualBasicInferredMemberNameReducer.CanSimplifyNamedFieldInitializer(fieldInitializer, optionSet) Then
+
+            If Not optionSet.GetOption(VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames).Value OrElse
+                Not VisualBasicInferredMemberNameReducer.CanSimplifyNamedFieldInitializer(fieldInitializer) Then
+
                 Return
             End If
 

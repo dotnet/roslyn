@@ -1,13 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -25,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        internal static bool CanSimplifyTupleElementName(ArgumentSyntax node, CSharpParseOptions parseOptions, OptionSet optionSet)
+        internal static bool CanSimplifyTupleElementName(ArgumentSyntax node, CSharpParseOptions parseOptions)
         {
             // Tuple elements are arguments in a tuple expression
             if (node.NameColon == null || !node.IsParentKind(SyntaxKind.TupleExpression))
@@ -33,8 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return false;
             }
 
-            if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_1 ||
-                !optionSet.GetOption(CSharpCodeStyleOptions.PreferInferredTupleNames).Value)
+            if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_1)
             {
                 return false;
             }
@@ -48,14 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return true;
         }
 
-        internal static bool CanSimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, OptionSet optionSet)
+        internal static bool CanSimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node)
         {
             if (node.NameEquals == null)
-            {
-                return false;
-            }
-
-            if (!optionSet.GetOption(CSharpCodeStyleOptions.PreferInferredAnonymousTypeMemberNames).Value)
             {
                 return false;
             }

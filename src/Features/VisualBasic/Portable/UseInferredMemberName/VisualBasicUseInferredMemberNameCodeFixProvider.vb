@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
 
         Protected Overrides Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic),
                                                  editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
-            Dim generator = editor.Generator
             Dim root = editor.OriginalRoot
 
             For Each diagnostic In diagnostics

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 cancellationToken As CancellationToken
                 ) As SimpleArgumentSyntax
 
-                If CanSimplifyTupleName(node, ParseOptions, optionSet) Then
+                If CanSimplifyTupleName(node, ParseOptions) Then
                     Return node.WithNameColonEquals(Nothing).WithTriviaFrom(node)
                 End If
 
