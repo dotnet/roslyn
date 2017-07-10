@@ -87,7 +87,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "") {
 
     if ($cibuild) { 
         $pathMapDir = "q:\roslyn"
-        $args += " /p:PathMap=`"$($repoDir)=$pathMapDir`" /p:Feature=pdb-path-determinism /p:SourceLinkRootDirectory=$pathMapDir" 
+        $args += " /p:PathMap=`"$($repoDir)=$pathMapDir`" /p:SourceLinkRootDirectory=$pathMapDir" 
     }
 
     if ($official) {

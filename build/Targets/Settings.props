@@ -83,7 +83,7 @@
 
   <!-- Utilize source linking whenever there is a valid git commit available. Won't be available during rebase, 
        or build from zip for example -->
-  <PropertyGroup Condition="'$(GitHeadShaRaw)' != ''">
+  <PropertyGroup Condition="'$(GitHeadShaRaw)' != '' AND '$(OS)' == 'Windows_NT' ">
     <SourceLinkCreate>true</SourceLinkCreate>
     <SourceLinkRootDirectory Condition="'$(SourceLinkRootDirectory)' == ''">$(RepoRoot)</SourceLinkRootDirectory>
     <SourceLinkOriginUrl>https://github.com/dotnet/roslyn</SourceLinkOriginUrl>
