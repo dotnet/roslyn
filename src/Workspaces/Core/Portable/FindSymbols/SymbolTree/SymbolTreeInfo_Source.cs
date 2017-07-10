@@ -42,44 +42,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        public static async Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
-        {
-            // The SymbolTree for source is built from the source-symbols from the project's compilation's
-            // assembly.  Specifically, we only get the name, kind and parent/child relationship of all the
-            // child symbols.  So we want to be able to reuse the index as long as none of these have 
-            // changed.  The only thing that can make those source-symbols change in that manner are if
-            // the text of any document changes, or if options for the project change.  So we build our
-            // checksum out of that data.
-            var serializer = new Serializer(project.Solution.Workspace);
-            var projectStateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-
-            // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
-            // to be ordered by Guid (which is not consistent across VS sessions).
-            var textChecksumsTasks = project.Documents.OrderBy(d => d.FilePath, StringComparer.Ordinal).Select(async d =>
-            {
-                var documentStateChecksum = await d.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                return documentStateChecksum.Text;
-            });
-
-            var compilationOptionsChecksum = projectStateChecksums.CompilationOptions;
-            var parseOptionsChecksum = projectStateChecksums.ParseOptions;
-            var textChecksums = await Task.WhenAll(textChecksumsTasks).ConfigureAwait(false);
-
-            var allChecksums = ArrayBuilder<Checksum>.GetInstance();
-            try
-            {
-                allChecksums.AddRange(textChecksums);
-                allChecksums.Add(compilationOptionsChecksum);
-                allChecksums.Add(parseOptionsChecksum);
-
-                var checksum = Checksum.Create(WellKnownSynchronizationKind.SymbolTreeInfo, allChecksums);
-                return checksum;
-            }
-            finally
-            {
-                allChecksums.Free();
-            }
-        }
+        public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
+            => project.State.GetChecksumAsync(cancellationToken);
 
         internal static async Task<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(
             Project project, Checksum checksum, CancellationToken cancellationToken)
