@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.GetSymbolModifiers(),
                 method.ReturnType.SubstituteTypes(mapping, typeGenerator),
                 method.ReturnsByRef,
-                method.ExplicitInterfaceImplementations.FirstOrDefault(),
+                method.ExplicitInterfaceImplementations,
                 method.Name,
                 updatedTypeParameters,
                 method.Parameters.SelectAsArray(p =>
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.GetSymbolModifiers(),
                 method.ReturnType,
                 method.ReturnsByRef,
-                method.ExplicitInterfaceImplementations.FirstOrDefault(),
+                method.ExplicitInterfaceImplementations,
                 method.Name,
                 method.TypeParameters,
                 parameters);
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.GetSymbolModifiers(),
                 method.ReturnType,
                 method.ReturnsByRef,
-                method.ExplicitInterfaceImplementations.FirstOrDefault(),
+                method.ExplicitInterfaceImplementations,
                 method.Name,
                 method.TypeParameters,
                 method.Parameters.SelectAsArray(p =>

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -74,15 +74,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         private bool TryExecuteCommand(int caretPosition, Document document)
         {
             var streamingService = document.GetLanguageService<IFindUsagesService>();
-            var synchronousService = document.GetLanguageService<IFindReferencesService>();
-
             var streamingPresenter = GetStreamingPresenter();
 
             // See if we're running on a host that can provide streaming results.
             // We'll both need a FAR service that can stream results to us, and 
             // a presenter that can accept streamed results.
-            var streamingEnabled = document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.StreamingFindReferences, document.Project.Language);
-            if (streamingEnabled && streamingService != null && streamingPresenter != null)
+            if (streamingService != null && streamingPresenter != null)
             {
                 StreamingFindReferences(document, caretPosition, streamingService, streamingPresenter);
                 return true;
@@ -92,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             // or the host has no way to present results in a streaming manner.
             // Fall back to the old non-streaming approach to finding and presenting 
             // results.
+            var synchronousService = document.GetLanguageService<IFindReferencesService>();
             if (synchronousService != null)
             {
                 FindReferences(document, synchronousService, caretPosition);

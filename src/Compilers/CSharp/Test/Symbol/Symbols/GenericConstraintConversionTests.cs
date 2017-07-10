@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -50,7 +50,7 @@ class C<T>
         b = u;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (25,14): error CS0266: Cannot implicitly convert type 'U' to 'IB'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "IB").WithLocation(25, 14),
                 // (26,14): error CS0266: Cannot implicitly convert type 'V' to 'IB'. An explicit conversion exists (are you missing a cast?)
@@ -86,7 +86,7 @@ class C<T, U>
         ib = v;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (17,14): error CS0266: Cannot implicitly convert type 'T' to 'IB'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "IB").WithLocation(17, 14));
         }
@@ -132,7 +132,7 @@ class C<T, U, V>
         b = x;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (15,13): error CS0266: Cannot implicitly convert type 'U' to 'IA'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "IA").WithLocation(15, 13),
                 // (16,13): error CS0266: Cannot implicitly convert type 'T' to 'IB'. An explicit conversion exists (are you missing a cast?)
@@ -207,7 +207,7 @@ class C<T, U, V>
         x = w;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,13): error CS0266: Cannot implicitly convert type 'U' to 'T'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "T").WithLocation(11, 13),
                 // (12,13): error CS0266: Cannot implicitly convert type 'V' to 'T'. An explicit conversion exists (are you missing a cast?)
@@ -279,7 +279,7 @@ class B<T1, T2, T3, T4, T5, T6>
     static T5 F5 = null;
     static T6 F6 = null;
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,20): error CS0403: Cannot convert null to type parameter 'T1' because it could be a non-nullable value type. Consider using 'default(T1)' instead.
                 //     static T1 F1 = null;
                 Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T1"),
@@ -326,7 +326,7 @@ class C<T, U>
         b = u;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (15,13): error CS0266: Cannot implicitly convert type 'T' to 'IB'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "IB").WithLocation(15, 13));
         }
@@ -407,7 +407,7 @@ class C<T, U>
         ou = y;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (20,14): error CS0266: Cannot implicitly convert type 'Y' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("Y", "IIn<T>").WithLocation(20, 14),
                 // (30,14): error CS0266: Cannot implicitly convert type 'X' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
@@ -527,7 +527,7 @@ class E<T, U>
         iu = it;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,14): error CS0266: Cannot implicitly convert type 'I<U>' to 'I<T>'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("I<U>", "I<T>").WithLocation(9, 14),
                 // (10,14): error CS0266: Cannot implicitly convert type 'I<T>' to 'I<U>'. An explicit conversion exists (are you missing a cast?)
@@ -600,7 +600,7 @@ class E<T, U>
         x = u;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,13): error CS0266: Cannot implicitly convert type 'U' to 'X'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "X").WithLocation(8, 13));
         }
@@ -621,7 +621,7 @@ class E<T, U>
         y = t;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,13): error CS0266: Cannot implicitly convert type 'T' to 'Y'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "Y").WithLocation(10, 13));
         }
@@ -644,7 +644,7 @@ class C<T, U>
         i = v;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (2,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(2, 9),
                 // (2,12): error CS0454: Circular constraint dependency involving 'U' and 'U'
@@ -684,7 +684,7 @@ class D<T>
         u = (U)b2;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (14,13): error CS0030: Cannot convert type 'B1<T>' to 'T'
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T)b1t").WithArguments("B1<T>", "T").WithLocation(14, 13),
                 // (16,13): error CS0030: Cannot convert type 'B2' to 'T'
@@ -723,7 +723,7 @@ class A<T>
         u = (U)ct;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         /// <summary>
@@ -755,7 +755,7 @@ class A<T>
         ct = (IC<T>)u;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         /// <summary>
@@ -783,7 +783,7 @@ class A<T>
         v = (V)w;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (16,13): error CS0030: Cannot convert type 'W' to 'V'
                 //         v = (V)w;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(V)w").WithArguments("W", "V"),
@@ -811,7 +811,7 @@ class B : A<int>
         t = (int)u;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,13): error CS0029: Cannot implicitly convert type 'int' to 'U'
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("int", "U").WithLocation(9, 13),
                 // (10,13): error CS0030: Cannot convert type 'int' to 'U'
@@ -963,7 +963,7 @@ class C
     // Implicit conversion to type parameter (error).
     static T F4<T>(C4<T> c) { return c; }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (17,48): error CS0029: Cannot implicitly convert type 'T' to 'C0'
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "C0").WithLocation(17, 48),
                 // (21,38): error CS0029: Cannot implicitly convert type 'C4<T>' to 'T'
@@ -998,7 +998,7 @@ class C
 }";
             // Note: Dev10 also reports "CS0030: Cannot convert type 'T' to 'C0'" in F1<T>(T),
             // although there is an explicit conversion from C1 to C0.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (17,48): error CS0030: Cannot convert type 'T' to 'C0'
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C0)t").WithArguments("T", "C0").WithLocation(17, 48),
                 // (21,38): error CS0030: Cannot convert type 'C4<T>' to 'T'
@@ -1046,7 +1046,7 @@ class C4<T> where T : C4<T>
 {
     public static explicit operator T(C4<T> c) { return null; }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,37): error CS0553: 'B1.implicit operator A(B1)': user-defined conversions to or from a base class are not allowed
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "A").WithArguments("B1.implicit operator A(B1)").WithLocation(4, 37),
                 // (8,37): error CS0553: 'B2.explicit operator A(B2)': user-defined conversions to or from a base class are not allowed

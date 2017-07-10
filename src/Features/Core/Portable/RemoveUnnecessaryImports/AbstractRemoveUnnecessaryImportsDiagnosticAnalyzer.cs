@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -30,13 +31,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         protected abstract LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor();
 
+        private DiagnosticDescriptor _unnecessaryClassificationIdDescriptor;
         private DiagnosticDescriptor _classificationIdDescriptor;
-        private DiagnosticDescriptor GetClassificationIdDescriptor()
+
+        private void EnsureClassificationIdDescriptors()
         {
-            if (_classificationIdDescriptor == null)
+            if (_unnecessaryClassificationIdDescriptor == null)
             {
                 var titleAndMessageFormat = GetTitleAndMessageFormatForClassificationIdDescriptor();
-                _classificationIdDescriptor =
+
+                _unnecessaryClassificationIdDescriptor =
                     new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
                                              titleAndMessageFormat,
                                              titleAndMessageFormat,
@@ -44,13 +48,25 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true,
                                              customTags: DiagnosticCustomTags.Unnecessary);
-            }
 
-            return _classificationIdDescriptor;
+                _classificationIdDescriptor =
+                    new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
+                                             titleAndMessageFormat,
+                                             titleAndMessageFormat,
+                                             DiagnosticCategory.Style,
+                                             DiagnosticSeverity.Hidden,
+                                             isEnabledByDefault: true);
+            }
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(s_fixableIdDescriptor, GetClassificationIdDescriptor());
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get
+            {
+                EnsureClassificationIdDescriptors();
+                return ImmutableArray.Create(s_fixableIdDescriptor, _unnecessaryClassificationIdDescriptor, _classificationIdDescriptor);
+            }
+        }
 
         public bool OpenFileOnly(Workspace workspace) => true;
 
@@ -64,9 +80,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             var tree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var workspace = ((WorkspaceAnalyzerOptions)context.Options).Workspace;
-            var service = workspace.Services.GetLanguageServices(context.SemanticModel.Compilation.Language)
-                                            .GetService<IUnnecessaryImportsService>();
+            if (!(context.Options is WorkspaceAnalyzerOptions workspaceOptions))
+            {
+                return;
+            }
+
+            var language = context.SemanticModel.Compilation.Language;
+            var service = workspaceOptions.Services.GetLanguageServices(language)
+                                                   .GetService<IUnnecessaryImportsService>();
 
             var unnecessaryImports = service.GetUnnecessaryImports(context.SemanticModel, cancellationToken);
             if (unnecessaryImports.Any())
@@ -78,10 +99,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 // for us appropriately.
                 unnecessaryImports = MergeImports(unnecessaryImports);
 
+                EnsureClassificationIdDescriptors();
+                var fadeOut = workspaceOptions.Services.Workspace.Options.GetOption(FadingOptions.FadeOutUnusedImports, language);
+                var descriptor = fadeOut ? _unnecessaryClassificationIdDescriptor : _classificationIdDescriptor;
+
                 Func<SyntaxNode, SyntaxToken> getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
                 var contiguousSpans = unnecessaryImports.GetContiguousSpans(getLastTokenFunc);
                 var diagnostics =
-                    CreateClassificationDiagnostics(contiguousSpans, tree, cancellationToken).Concat(
+                    CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(
                     CreateFixableDiagnostics(unnecessaryImports, tree, cancellationToken));
 
                 foreach (var diagnostic in diagnostics)
@@ -100,7 +125,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         // Create one diagnostic for each unnecessary span that will be classified as Unnecessary
         private IEnumerable<Diagnostic> CreateClassificationDiagnostics(
-            IEnumerable<TextSpan> contiguousSpans, SyntaxTree tree, CancellationToken cancellationToken)
+            IEnumerable<TextSpan> contiguousSpans, SyntaxTree tree, 
+            DiagnosticDescriptor descriptor, CancellationToken cancellationToken)
         {
             foreach (var span in contiguousSpans)
             {
@@ -109,7 +135,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                     continue;
                 }
 
-                yield return Diagnostic.Create(GetClassificationIdDescriptor(), tree.GetLocation(span));
+                yield return Diagnostic.Create(descriptor, tree.GetLocation(span));
             }
         }
 

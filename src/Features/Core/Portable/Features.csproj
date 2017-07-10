@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -9,9 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Features</AssemblyName>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -100,6 +98,20 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddImport\AbstractAddImportFeatureService.cs" />
+    <Compile Include="AddImport\Remote\AbstractAddImportFeatureService_Remote.cs" />
+    <Compile Include="AddImport\AddImportFixData.cs" />
+    <Compile Include="AddImport\AddImportFixKind.cs" />
+    <Compile Include="AddImport\CodeActions\AddImportCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\AssemblyReferenceCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\MetadataSymbolReferenceCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\ProjectSymbolReferenceCodeAction.cs" />
+    <Compile Include="AddImport\IAddImportFeatureService.cs" />
+    <Compile Include="AddImport\Remote\IRemoteAddImportFeatureService.cs" />
+    <Compile Include="AddImport\SearchScopes\AllSymbolsProjectSearchScope.cs" />
+    <Compile Include="AddImport\SearchScopes\MetadataSymbolsSearchScope.cs" />
+    <Compile Include="AddImport\SearchScopes\ProjectSearchScope.cs" />
+    <Compile Include="AddImport\SearchScopes\SourceSymbolsProjectSearchScope.cs" />
     <Compile Include="AddImport\SymbolReferenceFinder_PackageAssemblySearch.cs" />
     <Compile Include="AddPackage\AbstractAddPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\AbstractAddSpecificPackageCodeFixProvider.cs" />
@@ -107,17 +119,26 @@
     <Compile Include="AddPackage\InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageParentCodeAction.cs" />
     <Compile Include="AddParameter\AbstractAddParameterCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\RemoveUnusedVariable\AbstractRemoveUnusedVariableCodeFixProvider.cs" />
+    <Compile Include="RemoveUnusedVariable\AbstractRemoveUnusedVariableCodeFixProvider.cs" />
+    <Compile Include="CodeRefactorings\WorkspaceServices\ISymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
+    <Compile Include="CommentSelection\AbstractCommentSelectionService.cs" />
+    <Compile Include="CommentSelection\CommentSelectionInfo.cs" />
+    <Compile Include="CommentSelection\ICommentSelectionService.cs" />
+    <Compile Include="Completion\CompletionHelperServiceFactory.cs" />
+    <Compile Include="Completion\FileSystemCompletionHelper.cs" />
+    <Compile Include="Completion\ICompletionHelperService.cs" />
     <Compile Include="ConvertIfToSwitch\AbstractConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertNumericLiteral\AbstractConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\AbstractUseNamedArgumentsCodeRefactoringProvider.cs" />
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
-    <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
-    <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\InstallPackageAndAddImportCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="ConflictMarkerResolution\AbstractConflictMarkerCodeFixProvider.cs" />
     <Compile Include="Completion\Providers\AbstractCrefCompletionProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="DesignerAttributes\AbstractDesignerAttributeService.cs" />
+    <Compile Include="DesignerAttributes\DesignerAttributeProjectData.cs" />
+    <Compile Include="DesignerAttributes\DesignerAttributeDocumentData.cs" />
     <Compile Include="DesignerAttributes\IDesignerAttributeService.cs" />
     <Compile Include="DesignerAttributes\IRemoteDesignerAttributeService.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyleDiagnosticAnalyzerBase.cs" />
@@ -125,15 +146,20 @@
     <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
     <Compile Include="Diagnostics\SymbolAnalysisContextExtensions.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
+    <Compile Include="Experimentation\AnalyzerABTestLogger.cs" />
+    <Compile Include="Experimentation\AnalyzerABTestOptions.cs" />
+    <Compile Include="Experimentation\LiveCodeAnalysisInstallStatus.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
+    <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
+    <Compile Include="AddConstructorParametersFromMembers\State.cs" />
+    <Compile Include="Fading\FadingOptions.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
-    <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
-    <Compile Include="AddConstructorParametersFromMembers\State.cs" />
+    <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpan.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersOptions.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
@@ -141,11 +167,20 @@
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndHashWithDialogCodeAction.cs" />
     <Compile Include="GenerateOverrides\GenerateOverridesWithDialogCodeAction.cs" />
     <Compile Include="GenerateOverrides\GenerateOverridesCodeRefactoringProvider.cs" />
+    <Compile Include="InitializeParameter\AbstractInitializeMemberFromParameterCodeRefactoringProviderMemberCreation.cs" />
+    <Compile Include="InitializeParameter\AbstractAddParameterCheckCodeRefactoringProvider.cs" />
+    <Compile Include="InitializeParameter\AbstractInitializeParameterCodeRefactoringProvider.cs" />
+    <Compile Include="OrderModifiers\AbstractOrderModifiersDiagnosticAnalyzer.cs" />
+    <Compile Include="OrderModifiers\AbstractOrderModifiersCodeFixProvider.cs" />
+    <Compile Include="OrderModifiers\OrderModifiersHelpers.cs" />
     <Compile Include="PickMembers\IPickMembersService.cs" />
     <Compile Include="PickMembers\PickMembersResult.cs" />
     <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />
     <Compile Include="ImplementType\ImplementTypeOptions.cs" />
     <Compile Include="ImplementType\ImplementTypeOptionsProvider.cs" />
+    <Compile Include="DocumentHighlighting\AbstractDocumentHighlightsService.cs" />
+    <Compile Include="DocumentHighlighting\IDocumentHighlightsService.cs" />
+    <Compile Include="DocumentHighlighting\IRemoteDocumentHighlights.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\IUnnecessaryImportsService.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
@@ -159,19 +194,64 @@
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.cs" />
     <Compile Include="NavigateTo\INavigateToSearchResult.cs" />
     <Compile Include="NavigateTo\INavigateToSearchService.cs" />
-    <Compile Include="NavigateTo\NavigateToOptions.cs" />
     <Compile Include="Navigation\INavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.cs" />
     <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
-    <Compile Include="AddImport\CodeActions\PackageReference.ParentCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\ParentInstallPackageCodeAction.cs" />
     <Compile Include="Remote\RemoteArguments.cs" />
+    <Compile Include="RQName\Nodes\ResolvedRQNode.cs" />
+    <Compile Include="RQName\Nodes\RQArrayOrPointerType.cs" />
+    <Compile Include="RQName\Nodes\RQArrayType.cs" />
+    <Compile Include="RQName\Nodes\RQConstructedType.cs" />
+    <Compile Include="RQName\Nodes\RQConstructor.cs" />
+    <Compile Include="RQName\Nodes\RQErrorType.cs" />
+    <Compile Include="RQName\Nodes\RQEvent.cs" />
+    <Compile Include="RQName\Nodes\RQExplicitInterfaceMemberName.cs" />
+    <Compile Include="RQName\Nodes\RQIndexer.cs" />
+    <Compile Include="RQName\Nodes\RQMember.cs" />
+    <Compile Include="RQName\Nodes\RQMemberParameterIndex.cs" />
+    <Compile Include="RQName\Nodes\RQMemberParameterIndexFromPartialImplementation.cs" />
+    <Compile Include="RQName\Nodes\RQMemberParameterIndexFromPartialSignature.cs" />
+    <Compile Include="RQName\Nodes\RQMemberVariable.cs" />
+    <Compile Include="RQName\Nodes\RQMethod.cs" />
+    <Compile Include="RQName\Nodes\RQMethodBase.cs" />
+    <Compile Include="RQName\Nodes\RQMethodOrProperty.cs" />
+    <Compile Include="RQName\Nodes\RQMethodPropertyOrEvent.cs" />
+    <Compile Include="RQName\Nodes\RQMethodPropertyOrEventName.cs" />
+    <Compile Include="RQName\Nodes\RQNamespace.cs" />
+    <Compile Include="RQName\Nodes\RQNode.cs" />
+    <Compile Include="RQName\Nodes\RQNormalParameter.cs" />
+    <Compile Include="RQName\Nodes\RQNullType.cs" />
+    <Compile Include="RQName\Nodes\RQOrdinaryMethodPropertyOrEventName.cs" />
+    <Compile Include="RQName\Nodes\RQOutParameter.cs" />
+    <Compile Include="RQName\Nodes\RQParameter.cs" />
+    <Compile Include="RQName\Nodes\RQPointerType.cs" />
+    <Compile Include="RQName\Nodes\RQProperty.cs" />
+    <Compile Include="RQName\Nodes\RQPropertyBase.cs" />
+    <Compile Include="RQName\Nodes\RQRefParameter.cs" />
+    <Compile Include="RQName\Nodes\RQType.cs" />
+    <Compile Include="RQName\Nodes\RQTypeOrNamespace.cs" />
+    <Compile Include="RQName\Nodes\RQTypeVariableType.cs" />
+    <Compile Include="RQName\Nodes\RQUnconstructedType.cs" />
+    <Compile Include="RQName\Nodes\RQVoidType.cs" />
+    <Compile Include="RQName\ParenthesesTreeWriter.cs" />
+    <Compile Include="RQName\RQNameInternal.cs" />
+    <Compile Include="RQName\RQNameStrings.cs" />
+    <Compile Include="RQName\RQNodeBuilder.cs" />
+    <Compile Include="RQName\SimpleTree\SimpleGroupNode.cs" />
+    <Compile Include="RQName\SimpleTree\SimpleLeafNode.cs" />
+    <Compile Include="RQName\SimpleTree\SimpleTreeNode.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
+    <Compile Include="SymbolMapping\ISymbolMappingService.cs" />
+    <Compile Include="SymbolMapping\SymbolMappingResult.cs" />
+    <Compile Include="SymbolMapping\SymbolMappingServiceFactory.cs" />
     <Compile Include="TodoComments\AbstractTodoCommentService.cs" />
     <Compile Include="TodoComments\IRemoteTodoCommentService.cs" />
     <Compile Include="TodoComments\ITodoCommentService.cs" />
     <Compile Include="UpgradeProject\AbstractUpgradeProjectCodeFixProvider.cs" />
+    <Compile Include="UseCollectionInitializer\AbstractObjectCreationExpressionAnalyzer.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
@@ -212,7 +292,7 @@
     <Compile Include="AddImport\References\PackageReference.cs" />
     <Compile Include="AddImport\References\ProjectSymbolReference.cs" />
     <Compile Include="AddImport\References\Reference.cs" />
-    <Compile Include="AddImport\SearchScope.cs" />
+    <Compile Include="AddImport\SearchScopes\SearchScope.cs" />
     <Compile Include="AddImport\References\SymbolReference.cs" />
     <Compile Include="AddImport\SymbolReferenceFinder.cs" />
     <Compile Include="AddImport\SymbolResult.cs" />
@@ -227,8 +307,8 @@
     <Compile Include="CodeFixes\FixAllOccurrences\IFixMultipleOccurrencesService.cs" />
     <Compile Include="CodeFixes\ImplementAbstractClass\AbstractImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="CodeFixes\PreferFrameworkType\PreferFrameworkTypeCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.SymbolResult.cs" />
-    <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.cs" />
+    <Compile Include="FullyQualify\AbstractFullyQualifyCodeFixProvider.SymbolResult.cs" />
+    <Compile Include="FullyQualify\AbstractFullyQualifyCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
     <Compile Include="CodeFixes\ICodeFixProviderFactory.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\IFixAllGetFixesService.cs" />
@@ -269,7 +349,7 @@
     <Compile Include="CodeRefactorings\CodeRefactoringService.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractMethod\AbstractExtractMethodCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
+    <Compile Include="GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
     <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersFromMembersCodeRefactoringProvider.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersCodeRefactoringProvider.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.cs" />
@@ -346,10 +426,7 @@
     <Compile Include="DocumentSpan.cs" />
     <Compile Include="FindUsages\DefinitionItem.cs" />
     <Compile Include="FindUsages\DefinitionItem.DocumentLocationDefinitionItem.cs" />
-    <Compile Include="FindUsages\DefinitionItem.NonNavigatingDefinitionItem.cs" />
-    <Compile Include="FindUsages\DefinitionItem.SymbolDefinitionItem.cs" />
     <Compile Include="FindUsages\DefinitionsAndReferences.cs" />
-    <Compile Include="FindUsages\IDefinitionsAndReferencesFactory.cs" />
     <Compile Include="FindUsages\SourceReferenceItem.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\EngineV2\ICodeAnalysisDiagnosticAnalyzerExecutor.cs" />
@@ -723,13 +800,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeFixes\Suppression\TopLevelSuppressionCodeAction.cs" />
-    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <PackageReference Include="System.Reflection" Version="$(SystemReflectionVersion)" />
+  </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

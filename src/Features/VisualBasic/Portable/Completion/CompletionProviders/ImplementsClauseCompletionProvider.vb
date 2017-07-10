@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             If container Is Nothing Then
-                Return Nothing
+                Return ImmutableArray(Of ISymbol).Empty
             End If
             Dim symbols = semanticModel.LookupSymbols(position, container)
 
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim interfaceWithUnimplementedMembers = containingType.GetAllUnimplementedMembersInThis(containingType.Interfaces, AddressOf interfaceMemberGetter, cancellationToken) _
-                                                .Where(Function(i) i.Item2.Any(Function(s) MatchesMemberKind(s, kind))) _
+                                                .Where(Function(i) i.Item2.Any(Function(interfaceOrContainer) MatchesMemberKind(interfaceOrContainer, kind))) _
                                                 .Select(Function(i) i.Item1)
 
             Dim interfacesAndContainers = New HashSet(Of ISymbol)(interfaceWithUnimplementedMembers)
@@ -170,9 +170,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 AddAliasesAndContainers(i, interfacesAndContainers, node, semanticModel)
             Next
 
-            Dim symbols = semanticModel.LookupSymbols(position)
+            Dim symbols = New HashSet(Of ISymbol)(semanticModel.LookupSymbols(position))
+            Dim availableInterfacesAndContainers = interfacesAndContainers.Where(
+                Function(interfaceOrContainer) symbols.Contains(interfaceOrContainer.OriginalDefinition)).ToImmutableArray()
 
-            Dim result = TryAddGlobalTo(interfacesAndContainers.Intersect(symbols.ToArray()).ToImmutableArray())
+            Dim result = TryAddGlobalTo(availableInterfacesAndContainers)
 
             ' Even if there's not anything left to implement, we'll show the list of interfaces, 
             ' the global namespace, and the project root namespace (if any), as long as the class implements something.

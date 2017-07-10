@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -652,6 +653,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="path">The cryptography key file path. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the cryptography key path is different; otherwise current instance.</returns>        
         Public Shadows Function WithCryptoKeyFile(path As String) As VisualBasicCompilationOptions
+            If String.IsNullOrEmpty(path) Then
+                path = Nothing
+            End If
+
             If String.Equals(path, Me.CryptoKeyFile, StringComparison.Ordinal) Then
                 Return Me
             End If
@@ -734,6 +739,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics)
         End Function
 
+        Friend Overrides Function CommonWithMetadataImportOptions(value As MetadataImportOptions) As CompilationOptions
+            Return WithMetadataImportOptions(value)
+        End Function
+
         <Obsolete>
         Protected Overrides Function CommonWithFeatures(features As ImmutableArray(Of String)) As CompilationOptions
             Throw New NotImplementedException()
@@ -803,7 +812,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.OptimizationLevel = value}
         End Function
 
-        Friend Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
+        Friend Shadows Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
             If value = Me.MetadataImportOptions Then
                 Return Me
             End If

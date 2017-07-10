@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public static class LocalFunctionTestsUtil
     {
-        public static IMethodSymbol FindLocalFunction(this CommonTestBase.CompilationVerifier verifier, string localFunctionName)
+        public static IMethodSymbol FindLocalFunction(this CompilationVerifier verifier, string localFunctionName)
         {
             localFunctionName = (char)GeneratedNameKind.LocalFunction + "__" + localFunctionName;
             var methods = verifier.TestData.GetMethodsByName();
@@ -30,6 +30,208 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
+        [Fact]
+        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        public void IntermediateStructClosures1()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+class C
+{
+    int _x = 0;
+
+    public static void Main() => new C().M();
+
+    public void M()
+    {
+        int var1 = 0;
+        void L1()
+        {
+            void L2()
+            {
+                void L3()
+                {   
+                    void L4()
+                    {
+                        int var2 = 0;
+                        void L5()
+                        {
+                            int L6() => var2 + _x++;
+                            L6();
+                        }
+                        L5();
+                    }
+                    L4();
+                }
+                L3();
+            }
+            L2();
+            int L8() => var1;
+        }
+        Console.WriteLine(_x);
+        L1();
+        Console.WriteLine(_x);
+    }
+}", expectedOutput: 
+@"0
+1");
+            // L1
+            verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_1)", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_1)""
+  IL_000c:  ret
+}");
+            // L2
+            verifier.VerifyIL("C.<M>g__L22_1(ref C.<>c__DisplayClass2_1)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""void C.<M>g__L32_2(ref C.<>c__DisplayClass2_1)""
+  IL_0007:  ret
+}");
+            // Skip some... L5
+            verifier.VerifyIL("C.<M>g__L52_4(ref C.<>c__DisplayClass2_1, ref C.<>c__DisplayClass2_0)", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_1, ref C.<>c__DisplayClass2_0)""
+  IL_0007:  pop
+  IL_0008:  ret
+}");
+            // L6
+            verifier.VerifyIL("C.<M>g__L62_5(ref C.<>c__DisplayClass2_1, ref C.<>c__DisplayClass2_0)", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass2_0.var2""
+  IL_0006:  ldarg.1
+  IL_0007:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
+  IL_000c:  ldarg.1
+  IL_000d:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
+  IL_0012:  ldfld      ""int C._x""
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.1
+  IL_001a:  add
+  IL_001b:  stfld      ""int C._x""
+  IL_0020:  ldloc.0
+  IL_0021:  add
+  IL_0022:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        public void IntermediateStructClosures2()
+        {
+            CompileAndVerify(@"
+class C
+{
+    int _x;
+    void M()
+    {
+        int y = 0;
+        void L1()
+        {
+            void L2()
+            {
+                int z = 0;
+                int L3() => z + _x;
+            }
+            y++;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        public void Repro18814()
+        {
+            CompileAndVerify(@"
+class Program
+{
+    private void ResolvingPackages()
+    {
+        string outerScope(int a) => """";
+
+        void C1(int cabinetIdx)
+        {
+            void modifyState()
+            {
+                var no = outerScope(cabinetIdx);
+            }
+
+            modifyState();
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        public void Repro18918()
+        {
+            CompileAndVerify(@"
+public class Test
+{
+    private int _field;
+
+    public void OuterMethod(int outerParam)
+    {
+        void InnerMethod1()
+        {
+            void InnerInnerMethod(int innerInnerParam)
+            {
+                InnerInnerInnerMethod();
+                
+                bool InnerInnerInnerMethod()
+                {
+                    return innerInnerParam != _field;
+                }
+            }
+
+            void InnerMethod2()
+            {
+                var temp = outerParam;
+            }  
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(17719, "https://github.com/dotnet/roslyn/issues/17719")]
+        public void Repro17719()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        T GetField<T>(string name, T @default = default(T))
+        {
+          return @default;
+        }
+        Console.WriteLine(GetField<int>(string.Empty));
+    }
+}", expectedOutput: "0");
+        }
+
         [Fact]
         [WorkItem(17890, "https://github.com/dotnet/roslyn/issues/17890")]
         public void Repro17890()
@@ -78,7 +280,7 @@ public class Class
             CompileAndVerify(comp);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16783")]
+        [Fact]
         [WorkItem(16783, "https://github.com/dotnet/roslyn/issues/16783")]
         public void GenericDefaultParams()
         {
@@ -134,7 +336,7 @@ class C2
         [Fact]
         public void NameofRecursiveDefaultParameter()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 using System;
 class C
 {
@@ -694,7 +896,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src);
+            var comp = CreateStandardCompilation(src);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -3970,6 +4172,73 @@ class Program
 }";
             CompileAndVerify(src, expectedOutput: "CDBACDBACDBACDBACDBA",
                 additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+        }
+
+        [Fact]
+        [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
+        public void StructFrameInitUnnecesary()
+        {
+            var c = CompileAndVerify(@"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int q = 1;
+
+            if (q > 0)
+            {
+                int w = 2;
+                if (w > 0)
+                {
+                    int e = 3;
+                    if (e > 0)
+                    {
+                        void Print() => System.Console.WriteLine(q + w + e);
+
+                        Print();
+                    }
+                }
+            }
+        }
+    }", expectedOutput: "6");
+
+            //NOTE: the following code should not have "initobj" instructions.
+
+            c.VerifyIL("Program.Main", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  3
+  .locals init (Program.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                Program.<>c__DisplayClass0_1 V_1, //CS$<>8__locals1
+                Program.<>c__DisplayClass0_2 V_2) //CS$<>8__locals2
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  stfld      ""int Program.<>c__DisplayClass0_0.q""
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      ""int Program.<>c__DisplayClass0_0.q""
+  IL_000e:  ldc.i4.0
+  IL_000f:  ble.s      IL_003e
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  ldc.i4.2
+  IL_0014:  stfld      ""int Program.<>c__DisplayClass0_1.w""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""int Program.<>c__DisplayClass0_1.w""
+  IL_001f:  ldc.i4.0
+  IL_0020:  ble.s      IL_003e
+  IL_0022:  ldloca.s   V_2
+  IL_0024:  ldc.i4.3
+  IL_0025:  stfld      ""int Program.<>c__DisplayClass0_2.e""
+  IL_002a:  ldloc.2
+  IL_002b:  ldfld      ""int Program.<>c__DisplayClass0_2.e""
+  IL_0030:  ldc.i4.0
+  IL_0031:  ble.s      IL_003e
+  IL_0033:  ldloca.s   V_0
+  IL_0035:  ldloca.s   V_1
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  call       ""void Program.<Main>g__Print0_0(ref Program.<>c__DisplayClass0_0, ref Program.<>c__DisplayClass0_1, ref Program.<>c__DisplayClass0_2)""
+  IL_003e:  ret
+}
+");
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)

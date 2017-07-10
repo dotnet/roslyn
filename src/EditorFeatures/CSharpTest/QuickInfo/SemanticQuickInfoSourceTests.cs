@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -2105,7 +2105,9 @@ void M(C left, C right)
                 MainDescription("C C.operator +(C left, C right)"));
         }
 
+#pragma warning disable CA2243 // Attribute string literals should parse correctly
         [WorkItem(792629, "generic type parameter constraints for methods in quick info")]
+#pragma warning restore CA2243 // Attribute string literals should parse correctly
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task GenericMethodWithConstraintsAtDeclaration()
         {
@@ -2117,7 +2119,9 @@ void M(C left, C right)
             MainDescription("TOut C.Foo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn>"));
         }
 
+#pragma warning disable CA2243 // Attribute string literals should parse correctly
         [WorkItem(792629, "generic type parameter constraints for methods in quick info")]
+#pragma warning restore CA2243 // Attribute string literals should parse correctly
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task GenericMethodWithMultipleConstraintsAtDeclaration()
         {
@@ -2130,7 +2134,9 @@ void M(C left, C right)
             MainDescription("TOut C.Foo<TIn, TOut>(TIn arg) where TIn : Employee, new()"));
         }
 
+#pragma warning disable CA2243 // Attribute string literals should parse correctly
         [WorkItem(792629, "generic type parameter constraints for methods in quick info")]
+#pragma warning restore CA2243 // Attribute string literals should parse correctly
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task UnConstructedGenericMethodWithConstraintsAtInvocation()
         {
@@ -4835,6 +4841,114 @@ class C : I
     }
 }",
                 MainDescription("(int, int) C.Name { get; set; }"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity0VariableName()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var y$$ = ValueTuple.Create();
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("(local variable) ValueTuple y"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity0ImplicitVar()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var$$ y = ValueTuple.Create();
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("struct System.ValueTuple"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity1VariableName()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var y$$ = ValueTuple.Create(1);
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("(local variable) ValueTuple<int> y"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity1ImplicitVar()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var$$ y = ValueTuple.Create(1);
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("ValueTuple<System.Int32>"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity2VariableName()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var y$$ = ValueTuple.Create(1, 1);
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("(local variable) (int, int) y"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity2ImplicitVar()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var$$ y = ValueTuple.Create(1, 1);
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("(System.Int32, System.Int32)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

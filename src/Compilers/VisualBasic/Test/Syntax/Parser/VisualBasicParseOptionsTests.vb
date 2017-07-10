@@ -27,14 +27,12 @@ Public Class VisualBasicParseOptionsTests
         Dim oldOpt1 = VisualBasicParseOptions.Default
         Dim newOpt1 = oldOpt1.WithLanguageVersion(LanguageVersion.Latest)
         Dim newOpt2 = newOpt1.WithLanguageVersion(LanguageVersion.Latest)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, oldOpt1.LanguageVersion)
         Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt1.LanguageVersion)
         Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt2.LanguageVersion)
         newOpt1 = oldOpt1.WithLanguageVersion(LanguageVersion.Default)
         newOpt2 = newOpt1.WithLanguageVersion(LanguageVersion.Default)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, oldOpt1.LanguageVersion)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt1.LanguageVersion)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt2.LanguageVersion)
+        Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion, newOpt1.LanguageVersion)
+        Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion, newOpt2.LanguageVersion)
     End Sub
 
     <Fact>
@@ -82,11 +80,11 @@ Public Class VisualBasicParseOptionsTests
         Dim highest = System.Enum.
             GetValues(GetType(LanguageVersion)).
             Cast(Of LanguageVersion).
-            Select(Function(x) CInt(x)).
             Where(Function(x) x <> LanguageVersion.Latest).
-            Max()
+            Max().
+            ToDisplayString()
 
-        Assert.Equal(highest, CInt(PredefinedPreprocessorSymbols.CurrentVersionNumber))
+        Assert.Equal(highest, PredefinedPreprocessorSymbols.CurrentVersionNumber.ToString())
     End Sub
 
     <Fact>

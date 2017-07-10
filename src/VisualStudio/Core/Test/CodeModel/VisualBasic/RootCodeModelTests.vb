@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -12,6 +12,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
 #Region "CodeElements tests"
 
+        ' This test depends On the version Of mscorlib used by the TestWorkspace And may 
+        ' change in the future
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements1()
             Dim code =
@@ -20,9 +22,11 @@ Class Foo
 End Class
 </code>
 
-            TestChildren(code, "MS", "My", "Microsoft", "System", "Foo")
+            TestChildren(code, "MS", "My", "Microsoft", "System", "Foo", "Windows")
         End Sub
 
+        ' This test depends On the version Of mscorlib used by the TestWorkspace And may 
+        ' change in the future
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements2()
             Dim code =
@@ -31,7 +35,7 @@ Module Foo
 End Module
 </code>
 
-            TestChildren(code, "MS", "My", "Microsoft", "System", "Foo")
+            TestChildren(code, "MS", "My", "Microsoft", "System", "Foo", "Windows")
         End Sub
 
 #End Region

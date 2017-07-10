@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
@@ -28,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 new KeyValuePair<string, string> (LanguageNames.CSharp, "CS"),
                 new KeyValuePair<string, string> (LanguageNames.VisualBasic, "BC"),
+                new KeyValuePair<string, string> (LanguageNames.FSharp, "FS"),
             });
 
         [ImportingConstructor]

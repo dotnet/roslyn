@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -8,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
@@ -118,16 +117,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (methodDeclaration.ExpressionBody == null)
             {
-                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
-                if (preferExpressionBody)
+                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
+                if (methodDeclaration.Body.TryConvertToExpressionBody(
+                        options, expressionBodyPreference, out var expressionBody, out var semicolonToken))
                 {
-                    if (methodDeclaration.Body.TryConvertToExpressionBody(
-                            options, out var expressionBody, out var semicolonToken))
-                    {
-                        return methodDeclaration.WithBody(null)
-                                                .WithExpressionBody(expressionBody)
-                                                .WithSemicolonToken(semicolonToken);
-                    }
+                    return methodDeclaration.WithBody(null)
+                                            .WithExpressionBody(expressionBody)
+                                            .WithSemicolonToken(semicolonToken);
                 }
             }
 

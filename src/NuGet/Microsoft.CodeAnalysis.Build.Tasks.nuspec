@@ -6,12 +6,14 @@
     <description>
         Contains the build task and targets used by MSBuild to run the C# and VB compilers.
         Supports using VBCSCompiler on Windows.
+
+        $commitPathMessage$
     </description>
     <dependencies>
       <group targetFramework="netstandard1.3">
         <dependency id="Microsoft.CodeAnalysis.CSharp"                      version="[$version$]" />
-        <dependency id="Microsoft.Build"                                    version="$MicrosoftBuild14Version$" />
-        <dependency id="Microsoft.Build.Tasks.Core"                         version="$MicrosoftBuildTasksCore14Version$" />
+        <dependency id="Microsoft.Build"                                    version="$MicrosoftBuildFixedVersion$" />
+        <dependency id="Microsoft.Build.Tasks.Core"                         version="$MicrosoftBuildTasksCoreFixedVersion$" />
 
         <dependency id="System.AppContext"                                  version="$SystemAppContextVersion$" />
         <dependency id="System.Console"                                     version="$SystemConsoleVersion$" />

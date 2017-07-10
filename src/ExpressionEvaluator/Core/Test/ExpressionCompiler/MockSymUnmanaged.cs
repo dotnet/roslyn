@@ -1,10 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices.ComTypes;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -32,12 +34,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             if (!_methodDebugInfoMap.TryGetValue(methodToken, out info))
             {
                 retVal = null;
-                return SymUnmanagedReaderExtensions.E_FAIL;
+                return HResult.E_FAIL;
             }
 
             Assert.NotNull(info);
             retVal = info.Method;
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         public int GetSymAttribute(int methodToken, string name, int bufferLength, out int count, byte[] customDebugInformation)
@@ -58,12 +60,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             if (!_methodDebugInfoMap.TryGetValue(methodToken, out info))
             {
                 count = 0;
-                return SymUnmanagedReaderExtensions.S_FALSE; // This is a guess.  We're not consuming it, so it doesn't really matter.
+                return HResult.S_FALSE; // This is a guess.  We're not consuming it, so it doesn't really matter.
             }
 
             Assert.NotNull(info);
             info.Bytes.TwoPhaseCopy(bufferLength, out count, customDebugInformation);
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         public int GetDocument(string url, Guid language, Guid languageVendor, Guid documentType, out ISymUnmanagedDocument document)
@@ -169,13 +171,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         int ISymUnmanagedMethod.GetRootScope(out ISymUnmanagedScope retVal)
         {
             retVal = _rootScope;
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         int ISymUnmanagedMethod.GetSequencePointCount(out int retVal)
         {
             retVal = 1;
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         int ISymUnmanagedMethod.GetSequencePoints(int cPoints, out int pcPoints, int[] offsets, ISymUnmanagedDocument[] documents, int[] lines, int[] columns, int[] endLines, int[] endColumns)
@@ -187,7 +189,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             columns[0] = 0;
             endLines[0] = 0;
             endColumns[0] = 0;
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         int ISymUnmanagedMethod.GetNamespace(out ISymUnmanagedNamespace retVal)
@@ -246,37 +248,37 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         public int GetChildren(int numDesired, out int numRead, ISymUnmanagedScope[] buffer)
         {
             _children.TwoPhaseCopy(numDesired, out numRead, buffer);
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         public int GetNamespaces(int numDesired, out int numRead, ISymUnmanagedNamespace[] buffer)
         {
             _namespaces.TwoPhaseCopy(numDesired, out numRead, buffer);
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         public int GetStartOffset(out int pRetVal)
         {
             pRetVal = _startOffset;
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         public int GetEndOffset(out int pRetVal)
         {
             pRetVal = _endOffset;
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         public int GetLocalCount(out int pRetVal)
         {
             pRetVal = 0;
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         public int GetLocals(int cLocals, out int pcLocals, ISymUnmanagedVariable[] locals)
         {
             pcLocals = 0;
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         public int GetMethod(out ISymUnmanagedMethod pRetVal)
@@ -292,7 +294,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         public int GetConstantCount(out int pRetVal)
         {
             pRetVal = _constants.Length;
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         public int GetConstants(int cConstants, out int pcConstants, ISymUnmanagedConstant[] constants)
@@ -302,7 +304,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             {
                 Array.Copy(_constants, constants, constants.Length);
             }
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
     }
 
@@ -361,7 +363,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             {
                 name[i] = _name[i];
             }
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
 
         int ISymUnmanagedConstant.GetSignature(int bufferLength, out int count, byte[] signature)
@@ -372,7 +374,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         int ISymUnmanagedConstant.GetValue(out object value)
         {
             value = _value;
-            return SymUnmanagedReaderExtensions.S_OK;
+            return HResult.S_OK;
         }
     }
 

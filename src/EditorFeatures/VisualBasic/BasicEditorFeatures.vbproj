@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -71,8 +71,6 @@
     <Compile Include="BraceMatching\StringLiteralBraceMatcher.vb" />
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.vb" />
     <Compile Include="ChangeSignature\VisualBasicChangeSignatureCommandHandler.vb" />
-    <Compile Include="Classification\VisualBasicEditorClassificationService.vb" />
-    <Compile Include="CommentSelection\VisualBasicCommentUncommentService.vb" />
     <Compile Include="ContentType\ContentTypeDefinitions.vb" />
     <Compile Include="DocumentationComments\DocumentationCommentCommandHandler.vb" />
     <Compile Include="DocumentationComments\XmlTagCompletionCommandHandler.vb" />
@@ -91,7 +89,6 @@
     <Compile Include="EndConstructGeneration\VisualBasicEndConstructGenerationService.vb" />
     <Compile Include="ExtractInterface\ExtractInterfaceCommandHandler.vb" />
     <Compile Include="ExtractMethod\ExtractMethodCommandHandler.vb" />
-    <Compile Include="FindReferences\VisualBasicFindReferencesService.vb" />
     <Compile Include="FindUsages\VisualBasicFindUsagesService.vb" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatter.vb" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterCommandHandler.vb" />
@@ -130,7 +127,6 @@
     <Compile Include="Highlighting\KeywordHighlighters\XmlEmbeddedExpressionHighlighter.vb" />
     <Compile Include="Highlighting\KeywordHighlighters\XmlProcessingInstructionHighlighter.vb" />
     <Compile Include="Highlighting\KeywordHighlightingHelpers.vb" />
-    <Compile Include="HighlightReferences\VisualBasicDocumentHighlightsService.vb" />
     <Compile Include="ImplementAbstractClass\ImplementAbstractClassCommandHandler.vb" />
     <Compile Include="ImplementInterface\ImplementInterfaceCommandHandler.vb" />
     <Compile Include="InlineRename\VisualBasicEditorInlineRenameService.vb" />
@@ -156,7 +152,6 @@
     <Compile Include="NavigationBar\GenerateMethodItem.vb" />
     <Compile Include="NavigationBar\VisualBasicNavigationBarItemService.vb" />
     <Compile Include="QuickInfo\SemanticQuickInfoProvider.vb" />
-    <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.vb" />
     <Compile Include="RenameTracking\BasicRenameTrackingLanguageHeuristicsService.vb" />
     <Compile Include="RenameTracking\RenameTrackingCodeFixProvider.vb" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.vb" />
@@ -178,6 +173,9 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Editor.Shared.Extensions" />
@@ -209,9 +207,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

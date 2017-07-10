@@ -35,13 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             Return VBFeaturesResources.Make_Async_Sub
         End Function
 
-        Protected Overrides Function IsMethodOrAnonymousFunction(node As SyntaxNode) As Boolean
-            Return node.IsKind(SyntaxKind.FunctionBlock) OrElse
-                node.IsKind(SyntaxKind.SubBlock) OrElse
-                node.IsKind(SyntaxKind.MultiLineFunctionLambdaExpression) OrElse
-                node.IsKind(SyntaxKind.MultiLineSubLambdaExpression) OrElse
-                node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) OrElse
-                node.IsKind(SyntaxKind.SingleLineSubLambdaExpression)
+        Protected Overrides Function IsAsyncSupportingFunctionSyntax(node As SyntaxNode) As Boolean
+            Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
         Protected Overrides Function AddAsyncTokenAndFixReturnType(

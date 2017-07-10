@@ -23793,7 +23793,7 @@ Friend MustOverride ReadOnly Property P
             IL_0007:  ret
         }
 }"
-            Dim ilReference = CompileIL(forwardingIL, appendDefaultHeader:= False)
+            Dim ilReference = CompileIL(forwardingIL, prependDefaultHeader:= False)
 
             Dim code = 
     <compilation>
@@ -24003,7 +24003,7 @@ End Namespace"
 	.assembly extern D2
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, appendDefaultHeader:= False)
+            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:= False)
 
             compilation = CreateCompilationWithMscorlib(
                 source:= codeA,
@@ -24087,7 +24087,7 @@ End Namespace
 	.assembly extern D
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, appendDefaultHeader:=False)
+            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False)
 
             Dim compilation = CreateCompilationWithMscorlib(codeA, references:={referenceB, referenceC2})
 
@@ -24129,7 +24129,7 @@ End Namespace"
 	.assembly extern D2
 }"
 
-            Dim ilModule = GetILModuleReference(ilSource, appendDefaultHeader:=False)
+            Dim ilModule = GetILModuleReference(ilSource, prependDefaultHeader:=False)
             Dim compilation = CreateCompilationWithMscorlib(
                 source:=String.Empty,
                 references:={ilModule},
@@ -24155,7 +24155,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
 	.assembly extern D
 }"
 
-            Dim ilModule = GetILModuleReference(ilSource, appendDefaultHeader:=False)
+            Dim ilModule = GetILModuleReference(ilSource, prependDefaultHeader:=False)
             Dim compilation = CreateCompilationWithMscorlib(String.Empty, references:={ilModule}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
@@ -24197,7 +24197,7 @@ End Namespace"
 	.assembly extern D2
 }"
 
-            Dim ilModuleReference = GetILModuleReference(ilSource, appendDefaultHeader:=False)
+            Dim ilModuleReference = GetILModuleReference(ilSource, prependDefaultHeader:=False)
             Dim forwarderCompilation = CreateCompilation(
                 source:=String.Empty,
                 references:={ilModuleReference},
@@ -24244,7 +24244,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
 	.assembly extern D2
 }"
 
-            Dim module1Reference = GetILModuleReference(module1IL, appendDefaultHeader:=False)
+            Dim module1Reference = GetILModuleReference(module1IL, prependDefaultHeader:=False)
 
             Dim module2IL = "
 .module module12L.dll
@@ -24259,7 +24259,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
 	.assembly extern D4
 }"
 
-            Dim module2Reference = GetILModuleReference(module2IL, appendDefaultHeader:=False)
+            Dim module2Reference = GetILModuleReference(module2IL, prependDefaultHeader:=False)
 
             Dim forwarderCompilation = CreateCompilation(
                 source:=String.Empty,
@@ -24338,7 +24338,7 @@ End Namespace"
 	.assembly extern E
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, appendDefaultHeader:=False)
+            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False)
 
             Dim codeD = "
 .assembly D { }
@@ -24348,7 +24348,7 @@ End Namespace"
 	.assembly extern E
 }"
 
-            Dim referenceD = CompileIL(codeD, appendDefaultHeader:=False)
+            Dim referenceD = CompileIL(codeD, prependDefaultHeader:=False)
             Dim referenceE = CreateCompilationWithMscorlib(
                 source:=codeC,
                 options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),

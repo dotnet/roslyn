@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -18,13 +18,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void AdviseSolutionEvents(IVsSolution solution)
         {
             _vsSolution = solution;
-            _vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie);
-            _solutionEventsCookie = solutionEventsCookie;
+            if (_solutionEventsCookie == null)
+            {
+                _vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie);
+                _solutionEventsCookie = solutionEventsCookie;
+            }
         }
 
         public void UnadviseSolutionEvents()
         {
-            if (_solutionEventsCookie.HasValue)
+            if (_solutionEventsCookie != null)
             {
                 _vsSolution.UnadviseSolutionEvents(_solutionEventsCookie.Value);
                 _solutionEventsCookie = null;
@@ -90,13 +93,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// Returns whether the solution overall has Lightweight solution load enabled,  either
+        /// through the global option in Tools\Options, or the .suo specific option.
+        /// 
+        /// NOTE: Does *NOT* mean that all projects in the solution are deferred.  Project types
+        /// can opt out.  Use <see cref="IVsSolution7.IsDeferredProjectLoadAllowed(string)"/> to
+        /// see if a specific project can be deferred.
+        /// </summary>
         internal static bool IsDeferredSolutionLoadEnabled(IServiceProvider serviceProvider)
         {
-            // NOTE: It is expected that the "as" will fail on Dev14, as IVsSolution7 was
-            // introduced in Dev15.  Be sure to handle the null result here.
-            var solution7 = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution7;
-            return solution7?.IsSolutionLoadDeferred() == true;
+            var solution7 = (IVsSolution7)serviceProvider.GetService(typeof(SVsSolution));
+            return solution7.IsSolutionLoadDeferred();
         }
-
     }
 }

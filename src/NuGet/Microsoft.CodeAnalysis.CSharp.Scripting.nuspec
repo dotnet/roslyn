@@ -3,10 +3,7 @@
   <metadata>
     <id>Microsoft.CodeAnalysis.CSharp.Scripting</id>
     <summary>Microsoft .NET Compiler Platform ("Roslyn") CSharp scripting package.</summary>
-    <description>
-      Microsoft .NET Compiler Platform ("Roslyn") CSharp scripting package.
-    </description>
-
+    <description>$commitPathMessage$</description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>

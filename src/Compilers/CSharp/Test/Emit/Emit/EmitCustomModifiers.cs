@@ -35,7 +35,7 @@ public class A
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib(source,
+            var c = CreateStandardCompilation(source,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 options: TestOptions.UnsafeReleaseExe);
 

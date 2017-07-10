@@ -285,18 +285,6 @@ End Namespace
                 options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream:=New TestStream(canRead:=False, canWrite:=True, canSeek:=True)))
 
-            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
-                peStream:=New MemoryStream(),
-                pdbStream:=New MemoryStream(),
-                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
-                sourceLinkStream:=New MemoryStream()))
-
-            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
-                peStream:=New MemoryStream(),
-                pdbStream:=Nothing,
-                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
-                sourceLinkStream:=New MemoryStream()))
-
             Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 pdbStream:=New MemoryStream(),

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public async Task TestCodeStyle1()
+        public async Task TestUseExpressionBodyWhenPossible()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -69,7 +69,153 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 
     private static bool NewMethod(bool b) => b != true;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != true|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+    }
+
+    private static bool NewMethod(bool b) => b != true;
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine(
+
+            [|b != true|]
+                ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine(
+
+            {|Rename:NewMethod|}(b)
+                ? b = true : b = false);
+    }
+
+    private static bool NewMethod(bool b) => b != true;
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != 
+            true|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+    }
+
+    private static bool NewMethod(bool b)
+    {
+        return b != 
+            true;
+    }
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b !=/*
+*/true|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+    }
+
+    private static bool NewMethod(bool b)
+    {
+        return b !=/*
+*/true;
+    }
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|"""" != @""
+""|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}() ? b = true : b = false);
+    }
+
+    private static bool NewMethod()
+    {
+        return """" != @""
+"";
+    }
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
         }
 
         [WorkItem(540796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
@@ -794,6 +940,36 @@ ignoreTrivia: false);
     private static (int a, int) NewMethod()
     {
         return (1, 2);
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        public async Task TestTupleWith1Arity()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        ValueTuple<int> y = ValueTuple.Create(1);
+        [|y.Item1.ToString();|]
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        ValueTuple<int> y = ValueTuple.Create(1);
+        {|Rename:NewMethod|}(y);
+    }
+
+    private static void NewMethod(ValueTuple<int> y)
+    {
+        y.Item1.ToString();
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
@@ -1533,6 +1709,218 @@ class Test
         {|Warning:return v = v + i;|}
     }
 }");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyProperty()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int Blah => [|this.field|];
+}",
+@"
+class Program
+{
+    int field;
+
+    public int Blah => {|Rename:GetField|}();
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyIndexer()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int this[int i] => [|this.field|];
+}",
+@"
+class Program
+{
+    int field;
+
+    public int this[int i] => {|Rename:GetField|}();
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyPropertyGetAccessor()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => [|this.field|];
+        set => field = value;
+    }
+}",
+@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => {|Rename:GetField|}();
+        set => field = value;
+    }
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyPropertySetAccessor()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => this.field;
+        set => field = [|value|];
+    }
+}",
+@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => this.field;
+        set => field = {|Rename:GetValue|}(value);
+    }
+
+    private static int GetValue(int value)
+    {
+        return value;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyIndexerGetAccessor()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => [|this.field|];
+        set => field = value;
+    }
+}",
+@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => {|Rename:GetField|}();
+        set => field = value;
+    }
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyIndexerSetAccessor()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => this.field;
+        set => field = [|value|];
+    }
+}",
+@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => this.field;
+        set => field = {|Rename:GetValue|}(value);
+    }
+
+    private static int GetValue(int value)
+    {
+        return value;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestTupleWithInferredNames()
+        {
+            await TestAsync(@"
+class Program
+{
+    void M()
+    {
+        int a = 1;
+        var t = [|(a, b: 2)|];
+        System.Console.Write(t.a);
+    }
+}",
+@"
+class Program
+{
+    void M()
+    {
+        int a = 1;
+        var t = {|Rename:GetT|}(a);
+        System.Console.Write(t.a);
+    }
+
+    private static (int a, int b) GetT(int a)
+    {
+        return (a, b: 2);
+    }
+}", TestOptions.Regular7_1);
         }
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1135,7 +1135,7 @@ class C : IEnumerable
         {
             // "System.Core.dll"
             var source0 = "";
-            var compilation0 = CSharpTestBase.CreateCompilationWithMscorlib(source0, assemblyName: "system.core");
+            var compilation0 = CSharpTestBase.CreateStandardCompilation(source0, assemblyName: "system.core");
             var assembly0 = ReflectionUtilities.Load(compilation0.EmitToArray());
             var source =
 @"using System.Collections;

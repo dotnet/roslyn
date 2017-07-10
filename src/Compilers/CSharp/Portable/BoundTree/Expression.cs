@@ -1,24 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundExpression : IOperation
+    internal partial class BoundExpression
     {
-        ITypeSymbol IOperation.Type => this.Type;
+        protected override OperationKind OperationKind => this.ExpressionKind;
 
-        OperationKind IOperation.Kind => this.ExpressionKind;
+        protected override ITypeSymbol OperationType => this.Type;
 
-        bool IOperation.IsInvalid => this.HasErrors;
+        protected abstract OperationKind ExpressionKind { get; }
 
-        Optional<object> IOperation.ConstantValue
+        public override abstract void Accept(OperationVisitor visitor);
+
+        public override abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
+
+        protected override Optional<object> OperationConstantValue
         {
             get
             {
@@ -26,13 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value != null ? new Optional<object>(value.Value) : default(Optional<object>);
             }
         }
-        SyntaxNode IOperation.Syntax => this.Syntax;
-
-        protected abstract OperationKind ExpressionKind { get; }
-
-        public abstract void Accept(OperationVisitor visitor);
-
-        public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
     }
 
     internal sealed partial class BoundDeconstructValuePlaceholder : BoundValuePlaceholderBase, IPlaceholderExpression
@@ -62,31 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) &&
             !this.ReceiverOpt.SuppressVirtualCalls;
 
-        ImmutableArray<IArgument> IInvocationExpression.ArgumentsInSourceOrder
-        {
-            get
-            {
-                ArrayBuilder<IArgument> sourceOrderArguments = ArrayBuilder<IArgument>.GetInstance(this.Arguments.Length);
-                for (int argumentIndex = 0; argumentIndex < this.Arguments.Length; argumentIndex++)
-                {
-                    IArgument argument = DeriveArgument(this.ArgsToParamsOpt.IsDefault ? argumentIndex : this.ArgsToParamsOpt[argumentIndex], argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Syntax);
-                    sourceOrderArguments.Add(argument);
-                    if (argument.ArgumentKind == ArgumentKind.ParamArray)
-                    {
-                        break;
-                    }
-                }
-
-                return sourceOrderArguments.ToImmutableAndFree();
-            }
-        }
-
-        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Syntax);
-
-        IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
-        {
-            return ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameter.ContainingSymbol, ((Symbols.MethodSymbol)parameter.ContainingSymbol).Parameters, parameter, this.Syntax);
-        }
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder
+            => DeriveArguments(this, this.BinderOpt, this.Method, this.Method, this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Expanded,  this.Syntax, this.InvokedAsExtensionMethod);
 
         protected override OperationKind ExpressionKind => OperationKind.InvocationExpression;
 
@@ -100,212 +74,74 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitInvocationExpression(this, argument);
         }
 
-        internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<int> argumentsToParametersOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<Symbols.ParameterSymbol> parameters, SyntaxNode invocationSyntax)
+        private static readonly ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>> s_callToArgumentsMappings 
+            = new ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>>(); 
+
+        internal static IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
         {
-            ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
-            for (int parameterIndex = 0; parameterIndex < parameters.Length; parameterIndex++)
-            {
-                int argumentIndex = -1;
-                if (argumentsToParametersOpt.IsDefault)
-                {
-                    argumentIndex = parameterIndex;
-                }
-                else
-                {
-                    argumentIndex = argumentsToParametersOpt.IndexOf(parameterIndex);
-                }
-
-                if ((uint)argumentIndex >= (uint)boundArguments.Length)
-                {
-                    // No argument has been supplied for the parameter at `parameterIndex`:
-                    // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
-                    // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
-
-                    Symbols.ParameterSymbol parameter = parameters[parameterIndex];
-                    if (parameter.HasExplicitDefaultValue)
-                    {
-                        // The parameter is optional with a default value.
-                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax)));
-                    }
-                    else
-                    {
-                        // If the invocation is semantically valid, the parameter will be a params array and an empty array will be provided.
-                        // If the argument is otherwise omitted for a parameter with no default value, the invocation is not valid and a null argument will be provided.
-                        arguments.Add(DeriveArgument(parameterIndex, boundArguments.Length, boundArguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax));
-                    }
-                }
-                else
-                {
-                    arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax));
-                }
-            }
-
-            return arguments.ToImmutableAndFree();
+            return new Argument(kind,
+                parameter,
+                value,
+                inConversion: null,
+                outConversion: null,
+                isInvalid: parameter == null || value.IsInvalid,
+                syntax: value.Syntax,
+                type: value.Type,
+                constantValue: default(Optional<object>));
         }
 
-        private static readonly ConditionalWeakTable<BoundExpression, IArgument> s_argumentMappings = new ConditionalWeakTable<BoundExpression, IArgument>();
-
-        private static IArgument DeriveArgument(int parameterIndex, int argumentIndex, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<Symbols.ParameterSymbol> parameters, SyntaxNode invocationSyntax)
-        {
-            if ((uint)argumentIndex >= (uint)boundArguments.Length)
+        internal static ImmutableArray<IArgument> DeriveArguments(
+            BoundExpression boundNode,
+            Binder binder,
+            Symbol methodOrIndexer,
+            MethodSymbol optionalParametersMethod,
+            ImmutableArray<BoundExpression> boundArguments,
+            ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<int> argumentsToParametersOpt,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            ImmutableArray<ParameterSymbol> parameters,
+            bool expanded,
+            SyntaxNode invocationSyntax,
+            bool invokedAsExtensionMethod = false)
+        {                       
+            // We can simply return empty array only if both parameters and boundArguments are empty, because:
+            // - if only parameters is empty, there's error in code but we still need to return provided expression.
+            // - if boundArguments is empty, then either there's error or we need to provide values for optional/param-array parameters. 
+            if (parameters.IsDefaultOrEmpty && boundArguments.IsDefaultOrEmpty)
             {
-                // Check for an omitted argument that becomes an empty params array.
-                if (parameters.Length > 0)
-                {
-                    Symbols.ParameterSymbol lastParameter = parameters[parameters.Length - 1];
-                    if (lastParameter.IsParams)
-                    {
-                        return new Argument(ArgumentKind.ParamArray, lastParameter, CreateParamArray(lastParameter, boundArguments, argumentIndex, invocationSyntax));
-                    }
-                }
-
-                // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
-                return new SimpleArgument(null, new InvalidExpression(invocationSyntax));
+                return ImmutableArray<IArgument>.Empty;
             }
 
-            return s_argumentMappings.GetValue(
-                boundArguments[argumentIndex],
-                (argument) =>
+            return (ImmutableArray<IArgument>) s_callToArgumentsMappings.GetValue(
+                boundNode, 
+                (n) =>
                 {
-                    string nameOpt = !argumentNamesOpt.IsDefaultOrEmpty ? argumentNamesOpt[argumentIndex] : null;
-                    Symbols.ParameterSymbol parameterOpt = (uint)parameterIndex < (uint)parameters.Length ? parameters[parameterIndex] : null;
-
-                    if ((object)nameOpt == null)
+                    //TODO: https://github.com/dotnet/roslyn/issues/18722
+                    //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
+                    //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid 
+                    //      invocation instead.
+                    //      Note this check doesn't cover all scenarios. For example, when a parameter is a generic type but the type of the type argument 
+                    //      is undefined.
+                    if ((object)optionalParametersMethod == null 
+                        || n.HasAnyErrors
+                        || parameters.Any(p => p.Type.IsErrorType())
+                        || optionalParametersMethod.GetUseSiteDiagnostic()?.DefaultSeverity == DiagnosticSeverity.Error)
                     {
-                        RefKind refMode = argumentRefKindsOpt.IsDefaultOrEmpty ? RefKind.None : argumentRefKindsOpt[argumentIndex];
+                        // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
+                        // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
+                        return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, arg));
+                    }                                                                                           
 
-                        if (refMode != RefKind.None)
-                        {
-                            return new Argument(ArgumentKind.Positional, parameterOpt, argument);
-                        }
-
-                        if (argumentIndex >= parameters.Length - 1 &&
-                            parameters.Length > 0 &&
-                            parameters[parameters.Length - 1].IsParams &&
-                            // An argument that is an array of the appropriate type is not a params argument.
-                            (boundArguments.Length > argumentIndex + 1 ||
-                             ((object)argument.Type != null && // If argument type is null, we are in an error scenario and cannot tell if it is a param array, or not. 
-                              (argument.Type.TypeKind != TypeKind.Array ||
-                              !argument.Type.Equals(parameters[parameters.Length - 1].Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)))))
-                        {
-                            return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex, invocationSyntax));
-                        }
-                        else
-                        {
-                            return new SimpleArgument(parameterOpt, argument);
-                        }
-                    }
-
-                    return new Argument(ArgumentKind.Named, parameterOpt, argument);
+                   return LocalRewriter.MakeArgumentsInEvaluationOrder(
+                        binder: binder,
+                        syntax: invocationSyntax,
+                        arguments: boundArguments,
+                        methodOrIndexer: methodOrIndexer,
+                        optionalParametersMethod: optionalParametersMethod,
+                        expanded: expanded,
+                        argsToParamsOpt: argumentsToParametersOpt,
+                        invokedAsExtensionMethod: invokedAsExtensionMethod); 
                 });
-        }
-
-        private static IOperation CreateParamArray(IParameterSymbol parameter, ImmutableArray<BoundExpression> boundArguments, int firstArgumentElementIndex, SyntaxNode invocationSyntax)
-        {
-            if (parameter.Type.TypeKind == TypeKind.Array)
-            {
-                IArrayTypeSymbol arrayType = (IArrayTypeSymbol)parameter.Type;
-                ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
-
-                for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
-                {
-                    builder.Add(boundArguments[index]);
-                }
-                var paramArrayArguments = builder.ToImmutableAndFree();
-
-                // Use the invocation syntax node if there is no actual syntax available for the argument (because the paramarray is empty.)
-                return new ArrayCreation(arrayType, paramArrayArguments, paramArrayArguments.Length > 0 ? paramArrayArguments[0].Syntax : invocationSyntax);
-            }
-
-            return new InvalidExpression(invocationSyntax);
-        }
-
-        internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParametersOpt, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ISymbol targetMethod, ImmutableArray<Symbols.ParameterSymbol> parameters, IParameterSymbol parameter, SyntaxNode invocationSyntax)
-        {
-            int argumentIndex = ArgumentIndexMatchingParameter(argumentsToParametersOpt, targetMethod, parameter);
-            if (argumentIndex >= 0)
-            {
-                return DeriveArgument(parameter.Ordinal, argumentIndex, arguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax);
-            }
-
-            return null;
-        }
-
-        private static int ArgumentIndexMatchingParameter(ImmutableArray<int> argumentsToParametersOpt, ISymbol targetMethod, IParameterSymbol parameter)
-        {
-            if (parameter.ContainingSymbol == targetMethod)
-            {
-                int parameterIndex = parameter.Ordinal;
-                if (!argumentsToParametersOpt.IsDefaultOrEmpty)
-                {
-                    return argumentsToParametersOpt.IndexOf(parameterIndex);
-                }
-
-                return parameterIndex;
-            }
-
-            return -1;
-        }
-
-        private abstract class ArgumentBase : IArgument
-        {
-            public ArgumentBase(IParameterSymbol parameter, IOperation value)
-            {
-                Debug.Assert(value != null);
-
-                this.Value = value;
-                this.Parameter = parameter;
-            }
-
-            public IParameterSymbol Parameter { get; }
-
-            public IOperation Value { get; }
-
-            IOperation IArgument.InConversion => null;
-
-            IOperation IArgument.OutConversion => null;
-
-            bool IOperation.IsInvalid => (object)this.Parameter == null || this.Value.IsInvalid;
-
-            OperationKind IOperation.Kind => OperationKind.Argument;
-
-            SyntaxNode IOperation.Syntax => this.Value?.Syntax;
-
-            public ITypeSymbol Type => null;
-
-            public Optional<object> ConstantValue => default(Optional<object>);
-
-            public abstract ArgumentKind ArgumentKind { get; }
-
-            void IOperation.Accept(OperationVisitor visitor)
-            {
-                visitor.VisitArgument(this);
-            }
-
-            TResult IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-            {
-                return visitor.VisitArgument(this, argument);
-            }
-        }
-
-        private sealed class SimpleArgument : ArgumentBase
-        {
-            public SimpleArgument(IParameterSymbol parameter, IOperation value)
-                : base(parameter, value)
-            { }
-
-            public override ArgumentKind ArgumentKind => ArgumentKind.Positional;
-        }
-
-        private sealed class Argument : ArgumentBase
-        {
-            public Argument(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
-                : base(parameter, value)
-            {
-                this.ArgumentKind = kind;
-            }
-
-            public override ArgumentKind ArgumentKind { get; }
         }
     }
 
@@ -376,12 +212,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ISymbol IMemberReferenceExpression.Member => this.Indexer;
 
-        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Indexer.Parameters, this.Syntax);
-
-        IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder
         {
-            return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Indexer, this.Indexer.Parameters, parameter, this.Syntax);
+            get
+            {
+                MethodSymbol accessor = this.UseSetterForDefaultArgumentGeneration 
+                    ? this.Indexer.GetOwnOrInheritedSetMethod() 
+                    : this.Indexer.GetOwnOrInheritedGetMethod(); 
+
+                return BoundCall.DeriveArguments(this, 
+                    this.BinderOpt, 
+                    this.Indexer, 
+                    accessor, 
+                    this.Arguments, 
+                    this.ArgumentNamesOpt, 
+                    this.ArgsToParamsOpt, 
+                    this.ArgumentRefKindsOpt, 
+                    this.Indexer.Parameters, 
+                    this.Expanded, 
+                    this.Syntax);
+            }
         }
+
+        bool IOperation.IsInvalid
+             => this.HasErrors 
+            || (this.Indexer.IsReadOnly && this.UseSetterForDefaultArgumentGeneration) 
+            || (this.Indexer.IsWriteOnly && !this.UseSetterForDefaultArgumentGeneration);
 
         protected override OperationKind ExpressionKind => OperationKind.IndexedPropertyReferenceExpression;
 
@@ -440,44 +296,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDelegateCreationExpression : IMethodBindingExpression
+    internal partial class BoundDelegateCreationExpression
     {
-        IOperation IMemberReferenceExpression.Instance
-        {
-            get
-            {
-                BoundMethodGroup methodGroup = this.Argument as BoundMethodGroup;
-                if (methodGroup != null)
-                {
-                    return methodGroup.InstanceOpt;
-                }
+        protected override OperationKind ExpressionKind => OperationKind.None;
 
-                return null;
-            }
-        }
-
-        bool IMethodBindingExpression.IsVirtual =>
-            (object)this.MethodOpt != null &&
-            (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) &&
-            !this.SuppressVirtualCalls;
-
-        ISymbol IMemberReferenceExpression.Member => this.MethodOpt;
-
-        IMethodSymbol IMethodBindingExpression.Method => this.MethodOpt;
-
-        protected override OperationKind ExpressionKind => OperationKind.MethodBindingExpression;
-
-        // SyntaxNode for MethodBindingExpression is the argument of DelegateCreationExpression 
-        SyntaxNode IOperation.Syntax => this.Argument.Syntax;
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Argument); 
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitMethodBindingExpression(this);
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitMethodBindingExpression(this, argument);
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -519,6 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => this.Arguments.As<IOperation>();
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -537,49 +371,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
-        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters, this.Syntax);
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder 
+            => BoundCall.DeriveArguments(this, 
+                this.BinderOpt,
+                this.Constructor, 
+                this.Constructor, 
+                this.Arguments, 
+                this.ArgumentNamesOpt,
+                this.ArgsToParamsOpt, 
+                this.ArgumentRefKindsOpt, 
+                this.Constructor.Parameters, 
+                this.Expanded, 
+                this.Syntax);
 
-        IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
-        {
-            return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Constructor, this.Constructor.Parameters, parameter, this.Syntax);
-        }
+        ImmutableArray<IOperation> IObjectCreationExpression.Initializers => GetChildInitializers(this.InitializerExpressionOpt).As<IOperation>();
 
-        ImmutableArray<ISymbolInitializer> IObjectCreationExpression.MemberInitializers
+        internal static ImmutableArray<BoundExpression> GetChildInitializers(BoundExpression objectOrCollectionInitializer)
         {
-            get
+            var objectInitializerExpression = objectOrCollectionInitializer as BoundObjectInitializerExpression;
+            if (objectInitializerExpression != null)
             {
-                return (ImmutableArray<ISymbolInitializer>)s_memberInitializersMappings.GetValue(this,
-                    objectCreationExpression =>
-                    {
-                        var objectInitializerExpression = this.InitializerExpressionOpt as BoundObjectInitializerExpression;
-                        if (objectInitializerExpression != null)
-                        {
-                            var builder = ArrayBuilder<ISymbolInitializer>.GetInstance(objectInitializerExpression.Initializers.Length);
-                            foreach (var memberAssignment in objectInitializerExpression.Initializers)
-                            {
-                                var assignment = memberAssignment as BoundAssignmentOperator;
-                                var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
-
-                                if ((object)leftSymbol == null)
-                                {
-                                    continue;
-                                }
-
-                                switch (leftSymbol.Kind)
-                                {
-                                    case SymbolKind.Field:
-                                        builder.Add(new FieldInitializer(assignment.Syntax, (IFieldSymbol)leftSymbol, assignment.Right));
-                                        break;
-                                    case SymbolKind.Property:
-                                        builder.Add(new PropertyInitializer(assignment.Syntax, (IPropertySymbol)leftSymbol, assignment.Right));
-                                        break;
-                                }
-                            }
-                            return builder.ToImmutableAndFree();
-                        }
-                        return ImmutableArray<ISymbolInitializer>.Empty;
-                    });
+                return objectInitializerExpression.Initializers;
             }
+
+            var collectionInitializerExpresion = objectOrCollectionInitializer as BoundCollectionInitializerExpression;
+            if (collectionInitializerExpresion != null)
+            {
+                return collectionInitializerExpresion.Initializers;
+            }
+
+            return ImmutableArray<BoundExpression>.Empty;
         }
 
         protected override OperationKind ExpressionKind => OperationKind.ObjectCreationExpression;
@@ -737,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ImplicitConstant:
                     case CSharp.ConversionKind.IntegerToPointer:
                     case CSharp.ConversionKind.IntPtr:
-                    case CSharp.ConversionKind.NullLiteral:
+                    case CSharp.ConversionKind.DefaultOrNullLiteral:
                     case CSharp.ConversionKind.NullToPointer:
                     case CSharp.ConversionKind.PointerToInteger:
                     case CSharp.ConversionKind.PointerToPointer:
@@ -939,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultOperator : IDefaultValueExpression
+    internal partial class BoundDefaultExpression : IDefaultValueExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.DefaultValueExpression;
 
@@ -1027,6 +848,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Left, this.Right);
+
         public override void Accept(OperationVisitor visitor)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
@@ -1097,6 +920,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundBadExpression : IInvalidExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.InvalidExpression;
+
+        ImmutableArray<IOperation> IInvalidExpression.Children => StaticCast<IOperation>.From(ChildBoundNodes);
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1365,21 +1190,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IOperation ISymbolInitializer.Value => this.Value;
 
-        SyntaxNode IOperation.Syntax => this.Syntax;
-
         bool IOperation.IsInvalid => ((IOperation)this.Value).IsInvalid;
 
-        OperationKind IOperation.Kind => this.OperationKind;
+        public override abstract void Accept(OperationVisitor visitor);
 
-        protected abstract OperationKind OperationKind { get; }
-
-        ITypeSymbol IOperation.Type => null;
-
-        Optional<object> IOperation.ConstantValue => default(Optional<object>);
-
-        public abstract void Accept(OperationVisitor visitor);
-
-        public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
+        public override abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
     }
 
     internal partial class BoundFieldEqualsValue : IFieldInitializer
@@ -1437,6 +1252,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => this.Arguments.Insert(0, this.ReceiverOpt).As<IOperation>();
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -1452,6 +1269,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Left, this.Right);
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -1466,6 +1285,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundAnonymousObjectCreationExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => this.Arguments.As<IOperation>();
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1496,6 +1317,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundAttribute
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => this.ConstructorArguments.AddRange(this.NamedArguments).As<IOperation>();
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1557,6 +1380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Value);
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -1568,9 +1393,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal partial class BoundPattern
+    {
+        protected override abstract ImmutableArray<IOperation> Children { get; }
+    }
+
+    internal partial class BoundDeclarationPattern
+    {
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.VariableAccess);
+    }
+
+    internal partial class BoundConstantPattern
+    {
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Value);
+    }
+
+    internal partial class BoundWildcardPattern
+    {
+        protected override ImmutableArray<IOperation> Children => ImmutableArray<IOperation>.Empty;
+    }
+
     internal partial class BoundArgListOperator
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => Arguments.As<IOperation>();
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1602,6 +1449,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => this.Arguments.As<IOperation>();
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -1616,6 +1465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundNameOfOperator
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Argument);
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1767,6 +1618,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Expression, this.Index);
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -1781,6 +1634,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundRefTypeOperator
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Operand);
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1797,6 +1652,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Receiver);
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -1811,6 +1668,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundMakeRefOperator
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Operand);
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1827,6 +1686,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Operand);
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -1841,6 +1702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundDynamicInvocation
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => this.Arguments.As<IOperation>().Insert(0, this.Expression);
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1942,7 +1805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitNoneOperation(this, argument);
         }
     }
-    
+
     internal partial class BoundSourceDocumentIndex
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
@@ -1976,6 +1839,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundCollectionInitializerExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => this.Initializers.As<IOperation>();
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -2037,6 +1902,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => this.Arguments.As<IOperation>();
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -2067,6 +1934,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Expression);
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -2082,6 +1951,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Count);
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -2096,6 +1967,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundDynamicObjectCreationExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => this.Arguments.AddRange(BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt)).As<IOperation>();
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -2127,6 +2000,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => this.Parts.As<IOperation>();
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -2141,6 +2016,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundNoPiaObjectCreationExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt).As<IOperation>();
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -2157,6 +2034,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
+        protected override ImmutableArray<IOperation> Children => this.Initializers.As<IOperation>();
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -2171,6 +2050,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundStringInsert
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Value, this.Alignment, this.Format);
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -2945,6 +2826,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Expression, this.Pattern);
     }
 
     /// <summary>
@@ -2985,6 +2868,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Expression);
     }
 
     internal partial class BoundDeclarationPattern

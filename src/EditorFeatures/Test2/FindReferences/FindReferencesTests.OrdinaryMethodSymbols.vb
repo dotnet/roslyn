@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -2873,6 +2873,56 @@ End Class
     </Project>
 </Workspace>
 
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(428072, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/428072")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestInterfaceMethodImplementedInStruct1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+    public interface IFoo
+    {
+        void {|Definition:$$Foo|}();
+    }
+
+    public struct MyStruct : IFoo
+    {
+        public void {|Definition:Foo|}()
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(428072, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/428072")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestInterfaceMethodImplementedInStruct2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+    public interface IFoo
+    {
+        void {|Definition:Foo|}();
+    }
+
+    public struct MyStruct : IFoo
+    {
+        public void {|Definition:$$Foo|}()
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
             Await TestAPIAndFeature(input)
         End Function
     End Class

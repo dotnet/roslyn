@@ -433,7 +433,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more events defined by this type.
         /// </summary>
-        IEnumerable<IEventDefinition> Events { get; }
+        IEnumerable<IEventDefinition> GetEvents(EmitContext context);
 
         /// <summary>
         /// Zero or more implementation overrides provided by the class.

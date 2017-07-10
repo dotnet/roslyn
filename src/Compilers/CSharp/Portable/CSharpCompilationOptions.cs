@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System.ComponentModel;
@@ -220,6 +221,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new CSharpCompilationOptions WithCryptoKeyFile(string path)
         {
+            if (string.IsNullOrEmpty(path))
+            {
+                path = null;
+            }
+
             if (path == this.CryptoKeyFile)
             {
                 return this;
@@ -417,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { DebugPlusMode_internal_protected_set = debugPlusMode };
         }
 
-        internal CSharpCompilationOptions WithMetadataImportOptions(MetadataImportOptions value)
+        internal new CSharpCompilationOptions WithMetadataImportOptions(MetadataImportOptions value)
         {
             if (value == this.MetadataImportOptions)
             {
@@ -514,6 +520,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider) =>
             WithStrongNameProvider(provider);
+
+        internal override CompilationOptions CommonWithMetadataImportOptions(MetadataImportOptions value) =>
+            WithMetadataImportOptions(value);
 
         [Obsolete]
         protected override CompilationOptions CommonWithFeatures(ImmutableArray<string> features)

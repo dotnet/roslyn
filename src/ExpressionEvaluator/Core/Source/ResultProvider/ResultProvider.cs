@@ -1,5 +1,5 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#pragma warning disable RS0007 // Avoid zero-length array allocations.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#pragma warning disable CA1825 // Avoid zero-length array allocations.
 
 using System;
 using System.Collections.ObjectModel;
@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return TupleExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, cardinality);
             }
 
-            return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this);
+            return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this, isProxyType: false);
         }
 
         private static DkmEvaluationResult CreateEvaluationResultFromException(Exception e, EvalResult result, DkmInspectionContext inspectionContext)

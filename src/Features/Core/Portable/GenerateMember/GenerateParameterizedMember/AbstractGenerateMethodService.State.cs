@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     modifiers: default(DeclarationModifiers),
                     returnType: expressionType,
                     returnsByRef: false,
-                    explicitInterfaceSymbol: null,
+                    explicitInterfaceImplementations: default,
                     name: null,
                     typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
                     parameters: ImmutableArray<IParameterSymbol>.Empty);

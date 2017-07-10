@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -4133,6 +4133,370 @@ class C
     }
 }";
 
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = (i, 3);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (i: 1 + 2, 3);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_Trivia()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = ( /*comment*/ i, 3);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = ( /*comment*/ i: 1 + 2, 3);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_Trivia2()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = (
+            /*comment*/ i,
+            /*comment*/ 3
+        );
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (
+            /*comment*/ i: 1 + 2,
+            /*comment*/ 3
+        );
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_NoDuplicateNames()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = (i, i);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (1 + 2, 1 + 2);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(19047, "https://github.com/dotnet/roslyn/issues/19047")]
+        public async Task ExplicitTupleNameAdded_DeconstructionDeclaration()
+        {
+            var code = @"
+class C
+{
+    static int y = 1;
+    void M()
+    {
+        int [||]i = C.y;
+        var t = ((i, (i, _)) = (1, (i, 3)));
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static int y = 1;
+    void M()
+    {
+        var t = (((int)C.y, ((int)C.y, _)) = (1, (C.y, 3)));
+    }
+}";
+            // This refactoring should be blocked with an annotation, as the result of a cast is an L-value
+            // Follow-up issue: https://github.com/dotnet/roslyn/issues/19047
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(19047, "https://github.com/dotnet/roslyn/issues/19047")]
+        public async Task ExplicitTupleNameAdded_DeconstructionDeclaration2()
+        {
+            var code = @"
+class C
+{
+    static int y = 1;
+    void M()
+    {
+        int [||]i = C.y;
+        var t = ((i, _) = (1, 2));
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static int y = 1;
+    void M()
+    {
+        var t = (((int)C.y, _) = (1, 2));
+    }
+}";
+            // This refactoring should be blocked with an annotation, as the result of a cast is an L-value
+            // Follow-up issue: https://github.com/dotnet/roslyn/issues/19047
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_NoReservedNames()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]Rest = 1 + 2;
+        var t = (Rest, 3);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (1 + 2, 3);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_NoReservedNames2()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]Item1 = 1 + 2;
+        var t = (Item1, 3);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (1 + 2, 3);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_EscapeKeywords()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]@int = 1 + 2;
+        var t = (@int, 3);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (@int: 1 + 2, 3);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_DoNotEscapeContextualKeywords()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]@where = 1 + 2;
+        var t = (@where, 3);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (where: 1 + 2, 3);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitAnonymousTypeMemberNameAdded_DuplicateNames()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = new { i, i }; // error already
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = new { i = 1 + 2, i = 1 + 2 }; // error already
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitAnonymousTypeMemberNameAdded_AssignmentEpression()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int j = 0;
+        int [||]i = j = 1;
+        var t = new { i, k = 3 };
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        int j = 0;
+        var t = new { i = j = 1, k = 3 };
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitAnonymousTypeMemberNameAdded_Comment()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = new { /*comment*/ i, j = 3 };
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = new { /*comment*/ i = 1 + 2, j = 3 };
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitAnonymousTypeMemberNameAdded_Comment2()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = new {
+            /*comment*/ i,
+            /*comment*/ j = 3
+        };
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = new {
+            /*comment*/
+            i = 1 + 2,
+            /*comment*/ j = 3
+        };
+    }
+}";
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
     }

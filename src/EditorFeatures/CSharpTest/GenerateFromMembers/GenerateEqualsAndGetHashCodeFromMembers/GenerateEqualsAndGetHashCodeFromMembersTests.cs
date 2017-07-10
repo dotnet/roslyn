@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -542,7 +542,7 @@ class Program
     public override int GetHashCode() => 165851236 + i.GetHashCode();
 }",
 index: 1,
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1042,7 +1042,7 @@ class Program
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: new TestParameters(
-    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.TrueWithNoneEnforcement)));
+    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1225,6 +1225,50 @@ class Program : System.IEquatable<Program>
 chosenSymbols: null,
 optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
 ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestMissingReferences()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+<Workspace>
+    <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='false'>
+        <Document FilePath='Test1.cs'>
+public class Class1
+{
+    int i;
+    [||]
+
+    public void Foo()
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+public class Class1
+{
+    int i;
+
+    public override global::System.Boolean Equals(global::System.Object obj)
+    {
+        var @class = obj as Class1;
+        return @class != null;
+    }
+
+    public void Foo()
+    {
+    }
+
+    public override global::System.Int32 GetHashCode()
+    {
+        return 0;
+    }
+}",
+chosenSymbols: new string[] { },
+index: 1);
         }
     }
 }

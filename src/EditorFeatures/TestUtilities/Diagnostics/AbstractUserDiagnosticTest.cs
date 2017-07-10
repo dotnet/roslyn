@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,7 +70,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         protected Document GetDocumentAndAnnotatedSpan(TestWorkspace workspace, out string annotation, out TextSpan span)
         {
-            var hostDocument = workspace.Documents.Single(d => d.AnnotatedSpans.Any());
+            var annotatedDocuments = workspace.Documents.Where(d => d.AnnotatedSpans.Any());
+            Debug.Assert(!annotatedDocuments.IsEmpty(), "No annotated span found");
+            var hostDocument = annotatedDocuments.Single();
             var annotatedSpan = hostDocument.AnnotatedSpans.Single();
             annotation = annotatedSpan.Key;
             span = annotatedSpan.Value.Single();

@@ -213,7 +213,7 @@ class C
     void Foo()
     {
         Func<Task> f =
-            async [|()|] => { };
+            async () [|=>|] { };
     }
 }",
 @"
@@ -242,7 +242,7 @@ class C
     void Foo()
     {
         Func<string, Task> f =
-            async [|a|] => { };
+            async a [|=>|] { };
     }
 }",
 @"
@@ -258,6 +258,7 @@ class C
 }",
 ignoreTrivia: false);
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestLambdaWithExpressionBody()
         {
@@ -270,7 +271,7 @@ class C
     void Foo()
     {
         Func<string, Task> f =
-            async [|a|] => 1;
+            async a [|=>|] 1;
     }
 }",
 @"
@@ -546,6 +547,113 @@ public class Class1
         this.Foo(this.Foo(0));
     }
 }", ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        public async Task RemoveAsyncInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        async Task [|M2Async|]()
+        {
+        }
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        void M2()
+        {
+        }
+    }
+}");
+        }
+
+        [Theory]
+        [InlineData("Task<C>", "C")]
+        [InlineData("Task<int>", "int")]
+        [InlineData("Task", "void")]
+        [InlineData("void", "void")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        public async Task RemoveAsyncInLocalFunctionKeepsTrivia(string asyncReturn, string expectedReturn)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/ async {asyncReturn} /*2*/ [|M2Async|]/*3*/() /*4*/
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}",
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/ {expectedReturn} /*2*/ M2/*3*/() /*4*/
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}");
+        }
+
+        [Theory]
+        [InlineData("", "Task<C>", "C")]
+        [InlineData("", "Task<int>", "int")]
+        [InlineData("", "Task", "void")]
+        [InlineData("", "void", "void")]
+        [InlineData("public", "Task<C>", "C")]
+        [InlineData("public", "Task<int>", "int")]
+        [InlineData("public", "Task", "void")]
+        [InlineData("public", "void", "void")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        public async Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/ async {asyncReturn} /*2*/ [|M2Async|]/*3*/() /*4*/
+    {{
+        throw new NotImplementedException();
+    }}
+}}",
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/ {expectedReturn} /*2*/ M2/*3*/() /*4*/
+    {{
+        throw new NotImplementedException();
+    }}
+}}");
         }
     }
 }

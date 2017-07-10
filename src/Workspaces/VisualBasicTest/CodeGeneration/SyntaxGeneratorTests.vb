@@ -2,9 +2,6 @@
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -242,6 +239,15 @@ End Class
             VerifySyntax(Of TypeSyntax)(_g.ArrayTypeExpression(_g.ArrayTypeExpression(_g.IdentifierName("x"))), "x()()")
             VerifySyntax(Of TypeSyntax)(_g.NullableTypeExpression(_g.IdentifierName("x")), "x?")
             VerifySyntax(Of TypeSyntax)(_g.NullableTypeExpression(_g.NullableTypeExpression(_g.IdentifierName("x"))), "x?")
+
+            Dim intType = _emptyCompilation.GetSpecialType(SpecialType.System_Int32)
+            VerifySyntax(Of TupleElementSyntax)(_g.TupleElementExpression(_g.IdentifierName("x")), "x")
+            VerifySyntax(Of TupleElementSyntax)(_g.TupleElementExpression(_g.IdentifierName("x"), "y"), "y As x")
+            VerifySyntax(Of TupleElementSyntax)(_g.TupleElementExpression(intType), "System.Int32")
+            VerifySyntax(Of TupleElementSyntax)(_g.TupleElementExpression(intType, "y"), "y As System.Int32")
+            VerifySyntax(Of TypeSyntax)(_g.TupleTypeExpression(_g.TupleElementExpression(_g.IdentifierName("x")), _g.TupleElementExpression(_g.IdentifierName("y"))), "(x, y)")
+            VerifySyntax(Of TypeSyntax)(_g.TupleTypeExpression(new ITypeSymbol() { intType, intType }), "(System.Int32, System.Int32)")
+            VerifySyntax(Of TypeSyntax)(_g.TupleTypeExpression(new ITypeSymbol() { intType, intType }, New String() { "x", "y" }), "(x As System.Int32, y As System.Int32)")
         End Sub
 
         <Fact>
@@ -445,6 +451,15 @@ End Class
         <Fact>
         Public Sub TestNameOfExpressions()
             VerifySyntax(Of NameOfExpressionSyntax)(_g.NameOfExpression(_g.IdentifierName("x")), "NameOf(x)")
+        End Sub
+
+        <Fact>
+        Public Sub TestTupleExpression()
+            VerifySyntax(Of TupleExpressionSyntax)(_g.TupleExpression(
+                {_g.IdentifierName("x"), _g.IdentifierName("y")}), "(x, y)")
+            VerifySyntax(Of TupleExpressionSyntax)(_g.TupleExpression(
+                {_g.Argument("foo", RefKind.None, _g.IdentifierName("x")),
+                 _g.Argument("bar", RefKind.None, _g.IdentifierName("y"))}), "(foo:=x, bar:=y)")
         End Sub
 
         <Fact>
@@ -774,8 +789,8 @@ End Sub</x>.Value)
                 <x>Public fld As Integer</x>.Value)
 
             VerifySyntax(Of FieldDeclarationSyntax)(
-                _g.FieldDeclaration("fld", _g.TypeExpression(SpecialType.System_Int32), modifiers:=DeclarationModifiers.Static Or DeclarationModifiers.ReadOnly),
-                <x>Shared ReadOnly fld As Integer</x>.Value)
+                _g.FieldDeclaration("fld", _g.TypeExpression(SpecialType.System_Int32), modifiers:=DeclarationModifiers.Static Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WithEvents),
+                <x>Shared ReadOnly WithEvents fld As Integer</x>.Value)
         End Sub
 
         <Fact>
@@ -1068,6 +1083,81 @@ End Property</x>.Value)
     End Set
 End Property</x>.Value)
         End Sub
+
+        <Fact>
+        Public Sub TestAccessorDeclarations2()
+            VerifySyntax(Of PropertyStatementSyntax)(
+                _g.WithAccessorDeclarations(_g.PropertyDeclaration("p", _g.IdentifierName("x"))),
+                "Property p As x")
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.NotApplicable, {_g.ReturnStatement()})),
+<x>ReadOnly Property p As x
+    Get
+        Return
+    End Get
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.NotApplicable, {_g.ReturnStatement()}),
+                    _g.SetAccessorDeclaration(Accessibility.NotApplicable, {_g.ReturnStatement()})),
+<x>Property p As x
+    Get
+        Return
+    End Get
+
+    Set
+        Return
+    End Set
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.Protected, {_g.ReturnStatement()})),
+<x>ReadOnly Property p As x
+    Protected Get
+        Return
+    End Get
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.SetAccessorDeclaration(Accessibility.Protected, {_g.ReturnStatement()})),
+<x>WriteOnly Property p As x
+    Protected Set
+        Return
+    End Set
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyStatementSyntax)(
+                _g.WithAccessorDeclarations(_g.IndexerDeclaration({_g.ParameterDeclaration("p", _g.IdentifierName("t"))}, _g.IdentifierName("x"))),
+                "Default Property Item(p As t) As x")
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(_g.IndexerDeclaration({_g.ParameterDeclaration("p", _g.IdentifierName("t"))}, _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.Protected, {_g.ReturnStatement()})),
+<x>Default ReadOnly Property Item(p As t) As x
+    Protected Get
+        Return
+    End Get
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                _g.WithAccessorDeclarations(
+                    _g.IndexerDeclaration({_g.ParameterDeclaration("p", _g.IdentifierName("t"))}, _g.IdentifierName("x")),
+                    _g.SetAccessorDeclaration(Accessibility.Protected, {_g.ReturnStatement()})),
+<x>Default WriteOnly Property Item(p As t) As x
+    Protected Set
+        Return
+    End Set
+End Property</x>.Value)
+        End sub 
 
         <Fact>
         Public Sub TestIndexerDeclarations()
@@ -2301,7 +2391,7 @@ End Class
         Public Sub TestGetAccessibility()
             Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.ClassDeclaration("c", accessibility:=Accessibility.Internal)))
             Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.StructDeclaration("s", accessibility:=Accessibility.Internal)))
-            Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.EnumDeclaration("i", accessibility:=Accessibility.Internal)))
+            Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.InterfaceDeclaration("i", accessibility:=Accessibility.Internal)))
             Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.EnumDeclaration("e", accessibility:=Accessibility.Internal)))
             Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.DelegateDeclaration("d", accessibility:=Accessibility.Internal)))
             Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.MethodDeclaration("m", accessibility:=Accessibility.Internal)))
@@ -2318,6 +2408,11 @@ End Class
             Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(_g.LocalDeclarationStatement(_g.IdentifierName("t"), "loc")))
             Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(_g.Attribute("a")))
             Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(SyntaxFactory.TypeParameter("tp")))
+
+            Dim m = SyntaxFactory.ModuleBlock(
+                SyntaxFactory.ModuleStatement("module2").
+                              WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))))
+            Assert.Equal(Accessibility.Public, _g.GetAccessibility(m))
         End Sub
 
         <Fact>
@@ -2341,6 +2436,11 @@ End Class
             Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(_g.WithAccessibility(_g.LocalDeclarationStatement(_g.IdentifierName("t"), "loc"), Accessibility.Private)))
             Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(_g.WithAccessibility(_g.Attribute("a"), Accessibility.Private)))
             Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(_g.WithAccessibility(SyntaxFactory.TypeParameter("tp"), Accessibility.Private)))
+
+            Dim m = SyntaxFactory.ModuleBlock(
+                SyntaxFactory.ModuleStatement("module2").
+                              WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))))
+            Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.WithAccessibility(m, Accessibility.Internal)))
         End Sub
 
         <Fact>

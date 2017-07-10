@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         #region Namespaces, Types
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17869")]
-        public async Task CompilationChain_NestedTypesClass()
+        public void CompilationChain_NestedTypesClass()
         {
             var script = CSharpScript.Create(@"
 static string outerStr = null;
@@ -52,15 +52,11 @@ iC.Goo();
 System.Console.WriteLine(iC.innerStr);
 ");
 
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                await script.RunAsync();
-                Assert.Equal("test", redirect.Output.Trim());
-            }
+            ScriptingTestHelpers.RunScriptWithOutput(script, "test");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17869")]
-        public async Task CompilationChain_NestedTypesStruct()
+        public void CompilationChain_NestedTypesStruct()
         {
             var script = CSharpScript.Create(@"
 static string outerStr = null;
@@ -77,11 +73,7 @@ iS.Goo();
 System.Console.WriteLine(iS.innerStr);
 ");
 
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                await script.RunAsync();
-                Assert.Equal("test", redirect.Output.Trim());
-            }
+            ScriptingTestHelpers.RunScriptWithOutput(script, "test");
         }
 
         [Fact]
@@ -475,7 +467,7 @@ Environment.ProcessorCount
         }
 
         [Fact]
-        public async void CompilationChain_SubmissionSlotResize()
+        public void CompilationChain_SubmissionSlotResize()
         {
             var state = CSharpScript.RunAsync("");
 
@@ -484,11 +476,7 @@ Environment.ProcessorCount
                 state = state.ContinueWith(@"public int i =  1;");
             }
 
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                await state.ContinueWith(@"System.Console.WriteLine(i);");
-                Assert.Equal(1, int.Parse(redirect.Output));
-            }
+            ScriptingTestHelpers.ContinueRunScriptWithOutput(state, @"System.Console.WriteLine(i);", "1");
         }
 
         [Fact]
@@ -822,7 +810,7 @@ x
 
         [WorkItem(5397, "DevDiv_Projects/Roslyn")]
         [Fact]
-        public async void TopLevelLambda()
+        public void TopLevelLambda()
         {
             var s = CSharpScript.RunAsync(@"
 using System;
@@ -833,11 +821,7 @@ delegate void TestDelegate(string s);
 TestDelegate testDelB = delegate (string s) { Console.WriteLine(s); };
 ");
 
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                await s.ContinueWith(@"testDelB(""hello"");");
-                Assert.Equal("hello", redirect.Output.Trim());
-            }
+            ScriptingTestHelpers.ContinueRunScriptWithOutput(s, @"testDelB(""hello"");", "hello");
         }
 
         [Fact]

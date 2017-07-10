@@ -2,9 +2,12 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata minClientVersion="3.3">
     <id>Microsoft.CodeAnalysis.CSharp</id>
-    <description>
+    <summary>
       .NET Compiler Platform ("Roslyn") support for C#, Microsoft.CodeAnalysis.CSharp.dll.
-    </description>
+
+      More details at https://aka.ms/roslyn-packages
+    </summary>
+    <description>$commitPathMessage$</description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
     </dependencies>

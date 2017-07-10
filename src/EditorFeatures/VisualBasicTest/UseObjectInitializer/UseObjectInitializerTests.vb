@@ -350,5 +350,35 @@ Class C
 End Class",
 ignoreTrivia:=False)
         End Function
+
+        <WorkItem(401322, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401322")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestSharedMember() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Class C
+    Dim x As Integer
+    Shared y As Integer
+
+    Sub M()
+        Dim z = [||]New C()
+        z.x = 1
+        z.y = 2
+    End Sub
+End Class
+",
+"
+Class C
+    Dim x As Integer
+    Shared y As Integer
+
+    Sub M()
+        Dim z = New C With {
+            .x = 1
+        }
+        z.y = 2
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractClass
@@ -573,6 +574,43 @@ Class x
         Throw New NotImplementedException()
     End Function
 End Class")
+        End Function
+
+        <WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")>
+        <WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestAutoProperties() As Task
+            Await TestInRegularAndScript1Async(
+"MustInherit Class AbstractClass
+    MustOverride ReadOnly Property ReadOnlyProp As Integer
+    MustOverride Property ReadWriteProp As Integer
+    MustOverride WriteOnly Property WriteOnlyProp As Integer
+End Class
+
+Class [|C|]
+    Inherits AbstractClass
+
+End Class",
+"MustInherit Class AbstractClass
+    MustOverride ReadOnly Property ReadOnlyProp As Integer
+    MustOverride Property ReadWriteProp As Integer
+    MustOverride WriteOnly Property WriteOnlyProp As Integer
+End Class
+
+Class C
+    Inherits AbstractClass
+
+    Public Overrides ReadOnly Property ReadOnlyProp As Integer
+    Public Overrides Property ReadWriteProp As Integer
+
+    Public Overrides WriteOnly Property WriteOnlyProp As Integer
+        Set(value As Integer)
+            Throw New System.NotImplementedException()
+        End Set
+    End Property
+End Class", parameters:=New TestParameters(options:=[Option](
+    ImplementTypeOptions.PropertyGenerationBehavior,
+    ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
         End Function
     End Class
 End Namespace

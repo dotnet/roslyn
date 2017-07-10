@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             var hasErrors = IsOperandErrors(node, ref expression, diagnostics);
             var expressionType = expression.Type;
-            if ((object)expressionType == null)
+            if ((object)expressionType == null || expressionType.SpecialType == SpecialType.System_Void)
             {
                 expressionType = CreateErrorType();
                 if (!hasErrors)
@@ -171,37 +171,63 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Conversion conversion =
-                    operand != null
-                    ? this.Conversions.ClassifyConversionFromExpression(operand, patternType, ref useSiteDiagnostics, forCast: true)
-                    : this.Conversions.ClassifyConversionFromType(operandType, patternType, ref useSiteDiagnostics, forCast: true);
+                var matchPossible = ExpressionOfTypeMatchesPatternType(Conversions, operandType, patternType, ref useSiteDiagnostics, out Conversion conversion, operandConstantValue: null, operandCouldBeNull: true);
                 diagnostics.Add(typeSyntax, useSiteDiagnostics);
-                switch (conversion.Kind)
+                if (matchPossible != false)
                 {
-                    case ConversionKind.ExplicitDynamic:
-                    case ConversionKind.ImplicitDynamic:
-                        // Since the input was `dynamic`, which is equivalent to `object`, there must also
-                        // exist some unboxing, identity, or reference conversion as well, making the conversion legal.
-                    case ConversionKind.Boxing:
-                    case ConversionKind.ExplicitNullable:
-                    case ConversionKind.ExplicitReference:
-                    case ConversionKind.Identity:
-                    case ConversionKind.ImplicitReference:
-                    case ConversionKind.Unboxing:
-                    case ConversionKind.NullLiteral:
-                    case ConversionKind.ImplicitNullable:
-                        // these are the conversions allowed by a pattern match
-                        break;
-                    //case ConversionKind.ExplicitNumeric:  // we do not perform numeric conversions of the operand
-                    //case ConversionKind.ImplicitConstant:
-                    //case ConversionKind.ImplicitNumeric:
-                    default:
-                        Error(diagnostics, ErrorCode.ERR_PatternWrongType, typeSyntax, operandType, patternType);
-                        return true;
+                    if (!conversion.Exists && (operandType.ContainsTypeParameter() || patternType.ContainsTypeParameter()))
+                    {
+                        // permit pattern-matching when one of the types is an open type in C# 7.1.
+                        LanguageVersion requiredVersion = MessageID.IDS_FeatureGenericPatternMatching.RequiredVersion();
+                        if (requiredVersion > Compilation.LanguageVersion)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_PatternWrongGenericTypeInVersion, typeSyntax,
+                                operandType, patternType,
+                                Compilation.LanguageVersion.ToDisplayString(),
+                                new CSharpRequiredLanguageVersion(requiredVersion));
+                            return true;
+                        }
+                    }
+                }
+                else
+                {
+                    Error(diagnostics, ErrorCode.ERR_PatternWrongType, typeSyntax, operandType, patternType);
+                    return true;
                 }
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Does an expression of type <paramref name="expressionType"/> "match" a pattern that looks for
+        /// type <paramref name="patternType"/>?
+        /// 'true' if the matched type catches all of them, 'false' if it catches none of them, and
+        /// 'null' if it might catch some of them.
+        /// </summary>
+        internal static bool? ExpressionOfTypeMatchesPatternType(
+            Conversions conversions,
+            TypeSymbol expressionType,
+            TypeSymbol patternType,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            out Conversion conversion,
+            ConstantValue operandConstantValue = null,
+            bool operandCouldBeNull = false)
+        {
+            Debug.Assert((object)expressionType != null);
+            if (expressionType.IsDynamic())
+            {
+                // if operand is the dynamic type, we do the same thing as though it were object
+                expressionType = conversions.CorLibrary.GetSpecialType(SpecialType.System_Object);
+            }
+
+            conversion = conversions.ClassifyConversionFromType(expressionType, patternType, ref useSiteDiagnostics);
+            var result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, operandCouldBeNull);
+            return
+                (result == null) ? (bool?)null :
+                (result == ConstantValue.True) ? true :
+                (result == ConstantValue.False) ? false :
+                throw ExceptionUtilities.UnexpectedValue(result);
         }
 
         private BoundPattern BindDeclarationPattern(

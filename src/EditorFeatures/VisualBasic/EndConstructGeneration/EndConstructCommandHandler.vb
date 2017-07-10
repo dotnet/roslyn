@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
@@ -116,10 +116,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 Return
             End If
 
-            Dim codeCleanups = CodeCleaner.GetDefaultProviders(document) _
-                        .Where(Function(p)
-                                   Return p.Name = PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators
-                               End Function)
+            Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
+                WhereAsArray(Function(p)
+                                 Return p.Name = PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators
+                             End Function)
 
             Dim cleanDocument = CodeCleaner.CleanupAsync(document, GetSpanToCleanup(statement), codeCleanups, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
 

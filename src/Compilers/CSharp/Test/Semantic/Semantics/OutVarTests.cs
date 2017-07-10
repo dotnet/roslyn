@@ -39,11 +39,11 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
-                // (6,29): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
+                // (6,29): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Test2(Test1(out int x1), x1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7.0").WithLocation(6, 29)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -72,14 +72,14 @@ public class Cls
         var x = new Cls(out int x2);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
-                // (6,22): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
+                // (6,22): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Test(out int x1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7").WithLocation(6, 22),
-                // (11,33): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7.0").WithLocation(6, 22),
+                // (11,33): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         var x = new Cls(out int x2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x2").WithArguments("out variable declaration", "7").WithLocation(11, 33),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x2").WithArguments("out variable declaration", "7.0").WithLocation(11, 33),
                 // (6,9): error CS0103: The name 'Test' does not exist in the current context
                 //         Test(out int x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Test").WithArguments("Test").WithLocation(6, 9),
@@ -101,7 +101,7 @@ public class Cls
             //VerifyModelForOutVar(model, x2Decl); Probably fails due to https://github.com/dotnet/roslyn/issues/16348
             VerifyModelForOutVarWithoutDataFlow(model, x2Decl);
 
-            compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (6,9): error CS0103: The name 'Test' does not exist in the current context
                 //         Test(out int x1);
@@ -146,7 +146,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -193,7 +193,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,20): error CS8184: A declaration is not allowed in this context.
@@ -243,7 +243,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,20): error CS8185: A declaration is not allowed in this context.
@@ -300,7 +300,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,20): error CS8185: A declaration is not allowed in this context.
@@ -378,7 +378,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                             options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
@@ -417,7 +417,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (8,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -455,7 +455,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -493,7 +493,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -531,7 +531,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -569,7 +569,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -600,7 +600,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
             compilation.VerifyDiagnostics(
                 // (6,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -654,7 +654,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 );
@@ -691,7 +691,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -730,7 +730,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics();
 
@@ -771,7 +771,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                             options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
@@ -811,7 +811,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                             options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
@@ -906,7 +906,7 @@ public class Cls
         y = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -1015,6 +1015,7 @@ public class Cls
 
             var typeInfo = model.GetTypeInfo(decl);
             Assert.Equal(expectedType, typeInfo.Type);
+            Assert.Equal(expectedType, model.GetOperationInternal(decl)?.Type);
 
             // Note: the following assertion is not, in general, correct for declaration expressions,
             // even though this helper is used to handle declaration expressions.
@@ -1373,7 +1374,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -1431,7 +1432,7 @@ namespace System
     }
 }
 " + TestResources.NetFX.ValueTuple.tupleattributes_cs;
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"{123, 124}").VerifyDiagnostics();
 
@@ -1465,7 +1466,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"System.Collections.Generic.List`1[System.Int32]").VerifyDiagnostics();
 
@@ -1500,7 +1501,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"124").VerifyDiagnostics();
 
@@ -1534,7 +1535,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -1568,7 +1569,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -1608,7 +1609,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -1646,7 +1647,7 @@ public class Cls
         y = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"").VerifyDiagnostics();
 
@@ -1680,7 +1681,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             references: new MetadataReference[] { CSharpRef, SystemCoreRef },
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
@@ -1717,7 +1718,7 @@ public class Cls
         System.Console.WriteLine(y[0]);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -1756,7 +1757,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,23): error CS0128: A local variable named 'x1' is already defined in this scope
@@ -1793,7 +1794,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,15): error CS0841: Cannot use local variable 'x1' before it is declared
@@ -1825,7 +1826,7 @@ public class Cls
         y = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,19): error CS0841: Cannot use local variable 'x1' before it is declared
@@ -1852,7 +1853,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "1").VerifyDiagnostics();
 
@@ -1889,7 +1890,7 @@ public class Cls
         y = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,19): error CS0841: Cannot use local variable 'x1' before it is declared
@@ -4757,7 +4758,7 @@ public class Cls
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "11").VerifyDiagnostics();
 
@@ -10413,10 +10414,7 @@ public class X
                 // (11,25): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     void Test4(bool p = x4 && TakeOutParam(4, out int x4))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(11, 25),
-                // (11,21): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'bool'
-                //     void Test4(bool p = x4 && TakeOutParam(4, out int x4))
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "bool").WithLocation(11, 21),
-                // (15,50): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (15,50): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                         TakeOutParam(52, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(15, 50),
                 // (14,25): error CS1736: Default parameter value for 'p' must be a compile-time constant
@@ -10524,10 +10522,7 @@ public class X
                 // (11,25): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     void Test4(bool p = x4 && TakeOutParam(4, out var x4))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(11, 25),
-                // (11,21): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'bool'
-                //     void Test4(bool p = x4 && TakeOutParam(4, out var x4))
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "bool").WithLocation(11, 21),
-                // (15,50): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (15,50): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                         TakeOutParam(52, out var x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(15, 50),
                 // (14,25): error CS1736: Default parameter value for 'p' must be a compile-time constant
@@ -16777,7 +16772,7 @@ a: b: c:Test2(Test1(out int x1), x1);
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "11").VerifyDiagnostics(
                 // (11,1): warning CS0164: This label has not been referenced
@@ -16836,7 +16831,7 @@ a:          Test2(Test1(out int x1), x1);
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "1").VerifyDiagnostics(
                 // (15,1): warning CS0164: This label has not been referenced
@@ -16871,7 +16866,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,22): error CS0165: Use of unassigned local variable 'x1'
@@ -16904,7 +16899,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,22): error CS0165: Use of unassigned local variable 'x1'
@@ -16937,7 +16932,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,13): warning CS0219: The variable 'x2' is assigned but its value is never used
@@ -16976,7 +16971,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,18): error CS1503: Argument 1: cannot convert from 'out int' to 'out short'
@@ -17008,7 +17003,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,14): error CS1525: Invalid expression term 'int'
@@ -17053,7 +17048,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,24): error CS1003: Syntax error, ',' expected
@@ -17084,7 +17079,7 @@ public class Cls
         x = null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0118: 'IEnumerable<int>' is a type but is used like a variable
@@ -17117,7 +17112,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"").VerifyDiagnostics();
 
@@ -17150,7 +17145,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"").VerifyDiagnostics();
 
@@ -17190,7 +17185,7 @@ public class Cls
         public int val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17220,7 +17215,7 @@ public class Cls
         public int val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17264,7 +17259,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17295,7 +17290,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17334,7 +17329,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17375,7 +17370,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17418,7 +17413,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17461,7 +17456,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17500,7 +17495,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17545,7 +17540,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17576,7 +17571,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17628,7 +17623,7 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17685,7 +17680,7 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17729,7 +17724,7 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17772,7 +17767,7 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17825,7 +17820,7 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17861,7 +17856,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             references: new MetadataReference[] { CSharpRef, SystemCoreRef },
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
@@ -17903,7 +17898,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17937,7 +17932,7 @@ public class Cls
         return true;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17996,7 +17991,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18039,7 +18034,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18077,7 +18072,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18116,7 +18111,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18157,7 +18152,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18205,7 +18200,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18251,7 +18246,7 @@ public class Cls
 
     static void Test2(object x) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18294,7 +18289,7 @@ public class Cls
 
     static void Test2(object x) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe.WithAllowUnsafe(true),
                                                             parseOptions: TestOptions.Regular);
 
@@ -18333,7 +18328,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
@@ -18374,7 +18369,7 @@ public class Cls
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source,
+            var compilation = CreateStandardCompilation(source,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
@@ -18403,7 +18398,7 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18436,7 +18431,7 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18469,7 +18464,7 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18504,7 +18499,7 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18539,7 +18534,7 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18570,7 +18565,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18608,7 +18603,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18754,7 +18749,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateStandardCompilation(text, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics(
                 // (7,23): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         var x = d[out var _];
@@ -18774,7 +18769,7 @@ public class Cls
         var x = d[out _];
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (7,23): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         var x = d[out _];
@@ -18794,7 +18789,7 @@ public class Cls
         var x = d[out var x1] + x1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var x1Decl = GetOutVarDeclaration(tree, "x1");
@@ -18822,7 +18817,7 @@ public class Cls
         var x = d[out int x1] + x1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var x1Decl = GetOutVarDeclaration(tree, "x1");
@@ -18930,7 +18925,7 @@ class B
             foreach (var fillIn in fillIns)
             {
                 var source2 = string.Format(source2Template, fillIn);
-                var compilation = CreateCompilationWithMscorlib(source2, references: new[] { reference1 });
+                var compilation = CreateStandardCompilation(source2, references: new[] { reference1 });
                 var tree = compilation.SyntaxTrees[0];
                 var model = compilation.GetSemanticModel(tree);
 
@@ -19109,7 +19104,7 @@ class B
             foreach (var fillIn in fillIns)
             {
                 var source2 = string.Format(source2Template, fillIn);
-                var compilation = CreateCompilationWithMscorlib(source2, references: new[] { reference1 }, options: TestOptions.DebugExe);
+                var compilation = CreateStandardCompilation(source2, references: new[] { reference1 }, options: TestOptions.DebugExe);
 
                 CompileAndVerify(compilation, expectedOutput:
 @"11
@@ -19180,7 +19175,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
@@ -19228,7 +19223,7 @@ public class Cls
         x4 = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             Assert.Equal(1, compilation.SyntaxTrees[0].GetRoot().DescendantNodesAndSelf().OfType<DeclarationExpressionSyntax>().Count());
@@ -19281,9 +19276,9 @@ public class Cls
                 // (10,28): error CS1003: Syntax error, ']' expected
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(10, 28),
-                // (7,13): error CS0501: 'b(out var)' must declare a body because it is not marked abstract, extern, or partial
+                // (7,13): error CS08112: 'b(out var)' is a local function and must therefore always have a body.
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
                 // (7,19): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 19),
@@ -19308,9 +19303,9 @@ public class Cls
                 // (10,16): warning CS0168: The variable 'e' is declared but never used
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(10, 16),
-                // (7,13): warning CS0168: The variable 'b' is declared but never used
+                // (7,13): warning CS8321: The local function 'b' is declared but never used
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(7, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "b").WithArguments("b").WithLocation(7, 13)
                 );
         }
 
@@ -19340,7 +19335,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
@@ -19393,7 +19388,7 @@ unsafe struct S
     //fixed int F2[3 is int x3 ? 3 : 3, x3];
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
                                                             parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
@@ -21599,7 +21594,7 @@ public class Cls
 
     static class StaticType {}
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS0721: 'Cls.StaticType': static types cannot be used as parameters
@@ -30278,7 +30273,7 @@ class H
             var node1 = node0.ReplaceNode(one, decl);
             var tree = node1.SyntaxTree;
             Assert.NotNull(tree);
-            var compilation = CreateCompilationWithMscorlib(new[] { tree });
+            var compilation = CreateStandardCompilation(new[] { tree });
             compilation.VerifyDiagnostics(
                 // (4,24): error CS8185: A declaration is not allowed in this context.
                 //     object M1() => M(M(varx1), x1);
@@ -30831,7 +30826,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "CCCC");
 
@@ -30891,7 +30886,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (7,19): error CS1503: Argument 1: cannot convert from 'out long' to 'out int'
                 //         new C(out long x1);
@@ -30945,7 +30940,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "CC");
 
@@ -31003,7 +30998,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,19): error CS1503: Argument 1: cannot convert from 'out alias1' to 'out int'
                 //         new C(out alias1 _);
@@ -31080,7 +31075,7 @@ public class Derived4 : C
     public Derived4() : this(out _) { System.Console.Write(""Derived4""); }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C Derived2 C Derived3 C Derived4");
         }
@@ -31103,7 +31098,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,9): error CS0103: The name '_' does not exist in the current context
                 //         _.ToString();
@@ -31147,7 +31142,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "System.Int32");
         }
@@ -31170,7 +31165,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,9): error CS0411: The type arguments for method 'C.M<T>(out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(out var _);
@@ -31197,7 +31192,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "object returing M. int returning M.");
         }
@@ -31219,7 +31214,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(out object)' and 'C.M(out int)'
                 //         M(out var _);
@@ -31251,7 +31246,7 @@ public static class S
 {
     public static void M2(this A self, out B x) { x = null; }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (7,18): error CS1503: Argument 2: cannot convert from 'out A' to 'out B'
                 //         a.M2(out A x);
@@ -31277,7 +31272,7 @@ public class C
         // Note that the embedded statement is parsed as a missing identifier, followed by && with many spaces attached as leading trivia
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -31361,9 +31356,6 @@ class C
                 // (6,61): error CS0103: The name 'z1' does not exist in the current context
                 //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 61),
-                // (6,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(6, 56),
                 // (7,75): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 75),
@@ -31373,21 +31365,18 @@ class C
                 // (7,61): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 61),
-                // (7,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 56),
                 // (9,17): error CS0103: The name 'z1' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 17),
                 // (9,22): error CS0103: The name 'z2' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
-                // (6,14): warning CS0168: The variable 'Local2' is declared but never used
+                // (6,14): warning CS8321: The local function 'Local2' is declared but never used
                 //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(6, 14),
-                // (7,14): warning CS0168: The variable 'Local5' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local2").WithArguments("Local2").WithLocation(6, 14),
+                // (7,14): warning CS8321: The local function  'Local5' is declared but never used
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(7, 14)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local5").WithArguments("Local5").WithLocation(7, 14)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -32047,9 +32036,6 @@ class C
                 // (6,69): error CS0103: The name 'z1' does not exist in the current context
                 //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 69),
-                // (6,64): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(6, 64),
                 // (7,83): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 83),
@@ -32062,21 +32048,18 @@ class C
                 // (7,69): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 69),
-                // (7,64): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 64),
                 // (9,17): error CS0103: The name 'z1' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 17),
                 // (9,22): error CS0103: The name 'z2' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
-                // (6,14): warning CS0168: The variable 'Local2' is declared but never used
+                // (6,14): warning CS8321: The local function 'Local2' is declared but never used
                 //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(6, 14),
-                // (7,14): warning CS0168: The variable 'Local5' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local2").WithArguments("Local2").WithLocation(6, 14),
+                // (7,14): warning CS8321: The local function 'Local5' is declared but never used
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(7, 14)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local5").WithArguments("Local5").WithLocation(7, 14)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -32238,12 +32221,12 @@ class C
                 // (11,18): error CS0150: A constant value is expected
                 //             case M(nameof(M(out var z2)), z2):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
-                // (8,43): error CS0165: Use of unassigned local variable 'z1'
-                //             case M(nameof(M(out int z1)), z1):
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(8, 43),
-                // (11,43): error CS0165: Use of unassigned local variable 'z2'
-                //             case M(nameof(M(out var z2)), z2):
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(11, 43)
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(z1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(z2);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 17)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -32427,7 +32410,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32466,7 +32449,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32510,7 +32493,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32541,7 +32524,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32580,7 +32563,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32612,7 +32595,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32648,7 +32631,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32687,7 +32670,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32717,7 +32700,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32754,7 +32737,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -32768,6 +32751,53 @@ class C
             VerifyModelForOutVarInNotExecutableCode(model, decl);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
             Assert.Equal("var", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(445600, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=445600")]
+        public void GetEnclosingBinderInternalRecovery_11()
+        {
+            var text = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach 
+        other(some().F(a => TestOutVar(out var x) ? x : 1));
+    }
+
+    static void TestOutVar(out int a)
+    {
+        a = 0;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,16): error CS1003: Syntax error, '(' expected
+                //         foreach 
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "").WithLocation(6, 16),
+                // (7,60): error CS1515: 'in' expected
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_InExpected, ";").WithLocation(7, 60),
+                // (7,60): error CS0230: Type and identifier are both required in a foreach statement
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ";").WithLocation(7, 60),
+                // (7,60): error CS1525: Invalid expression term ';'
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(7, 60),
+                // (7,60): error CS1026: ) expected
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(7, 60)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var xDecl = GetOutVarDeclaration(tree, "x");
+            var xRef = GetReferences(tree, "x", 1);
+            VerifyModelForOutVarWithoutDataFlow(model, xDecl, xRef);
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(xRef[0]).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -32868,7 +32898,7 @@ class C
         o = null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var identifierBefore = GetReferences(tree, "G").Single();
@@ -32881,6 +32911,73 @@ class C
             Assert.Null(identifierAfter.Location.SourceTree);
             var info = model.GetSymbolInfo(identifierAfter);
             Assert.Equal("void C.G(out System.Object o)", info.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(10604, "https://github.com/dotnet/roslyn/issues/10604")]
+        [WorkItem(16306, "https://github.com/dotnet/roslyn/issues/16306")]
+        public void GetForEachSymbolInfoWithOutVar()
+        {
+            var source =
+@"using System.Collections.Generic;
+public class C
+{
+    void M()
+    {
+        foreach (var x in M2(out int i)) { }
+    }
+    IEnumerable<object> M2(out int j)
+    {
+        throw null;
+    }
+}";
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachStatement = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachStatement);
+            Assert.Equal("System.Object", info.ElementType.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.IEnumerator<System.Object> System.Collections.Generic.IEnumerable<System.Object>.GetEnumerator()",
+                info.GetEnumeratorMethod.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(19382, "https://github.com/dotnet/roslyn/issues/19382")]
+        public void DiscardAndArgList()
+        {
+            var text = @"
+using System;
+public class C
+{
+    static void Main()
+    {
+        M(out _, __arglist(2, 3, true));
+    }
+    
+    static void M(out int x, __arglist)
+    {    
+        x = 0;
+        DumpArgs(new ArgIterator(__arglist));
+    }
+
+    static void DumpArgs(ArgIterator args)
+    {
+        while(args.GetRemainingCount() > 0)
+        {
+            TypedReference tr = args.GetNextArg();
+            object arg = TypedReference.ToObject(tr);
+            Console.Write(arg);
+        }
+    }
+}";
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                );
+
+            CompileAndVerify(compilation, expectedOutput: "23True");
         }
     }
 

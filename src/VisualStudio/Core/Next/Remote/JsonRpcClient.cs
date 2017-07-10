@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StreamJsonRpc;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -14,75 +15,77 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// Helper type that abstract out JsonRpc communication with extra capability of
     /// using raw stream to move over big chunk of data
     /// </summary>
-    internal class JsonRpcClient : IDisposable
+    internal abstract class JsonRpcEx : IDisposable
     {
         private readonly JsonRpc _rpc;
-        private readonly CancellationToken _cancellationToken;
 
-        public JsonRpcClient(
-            Stream stream, object callbackTarget, bool useThisAsCallback, CancellationToken cancellationToken)
+        public JsonRpcEx(Stream stream, object callbackTarget, bool useThisAsCallback)
         {
-            var target = useThisAsCallback ? this : callbackTarget;
-            _cancellationToken = cancellationToken;
+            Contract.Requires(stream != null);
 
-            _rpc = new JsonRpc(stream, stream, target);
+            var target = useThisAsCallback ? this : callbackTarget;
+
+            _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target);
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             _rpc.Disconnected += OnDisconnected;
         }
 
-        public async Task InvokeAsync(string targetName, params object[] arguments)
+        protected abstract void Dispose(bool disposing);
+
+        public async Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                await _rpc.InvokeAsync(targetName, arguments).ConfigureAwait(false);
+
+                await _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
-            catch (ObjectDisposedException)
+            catch
             {
-                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
-                // can cause this exception to happen. newer version supports cancellation token natively, but
-                // we can't use it now, so we will catch object disposed exception and check cancellation token
-                _cancellationToken.ThrowIfCancellationRequested();
+                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
+                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
+                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
+                // the exception
+                cancellationToken.ThrowIfCancellationRequested();
                 throw;
             }
         }
 
-        public async Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
+        public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                return await _rpc.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false);
+                return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
-            catch (ObjectDisposedException)
+            catch
             {
-                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
-                // can cause this exception to happen. newer version supports cancellation token natively, but
-                // we can't use it now, so we will catch object disposed exception and check cancellation token
-                _cancellationToken.ThrowIfCancellationRequested();
+                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
+                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
+                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
+                // the exception
+                cancellationToken.ThrowIfCancellationRequested();
                 throw;
             }
         }
 
-        public Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
+        public Task InvokeAsync(
+            string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, _cancellationToken);
+            return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
         }
 
-        public Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+        public Task<T> InvokeAsync<T>(
+            string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, _cancellationToken);
+            return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
         }
 
-        public void Dispose()
+        protected void Disconnect()
         {
-            OnDisposed();
-
             _rpc.Dispose();
         }
 
@@ -93,14 +96,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.StartListening();
         }
 
-        protected virtual void OnDisposed()
+        protected virtual void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             // do nothing
         }
 
-        protected virtual void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+        public void Dispose()
         {
-            // do nothing
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

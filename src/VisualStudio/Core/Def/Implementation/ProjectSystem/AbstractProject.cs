@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -122,7 +123,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ContentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
 
             this.RunningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            this.DisplayName = projectSystemName;
+
+            var displayName = hierarchy != null && hierarchy.TryGetName(out var name) ? name : projectSystemName;
+            this.DisplayName = displayName;
+
             this.ProjectTracker = projectTracker;
 
             ProjectSystemName = projectSystemName;
@@ -133,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Set the default value for last design time build result to be true, until the project system lets us know that it failed.
             LastDesignTimeBuildSucceeded = true;
 
-            UpdateProjectDisplayNameAndFilePath(projectSystemName, projectFilePath);
+            UpdateProjectDisplayNameAndFilePath(displayName, projectFilePath);
 
             if (ProjectFilePath != null)
             {

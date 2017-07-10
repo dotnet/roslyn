@@ -1,16 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Features</AssemblyName>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
+    <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -65,7 +63,12 @@
     <Compile Include="..\..\..\Compilers\VisualBasic\Portable\Syntax\LambdaUtilities.vb">
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
+    <Compile Include="AddImport\VisualBasicAddImportFeatureService.vb" />
     <Compile Include="AddPackage\VisualBasicAddSpecificPackageCodeFixProvider.vb" />
+    <Compile Include="CommentSelection\VisualBasicCommentSelectionService.vb" />
+    <Compile Include="DocumentHighlighting\VisualBasicDocumentHighlightsService.vb" />
+    <Compile Include="InitializeParameter\InitializeParameterHelpers.vb" />
+    <Compile Include="InitializeParameter\VisualBasicAddParameterCheckCodeRefactoringProvider.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.vb" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.vb" />
     <Compile Include="ChangeSignature\VisualBasicChangeSignatureService.vb" />
@@ -80,7 +83,7 @@
     <Compile Include="CodeFixes\Async\VisualBasicConvertToAsyncFunctionCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Iterator\VisualBasicConvertToIteratorCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\FullyQualify\VisualBasicFullyQualifyCodeFixProvider.vb" />
+    <Compile Include="FullyQualify\VisualBasicFullyQualifyCodeFixProvider.vb" />
     <Compile Include="GenerateConstructor\GenerateConstructorCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateEndConstruct\GenerateEndConstructCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateEnumMember\GenerateEnumMemberCodeFixProvider.vb" />
@@ -88,8 +91,8 @@
     <Compile Include="CodeFixes\GenerateEvent\GenerateEventCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateParameterizedMemberCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateType\GenerateTypeCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\GenerateVariable\GenerateVariableCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\RemoveUnusedVariable\RemoveUnusedVariableCodeFixProvider.vb" />
+    <Compile Include="GenerateVariable\VisualBasicGenerateVariableCodeFixProvider.vb" />
+    <Compile Include="RemoveUnusedVariable\VisualBasicRemoveUnusedVariableCodeFixProvider.vb" />
     <Compile Include="ConvertIfToSwitch\VisualBasicConvertIfToSwitchCodeRefactoringProvider.Pattern.vb" />
     <Compile Include="ConvertIfToSwitch\VisualBasicConvertIfToSwitchCodeRefactoringProvider.vb" />
     <Compile Include="ConvertNumericLiteral\VisualBasicConvertNumericLiteralCodeRefactoringProvider.vb" />
@@ -107,6 +110,10 @@
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
     <Compile Include="ImplementInterface\VisualBasicImplementInterfaceCodeFixProvider.vb" />
+    <Compile Include="InitializeParameter\VisualBasicInitializeMemberFromParameterCodeRefactoringProvider.vb" />
+    <Compile Include="OrderModifiers\VisualBasicOrderModifiersHelper.vb" />
+    <Compile Include="OrderModifiers\VisualBasicOrderModifiersCodeFixProvider.vb" />
+    <Compile Include="OrderModifiers\VisualBasicOrderModifiersDiagnosticAnalyzer.vb" />
     <Compile Include="Structure\Providers\CollectionInitializerStructureProvider.vb" />
     <Compile Include="Structure\Providers\ObjectCreationInitializerStructureProvider.vb" />
     <Compile Include="QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />
@@ -392,6 +399,8 @@
     <Compile Include="Structure\VisualBasicBlockStructureProvider.vb" />
     <Compile Include="RemoveUnnecessaryImports\AbstractVisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
     <Compile Include="RemoveUnnecessaryImports\AbstractVisualBasicRemoveUnnecessaryImportsService.vb" />
+    <Compile Include="ReplacePropertyWithMethods\VisualBasicReplacePropertyWithMethods.ConvertValueToParamRewriter.vb" />
+    <Compile Include="ReplacePropertyWithMethods\VisualBasicReplacePropertyWithMethods.ConvertValueToReturnsRewriter.vb" />
     <Compile Include="ReplacePropertyWithMethods\VisualBasicReplacePropertyWithMethods.vb" />
     <Compile Include="SignatureHelp\AbstractIntrinsicOperatorSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\AbstractSignatureHelpProvider.vb" />
@@ -450,9 +459,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

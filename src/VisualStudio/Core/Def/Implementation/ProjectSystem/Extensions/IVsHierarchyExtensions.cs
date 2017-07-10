@@ -76,5 +76,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             return hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_TypeGuid, out typeGuid);
         }
+
+        public static bool TryGetTargetFrameworkMoniker(this IVsHierarchy hierarchy, uint itemId, out string targetFrameworkMoniker)
+        {
+            return hierarchy.TryGetItemProperty(itemId, (int)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out targetFrameworkMoniker);
+        }
     }
 }

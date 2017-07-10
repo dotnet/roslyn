@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                  default(DeclarationModifiers),
                  returnType: null,
                  returnsByRef: false,
-                 explicitInterfaceSymbolOpt: null,
+                 explicitInterfaceImplementations: default,
                  name: string.Empty,
                  typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
                  parameters: ImmutableArray<IParameterSymbol>.Empty,

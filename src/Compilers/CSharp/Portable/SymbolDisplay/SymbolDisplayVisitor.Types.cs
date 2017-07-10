@@ -381,6 +381,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             INamedTypeSymbol currentUnderlying = tupleSymbol.TupleUnderlyingType;
 
+            if (currentUnderlying.Arity == 1)
+            {
+                return false;
+            }
+
             while (currentUnderlying.Arity == TupleTypeSymbol.RestPosition)
             {
                 tupleSymbol = (INamedTypeSymbol)currentUnderlying.TypeArguments[TupleTypeSymbol.RestPosition - 1];

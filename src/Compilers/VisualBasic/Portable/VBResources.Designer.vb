@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -5919,6 +5919,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Unable to read debug information of method &apos;{0}&apos; (token 0x{1}) from assembly &apos;{2}&apos;.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidDebugInfo() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidDebugInfo", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Invalid debug information format: {0}.
         '''</summary>
         Friend ReadOnly Property ERR_InvalidDebugInformationFormat() As String
@@ -8116,6 +8125,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot compile net modules when using /refout or /refonly..
+        '''</summary>
+        Friend ReadOnly Property ERR_NoNetModuleOutputWhenRefOutOrRefOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_NoNetModuleOutputWhenRefOutOrRefOnly", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Member &apos;{0}&apos; cannot be initialized in an object initializer expression because it is not a field or property..
         '''</summary>
         Friend ReadOnly Property ERR_NonFieldPropertyAggrMemberInit1() As String
@@ -8184,6 +8202,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_NoPIAAttributeMissing2() As String
             Get
                 Return ResourceManager.GetString("ERR_NoPIAAttributeMissing2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Do not use refout when using refonly..
+        '''</summary>
+        Friend ReadOnly Property ERR_NoRefOutWhenRefOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_NoRefOutWhenRefOnly", resourceCulture)
             End Get
         End Property
         
@@ -10037,11 +10064,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        '''  Looks up a localized string similar to /sourcelink switch is only supported when emitting PDB..
         '''</summary>
-        Friend ReadOnly Property ERR_SourceLinkRequiresPortablePdb() As String
+        Friend ReadOnly Property ERR_SourceLinkRequiresPdb() As String
             Get
-                Return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture)
+                Return ResourceManager.GetString("ERR_SourceLinkRequiresPdb", resourceCulture)
             End Get
         End Property
         
@@ -10574,6 +10601,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_TupleElementNamesAttributeMissing() As String
             Get
                 Return ResourceManager.GetString("ERR_TupleElementNamesAttributeMissing", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuple element name &apos;{0}&apos; is inferred. Please use language version {1} or greater to access an element by its inferred name..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleInferredNamesNotAvailable() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleInferredNamesNotAvailable", resourceCulture)
             End Get
         End Property
         
@@ -12217,6 +12253,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Supported language versions:.
+        '''</summary>
+        Friend ReadOnly Property IDS_LangVersions() As String
+            Get
+                Return ResourceManager.GetString("IDS_LangVersions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0} version {1}.
         '''</summary>
         Friend ReadOnly Property IDS_LogoLine1() As String
@@ -13383,6 +13428,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property WRN_ExpectedInitComponentCall2_Title() As String
             Get
                 Return ResourceManager.GetString("WRN_ExpectedInitComponentCall2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;{0}&apos; is for evaluation purposes only and is subject to change or removal in future updates..
+        '''</summary>
+        Friend ReadOnly Property WRN_Experimental() As String
+            Get
+                Return ResourceManager.GetString("WRN_Experimental", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type is for evaluation purposes only and is subject to change or removal in future updates..
+        '''</summary>
+        Friend ReadOnly Property WRN_Experimental_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_Experimental_Title", resourceCulture)
             End Get
         End Property
         
@@ -14773,7 +14836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name is specified by the target type &apos;{1}&apos;..
+        '''  Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name or no name is specified by the target type &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_TupleLiteralNameMismatch() As String
             Get
@@ -14782,7 +14845,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The tuple element name is ignored because a different name is specified by the assignment target..
+        '''  Looks up a localized string similar to The tuple element name is ignored because a different name or no name is specified by the assignment target..
         '''</summary>
         Friend ReadOnly Property WRN_TupleLiteralNameMismatch_Title() As String
             Get

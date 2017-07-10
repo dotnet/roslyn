@@ -265,7 +265,7 @@ class C
 
         private static SourceNamedTypeSymbol CompileAndExtractTypeSymbol(string source)
         {
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var typeSymbol = (SourceNamedTypeSymbol)compilation.GlobalNamespace.GetMembers("C").Single();
             return typeSymbol;
         }

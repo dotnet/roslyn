@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x86</Platform>
     <PlatformTarget>x86</PlatformTarget>
@@ -9,22 +9,32 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.IntegrationTests</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.IntegrationTests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
+    <RuntimeIdentifiers>win7-x86</RuntimeIdentifiers>
     <Nonshipping>true</Nonshipping>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'" />
   <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
+    <Compile Include="CSharp\CSharpReferenceHighlighting.cs" />
+    <Compile Include="CSharp\CSharpEncapsulateField.cs" />
+    <Compile Include="CSharp\CSharpF1Help.cs" />
+    <Compile Include="CSharp\CSharpInteractiveBoxSelection.cs" />
+    <Compile Include="CSharp\CSharpFormatting.cs" />
     <Compile Include="CSharp\CSharpChangeSignatureDialog.cs" />
+    <Compile Include="CSharp\CSharpGenerateFromUsage.cs" />
     <Compile Include="CSharp\CSharpClassification.cs" />
+    <Compile Include="CSharp\CSharpErrorListCommon.cs" />
+    <Compile Include="CSharp\CSharpErrorListDesktop.cs" />
+    <Compile Include="CSharp\CSharpErrorListNetCore.cs" />
+    <Compile Include="CSharp\CSharpExtractInterfaceDialog.cs" />
     <Compile Include="CSharp\CSharpFindReferences.cs" />
+    <Compile Include="CSharp\CSharpGoToImplementation.cs" />
     <Compile Include="CSharp\CSharpGenerateTypeDialog.cs" />
+    <Compile Include="CSharp\CSharpGoToDefinition.cs" />
     <Compile Include="CSharp\CSharpInteractiveAsyncOutput.cs" />
     <Compile Include="CSharp\CSharpAutomaticBraceCompletion.cs" />
     <Compile Include="CSharp\CSharpBuild.cs" />
@@ -33,26 +43,69 @@
     <Compile Include="CSharp\CSharpInteractive.cs" />
     <Compile Include="AbstractEditorTest.cs" />
     <Compile Include="CSharp\CSharpInteractiveCommands.cs" />
+    <Compile Include="CSharp\CSharpOrganizing.cs" />
+    <Compile Include="CSharp\CSharpNavigationBar.cs" />
+    <Compile Include="CSharp\CSharpKeywordHighlighting.cs" />
+    <Compile Include="CSharp\CSharpOutlining.cs" />
+    <Compile Include="CSharp\CSharpExtractMethod.cs" />
+    <Compile Include="CSharp\CSharpReplClassification.cs" />
+    <Compile Include="CSharp\CSharpReplIdeFeatures.cs" />
+    <Compile Include="CSharp\CSharpReplIntellisense.cs" />
+    <Compile Include="CSharp\CSharpInteractiveDirectives.cs" />
+    <Compile Include="CSharp\CSharpInteractiveFormsAndWpf.cs" />
     <Compile Include="CSharp\CSharpQuickInfo.cs" />
+    <Compile Include="CSharp\CSharpSendToInteractive.cs" />
     <Compile Include="CSharp\CSharpNavigateTo.cs" />
+    <Compile Include="CSharp\CSharpRename.cs" />
     <Compile Include="CSharp\CSharpSignatureHelp.cs" />
+    <Compile Include="CSharp\CSharpSquigglesDesktop.cs" />
+    <Compile Include="CSharp\CSharpSquigglesCommon.cs" />
+    <Compile Include="CSharp\CSharpSquigglesNetCore.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
+    <Compile Include="VisualBasic\BasicEditAndContinue.cs" />
+    <Compile Include="VisualBasic\BasicEndConstruct.cs" />
+    <Compile Include="VisualBasic\BasicExpressionEvaluator.cs" />
+    <Compile Include="VisualBasic\BasicReferenceHighlighting.cs" />
+    <Compile Include="VisualBasic\BasicKeywordHighlighting.cs" />
+    <Compile Include="VisualBasic\BasicEncapsulateField.cs" />
+    <Compile Include="VisualBasic\BasicNavigationBar.cs" />
+    <Compile Include="VisualBasic\BasicLineCommit.cs" />
+    <Compile Include="VisualBasic\BasicF1Help.cs" />
+    <Compile Include="VisualBasic\BasicSquigglesCommon.cs" />
+    <Compile Include="VisualBasic\BasicSquigglesDesktop.cs" />
+    <Compile Include="VisualBasic\BasicSquigglesNetCore.cs" />
+    <Compile Include="VisualBasic\BasicErrorListCommon.cs" />
+    <Compile Include="VisualBasic\BasicErrorListDesktop.cs" />
+    <Compile Include="VisualBasic\BasicErrorListNetCore.cs" />
+    <Compile Include="VisualBasic\BasicOrganizing.cs" />
+    <Compile Include="VisualBasic\BasicOutlining.cs" />
+    <Compile Include="VisualBasic\BasicExtractMethod.cs" />
+    <Compile Include="Workspace\WorkspaceBase.cs" />
+    <Compile Include="Workspace\WorkspacesDesktop.cs" />
+    <Compile Include="Workspace\WorkspacesNetCore.cs" />
     <Compile Include="SharedIntegrationHostFixture.cs" />
     <Compile Include="VisualBasic\BasicAddMissingReference.cs" />
     <Compile Include="VisualBasic\BasicAutomaticBraceCompletion.cs" />
     <Compile Include="VisualBasic\BasicBuild.cs" />
     <Compile Include="VisualBasic\BasicClassification.cs" />
+    <Compile Include="VisualBasic\BasicFormatting.cs" />
+    <Compile Include="VisualBasic\BasicCodeActions.cs" />
+    <Compile Include="VisualBasic\BasicExtractInterfaceDialog.cs" />
     <Compile Include="VisualBasic\BasicGenerateEqualsAndGetHashCodeDialog.cs" />
     <Compile Include="VisualBasic\BasicGenerateConstructorDialog.cs" />
     <Compile Include="VisualBasic\BasicChangeSignatureDialog.cs" />
     <Compile Include="VisualBasic\BasicFindReferences.cs" />
     <Compile Include="VisualBasic\BasicGenerateTypeDialog.cs" />
+    <Compile Include="VisualBasic\BasicGoToImplementation.cs" />
     <Compile Include="VisualBasic\BasicIntelliSense.cs" />
     <Compile Include="VisualBasic\BasicSignatureHelp.cs" />
     <Compile Include="VisualBasic\BasicWinForms.cs" />
     <Compile Include="VisualBasic\BasicQuickInfo.cs" />
     <Compile Include="VisualBasic\BasicNavigateTo.cs" />
+    <Compile Include="VisualBasic\BasicGoToDefinition.cs" />
+    <Compile Include="VisualBasic\BasicGenerateFromUsage.cs" />
+    <Compile Include="VisualBasic\BasicRename.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -206,6 +259,11 @@
   <ItemGroup>
     <Reference Include="UIAutomationClient" />
     <Reference Include="UIAutomationTypes" />
+    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
+    <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

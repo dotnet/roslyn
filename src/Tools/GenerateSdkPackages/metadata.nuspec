@@ -17,7 +17,7 @@
     <tags>VSSDK</tags>
   </metadata>
   <files>
-    <file src="$debuggerPath$\net20\Microsoft.VisualStudio.Debugger.Metadata.dll" target="lib\net20" />
+    <file src="$debuggerPath$\v2.0\Microsoft.VisualStudio.Debugger.Metadata.dll" target="lib\net20" />
     <file src="$debuggerPath$\portable\Microsoft.VisualStudio.Debugger.Metadata.dll" target="lib\portable-net45+win8" />
   </files>
 </package>

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -144,11 +144,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataMethodSymbolCtor01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
-            Assert.Equal("mscorlib", mscorNS.Name);
+            Assert.Equal(RuntimeCorLibName.Name, mscorNS.Name);
             Assert.Equal(SymbolKind.Assembly, mscorNS.Kind);
             var ns1 = mscorNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
             var type1 = ns1.GetTypeMembers("StringComparer").Single() as NamedTypeSymbol;
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataMethodSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateCompilation(text, new[] { MscorlibRef });
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataParameterSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateCompilation(text, new[] { MscorlibRef });
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataMethodSymbolGen02()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataParameterSymbolGen02()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -383,7 +383,7 @@ class C
     C() { }
     static C() { }
 }";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
             Assert.False(compilation.GetDiagnostics().Any());
             var classC = compilation.SourceModule.GlobalNamespace.GetTypeMembers("C").Single();
             // NamedTypeSymbol.Constructors only contains instance constructors
@@ -608,7 +608,7 @@ class Test
 ";
             var members = new[] { "F", "P", "E", "M" };
 
-            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll);
+            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll);
 
             var test1 = comp1.GetTypeByMetadataName("Test");
             var memberNames1 = new HashSet<string>(test1.MemberNames);
@@ -618,7 +618,7 @@ class Test
                 Assert.True(memberNames1.Contains(m), m);
             }
 
-            var comp2 = CreateCompilationWithMscorlib("", new[] { comp1.EmitToImageReference() });
+            var comp2 = CreateStandardCompilation("", new[] { comp1.EmitToImageReference() });
 
             var test2 = comp2.GetTypeByMetadataName("Test");
             var memberNames2 = new HashSet<string>(test2.MemberNames);
@@ -648,7 +648,7 @@ class Test
 ";
             var members = new[] { "F", "P", "E", "M" };
 
-            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll);
+            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll);
 
             var test1 = comp1.GetTypeByMetadataName("Test");
             test1.GetMembers();
@@ -659,7 +659,7 @@ class Test
                 Assert.True(memberNames1.Contains(m), m);
             }
 
-            var comp2 = CreateCompilationWithMscorlib("", new[] { comp1.EmitToImageReference() });
+            var comp2 = CreateStandardCompilation("", new[] { comp1.EmitToImageReference() });
 
             var test2 = comp2.GetTypeByMetadataName("Test");
             test2.GetMembers();

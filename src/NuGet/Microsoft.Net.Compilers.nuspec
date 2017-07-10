@@ -2,11 +2,12 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.Net.Compilers</id>
-    <description>
+    <summary>
     .Net Compilers package. Referencing this package will cause the project to be built using the specific version of the C# and Visual Basic compilers contained in the package, as opposed to any system installed version.
 
     This package can be used to compile code targeting any platform, but can only be run using the desktop .NET 4.6+ Full Framework.
-    </description>
+    </summary>
+    <description>$commitPathMessage$</description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
@@ -18,8 +19,8 @@
     <developmentDependency>true</developmentDependency>
   </metadata>
   <files>
-    <file src="$netCompilersPropsPath$" target="build\Microsoft.Net.Compilers.props" />
-    <file src="$thirdPartyNoticesPath$" target="" />
+    <file src="$additionalFilesPath$/Microsoft.Net.Compilers.props" target="build" />
+    <file src="$additionalFilesPath$/ThirdPartyNotices.rtf" target="" />
 
     <!-- The Roslyn built binaries must be taken from these locations because this is 
          the location where signing occurs -->

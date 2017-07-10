@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -19,23 +19,52 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                 CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken);
         }
 
-        protected abstract class Analyzer<TBaseSyntax, TSyntax, TListSyntax> : IAnalyzer
-            where TBaseSyntax : SyntaxNode
-            where TSyntax : TBaseSyntax
-            where TListSyntax : SyntaxNode
+        protected abstract class Analyzer<TBaseArgumentSyntax, TSimpleArgumentSyntax, TArgumentListSyntax> : IAnalyzer
+            where TBaseArgumentSyntax : SyntaxNode
+            where TSimpleArgumentSyntax : TBaseArgumentSyntax
+            where TArgumentListSyntax : SyntaxNode
         {
             public async Task ComputeRefactoringsAsync(
                 CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken)
             {
-                var document = context.Document;
+                if (context.Span.Length > 0)
+                {
+                    return;
+                }
 
-                var argument = root.FindNode(context.Span).FirstAncestorOrSelf<TBaseSyntax>() as TSyntax;
+                var position = context.Span.Start;
+                var token = root.FindToken(position);
+                if (token.Span.Start == position &&
+                    IsCloseParenOrComma(token))
+                {
+                    token = token.GetPreviousToken();
+                    if (token.Span.End != position)
+                    {
+                        return;
+                    }
+                }
+
+                var argument = root.FindNode(token.Span).FirstAncestorOrSelfUntil<TBaseArgumentSyntax>(node => node is TArgumentListSyntax) as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;
                 }
 
                 if (!IsPositionalArgument(argument))
+                {
+                    return;
+                }
+
+                // Arguments can be arbitrarily large.  Only offer this feature if the caret is on hte
+                // line that the argument starts on.
+
+                var document = context.Document;
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                var argumentStartLine = sourceText.Lines.GetLineFromPosition(argument.Span.Start).LineNumber;
+                var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;
+
+                if (argumentStartLine != caretLine)
                 {
                     return;
                 }
@@ -65,68 +94,73 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                     return;
                 }
 
-                var argumentList = (TListSyntax)argument.Parent;
-                var (index, count) = GetArgumentListIndexAndCount(argument, argumentList);
+                var argumentList = argument.Parent as TArgumentListSyntax;
+                if (argumentList == null)
+                {
+                    return;
+                }
 
                 var arguments = GetArguments(argumentList);
-                for (var i = index; i < count; i++)
+                var argumentCount = arguments.Count;
+                var argumentIndex = arguments.IndexOf(argument);
+                if (argumentIndex >= parameters.Length)
                 {
-                    if (!(arguments[i] is TSyntax))
+                    return;
+                }
+
+                if (!IsLegalToAddNamedArguments(parameters, argumentCount))
+                {
+                    return;
+                }
+
+                for (var i = argumentIndex; i < argumentCount; i++)
+                {
+                    if (!(arguments[i] is TSimpleArgumentSyntax))
                     {
                         return;
                     }
                 }
 
-                if (!IsLegalToAddNamedArguments(parameters, count))
-                {
-                    return;
-                }
-
-                var argumentName = parameters[index].Name;
+                var argumentName = parameters[argumentIndex].Name;
                 context.RegisterRefactoring(
                     new MyCodeAction(
                         string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                        c => AddNamedArgumentsAsync(root, document, argument, parameters, index)));
+                        c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex)));
             }
 
             private Task<Document> AddNamedArgumentsAsync(
                 SyntaxNode root,
                 Document document,
-                TSyntax firstArgument,
+                TSimpleArgumentSyntax firstArgument,
                 ImmutableArray<IParameterSymbol> parameters,
                 int index)
             {
-                var argumentList = (TListSyntax)firstArgument.Parent;
+                var argumentList = (TArgumentListSyntax)firstArgument.Parent;
                 var newArgumentList = GetOrSynthesizeNamedArguments(parameters, argumentList, index);
                 var newRoot = root.ReplaceNode(argumentList, newArgumentList);
                 return Task.FromResult(document.WithSyntaxRoot(newRoot));
             }
 
-            private (int, int) GetArgumentListIndexAndCount(TSyntax argument, TListSyntax argumentList)
-            {
-                var arguments = GetArguments(argumentList);
-                return (arguments.IndexOf(argument), arguments.Count);
-            }
-
-            private TListSyntax GetOrSynthesizeNamedArguments(
-                ImmutableArray<IParameterSymbol> parameters, TListSyntax argumentList, int index)
+            private TArgumentListSyntax GetOrSynthesizeNamedArguments(
+                ImmutableArray<IParameterSymbol> parameters, TArgumentListSyntax argumentList, int index)
             {
                 var arguments = GetArguments(argumentList);
                 var namedArguments = arguments
-                    .Select((argument, i) => i >= index && argument is TSyntax s && IsPositionalArgument(s)
+                    .Select((argument, i) => i >= index && argument is TSimpleArgumentSyntax s && IsPositionalArgument(s)
                         ? WithName(s, parameters[i].Name).WithTriviaFrom(argument)
                         : argument);
 
                 return WithArguments(argumentList, namedArguments, arguments.GetSeparators());
             }
 
-            protected abstract TListSyntax WithArguments(
-                TListSyntax argumentList, IEnumerable<TBaseSyntax> namedArguments, IEnumerable<SyntaxToken> separators);
+            protected abstract TArgumentListSyntax WithArguments(
+                TArgumentListSyntax argumentList, IEnumerable<TBaseArgumentSyntax> namedArguments, IEnumerable<SyntaxToken> separators);
 
+            protected abstract bool IsCloseParenOrComma(SyntaxToken token);
             protected abstract bool IsLegalToAddNamedArguments(ImmutableArray<IParameterSymbol> parameters, int argumentCount);
-            protected abstract TSyntax WithName(TSyntax argument, string name);
-            protected abstract bool IsPositionalArgument(TSyntax argument);
-            protected abstract SeparatedSyntaxList<TBaseSyntax> GetArguments(TListSyntax argumentList);
+            protected abstract TSimpleArgumentSyntax WithName(TSimpleArgumentSyntax argument, string name);
+            protected abstract bool IsPositionalArgument(TSimpleArgumentSyntax argument);
+            protected abstract SeparatedSyntaxList<TBaseArgumentSyntax> GetArguments(TArgumentListSyntax argumentList);
             protected abstract SyntaxNode GetReceiver(SyntaxNode argument);
         }
 

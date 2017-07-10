@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -556,7 +555,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 }
@@ -574,7 +573,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 }
@@ -600,7 +599,7 @@ options: ImplicitTypingEverywhere());
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 }
@@ -618,7 +617,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 }
@@ -643,7 +642,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 
@@ -658,7 +657,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 
@@ -681,7 +680,7 @@ options: ImplicitTypingEverywhere());
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 
@@ -696,7 +695,7 @@ options: ImplicitTypingEverywhere());
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 
@@ -2180,8 +2179,8 @@ ignoreTrivia: false);
         switch (1)
         {
             case 0:
-                const int {|Rename:V|} = 1 + 1;
-                var f = Main(V);
+                const int {|Rename:I|} = 1 + 1;
+                var f = Main(I);
                 Console.WriteLine(f);
         }
     }
@@ -2432,8 +2431,8 @@ class C
     static void Main(string[] args)
     {
         var set = new HashSet<string>();
-        var {|Rename:v|} = set.ToString();
-        set.Add(v);
+        var {|Rename:item|} = set.ToString();
+        set.Add(item);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -2530,8 +2529,8 @@ class Program
     static void Main(string[] args)
     {
         var d = new Dictionary<string, Exception>();
-        var {|Rename:exception|} = new Exception();
-        d.Add(""a"", exception);
+        var {|Rename:value|} = new Exception();
+        d.Add(""a"", value);
     }
 }",
 ignoreTrivia: false, options: ImplicitTypingEverywhere());
@@ -3091,8 +3090,8 @@ class Complex
     int real; int imaginary;
     public static Complex operator +(Complex a, Complex b)
     {
-        var {|Rename:v|} = b.real + 1;
-        return a.Add(v);
+        var {|Rename:b1|} = b.real + 1;
+        return a.Add(b1);
     }
 
     private Complex Add(int b)
@@ -3161,7 +3160,7 @@ public struct DBBool
     @"using System;
 public struct DBBool
 {
-    private const int {|Rename:V|} = 1;
+    private const int {|Rename:Value|} = 1;
     public static readonly DBBool dbFalse = new DBBool(-1);
     int value;
 
@@ -3170,7 +3169,7 @@ public struct DBBool
         this.value = value;
     }
 
-    public static implicit operator DBBool(bool x) => x ? new DBBool(V) : dbFalse;
+    public static implicit operator DBBool(bool x) => x ? new DBBool(Value) : dbFalse;
 }";
 
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
@@ -3574,8 +3573,8 @@ class TestClass
 {
     static void Test(string[] args)
     {
-        var {|Rename:v|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
-        Console.WriteLine(v);
+        var {|Rename:value|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
+        Console.WriteLine(value);
     }
 }";
 
@@ -3603,9 +3602,9 @@ class TestClass
 {
     static void Test(string[] args)
     {
-        var {|Rename:v|} = $""Text{{s}}"";
-        Console.WriteLine(v);
-        Console.WriteLine(v);
+        var {|Rename:value|} = $""Text{{s}}"";
+        Console.WriteLine(value);
+        Console.WriteLine(value);
     }
 }";
 
@@ -3773,8 +3772,8 @@ namespace N
     {
         public async Task M()
         {
-            FormattableString {|Rename:v|} = $"""";
-            var f = FormattableString.Invariant(v);
+            FormattableString {|Rename:formattable|} = $"""";
+            var f = FormattableString.Invariant(formattable);
         }
     }
 }";
@@ -4048,6 +4047,285 @@ class Program
             int spanEnd = span.End;
             int end = pos;
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithInferredName_LeaveExplicitName()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int a = 1;
+        var t = (a, x: [|C.y|]);
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int a = 1;
+        int {|Rename:y1|} = C.y;
+        var t = (a, x: y1);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithInferredName_InferredNameBecomesExplicit()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        var t = (x, [|C.y|]);
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        int {|Rename:y1|} = C.y;
+        var t = (x, y: y1);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithInferredName_AllOccurrences()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        var t = (x, [|C.y|]);
+        var t2 = (C.y, x);
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        int {|Rename:y1|} = C.y;
+        var t = (x, y: y1);
+        var t2 = (y: y1, x);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithInferredName_NoDuplicateNames()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        var t = (C.y, [|C.y|]);
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        int {|Rename:y1|} = C.y;
+        var t = (y1, y1);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task AnonymousTypeWithInferredName_LeaveExplicitName()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int a = 1;
+        var t = new { a, x= [|C.y|] };
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int a = 1;
+        int {|Rename:y1|} = C.y;
+        var t = new { a, x= y1 };
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task AnonymousTypeWithInferredName_InferredNameBecomesExplicit()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        var t = new { x, [|C.y|] };
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        int {|Rename:y1|} = C.y;
+        var t = new { x, y = y1 };
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task AnonymousTypeWithInferredName_NoDuplicatesAllowed()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        var t = new { C.y, [|C.y|] }; // this is an error already
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        int {|Rename:y1|} = C.y;
+        var t = new { y= y1, y= y1 }; // this is an error already
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+        }
+
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnArgument1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(string a, string b)
+    {
+        new TextSpan([|int.Parse(a)|], int.Parse(b));
+    }
+}
+
+struct TextSpan
+{
+    public TextSpan(int start, int length)
+    {
+
+    }
+}",
+@"class C
+{
+    public C(string a, string b)
+    {
+        int {|Rename:start|} = int.Parse(a);
+        new TextSpan(start, int.Parse(b));
+    }
+}
+
+struct TextSpan
+{
+    public TextSpan(int start, int length)
+    {
+
+    }
+}");
+        }
+
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnArgument2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(string a, string b)
+    {
+        new TextSpan(int.Parse(a), [|int.Parse(b)|]);
+    }
+}
+
+struct TextSpan
+{
+    public TextSpan(int start, int length)
+    {
+
+    }
+}",
+@"class C
+{
+    public C(string a, string b)
+    {
+        int {|Rename:length|} = int.Parse(b);
+        new TextSpan(int.Parse(a), length);
+    }
+}
+
+struct TextSpan
+{
+    public TextSpan(int start, int length)
+    {
+
     }
 }");
         }

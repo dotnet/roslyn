@@ -96,9 +96,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected CompletionItem GetItem(string n)
         {
-            if (_tagMap.ContainsKey(n))
+            if (_tagMap.TryGetValue(n, out var value))
             {
-                var value = _tagMap[n];
                 return CreateCompletionItem(n, value[0], value[1]);
             }
 

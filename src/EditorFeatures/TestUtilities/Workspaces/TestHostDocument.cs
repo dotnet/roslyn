@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     {
         private readonly ExportProvider _exportProvider;
         private HostLanguageServices _languageServiceProvider;
-        private readonly string _initialText;
+        private readonly Lazy<string> _initialText;
         private IWpfTextView _textView;
 
         private DocumentId _id;
@@ -32,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly SourceCodeKind _sourceCodeKind;
         private readonly string _filePath;
         private readonly IReadOnlyList<string> _folders;
-        private readonly TextLoader _loader;
 
         public DocumentId Id
         {
@@ -82,14 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public TextLoader Loader
-        {
-            get
-            {
-                return _loader;
-            }
-        }
-
+        public TextLoader Loader { get; }
         public int? CursorPosition { get; }
         public IList<TextSpan> SelectedSpans { get; }
         public IDictionary<string, ImmutableArray<TextSpan>> AnnotatedSpans { get; }
@@ -118,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _languageServiceProvider = languageServiceProvider;
             this.TextBuffer = textBuffer;
             this.InitialTextSnapshot = textBuffer.CurrentSnapshot;
+            _initialText = new Lazy<string>(() => this.InitialTextSnapshot.GetText());
             _filePath = filePath;
             _folders = folders;
             _name = filePath;
@@ -137,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 this.AnnotatedSpans.Add(namedSpanList);
             }
 
-            _loader = new TestDocumentLoader(this);
+            Loader = new TestDocumentLoader(this);
         }
 
         public TestHostDocument(
@@ -148,10 +142,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             _exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
             _id = id;
-            _initialText = text;
+            _initialText = new Lazy<string>(() => text);
             _name = displayName;
             _sourceCodeKind = sourceCodeKind;
-            _loader = new TestDocumentLoader(this);
+            Loader = new TestDocumentLoader(this);
             _filePath = filePath;
             _folders = folders;
         }
@@ -178,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 var contentTypeService = _languageServiceProvider.GetService<IContentTypeLanguageService>();
                 var contentType = contentTypeService.GetDefaultContentType();
-                this.TextBuffer = _exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(_initialText, contentType);
+                this.TextBuffer = _exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(_initialText.Value, contentType);
                 this.InitialTextSnapshot = this.TextBuffer.CurrentSnapshot;
             }
         }
@@ -194,18 +188,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
-                return Task.FromResult(TextAndVersion.Create(_hostDocument.LoadText(cancellationToken), VersionStamp.Create(), "test"));
+                // Create a simple SourceText so that way we're not backing "closed" files by editors to best reflect
+                // what closed files look like in reality.
+                var text = SourceText.From(_hostDocument.GetTextBuffer().CurrentSnapshot.GetText());
+                return Task.FromResult(TextAndVersion.Create(text, VersionStamp.Create(), _hostDocument.FilePath));
             }
         }
-
-        public IContentType ContentType
-        {
-            get
-            {
-                return this.TextBuffer.ContentType;
-            }
-        }
-
+        
         public IWpfTextView GetTextView()
         {
             if (_textView == null)
@@ -232,12 +221,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public ITextBuffer GetTextBuffer()
         {
             return this.TextBuffer;
-        }
-
-        public SourceText LoadText(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var loadedBuffer = _exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(this.InitialTextSnapshot.GetText(), this.InitialTextSnapshot.ContentType);
-            return loadedBuffer.CurrentSnapshot.AsText();
         }
 
         public SourceTextContainer GetOpenTextContainer()

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.IO;
 using Microsoft.CodeAnalysis;
 
 public static class TestReferences
@@ -547,6 +549,65 @@ public static class TestReferences
                 }
 
                 return s_systemRuntime;
+            }
+        }
+    }
+
+    public static class NetStandard20
+    {
+        private static PortableExecutableReference s_netstandard;
+        public static PortableExecutableReference NetStandard
+        {
+            get
+            {
+                if (s_netstandard == null)
+                {
+                    s_netstandard = AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/netstandard.dll")).GetReference(display: "netstandard.dll (netstandard 2.0 ref)");
+                }
+
+                return s_netstandard;
+            }
+        }
+
+        private static PortableExecutableReference s_mscorlib;
+        public static PortableExecutableReference MscorlibRef
+        {
+            get
+            {
+                if (s_mscorlib == null)
+                {
+                    s_mscorlib = AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/mscorlib.dll")).GetReference(display: "mscorlib.dll (netstandard 2.0 ref)");
+                }
+
+                return s_mscorlib;
+            }
+        }
+
+        private static PortableExecutableReference s_systemRuntime;
+        public static PortableExecutableReference SystemRuntimeRef
+        {
+            get
+            {
+                if (s_systemRuntime == null)
+                {
+                    s_systemRuntime = AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/System.Runtime.dll")).GetReference(display: "System.Runtime.dll (netstandard 2.0 ref)");
+                }
+
+                return s_systemRuntime;
+            }
+        }
+
+        private static PortableExecutableReference s_systemDynamicRuntime;
+        public static PortableExecutableReference SystemDynamicRuntimeRef
+        {
+            get
+            {
+                if (s_systemDynamicRuntime == null)
+                {
+                    s_systemDynamicRuntime = AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/System.Dynamic.Runtime.dll")).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 2.0 ref)");
+                }
+
+                return s_systemDynamicRuntime;
             }
         }
     }

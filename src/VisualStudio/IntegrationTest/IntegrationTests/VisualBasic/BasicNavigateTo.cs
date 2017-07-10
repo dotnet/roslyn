@@ -1,10 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -18,30 +18,33 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19530"), Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void NavigateTo()
         {
-            AddFile("test1.vb", open: false, contents: @"
+            var project = new ProjectUtils.Project(ProjectName);
+            var csProject = new ProjectUtils.Project("CSProject");
+            VisualStudio.SolutionExplorer.AddFile(project, "test1.vb", open: false, contents: @"
 Class FirstClass
     Sub FirstMethod()
     End Sub
 End Class");
 
 
-            AddFile("test2.vb", open: true, contents: @"
+            VisualStudio.SolutionExplorer.AddFile(project, "test2.vb", open: true, contents: @"
 ");
-
-            InvokeNavigateToAndPressEnter("FirstMethod");
-            Editor.WaitForActiveView("test1.vb");
-            Assert.Equal("FirstMethod", Editor.GetSelectedText());
+            VisualStudio.Editor.InvokeNavigateTo("FirstMethod");
+            VisualStudio.Editor.NavigateToSendKeys("{ENTER}");
+            VisualStudio.Editor.WaitForActiveView("test1.vb");
+            Assert.Equal("FirstMethod", VisualStudio.Editor.GetSelectedText());
 
             // Verify C# files are found when navigating from VB
-            VisualStudio.Instance.SolutionExplorer.AddProject("CSProject", WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
-            VisualStudio.Instance.SolutionExplorer.AddFile("CSProject", "csfile.cs", open: true);
+             VisualStudio.SolutionExplorer.AddProject(csProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
+             VisualStudio.SolutionExplorer.AddFile(csProject, "csfile.cs", open: true);
 
-            InvokeNavigateToAndPressEnter("FirstClass");
-            Editor.WaitForActiveView("test1.vb");
-            Assert.Equal("FirstClass", Editor.GetSelectedText());
+            VisualStudio.Editor.InvokeNavigateTo("FirstClass");
+            VisualStudio.Editor.NavigateToSendKeys("{ENTER}");
+            VisualStudio.Editor.WaitForActiveView("test1.vb");
+            Assert.Equal("FirstClass", VisualStudio.Editor.GetSelectedText());
         }
     }
 }

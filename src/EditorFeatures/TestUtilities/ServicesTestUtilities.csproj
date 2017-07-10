@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -10,7 +10,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Test.Utilities</RootNamespace>
     <AssemblyName>Roslyn.Services.Test.Utilities</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -114,13 +114,33 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="Moq" Version="$(MoqVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Nerdbank.FullDuplexStream" Version="$(NerdbankFullDuplexStreamVersion)" />
+    <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
+    <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop" Version="$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\visualstudio\core\next\remote\JsonRpcClient.cs">
       <Link>Remote\JsonRpcClient.cs</Link>
     </Compile>
-    <Compile Include="..\..\visualstudio\core\next\remote\JsonRpcSession.cs">
-      <Link>Remote\JsonRpcSession.cs</Link>
+    <Compile Include="..\..\VisualStudio\Core\Next\Remote\JsonRpcConnection.cs">
+      <Link>Remote\JsonRpcConnection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Next\Remote\RemotableDataJsonRpcEx.cs">
+      <Link>Remote\RemotableDataJsonRpcEx.cs</Link>
     </Compile>
     <Compile Include="AbstractCommandHandlerTestState.cs" />
     <Compile Include="Async\AsynchronousOperationBlocker.cs" />
@@ -131,6 +151,7 @@
     <Compile Include="BlindAggregatorFactory.cs" />
     <Compile Include="BlockCommentEditing\AbstractBlockCommentEditingTests.cs" />
     <Compile Include="BraceHighlighting\AbstractBraceHighlightingTests.cs" />
+    <Compile Include="BraceHighlighting\MultiCharacterBraceHighlightingTests.cs" />
     <Compile Include="BraceMatching\AbstractBraceMatcherTests.cs" />
     <Compile Include="CallHierarchy\CallHierarchyTestState.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureTests.cs" />
@@ -201,6 +222,7 @@
     <Compile Include="Structure\AbstractSyntaxNodeStructureProviderTests.cs" />
     <Compile Include="Structure\AbstractSyntaxStructureProviderTests.cs" />
     <Compile Include="Structure\AbstractSyntaxTriviaStructureProviderTests.cs" />
+    <Compile Include="TestExportJoinableTaskContext.cs" />
     <Compile Include="TestExportProvider.cs" />
     <Compile Include="TestExtensionErrorHandler.cs" />
     <Compile Include="TestOptionsServiceFactory.cs" />
@@ -232,6 +254,7 @@
     <Compile Include="Workspaces\TestHostDocument.cs" />
     <Compile Include="Workspaces\TestHostProject.cs" />
     <Compile Include="Workspaces\TestHostSolution.cs" />
+    <Compile Include="Workspaces\TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Workspaces\TestWorkspace.cs" />
     <Compile Include="Workspaces\TestWorkspaceFixture.cs" />
     <Compile Include="Workspaces\TestWorkspace_Create.cs" />
@@ -270,9 +293,5 @@
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

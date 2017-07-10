@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 AssertIsForeground();
 
                 var caretPosition = GetCaretPointInViewBuffer();
+                var document = Controller.GetDocument();
 
                 // Use an interlocked increment so that reads by existing filter tasks will see the
                 // change.
@@ -33,10 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var localId = _filterId;
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
                     model => FilterModelInBackground(
-                        model, localId, caretPosition, filterReason, filterState));
+                        document, model, localId, caretPosition, filterReason, filterState));
             }
 
             private Model FilterModelInBackground(
+                Document document,
                 Model model,
                 int id,
                 SnapshotPoint caretPosition,
@@ -46,11 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 using (Logger.LogBlock(FunctionId.Completion_ModelComputation_FilterModelInBackground, CancellationToken.None))
                 {
                     return FilterModelInBackgroundWorker(
-                        model, id, caretPosition, filterReason, filterState);
+                        document, model, id, caretPosition, filterReason, filterState);
                 }
             }
 
             private Model FilterModelInBackgroundWorker(
+                Document document,
                 Model model,
                 int id,
                 SnapshotPoint caretPosition,
@@ -91,8 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var textSnapshot = caretPosition.Snapshot;
                 var textSpanToText = new Dictionary<TextSpan, string>();
 
-                var document = this.Controller.GetDocument();
-                var helper = this.Controller.GetCompletionHelper();
+                var helper = this.Controller.GetCompletionHelper(document);
 
                 var recentItems = this.Controller.GetRecentItems();
 
@@ -480,7 +482,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                 }
 
-                return helper.MatchesFilterText(item, filterText, CultureInfo.CurrentCulture);
+                // Checks if the given completion item matches the pattern provided so far. 
+                // A  completion item is checked against the pattern by see if it's 
+                // CompletionItem.FilterText matches the item.  That way, the pattern it checked 
+                // against terms like "IList" and not IList<>
+                return helper.MatchesPattern(item.FilterText, filterText, CultureInfo.CurrentCulture);
             }
 
             private static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)

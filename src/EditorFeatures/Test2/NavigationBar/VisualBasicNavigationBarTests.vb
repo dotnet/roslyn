@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic
@@ -749,6 +749,35 @@ End Class
                 </Result>)
         End Function
 
+        <WpfFact>
+        <WorkItem(18792, "https://github.com/dotnet/roslyn/issues/18792")>
+        <Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        Public Async Function TestGenerateEventHandlerWithDuplicate() As Task
+            Await AssertGeneratedResultIsAsync(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Public Class ExampleClass
+    Public Event ExampleEvent()
+    Public Event ExampleEvent()
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>,
+                "(ExampleClass Events)",
+                Function(items) items.First(Function(i) i.Text = "ExampleEvent"),
+                <Result>
+Public Class ExampleClass
+    Public Event ExampleEvent()
+    Public Event ExampleEvent()
+
+    Private Sub ExampleClass_ExampleEvent() Handles Me.ExampleEvent
+
+    End Sub
+End Class
+                </Result>)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Async Function TestNoListedEventToGenerateWithInvalidTypeName() As Task
             Await AssertItemsAreAsync(
@@ -806,9 +835,9 @@ End Enum
                     </Project>
                 </Workspace>,
                 Item("MyEnum", Glyph.EnumInternal, children:={
-                    Item("A", Glyph.EnumMember),
-                    Item("B", Glyph.EnumMember),
-                    Item("C", Glyph.EnumMember)},
+                    Item("A", Glyph.EnumMemberPublic),
+                    Item("B", Glyph.EnumMemberPublic),
+                    Item("C", Glyph.EnumMemberPublic)},
                     bolded:=True))
         End Function
 

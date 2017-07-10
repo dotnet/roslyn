@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -250,6 +250,23 @@ $$"));
             await VerifyAbsenceAsync(
 @"class C {
      void M1(out $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestVarPatternInSwitch()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"switch(o)
+    {
+        case $$
+    }
+"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestVarPatternInIs()
+        {
+            await VerifyKeywordAsync(AddInsideMethod("var b = o is $$ "));
         }
     }
 }

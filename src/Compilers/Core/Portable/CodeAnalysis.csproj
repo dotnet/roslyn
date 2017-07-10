@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -10,9 +10,7 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFramework>netstandard1.3</TargetFramework>
     <ServiceablePackage>true</ServiceablePackage>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
@@ -21,25 +19,133 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Content Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
+    <Content Include="$(NuGetPackageRoot)\microsoft.diasymreader.native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.amd64.dll">
+    <Content Include="$(NuGetPackageRoot)\microsoft.diasymreader.native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.amd64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
     <Compile Include="CommitHashAttribute.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerExecutionContext.cs" />
+    <Compile Include="Generated\Operations.xml.Generated.cs" />
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="InternalUtilities\GeneratedCodeUtilities.cs" />
     <Compile Include="InternalUtilities\NoThrowStreamDisposer.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
     <Compile Include="InternalUtilities\PlatformInformation.cs" />
+    <Compile Include="InternalUtilities\SemaphoreExtensions.cs" />
+    <Compile Include="Operations\ArgumentKind.cs" />
+    <Compile Include="Operations\BinaryOperandsKind.cs" />
+    <Compile Include="Operations\BinaryOperationKind.cs" />
+    <Compile Include="Operations\BranchKind.cs" />
+    <Compile Include="Operations\CaseKind.cs" />
+    <Compile Include="Operations\ConversionKind.cs" />
+    <Compile Include="Operations\Expressions.cs" />
+    <Compile Include="Operations\IAddressOfExpression.cs" />
+    <Compile Include="Operations\IArgument.cs" />
+    <Compile Include="Operations\IArrayCreationExpression.cs" />
+    <Compile Include="Operations\IArrayElementReferenceExpression.cs" />
+    <Compile Include="Operations\IArrayInitializer.cs" />
+    <Compile Include="Operations\IAssignmentExpression.cs" />
+    <Compile Include="Operations\IAwaitExpression.cs" />
+    <Compile Include="Operations\IBinaryOperatorExpression.cs" />
+    <Compile Include="Operations\IBlockStatement.cs" />
+    <Compile Include="Operations\IBranchStatement.cs" />
+    <Compile Include="Operations\ICaseClause.cs" />
+    <Compile Include="Operations\ICatchClause.cs" />
+    <Compile Include="Operations\ICompoundAssignmentExpression.cs" />
+    <Compile Include="Operations\IConditionalAccessExpression.cs" />
+    <Compile Include="Operations\IConditionalAccessInstanceExpression.cs" />
+    <Compile Include="Operations\IConditionalChoiceExpression.cs" />
+    <Compile Include="Operations\IConversionExpression.cs" />
+    <Compile Include="Operations\IDefaultValueExpression.cs" />
+    <Compile Include="Operations\IEmptyStatement.cs" />
+    <Compile Include="Operations\IEndStatement.cs" />
+    <Compile Include="Operations\IEventAssignmentExpression.cs" />
+    <Compile Include="Operations\IEventReferenceExpression.cs" />
+    <Compile Include="Operations\IExpressionStatement.cs" />
+    <Compile Include="Operations\IFieldInitializer.cs" />
+    <Compile Include="Operations\IFieldReferenceExpression.cs" />
+    <Compile Include="Operations\IFixedStatement.cs" />
+    <Compile Include="Operations\IForEachLoopStatement.cs" />
+    <Compile Include="Operations\IForLoopStatement.cs" />
+    <Compile Include="Operations\IForWhileUntilLoopStatement.cs" />
+    <Compile Include="Operations\IHasArgumentsExpression.cs" />
+    <Compile Include="Operations\IHasOperatorMethodExpression.cs" />
+    <Compile Include="Operations\IIfStatement.cs" />
+    <Compile Include="Operations\IIncrementExpression.cs" />
+    <Compile Include="Operations\IIndexedPropertyReferenceExpression.cs" />
+    <Compile Include="Operations\IInstanceReferenceExpression.cs" />
+    <Compile Include="Operations\IInvalidExpression.cs" />
+    <Compile Include="Operations\IInvalidStatement.cs" />
+    <Compile Include="Operations\IInvocationExpression.cs" />
+    <Compile Include="Operations\IIsTypeExpression.cs" />
+    <Compile Include="Operations\ILabelStatement.cs" />
+    <Compile Include="Operations\ILambdaExpression.cs" />
+    <Compile Include="Operations\ILateBoundMemberReferenceExpression.cs" />
+    <Compile Include="Operations\ILiteralExpression.cs" />
+    <Compile Include="Operations\ILocalReferenceExpression.cs" />
+    <Compile Include="Operations\ILockStatement.cs" />
+    <Compile Include="Operations\ILoopStatement.cs" />
+    <Compile Include="Operations\IMemberReferenceExpression.cs" />
+    <Compile Include="Operations\IMethodBindingExpression.cs" />
+    <Compile Include="Operations\IndexedPropertyReferenceExpression_IHasArgumentsExpression.cs" />
+    <Compile Include="Operations\InstanceReferenceKind.cs" />
+    <Compile Include="Operations\INullCoalescingExpression.cs" />
+    <Compile Include="Operations\InvocationExpression_IHasArgumentsExpression.cs" />
+    <Compile Include="Operations\IObjectCreationExpression.cs" />
+    <Compile Include="Operations\IOmittedArgumentExpression.cs" />
+    <Compile Include="Operations\IOperationWithChildren.cs" />
+    <Compile Include="Operations\ObjectCreationExpression_IHasArgumentsExpression.cs" />
+    <Compile Include="Operations\Operation.cs" />
+    <Compile Include="Operations\IOperationKind.cs" />
+    <Compile Include="Operations\IParameterInitializer.cs" />
+    <Compile Include="Operations\IParameterReferenceExpression.cs" />
+    <Compile Include="Operations\IParenthesizedExpression.cs" />
+    <Compile Include="Operations\IPlaceholderExpression.cs" />
+    <Compile Include="Operations\IPointerIndirectionReferenceExpression.cs" />
+    <Compile Include="Operations\IPropertyInitializer.cs" />
+    <Compile Include="Operations\IPropertyReferenceExpression.cs" />
+    <Compile Include="Operations\IRangeCaseClause.cs" />
+    <Compile Include="Operations\IRelationalCaseClause.cs" />
+    <Compile Include="Operations\IReturnStatement.cs" />
+    <Compile Include="Operations\ISingleValueCaseClause.cs" />
+    <Compile Include="Operations\ISizeOfExpression.cs" />
+    <Compile Include="Operations\IStopStatement.cs" />
+    <Compile Include="Operations\ISwitchCase.cs" />
+    <Compile Include="Operations\ISwitchStatement.cs" />
+    <Compile Include="Operations\ISymbolInitializer.cs" />
+    <Compile Include="Operations\ISyntheticLocalReferenceExpression.cs" />
+    <Compile Include="Operations\IThrowStatement.cs" />
+    <Compile Include="Operations\ITryStatement.cs" />
+    <Compile Include="Operations\ITypeOfExpression.cs" />
+    <Compile Include="Operations\ITypeOperationExpression.cs" />
+    <Compile Include="Operations\ITypeParameterObjectCreationExpression.cs" />
+    <Compile Include="Operations\IUnaryOperatorExpression.cs" />
+    <Compile Include="Operations\IUnboundLambdaExpression.cs" />
+    <Compile Include="Operations\IUsingStatement.cs" />
+    <Compile Include="Operations\IVariableDeclaration.cs" />
+    <Compile Include="Operations\IVariableDeclarationStatement.cs" />
+    <Compile Include="Operations\IWhileUntilLoopStatement.cs" />
+    <Compile Include="Operations\IWithStatement.cs" />
+    <Compile Include="Operations\LoopKind.cs" />
+    <Compile Include="Operations\SimpleBinaryOperationKind.cs" />
+    <Compile Include="Operations\SimpleUnaryOperationKind.cs" />
+    <Compile Include="Operations\SyntheticLocalKind.cs" />
+    <Compile Include="Operations\UnaryAndBinaryOperationExtensions.cs" />
+    <Compile Include="Operations\UnaryOperandKind.cs" />
+    <Compile Include="Operations\UnaryOperationKind.cs" />
+    <Compile Include="Emit\AsyncMoveNextBodyDebugInfo.cs" />
+    <Compile Include="Emit\IteratorMoveNextBodyDebugInfo.cs" />
+    <Compile Include="Emit\StateMachineMoveNextDebugInfo.cs" />
+    <Compile Include="PEWriter\ExtendedPEBuilder.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
-    <Compile Include="Serialization\StreamObjectReader.cs" />
-    <Compile Include="Serialization\StreamObjectWriter.cs" />
+    <Compile Include="Serialization\ObjectBinderSnapshot.cs" />
+    <Compile Include="Serialization\ObjectReader.cs" />
+    <Compile Include="Serialization\ObjectWriter.cs" />
     <Compile Include="Symbols\IDiscardSymbol.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
@@ -74,8 +180,8 @@
     <Compile Include="InternalUtilities\EmptyComparer.cs" />
     <Compile Include="InternalUtilities\StringOrdinalComparer.cs" />
     <Compile Include="MetadataReference\AssemblyIdentityMap.cs" />
-    <Compile Include="Compilation\OperationVisitor.cs" />
-    <Compile Include="Compilation\OperationWalker.cs" />
+    <Compile Include="Operations\OperationVisitor.cs" />
+    <Compile Include="Operations\OperationWalker.cs" />
     <Compile Include="Compilation\ScriptCompilationInfo.cs" />
     <Compile Include="DiagnosticAnalyzer\SyntaxTreeValueProvider.cs" />
     <Compile Include="DiagnosticAnalyzer\SourceTextValueProvider.cs" />
@@ -293,10 +399,8 @@
     <Compile Include="Compilation\EmitResult.cs" />
     <Compile Include="Compilation\Expression.cs" />
     <Compile Include="Compilation\Extensions.cs" />
-    <Compile Include="Compilation\IExpression.cs" />
-    <Compile Include="Compilation\IOperation.cs" />
-    <Compile Include="Compilation\IStatement.cs" />
-    <Compile Include="Compilation\OperationExtensions.cs" />
+    <Compile Include="Operations\IOperation.cs" />
+    <Compile Include="Operations\OperationExtensions.cs" />
     <Compile Include="Compilation\OptimizationLevel.cs" />
     <Compile Include="Compilation\ParseOptions.cs" />
     <Compile Include="Compilation\Platform.cs" />
@@ -304,7 +408,7 @@
     <Compile Include="Compilation\SemanticModel.cs" />
     <Compile Include="Compilation\SourceReferenceResolver.cs" />
     <Compile Include="Compilation\SpeculativeBindingOption.cs" />
-    <Compile Include="Compilation\Statement.cs" />
+    <Compile Include="Operations\Statement.cs" />
     <Compile Include="Compilation\SubsystemVersion.cs" />
     <Compile Include="Compilation\SymbolInfo.cs" />
     <Compile Include="Compilation\TypeInfo.cs" />
@@ -717,6 +821,33 @@
     <Compile Include="Xml\XmlCharType.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" />
+    <PackageReference Include="System.Collections" Version="$(SystemCollectionsVersion)" />
+    <PackageReference Include="System.Collections.Concurrent" Version="$(SystemCollectionsConcurrentVersion)" />
+    <PackageReference Include="System.Diagnostics.Tools" Version="$(SystemDiagnosticsToolsVersion)" />
+    <PackageReference Include="System.Diagnostics.FileVersionInfo" Version="$(SystemDiagnosticsFileVersionInfoVersion)" />
+    <PackageReference Include="System.IO" Version="$(SystemIOVersion)" />
+    <PackageReference Include="System.IO.Compression" Version="$(SystemIOCompressionVersion)" />
+    <PackageReference Include="System.IO.FileSystem" Version="$(SystemIOFileSystemVersion)" />
+    <PackageReference Include="System.IO.FileSystem.Primitives" Version="$(SystemIOFileSystemPrimitivesVersion)" />
+    <PackageReference Include="System.Runtime.Numerics" Version="$(SystemRuntimeNumericsVersion)" />
+    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="$(SystemSecurityCryptographyAlgorithmsVersion)" />
+    <PackageReference Include="System.Security.Cryptography.Encoding" Version="$(SystemSecurityCryptographyEncodingVersion)" />
+    <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="$(SystemSecurityCryptographyX509CertificatesVersion)" />
+    <PackageReference Include="System.Text.Encoding" Version="$(SystemTextEncodingVersion)" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
+    <PackageReference Include="System.Text.Encoding.Extensions" Version="$(SystemTextEncodingExtensionsVersion)" />
+    <PackageReference Include="System.Xml.ReaderWriter" Version="$(SystemXmlReaderWriterVersion)" />
+    <PackageReference Include="System.Xml.XDocument" Version="$(SystemXmlXDocumentVersion)" />
+    <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
+    <PackageReference Include="System.Xml.XPath.XDocument" Version="$(SystemXmlXPathXDocumentVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
+    <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
+    <PackageReference Include="System.Xml.XPath.XDocument" Version="$(SystemXmlXPathXDocumentVersion)" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler" />
@@ -768,6 +899,7 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Test.PdbUtilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
@@ -783,7 +915,6 @@
     <None Include="..\CodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
-    <None Include="project.json" />
     <None Include="RuleSet\RuleSetSchema.xsd">
       <SubType>Designer</SubType>
     </None>
@@ -791,7 +922,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
-  <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

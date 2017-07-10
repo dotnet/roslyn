@@ -1,14 +1,14 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.Isam.Esent;
 using Microsoft.Isam.Esent.Interop;
 using Roslyn.Utilities;
@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.Esent
 {
     internal partial class EsentPersistentStorage : AbstractPersistentStorage
     {
-        private const string StorageExtension = "vbcs.cache";
-        private const string PersistentStorageFileName = "storage.ide";
-
         // cache delegates so that we don't re-create it every times
         private readonly Func<int, object, object, object, CancellationToken, Stream> _readStreamSolution;
         private readonly Func<EsentStorage.Key, int, object, object, CancellationToken, Stream> _readStream;
@@ -30,8 +27,12 @@ namespace Microsoft.CodeAnalysis.Esent
         private readonly EsentStorage _esentStorage;
 
         public EsentPersistentStorage(
-            IOptionService optionService, string workingFolderPath, string solutionFilePath, Action<AbstractPersistentStorage> disposer) :
-            base(optionService, workingFolderPath, solutionFilePath, disposer)
+            IOptionService optionService,
+            string workingFolderPath,
+            string solutionFilePath, 
+            string databaseFile,
+            Action<AbstractPersistentStorage> disposer) 
+            : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
         {
             // cache delegates
             _readStreamSolution = ReadStreamSolution;
@@ -42,34 +43,16 @@ namespace Microsoft.CodeAnalysis.Esent
             // solution must exist in disk. otherwise, we shouldn't be here at all.
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(solutionFilePath));
 
-            var databaseFile = GetDatabaseFile(workingFolderPath);
-
-            this.EsentDirectory = Path.GetDirectoryName(databaseFile);
-
-            if (!Directory.Exists(this.EsentDirectory))
-            {
-                Directory.CreateDirectory(this.EsentDirectory);
-            }
-
             _nameTableCache = new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             var enablePerformanceMonitor = optionService.GetOption(PersistentStorageOptions.EsentPerformanceMonitor);
-            _esentStorage = new EsentStorage(databaseFile, enablePerformanceMonitor);
+            _esentStorage = new EsentStorage(DatabaseFile, enablePerformanceMonitor);
         }
 
-        public static string GetDatabaseFile(string workingFolderPath)
-        {
-            Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(workingFolderPath));
-
-            return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
-        }
-
-        public void Initialize()
+        public override void Initialize(Solution solution)
         {
             _esentStorage.Initialize();
         }
-
-        public string EsentDirectory { get; }
 
         public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -284,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Esent
             {
                 // if we get fatal errors from esent such as disk out of space or log file corrupted by other process and etc
                 // don't crash VS, but let VS know it can't use esent. we will gracefully recover issue by using memory.
-                EsentLogger.LogException(ex);
+                StorageDatabaseLogger.LogException(ex);
 
                 return false;
             }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -14,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// bitfields are stored in a 32-bit bitmap.
     /// Falls back to a <see cref="List{T}"/> if the encoding won't work.
     /// </summary>
-    internal struct StringBreaks
+    internal partial struct StringBreaks : IDisposable
     {
-        private readonly List<TextSpan> _spans;
+        private readonly ArrayBuilder<TextSpan> _spans;
         private readonly EncodedSpans _encodedSpans;
 
         // These two values may be adjusted. The remaining constants are
@@ -31,27 +32,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private const int MaxShortSpans = 32 / BitsPerEncodedSpan;
         private const int MaxGap = (1 << BitsForGap) - 1;
         private const int MaxLength = (1 << BitsForLength) - 1;
-
-        private struct EncodedSpans
-        {
-            private const uint Mask = (1u << BitsPerEncodedSpan) - 1u;
-            private uint _value;
-
-            public byte this[int index]
-            {
-                get
-                {
-                    Debug.Assert(index >= 0 && index < MaxShortSpans);
-                    return (byte)((_value >> (index * BitsPerEncodedSpan)) & Mask);
-                }
-                set
-                {
-                    Debug.Assert(index >= 0 && index < MaxShortSpans);
-                    int shift = index * BitsPerEncodedSpan;
-                    _value = (_value & ~(Mask << shift)) | ((uint)value << shift);
-                }
-            }
-        }
 
         public static StringBreaks Create(string text, Func<string, int, TextSpan> spanGenerator)
         {
@@ -92,9 +72,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return true;
         }
 
-        private static List<TextSpan> CreateFallbackList(string text, Func<string, int, TextSpan> spanGenerator)
+        private static ArrayBuilder<TextSpan> CreateFallbackList(string text, Func<string, int, TextSpan> spanGenerator)
         {
-            List<TextSpan> list = new List<TextSpan>();
+            var list = ArrayBuilder<TextSpan>.GetInstance();
             for (int start = 0; start < text.Length;)
             {
                 var span = spanGenerator(text, start);
@@ -119,29 +99,34 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             _spans = null;
         }
 
-        private StringBreaks(List<TextSpan> spans)
+        private StringBreaks(ArrayBuilder<TextSpan> spans)
         {
             _encodedSpans = default(EncodedSpans);
             _spans = spans;
         }
 
-        public int Count
+        public void Dispose()
         {
-            get
+            _spans?.Free();
+        }
+
+        public int GetCount()
+        {
+            if (_spans != null)
             {
-                if (_spans != null)
-                {
-                    return _spans.Count;
-                }
-
-                int i;
-                for (i = 0; i < MaxShortSpans; i++)
-                {
-                    if (_encodedSpans[i] == 0) break;
-                }
-
-                return i;
+                return _spans.Count;
             }
+
+            int i;
+            for (i = 0; i < MaxShortSpans; i++)
+            {
+                if (_encodedSpans[i] == 0)
+                {
+                    break;
+                }
+            }
+
+            return i;
         }
 
         public TextSpan this[int index]
@@ -197,12 +182,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Breaks an identifier string into constituent parts.
         /// </summary>
-        public static StringBreaks BreakIntoCharacterParts(string identifier) => StringBreaks.Create(identifier, s_characterPartsGenerator);
+        public static StringBreaks BreakIntoCharacterParts(string identifier) 
+            => StringBreaks.Create(identifier, s_characterPartsGenerator);
 
         /// <summary>
         /// Breaks an identifier string into constituent parts.
         /// </summary>
-        public static StringBreaks BreakIntoWordParts(string identifier) => StringBreaks.Create(identifier, s_wordPartsGenerator);
+        public static StringBreaks BreakIntoWordParts(string identifier) 
+            => StringBreaks.Create(identifier, s_wordPartsGenerator);
 
         private static readonly Func<string, int, TextSpan> s_characterPartsGenerator = (identifier, start) => GenerateSpan(identifier, start, word: false);
 

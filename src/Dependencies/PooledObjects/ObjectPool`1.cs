@@ -18,7 +18,7 @@ using System.Threading;
 using System.Runtime.CompilerServices;
 
 #endif
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis.PooledObjects
 {
     /// <summary>
     /// Generic implementation of object pooling pattern with predefined pool size limit. The main

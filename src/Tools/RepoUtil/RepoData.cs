@@ -83,12 +83,13 @@ namespace RepoUtil
             var floatingPackageMap = new Dictionary<string, NuGetPackageSource>(Constants.NugetPackageNameComparer);
             foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(sourcesDir))
             {
-                if (config.ProjectJsonExcludes.Any(x => x.IsMatch(filePath)))
+                var fileName = FileName.FromFullPath(sourcesDir, filePath);
+
+                if (config.ProjectJsonExcludes.Any(x => x.IsMatch(fileName.RelativePath)))
                 {
                     continue;
                 }
 
-                var fileName = FileName.FromFullPath(sourcesDir, filePath);
                 foreach (var package in ProjectJsonUtil.GetDependencies(filePath))
                 {
                     if (fixedPackageSet.Contains(package))

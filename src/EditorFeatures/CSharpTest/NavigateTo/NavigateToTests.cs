@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend);
                 var item = (await _aggregator.GetItemsAsync("Foo")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Class);
+                VerifyNavigateToResultItem(item, "Foo", "[|Foo|]", MatchKind.Exact, NavigateToItemKind.Class);
             });
         }
 
@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend);
                 var item = (await _aggregator.GetItemsAsync("static")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "static", MatchKind.Exact, NavigateToItemKind.Class, displayName: "@static");
+                VerifyNavigateToResultItem(item, "static", "[|static|]", MatchKind.Exact, NavigateToItemKind.Class);
 
                 // Check searching for @static too
                 item = (await _aggregator.GetItemsAsync("@static")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "static", MatchKind.Exact, NavigateToItemKind.Class, displayName: "@static");
+                VerifyNavigateToResultItem(item, "static", "[|static|]", MatchKind.Exact, NavigateToItemKind.Class);
             });
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend);
                 var item = (await _aggregator.GetItemsAsync("DogBed")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "DogBed", MatchKind.Exact, NavigateToItemKind.Class);
+                VerifyNavigateToResultItem(item, "DogBed", "[|DogBed|]", MatchKind.Exact, NavigateToItemKind.Class);
             });
         }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("Method")).Single();
-                VerifyNavigateToResultItem(item, "Method", MatchKind.Exact, NavigateToItemKind.Method, "Method()", $"{FeaturesResources.type_space}Foo.Bar.DogBed");
+                VerifyNavigateToResultItem(item, "Method", "[|Method|]()", MatchKind.Exact, NavigateToItemKind.Method, string.Format(FeaturesResources.in_0_project_1, "Foo.Bar.DogBed", "Test"));
             });
         }
 
@@ -121,7 +121,7 @@ class Foo<T> where T : IEnumerable
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend);
                 var item = (await _aggregator.GetItemsAsync("Foo")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Class, displayName: "Foo<T>");
+                VerifyNavigateToResultItem(item, "Foo", "[|Foo|]<T>", MatchKind.Exact, NavigateToItemKind.Class);
             });
         }
 
@@ -140,7 +140,7 @@ class Foo<U>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar<T>(T)", $"{FeaturesResources.type_space}Foo<U>");
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]<T>(T)", MatchKind.Exact, NavigateToItemKind.Method, string.Format(FeaturesResources.in_0_project_1, "Foo<U>", "Test"));
             });
         }
 
@@ -193,7 +193,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend);
                 var item = (await _aggregator.GetItemsAsync("Foo")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Class);
+                VerifyNavigateToResultItem(item, "Foo", "[|Foo|]", MatchKind.Exact, NavigateToItemKind.Class);
             });
         }
 
@@ -207,7 +207,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupStruct, StandardGlyphItem.GlyphItemFriend);
                 var item = (await _aggregator.GetItemsAsync("B")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Prefix, NavigateToItemKind.Structure);
+                VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", MatchKind.Prefix, NavigateToItemKind.Structure);
             });
         }
 
@@ -224,7 +224,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnum, StandardGlyphItem.GlyphItemFriend);
                 var item = (await _aggregator.GetItemsAsync("Colors")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "Colors", MatchKind.Exact, NavigateToItemKind.Enum);
+                VerifyNavigateToResultItem(item, "Colors", "[|Colors|]", MatchKind.Exact, NavigateToItemKind.Enum);
             });
         }
 
@@ -241,7 +241,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnumMember, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("R")).Single();
-                VerifyNavigateToResultItem(item, "Red", MatchKind.Prefix, NavigateToItemKind.EnumItem);
+                VerifyNavigateToResultItem(item, "Red", "[|R|]ed", MatchKind.Prefix, NavigateToItemKind.EnumItem);
             });
         }
 
@@ -256,7 +256,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("b")).Single();
-                VerifyNavigateToResultItem(item, "bar", MatchKind.Prefix, NavigateToItemKind.Field, additionalInfo: $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "bar", "[|b|]ar", MatchKind.Prefix, NavigateToItemKind.Field, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -271,7 +271,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("ba")).Single();
-                VerifyNavigateToResultItem(item, "bar", MatchKind.Prefix, NavigateToItemKind.Field, additionalInfo: $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "bar", "[|ba|]r", MatchKind.Prefix, NavigateToItemKind.Field, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -300,11 +300,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("string")).Single();
-                VerifyNavigateToResultItem(item, "string", MatchKind.Exact, NavigateToItemKind.Field, displayName: "@string", additionalInfo: $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "string", "[|string|]", MatchKind.Exact, NavigateToItemKind.Field, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
 
                 // Check searching for@string too
                 item = (await _aggregator.GetItemsAsync("@string")).Single();
-                VerifyNavigateToResultItem(item, "string", MatchKind.Exact, NavigateToItemKind.Field, displayName: "@string", additionalInfo: $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "string", "[|string|]", MatchKind.Exact, NavigateToItemKind.Field, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -333,7 +333,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("b")).Single();
-                VerifyNavigateToResultItem(item, "bar", MatchKind.Prefix, NavigateToItemKind.Field);
+                VerifyNavigateToResultItem(item, "bar", "[|b|]ar", MatchKind.Prefix, NavigateToItemKind.Field);
             });
         }
 
@@ -348,7 +348,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupConstant, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("ba")).Single();
-                VerifyNavigateToResultItem(item, "bar", MatchKind.Prefix, NavigateToItemKind.Constant);
+                VerifyNavigateToResultItem(item, "bar", "[|ba|]r", MatchKind.Prefix, NavigateToItemKind.Constant);
             });
         }
 
@@ -360,7 +360,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("this")).Single();
-                VerifyNavigateToResultItem(item, "this[]", MatchKind.Exact, NavigateToItemKind.Property, displayName: "this[int]", additionalInfo: $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "this", "[|this|][int]", MatchKind.Exact, NavigateToItemKind.Property, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -372,7 +372,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEvent, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("CEH")).Single();
-                VerifyNavigateToResultItem(item, "ChangedEventHandler", MatchKind.Regular, NavigateToItemKind.Event, additionalInfo: $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "ChangedEventHandler", "[|C|]hanged[|E|]vent[|H|]andler", MatchKind.Regular, NavigateToItemKind.Event, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -387,7 +387,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("B")).Single();
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Prefix, NavigateToItemKind.Property, additionalInfo: $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", MatchKind.Prefix, NavigateToItemKind.Property, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -402,7 +402,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("DS")).Single();
-                VerifyNavigateToResultItem(item, "DoSomething", MatchKind.Regular, NavigateToItemKind.Method, "DoSomething()", $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething()", MatchKind.Regular, NavigateToItemKind.Method, string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -417,11 +417,11 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("static")).Single();
-                VerifyNavigateToResultItem(item, "static", MatchKind.Exact, NavigateToItemKind.Method, "@static()", $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "static", "[|static|]()", MatchKind.Exact, NavigateToItemKind.Method, string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
 
                 // Verify if we search for @static too
                 item = (await _aggregator.GetItemsAsync("@static")).Single();
-                VerifyNavigateToResultItem(item, "static", MatchKind.Exact, NavigateToItemKind.Method, "@static()", $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "static", "[|static|]()", MatchKind.Exact, NavigateToItemKind.Method, string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -438,7 +438,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("DS")).Single();
-                VerifyNavigateToResultItem(item, "DoSomething", MatchKind.Regular, NavigateToItemKind.Method, "DoSomething(int, string)", $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething(int, string)", MatchKind.Regular, NavigateToItemKind.Method, string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -455,7 +455,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("Foo")).Single(t => t.Kind == NavigateToItemKind.Method);
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "Foo()", $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "Foo", "[|Foo|]()", MatchKind.Exact, NavigateToItemKind.Method, string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -472,7 +472,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("Foo")).Single(t => t.Kind == NavigateToItemKind.Method);
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "Foo(int)", $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "Foo", "[|Foo|](int)", MatchKind.Exact, NavigateToItemKind.Method, string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -489,7 +489,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("Foo")).Single(t => t.Kind == NavigateToItemKind.Method && t.Name != ".ctor");
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "static Foo()", $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "Foo", "[|Foo|].static Foo()", MatchKind.Exact, NavigateToItemKind.Method, string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -518,7 +518,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar()", $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", MatchKind.Exact, NavigateToItemKind.Method, string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -535,7 +535,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar()", $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", MatchKind.Exact, NavigateToItemKind.Method, string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -558,7 +558,7 @@ Class Program { FileStyleUriParser f; }", async w =>
                 var unused = itemDisplay.Glyph;
 
                 Assert.Equal("Name", itemDisplay.Name);
-                Assert.Equal($"{FeaturesResources.type_space}DogBed", itemDisplay.AdditionalInformation);
+                Assert.Equal(string.Format(FeaturesResources.in_0_project_1, "DogBed", "Test"), itemDisplay.AdditionalInformation);
                 _glyphServiceMock.Verify();
 
                 item = items.ElementAt(1);
@@ -566,7 +566,7 @@ Class Program { FileStyleUriParser f; }", async w =>
                 unused = itemDisplay.Glyph;
 
                 Assert.Equal("Name", itemDisplay.Name);
-                Assert.Equal($"{FeaturesResources.type_space}Foo", itemDisplay.AdditionalInformation);
+                Assert.Equal(string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"), itemDisplay.AdditionalInformation);
                 _glyphServiceMock.Verify();
             });
         }
@@ -581,7 +581,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupInterface, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("IF")).Single();
-                VerifyNavigateToResultItem(item, "IFoo", MatchKind.Prefix, NavigateToItemKind.Interface);
+                VerifyNavigateToResultItem(item, "IFoo", "[|IF|]oo", MatchKind.Prefix, NavigateToItemKind.Interface);
             });
         }
 
@@ -596,7 +596,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupDelegate, StandardGlyphItem.GlyphItemFriend);
                 var item = (await _aggregator.GetItemsAsync("DoStuff")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "DoStuff", MatchKind.Exact, NavigateToItemKind.Delegate);
+                VerifyNavigateToResultItem(item, "DoStuff", "[|DoStuff|]", MatchKind.Exact, NavigateToItemKind.Delegate);
             });
         }
 
@@ -613,7 +613,7 @@ class Foo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("sqr")).Single();
-                VerifyNavigateToResultItem(item, "sqr", MatchKind.Exact, NavigateToItemKind.Field, "sqr", $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "sqr", "[|sqr|]", MatchKind.Exact, NavigateToItemKind.Field, string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -628,7 +628,7 @@ class Foo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("itemArray")).Single();
-                VerifyNavigateToResultItem(item, "itemArray", MatchKind.Exact, NavigateToItemKind.Field, "itemArray", $"{FeaturesResources.type_space}Foo");
+                VerifyNavigateToResultItem(item, "itemArray", "[|itemArray|]", MatchKind.Exact, NavigateToItemKind.Field, string.Format(FeaturesResources.in_0_project_1, "Foo", "Test"));
             });
         }
 
@@ -676,7 +676,7 @@ class Test
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("M")).Single();
-                VerifyNavigateToResultItem(item, "M", MatchKind.Exact, NavigateToItemKind.Method, displayName: "M()", additionalInfo: $"{FeaturesResources.type_space}A<T>.B.C<U>");
+                VerifyNavigateToResultItem(item, "M", "[|M|]()", MatchKind.Exact, NavigateToItemKind.Method, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "A<T>.B.C<U>", "Test"));
             });
         }
 
@@ -729,7 +729,7 @@ class C2
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("M")).Single();
-                VerifyNavigateToResultItem(item, "M", MatchKind.Exact, NavigateToItemKind.Method, "M(object?)");
+                VerifyNavigateToResultItem(item, "M", "[|M|](object?)", MatchKind.Exact, NavigateToItemKind.Method);
             });
         }
 
@@ -847,7 +847,7 @@ class C2
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("G_K_W")).Single();
-                VerifyNavigateToResultItem(item, "get_key_word", MatchKind.Regular, NavigateToItemKind.Field);
+                VerifyNavigateToResultItem(item, "get_key_word", "[|g|]et[|_k|]ey[|_w|]ord", MatchKind.Regular, NavigateToItemKind.Field);
             });
         }
 
@@ -881,7 +881,7 @@ class C2
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public async Task TermIndexer1()
+        public async Task TestIndexer1()
         {
             var source =
 @"class C
@@ -901,7 +901,7 @@ class D
             {
                 var expecteditems = new List<NavigateToItem>
                 {
-                    new NavigateToItem("this[]", NavigateToItemKind.Property, "csharp", null, null, MatchKind.Exact, true, null),
+                    new NavigateToItem("this", NavigateToItemKind.Property, "csharp", null, null, MatchKind.Exact, true, null),
                 };
 
                 var items = await _aggregator.GetItemsAsync("this");
@@ -1092,8 +1092,26 @@ class D
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("ToEror")).Single();
-                VerifyNavigateToResultItem(item, "ToError", MatchKind.Regular, NavigateToItemKind.Method, displayName: "ToError()");
+                VerifyNavigateToResultItem(item, "ToError", "ToError()", MatchKind.Regular, NavigateToItemKind.Method);
             });
+        }
+
+        [WorkItem(18843, "https://github.com/dotnet/roslyn/issues/18843")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task Test__arglist()
+        {
+            await TestAsync(
+@"class C
+{
+    public void ToError(__arglist)
+    {
+    }
+}", async w =>
+{
+    SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
+    var item = (await _aggregator.GetItemsAsync("ToError")).Single();
+    VerifyNavigateToResultItem(item, "ToError", "[|ToError|](__arglist)", MatchKind.Exact, NavigateToItemKind.Method);
+});
         }
     }
 }

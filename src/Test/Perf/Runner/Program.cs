@@ -16,6 +16,8 @@ namespace Runner
     {
         public static int Main(string[] args)
         {
+            Console.WriteLine("args: \n" + String.Join("\n  ", args));
+
             bool shouldReportBenchview = false;
             bool shouldUploadTrace = true;
             bool isCiTest = false;
@@ -37,7 +39,11 @@ namespace Runner
                 {"search-directory=", "the directory to recursively search for tests", dir => { searchDirectory = dir; } }
             };
 
+
             parameterOptions.Parse(args);
+
+            Log($"shouldReportBenchview: {shouldReportBenchview}");
+            Log($"submissionType: {submissionType}");
 
             if (shouldReportBenchview)
             {

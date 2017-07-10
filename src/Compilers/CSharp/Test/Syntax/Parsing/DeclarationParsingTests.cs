@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.Members.Count);
             Assert.NotNull(cs.CloseBraceToken);
 
-            CreateCompilationWithMscorlib(text).GetDeclarationDiagnostics().Verify(
+            CreateStandardCompilation(text).GetDeclarationDiagnostics().Verify(
                 // (1,9): error CS0080: Constraints are not allowed on non-generic declarations
                 // class a where b : c { }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 9));
@@ -1146,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "class a { void M() where b : c { } }";
 
-            CreateCompilationWithMscorlib(text).GetDeclarationDiagnostics().Verify(
+            CreateStandardCompilation(text).GetDeclarationDiagnostics().Verify(
                 // (1,20): error CS0080: Constraints are not allowed on non-generic declarations
                 // class a { void M() where b : c { } }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 20));
@@ -5189,39 +5189,66 @@ class Class1<T>{
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
             Assert.Equal(text, file.ToString());
 
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, ns.Errors().Length);
+            Assert.Equal(0, ns.Errors().Length);
             Assert.Equal(SyntaxKind.AliasQualifiedName, ns.Name.Kind());
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedAliasedName, ns.Name.Errors()[0].Code);
 
             text = "namespace A<B> { }";
             file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
             Assert.Equal(text, file.ToString());
 
             ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, ns.Errors().Length);
+            Assert.Equal(0, ns.Errors().Length);
             Assert.Equal(SyntaxKind.GenericName, ns.Name.Kind());
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
 
             text = "namespace A<,> { }";
             file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
             Assert.Equal(text, file.ToString());
 
             ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, ns.Errors().Length);
+            Assert.Equal(0, ns.Errors().Length);
             Assert.Equal(SyntaxKind.GenericName, ns.Name.Kind());
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
+        }
+
+        [Fact]
+        public void TestNamespaceDeclarationsBadNames1()
+        {
+            var text = @"namespace A::B { }";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,11): error CS7000: Unexpected use of an aliased name
+                // namespace A::B { }
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "A::B").WithLocation(1, 11));
+        }
+
+        [Fact]
+        public void TestNamespaceDeclarationsBadNames2()
+        {
+            var text = @"namespace A<B> { }";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,11): error CS7002: Unexpected use of a generic name
+                // namespace A<B> { }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<B>").WithLocation(1, 11));
+        }
+
+        [Fact]
+        public void TestNamespaceDeclarationsBadNames3()
+        {
+            var text = @"namespace A<,> { }";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,11): error CS7002: Unexpected use of a generic name
+                // namespace A<,> { }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<,>").WithLocation(1, 11));
         }
 
         [WorkItem(537690, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537690")]
@@ -5275,7 +5302,7 @@ class C {
             Assert.NotNull(file);
             Assert.Equal(0, file.Errors().Length);
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (5,28): error CS1065: Default values are not valid in this context.
                 //      F f = delegate (int x = 0) { };
                 Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 28));
@@ -5397,8 +5424,14 @@ class C
    void M(__arglist, int j)  {}
 }";
 
-            TestError(text1, ErrorCode.ERR_ParamsLast);
-            TestError(text2, ErrorCode.ERR_VarargsLast);
+            CreateStandardCompilation(text1).VerifyDiagnostics(
+                // (4,11): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //    void M(params int[] i, int j)  {}
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] i").WithLocation(4, 11));
+            CreateStandardCompilation(text2).VerifyDiagnostics(
+                // (4,11): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
+                //    void M(__arglist, int j)  {}
+                Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(4, 11));
         }
 
         [Fact]

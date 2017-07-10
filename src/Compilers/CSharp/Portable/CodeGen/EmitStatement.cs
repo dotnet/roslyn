@@ -9,6 +9,7 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -664,14 +665,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitStateMachineScope(BoundStateMachineScope scope)
         {
-            _builder.OpenStateMachineScope();
+            _builder.OpenLocalScope(ScopeType.StateMachineVariable);
             foreach (var field in scope.Fields)
             {
                 _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
             }
 
             EmitStatement(scope.Statement);
-            _builder.CloseStateMachineScope();
+            _builder.CloseLocalScope();
         }
 
         // There are two ways a value can be returned from a function:
@@ -1425,11 +1426,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private LocalDefinition DefineLocal(LocalSymbol local, SyntaxNode syntaxNode)
         {
             var dynamicTransformFlags = !local.IsCompilerGenerated && local.Type.ContainsDynamic() ?
-                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_Boolean), 0, RefKind.None) :
-                ImmutableArray<TypedConstant>.Empty;
+                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, RefKind.None, 0) :
+                ImmutableArray<bool>.Empty;
             var tupleElementNames = !local.IsCompilerGenerated && local.Type.ContainsTupleNames() ?
-                CSharpCompilation.TupleNamesEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_String)) :
-                ImmutableArray<TypedConstant>.Empty;
+                CSharpCompilation.TupleNamesEncoder.Encode(local.Type) :
+                ImmutableArray<string>.Empty;
 
             if (local.IsConst)
             {
@@ -1535,7 +1536,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var syntax = local.GetDeclaratorSyntax();
                 int syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
 
-                int ordinal = _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset);
+                // Synthesized locals emitted for switch case patterns are all associated with the switch statement 
+                // and have distinct types. We use theier types to match them, not the ordinal as the ordinal might
+                // change if switch cases are reordered.
+                int ordinal = (localKind != SynthesizedLocalKind.SwitchCasePatternMatching) ?
+                    _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset) : 0;
 
                 // user-defined locals should have 0 ordinal:
                 Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);

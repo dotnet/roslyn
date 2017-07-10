@@ -6,7 +6,7 @@
          even in WPF's build of a temporary project, where it won't be able to determine it based on the file extension. -->
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -53,7 +53,7 @@
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.Implementation</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.Implementation</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -88,9 +88,17 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
+    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
+    <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeModel\AbstractCodeModelObject.cs" />
@@ -207,12 +215,12 @@
     <Compile Include="CodeModel\RootCodeModel.cs" />
     <Compile Include="CodeModel\SyntaxNodeKey.cs" />
     <Compile Include="CodeModel\TextManagerAdapter.cs" />
-    <Compile Include="Options\AbstractCodeStyleOptionViewModel.cs" />
-    <Compile Include="Options\BooleanCodeStyleOptionViewModel.cs" />
-    <Compile Include="Options\CodeStylePreference.cs" />
+    <Compile Include="Options\Style\AbstractCodeStyleOptionViewModel.cs" />
+    <Compile Include="Options\Style\BooleanCodeStyleOptionViewModel.cs" />
+    <Compile Include="Options\Style\CodeStylePreference.cs" />
     <Compile Include="Options\ColumnToTabStopConverter.cs" />
     <Compile Include="Options\Converters\MarginConverter.cs" />
-    <Compile Include="Options\SimpleCodeStyleOptionViewModel.cs" />
+    <Compile Include="Options\Style\EnumCodeStyleOptionViewModel.cs" />
     <Compile Include="Options\AbstractCheckBoxViewModel.cs" />
     <Compile Include="Options\CheckBoxWithComboViewModel.cs" />
     <Compile Include="Options\GridOptionPreviewControl.xaml.cs">
@@ -252,6 +260,7 @@
       <DependentUpon>SymbolSpecificationDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Options\Style\NamingPreferences\SymbolSpecification\SymbolSpecificationViewModel.cs" />
+    <Compile Include="Options\TextBlockWithDataItemControlType.cs" />
     <Compile Include="ProjectSystem\CPS\CPSProject.cs" />
     <Compile Include="ProjectSystem\CPS\CPSCodeModelFactory.cs" />
     <Compile Include="ProjectSystem\CPS\CPSProjectFactory.cs" />
@@ -286,6 +295,5 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

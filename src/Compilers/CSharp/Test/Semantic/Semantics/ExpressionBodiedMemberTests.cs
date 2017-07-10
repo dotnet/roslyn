@@ -39,7 +39,7 @@ public partial class C
                 .OfType<MethodDeclarationSyntax>()
                 .ElementAt(1);
 
-            var fooDef = model.GetDeclaredSymbol(node) as SourceMemberMethodSymbol;
+            var fooDef = model.GetDeclaredSymbol(node) as SourceOrdinaryMethodSymbol;
             Assert.NotNull(fooDef);
             Assert.True(fooDef.IsPartial);
             Assert.True(fooDef.IsPartialDefinition);
@@ -47,7 +47,7 @@ public partial class C
             Assert.Null(fooDef.PartialDefinitionPart);
 
             var fooImpl = fooDef.PartialImplementationPart
-                as SourceMemberMethodSymbol;
+                as SourceOrdinaryMethodSymbol;
             Assert.NotNull(fooImpl);
             Assert.True(fooImpl.IsPartial);
             Assert.True(fooImpl.IsPartialImplementation);
@@ -226,7 +226,7 @@ class Program
             var semanticSymbol = semanticInfo.Symbol;
             var global = comp.GlobalNamespace;
             var program = global.GetTypeMember("Program");
-            var method = program.GetMember<SourceMemberMethodSymbol>("M");
+            var method = program.GetMember<SourceOrdinaryMethodSymbol>("M");
             var i = method.Parameters[0];
 
             Assert.Equal(i, semanticSymbol);
@@ -255,7 +255,7 @@ class C
             Assert.Equal(TypeKind.TypeParameter, semanticInfo.Type.TypeKind);
             Assert.Equal("T", semanticInfo.Type.Name);
             Assert.Equal("t", semanticInfo.Symbol.Name);
-            var m = semanticInfo.Symbol.ContainingSymbol as SourceMemberMethodSymbol;
+            var m = semanticInfo.Symbol.ContainingSymbol as SourceOrdinaryMethodSymbol;
             Assert.Equal(1, m.TypeParameters.Length);
             Assert.Equal(m.TypeParameters[0], semanticInfo.Type);
             Assert.Equal(m.TypeParameters[0], m.ReturnType);
@@ -431,7 +431,7 @@ class Program
         [Fact]
         public void Bug1112875()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class Program
 {
     private void M() => (new object());
@@ -446,7 +446,7 @@ class Program
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_01()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -477,7 +477,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_02()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -508,7 +508,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_03()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     int P1 {get; set;}
@@ -546,7 +546,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_04()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     int P1 {get; set;}
@@ -586,7 +586,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_05()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -615,7 +615,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_06()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -651,7 +651,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_07()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -682,7 +682,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_08()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -713,7 +713,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_09()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -744,7 +744,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_10()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -779,7 +779,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_11()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -810,7 +810,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_12()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -846,7 +846,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_13()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -881,7 +881,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_14()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -920,7 +920,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_15()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     void Foo()
@@ -934,15 +934,15 @@ public class C
                 // (6,9): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //         int Bar() { return 0; } => 0;
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "int Bar() { return 0; } => 0;").WithLocation(6, 9),
-                // (6,13): warning CS0168: The variable 'Bar' is declared but never used
+                // (6,13): warning CS8321: The local function 'Bar' is declared but never used
                 //         int Bar() { return 0; } => 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Bar").WithArguments("Bar").WithLocation(6, 13));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Bar").WithArguments("Bar").WithLocation(6, 13));
         }
 
         [Fact]
         public void BlockBodyAndExpressionBody_16()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     int this[int i] { get { return 0; } } => 0;
@@ -958,7 +958,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_17()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     int this[int i] { get { return 0; } => 0; }
@@ -974,7 +974,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_18()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 using System;
 public class C
 {
@@ -991,7 +991,7 @@ public class C
         [Fact, WorkItem(971, "https://github.com/dotnet/roslyn/issues/971")]
         public void LookupSymbols()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 using System;
 public class C
 {
@@ -1036,17 +1036,17 @@ public class C
     int P { set => Console.WriteLine(value); }
 }
 ";
-            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics();
-            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (5,9): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6. Please use language version 7 or greater.
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (5,9): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6. Please use language version 7.0 or greater.
                 //     C() => Console.WriteLine(1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(1)").WithArguments("expression body constructor and destructor", "7").WithLocation(5, 9),
-                // (6,10): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(1)").WithArguments("expression body constructor and destructor", "7.0").WithLocation(5, 9),
+                // (6,10): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6. Please use language version 7.0 or greater.
                 //     ~C() => Console.WriteLine(2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(2)").WithArguments("expression body constructor and destructor", "7").WithLocation(6, 10),
-                // (7,17): error CS8059: Feature 'expression body property accessor' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(2)").WithArguments("expression body constructor and destructor", "7.0").WithLocation(6, 10),
+                // (7,17): error CS8059: Feature 'expression body property accessor' is not available in C# 6. Please use language version 7.0 or greater.
                 //     int P { set => Console.WriteLine(value); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(value)").WithArguments("expression body property accessor", "7").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(value)").WithArguments("expression body property accessor", "7.0").WithLocation(7, 17)
                 );
         }
     }

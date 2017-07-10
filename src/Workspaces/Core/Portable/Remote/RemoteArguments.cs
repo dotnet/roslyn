@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
             };
         }
 
-        public async Task<SymbolAndProjectId> RehydrateAsync(
+        public async Task<SymbolAndProjectId?> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var projectId = ProjectId;
@@ -57,7 +55,20 @@ namespace Microsoft.CodeAnalysis.Remote
             // locations in symbols are save to resolve as we rehydrate the SymbolKey.
             var symbol = SymbolKey.Resolve(
                 SymbolKeyData, compilation, resolveLocations: true, cancellationToken: cancellationToken).GetAnySymbol();
-            Debug.Assert(symbol != null, "We should always be able to resolve a symbol back on the host side.");
+
+            if (symbol == null)
+            {
+                try
+                {
+                    throw new InvalidOperationException(
+                        $"We should always be able to resolve a symbol back on the host side:\r\n{SymbolKeyData}");
+                }
+                catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                {
+                    return null;
+                }
+            }
+
             return new SymbolAndProjectId(symbol, projectId);
         }
     }
@@ -113,82 +124,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return null;
             }
 
-            var symbolAndProjectId = await Alias.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-            return symbolAndProjectId.Symbol as IAliasSymbol;
-        }
-    }
-
-    #endregion
-
-    #region SymbolSearch
-
-    internal class SerializablePackageWithTypeResult
-    {
-        public string PackageName;
-        public string TypeName;
-        public string Version;
-        public int Rank;
-        public string[] ContainingNamespaceNames;
-
-        public static SerializablePackageWithTypeResult Dehydrate(PackageWithTypeResult result)
-        {
-            return new SerializablePackageWithTypeResult
-            {
-                PackageName = result.PackageName,
-                TypeName = result.TypeName,
-                Version = result.Version,
-                Rank = result.Rank,
-                ContainingNamespaceNames = result.ContainingNamespaceNames.ToArray(),
-            };
-        }
-
-        public PackageWithTypeResult Rehydrate()
-        {
-            return new PackageWithTypeResult(
-                PackageName, TypeName, Version, Rank, ContainingNamespaceNames);
-        }
-    }
-
-    internal class SerializablePackageWithAssemblyResult
-    {
-        public string PackageName;
-        public string Version;
-        public int Rank;
-
-        public static SerializablePackageWithAssemblyResult Dehydrate(PackageWithAssemblyResult result)
-        {
-            return new SerializablePackageWithAssemblyResult
-            {
-                PackageName = result.PackageName,
-                Version = result.Version,
-                Rank = result.Rank,
-            };
-        }
-
-        public PackageWithAssemblyResult Rehydrate()
-            => new PackageWithAssemblyResult(PackageName, Version, Rank);
-    }
-
-    internal class SerializableReferenceAssemblyWithTypeResult
-    {
-        public string AssemblyName;
-        public string TypeName;
-        public string[] ContainingNamespaceNames;
-
-        public static SerializableReferenceAssemblyWithTypeResult Dehydrate(
-            ReferenceAssemblyWithTypeResult result)
-        {
-            return new SerializableReferenceAssemblyWithTypeResult
-            {
-                ContainingNamespaceNames = result.ContainingNamespaceNames.ToArray(),
-                AssemblyName = result.AssemblyName,
-                TypeName = result.TypeName
-            };
-        }
-
-        public ReferenceAssemblyWithTypeResult Rehydrate()
-        {
-            return new ReferenceAssemblyWithTypeResult(AssemblyName, TypeName, ContainingNamespaceNames);
+            var symbolAndProjectId = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+            return symbolAndProjectId.GetValueOrDefault().Symbol as IAliasSymbol;
         }
     }
 

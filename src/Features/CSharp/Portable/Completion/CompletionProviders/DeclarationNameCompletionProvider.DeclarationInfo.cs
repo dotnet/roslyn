@@ -267,7 +267,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (modifiers.IsAsync || modifiers.IsPartial)
                 {
+                    // Fields and properties cannot be async or partial.
                     possibleTypes = possibleTypes.Remove(SymbolKind.Property);
+                    possibleTypes = possibleTypes.Remove(SymbolKind.Field);
                 }
 
                 return possibleTypes;

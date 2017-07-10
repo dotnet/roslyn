@@ -38,7 +38,7 @@ abstract class Base
     virtual internal void M8() { }
     abstract internal void M10();
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m1 = a.GetMembers("M1").Single() as MethodSymbol;
@@ -140,7 +140,7 @@ struct S<T> where T : struct
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var intType = comp.GetSpecialType(SpecialType.System_Int32);

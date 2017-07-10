@@ -13,6 +13,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -1019,7 +1020,7 @@ namespace Microsoft.CodeAnalysis
             return TryExtractStringArrayValueFromAttribute(info.Handle, out tupleElementNames);
         }
 
-        internal bool HasDeprecatedOrObsoleteAttribute(EntityHandle token, out ObsoleteAttributeData obsoleteData)
+        internal bool HasDeprecatedOrExperimentalOrObsoleteAttribute(EntityHandle token, out ObsoleteAttributeData obsoleteData)
         {
             AttributeInfo info;
 
@@ -1033,6 +1034,14 @@ namespace Microsoft.CodeAnalysis
             if (info.HasValue)
             {
                 return TryExtractObsoleteDataFromAttribute(info, out obsoleteData);
+            }
+
+            // [Experimental] is always a warning, not an
+            // error, so search for [Experimental] last.
+            info = FindTargetAttribute(token, AttributeDescription.ExperimentalAttribute);
+            if (info.HasValue)
+            {
+                return TryExtractExperimentalDataFromAttribute(info, out obsoleteData);
             }
 
             obsoleteData = null;
@@ -1151,7 +1160,7 @@ namespace Microsoft.CodeAnalysis
             {
                 case 0:
                     // ObsoleteAttribute()
-                    obsoleteData = new ObsoleteAttributeData(message: null, isError: false);
+                    obsoleteData = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message: null, isError: false);
                     return true;
 
                 case 1:
@@ -1159,7 +1168,7 @@ namespace Microsoft.CodeAnalysis
                     string message;
                     if (TryExtractStringValueFromAttribute(attributeInfo.Handle, out message))
                     {
-                        obsoleteData = new ObsoleteAttributeData(message, isError: false);
+                        obsoleteData = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError: false);
                         return true;
                     }
 
@@ -1186,6 +1195,21 @@ namespace Microsoft.CodeAnalysis
                 case 2: // DeprecatedAttribute(String, DeprecationType, UInt32, Type) 
                 case 3: // DeprecatedAttribute(String, DeprecationType, UInt32, String) 
                     return TryExtractValueFromAttribute(attributeInfo.Handle, out obsoleteData, s_attributeDeprecatedDataExtractor);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
+            }
+        }
+
+        private bool TryExtractExperimentalDataFromAttribute(AttributeInfo attributeInfo, out ObsoleteAttributeData obsoleteData)
+        {
+            Debug.Assert(attributeInfo.HasValue);
+
+            switch (attributeInfo.SignatureIndex)
+            {
+                case 0: // ExperimentalAttribute() 
+                    obsoleteData = ObsoleteAttributeData.Experimental;
+                    return true;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
@@ -1434,13 +1458,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static bool CrackObsoleteAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
+        private static bool CrackObsoleteAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
         {
             string message;
             if (CrackStringInAttributeValue(out message, ref sig) && sig.RemainingBytes >= 1)
             {
                 bool isError = sig.ReadBoolean();
-                value = new ObsoleteAttributeData(message, isError);
+                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError);
                 return true;
             }
 
@@ -1448,12 +1472,12 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackDeprecatedAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
+        private static bool CrackDeprecatedAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
         {
             StringAndInt args;
             if (CrackStringAndIntInAttributeValue(out args, ref sig))
             {
-                value = new ObsoleteAttributeData(args.StringValue, args.IntValue == 1);
+                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, args.StringValue, args.IntValue == 1);
                 return true;
             }
 
@@ -1569,7 +1593,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // Note: not a general purpose helper
-        internal static bool CrackDecimalInDecimalConstantAttribute(out decimal value, ref BlobReader sig)
+        private static bool CrackDecimalInDecimalConstantAttribute(out decimal value, ref BlobReader sig)
         {
             byte scale;
             byte sign;

@@ -49,9 +49,17 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "Deterministic");
                 allGood &= CheckForProperty(textWriter, "HighEntropyVA");
                 allGood &= CheckForProperty(textWriter, "DocumentationFile");
+
+                // Items which are not necessary anymore in the new SDK
+                if (_projectUtil.IsNewSdk)
+                {
+                    allGood &= CheckForProperty(textWriter, "ProjectTypeGuids");
+                    allGood &= CheckForProperty(textWriter, "TargetFrameworkProfile");
+                }
                 
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
+                allGood &= CheckPackageReferences(textWriter);
                 allGood &= CheckDeploymentSettings(textWriter);
             }
 
@@ -139,10 +147,60 @@ namespace BuildBoss
         {
             var allGood = true;
 
-            var declaredList = _projectUtil.GetDeclaredProjectReferences();
+            var declaredEntryList = _projectUtil.GetDeclaredProjectReferences();
+            var declaredList = declaredEntryList.Select(x => x.ProjectKey).ToList();
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
             allGood &= CheckTransitiveReferences(textWriter, declaredList);
+            allGood &= CheckProjectReferencesHaveCorrectGuid(textWriter, declaredEntryList);
+
+            return allGood;
+        }
+
+        /// <summary>
+        /// Ensure that all ProjectReference entries in the file have the correct GUID when
+        /// the Project child element is present.
+        /// </summary>
+        private bool CheckProjectReferencesHaveCorrectGuid(TextWriter textWriter, List<ProjectReferenceEntry> entryList)
+        {
+            var allGood = true;
+            foreach (var entry in entryList)
+            {
+                if (!_solutionMap.TryGetValue(entry.ProjectKey, out var data))
+                {
+                    textWriter.WriteLine($"Project not recognized {entry.FileName}");
+                    allGood = false;
+                    continue;
+                }
+
+                var dataGuid = data.ProjectUtil.GetProjectGuid();
+                if (dataGuid != entry.Project)
+                {
+                    textWriter.WriteLine($"Project Reference GUID for {entry.ProjectKey.FileName} doesn't match ProjectGuid");
+                    textWriter.WriteLine($"\tProject Guid {dataGuid}");
+                    textWriter.WriteLine($"\tReference Guid {entry.Project}");
+                    allGood = false;
+                }
+            }
+
+            return allGood;
+        }
+
+        private bool CheckPackageReferences(TextWriter textWriter)
+        {
+            var allGood = true;
+            foreach (var packageRef in _projectUtil.GetPackageReferences())
+            {
+                var name = packageRef.Name.Replace(".", "");
+                var floatingName = $"$({name}Version)";
+                var fixedName = $"$({name}FixedVersion)";
+                if (packageRef.Version != floatingName && packageRef.Version != fixedName)
+                {
+                    textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
+                    textWriter.WriteLine($"Allowed values are {floatingName} or {fixedName}");
+                    allGood = false;
+                }
+            }
 
             return allGood;
         }
@@ -274,7 +332,7 @@ namespace BuildBoss
                 list.Add(current);
                 foreach (var dep in data.ProjectUtil.GetDeclaredProjectReferences())
                 {
-                    toVisit.Enqueue(dep);
+                    toVisit.Enqueue(dep.ProjectKey);
                 }
             }
 
@@ -325,8 +383,7 @@ namespace BuildBoss
         {
             var fileName = Path.GetFileNameWithoutExtension(_data.FileName);
             var isDesktop = fileName == "DeployDesktopTestRuntime";
-            var isCoreClr = fileName == "DeployCoreClrTestRuntime";
-            if (!isDesktop && !isCoreClr)
+            if (!isDesktop)
             {
                 return true;
             }
@@ -339,7 +396,7 @@ namespace BuildBoss
                 allGood = false;
             }
 
-            var set = new HashSet<ProjectKey>(_projectUtil.GetDeclaredProjectReferences());
+            var set = new HashSet<ProjectKey>(_projectUtil.GetDeclaredProjectReferences().Select(x => x.ProjectKey));
             foreach (var projectData in _solutionMap.Values)
             {
                 var rosData = projectData.ProjectUtil.TryGetRoslynProjectData();

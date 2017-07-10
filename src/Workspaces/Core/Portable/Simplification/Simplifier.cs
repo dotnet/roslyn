@@ -17,11 +17,12 @@ namespace Microsoft.CodeAnalysis.Simplification
     /// Expands and Reduces subtrees.
     /// 
     /// Expansion:
-    ///      1) Replaces names with fully qualified dotted names.
-    ///      2) Adds parentheses around expressions
-    ///      3) Adds explicit casts/conversions where implicit conversions exist
-    ///      4) Adds escaping to identifiers
-    ///      5) Rewrites extension method invocations with explicit calls on the class containing the extension method.
+    ///      1) Makes inferred names explicit (on anoymous types and tuples).
+    ///      2) Replaces names with fully qualified dotted names.
+    ///      3) Adds parentheses around expressions
+    ///      4) Adds explicit casts/conversions where implicit conversions exist
+    ///      5) Adds escaping to identifiers
+    ///      6) Rewrites extension method invocations with explicit calls on the class containing the extension method.
     ///      
     /// Reduction:
     ///     1) Shortens dotted names to their minimally qualified form
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Simplification
     ///     3) Removes unnecessary casts/conversions
     ///     4) Removes unnecessary escaping
     ///     5) Rewrites explicit calls to extension methods to use dot notation
+    ///     6) Removes unnecessary tuple element names and anonymous type member names
     /// </summary>
     public static partial class Simplifier
     {

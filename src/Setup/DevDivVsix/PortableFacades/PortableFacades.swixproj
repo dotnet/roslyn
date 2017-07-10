@@ -6,7 +6,7 @@
   <PropertyGroup>
     <OutputArchitecture>neutral</OutputArchitecture>
     <OutputLocalized>false</OutputLocalized>
-    <OutputPath>$(OutDir)Insertion</OutputPath>
+    <OutputPath>$(OutputPath)\Insertion</OutputPath>
     <IsPackage>true</IsPackage>
     <OutputType>vsix</OutputType>
   </PropertyGroup>

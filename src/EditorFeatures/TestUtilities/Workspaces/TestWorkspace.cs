@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -25,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public partial class TestWorkspace : Workspace
     {
-        public const string WorkspaceName = TestWorkspaceName.Name;
-
         public ExportProvider ExportProvider { get; }
 
         public bool CanApplyChangeDocument { get; set; }
@@ -42,12 +41,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly BackgroundParser _backgroundParser;
 
         public TestWorkspace()
-            : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceName)
+            : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
         {
         }
 
         public TestWorkspace(ExportProvider exportProvider, string workspaceKind = null, bool disablePartialSolutions = true)
-            : base(MefV1HostServices.Create(exportProvider.AsExportProvider()), workspaceKind ?? WorkspaceName)
+            : base(MefV1HostServices.Create(exportProvider.AsExportProvider()), workspaceKind ?? WorkspaceKind.Test)
         {
             ResetThreadAffinity();
 
@@ -211,13 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             base.OnDocumentOpened(documentId, textContainer, isCurrentContext);
         }
-
-        public void OnDocumentClosed(DocumentId documentId)
-        {
-            var testDocument = this.GetTestDocument(documentId);
-            this.OnDocumentClosed(documentId, testDocument.Loader);
-        }
-
+        
         public new void OnParseOptionsChanged(ProjectId projectId, ParseOptions parseOptions)
         {
             base.OnParseOptionsChanged(projectId, parseOptions);
@@ -605,15 +598,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public override void OpenDocument(DocumentId documentId, bool activate = true)
         {
-            OnDocumentOpened(documentId, this.CurrentSolution.GetDocument(documentId).GetTextAsync().Result.Container);
+            var testDocument = this.GetTestDocument(documentId);
+            OnDocumentOpened(documentId, testDocument.GetOpenTextContainer());
         }
 
         public override void CloseDocument(DocumentId documentId)
         {
-            var currentDoc = this.CurrentSolution.GetDocument(documentId);
-
-            OnDocumentClosed(documentId,
-                TextLoader.From(TextAndVersion.Create(currentDoc.GetTextAsync().Result, currentDoc.GetTextVersionAsync().Result)));
+            var testDocument = this.GetTestDocument(documentId);
+            this.OnDocumentClosed(documentId, testDocument.Loader);
         }
 
         public void ChangeDocument(DocumentId documentId, SourceText text)

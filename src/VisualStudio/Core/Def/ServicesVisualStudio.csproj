@@ -4,7 +4,7 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -13,7 +13,7 @@
     <RootNamespace>Microsoft.VisualStudio.LanguageServices</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <!-- This project includes the VS SDK targets so we can produce a .pkgdef, but should not produce a .vsix or anything related to it -->
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <CreateVsixContainer>false</CreateVsixContainer>
@@ -27,12 +27,11 @@
        To deal with that, we write this target which finds that added package, removes it from
        the references list, then adds it back in again with the 'EmbedInteropTypes' flag properly
        set. -->
-  <Target Name="MarkNuGetVisualStudioPackageWithEmbedInteropType" AfterTargets="ResolveNuGetPackageAssets">
+  <Target Name="MarkNuGetVisualStudioPackageWithEmbedInteropType" AfterTargets="ResolvePackageDependenciesForBuild">
     <ItemGroup>
-      <_NuGetVisualStudioPackageReference Include="@(Reference)" Condition="'%(Reference.NuGetPackageId)' == 'NuGet.VisualStudio'" />
+      <_NuGetVisualStudioPackageReference Include="@(Reference)" Condition="'%(Filename)' == 'NuGet.VisualStudio'" />
     </ItemGroup>
-    <Error Condition="'@(_NuGetVisualStudioPackageReference)' == ''" Text="Could not find NuGet.VisualStudio package to add EmbedInteropTypes to." />
-    <ItemGroup>
+    <ItemGroup Condition="'@(_NuGetVisualStudioPackageReference)' != ''">
       <Reference Remove="@(_NuGetVisualStudioPackageReference)" />
       <Reference Include="@(_NuGetVisualStudioPackageReference)">
         <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -62,6 +61,7 @@
     <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IIgnorableAssemblyList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
+    <Compile Include="Implementation\Experimentation\AnalyzerVsixSuggestedActionCallback.cs" />
     <Compile Include="Implementation\Extensions\ServiceProviderExtensions.cs" />
     <Compile Include="ID.InteractiveCommands.cs" />
     <Compile Include="Implementation\FindReferences\VisualStudioDefinitionsAndReferencesFactory.cs" />
@@ -96,7 +96,7 @@
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\ICodeModelFactory.cs" />
     <Compile Include="Implementation\ProjectSystem\IDeferredProjectWorkspaceService.cs" />
-    <Compile Include="Implementation\ProjectSystem\Interop\IVsSolution7.cs" />
+    <Compile Include="Implementation\ProjectSystem\IEntryPointFinderService.cs" />
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IIntellisenseBuildTarget.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\IWorkspaceProjectContextFactory.cs" />
@@ -127,7 +127,7 @@
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.SolutionChecksumUpdater.cs" />
     <Compile Include="Implementation\Remote\RemoteHostOptions.cs" />
-    <Compile Include="Implementation\Serialization\AssemblySerializationInfoService.cs" />
+    <Compile Include="Implementation\RQName\RQName.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.AggregateDiagnosticTableControlEventProcessor.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\IVisualStudioDiagnosticListSuppressionStateService.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioDiagnosticListTableCommandHandler.cs" />
@@ -158,7 +158,6 @@
     <Compile Include="Implementation\Utilities\AutomationDelegatingListView.cs" />
     <Compile Include="Implementation\Utilities\HyperlinkStyleHelper.cs" />
     <Compile Include="Implementation\Venus\VenusTaskExtensions.cs" />
-    <Compile Include="Implementation\Versions\SemanticVersionTrackingService.cs" />
     <Compile Include="Implementation\ContainedLanguageRefactorNotifyService.cs" />
     <Compile Include="Implementation\VirtualMemoryNotificationListener.cs" />
     <Compile Include="Implementation\Watson\WatsonReporter.cs" />
@@ -168,12 +167,14 @@
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.ExceptionFormatting.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.cs" />
+    <Compile Include="Implementation\InfoBar\VisualStudioInfoBarService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptions.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioTaskSchedulerFactory.cs" />
     <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
     <Compile Include="Packaging\IPackageServicesProxy.cs" />
+    <Compile Include="Packaging\PackageInstallerService.ProjectState.cs" />
     <Compile Include="Storage\VisualStudioPersistentStorageLocationService.cs" />
     <Compile Include="SymbolSearch\AbstractDelayStartedService.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
@@ -196,7 +197,6 @@
     <Compile Include="Telemetry\VSTelemetryCache.cs" />
     <Compile Include="Telemetry\VSTelemetryLogger.cs" />
     <Compile Include="Utilities\IVsEditorAdaptersFactoryServiceExtensions.cs" />
-    <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
     <Compile Include="Implementation\Workspace\WorkspaceFailureOutputPane.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AbstractAddRemoveUndoUnit.cs" />
@@ -208,11 +208,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>VSPackage.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
-      <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -272,8 +267,12 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
+    <!-- <TODO> remove, once project system is updated https://github.com/dotnet/roslyn/issues/20320 -->
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
+    <!-- </TODO> -->
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
@@ -310,6 +309,53 @@
     <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
+    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
+    <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <PackageReference Include="ManagedEsent" Version="$(ManagedEsentVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="$(MicrosoftVisualStudioOLEInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0" Version="$(MicrosoftVisualStudioShellInterop90Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="$(MicrosoftVisualStudioShellInterop100Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.11.0" Version="$(MicrosoftVisualStudioShellInterop110Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime" Version="$(MicrosoftVisualStudioShellInterop121DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime" Version="$(MicrosoftVisualStudioShellInterop150DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" Version="$(MicrosoftVisualStudioShellImmutable100Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" />
+    <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" Version="$(MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Progression.CodeSchema" Version="$(MicrosoftVisualStudioProgressionCodeSchemaVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Progression.Common" Version="$(MicrosoftVisualStudioProgressionCommonVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Progression.Interfaces" Version="$(MicrosoftVisualStudioProgressionInterfacesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.GraphModel" Version="$(MicrosoftVisualStudioGraphModelVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="$(MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Design" Version="$(MicrosoftVisualStudioShellDesignVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.10.0" Version="$(MicrosoftVisualStudioTextManagerInterop100Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.12.0" Version="$(MicrosoftVisualStudioTextManagerInterop120Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime" Version="$(MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces" Version="$(MicrosoftVisualStudioDesignerInterfacesVersion)" />
+    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
+    <PackageReference Include="Microsoft.MSXML" Version="$(MicrosoftMSXMLVersion)" />
+    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
+    <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
+    <PackageReference Include="VSLangProj2" Version="$(VSLangProj2Version)" />
+    <PackageReference Include="VSLangProj80" Version="$(VSLangProj80Version)" />
+    <PackageReference Include="VSLangProj140" Version="$(VSLangProj140Version)" />
+    <PackageReference Include="VsWebsite.Interop" Version="$(VsWebsiteInteropVersion)" />
+    <PackageReference Include="NuGet.VisualStudio" Version="$(NuGetVisualStudioVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeMarkers\ManagedCodeMarkers.cs" />
@@ -352,7 +398,6 @@
     <Compile Include="Implementation\Debugging\IProximityExpressionsService.cs" />
     <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzerProvider.cs" />
-    <Compile Include="Implementation\DesignerAttribute\DesignerAttributeState.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioDiagnosticAnalyzerService.cs" />
     <Compile Include="Implementation\Diagnostics\IVisualStudioDiagnosticAnalyzerService.cs" />
@@ -552,48 +597,6 @@
     <Compile Include="Implementation\ProjectSystem\WorkspaceBackgroundWork.cs" />
     <Compile Include="Implementation\ProvideAutomationPropertiesAttribute.cs" />
     <Compile Include="Implementation\VisualStudioDocumentSupportsSuggestionService.cs" />
-    <Compile Include="Implementation\RQName\Nodes\ResolvedRQNode.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQArrayOrPointerType.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQArrayType.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQConstructedType.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQConstructor.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQErrorType.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQEvent.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQExplicitInterfaceMemberName.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQIndexer.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQMember.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQMemberParameterIndex.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQMemberParameterIndexFromPartialImplementation.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQMemberParameterIndexFromPartialSignature.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQMemberVariable.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQMethod.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQMethodBase.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQMethodOrProperty.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQMethodPropertyOrEvent.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQMethodPropertyOrEventName.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQNamespace.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQNode.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQNormalParameter.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQNullType.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQOrdinaryMethodPropertyOrEventName.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQOutParameter.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQParameter.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQPointerType.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQProperty.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQPropertyBase.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQRefParameter.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQType.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQTypeOrNamespace.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQTypeVariableType.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQUnconstructedType.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQVoidType.cs" />
-    <Compile Include="Implementation\RQName\ParenthesesTreeWriter.cs" />
-    <Compile Include="Implementation\RQName\RQName.cs" />
-    <Compile Include="Implementation\RQName\RQNameStrings.cs" />
-    <Compile Include="Implementation\RQName\RQNodeBuilder.cs" />
-    <Compile Include="Implementation\RQName\SimpleTree\SimpleGroupNode.cs" />
-    <Compile Include="Implementation\RQName\SimpleTree\SimpleLeafNode.cs" />
-    <Compile Include="Implementation\RQName\SimpleTree\SimpleTreeNode.cs" />
     <Compile Include="Implementation\SaveEventsService.cs" />
     <Compile Include="Implementation\Snippets\AbstractSnippetCommandHandler.cs" />
     <Compile Include="Implementation\Snippets\AbstractSnippetExpansionClient.cs" />
@@ -641,6 +644,7 @@
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.NoOpUndoPrimitive.cs" />
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.WorkspaceGlobalUndoTransaction.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
+    <Compile Include="Implementation\Workspace\VisualStudioSymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioFormattingRuleFactoryServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioDocumentNavigationService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioDocumentNavigationServiceFactory.cs" />
@@ -692,7 +696,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
@@ -702,7 +705,6 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

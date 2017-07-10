@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -1360,5 +1360,30 @@ public interface [|IComImport|]
     int Prop {{ get; }}
 }}");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestOptionalParameterWithDefaultLiteral()
+        {
+            var metadataSource = @"
+using System.Threading;
+
+public class C {
+    public void M(CancellationToken cancellationToken = default(CancellationToken)) { }
+}";
+            var symbolName = "C";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System.Threading;
+
+public class [|C|]
+{{
+    public C();
+    public void M(CancellationToken cancellationToken = default);
+}}", languageVersion: "CSharp7_1");
         }
+    }
 }

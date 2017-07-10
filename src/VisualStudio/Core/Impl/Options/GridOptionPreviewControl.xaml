@@ -87,23 +87,25 @@
                 </GroupStyle>
             </DataGrid.GroupStyle>
             <DataGrid.Columns>
-                <DataGridTextColumn
+                <DataGridTemplateColumn
                     x:Name="description" 
                     Header="{x:Static local:GridOptionPreviewControl.DescriptionHeader}"
-                    Binding="{Binding Description, Mode=OneWay}" 
                     Width="4.5*"
                     IsReadOnly="True">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Margin" Value="{Binding DescriptionMargin, Converter={StaticResource MarginConverter}}" />
-                            <Setter Property="Padding" Value="{StaticResource ResourceKey=cellPadding}" />
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Setter Property="HorizontalAlignment" Value="Left" />
-                            <Setter Property="TextWrapping" Value="Wrap" />
-                            <Setter Property="AutomationProperties.Name" Value="{Binding GroupName}" />
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:TextBlockWithDataItemControlType
+                                Text="{Binding Description, Mode=OneWay}"
+                                Margin="{Binding DescriptionMargin, Converter={StaticResource MarginConverter}}"
+                                Padding="{StaticResource ResourceKey=cellPadding}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Left"
+                                TextWrapping="Wrap"
+                                AutomationProperties.Name="{Binding GroupNameAndDescription}"
+                                Focusable="True"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn 
                     x:Name="preference" 
                     Header="{x:Static local:GridOptionPreviewControl.PreferenceHeader}"

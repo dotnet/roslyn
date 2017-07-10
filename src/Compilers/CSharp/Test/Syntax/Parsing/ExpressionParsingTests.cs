@@ -3533,6 +3533,18 @@ class C
             EOF();
         }
 
+        [Fact]
+        public void TestTargetTypedDefaultWithCSharp7_1()
+        {
+            var text = "default";
+            var expr = this.ParseExpression(text, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.DefaultLiteralExpression, expr.Kind());
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+        }
+
         [Fact, WorkItem(17683, "https://github.com/dotnet/roslyn/issues/17683")]
         public void Bug17683a()
         {

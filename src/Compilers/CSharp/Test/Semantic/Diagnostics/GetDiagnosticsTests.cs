@@ -380,7 +380,7 @@ namespace N1
             var syntaxTree2 = Parse(string.Empty, options: parseOptions2);
             var syntaxTree3 = Parse(string.Empty, options: parseOptions2);
 
-            var compilation = CreateCompilationWithMscorlib(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
+            var compilation = CreateStandardCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
             var diagnostics = compilation.GetDiagnostics();
 
             diagnostics.Verify(

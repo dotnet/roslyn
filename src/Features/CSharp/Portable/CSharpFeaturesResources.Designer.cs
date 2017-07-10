@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpFeaturesResources {
@@ -94,6 +94,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string attribute_target {
             get {
                 return ResourceManager.GetString("attribute_target", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to member declaration.
+        /// </summary>
+        internal static string Autoselect_disabled_due_to_member_declaration {
+            get {
+                return ResourceManager.GetString("Autoselect_disabled_due_to_member_declaration", resourceCulture);
             }
         }
         
@@ -837,6 +846,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove unused function.
+        /// </summary>
+        internal static string Remove_unused_function {
+            get {
+                return ResourceManager.GetString("Remove_unused_function", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Replace return with yield return.
         /// </summary>
         internal static string Replace_return_with_yield_return {
@@ -968,6 +986,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string struct_name {
             get {
                 return ResourceManager.GetString("struct_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (Suggested name).
+        /// </summary>
+        internal static string Suggested_name {
+            get {
+                return ResourceManager.GetString("Suggested_name", resourceCulture);
             }
         }
         

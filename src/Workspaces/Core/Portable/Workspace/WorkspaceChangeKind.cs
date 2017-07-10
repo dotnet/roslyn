@@ -68,6 +68,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A document in the current solution was changed.
         /// </summary>
+        /// <remarks>
+        /// When linked files are edited, one <see cref="DocumentChanged"/> event is fired per
+        /// linked file. All of these events contain the same OldSolution, and they all contain
+        /// the same NewSolution. This is so that we can trigger document change events on all
+        /// affected documents without reporting intermediate states in which the linked file
+        /// contents do not match. Each <see cref="DocumentChanged"/> event does not represent
+        /// an incremental update from the previous event in this special case.
+        /// </remarks>
         DocumentChanged = 12,
 
         /// <summary>

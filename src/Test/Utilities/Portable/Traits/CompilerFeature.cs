@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Async,
         Dynamic,
         ExpressionBody,
+        Determinism,
         Iterator,
         LocalFunctions,
         Params,
@@ -19,5 +20,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         RefLocalsReturns,
         OutVar,
         Patterns,
+        DefaultLiteral,
+        AsyncMain,
     }
 }

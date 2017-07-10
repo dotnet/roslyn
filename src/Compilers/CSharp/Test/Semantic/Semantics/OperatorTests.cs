@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -598,7 +598,7 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (16,15): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'B'
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new B()").WithArguments("+", "C", "B"));
         }
@@ -1156,7 +1156,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,12): error CS0023: Operator '!' cannot be applied to operand of type 'int'
                 //         if(!1) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!1").WithArguments("!", "int").WithLocation(7, 12));
@@ -1196,7 +1196,7 @@ class C
         bool b3 = (object)s1 == ex1; // legal!
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
 // (11,21): error CS0034: Operator '+' is ambiguous on operands of type 'long' and 'ulong'
 //         object o1 = i64 + ui64; // CS0034
 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i64 + ui64").WithArguments("+", "long", "ulong"),
@@ -1254,7 +1254,7 @@ class C
 
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (17,9): error CS0200: Property or indexer 'C.ReadOnly' cannot be assigned to -- it is read only
                 //         c.ReadOnly += 1;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c.ReadOnly").WithArguments("C.ReadOnly").WithLocation(17, 9),
@@ -1358,8 +1358,8 @@ class C
             // from it the nodes that describe the operators. We then compare the description of
             // the operators given to the comment that follows the use of the operator.
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
-            var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();
             var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
             var tree = BoundTreeDumperNodeProducer.MakeTree(block);
@@ -2897,7 +2897,7 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
         [Fact, WorkItem(527598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527598")]
         public void UserDefinedOperatorOnPointerType()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateStandardCompilation(@"
 unsafe struct A
 {
     public static implicit operator int*(A x) { return null; }
@@ -2970,7 +2970,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            var compilation = CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(541147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541147")]
@@ -2988,7 +2988,7 @@ static class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "Main ?? Main").WithArguments("??", "method group", "method group"));
         }
 
@@ -3008,7 +3008,7 @@ static class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "a ?? (() => { })").WithArguments("??", "System.Action<int>", "lambda expression"));
         }
 
@@ -3064,7 +3064,7 @@ class A
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,22): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c = a ?? b;
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
@@ -3101,7 +3101,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,22): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c = a ?? b;
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
@@ -3135,7 +3135,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c2 = b2 ?? a2;
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
@@ -3392,7 +3392,7 @@ class Program
         System.Console.WriteLine(c2 ? 7 : 8);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3419,7 +3419,7 @@ class Program
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (14,13): error CS0029: Cannot implicitly convert type 'Program.C?' to 'bool'
                 //         if (c) 
@@ -3461,7 +3461,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (13,20): error CS0039: Cannot convert type 'void' to 'T' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         object o = Main() as T;
@@ -3495,7 +3495,7 @@ class Program
             // NOTE:    We follow the specification and generate WRN_IsAlwaysFalse
             // NOTE:    instead of an error.
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (13,18): warning CS0184: The given expression is never of the provided ('T') type
                 //         bool b = Main() is T;
@@ -3548,7 +3548,7 @@ class Outer<T>
     public enum E { }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (16,13): warning CS0184: The given expression is never of the provided ('Outer<long>.C') type
                 //         b = c2 is Outer<long>.C;    // Always false.
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "c2 is Outer<long>.C").WithArguments("Outer<long>.C").WithLocation(16, 13),
@@ -3596,7 +3596,7 @@ class Outer<T>
     public struct S { }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,13): warning CS0183: The given expression is always of the provided ('Outer<T[]>.S') type
                 //         b = s2 is Outer<T[]>.S;     // Always true.
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s2 is Outer<T[]>.S").WithArguments("Outer<T[]>.S").WithLocation(11, 13));
@@ -3647,7 +3647,7 @@ class Outer<T>
     public enum E { }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,13): warning CS0183: The given expression is always of the provided ('System.Enum') type
                 //         b = e1 is Enum; // Always true.
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "e1 is Enum").WithArguments("System.Enum").WithLocation(11, 13),
@@ -3817,7 +3817,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (37,21): error CS0039: Cannot convert type 'Bar' to 'Foo' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         object a1 = numeral as Foo;
@@ -3865,7 +3865,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is C").WithArguments("C"));
         }
 
@@ -3890,7 +3890,7 @@ public class Base
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (12,27): warning CS0184: The given expression is never of the provided ('System.IntPtr') type
                 //         Console.WriteLine(e is IntPtr);
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "e is IntPtr").WithArguments("System.IntPtr"),
@@ -3916,7 +3916,7 @@ public class Base
         return false;
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (3,39): error CS1670: params is not valid in this context public static bool operator >(X a, params int[] b)
                 Diagnostic(ErrorCode.ERR_IllegalParams, "params"),
                 // (8,40): error CS1670: params is not valid in this context
@@ -4048,7 +4048,7 @@ struct S
 
 ";
             CompileAndVerify(source1, expectedOutput: "1");
-            CreateCompilationWithMscorlib(source2).VerifyDiagnostics(
+            CreateStandardCompilation(source2).VerifyDiagnostics(
 // (16,9): error CS0034: Operator '==' is ambiguous on operands of type 'S?' and '<null>'
 //     if (s == null) s = default(S);
 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "s == null").WithArguments("==", "S?", "<null>"));
@@ -4074,7 +4074,7 @@ class B : A
     }
 }
 class D {}";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [Fact(), WorkItem(543433, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543433")]
@@ -4098,7 +4098,7 @@ class B : A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b++").WithArguments("A", "B"));
+            CreateStandardCompilation(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b++").WithArguments("A", "B"));
         }
 
         [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
@@ -4167,7 +4167,7 @@ class D
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (21,27): error CS0019: Operator '==' cannot be applied to operands of type 'System.Func<int>' and 'D'
                 //         Console.WriteLine((Func<int>)(C)null == (D)null);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(Func<int>)(C)null == (D)null").WithArguments("==", "System.Func<int>", "D"),
@@ -4212,7 +4212,7 @@ class D
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (26,27): error CS0019: Operator '==' cannot be applied to operands of type 'C' and 'D'
                 //         Console.WriteLine((C)null == (D)null);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(C)null == (D)null").WithArguments("==", "C", "D"),
@@ -4311,7 +4311,7 @@ public class ConstrainedTestContext<T,U> where T : Gen<U>
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(544490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544490")]
@@ -4368,7 +4368,7 @@ class Derived1 : Base1
     public static Base1 operator +(Base1 b, Derived1 d) { return b; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4385,7 +4385,7 @@ class Derived2 : Base2
     public static Base2 operator +(Base2 b, Derived2 d) { return b; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4402,7 +4402,7 @@ class Derived3 : Base3
     public static Base3 op_Addition(Base3 b, Derived3 d) { return b; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4419,7 +4419,7 @@ class Derived4 : Base4
     public static Base4 op_Addition(Base4 b, Derived4 d) { return b; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,25): warning CS0108: 'Derived4.op_Addition(Base4, Derived4)' hides inherited member 'Base4.op_Addition(Base4, Derived4)'. Use the new keyword if hiding was intended.
                 //     public static Base4 op_Addition(Base4 b, Derived4 d) { return b; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "op_Addition").WithArguments("Derived4.op_Addition(Base4, Derived4)", "Base4.op_Addition(Base4, Derived4)"));
@@ -4439,7 +4439,7 @@ class Derived1 : Base1
     public static implicit operator string(Base1 b) { return null; } // CS0556, but not CS0108
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,37): error CS0556: User-defined conversion must convert to or from the enclosing type
                 //     public static implicit operator string(Base1 b) { return null; }
                 Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "string"));
@@ -4459,7 +4459,7 @@ class Derived2 : Base2
     public static implicit operator string(Derived2 d) { return null; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4476,7 +4476,7 @@ class Derived3 : Base3
     public static string op_Explicit(Base3 b) { return null; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4493,7 +4493,7 @@ class Derived4 : Base4
     public static string op_Explicit(Base4 b) { return null; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,26): warning CS0108: 'Derived4.op_Explicit(Base4)' hides inherited member 'Base4.op_Explicit(Base4)'. Use the new keyword if hiding was intended.
                 //     public static string op_Explicit(Base4 b) { return null; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "op_Explicit").WithArguments("Derived4.op_Explicit(Base4)", "Base4.op_Explicit(Base4)"));
@@ -4568,7 +4568,7 @@ class op_UnsignedRightShift
 		
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,38): error CS0542: 'op_Increment': member names cannot be the same as their enclosing type
                 // 	public static op_Increment operator ++ (op_Increment c) { return null; }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "++").WithArguments("op_Increment"),
@@ -4630,7 +4630,7 @@ class op_Implicit
     public static implicit operator op_Implicit(int x) { return null; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,37): error CS0542: 'op_Explicit': member names cannot be the same as their enclosing type
                 //     public static explicit operator op_Explicit(int x) { return null; }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "op_Explicit").WithArguments("op_Explicit"),
@@ -4731,7 +4731,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var expectedOperator = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S1").GetMembers(WellKnownMemberNames.EqualityOperatorName).
@@ -4781,7 +4781,7 @@ class Program
 }
 ";
             // CONSIDER: This is a little silly, since that method will never be called.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (27,16): warning CS0618: 'S1.operator ==(S1, S1)' is obsolete: 'A'
                 //         return s1 == null;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "s1 == null").WithArguments("S1.operator ==(S1, S1)", "A"));
@@ -4816,7 +4816,7 @@ class Program
 }
 ";
             // CONSIDER: There is no reason not to allow this, but dev11 doesn't.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (21,16): error CS0019: Operator '==' cannot be applied to operands of type 'S1?' and 'S2?'
                 //         return s1 == s2;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 == s2").WithArguments("==", "S1?", "S2?"));
@@ -4851,7 +4851,7 @@ class Program
 }
 ";
             // SPEC VIOLATION: According to the spec, this is ambiguous.  However, we will match the dev11 behavior.
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -4893,7 +4893,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (21,18): error CS0034: Operator '|' is ambiguous on operands of type 'InputParameter' and 'InputParameter'
                 //         bool b = i1 | i2;
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i1 | i2").WithArguments("|", "InputParameter", "InputParameter"));
@@ -4931,7 +4931,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"A
 A");
         }
@@ -4978,7 +4978,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(comp,
                 "Operator '|' is ambiguous on operands of type 'InputParameter' and 'InputParameter'");
         }
@@ -5006,7 +5006,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -5043,7 +5043,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (16,18): error CS0019: Operator '||' cannot be applied to operands of type 'InputParameter' and 'InputParameter'
                 //         bool b = i1 || i2;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "i1 || i2").WithArguments("||", "InputParameter", "InputParameter"));
@@ -5076,7 +5076,7 @@ public class RubyTime
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact()]
@@ -5168,7 +5168,7 @@ public class RubyTime
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -5384,7 +5384,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -5535,7 +5535,7 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -5692,7 +5692,7 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -6228,7 +6228,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -6263,7 +6263,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -6307,7 +6307,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -6372,7 +6372,7 @@ struct TestStr
 {}
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics(
     // (17,20): error CS0019: Operator '==' cannot be applied to operands of type 'TestStr?' and 'TestStr?'
@@ -6437,7 +6437,7 @@ struct TestStr
         return i += 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees[0];
@@ -6476,9 +6476,9 @@ public static class Program
         M(1 - Color.Red);
     }
 }";
-            CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source1, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
-            CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+            CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (7,11): error CS0019: Operator '-' cannot be applied to operands of type 'int' and 'Color'
                 //         M(1 - Color.Red);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 - Color.Red").WithArguments("-", "int", "Color").WithLocation(7, 11)
@@ -6591,7 +6591,7 @@ class P
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (18,13): error CS0218: In order for 'B.operator &(B, B)' to be applicable as a short circuit operator, its declaring type 'B' must define operator true and operator false
                 //         if (x && y)
@@ -7345,7 +7345,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (26,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'int'
     //         Print(x - c);
     Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - c").WithArguments("-", "TestEnum", "int").WithLocation(26, 15),
@@ -7852,7 +7852,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (24,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long'
     //         Print(x - d);
     Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum", "long").WithLocation(24, 15),
@@ -8848,7 +8848,7 @@ class MainClass
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics();
         }
@@ -8894,6 +8894,56 @@ public enum FlagsEnum
 ";
             var verifier = CompileAndVerify(source, expectedOutput: "Foo, Bar");
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IsWarningWithNonNullConstant()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        const string d = ""foo"";
+        var x = d is string;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source)
+                .VerifyDiagnostics(
+                // (6,17): warning CS0183: The given expression is always of the provided ('string') type
+                //         var x = d is string;
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "d is string").WithArguments("string").WithLocation(6, 17)
+                );
+        }
+
+        [Fact, WorkItem(19310, "https://github.com/dotnet/roslyn/issues/19310")]
+        public void IsWarningWithTupleConversion()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var t = (x: 1, y: 2);
+        if (t is ValueTuple<long, int>) { }   // too big
+        if (t is ValueTuple<short, int>) { }  // too small
+        if (t is ValueTuple<int, int>) { }    // goldilocks
+    }
+}";
+            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+                .VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('(long, int)') type
+                //         if (t is ValueTuple<long, int>) { }   // too big
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is ValueTuple<long, int>").WithArguments("(long, int)").WithLocation(7, 13),
+                // (8,13): warning CS0184: The given expression is never of the provided ('(short, int)') type
+                //         if (t is ValueTuple<short, int>) { }  // too small
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is ValueTuple<short, int>").WithArguments("(short, int)").WithLocation(8, 13),
+                // (9,13): warning CS0183: The given expression is always of the provided ('(int, int)') type
+                //         if (t is ValueTuple<int, int>) { }    // goldilocks
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "t is ValueTuple<int, int>").WithArguments("(int, int)").WithLocation(9, 13)
+                );
         }
     }
 }

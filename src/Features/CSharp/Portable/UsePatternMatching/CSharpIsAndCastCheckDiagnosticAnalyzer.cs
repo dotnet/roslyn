@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
@@ -138,6 +139,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 //
                 // TODO(cyrusn): Consider allowing the user to do this, but giving 
                 // them an error preview.
+                return;
+            }
+
+            var semanticModel = syntaxContext.SemanticModel;
+            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+            var isType = semanticModel.GetTypeInfo(castExpression.Type).Type;
+
+            if (isType.IsNullable())
+            {
+                // not legal to write "if (x is int? y)"
+                return;
+            }
+
+            if (!localSymbol.Type.Equals(isType))
+            {
+                // we have something like:
+                //
+                //      if (x is DerivedType)
+                //      {
+                //          BaseType b = (DerivedType)x;
+                //      }
+                //
+                // It's not necessarily safe to convert this to:
+                //
+                //      if (x is DerivedType b) { ... }
+                //
+                // That's because there may be later code that wants to do something like assign a 
+                // 'BaseType' into 'b'.  As we've now claimed that it must be DerivedType, that 
+                // won't work.  This might also cause unintended changes like changing overload
+                // resolution.  So, we conservatively do not offer the change in a situation like this.
                 return;
             }
 

@@ -42,7 +42,7 @@ partial class Foo
     partial void ImplementedMethod() { }
 }", options: TestOptions.RegularWithDocumentationComments);
 
-            _compilation = CreateCompilationWithMscorlib(new[] { tree1, tree2 });
+            _compilation = CreateStandardCompilation(new[] { tree1, tree2 });
 
             _fooClass = _compilation.GlobalNamespace.GetTypeMembers("Foo").Single();
         }

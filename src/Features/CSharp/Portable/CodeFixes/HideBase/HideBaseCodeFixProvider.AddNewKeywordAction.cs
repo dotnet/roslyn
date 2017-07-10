@@ -1,9 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 {
@@ -34,30 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 
             private SyntaxNode GetNewNode(Document document, SyntaxNode node, CancellationToken cancellationToken)
             {
-                SyntaxNode newNode = null;
-
-                var propertyStatement = node as PropertyDeclarationSyntax;
-                if (propertyStatement != null)
-                {
-                    newNode = propertyStatement.AddModifiers(SyntaxFactory.Token(SyntaxKind.NewKeyword)) as SyntaxNode;
-                }
-
-                var methodStatement = node as MethodDeclarationSyntax;
-                if (methodStatement != null)
-                {
-                    newNode = methodStatement.AddModifiers(SyntaxFactory.Token(SyntaxKind.NewKeyword));
-                }
-
-                var fieldDeclaration = node as FieldDeclarationSyntax;
-                if (fieldDeclaration != null)
-                {
-                    newNode = fieldDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.NewKeyword));
-                }
-
-                //Make sure we preserve any trivia from the original node
-                newNode = newNode.WithTriviaFrom(node);
-
-                return newNode.WithAdditionalAnnotations(Formatter.Annotation);
+                var generator = SyntaxGenerator.GetGenerator(_document);
+                return generator.WithModifiers(node, generator.GetModifiers(node).WithIsNew(true));
             }
         }
     }

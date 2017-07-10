@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Utilities;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             CSharpCompilation compilation,
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
-            InScopeHoistedLocals inScopeHoistedLocals,
+            ImmutableSortedSet<int> inScopeHoistedLocalSlots,
             MethodDebugInfo<TypeSymbol, LocalSymbol> methodDebugInfo)
         {
             _currentFrame = currentFrame;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 GetDisplayClassVariables(
                     currentFrame,
                     _locals,
-                    inScopeHoistedLocals,
+                    inScopeHoistedLocalSlots,
                     out displayClassVariableNamesInOrder,
                     out _displayClassVariables,
                     out _hoistedParameterNames);
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Assert that the cheap check for "this" is equivalent to the expensive check for "this".
             Debug.Assert(
-                _displayClassVariables.ContainsKey(GeneratedNames.ThisProxyFieldName()) ==
+                (GetThisProxy(_displayClassVariables) != null) ==
                 _displayClassVariables.Values.Any(v => v.Kind == DisplayClassVariableKind.This));
         }
 
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 this,
                 (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
                 {
-                    var hasDisplayClassThis = _displayClassVariables.ContainsKey(GeneratedNames.ThisProxyFieldName());
+                    var hasDisplayClassThis = GetThisProxy(_displayClassVariables) != null;
                     var binder = ExtendBinderChain(
                         syntax,
                         aliases,
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 this,
                 (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
                 {
-                    var hasDisplayClassThis = _displayClassVariables.ContainsKey(GeneratedNames.ThisProxyFieldName());
+                    var hasDisplayClassThis = GetThisProxy(_displayClassVariables) != null;
                     var binder = ExtendBinderChain(
                         syntax,
                         aliases,
@@ -349,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                         // "this" for non-static methods that are not display class methods or
                         // display class methods where the display class contains "<>4__this".
-                        if (!m.IsStatic && (!IsDisplayClassType(m.ContainingType) || _displayClassVariables.ContainsKey(GeneratedNames.ThisProxyFieldName())))
+                        if ((!m.IsStatic && !IsDisplayClassType(m.ContainingType)) || GetThisProxy( _displayClassVariables) != null)
                         {
                             var methodName = GetNextMethodName(methodBuilder);
                             var method = this.GetThisMethod(container, methodName);
@@ -381,7 +382,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     foreach (var parameter in m.Parameters)
                     {
                         var parameterName = parameter.Name;
-                        if (!_hoistedParameterNames.Contains(parameterName) && GeneratedNames.GetKind(parameterName) == GeneratedNameKind.None)
+                        if (!_hoistedParameterNames.Contains(parameterName) &&
+                            GeneratedNames.GetKind(parameterName) == GeneratedNameKind.None &&
+                            !IsDisplayClassParameter(parameter))
                         {
                             AppendParameterAndMethod(localBuilder, methodBuilder, parameter, container, parameterIndex);
                         }
@@ -564,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var type = method.TypeMap.SubstituteNamedType(typeVariablesType);
-                var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0]);
+                var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0], null);
                 var statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 properties = default(ResultProperties);
                 return statement;
@@ -579,10 +582,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // type names which are bound to a representation of the type
             // (but not System.Type) that the user can expand to see the
             // base type. Instead, we only allow valid C# expressions.
-            var expression = binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
+            var expression = IsDeconstruction(syntax)
+                ? binder.BindDeconstruction((AssignmentExpressionSyntax)syntax, diagnostics, resultIsUsedOverride: true)
+                : binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
             if (diagnostics.HasAnyErrors())
             {
-                resultProperties = default(ResultProperties);
+                resultProperties = default;
                 return null;
             }
 
@@ -634,6 +639,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValue != null);
             return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+        }
+
+        private static bool IsDeconstruction(ExpressionSyntax syntax)
+        {
+            if (syntax.Kind() != SyntaxKind.SimpleAssignmentExpression)
+            {
+                return false;
+            }
+
+            var node = (AssignmentExpressionSyntax)syntax;
+            return node.Left.Kind() == SyntaxKind.TupleExpression || node.Left.Kind() == SyntaxKind.DeclarationExpression;
         }
 
         private static BoundStatement BindStatement(Binder binder, StatementSyntax syntax, DiagnosticBag diagnostics, out ResultProperties properties)
@@ -1187,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static void GetDisplayClassVariables(
             MethodSymbol method,
             ImmutableArray<LocalSymbol> locals,
-            InScopeHoistedLocals inScopeHoistedLocals,
+            ImmutableSortedSet<int> inScopeHoistedLocalSlots,
             out ImmutableArray<string> displayClassVariableNamesInOrder,
             out ImmutableDictionary<string, DisplayClassVariable> displayClassVariables,
             out ImmutableHashSet<string> hoistedParameterNames)
@@ -1212,7 +1228,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             foreach (var parameter in method.Parameters)
             {
-                if (GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier)
+                if (GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier ||
+                    IsDisplayClassParameter(parameter))
                 {
                     var instance = new DisplayClassInstanceFromParameter(parameter);
                     displayClassTypes.Add(instance.Type);
@@ -1277,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         displayClassVariableNamesInOrderBuilder,
                         displayClassVariablesBuilder,
                         parameterNames,
-                        inScopeHoistedLocals,
+                        inScopeHoistedLocalSlots,
                         instance,
                         pooledHoistedParameterNames);
                 }
@@ -1335,60 +1352,72 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             // Display class instance. The display class fields are variables.
             int n = 0;
+
             foreach (var member in instance.Type.GetMembers())
             {
                 if (member.Kind != SymbolKind.Field)
                 {
                     continue;
                 }
+
                 var field = (FieldSymbol)member;
                 var fieldType = field.Type;
-                var fieldKind = GeneratedNames.GetKind(field.Name);
-                if (fieldKind == GeneratedNameKind.DisplayClassLocalOrField ||
-                    fieldKind == GeneratedNameKind.TransparentIdentifier ||
-                    IsTransparentIdentifierFieldInAnonymousType(field) ||
-                    (fieldKind == GeneratedNameKind.ThisProxyField && GeneratedNames.GetKind(fieldType.Name) == GeneratedNameKind.LambdaDisplayClass)) // Async lambda case.
+                var fieldName = field.Name;
+                TryParseGeneratedName(fieldName, out var fieldKind, out var part);
+
+                switch (fieldKind)
                 {
-                    Debug.Assert(!field.IsStatic);
-                    // A local that is itself a display class instance.
-                    if (displayClassTypes.Add((NamedTypeSymbol)fieldType))
-                    {
-                        var other = instance.FromField(field);
-                        displayClassInstances.Add(other);
-                        n++;
-                    }
+                    case GeneratedNameKind.DisplayClassLocalOrField:
+                    case GeneratedNameKind.TransparentIdentifier:
+                        break;
+                    case GeneratedNameKind.AnonymousTypeField:
+                        if (GeneratedNames.GetKind(part) != GeneratedNameKind.TransparentIdentifier)
+                        {
+                            continue;
+                        }
+                        break;
+                    case GeneratedNameKind.ThisProxyField:
+                        if (GeneratedNames.GetKind(fieldType.Name) != GeneratedNameKind.LambdaDisplayClass)
+                        {
+                            continue;
+                        }
+                        // Async lambda case.
+                        break;
+                    default:
+                        continue;
+                }
+
+                Debug.Assert(!field.IsStatic);
+
+                // A hoisted local that is itself a display class instance.
+                if (displayClassTypes.Add((NamedTypeSymbol)field.Type))
+                {
+                    var other = instance.FromField(field);
+                    displayClassInstances.Add(other);
+                    n++;
                 }
             }
+
             return n;
         }
 
-        private static bool IsTransparentIdentifierFieldInAnonymousType(FieldSymbol field)
+        /// <summary>
+        /// Returns true if the parameter is a synthesized parameter representing
+        /// a display class instance (used to pass hoisted symbols to local functions).
+        /// </summary>
+        private static bool IsDisplayClassParameter(ParameterSymbol parameter)
         {
-            string fieldName = field.Name;
-
-            if (GeneratedNames.GetKind(fieldName) != GeneratedNameKind.AnonymousTypeField)
-            {
-                return false;
-            }
-
-            GeneratedNameKind kind;
-            int openBracketOffset;
-            int closeBracketOffset;
-            if (!GeneratedNames.TryParseGeneratedName(fieldName, out kind, out openBracketOffset, out closeBracketOffset))
-            {
-                return false;
-            }
-
-            fieldName = fieldName.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
-
-            return GeneratedNames.GetKind(fieldName) == GeneratedNameKind.TransparentIdentifier;
+            var type = parameter.Type;
+            var result = type.Kind == SymbolKind.NamedType && IsDisplayClassType((NamedTypeSymbol)type);
+            Debug.Assert(!result || parameter.MetadataName == "");
+            return result;
         }
 
         private static void GetDisplayClassVariables(
             ArrayBuilder<string> displayClassVariableNamesInOrderBuilder,
             Dictionary<string, DisplayClassVariable> displayClassVariablesBuilder,
             HashSet<string> parameterNames,
-            InScopeHoistedLocals inScopeHoistedLocals,
+            ImmutableSortedSet<int> inScopeHoistedLocalSlots,
             DisplayClassInstanceAndFields instance,
             HashSet<string> hoistedParameterNames)
         {
@@ -1407,16 +1436,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                 DisplayClassVariableKind variableKind;
                 string variableName;
-                GeneratedNameKind fieldKind;
-                int openBracketOffset;
-                int closeBracketOffset;
-                GeneratedNames.TryParseGeneratedName(fieldName, out fieldKind, out openBracketOffset, out closeBracketOffset);
+                TryParseGeneratedName(fieldName, out var fieldKind, out var part);
 
                 switch (fieldKind)
                 {
                     case GeneratedNameKind.AnonymousTypeField:
                         Debug.Assert(fieldName == field.Name); // This only happens once.
-                        fieldName = fieldName.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+                        fieldName = part;
                         goto REPARSE;
                     case GeneratedNameKind.TransparentIdentifier:
                         // A transparent identifier (field) in an anonymous type synthesized for a transparent identifier.
@@ -1430,18 +1456,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         // Filter out hoisted locals that are known to be out-of-scope at the current IL offset.
                         // Hoisted locals with invalid indices will be included since more information is better
                         // than less in error scenarios.
-                        if (!inScopeHoistedLocals.IsInScope(fieldName))
+                        if (GeneratedNames.TryParseSlotIndex(fieldName, out int slotIndex) &&
+                            !inScopeHoistedLocalSlots.Contains(slotIndex))
                         {
                             continue;
                         }
 
-                        variableName = fieldName.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+                        variableName = part;
                         variableKind = DisplayClassVariableKind.Local;
                         Debug.Assert(!field.IsStatic);
                         break;
                     case GeneratedNameKind.ThisProxyField:
                         // A reference to "this".
-                        variableName = fieldName;
+                        variableName = ""; // Should not be referenced by name.
                         variableKind = DisplayClassVariableKind.This;
                         Debug.Assert(!field.IsStatic);
                         break;
@@ -1487,6 +1514,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
+        private static bool TryParseGeneratedName(string name, out GeneratedNameKind kind, out string part)
+        {
+            bool result = GeneratedNames.TryParseGeneratedName(name, out kind, out int openBracketOffset, out int closeBracketOffset);
+            switch (kind)
+            {
+                case GeneratedNameKind.AnonymousTypeField:
+                case GeneratedNameKind.HoistedLocalField:
+                    part = name.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+                    break;
+                default:
+                    part = null;
+                    break;
+            }
+            return result;
+        }
+
         private static bool IsDisplayClassType(NamedTypeSymbol type)
         {
             switch (GeneratedNames.GetKind(type.Name))
@@ -1497,6 +1540,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 default:
                     return false;
             }
+        }
+
+        internal static DisplayClassVariable GetThisProxy(ImmutableDictionary<string, DisplayClassVariable> displayClassVariables)
+        {
+            return displayClassVariables.Values.FirstOrDefault(v => v.Kind == DisplayClassVariableKind.This);
         }
 
         private static NamedTypeSymbol GetNonDisplayClassContainer(NamedTypeSymbol type)

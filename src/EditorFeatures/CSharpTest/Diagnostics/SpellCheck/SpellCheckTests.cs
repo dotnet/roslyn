@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -500,6 +500,39 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [WorkItem(18626, "https://github.com/dotnet/roslyn/issues/18626")]
+        public async Task TestForExplicitInterfaceTypeName()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface IProjectConfigurationsService
+{
+    void Method();
+}
+
+class Program : IProjectConfigurationsService
+{
+    void [|IProjectConfigurationService|].Method()
+    {
+
+    }
+}",
+@"interface IProjectConfigurationsService
+{
+    void Method();
+}
+
+class Program : IProjectConfigurationsService
+{
+    void IProjectConfigurationsService.Method()
+    {
+
+    }
+}");
+        }
+
+        
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]

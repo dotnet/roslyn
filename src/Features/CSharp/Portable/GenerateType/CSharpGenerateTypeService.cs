@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                         outerMostMemberAccessExpression = (ExpressionSyntax)nameOrMemberAccessExpression.Parent;
                     }
 
-                    outerMostMemberAccessExpression = outerMostMemberAccessExpression.GetAncestorsOrThis<ExpressionSyntax>().SkipWhile((n) => n != null && n.IsKind(SyntaxKind.SimpleMemberAccessExpression)).FirstOrDefault();
+                    outerMostMemberAccessExpression = outerMostMemberAccessExpression.GetAncestorsOrThis<ExpressionSyntax>().SkipWhile(n => n != null && n.IsKind(SyntaxKind.SimpleMemberAccessExpression)).FirstOrDefault();
                     if (outerMostMemberAccessExpression != null && outerMostMemberAccessExpression is InvocationExpressionSyntax)
                     {
                         generateTypeServiceStateOptions.IsEnumNotAllowed = true;
@@ -526,9 +526,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         }
 
         protected override IList<ParameterName> GenerateParameterNames(
-            SemanticModel semanticModel, IList<ArgumentSyntax> arguments)
+            SemanticModel semanticModel, IList<ArgumentSyntax> arguments, CancellationToken cancellationToken)
         {
-            return semanticModel.GenerateParameterNames(arguments);
+            return semanticModel.GenerateParameterNames(arguments, reservedNames: null, cancellationToken: cancellationToken);
         }
 
         public override string GetRootNamespace(CompilationOptions options)
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 attributes: ImmutableArray<AttributeData>.Empty,
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: propertyName.Identifier.ValueText,
                 type: propertyType,
                 returnsByRef: false,

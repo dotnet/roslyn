@@ -886,7 +886,7 @@ Do you want to continue?</value>
     <value>Unable to load Analyzer assembly {0}: {1}</value>
   </data>
   <data name="Make_method_synchronous" xml:space="preserve">
-    <value>Make method synchronous.</value>
+    <value>Make method synchronous</value>
   </data>
   <data name="Add_this_or_Me_qualification" xml:space="preserve">
     <value>Add 'this' or 'Me' qualification.</value>
@@ -1043,11 +1043,8 @@ This version used in: {2}</value>
   <data name="Use_throw_expression" xml:space="preserve">
     <value>Use 'throw' expression</value>
   </data>
-  <data name="project_space" xml:space="preserve">
-    <value>project </value>
-  </data>
-  <data name="type_space" xml:space="preserve">
-    <value>type </value>
+  <data name="project_0" xml:space="preserve">
+    <value>project {0}</value>
   </data>
   <data name="Inline_variable_declaration" xml:space="preserve">
     <value>Inline variable declaration</value>
@@ -1211,6 +1208,27 @@ This version used in: {2}</value>
   <data name="Pick_members_to_override" xml:space="preserve">
     <value>Pick members to override</value>
   </data>
+  <data name="Add_null_check" xml:space="preserve">
+    <value>Add null check</value>
+  </data>
+  <data name="Add_string_IsNullOrEmpty_check" xml:space="preserve">
+    <value>Add 'string.IsNullOrEmpty' check</value>
+  </data>
+  <data name="Add_string_IsNullOrWhiteSpace_check" xml:space="preserve">
+    <value>Add 'string.IsNullOrWhiteSpace' check</value>
+  </data>
+  <data name="Create_and_initialize_field_0" xml:space="preserve">
+    <value>Create and initialize field '{0}'</value>
+  </data>
+  <data name="Create_and_initialize_property_0" xml:space="preserve">
+    <value>Create and initialize property '{0}'</value>
+  </data>
+  <data name="Initialize_field_0" xml:space="preserve">
+    <value>Initialize field '{0}'</value>
+  </data>
+  <data name="Initialize_property_0" xml:space="preserve">
+    <value>Initialize property '{0}'</value>
+  </data>
   <data name="Add_null_checks" xml:space="preserve">
     <value>Add null checks</value>
   </data>
@@ -1219,5 +1237,32 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_0" xml:space="preserve">
     <value>Implement {0}</value>
+  </data>
+  <data name="Simplify_default_expression" xml:space="preserve">
+    <value>Simplify 'default' expression</value>
+  </data>
+  <data name="default_expression_can_be_simplified" xml:space="preserve">
+    <value>'default' expression can be simplified</value>
+  </data>
+  <data name="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed" xml:space="preserve">
+    <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
+  </data>
+  <data name="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file" xml:space="preserve">
+    <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
+  </data>
+  <data name="Unreachable_code_detected" xml:space="preserve">
+    <value>Unreachable code detected</value>
+  </data>
+  <data name="Remove_unreachable_code" xml:space="preserve">
+    <value>Remove unreachable code</value>
+  </data>
+  <data name="Modifiers_are_not_ordered" xml:space="preserve">
+    <value>Modifiers are not ordered</value>
+  </data>
+  <data name="Order_modifiers" xml:space="preserve">
+    <value>Order modifiers</value>
+  </data>
+  <data name="in_0_project_1" xml:space="preserve">
+    <value>in {0} (project {1})</value>
   </data>
 </root>

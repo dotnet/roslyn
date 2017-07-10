@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public S(int i) {}
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
     // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int I = 9;
     Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public S(int i) : this() {}
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
     // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int I = 9;
@@ -88,7 +88,7 @@ class A {
     A G;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var f = a.GetMembers("F").Single() as FieldSymbol;
@@ -175,7 +175,7 @@ class A {
     int? F = null;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var sym = a.GetMembers("F").Single() as FieldSymbol;
@@ -199,7 +199,7 @@ class A {
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var type1 = comp.GlobalNamespace.GetTypeMembers("C", 1).Single();
             var type2 = type1.GetTypeMembers("S").Single();
 
@@ -234,7 +234,7 @@ class C1
     @out @in;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(Parse(text));
+            var comp = CreateStandardCompilation(Parse(text));
             NamedTypeSymbol c1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C1").Single();
             FieldSymbol ein = (FieldSymbol)c1.GetMembers("in").Single();
             Assert.Equal("in", ein.Name);
@@ -254,7 +254,7 @@ class C
     const int x;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(Parse(text));
+            var comp = CreateStandardCompilation(Parse(text));
             NamedTypeSymbol type1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C").Single();
             FieldSymbol mem = (FieldSymbol)type1.GetMembers("x").Single();
             Assert.Equal("x", mem.Name);
@@ -276,7 +276,7 @@ class A
 ";
 
             // CONSIDER: Roslyn's cascading errors are much uglier than Dev10's.
-            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (4,11): error CS1031: Type expected
                 //     const delegate void D();
                 Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(4, 11),
@@ -344,7 +344,7 @@ class A
 ";
 
             // CONSIDER: Roslyn's cascading errors are much uglier than Dev10's.
-            CreateCompilationWithMscorlib(Parse(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6))).VerifyDiagnostics(
+            CreateStandardCompilation(Parse(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6))).VerifyDiagnostics(
                 // (4,11): error CS1031: Type expected
                 //     const delegate void D();
                 Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(4, 11),
@@ -360,9 +360,9 @@ class A
                 // (5,37): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(5, 37),
-                // (5,43): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (5,43): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(5, 43),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(5, 43),
                 // (5,44): error CS8124: Tuple must contain at least two elements.
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 44),
@@ -413,7 +413,7 @@ class A
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,5): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown"),
                 // (4,13): warning CS0169: The field 'A.a' is never used
@@ -470,7 +470,7 @@ class K
         return v => { value__ = v; };
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (19,25): warning CS0067: The event 'E.value__' is never used
                 //     event System.Action value__;
@@ -483,7 +483,7 @@ class K
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "value__").WithArguments("A.value__"));
 
             // PEVerify should not report "Field value__ ... is not marked RTSpecialName".
-            var verifier = new CompilationVerifier(this, compilation);
+            var verifier = new CompilationVerifier(compilation);
             verifier.EmitAndVerify(
                 "Error: Field name value__ is reserved for Enums only.",
                 "Error: Field name value__ is reserved for Enums only.",

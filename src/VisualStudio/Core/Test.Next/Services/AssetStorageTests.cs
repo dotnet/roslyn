@@ -15,18 +15,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestCreation()
         {
-            var sessionId = 0;
-
             var storage = new AssetStorage();
-            var source = new TestAssetSource(storage, sessionId);
+            var source = new TestAssetSource(storage);
 
-            var stored = storage.TryGetAssetSource(sessionId);
+            var stored = storage.AssetSource;
             Assert.Equal(source, stored);
-
-            storage.UnregisterAssetSource(sessionId);
-
-            var none = storage.TryGetAssetSource(sessionId);
-            Assert.Null(none);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]

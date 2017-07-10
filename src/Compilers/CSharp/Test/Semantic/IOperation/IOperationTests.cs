@@ -33,7 +33,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (7,15): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         Test2(new object(), null);
@@ -44,17 +44,17 @@ public class Cls
             var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
 
             compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
-@"IInvocationExpression (static void Cls.Test1(params System.Int32[] x)) (OperationKind.InvocationExpression, Type: System.Void)
-  IArgument (Matching Parameter: x) (OperationKind.Argument)
-    IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null)
-      ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null)");
+@"IInvocationExpression (static void Cls.Test1(params System.Int32[] x)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Test1(null)')
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'null')
+      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null) (Syntax: 'null')
+        ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')");
 
             compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
-@"IInvocationExpression (static void Cls.Test2(System.Int32 y, params System.Int32[] x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid)
-  IArgument (Matching Parameter: y) (OperationKind.Argument)
-    IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object)
-  IArgument (Matching Parameter: x) (OperationKind.Argument)
-    ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null)");
+@"IInvocationExpression (static void Cls.Test2(System.Int32 y, params System.Int32[] x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'new object()')
+      IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'new object()')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'null')
+      ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')");
         }
 
         [Fact]
@@ -75,7 +75,7 @@ public class C
         a = b = c = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.RegularWithIOperationFeature);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

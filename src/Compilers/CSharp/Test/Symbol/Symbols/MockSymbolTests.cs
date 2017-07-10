@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     break;
 
                 default:
-                    throw new ApplicationException("unexpected xml element");
+                    throw new InvalidOperationException("unexpected xml element");
             }
 
             foreach (IMockSymbol child in childSymbols)
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else
             {
-                throw new ApplicationException("Unexpected symbol kind");
+                throw new InvalidOperationException("Unexpected symbol kind");
             }
 
             if (sym is NamespaceOrTypeSymbol && ((NamespaceOrTypeSymbol)sym).GetMembers().Any())

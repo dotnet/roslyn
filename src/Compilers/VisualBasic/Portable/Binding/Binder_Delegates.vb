@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -142,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     boundFirstArgument = New BoundBadExpression(argumentSyntax,
                                                                 LookupResultKind.Empty,
                                                                 ImmutableArray(Of Symbol).Empty,
-                                                                ImmutableArray(Of BoundNode).Empty,
+                                                                ImmutableArray(Of BoundExpression).Empty,
                                                                 ErrorTypeSymbol.UnknownResultType,
                                                                 hasErrors:=True)
                 End If
@@ -172,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     boundArguments(argumentIndex) = New BoundBadExpression(argumentSyntax,
                                                                            LookupResultKind.Empty,
                                                                            ImmutableArray(Of Symbol).Empty,
-                                                                           ImmutableArray(Of BoundNode).Empty,
+                                                                           ImmutableArray(Of BoundExpression).Empty,
                                                                            ErrorTypeSymbol.UnknownResultType,
                                                                            hasErrors:=True)
                 End If
@@ -192,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return BadExpression(node,
-                                 ImmutableArray.Create(Of BoundNode)(DirectCast(boundArguments, BoundNode())),
+                                 ImmutableArray.Create(boundArguments),
                                  delegateType)
         End Function
 

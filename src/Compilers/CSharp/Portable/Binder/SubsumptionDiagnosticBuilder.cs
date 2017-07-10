@@ -2,11 +2,11 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-
     /// <summary>
     /// Helper class for binding the pattern switch statement. It helps compute which labels
     /// are subsumed and/or reachable. The strategy, implemented in <see cref="PatternSwitchBinder"/>,
@@ -15,16 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// If it is not subsumed and there is no guard expression, we then add it to the decision
     /// tree.
     /// </summary>
-    internal class SubsumptionDiagnosticBuilder : DecisionTreeBuilder
+    internal sealed class SubsumptionDiagnosticBuilder : DecisionTreeBuilder
     {
         private readonly DecisionTree _subsumptionTree;
 
         internal SubsumptionDiagnosticBuilder(Symbol enclosingSymbol,
-                                               Conversions conversions,
-                                               BoundExpression expression)
-            : base(enclosingSymbol, conversions)
+                                              SwitchStatementSyntax syntax,
+                                              Conversions conversions,
+                                              BoundExpression expression)
+            : base(enclosingSymbol, syntax, conversions)
         {
-            _subsumptionTree = DecisionTree.Create(expression, expression.Type, enclosingSymbol);
+            _subsumptionTree = CreateEmptyDecisionTree(expression);
         }
 
         /// <summary>
@@ -51,11 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // For purposes of subsumption, we do not take into consideration the value
                 // of the input expression. Therefore we consider null possible if the type permits.
-                Syntax = label.Syntax;
-                var subsumedErrorCode = CheckSubsumed(label.Pattern, _subsumptionTree, inputCouldBeNull: true);
-                if (subsumedErrorCode != 0 && subsumedErrorCode != ErrorCode.ERR_NoImplicitConvCast)
+                var inputCouldBeNull = _subsumptionTree.Type.CanContainNull();
+                var subsumedErrorCode = CheckSubsumed(label.Pattern, _subsumptionTree, inputCouldBeNull: inputCouldBeNull);
+                if (subsumedErrorCode != 0)
                 {
-                    if (!label.HasErrors)
+                    if (!label.HasErrors && subsumedErrorCode != ErrorCode.ERR_NoImplicitConvCast)
                     {
                         diagnostics.Add(subsumedErrorCode, label.Pattern.Syntax.Location);
                     }

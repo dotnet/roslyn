@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var supportsNavigation = entry.Identity as ISupportsNavigation;
                 if (supportsNavigation != null)
                 {
-                    if (supportsNavigation.TryNavigateTo())
+                    if (supportsNavigation.TryNavigateTo(e.IsPreview))
                     {
                         e.Handled = true;
                         return;

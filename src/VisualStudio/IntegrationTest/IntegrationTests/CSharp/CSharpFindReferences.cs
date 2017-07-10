@@ -1,17 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -34,9 +30,9 @@ class Program
 {
 }$$
 ");
-
-            VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, "File2.cs");
-            VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "File2.cs");
+            var project = new ProjectUtils.Project(ProjectName); ;
+            VisualStudio.SolutionExplorer.AddFile(project, "File2.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "File2.cs");
 
             SetUpEditor(@"
 class SomeOtherClass
@@ -48,12 +44,12 @@ class SomeOtherClass
 }
 ");
 
-            SendKeys(Shift(VirtualKey.F12));
+            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
             const string programReferencesCaption = "'Program' references";
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(programReferencesCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(
@@ -89,12 +85,12 @@ class Program
 }
 ");
 
-            SendKeys(Shift(VirtualKey.F12));
+            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
             const string localReferencesCaption = "'local' references";
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(localReferencesCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(
@@ -129,12 +125,12 @@ class Program
 }
 ");
 
-            SendKeys(Shift(VirtualKey.F12));
+            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
             const string findReferencesCaption = "'\"1\"' references";
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(findReferencesCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents(findReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: findReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(

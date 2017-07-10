@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1018,21 +1019,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var data = this.ObsoleteAttributeData;
-                if (data == null)
+                switch (ObsoleteKind)
                 {
-                    return ThreeState.False;
-                }
-                else if (data.IsUninitialized)
-                {
-                    return ThreeState.Unknown;
-                }
-                else
-                {
-                    return ThreeState.True;
+                    case ObsoleteAttributeKind.None:
+                    case ObsoleteAttributeKind.Experimental:
+                        return ThreeState.False;
+                    case ObsoleteAttributeKind.Uninitialized:
+                        return ThreeState.Unknown;
+                    default:
+                        return ThreeState.True;
                 }
             }
         }
+
+        internal ObsoleteAttributeKind ObsoleteKind
+        {
+            get
+            {
+                var data = this.ObsoleteAttributeData;
+                return (data == null) ? ObsoleteAttributeKind.None : data.Kind;
+            }
+        }
+
 
         /// <summary>
         /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
@@ -1088,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SymbolDisplay.ToMinimalDisplayParts(this, semanticModel, position, format);
         }
 
-        protected static void ReportErrorIfHasConstraints(
+        internal static void ReportErrorIfHasConstraints(
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, DiagnosticBag diagnostics)
         {
             if (constraintClauses.Count > 0)

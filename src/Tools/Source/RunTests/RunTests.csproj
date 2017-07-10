@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>True</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -10,7 +10,8 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>RunTests</RootNamespace>
     <AssemblyName>RunTests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
@@ -19,8 +20,14 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="RestSharp" Version="$(RestSharpVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
+    <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyScheduler.cs" />
@@ -32,7 +39,6 @@
     <Compile Include="Cache\WebDataStorage.Json.cs" />
     <Compile Include="Cache\WebDataStorage.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="CrashDumps.cs" />
     <Compile Include="FileUtil.cs" />
     <Compile Include="Cache\IDataStorage.cs" />
     <Compile Include="ITestExecutor.cs" />
@@ -41,13 +47,14 @@
     <Compile Include="Options.cs" />
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProcessTestExecutor.cs" />
+    <Compile Include="ProcessUtil.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="TestRunner.cs" />
     <Compile Include="ConsoleUtil.cs" />
+    <Compile Include="..\..\..\Test\Utilities\Portable\FX\DumpProcRunner.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.Json.cs" />
-    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

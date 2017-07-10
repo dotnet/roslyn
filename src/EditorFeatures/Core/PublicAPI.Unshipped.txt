@@ -1,6 +1,1 @@
-Microsoft.CodeAnalysis.Editor.Tags.ExportImageMonikerServiceAttribute
-Microsoft.CodeAnalysis.Editor.Tags.ExportImageMonikerServiceAttribute.ExportImageMonikerServiceAttribute() -> void
-Microsoft.CodeAnalysis.Editor.Tags.ExportImageMonikerServiceAttribute.Name.get -> string
-Microsoft.CodeAnalysis.Editor.Tags.ExportImageMonikerServiceAttribute.Name.set -> void
-Microsoft.CodeAnalysis.Editor.Tags.IImageMonikerService
-Microsoft.CodeAnalysis.Editor.Tags.IImageMonikerService.TryGetImageMoniker(System.Collections.Immutable.ImmutableArray<string> tags, out Microsoft.VisualStudio.Imaging.Interop.ImageMoniker imageMoniker) -> bool
+

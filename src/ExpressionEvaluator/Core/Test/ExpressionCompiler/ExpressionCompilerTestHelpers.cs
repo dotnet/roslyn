@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 extern alias PDB;
 
@@ -20,13 +20,14 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
+using Microsoft.Metadata.Tools;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
-using PDB::Roslyn.Test.MetadataUtilities;
 using PDB::Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
@@ -390,9 +391,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
                 var pooled = PooledStringBuilder.GetInstance();
                 var builder = pooled.Builder;
-                var writer = new StringWriter(pooled.Builder);
-                var visualizer = new MetadataVisualizer(reader, writer);
-                visualizer.VisualizeMethodBody(methodBody, methodHandle, emitHeader: false);
+
+                if (!methodBody.LocalSignature.IsNil)
+                {
+                    var visualizer = new MetadataVisualizer(reader, new StringWriter(), MetadataVisualizerOptions.NoHeapReferences);
+                    var signature = reader.GetStandaloneSignature(methodBody.LocalSignature);
+                    builder.AppendFormat("Locals: {0}", visualizer.StandaloneSignature(signature.Signature));
+                    builder.AppendLine();
+                }
+
+                ILVisualizer.Default.DumpMethod(
+                    builder,
+                    methodBody.MaxStack,
+                    methodBody.GetILContent(),
+                    ImmutableArray.Create<ILVisualizer.LocalInfo>(),
+                    ImmutableArray.Create<ILVisualizer.HandlerSpan>());
+
                 var actualIL = pooled.ToStringAndFree();
 
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
@@ -756,7 +770,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         internal static void EmitCorLibWithAssemblyReferences(
             Compilation comp,
             string pdbPath,
-            Func<CommonPEModuleBuilder, CommonPEModuleBuilder> getModuleBuilder,
+            Func<CommonPEModuleBuilder, EmitOptions, CommonPEModuleBuilder> getModuleBuilder,
             out ImmutableArray<byte> peBytes,
             out ImmutableArray<byte> pdbBytes)
         {
@@ -774,7 +788,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
             // Wrap the module builder in a module builder that
             // reports the "System.Object" type as having no base type.
-            moduleBuilder = getModuleBuilder(moduleBuilder);
+            moduleBuilder = getModuleBuilder(moduleBuilder, emitOptions);
             bool result = comp.Compile(
                 moduleBuilder,
                 emittingPdb: pdbPath != null,
@@ -787,13 +801,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 using (var pdbStream = new MemoryStream())
                 {
                     PeWriter.WritePeToStream(
-                        new EmitContext(moduleBuilder, null, diagnostics),
+                        new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                         comp.MessageProvider,
                         () => peStream,
                         () => pdbStream,
                         null, null,
-                        allowMissingMethodBodies: true,
+                        metadataOnly: true,
                         isDeterministic: false,
+                        emitTestCoverageData: false,
                         cancellationToken: default(CancellationToken));
 
                     peBytes = peStream.ToImmutable();

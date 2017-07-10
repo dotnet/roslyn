@@ -16,6 +16,211 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     public class ScriptSemanticsTests : CSharpTestBase
     {
+        private static CompilationReference TaskFacadeAssembly(bool includeNamespaceAroundTaskExtension = true)
+        {
+            var taskAssembly = @"
+namespace System.Runtime.CompilerServices {
+    public interface IAsyncStateMachine {
+        void MoveNext();
+        void SetStateMachine(IAsyncStateMachine iasm);
+    }
+    public struct AsyncTaskMethodBuilder {
+        public static AsyncTaskMethodBuilder Create() { return default(AsyncTaskMethodBuilder); }
+        public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    }
+    public struct AsyncTaskMethodBuilder<T> {
+        public static AsyncTaskMethodBuilder<T> Create() { return default(AsyncTaskMethodBuilder<T>); }
+        public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+        public System.Threading.Tasks.Task<T> Task => null;
+        public void SetException(Exception e) { }
+        public void SetResult(T result) { }
+        public void AwaitOnCompleted<A, B>(ref A a, ref B b) { }
+        public void AwaitUnsafeOnCompleted<A, B>(ref A a, ref B b) { }
+        public void Start<A>(ref A a) { }
+    }
+}
+
+namespace System.Runtime.CompilerServices {
+    public class ExtensionAttribute {}
+}
+
+namespace System {
+    public delegate void Action();
+}
+namespace System.Runtime.CompilerServices {
+    public interface INotifyCompletion {
+        void OnCompleted(System.Action action);
+    }
+}
+
+namespace System.Threading.Tasks {
+    public class Awaiter<T>: System.Runtime.CompilerServices.INotifyCompletion {
+        public bool IsCompleted  => true;
+        public void OnCompleted(System.Action action) {}
+        public T GetResult() { throw new Exception(); }
+    }
+    public class Task<T> {}
+}
+";
+            var extensionSource = @"
+    public static class MyExtensions {
+        public static System.Threading.Tasks.Awaiter<T> GetAwaiter<T>(this System.Threading.Tasks.Task<T> task) {
+            return null;
+        }
+    }
+";
+
+            if (includeNamespaceAroundTaskExtension)
+            {
+                taskAssembly = taskAssembly + $"\nnamespace Hidden {{\n{extensionSource}\n }}";
+            }
+            else
+            {
+                taskAssembly = taskAssembly + "\n" + extensionSource;
+            }
+
+
+            var taskCompilation = CreateCompilation(taskAssembly, references: new[] { MscorlibRef_v20 });
+            taskCompilation.VerifyDiagnostics();
+            return taskCompilation.ToMetadataReference();
+        }
+
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation_NoGlobalUsing_NoScriptUsing()
+        {
+
+            var script = CreateCompilation(
+                source: @" System.Console.Write(""complete"");",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe,
+                references: new MetadataReference[] { TaskFacadeAssembly(), MscorlibRef_v20 });
+
+            script.VerifyEmitDiagnostics(
+                // error CS1061: 'Task<object>' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Task<object>' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("System.Threading.Tasks.Task<object>", "GetAwaiter").WithLocation(1, 1));
+
+        }
+
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation_NoGlobalUsing_NoScriptUsing_NoNamespace()
+        {
+
+            var script = CreateCompilation(
+                source: @" System.Console.Write(""complete"");",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe,
+                references: new MetadataReference[] { TaskFacadeAssembly(false), MscorlibRef_v20 });
+
+            script.VerifyEmitDiagnostics();
+            var compiled = CompileAndVerify(script);
+            compiled.VerifyIL("<Main>", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  newobj     "".ctor()""
+  IL_0005:  callvirt   ""System.Threading.Tasks.Task<object> <Initialize>()""
+  IL_000a:  call       ""System.Threading.Tasks.Awaiter<object> MyExtensions.GetAwaiter<object>(System.Threading.Tasks.Task<object>)""
+  IL_000f:  callvirt   ""object System.Threading.Tasks.Awaiter<object>.GetResult()""
+  IL_0014:  pop
+  IL_0015:  ret
+}");
+        }
+
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing_VoidHidden()
+        {
+            var script = CreateCompilation(
+                source: @"interface I {}",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe.WithUsings("Hidden"),
+                references: new MetadataReference[] { TaskFacadeAssembly()});
+            script.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (1,1): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // interface I {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "interface I {}").WithArguments("System.Object").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Void' is not defined or imported
+                //
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "").WithArguments("System.Void").WithLocation(1, 1));
+        }
+
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing()
+        {
+            var script = CreateCompilation(
+                source: @" System.Console.Write(""complete"");",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe.WithUsings("Hidden"),
+                references: new MetadataReference[] { TaskFacadeAssembly(), MscorlibRef_v20 });
+
+            script.VerifyEmitDiagnostics();
+
+            var compiled = CompileAndVerify(script);
+            compiled.VerifyIL("<Main>", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  newobj     "".ctor()""
+  IL_0005:  callvirt   ""System.Threading.Tasks.Task<object> <Initialize>()""
+  IL_000a:  call       ""System.Threading.Tasks.Awaiter<object> Hidden.MyExtensions.GetAwaiter<object>(System.Threading.Tasks.Task<object>)""
+  IL_000f:  callvirt   ""object System.Threading.Tasks.Awaiter<object>.GetResult()""
+  IL_0014:  pop
+  IL_0015:  ret
+}");
+        }
+
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation_NoGlobalUsing_ScriptUsing()
+        {
+            var script = CreateCompilation(
+                source: @"
+using Hidden;
+new System.Threading.Tasks.Task<int>().GetAwaiter();
+System.Console.Write(""complete"");",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe,
+                references: new MetadataReference[] { TaskFacadeAssembly(), MscorlibRef_v20 });
+
+            script.VerifyEmitDiagnostics(
+                // error CS1061: 'Task<object>' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Task<object>' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("System.Threading.Tasks.Task<object>", "GetAwaiter").WithLocation(1, 1));
+
+        }
+
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation_GlobalUsing_ScriptUsing()
+        {
+            var script = CreateCompilation(
+                source: @"
+using Hidden;
+new System.Threading.Tasks.Task<int>().GetAwaiter();
+System.Console.Write(""complete"");",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe.WithUsings("Hidden"),
+                references: new MetadataReference[] { TaskFacadeAssembly(), MscorlibRef_v20 });
+
+            var compiled = CompileAndVerify(script);
+            compiled.VerifyIL("<Main>", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  newobj     "".ctor()""
+  IL_0005:  callvirt   ""System.Threading.Tasks.Task<object> <Initialize>()""
+  IL_000a:  call       ""System.Threading.Tasks.Awaiter<object> Hidden.MyExtensions.GetAwaiter<object>(System.Threading.Tasks.Task<object>)""
+  IL_000f:  callvirt   ""object System.Threading.Tasks.Awaiter<object>.GetResult()""
+  IL_0014:  pop
+  IL_0015:  ret
+}");
+
+        }
+
         [WorkItem(543890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543890")]
         [Fact]
         public void ThisIndexerAccessInScript()
@@ -63,7 +268,7 @@ this[1]
         [Fact]
         public void Submission_TypeDisambiguationBasedUponAssemblyName()
         {
-            var compilation = CreateCompilationWithMscorlib("namespace System { public struct Int32 { } }");
+            var compilation = CreateStandardCompilation("namespace System { public struct Int32 { } }");
 
             compilation.VerifyDiagnostics();
         }
@@ -97,11 +302,14 @@ this[1]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Threading.Tasks.Task`1").WithLocation(1, 1),
                 // error CS0400: The type or namespace name 'System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' could not be found in the global namespace (are you missing an assembly reference?)
                 Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound).WithArguments("System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Object' is not defined or imported
+                //
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "").WithArguments("System.Object").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Object' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Object").WithLocation(1, 1),
                 // (1,1): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 // 1
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1").WithArguments("System.Int32").WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Object' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Object").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1").WithArguments("System.Int32").WithLocation(1, 1));
         }
 
         [Fact]

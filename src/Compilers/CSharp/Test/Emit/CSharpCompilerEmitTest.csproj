@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -10,7 +10,8 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Emit.UnitTests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -55,11 +56,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
+    <Compile Include="..\..\..\Core\MSBuildTask\MvidReader.cs">
+      <Link>Emit\MvidReader.cs</Link>
+    </Compile>
     <Compile Include="Attributes\AttributeTests.cs" />
     <Compile Include="Attributes\AttributeTests_Assembly.cs" />
     <Compile Include="Attributes\AttributeTests_CallerInfoAttributes.cs" />
     <Compile Include="Attributes\AttributeTests_Conditional.cs" />
     <Compile Include="Attributes\AttributeTests_Dynamic.cs" />
+    <Compile Include="Attributes\AttributeTests_Experimental.cs" />
     <Compile Include="Attributes\AttributeTests_Locations.cs" />
     <Compile Include="Attributes\AttributeTests_MarshalAs.cs" />
     <Compile Include="Attributes\AttributeTests_Security.cs" />
@@ -67,7 +72,9 @@
     <Compile Include="Attributes\AttributeTests_Synthesized.cs" />
     <Compile Include="Attributes\AttributeTests_Tuples.cs" />
     <Compile Include="Attributes\AttributeTests_WellKnownAttributes.cs" />
+    <Compile Include="CodeGen\CodeGenAsyncMainTests.cs" />
     <Compile Include="CodeGen\CodeGenCapturing.cs" />
+    <Compile Include="CodeGen\PatternTests.cs" />
     <Compile Include="Emit\BinaryCompatibility.cs" />
     <Compile Include="Emit\DesktopStrongNameProviderTests.cs" />
     <Compile Include="Attributes\InternalsVisibleToAndStrongNameTests.cs" />
@@ -138,14 +145,13 @@
     <Compile Include="Emit\EditAndContinue\LocalSlotMappingTests.cs" />
     <Compile Include="Emit\EmitCustomModifiers.cs" />
     <Compile Include="Emit\EmitErrorTests.cs" />
-    <Compile Include="Emit\EmitMetadata.cs" />
+    <Compile Include="Emit\EmitMetadataTests.cs" />
     <Compile Include="Emit\EmitMetadataTestBase.cs" />
     <Compile Include="Attributes\EmitTestStrongNameProvider.cs" />
     <Compile Include="Emit\EndToEndTests.cs" />
     <Compile Include="Emit\EntryPointTests.cs" />
     <Compile Include="Emit\NoPiaEmbedTypes.cs" />
     <Compile Include="Emit\OptionalArgumentsTests.cs" />
-    <Compile Include="Emit\OutputStreams.cs" />
     <Compile Include="Emit\ResourceTests.cs" />
     <Compile Include="CodeGen\CodeGenScriptTests.cs" />
     <Compile Include="PDB\CheckSumTest.cs" />
@@ -155,6 +161,7 @@
     <Compile Include="PDB\CSharpPDBTestBase.cs" />
     <Compile Include="PDB\PDBIteratorTests.cs" />
     <Compile Include="PDB\PDBLambdaTests.cs" />
+    <Compile Include="PDB\PDBSourceLinkTests.cs" />
     <Compile Include="PDB\PDBTests.cs" />
     <Compile Include="PDB\PDBTupleTests.cs" />
     <Compile Include="PDB\PDBUsingTests.cs" />
@@ -175,6 +182,9 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">
@@ -182,9 +192,6 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

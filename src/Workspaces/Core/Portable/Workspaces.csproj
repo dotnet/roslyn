@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -10,12 +10,8 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFramework>netstandard1.3</TargetFramework>
     <ServiceablePackage>true</ServiceablePackage>
-    <!-- Temporary workaround for CLR bug, VSO #290723. Please remove the below line once this bug is fixed. -->
-    <SkipApplyOptimizations>true</SkipApplyOptimizations>
     <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -88,7 +84,7 @@
       <Link>InternalUtilities\FatalError.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs">
-      <Link>InternalUtilities\PathUtilities.cs</Link>
+      <Link>InternalUtilities\FileNameUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\GeneratedCodeUtilities.cs">
       <Link>InternalUtilities\GeneratedCodeUtilities.cs</Link>
@@ -128,6 +124,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs">
       <Link>InternalUtilities\ReferenceEqualityComparer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreExtensions.cs">
+      <Link>InternalUtilities\SemaphoreExtensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs">
       <Link>InternalUtilities\SemaphoreSlimExtensions.cs</Link>
@@ -180,6 +179,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs">
       <Link>InternalUtilities\StringExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringTable.cs" Link="Utilities\StringTable.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\TextChangeRangeExtensions.cs">
       <Link>InternalUtilities\TextChangeRangeExtensions.cs</Link>
     </Compile>
@@ -195,9 +195,30 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinderSnapshot.cs">
+      <Link>Serialization\ObjectBinderSnapshot.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs">
+      <Link>Serialization\ObjectReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs">
+      <Link>Serialization\ObjectWriter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs">
       <Link>InternalUtilities\SyntaxTreeExtensions.cs</Link>
     </Compile>
+    <Compile Include="AddImports\AddImportHelpers.cs" />
+    <Compile Include="Classification\AbstractClassificationService.cs" />
+    <Compile Include="Classification\IClassificationService.cs" />
+    <Compile Include="ExtensionManager\IInfoBarService.cs" />
+    <Compile Include="FindSymbols\FindReferences\DependentTypeFinder_ProjectIndex.cs" />
+    <Compile Include="Formatting\AbstractFormattingService.cs" />
+    <Compile Include="Formatting\IFormattingService.cs" />
+    <Compile Include="Remote\RemoteHostSessionHelpers.cs" />
+    <Compile Include="Remote\RemoteFeatureOptions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxTokenListExtensions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxTriviaListExtensions.cs" />
+    <Compile Include="Utilities\ReferenceCountedDisposable.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="csi" />
@@ -282,26 +303,20 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinder.cs">
       <Link>Serialization\ObjectBinder.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectReader.cs">
-      <Link>Serialization\StreamObjectReader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.cs">
-      <Link>Serialization\StreamObjectWriter.cs</Link>
-    </Compile>
     <Compile Include="AddImports\AbstractAddImportsService.cs" />
     <Compile Include="AddImports\IAddImportsService.cs" />
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
     <Compile Include="CaseCorrection\CaseCorrector.cs" />
     <Compile Include="CaseCorrection\ICaseCorrectionService.cs" />
-    <Compile Include="Classification\AbstractClassificationService.cs" />
-    <Compile Include="Classification\AbstractClassificationService.Worker.cs" />
+    <Compile Include="Classification\SyntaxClassification\AbstractSyntaxClassificationService.cs" />
+    <Compile Include="Classification\SyntaxClassification\AbstractSyntaxClassificationService.Worker.cs" />
     <Compile Include="Classification\ClassificationExtensions.cs" />
     <Compile Include="Classification\ClassificationTypeNames.cs" />
     <Compile Include="Classification\ClassifiedSpan.cs" />
     <Compile Include="Classification\ClassifiedText.cs" />
     <Compile Include="Classification\Classifier.cs" />
-    <Compile Include="Classification\Classifiers\ISyntaxClassifier.cs" />
-    <Compile Include="Classification\IClassificationService.cs" />
+    <Compile Include="Classification\SyntaxClassification\ISyntaxClassifier.cs" />
+    <Compile Include="Classification\SyntaxClassification\ISyntaxClassificationService.cs" />
     <Compile Include="CodeActions\Annotations\SuppressDiagnosticsAnnotation.cs" />
     <Compile Include="CodeActions\CodeActionPriority.cs" />
     <Compile Include="CodeActions\Operations\PreviewOperation.cs" />
@@ -344,6 +359,7 @@
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
     <Compile Include="CodeStyle\CodeStyleHelpers.cs" />
     <Compile Include="CodeStyle\CodeStyleOptions.cs" />
+    <Compile Include="CodeStyle\ExpressionBodyPreference.cs" />
     <Compile Include="CodeStyle\NotificationOption.cs" />
     <Compile Include="CodeStyle\CodeStyleOption.cs" />
     <Compile Include="Diagnostics\AbstractDiagnosticPropertiesService.cs" />
@@ -364,11 +380,23 @@
     <Compile Include="Execution\CustomAsset.cs" />
     <Compile Include="Execution\CustomAssetBuilder.cs" />
     <Compile Include="Execution\SolutionAsset.cs" />
-    <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
+    <Compile Include="Execution\WellKnownSynchronizationKind.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
+    <Compile Include="FindSymbols\Declarations\DeclarationFinder.cs" />
+    <Compile Include="FindSymbols\Declarations\DeclarationFinder_AllDeclarations.cs" />
+    <Compile Include="FindSymbols\Declarations\DeclarationFinder_SourceDeclarations.cs" />
     <Compile Include="FindSymbols\FindLiterals\FindLiteralsSearchEngine.cs" />
+    <Compile Include="FindSymbols\SearchKind.cs" />
+    <Compile Include="FindSymbols\SearchQuery.cs" />
     <Compile Include="FindSymbols\SymbolFinder.FindLiteralsServerCallback.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_Declarations_AllDeclarations.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_Declarations_SourceDeclarations.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_Declarations_CustomQueries.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_FindReferences_Current.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_FindRenamableReferences.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.LiteralInfo.cs" />
+    <Compile Include="LanguageServices\SyntaxFactsService\AbstractDocumentationCommentService.cs" />
+    <Compile Include="LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigSeverityStrings.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingRule.cs" />
@@ -387,12 +415,19 @@
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.DeclarationInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.IdentifierInfo.cs" />
     <Compile Include="NamingStyles\Serialization\NamingStylePreferencesExtensions.cs" />
+    <Compile Include="Options\EditorConfig\EditorConfigStorageLocation.cs" />
+    <Compile Include="Options\EditorConfig\IEditorConfigStorageLocation.cs" />
+    <Compile Include="Options\EditorConfig\NamingStylePreferenceEditorConfigStorageLocation.cs" />
+    <Compile Include="PatternMatching\CamelCaseResult.cs" />
+    <Compile Include="PatternMatching\ContainerPatternMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatch.cs" />
+    <Compile Include="PatternMatching\AllLowerCamelCaseMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatcher.cs" />
-    <Compile Include="PatternMatching\PatternMatcher.Segment.cs" />
+    <Compile Include="PatternMatching\PatternMatcher.PatternSegment.cs" />
     <Compile Include="PatternMatching\PatternMatcher.TextChunk.cs" />
-    <Compile Include="PatternMatching\PatternMatches.cs" />
+    <Compile Include="PatternMatching\PatternMatcherExtensions.cs" />
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
+    <Compile Include="PatternMatching\SimplePatternMatcher.cs" />
     <Compile Include="Remote\IRemoteHostService.cs" />
     <Compile Include="Remote\RemoteSupportedLanguages.cs" />
     <Compile Include="NamingStyles\Capitalization.cs" />
@@ -403,10 +438,12 @@
     <Compile Include="NamingStyles\Serialization\NamingStylePreferences.cs" />
     <Compile Include="NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
+    <Compile Include="Shared\Utilities\StringBreaks.EncodedSpans.cs" />
     <Compile Include="Shared\Utilities\TextReaderWithLength.cs" />
     <Compile Include="Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="Workspace\Host\ParseOptions\IParseOptionsService.cs" />
+    <Compile Include="Workspace\Host\PersistentStorage\NoOpPersistentStorageService.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.WorkspaceTaskScheduler.cs" />
     <Compile Include="Tags\WellKnownTags.cs" />
     <Compile Include="Workspace\Solution\Checksum.cs" />
@@ -432,11 +469,10 @@
     <Compile Include="FindSymbols\FindReferences\StreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\SymbolAndProjectId.cs" />
-    <Compile Include="FindSymbols\SymbolFinderOptions.cs" />
-    <Compile Include="FindSymbols\SymbolFinder_Remote.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_FindLiteralReferences.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
-    <Compile Include="Options\EditorConfigStorageLocation.cs" />
+    <Compile Include="Options\EditorConfig\EditorConfigStorageLocation`1.cs" />
     <Compile Include="Options\GlobalOptionService.cs" />
     <Compile Include="Options\IDocumentOptions.cs" />
     <Compile Include="Options\IDocumentOptionsProvider.cs" />
@@ -581,8 +617,6 @@
     <Compile Include="Log\LogMessage.cs" />
     <Compile Include="Log\WorkspaceErrorLogger.cs" />
     <Compile Include="Rename\TokenRenameInfo.cs" />
-    <Compile Include="Serialization\AssemblySerializationInfoService.cs" />
-    <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />
     <Compile Include="Shared\Extensions\AccessibilityUtilities.cs" />
     <Compile Include="Shared\Extensions\FileLinePositionSpanExtensions.cs" />
     <Compile Include="Shared\Extensions\LocationExtensions.cs" />
@@ -613,7 +647,6 @@
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Versions\Extensions.cs" />
-    <Compile Include="Versions\ISemanticVersionTrackingService.cs" />
     <Compile Include="Versions\PersistedVersionStampLogger.cs" />
     <Compile Include="Workspace\AdhocWorkspace.cs" />
     <Compile Include="Workspace\DocumentActiveContextChangedEventArgs.cs" />
@@ -673,9 +706,8 @@
     <Compile Include="FindSymbols\ReferenceLocationExtensions.cs" />
     <Compile Include="FindSymbols\SymbolCallerInfo.cs" />
     <Compile Include="FindSymbols\SymbolFinder.cs" />
-    <Compile Include="FindSymbols\SymbolFinder_Declarations.cs" />
     <Compile Include="FindSymbols\SymbolFinder_Hierarchy.cs" />
-    <Compile Include="FindSymbols\SymbolFinder_References.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_FindReferences_Legacy.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.Node.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Serialization.cs" />
@@ -1115,14 +1147,19 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json">
-      <SubType>
-      </SubType>
-    </None>
     <Compile Include="Utilities\BKTree.Builder.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyReader.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
+    <PackageReference Include="System.Diagnostics.Contracts" Version="$(SystemDiagnosticsContractsVersion)" />
+    <PackageReference Include="System.Linq.Parallel" Version="$(SystemLinqParallelVersion)" />
+    <PackageReference Include="System.ObjectModel" Version="$(SystemObjectModelVersion)" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="$(SystemTextRegularExpressionsVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
+    <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />

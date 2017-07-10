@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -36,11 +37,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // lead to a translation that fully supports edit-and-continue, so it delegates to the C# 6
                 // binder when it can. The "testV7SwitchBinder" feature flag forces the use of the C# 7 switch binder
                 // for all operations; we use it to enhance test coverage.
-                (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false || parseOptions?.Features.ContainsKey("testV7SwitchBinder") != false)
+                (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false ||
+                 parseOptions?.Features.ContainsKey("testV7SwitchBinder") != false ||
+                 switchSyntax.HasErrors && HasPatternSwitchSyntax(switchSyntax))
                 ? new PatternSwitchBinder(next, switchSyntax)
                 : new SwitchBinder(next, switchSyntax);
         }
 
+        internal static bool HasPatternSwitchSyntax(SwitchStatementSyntax switchSyntax)
+        {
+            foreach (var section in switchSyntax.Sections)
+            {
+                if (section.Labels.Any(SyntaxKind.CasePatternSwitchLabel))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         protected bool PatternsEnabled =>
             ((CSharpParseOptions)SwitchSyntax.SyntaxTree.Options)?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false;
@@ -481,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_SwitchExpressionValueExpected, node.Location, switchExpression.Display);
             }
 
-            return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(switchExpression), switchGoverningType ?? CreateErrorType());
+            return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(switchExpression), switchGoverningType ?? CreateErrorType());
         }
 
         private LabelSymbol BindConstantJumpTarget(ConstantValue constantValue, CSharpSyntaxNode syntax)
@@ -608,13 +623,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
 
+                    if (caseLabelSyntax.Value.Kind() == SyntaxKind.DefaultLiteralExpression)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_DefaultInSwitch, caseLabelSyntax.Value.Location);
+                    }
+
                     // LabelSymbols for all the switch case labels are created by BuildLabels().
                     // Fetch the matching switch case label symbols
                     break;
                 case SyntaxKind.CasePatternSwitchLabel:
                     if (!node.HasErrors)
                     {
-                        // This should not occur, because it would have been a syntax error
+                        // This should not occur, because we would be using a pattern switch binder
                         throw ExceptionUtilities.UnexpectedValue(node.Kind());
                     }
                     break;

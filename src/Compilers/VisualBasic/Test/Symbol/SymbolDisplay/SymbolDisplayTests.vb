@@ -4678,6 +4678,36 @@ End Class
                 SymbolDisplayPartKind.Punctuation)
         End Sub
 
+        <WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")>
+        <Fact()>
+        Public Sub TupleWith1Arity()
+            TestSymbolDescription(
+                <compilation>
+                    <file name="a.vb">
+Imports System
+Class C
+    Private f As ValueTuple(Of Integer)
+End Class
+                    </file>
+                </compilation>,
+                FindSymbol("C.f"),
+                New SymbolDisplayFormat(memberOptions:=SymbolDisplayMemberOptions.IncludeType,
+                                        genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters),
+                "f As ValueTuple(Of Int32)",
+                0,
+                {SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation},
+                references:={MetadataReference.CreateFromImage(TestResources.NetFX.ValueTuple.tuplelib)})
+        End Sub
+
         <Fact()>
         Public Sub TupleWithNames()
             TestSymbolDescription(

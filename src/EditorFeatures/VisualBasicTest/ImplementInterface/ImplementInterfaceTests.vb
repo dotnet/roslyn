@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
@@ -4517,6 +4518,42 @@ Namespace System
     Structure ValueTuple(Of T1)
     End Structure
 End Namespace")
+        End Function
+
+        <WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")>
+        <WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestAutoProperties() As Task
+            Await TestInRegularAndScript1Async(
+"interface IInterface
+    readonly property ReadOnlyProp as integer
+    property ReadWriteProp as integer
+    writeonly property WriteOnlyProp as integer
+end interface
+
+class Class
+    implements [|IInterface|]
+end class",
+"interface IInterface
+    readonly property ReadOnlyProp as integer
+    property ReadWriteProp as integer
+    writeonly property WriteOnlyProp as integer
+end interface
+
+class Class
+    implements IInterface
+
+    Public ReadOnly Property ReadOnlyProp As Integer Implements IInterface.ReadOnlyProp
+    Public Property ReadWriteProp As Integer Implements IInterface.ReadWriteProp
+
+    Public WriteOnly Property WriteOnlyProp As Integer Implements IInterface.WriteOnlyProp
+        Set(value As Integer)
+            Throw New System.NotImplementedException()
+        End Set
+    End Property
+end class", parameters:=New TestParameters(options:=[Option](
+    ImplementTypeOptions.PropertyGenerationBehavior,
+    ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
         End Function
     End Class
 End Namespace

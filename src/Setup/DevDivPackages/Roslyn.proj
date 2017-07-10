@@ -3,16 +3,16 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <InsertionFilesDir>$(OutDir)DevDivInsertionFiles</InsertionFilesDir>
+    <InsertionFilesDir>$(OutputPath)\DevDivInsertionFiles</InsertionFilesDir>
     <VsToolsetDir>$(InsertionFilesDir)\VS.Tools.Roslyn</VsToolsetDir>
-    <PackagesOutDir>$(OutDir)DevDivPackages\Roslyn</PackagesOutDir>
+    <PackagesOutDir>$(OutputPath)\DevDivPackages\Roslyn</PackagesOutDir>
   </PropertyGroup>
   <ItemGroup>
     <NuSpec Include="$(InsertionFilesDir)\VS.ExternalAPIs.Roslyn.nuspec">
       <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
       <!-- TFS build number isn't set on CI server -->
       <Version Condition="'$(NuGetPerBuildPreReleaseVersion)' == ''">$(NuGetReleaseVersion)-cibuild</Version>
-      <BaseDir>$(OutDir)</BaseDir>
+      <BaseDir>$(OutputPath)</BaseDir>
     </NuSpec>
     <NuSpec Include="$(VsToolsetDir)\VS.Tools.Roslyn.nuspec">
       <Version>$(NuGetPerBuildPreReleaseVersion)</Version>

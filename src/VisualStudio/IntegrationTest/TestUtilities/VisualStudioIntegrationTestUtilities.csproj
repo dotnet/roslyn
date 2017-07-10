@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x86</Platform>
     <PlatformTarget>x86</PlatformTarget>
@@ -9,14 +9,14 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Utilities</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.IntegrationTest.Utilities</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
+    <RuntimeIdentifiers>win7-x86</RuntimeIdentifiers>
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'" />
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="project.json" />
     <None Include="Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -24,13 +24,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomationElementExtensions.cs" />
+    <Compile Include="AutomationElementHelper.cs" />
     <Compile Include="CaptureTestNameAttribute.cs" />
     <Compile Include="Common\Comparison.cs" />
+    <Compile Include="Common\ErrorListItem.cs" />
+    <Compile Include="Common\Expression.cs" />
     <Compile Include="Common\Parameter.cs" />
+    <Compile Include="Common\ProjectUtilities.cs" />
     <Compile Include="Common\Reference.cs" />
     <Compile Include="Common\Signature.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="HostWaitHelper.cs" />
+    <Compile Include="InProcess\Debugger_InProc.cs" />
+    <Compile Include="InProcess\Editor_InProc_NavigationBar.cs" />
+    <Compile Include="InProcess\ErrorList_InProc.cs" />
+    <Compile Include="Common\ClassifiedToken.cs" />
+    <Compile Include="InProcess\LocalsWindow_InProc.cs" />
+    <Compile Include="InProcess\TextViewWindow_InProc.cs" />
     <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
     <Compile Include="DialogHelpers.cs" />
     <Compile Include="InProcess\FindReferencesWindow_InProc.cs" />
@@ -47,14 +57,30 @@
     <Compile Include="InProcess\Editor_InProc.cs" />
     <Compile Include="Interop\NativeMethods.cs" />
     <Compile Include="LightBulbHelper.cs" />
+    <Compile Include="OutOfProcess\Dialog_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\Debugger_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\InlineRenameDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\ChangeSignatureDialog_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\Editor_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\ErrorList_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\InteractiveWindow_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\LocalsWindow_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\LocalsWindow_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\TextViewWindow_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\EncapsulateField_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\ErrorList_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\ExtractInterfaceDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\FindReferencesWindow_OutOfProc.cs" />
     <Compile Include="OutOfProcess\GenerateTypeDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\OutOfProcComponent.cs" />
+    <Compile Include="OutOfProcess\PreviewChangesDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\Shell_OutOfProc.cs" />
     <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
     <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
+    <Compile Include="OutOfProcess\TextViewWindow_OutOfProc.cs" />
     <Compile Include="ScreenshotService.cs" />
+    <Compile Include="TemporaryTextFile.cs" />
     <Compile Include="TestUtilities.cs" />
     <Compile Include="WellKnownCommandNames.cs" />
     <Compile Include="VisualStudioInstance.cs" />
@@ -72,6 +98,7 @@
     <Compile Include="OutOfProcess\InteractiveWindow_OutOfProc.cs" />
     <Compile Include="WellKnownProjectTemplates.cs" />
     <Compile Include="OutOfProcess\VisualStudioWorkspace_OutOfProc.cs" />
+    <Compile Include="WellKnownTagNames.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -84,6 +111,26 @@
     <Reference Include="UIAutomationClient" />
     <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
+    <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="$(MicrosoftVisualStudioCoreUtilityVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="$(MicrosoftVisualStudioOLEInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" Version="$(MicrosoftVisualStudioProjectSystemVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="$(MicrosoftVisualStudioSetupConfigurationInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Native.x86" Version="$(MicrosoftVisualStudioSetupConfigurationNativex86Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" Version="$(MicrosoftVisualStudioShellInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="$(MicrosoftVisualStudioShellInterop80Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop" Version="$(MicrosoftVisualStudioTextManagerInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="$(MicrosoftVisualStudioVsInteractiveWindowVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -105,6 +152,10 @@
     <ProjectReference Include="..\..\..\Test\Diagnostics\Diagnostics.csproj">
       <Project>{e2e889a5-2489-4546-9194-47c63e49eaeb}</Project>
       <Name>Diagnostics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
       <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>

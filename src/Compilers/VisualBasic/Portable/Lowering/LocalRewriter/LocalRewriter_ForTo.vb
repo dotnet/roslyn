@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -444,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     suppressObjectClone:=True)
             Else
                 rewrittenInitCondition = New BoundBadExpression(rewrittenLimit.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty,
-                                                                StaticCast(Of BoundNode).From(arguments), Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
+                                                                arguments, Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
             End If
 
             ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
@@ -499,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     suppressObjectClone:=True)
             Else
                 rewrittenLoopCondition = New BoundBadExpression(rewrittenLimit.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty,
-                                                                StaticCast(Of BoundNode).From(arguments), Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
+                                                                arguments, Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
             End If
 
             Dim startLabel = GenerateLabel("start")

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -42,7 +42,7 @@ class Class : CppCli.CppInterface1
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -85,7 +85,7 @@ class Class : CppCli.CppInterface1, CppCli.CppInterface2
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -136,7 +136,7 @@ class Class : CppCli.CppBase1
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -185,7 +185,7 @@ class Derived : Base
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -247,7 +247,7 @@ class Derived : MethodCustomModifierCombinations
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -283,7 +283,7 @@ class Derived : PropertyCustomModifierCombinations
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -392,7 +392,7 @@ class Class3 : CppCli.CppBase2, CppCli.CppInterface1
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -461,7 +461,7 @@ class Class : I2
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -508,7 +508,7 @@ public class Derived2 : Derived
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -552,7 +552,7 @@ class Explicit : CppCli.CppIndexerInterface
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -585,7 +585,7 @@ class Implicit : CppCli.CppIndexerInterface
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -626,7 +626,7 @@ class Override : CppCli.CppIndexerBase
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -667,7 +667,7 @@ public class Derived2 : Derived
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -692,7 +692,8 @@ public class Derived2 : Derived
             Assert.False(derived2Indexer2.Parameters.Single().IsParams, "Derived2.Indexer2.IsParams should be false");
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void Repro819774()
         {
@@ -805,7 +806,7 @@ class C : I
     void I.M(object x) { }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
@@ -849,7 +850,7 @@ class C : I
     (object a, object b) I.M((object c, object d) x) { return x; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp1 = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp1.VerifyDiagnostics();
 
@@ -969,7 +970,7 @@ class C : I
     (object a, object b) I.P { get; set; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp1 = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp1.VerifyDiagnostics();
 
@@ -1116,7 +1117,7 @@ class C : Base
     public override (object a, object b) M((object c, object d) y) { return y; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp1 = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp1.VerifyDiagnostics();
 
@@ -1236,7 +1237,7 @@ class C : I
     object I.M() { throw null; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
@@ -1276,7 +1277,7 @@ class C : I
     dynamic I.M() { throw null; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
@@ -1321,7 +1322,7 @@ public class C : I<byte, char>
     void I<byte, char>.M(ref I<dynamic[], object[]> c) { } // object to dynamic and vice versa
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
@@ -1365,7 +1366,7 @@ public class C : I<byte, char>
     I<dynamic[], object[]> I<byte, char>.M() { throw null; } // object to dynamic and vice versa
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
@@ -1420,7 +1421,7 @@ class Derived : Base
     public override void M(dynamic o, object d) { }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
@@ -1474,7 +1475,7 @@ class Derived : Base
     public override object M() { throw null; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
@@ -1524,7 +1525,7 @@ class Derived : Base
     public override dynamic M() { throw null; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
@@ -1609,7 +1610,7 @@ class Derived : Base
     public override int this[bool x] { get { return 0; } set { } }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
@@ -1726,7 +1727,7 @@ class Derived : Base
     public override int this[bool x] { get { return 0; } set { } }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
@@ -1821,7 +1822,7 @@ class Implementation : I
     int I.this[bool x] { get { return 0; } set { } }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
@@ -1923,7 +1924,7 @@ class Implementation : I
     int I.this[bool x] { get { return 0; } set { } }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 

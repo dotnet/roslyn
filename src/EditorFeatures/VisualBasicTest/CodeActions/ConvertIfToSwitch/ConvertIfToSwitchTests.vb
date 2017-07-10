@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -88,19 +88,12 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
-        Public Async Function TestSingleCase() As Task
-            Await TestInRegularAndScriptAsync(
+        Public Async Function TestMissingForSingleCase() As Task
+            Await TestMissingAsync(
 "Class C
     Sub M(i As Integer)
         [||]If i = 5 Then
         End If
-    End Sub
-End Class",
-"Class C
-    Sub M(i As Integer)
-        Select i
-            Case 5
-        End Select
     End Sub
 End Class")
         End Function
@@ -111,6 +104,7 @@ End Class")
 "Class C
     Sub M(i As Integer)
         [||]If 5 >= i AndAlso 1 <= i Then
+        Else If 7 >= i AndAlso 6 <= i
         End If
     End Sub
 End Class",
@@ -118,6 +112,7 @@ End Class",
     Sub M(i As Integer)
         Select i
             Case 1 To 5
+            Case 6 To 7
         End Select
     End Sub
 End Class")
@@ -311,7 +306,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
-        [||]If i = 10 Then Return 5
+        [||]If i = 10 Then Return 5 Else Return 4
         If i = 20 Then
             Return 6
         ElseIf i = i Then
@@ -326,6 +321,8 @@ End Class",
         Select i
             Case 10
                 Return 5
+            Case Else
+                Return 4
         End Select
         If i = 20 Then
             Return 6
@@ -346,6 +343,7 @@ End Class")
         While i = i
             [||]If i = 10 Then
                 Exit While
+            Else If i = 1 Then
             End If
         End While
     End Sub
@@ -356,6 +354,7 @@ End Class",
             Select i
                 Case 10
                     Exit While
+                Case 1
             End Select
         End While
     End Sub

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Foo")).Single()
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Class)
+                VerifyNavigateToResultItem(item, "Foo", "[|Foo|]", MatchKind.Exact, NavigateToItemKind.Class)
             End Function)
         End Function
 
@@ -41,10 +41,10 @@ End Class", Async Function(w)
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("class")).Single()
-                VerifyNavigateToResultItem(item, "Class", MatchKind.Exact, NavigateToItemKind.Class, displayName:="[Class]")
+                VerifyNavigateToResultItem(item, "Class", "[|Class|]", MatchKind.Exact, NavigateToItemKind.Class)
 
                 item = (Await _aggregator.GetItemsAsync("[class]")).Single()
-                VerifyNavigateToResultItem(item, "Class", MatchKind.Exact, NavigateToItemKind.Class, displayName:="[Class]")
+                VerifyNavigateToResultItem(item, "Class", "[|Class|]", MatchKind.Exact, NavigateToItemKind.Class)
             End Function)
         End Function
 
@@ -59,7 +59,7 @@ End Class
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Gamma")).Single()
-                VerifyNavigateToResultItem(item, "Gamma", MatchKind.Exact, NavigateToItemKind.Class)
+                VerifyNavigateToResultItem(item, "Gamma", "[|Gamma|]", MatchKind.Exact, NavigateToItemKind.Class)
             End Function)
         End Function
 
@@ -75,7 +75,7 @@ End Class
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("DS")).Single()
-                VerifyNavigateToResultItem(item, "DoSomething", MatchKind.Regular, NavigateToItemKind.Method, "DoSomething()", $"{FeaturesResources.type_space}Alpha.Beta.Gamma")
+                VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething()", MatchKind.Regular, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Alpha.Beta.Gamma", "Test"))
             End Function)
         End Function
 
@@ -85,7 +85,7 @@ End Class", Async Function(w)
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Foo")).Single()
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Class, displayName:="Foo(Of M)")
+                VerifyNavigateToResultItem(item, "Foo", "[|Foo|](Of M)", MatchKind.Exact, NavigateToItemKind.Class)
             End Function)
         End Function
 
@@ -97,7 +97,7 @@ End Sub
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar(Of T)()", $"{FeaturesResources.type_space}Foo(Of M)")
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|](Of T)()", MatchKind.Exact, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Foo(Of M)", "Test"))
             End Function)
         End Function
 
@@ -119,7 +119,6 @@ End Class", Async Function(w)
                 Dim items As List(Of NavigateToItem) = (Await _aggregator.GetItemsAsync("Foo")).ToList()
 
                 VerifyNavigateToResultItems(expecteditems, items)
-
             End Function)
         End Function
 
@@ -131,7 +130,7 @@ End Class
 End Namespace", Async Function(w)
                     SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
                     Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Foo")).Single()
-                    VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Class)
+                    VerifyNavigateToResultItem(item, "Foo", "[|Foo|]", MatchKind.Exact, NavigateToItemKind.Class)
                 End Function)
         End Function
 
@@ -141,7 +140,7 @@ End Namespace", Async Function(w)
 End Structure", Async Function(w)
                     SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupStruct, StandardGlyphItem.GlyphItemFriend)
                     Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("B")).Single()
-                    VerifyNavigateToResultItem(item, "Bar", MatchKind.Prefix, NavigateToItemKind.Structure)
+                    VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", MatchKind.Prefix, NavigateToItemKind.Structure)
                 End Function)
         End Function
 
@@ -154,7 +153,7 @@ Blue
 End Enum", Async Function(w)
                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnum, StandardGlyphItem.GlyphItemFriend)
                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("C")).Single()
-               VerifyNavigateToResultItem(item, "Colors", MatchKind.Prefix, NavigateToItemKind.Enum)
+               VerifyNavigateToResultItem(item, "Colors", "[|C|]olors", MatchKind.Prefix, NavigateToItemKind.Enum)
            End Function)
         End Function
 
@@ -167,7 +166,7 @@ Blue
 End Enum", Async Function(w)
                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnumMember, StandardGlyphItem.GlyphItemPublic)
                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("G")).Single()
-               VerifyNavigateToResultItem(item, "Green", MatchKind.Prefix, NavigateToItemKind.EnumItem)
+               VerifyNavigateToResultItem(item, "Green", "[|G|]reen", MatchKind.Prefix, NavigateToItemKind.EnumItem)
            End Function)
         End Function
 
@@ -178,7 +177,7 @@ Private Bar As Integer
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Ba")).Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Prefix, NavigateToItemKind.Field, additionalInfo:=$"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Bar", "[|Ba|]r", MatchKind.Prefix, NavigateToItemKind.Field, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -189,7 +188,7 @@ Private Bar As Integer
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("ba")).Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Prefix, NavigateToItemKind.Field, additionalInfo:=$"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Bar", "[|Ba|]r", MatchKind.Prefix, NavigateToItemKind.Field, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -210,10 +209,10 @@ Private [string] As String
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("string")).Single()
-                VerifyNavigateToResultItem(item, "string", MatchKind.Exact, NavigateToItemKind.Field, displayName:="[string]", additionalInfo:=$"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "string", "[|string|]", MatchKind.Exact, NavigateToItemKind.Field, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
 
                 item = (Await _aggregator.GetItemsAsync("[string]")).Single()
-                VerifyNavigateToResultItem(item, "string", MatchKind.Exact, NavigateToItemKind.Field, displayName:="[string]", additionalInfo:=$"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "string", "[|string|]", MatchKind.Exact, NavigateToItemKind.Field, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -224,7 +223,7 @@ Private Const bar As String = ""bar""
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupConstant, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("bar")).Single()
-                VerifyNavigateToResultItem(item, "bar", MatchKind.Exact, NavigateToItemKind.Constant, additionalInfo:=$"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "bar", "[|bar|]", MatchKind.Exact, NavigateToItemKind.Constant, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -243,7 +242,7 @@ End Property
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Item")).Single()
-                VerifyNavigateToResultItem(item, "Item", MatchKind.Exact, NavigateToItemKind.Property, "Item(Integer)", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Item", "[|Item|](Integer)", MatchKind.Exact, NavigateToItemKind.Property, String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -254,7 +253,7 @@ Public Event Bar as EventHandler
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEvent, StandardGlyphItem.GlyphItemPublic)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Event, additionalInfo:=$"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]", MatchKind.Exact, NavigateToItemKind.Event, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -270,7 +269,7 @@ End Set
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Name")).Single()
-                VerifyNavigateToResultItem(item, "Name", MatchKind.Exact, NavigateToItemKind.Property, additionalInfo:=$"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Name", "[|Name|]", MatchKind.Exact, NavigateToItemKind.Property, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -281,7 +280,7 @@ Property Name As String
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Name")).Single()
-                VerifyNavigateToResultItem(item, "Name", MatchKind.Exact, NavigateToItemKind.Property, additionalInfo:=$"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Name", "[|Name|]", MatchKind.Exact, NavigateToItemKind.Property, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -293,7 +292,7 @@ End Sub
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("DS")).Single()
-                VerifyNavigateToResultItem(item, "DoSomething", MatchKind.Regular, NavigateToItemKind.Method, "DoSomething()", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething()", MatchKind.Regular, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -305,10 +304,10 @@ End Sub
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("sub")).Single()
-                VerifyNavigateToResultItem(item, "Sub", MatchKind.Exact, NavigateToItemKind.Method, "[Sub]()", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Sub", "[|Sub|]()", MatchKind.Exact, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
 
                 item = (Await _aggregator.GetItemsAsync("[sub]")).Single()
-                VerifyNavigateToResultItem(item, "Sub", MatchKind.Exact, NavigateToItemKind.Method, "[Sub]()", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Sub", "[|Sub|]()", MatchKind.Exact, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -320,7 +319,7 @@ End Sub
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("DS")).Single()
-                VerifyNavigateToResultItem(item, "DoSomething", MatchKind.Regular, NavigateToItemKind.Method, "DoSomething(Integer, String)", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething(Integer, String)", MatchKind.Regular, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -332,7 +331,7 @@ End Sub
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Foo")).Single(Function(i) i.Kind = NavigateToItemKind.Method)
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "New()", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Foo", "[|Foo|].New()", MatchKind.Exact, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -344,7 +343,7 @@ End Sub
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Foo")).Single(Function(i) i.Kind = NavigateToItemKind.Method)
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "Shared New()", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Foo", "[|Foo|].New()", MatchKind.Exact, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -359,11 +358,11 @@ End Sub
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemProtected)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Finalize")).Single()
-                VerifyNavigateToResultItem(item, "Finalize", MatchKind.Exact, NavigateToItemKind.Method, "Finalize()", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Finalize", "[|Finalize|]()", MatchKind.Exact, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
 
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
                 item = (Await _aggregator.GetItemsAsync("Dispose")).Single()
-                VerifyNavigateToResultItem(item, "Dispose", MatchKind.Exact, NavigateToItemKind.Method, "Dispose()", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Dispose", "[|Dispose|]()", MatchKind.Exact, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
 
             End Function)
         End Function
@@ -400,7 +399,7 @@ End Sub
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar()", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", MatchKind.Exact, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -412,7 +411,7 @@ End Sub
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar()", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", MatchKind.Exact, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -590,7 +589,7 @@ end namespace", Async Function(w)
 End Interface", Async Function(w)
                     SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupInterface, StandardGlyphItem.GlyphItemPublic)
                     Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("IF")).Single()
-                    VerifyNavigateToResultItem(item, "IFoo", MatchKind.Prefix, NavigateToItemKind.Interface)
+                    VerifyNavigateToResultItem(item, "IFoo", "[|IF|]oo", MatchKind.Prefix, NavigateToItemKind.Interface)
                 End Function)
         End Function
 
@@ -601,7 +600,7 @@ Delegate Sub DoStuff()
 End Namespace", Async Function(w)
                     SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupDelegate, StandardGlyphItem.GlyphItemFriend)
                     Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("DoStuff")).Single()
-                    VerifyNavigateToResultItem(item, "DoStuff", MatchKind.Exact, NavigateToItemKind.Delegate)
+                    VerifyNavigateToResultItem(item, "DoStuff", "[|DoStuff|]", MatchKind.Exact, NavigateToItemKind.Delegate)
                 End Function)
         End Function
 
@@ -612,7 +611,7 @@ Dim sqr As Func(Of Integer, Integer) = Function(x) x*x
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("sqr")).Single()
-                VerifyNavigateToResultItem(item, "sqr", MatchKind.Exact, NavigateToItemKind.Field, additionalInfo:=$"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "sqr", "[|sqr|]", MatchKind.Exact, NavigateToItemKind.Field, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -622,7 +621,7 @@ End Class", Async Function(w)
 End Module", Async Function(w)
                  SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupModule, StandardGlyphItem.GlyphItemFriend)
                  Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("MT")).Single()
-                 VerifyNavigateToResultItem(item, "ModuleTest", MatchKind.Regular, NavigateToItemKind.Module)
+                 VerifyNavigateToResultItem(item, "ModuleTest", "[|M|]odule[|T|]est", MatchKind.Regular, NavigateToItemKind.Module)
              End Function)
         End Function
 
@@ -634,7 +633,7 @@ y as Integer)
 End Sub", Async Function(w)
               SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
               Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
-              VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar(Integer, Integer)", $"{FeaturesResources.type_space}Foo")
+              VerifyNavigateToResultItem(item, "Bar", "[|Bar|](Integer, Integer)", MatchKind.Exact, NavigateToItemKind.Method, String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
           End Function)
         End Function
 
@@ -645,7 +644,7 @@ Private itemArray as object()
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("itemArray")).Single
-                VerifyNavigateToResultItem(item, "itemArray", MatchKind.Exact, NavigateToItemKind.Field, additionalInfo:=$"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "itemArray", "[|itemArray|]", MatchKind.Exact, NavigateToItemKind.Field, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Foo", "Test"))
             End Function)
         End Function
 
@@ -682,7 +681,7 @@ End Class
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
                 Dim item = (Await _aggregator.GetItemsAsync("M")).Single
-                VerifyNavigateToResultItem(item, "M", MatchKind.Exact, NavigateToItemKind.Method, displayName:="M()", additionalInfo:=$"{FeaturesResources.type_space}A(Of T).B.C(Of U)")
+                VerifyNavigateToResultItem(item, "M", "[|M|]()", MatchKind.Exact, NavigateToItemKind.Method, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "A(Of T).B.C(Of U)", "Test"))
             End Function)
         End Function
 
@@ -695,7 +694,7 @@ End Class
 End Namespace", Async Function(w)
                     SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
                     Dim item = (Await _aggregator.GetItemsAsync("C")).Single
-                    VerifyNavigateToResultItem(item, "C", MatchKind.Exact, NavigateToItemKind.Class, displayName:="C")
+                    VerifyNavigateToResultItem(item, "C", "[|C|]", MatchKind.Exact, NavigateToItemKind.Class)
                 End Function)
         End Function
 
@@ -708,7 +707,7 @@ End Class
 End Namespace", Async Function(w)
                     SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
                     Dim item = (Await _aggregator.GetItemsAsync("C")).Single
-                    VerifyNavigateToResultItem(item, "C", MatchKind.Exact, NavigateToItemKind.Class, displayName:="C(Of T)")
+                    VerifyNavigateToResultItem(item, "C", "[|C|](Of T)", MatchKind.Exact, NavigateToItemKind.Class)
                 End Function)
         End Function
 
@@ -722,7 +721,7 @@ End Sub", Async Function(w)
               SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupModule, StandardGlyphItem.GlyphItemFriend)
               Assert.Equal(0, (Await _aggregator.GetItemsAsync("New")).Count)
               Dim item = (Await _aggregator.GetItemsAsync("Program")).Single
-              VerifyNavigateToResultItem(item, "Program", MatchKind.Exact, NavigateToItemKind.Module, displayName:="Program")
+              VerifyNavigateToResultItem(item, "Program", "[|Program|]", MatchKind.Exact, NavigateToItemKind.Module)
           End Function)
         End Function
 

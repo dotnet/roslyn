@@ -43,7 +43,7 @@ namespace NB
 {
     class C { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics();
             var namespaceNames = new[]
             {

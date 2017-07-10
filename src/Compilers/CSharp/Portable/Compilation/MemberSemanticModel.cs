@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ReaderWriterLockSlim _nodeMapLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         // The bound nodes associated with a syntax node, from highest in the tree to lowest.
         private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedNodeMap = new Dictionary<SyntaxNode, ImmutableArray<BoundNode>>();
+        private Dictionary<SyntaxNode, BoundStatement> _lazyGuardedSynthesizedStatementsMap;
 
         internal readonly Binder RootBinder;
 
@@ -1184,6 +1185,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        private void GuardedAddSynthesizedStatementToMap(StatementSyntax node, BoundStatement statement)
+        {
+            if (_lazyGuardedSynthesizedStatementsMap == null)
+            {
+                _lazyGuardedSynthesizedStatementsMap = new Dictionary<SyntaxNode, BoundStatement>();
+            }
+
+            _lazyGuardedSynthesizedStatementsMap.Add(node, statement);
+        }
+
+        private BoundStatement GuardedGetSynthesizedStatementFromMap(StatementSyntax node)
+        {
+            if (_lazyGuardedSynthesizedStatementsMap != null &&
+                _lazyGuardedSynthesizedStatementsMap.TryGetValue(node, out BoundStatement result))
+            {
+                return result;
+            }
+
+            return null;
+        }
+
         private ImmutableArray<BoundNode> GuardedGetBoundNodesFromMap(CSharpSyntaxNode node)
         {
             Debug.Assert(_nodeMapLock.IsWriteLockHeld || _nodeMapLock.IsReadLockHeld);
@@ -1896,12 +1918,28 @@ done:
             public override BoundStatement BindStatement(StatementSyntax node, DiagnosticBag diagnostics)
             {
                 // Check the bound node cache to see if the statement was already bound.
+                BoundStatement synthesizedStatement = _semanticModel.GuardedGetSynthesizedStatementFromMap(node);
+
+                if (synthesizedStatement != null)
+                {
+                    return synthesizedStatement;
+                }
+
                 ImmutableArray<BoundNode> boundNodes = _semanticModel.GuardedGetBoundNodesFromMap(node);
 
                 if (boundNodes.IsDefaultOrEmpty)
                 {
                     // Not bound already. Bind it. It will get added to the cache later by a MemberSemanticModel.NodeMapBuilder.
-                    return base.BindStatement(node, diagnostics);
+                    var statement = base.BindStatement(node, diagnostics);
+
+                    // Synthesized statements are not added to the _guardedNodeMap, we cache them explicitly here in  
+                    // _lazyGuardedSynthesizedStatementsMap
+                    if (statement.WasCompilerGenerated)
+                    {
+                        _semanticModel.GuardedAddSynthesizedStatementToMap(node, statement); 
+                    }
+
+                    return statement;
                 }
                 else
                 {

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
         new C(1);
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.TrueWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -2312,66 +2312,6 @@ class C
         {
             _val = val;
         }
-    }
-}");
-        }
-
-        [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestGenerateFromDerivedClass()
-        {
-            await TestInRegularAndScriptAsync(
-@"class Base
-{
-    public Base(string value)
-    {
-    }
-}
-
-class [||]Derived : Base
-{
-}",
-@"class Base
-{
-    public Base(string value)
-    {
-    }
-}
-
-class Derived : Base
-{
-    public Derived(string value) : base(value)
-    {
-    }
-}");
-        }
-
-        [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestGenerateFromDerivedClass2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class Base
-{
-    public Base(int a, string value = null)
-    {
-    }
-}
-
-class [||]Derived : Base
-{
-}",
-@"class Base
-{
-    public Base(int a, string value = null)
-    {
-    }
-}
-
-class Derived : Base
-{
-    public Derived(int a, string value = null) : base(a, value)
-    {
     }
 }");
         }

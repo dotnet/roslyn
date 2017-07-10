@@ -4,7 +4,7 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -12,7 +12,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Remote</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Remote.ServiceHub</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -47,9 +47,11 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
@@ -60,10 +62,15 @@
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs">
       <Link>Telemetry\VSTelemetryLogger.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\VisualStudio\Core\Next\Remote\JsonRpcMessageHandler.cs">
+      <Link>Shared\JsonRpcMessageHandler.cs</Link>
+    </Compile>
     <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
     <Compile Include="Services\CodeAnalysisService_DesignerAttributes.cs" />
+    <Compile Include="Services\CodeAnalysisService_DocumentHighlights.cs" />
+    <Compile Include="Services\CodeAnalysisService_AddImport.cs" />
     <Compile Include="Services\CodeAnalysisService_TodoComments.cs" />
-    <Compile Include="Services\CodeAnalysisService_FindReferences.cs" />
+    <Compile Include="Services\CodeAnalysisService_SymbolFinder.cs" />
     <Compile Include="Services\RemoteSymbolSearchUpdateEngine.cs" />
     <Compile Include="Services\CodeAnalysisService_NavigateTo.cs" />
     <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
@@ -79,6 +86,7 @@
     <Compile Include="Shared\ServerDirectStream.cs" />
     <Compile Include="Shared\ClientDirectStream.cs" />
     <Compile Include="Telemetry\WatsonReporter.cs" />
+    <Compile Include="UserOperationBooster.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
@@ -86,6 +94,5 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

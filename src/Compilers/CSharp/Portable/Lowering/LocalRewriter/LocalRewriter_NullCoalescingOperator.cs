@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenLeft.IsDefaultValue())
             {
-                return rewrittenRight;
+                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenRight);
             }
 
             if (rewrittenLeft.ConstantValue != null)

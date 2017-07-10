@@ -81,11 +81,6 @@ if [ "$CLEAN_RUN" == "true" ]; then
     git clean -dxf . 
 fi
 
-if [ "$USE_CACHE" == "false" ]; then
-    echo Clean out the toolsets
-    $MAKE clean_toolset
-fi
-
 if [ "$SKIP_COMMIT_PRINTING" == "false" ]; then
     echo Building this commit:
     git show --no-patch --pretty=raw HEAD

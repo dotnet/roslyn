@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.EditorFeatures</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -84,8 +84,6 @@
     <Compile Include="BraceMatching\StringLiteralBraceMatcher.cs" />
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.cs" />
     <Compile Include="ChangeSignature\CSharpChangeSignatureCommandHandler.cs" />
-    <Compile Include="Classification\CSharpEditorClassificationService.cs" />
-    <Compile Include="CommentSelection\CSharpCommentUncommentService.cs" />
     <Compile Include="ContentType\ContentTypeDefinitions.cs" />
     <Compile Include="CSharpEditorResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -108,7 +106,6 @@
     <Compile Include="EventHookup\IHACK_EventHookupDismissalOnBufferChangePreventerService.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCommandHandler.cs" />
     <Compile Include="ExtractMethod\ExtractMethodCommandHandler.cs" />
-    <Compile Include="FindReferences\CSharpFindReferencesService.cs" />
     <Compile Include="FindUsages\CSharpFindUsagesService.cs" />
     <Compile Include="Formatting\CSharpEditorFormattingService.cs" />
     <Compile Include="Formatting\Indentation\CSharpIndentationService.cs" />
@@ -137,14 +134,12 @@
     <Compile Include="Highlighting\KeywordHighlighters\UnsafeStatementHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\UsingStatementHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\YieldStatementHighlighter.cs" />
-    <Compile Include="HighlightReferences\CSharpDocumentHighlightsService.cs" />
     <Compile Include="InlineRename\CSharpEditorInlineRenameService.cs" />
     <Compile Include="LanguageServices\CSharpContentTypeLanguageService.cs" />
     <Compile Include="LineSeparators\CSharpLineSeparatorService.cs" />
     <Compile Include="NavigationBar\CSharpNavigationBarItemService.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoProvider.cs" />
     <Compile Include="QuickInfo\SyntacticQuickInfoProvider.cs" />
-    <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.cs" />
     <Compile Include="RenameTracking\CSharpRenameTrackingCodeFixProvider.cs" />
     <Compile Include="RenameTracking\CSharpRenameTrackingLanguageHeuristicsService.cs" />
     <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.cs" />
@@ -164,6 +159,8 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.XML" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CSharpEditorResources.resx">
@@ -173,10 +170,8 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

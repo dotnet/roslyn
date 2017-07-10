@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -13,8 +14,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         public BasicBuild(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
-            VisualStudio.Instance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
-            VisualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
+            VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
+            var testProj = new ProjectUtils.Project("TestProj");
+            VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Build)]
@@ -28,7 +30,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
 End Module";
 
-            VisualStudio.Instance.Editor.SetText(editorText);
+            VisualStudio.Editor.SetText(editorText);
 
             // TODO: Validate build works as expected
         }

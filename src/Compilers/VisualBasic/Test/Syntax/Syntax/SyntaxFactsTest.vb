@@ -1214,4 +1214,43 @@ End Module
         Dim text = SyntaxFacts.GetText(SyntaxKind.BeginCDataToken)
         Assert.Equal("<![CDATA[", text)
     End Sub
+
+    <Theory>
+    <InlineData("x", "x")>
+    <InlineData("x.y", "y")>
+    <InlineData("x?.y", "y")>
+    <InlineData("Me.y", "y")>
+    <InlineData("M()", "M")>
+    <InlineData("x.M()", "M")>
+    <InlineData("TypeOf(x)", Nothing)>
+    <InlineData("GetType(x)", Nothing)>
+    <InlineData("-x", Nothing)>
+    <InlineData("x!y", "y")>
+    <InlineData("Me", Nothing)>
+    <InlineData("[Me]", "Me")>
+    <InlineData("x.Me", "Me")>
+    <InlineData("M()()", "M")>
+    <InlineData("New C()", Nothing)>
+    Public Sub TestTryGetInferredMemberName(source As String, expected As String)
+        Dim expr = SyntaxFactory.ParseExpression(source)
+        Dim actual = expr.TryGetInferredMemberName()
+        Assert.Equal(expected, actual)
+    End Sub
+
+    <Theory>
+    <InlineData("Item0", False)>
+    <InlineData("Item1", True)>
+    <InlineData("Item2", True)>
+    <InlineData("Item10", True)>
+    <InlineData("Rest", True)>
+    <InlineData("ToString", True)>
+    <InlineData("GetHashCode", True)>
+    <InlineData("item1", True)>
+    <InlineData("item01", False)>
+    <InlineData("item10", True)>
+    <InlineData("Alice", False)>
+    Public Sub TestIsReservedTupleElementName(elementName As String, isReserved As Boolean)
+        Assert.Equal(isReserved, SyntaxFacts.IsReservedTupleElementName(elementName))
+    End Sub
+
 End Class

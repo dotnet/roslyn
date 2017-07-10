@@ -348,7 +348,7 @@ class C
 }";
             file = ParseFile(errorText);
 
-            CreateCompilationWithMscorlib(errorText).VerifyDiagnostics(
+            CreateStandardCompilation(errorText).VerifyDiagnostics(
                 // (11,19): error CS1003: Syntax error, '(' expected
                 //             foo<T>) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19),
@@ -367,15 +367,15 @@ class C
                 // (11,13): error CS0161: 'foo<T>()': not all code paths return a value
                 //             foo<T>) { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "foo").WithArguments("foo<T>()").WithLocation(11, 13),
-                // (7,13): warning CS0168: The variable 'foo' is declared but never used
+                // (7,13): warning CS8321: The local function 'foo' is declared but never used
                 //             foo() where T : IFace => 5;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "foo").WithArguments("foo").WithLocation(7, 13),
-                // (9,13): warning CS0168: The variable 'foo' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "foo").WithArguments("foo").WithLocation(7, 13),
+                // (9,13): warning CS8321: The local function 'foo' is declared but never used
                 //             foo() where T : IFace { return 5; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "foo").WithArguments("foo").WithLocation(9, 13),
-                // (11,13): warning CS0168: The variable 'foo' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "foo").WithArguments("foo").WithLocation(9, 13),
+                // (11,13): warning CS8321: The local function 'foo' is declared but never used
                 //             foo<T>) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "foo").WithArguments("foo").WithLocation(11, 13));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "foo").WithArguments("foo").WithLocation(11, 13));
 
             var m = Assert.IsType<MethodDeclarationSyntax>(file.DescendantNodes()
                 .Where(n => n.Kind() == SyntaxKind.MethodDeclaration)
@@ -456,12 +456,12 @@ class c
             Assert.False(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
             Assert.True(file.HasErrors);
             file.SyntaxTree.GetDiagnostics().Verify(
-                // (6,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
+                // (6,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int local() => 0;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7").WithLocation(6, 13),
-                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(6, 13),
+                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int local() { return 0; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(10, 13)
                 );
 
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);
