@@ -89,7 +89,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 _session.TryInvokeAsync(
                     nameof(IRemoteHostService.UnregisterPrimarySolutionId),
-                    _workspace.CurrentSolution,
                     new object[] { solutionId, synchronousShutdown },
                     CancellationToken.None).Wait(CancellationToken.None);
             }
