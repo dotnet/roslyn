@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return;
                 }
 
-                if (await CheckTypeInfoOfAttributeAsync(context, attributeSyntaxNode).ConfigureAwait(false))
+                if (await CheckTypeInfoOfAttributeAsync(context.Document, attributeSyntaxNode, context.CancellationToken).ConfigureAwait(false))
                 {
                     await AddAssemblyCompletionItemsAsync(context, cancellationToken).ConfigureAwait(false);
                 }
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return null;
         }
 
-        private static async Task<bool> CheckTypeInfoOfAttributeAsync(CompletionContext context, SyntaxNode attributeNode)
+        private static async Task<bool> CheckTypeInfoOfAttributeAsync(Document document, SyntaxNode attributeNode, CancellationToken cancellationToken)
         {
-            var semanticModel = await context.Document.GetSemanticModelForNodeAsync(attributeNode, context.CancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForNodeAsync(attributeNode, cancellationToken).ConfigureAwait(false);
             var typeInfo = semanticModel.GetTypeInfo(attributeNode);
             var type = typeInfo.Type;
             if (type == null)
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var assemblyScopedAttributes = GetAssemblyScopedAttributeSyntaxNodesOfDocument(syntaxRoot);
                 foreach (var attribute in assemblyScopedAttributes)
                 {
-                    if (await CheckTypeInfoOfAttributeAsync(completionContext, attribute).ConfigureAwait(false))
+                    if (await CheckTypeInfoOfAttributeAsync(document, attribute, completionContext.CancellationToken).ConfigureAwait(false))
                     {
                         // See Microsoft.CodeAnalysis.PEAssembly.BuildInternalsVisibleToMap for reference on how
                         // the 'real' InternalsVisibleTo logic extracts and compares the assemblyName:
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         // The PublicKey is checked by AssemblyIdentity.TryParseDisplayName to be a 
                         // parseable (length, can be converted to bytes, etc.), but it is not tested whether 
                         // the public key actually fits to the assembly.
-                        var assemblyName = await GetAssemblyNameFromInternalsVisibleToAttributeAsync(attribute, completionContext).ConfigureAwait(false);
+                        var assemblyName = await GetAssemblyNameFromInternalsVisibleToAttributeAsync(document, attribute, completionContext.CancellationToken).ConfigureAwait(false);
                         if (!string.IsNullOrWhiteSpace(assemblyName))
                         {
                             resultBuilder = resultBuilder ?? ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 : resultBuilder.ToImmutable();
         }
 
-        private async Task<string> GetAssemblyNameFromInternalsVisibleToAttributeAsync(SyntaxNode node, CompletionContext completionContext)
+        private async Task<string> GetAssemblyNameFromInternalsVisibleToAttributeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             var constructorArgument = GetConstructorArgumentOfInternalsVisibleToAttribute(node);
             if (constructorArgument == null)
@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return string.Empty;
             }
 
-            var semModel = await completionContext.Document.GetSemanticModelForNodeAsync(constructorArgument, completionContext.CancellationToken).ConfigureAwait(false);
-            var constantCandidate = semModel.GetConstantValue(constructorArgument);
+            var semanticModel = await document.GetSemanticModelForNodeAsync(constructorArgument, cancellationToken).ConfigureAwait(false);
+            var constantCandidate = semanticModel.GetConstantValue(constructorArgument);
             if (constantCandidate.HasValue && constantCandidate.Value is string argument)
             {
                 if (AssemblyIdentity.TryParseDisplayName(argument, out var assemblyIdentity))

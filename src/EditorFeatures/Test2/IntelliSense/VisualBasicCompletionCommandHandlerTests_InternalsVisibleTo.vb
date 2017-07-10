@@ -508,5 +508,34 @@ Imports System.Reflection
                 Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTWithMoreThanOneDocument() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
+                    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary2"/>
+                    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="OtherDocument.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+Imports System.Reflection
+<Assembly: InternalsVisibleTo("ClassLibrary1")>
+<Assembly: AssemblyDescription("Description")>
+]]>
+                        </Document>
+                        <Document FilePath="A.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+Imports System.Reflection
+<Assembly: InternalsVisibleTo("$$
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary2"}))
+            End Using
+        End Function
     End Class
 End Namespace
