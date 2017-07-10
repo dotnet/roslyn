@@ -165,13 +165,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return SpecializedTasks.EmptyTask;
                 }
 
-                if (bodyOpt != null)
-                {
-                    // This was a method level edit.  This can't change the symbol tree info
-                    // for this project.  Bail immediately.
-                    return SpecializedTasks.EmptyTask;
-                }
-
                 return UpdateSymbolTreeInfoAsync(document.Project, cancellationToken);
             }
 
@@ -220,10 +213,17 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
             {
-                // Process all metadata references in parallel.
-                var tasks = project.MetadataReferences.OfType<PortableExecutableReference>()
-                                   .Select(r => UpdateReferenceAsync(project, r, cancellationToken))
-                                   .ToArray();
+                // Process all metadata references. If it remote workspace, do this in parallel.
+                var tasks = new List<Task>();
+                var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace ||
+                                        project.Solution.Workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace;
+
+                foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                {
+                    tasks.Add(isRemoteWorkspace
+                        ? Task.Run(() => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken)
+                        : UpdateReferenceAsync(project, reference, cancellationToken));
+                }
 
                 return Task.WhenAll(tasks);
             }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -42,7 +43,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        public static async Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
+        /// <summary>
+        /// Cache of project to the checksum for it so that we don't have to expensively recompute
+        /// this each time we get a project.
+        /// </summary>
+        private static ConditionalWeakTable<Project, AsyncLazy<Checksum>> s_projectToSourceChecksum =
+            new ConditionalWeakTable<Project, AsyncLazy<Checksum>>();
+
+        public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
+        {
+            var lazy = s_projectToSourceChecksum.GetValue(
+                project, p => new AsyncLazy<Checksum>(c => ComputeSourceSymbolsChecksumAsync(p, c), cacheResult: true));
+
+            return lazy.GetValueAsync(cancellationToken);
+        }
+
+        private static async Task<Checksum> ComputeSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
         {
             // The SymbolTree for source is built from the source-symbols from the project's compilation's
             // assembly.  Specifically, we only get the name, kind and parent/child relationship of all the
