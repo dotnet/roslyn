@@ -63,7 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 if (connectionRef == null)
                 {
                     // Otherwise, try to create an actual connection to the OOP server
-                    var connection = _client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    var connection = _client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None)
+                                            .WaitAndGetResult(CancellationToken.None);
                     if (connection == null)
                     {
                         return null;
