@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.AssertStackEmpty();
             }
 #endif
+
+            ReleaseExpressionTemps();
         }
 
         private int EmitStatementAndCountInstructions(BoundStatement statement)
@@ -565,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitCondBranch(sequence.Value, ref dest, sense);
 
             // sequence is used as a value, can release all locals
-            FreeLocals(sequence, doNotRelease: null);
+            FreeLocals(sequence);
         }
 
         private void EmitLabelStatement(BoundLabelStatement boundLabelStatement)
@@ -611,6 +613,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 foreach (var local in block.Locals)
                 {
+                    Debug.Assert(local.RefKind == RefKind.None || local.SynthesizedKind.IsLongLived(), 
+                        "A ref local ended up in a block and claims it is shortlived. That is dangerous. Are we sure it is short lived?");
+
                     var declaringReferences = local.DeclaringSyntaxReferences;
                     DefineLocal(local, !declaringReferences.IsEmpty ? (CSharpSyntaxNode)declaringReferences[0].GetSyntax() : block.Syntax);
                 }
@@ -1227,7 +1232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (sequence != null)
             {
-                FreeLocals(sequence, doNotRelease: null);
+                // sequence was used as a value, can release all its locals.
+                FreeLocals(sequence);
             }
         }
 

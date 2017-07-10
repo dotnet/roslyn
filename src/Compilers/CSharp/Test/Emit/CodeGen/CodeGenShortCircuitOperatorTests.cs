@@ -7223,5 +7223,98 @@ class Program
   IL_001f:  ret
 }");
         }
+
+        [Fact]
+        public void ConditionalAccessOffReadOnlyNullable1()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    private static readonly Guid? g = null;
+
+    static void Main()
+    {
+        Console.WriteLine(g?.ToString());
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"");
+
+            verifier.VerifyIL("Program.Main", @"
+	{
+	  // Code size       47 (0x2f)
+	  .maxstack  2
+	  .locals init (System.Guid? V_0,
+	                System.Guid V_1)
+	  IL_0000:  nop
+	  IL_0001:  ldsfld     ""System.Guid? Program.g""
+	  IL_0006:  stloc.0
+	  IL_0007:  ldloca.s   V_0
+	  IL_0009:  dup
+	  IL_000a:  call       ""bool System.Guid?.HasValue.get""
+	  IL_000f:  brtrue.s   IL_0015
+	  IL_0011:  pop
+	  IL_0012:  ldnull
+	  IL_0013:  br.s       IL_0028
+	  IL_0015:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
+	  IL_001a:  stloc.1
+	  IL_001b:  ldloca.s   V_1
+	  IL_001d:  constrained. ""System.Guid""
+	  IL_0023:  callvirt   ""string object.ToString()""
+	  IL_0028:  call       ""void System.Console.WriteLine(string)""
+	  IL_002d:  nop
+	  IL_002e:  ret
+	}");
+        }
+
+        [Fact]
+        public void ConditionalAccessOffReadOnlyNullable2()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(default(Guid?)?.ToString());
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"");
+
+            verifier.VerifyIL("Program.Main", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  1
+  .locals init (System.Guid? V_0,
+                System.Guid V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""System.Guid?""
+  IL_0009:  ldloc.0
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""bool System.Guid?.HasValue.get""
+  IL_0012:  brtrue.s   IL_0017
+  IL_0014:  ldnull
+  IL_0015:  br.s       IL_0036
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  initobj    ""System.Guid?""
+  IL_001f:  ldloc.0
+  IL_0020:  stloc.0
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
+  IL_0028:  stloc.1
+  IL_0029:  ldloca.s   V_1
+  IL_002b:  constrained. ""System.Guid""
+  IL_0031:  callvirt   ""string object.ToString()""
+  IL_0036:  call       ""void System.Console.WriteLine(string)""
+  IL_003b:  nop
+  IL_003c:  ret
+}");
+        }
     }
 }

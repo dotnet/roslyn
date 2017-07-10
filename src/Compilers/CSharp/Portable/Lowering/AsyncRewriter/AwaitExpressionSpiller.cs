@@ -144,19 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _locals.Add(local);
             }
 
-            internal void AddLocals(ImmutableArray<LocalSymbol> locals)
-            {
-                if (_locals == null)
-                {
-                    _locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                }
-
-                foreach (var local in locals)
-                {
-                    _locals.Add(local);
-                }
-            }
-
             public void AddStatement(BoundStatement statement)
             {
                 if (_statements == null)
@@ -348,14 +335,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case BoundKind.Sequence:
-                        // We don't need promote short-lived variables defined by the sequence to long-lived,
-                        // since neither the side-effects nor the value of the sequence contains await 
+                        // neither the side-effects nor the value of the sequence contains await 
                         // (otherwise it would be converted to a SpillSequenceBuilder).
-                        var sequence = (BoundSequence)expression;
-                        builder.AddLocals(sequence.Locals);
-                        builder.AddExpressions(sequence.SideEffects);
-                        expression = sequence.Value;
-                        continue;
+                        if (refKind != RefKind.None)
+                        {
+                            return expression;
+                        }
+
+                        goto default;
 
                     case BoundKind.ThisReference:
                     case BoundKind.BaseReference:

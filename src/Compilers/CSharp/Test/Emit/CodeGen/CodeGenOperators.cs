@@ -3921,8 +3921,7 @@ public class Test
   // Code size       73 (0x49)
   .maxstack  3
   .locals init (int V_0,
-  T V_1,
-  T V_2)
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T Test.Nop<T>(T)""
   IL_0006:  stloc.1
@@ -3938,8 +3937,8 @@ public class Test
   IL_001f:  callvirt   ""void I.IntPropI.set""
   IL_0024:  ldarg.0
   IL_0025:  call       ""T Test.Nop<T>(T)""
-  IL_002a:  stloc.2
-  IL_002b:  ldloca.s   V_2
+  IL_002a:  stloc.1
+  IL_002b:  ldloca.s   V_1
   IL_002d:  dup
   IL_002e:  constrained. ""T""
   IL_0034:  callvirt   ""int I.IntPropI.get""

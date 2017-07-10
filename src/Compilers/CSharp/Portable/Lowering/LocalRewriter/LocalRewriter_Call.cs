@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(expanded, argsToParamsOpt, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps);
+            BuildStoresToTemps(expanded, argsToParamsOpt, parameters, rewrittenArguments, actualArguments, refKinds, storesToTemps);
 
 
             // all the formal arguments, except missing optionals, are now in place. 
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void BuildStoresToTemps(
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
-            ImmutableArray<RefKind> argumentRefKinds,
+            ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> rewrittenArguments,
             /* out */ BoundExpression[] arguments,
             /* out */ ArrayBuilder<RefKind> refKinds,
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression argument = rewrittenArguments[a];
                 int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
-                RefKind refKind = argumentRefKinds.RefKinds(a);
+                RefKind refKind = parameters[p].RefKind;
                 Debug.Assert(arguments[p] == null);
 
                 // Unfortunately, we violate the specification and allow:

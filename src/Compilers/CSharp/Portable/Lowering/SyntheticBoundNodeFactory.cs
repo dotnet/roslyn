@@ -1275,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            if (refKind == RefKind.Out)
+            if (refKind == RefKind.Out || refKind == RefKind.RefReadOnly)
             {
                 refKind = RefKind.Ref;
             }

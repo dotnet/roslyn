@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private readonly HashSet<LocalSymbol> _stackLocals;
 
+        // There are scenarios where rvalues need to be passed to ref/in parameters
+        // in such cases the values must be spilled into temps and retained for the entirety of
+        // the most encompasing expression.       
+        private ArrayBuilder<LocalDefinition> _expressionTemps;
+
         // not 0 when in a protected region with a handler. 
         private int _tryNestingLevel;
 
@@ -267,6 +272,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _synthesizedLocalOrdinals.Free();
+
+            Debug.Assert(!(_expressionTemps?.Count > 0), "leaking expression temps?");
+            _expressionTemps?.Free();
         }
 
         private void HandleReturn()
@@ -406,6 +414,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             _builder.DefineSequencePoint(syntaxTree, span);
             return span;
+        }
+
+        private void AddExpressionTemp(LocalDefinition temp)
+        {
+            // in some cases like stack locals, there is no slot allocated.
+            if (temp == null)
+            {
+                return;
+            }
+
+            var exprTemps = _expressionTemps ?? (_expressionTemps = ArrayBuilder<LocalDefinition>.GetInstance());
+            Debug.Assert(!exprTemps.Contains(temp));
+            exprTemps.Add(temp);
+        }
+
+        private void ReleaseExpressionTemps()
+        {
+            if (_expressionTemps?.Count > 0)
+            {
+                // release in reverse order to keep same temps on top of the temp stack if possible
+                for(int i = _expressionTemps.Count - 1; i >= 0; i--)
+                {
+                    var temp = _expressionTemps[i];
+                    FreeTemp(temp);
+                }
+
+                _expressionTemps.Clear();
+            }
         }
     }
 }
