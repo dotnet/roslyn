@@ -35,6 +35,7 @@ Public Class BuildDevDivInsertionFiles
     Public Shared Function Main(args As String()) As Integer
         If args.Length <> 4 Then
             Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> <assembly version>")
+            Console.WriteLine($"Actual argument count is {args.Length}")
             Return 1
         End If
 
