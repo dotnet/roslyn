@@ -106,8 +106,8 @@
     <PackageReference Include="System.Reflection.Metadata">
       <Version>$(SystemReflectionMetadataFixedVersion)</Version>
     </PackageReference>
-    <PackageReference Include="VSSDK.ComponentModelHost">
-      <Version>$(VSSDKComponentModelHostVersion)</Version>
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
+      <Version>$(MicrosoftVisualStudioComponentModelHostFixedVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
