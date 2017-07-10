@@ -2082,6 +2082,104 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <Fact()>
+        Public Sub ConversionExpression_Implicit_WideningUserConversion()
+            Dim source = <![CDATA[
+Module Program
+    Sub M1(args As String())
+        Dim i As Integer = 1
+        Dim c1 As C1 = i'BIND:"Dim c1 As C1 = i"
+    End Sub
+
+    Class C1
+        Public Shared Widening Operator CType(ByVal i As Integer) As C1
+            Return New C1
+        End Operator
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim c1 As C1 = i')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
+    Variables: Local_1: c1 As Program.C1
+    Initializer: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: Program.C1) (Syntax: 'i')
+        IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function Program.C1.op_Implicit(i As System.Int32) As Program.C1) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'i')
+          ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
+        Public Sub ConversionExpression_Implicit_WideningUserConversionMultiStepConversion()
+            Dim source = <![CDATA[
+Module Program
+    Sub M1(args As String())
+        Dim i As Integer = 1
+        Dim c1 As C1 = i'BIND:"Dim c1 As C1 = i"
+    End Sub
+
+    Class C1
+        Public Shared Widening Operator CType(ByVal i As Long) As C1
+            Return New C1
+        End Operator
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim c1 As C1 = i')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
+    Variables: Local_1: c1 As Program.C1
+    Initializer: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: Program.C1) (Syntax: 'i')
+        IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function Program.C1.op_Implicit(i As System.Int64) As Program.C1) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'i')
+          ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
+        Public Sub ConversionExpression_Implicit_WideningUserConversionImplicitAndExplicitConversion()
+            Dim source = <![CDATA[
+Module Program
+    Sub M1(args As String())
+        Dim c1 As New C1
+        Dim c2 As C2 = CType(c1, Integer)'BIND:"Dim c2 As C2 = CType(c1, Integer)"
+    End Sub
+
+    Class C1
+        Public Shared Widening Operator CType(ByVal i As C1) As Integer
+            Return 1
+        End Operator
+    End Class
+
+    Class C2
+        Public Shared Widening Operator CType(ByVal l As Long) As C2
+            Return New C2
+        End Operator
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim c2 As C ... 1, Integer)')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2')
+    Variables: Local_1: c2 As Program.C2
+    Initializer: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: Program.C2) (Syntax: 'CType(c1, Integer)')
+        IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function Program.C2.op_Implicit(l As System.Int64) As Program.C2) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'CType(c1, Integer)')
+          IConversionExpression (ConversionKind.OperatorMethod, Explicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'CType(c1, Integer)')
+            IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function Program.C1.op_Implicit(i As Program.C1) As System.Int32) (OperationKind.ConversionExpression, Type: Program.C1) (Syntax: 'CType(c1, Integer)')
+              ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Program.C1) (Syntax: 'c1')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
 #End Region
 
         Private Class ExpectedSymbolVerifier
