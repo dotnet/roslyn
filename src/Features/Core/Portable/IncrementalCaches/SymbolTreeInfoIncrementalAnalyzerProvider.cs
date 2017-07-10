@@ -157,6 +157,13 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
+            public override void RemoveDocument(DocumentId documentId)
+            {
+                // Removing a document can affect the symbol index.  Clear what we have so
+                // it will be recomputed.
+                _projectToInfo.TryRemove(documentId.ProjectId, out _);
+            }
+
             /// <remarks>
             /// SymbolTreeInfo is an index of source symbols in a project.  As such, we only need
             /// to recompute the index for a project when the syntax for a document within it changes.
@@ -180,10 +187,14 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
+                await CreateSourceIndexAsync(document.Project, cancellationToken);
+            }
+
+            private async Task CreateSourceIndexAsync(Project project, CancellationToken cancellationToken)
+            {
                 // Cache data at the project level.  That way if we get a N AnalyzeSyntaxAsync calls
                 // for all the documents in a project, we'll only compute the index for the first call
                 // and we'll bail out immediately for all subsequent calls.
-                var project = document.Project;
                 var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
                 if (!_projectToInfo.TryGetValue(project.Id, out var projectInfo) ||
@@ -212,6 +223,14 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 if (!RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace))
                 {
                     return;
+                }
+
+                // Check if we have no index cached at all.  If so, create one.  If we do have one
+                // no need to do anything to it.  The index will be updated as appropriate through
+                // the calls to AnalyzeSyntaxAsync.
+                if (!_projectToInfo.ContainsKey(project.Id))
+                {
+                    await CreateSourceIndexAsync(project, cancellationToken).ConfigureAwait(false);
                 }
 
                 // If a project changes, see if it was because any metadata references changed.  If so,
