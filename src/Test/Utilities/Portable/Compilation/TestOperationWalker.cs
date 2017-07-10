@@ -93,6 +93,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitRelationalCaseClause(operation);
         }
 
+        public override void VisitDefaultCaseClause(IDefaultCaseClause operation)
+        {
+            base.VisitDefaultCaseClause(operation);
+        }
+
         public override void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
         {
             var loopKind = operation.LoopKind;

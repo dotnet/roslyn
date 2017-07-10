@@ -1098,6 +1098,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.MaximumValue, "Max");
         }
 
+        public override void VisitDefaultCaseClause(IDefaultCaseClause operation)
+        {
+            LogString(nameof(IDefaultCaseClause));
+            LogCaseClauseCommon(operation);
+        }
+
         public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
         {
             LogString(nameof(IInterpolatedStringExpression));

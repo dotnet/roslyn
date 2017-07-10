@@ -91,6 +91,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.MaximumValue);
         }
 
+        public override void VisitDefaultCaseClause(IDefaultCaseClause operation)
+        {
+        }
+
         public override void VisitIfStatement(IIfStatement operation)
         {
             Visit(operation.Condition);
