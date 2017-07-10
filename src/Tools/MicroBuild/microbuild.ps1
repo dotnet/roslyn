@@ -45,6 +45,10 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
         $args += " /filelogger /fileloggerparameters:Verbosity=normal;logFile=$logFile";
     }
 
+    if ($release) { 
+        $args += " /p:Configuration=Release"
+    }
+
     $args += " $buildArgs"
     Exec-Console $msbuild $args
 }
