@@ -39,7 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _workspace = workspace;
                 _client = client;
                 _currentSolutionId = workspace.CurrentSolution.Id;
-                _currentConnection = new ReferenceCountedDisposable<Connection>.WeakReference(currentConnection);
+                _currentConnection = currentConnection == null
+                    ? default
+                    : new ReferenceCountedDisposable<Connection>.WeakReference(currentConnection);
             }
 
             public void OnAfterWorkingFolderChange()

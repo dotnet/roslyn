@@ -80,7 +80,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // projectTracker is sending events, the workspace host can then use that connection 
             // instead of having to expensively spin up a fresh one.
             var currentConnection = await client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
-            using (var refCountedConnection = new ReferenceCountedDisposable<Connection>(currentConnection))
+            var refCountedConnection = currentConnection == null
+                ? null
+                : new ReferenceCountedDisposable<Connection>(currentConnection);
+            using (refCountedConnection)
             {
                 var host = new WorkspaceHost(vsWorkspace, client, refCountedConnection);
 
