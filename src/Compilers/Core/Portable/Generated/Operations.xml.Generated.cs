@@ -3022,7 +3022,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<ImmutableArray<IOperation>> _lazyInitializers;
 
-        public LazyAnonymousObjectCreationExpression(Lazy<ImmutableArray<IOperation>> initializers, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : 
+        public LazyAnonymousObjectCreationExpression(Lazy<ImmutableArray<IOperation>> initializers, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(syntax, type, constantValue)
         {
             _lazyInitializers = initializers;
