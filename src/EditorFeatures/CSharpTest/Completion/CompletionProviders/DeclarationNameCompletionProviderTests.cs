@@ -453,5 +453,35 @@ public class MyClass
 ";
             await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void Alias1()
+        {
+            var markup = @"
+using MyType = System.String;
+public class C
+{
+    MyType $$
+}
+";
+            await VerifyItemExistsAsync(markup, "my");
+            await VerifyItemExistsAsync(markup, "type");
+            await VerifyItemExistsAsync(markup, "myType");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void AliasWithInterfacePattern()
+        {
+            var markup = @"
+using IMyType = System.String;
+public class C
+{
+    MyType $$
+}
+";
+            await VerifyItemExistsAsync(markup, "my");
+            await VerifyItemExistsAsync(markup, "type");
+            await VerifyItemExistsAsync(markup, "myType");
+        }
     }
 }

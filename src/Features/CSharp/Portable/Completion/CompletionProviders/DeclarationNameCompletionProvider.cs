@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name, CompletionItemRules.Default);
         }
 
-        private ImmutableArray<IEnumerable<string>> GetBaseNames(SemanticModel semanticModel,  NameDeclarationInfo nameInfo)
+        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel,  NameDeclarationInfo nameInfo)
         {
             if (nameInfo.Alias != null)
             {
-                return ImmutableArray.Create(SpecializedCollections.SingletonEnumerable(nameInfo.Alias.Name));
+                return NameGenerator.GetBaseNames(nameInfo.Alias);
             }
 
             if (!IsValidType(nameInfo.Type))
