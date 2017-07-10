@@ -93,6 +93,10 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "") {
         $args += " /p:OfficialBuild=true"
     }
 
+    if ($bootstrapDir -ne "") {
+        $args += " /p:BootstrapBuildPath=$bootstrapDir"
+    }
+
     $args += " $buildArgs"
     Exec-Console $msbuild $args
 }
