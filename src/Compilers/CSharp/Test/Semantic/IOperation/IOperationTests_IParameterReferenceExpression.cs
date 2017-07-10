@@ -357,7 +357,7 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-INameOfExpression (OperationKind.NameOfExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: 'nameof(x + y)')
+INameOfExpression (OperationKind.NameOfExpression, Type: System.String, Constant: """", IsInvalid) (Syntax: 'nameof(x + y)')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'x + y')
     Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
     Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
