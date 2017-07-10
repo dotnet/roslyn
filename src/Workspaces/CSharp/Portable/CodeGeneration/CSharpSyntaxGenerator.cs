@@ -296,6 +296,52 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxFactory.AccessorList(SyntaxFactory.List(accessors)));
         }
 
+        public override SyntaxNode GetAccessorDeclaration(Accessibility accessibility, IEnumerable<SyntaxNode> statements)
+            => AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, accessibility, statements);
+
+        public override SyntaxNode SetAccessorDeclaration(Accessibility accessibility, IEnumerable<SyntaxNode> statements)
+            => AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, accessibility, statements);
+
+        private static SyntaxNode AccessorDeclaration(
+            SyntaxKind kind, Accessibility accessibility, IEnumerable<SyntaxNode> statements)
+        {
+            var accessor = SyntaxFactory.AccessorDeclaration(kind);
+            accessor = accessor.WithModifiers(
+                AsModifierList(accessibility, DeclarationModifiers.None, SyntaxKind.PropertyDeclaration));
+
+            accessor = statements == null
+                ? accessor.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                : accessor.WithBody(CreateBlock(statements));
+
+            return accessor;
+        }
+
+        public override SyntaxNode WithAccessorDeclarations(SyntaxNode declaration, IEnumerable<SyntaxNode> accessorDeclarations)
+        {
+            switch (declaration)
+            {
+                case PropertyDeclarationSyntax property:
+                    return property.WithAccessorList(CreateAccessorList(property.AccessorList, accessorDeclarations))
+                                   .WithExpressionBody(null)
+                                   .WithSemicolonToken(default);
+
+                case IndexerDeclarationSyntax indexer:
+                    return indexer.WithAccessorList(CreateAccessorList(indexer.AccessorList, accessorDeclarations))
+                                  .WithExpressionBody(null)
+                                  .WithSemicolonToken(default);
+            }
+
+            return declaration;
+        }
+
+        private AccessorListSyntax CreateAccessorList(AccessorListSyntax accessorListOpt, IEnumerable<SyntaxNode> accessorDeclarations)
+        {
+            var list = SyntaxFactory.List(accessorDeclarations.Cast<AccessorDeclarationSyntax>());
+            return accessorListOpt == null
+                ? SyntaxFactory.AccessorList(list)
+                : accessorListOpt.WithAccessors(list);
+        }
+
         public override SyntaxNode IndexerDeclaration(
             IEnumerable<SyntaxNode> parameters,
             SyntaxNode type,
@@ -1718,12 +1764,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             return list;
-        }
-
-        private static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
-        {
-            // return tokens from newList, but use original tokens of kind matches
-            return SyntaxFactory.TokenList(newList.Select(token => original.Any(token.Kind()) ? original.First(tk => tk.IsKind(token.Kind())) : token));
         }
 
         private static void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers)

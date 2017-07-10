@@ -200,25 +200,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var expressionBody = GetExpressionBody(declaration);
             var semicolonToken = GetSemicolonToken(declaration);
 
-            var expressionBodyPreference = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+            // When converting an expression-bodied property to a block body, always attempt to 
+            // create an accessor with a block body (even if the user likes expression bodied
+            // accessors.  While this technically doesn't match their preferences, it fits with
+            // the far more likely scenario that the user wants to convert this property into
+            // a full property so that they can flesh out the body contents.  If we keep around
+            // an expression bodied accessor they'll just have to convert that to a block as well
+            // and that means two steps to take instead of one.
+
             expressionBody.TryConvertToBlock(GetSemicolonToken(declaration), CreateReturnStatementForExpression(declaration), out var block);
 
-            var useExpressionBodyIfAvailable =
-                expressionBodyPreference != ExpressionBodyPreference.Never &&
-                ((CSharpParseOptions)parseOptions).LanguageVersion >= LanguageVersion.CSharp7;
-
-            AccessorDeclarationSyntax accessor;
-            if (block == null ||
-                useExpressionBodyIfAvailable)
-            {
-                accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                        .WithExpressionBody(expressionBody)
-                                        .WithSemicolonToken(semicolonToken);
-            }
-            else
-            {
-                accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, block);
-            }
+            var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);
+            accessor = block != null
+                ? accessor.WithBody(block)
+                : accessor.WithExpressionBody(expressionBody)
+                          .WithSemicolonToken(semicolonToken);
 
             return WithAccessorList(declaration, SyntaxFactory.AccessorList(
                 SyntaxFactory.SingletonList(accessor)));

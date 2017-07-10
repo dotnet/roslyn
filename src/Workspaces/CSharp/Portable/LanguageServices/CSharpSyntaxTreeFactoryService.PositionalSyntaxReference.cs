@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Syntax references to nonterminals in structured trivia should be uncommon.
                     // Provide more efficient implementation if that is not true
                     var descendantsIntersectingSpan = parent.DescendantNodes(_textSpan, descendIntoTrivia: true);
-                    return descendantsIntersectingSpan.First((node) => node.IsKind(_kind) && node.Span == _textSpan);
+                    return descendantsIntersectingSpan.First(node => node.IsKind(_kind) && node.Span == _textSpan);
                 }
             }
         }

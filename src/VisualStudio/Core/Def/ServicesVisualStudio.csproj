@@ -26,12 +26,11 @@
        To deal with that, we write this target which finds that added package, removes it from
        the references list, then adds it back in again with the 'EmbedInteropTypes' flag properly
        set. -->
-  <Target Name="MarkNuGetVisualStudioPackageWithEmbedInteropType" AfterTargets="ResolveNuGetPackageAssets">
+  <Target Name="MarkNuGetVisualStudioPackageWithEmbedInteropType" AfterTargets="ResolvePackageDependenciesForBuild">
     <ItemGroup>
-      <_NuGetVisualStudioPackageReference Include="@(Reference)" Condition="'%(Reference.NuGetPackageId)' == 'NuGet.VisualStudio'" />
+      <_NuGetVisualStudioPackageReference Include="@(Reference)" Condition="'%(Filename)' == 'NuGet.VisualStudio'" />
     </ItemGroup>
-    <Error Condition="'@(_NuGetVisualStudioPackageReference)' == ''" Text="Could not find NuGet.VisualStudio package to add EmbedInteropTypes to." />
-    <ItemGroup>
+    <ItemGroup Condition="'@(_NuGetVisualStudioPackageReference)' != ''">
       <Reference Remove="@(_NuGetVisualStudioPackageReference)" />
       <Reference Include="@(_NuGetVisualStudioPackageReference)">
         <EmbedInteropTypes>True</EmbedInteropTypes>

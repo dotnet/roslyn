@@ -124,6 +124,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs">
       <Link>InternalUtilities\ReferenceEqualityComparer.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreExtensions.cs">
+      <Link>InternalUtilities\SemaphoreExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs">
       <Link>InternalUtilities\SemaphoreSlimExtensions.cs</Link>
     </Compile>

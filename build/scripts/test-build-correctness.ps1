@@ -33,13 +33,13 @@ try {
     }
 
     Write-Host "Building Roslyn.sln with logging support"
-    Exec-Command $msbuild "/noconlog /v:m /m /p:Configuration=$config /logger:StructuredLogger,$structuredLoggerPath;$logPath /nodeReuse:false /p:DeployExtension=false $solution"
+    Exec-Console $msbuild "/noconlog /v:m /m /p:Configuration=$config /logger:StructuredLogger,$structuredLoggerPath;$logPath /nodeReuse:false /p:DeployExtension=false $solution"
     Write-Host ""
 
     # Verify the state of our various build artifacts
     Write-Host "Running BuildBoss"
     $buildBossPath = Join-Path $configDir "Exes\BuildBoss\BuildBoss.exe"
-    Exec-Command $buildBossPath "Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln build\Targets $logPath"
+    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln build\Targets $logPath"
     Write-Host ""
 
     # Verify the state of our generated syntax files
