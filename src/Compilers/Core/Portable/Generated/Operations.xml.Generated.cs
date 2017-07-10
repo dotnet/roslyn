@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyAddressOfExpression(Lazy<IOperation> reference, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyReference = reference ?? throw new System.ArgumentNullException("reference");
+            _lazyReference = reference ?? throw new System.ArgumentNullException(nameof(reference));
         }
         /// <summary>
         /// Addressed reference.
@@ -137,9 +138,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyArgument(ArgumentKind argumentKind, IParameterSymbol parameter, Lazy<IOperation> value, Lazy<IOperation> inConversion, Lazy<IOperation> outConversion, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(argumentKind, parameter, isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
-            _lazyInConversion = inConversion ?? throw new System.ArgumentNullException("inConversion");
-            _lazyOutConversion = outConversion ?? throw new System.ArgumentNullException("outConversion");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+            _lazyInConversion = inConversion ?? throw new System.ArgumentNullException(nameof(inConversion));
+            _lazyOutConversion = outConversion ?? throw new System.ArgumentNullException(nameof(outConversion));
         }
         /// <summary>
         /// Value supplied for the argument.
@@ -221,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyArrayCreationExpression(ITypeSymbol elementType, Lazy<ImmutableArray<IOperation>> dimensionSizes, Lazy<IArrayInitializer> initializer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(elementType, isInvalid, syntax, type, constantValue)
         {
             _lazyDimensionSizes = dimensionSizes;
-            _lazyInitializer = initializer ?? throw new System.ArgumentNullException("initializer");
+            _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
         /// <summary>
         /// Sizes of the dimensions of the created array instance.
@@ -292,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyArrayElementReferenceExpression(Lazy<IOperation> arrayReference, Lazy<ImmutableArray<IOperation>> indices, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyArrayReference = arrayReference ?? throw new System.ArgumentNullException("arrayReference");
+            _lazyArrayReference = arrayReference ?? throw new System.ArgumentNullException(nameof(arrayReference));
             _lazyIndices = indices;
         }
         /// <summary>
@@ -363,11 +364,11 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents an assignment expression.
+    /// Represents an base type of assignment expression.
     /// </summary>
-    internal abstract partial class BaseAssignmentExpression : Operation, IAssignmentExpression
+    internal abstract partial class AssignmentExpression : Operation, IAssignmentExpression
     {
-        protected BaseAssignmentExpression(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected AssignmentExpression(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
         }
@@ -382,12 +383,31 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents an assignment expression.
+    /// Represents a simple assignment expression.
     /// </summary>
-    internal sealed partial class AssignmentExpression : BaseAssignmentExpression, IAssignmentExpression
+    internal abstract partial class BaseSimpleAssignmentExpression : AssignmentExpression, ISimpleAssignmentExpression
     {
-        public AssignmentExpression(IOperation target, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.AssignmentExpression, isInvalid, syntax, type, constantValue)
+        public BaseSimpleAssignmentExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.SimpleAssignmentExpression, isInvalid, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSimpleAssignmentExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSimpleAssignmentExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a simple assignment expression.
+    /// </summary>
+    internal sealed partial class SimpleAssignmentExpression : BaseSimpleAssignmentExpression, ISimpleAssignmentExpression
+    {
+        public SimpleAssignmentExpression(IOperation target, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
         {
             Target = target;
             Value = value;
@@ -400,28 +420,21 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be assigned to the target of the assignment.
         /// </summary>
         public override IOperation Value { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitAssignmentExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitAssignmentExpression(this, argument);
-        }
     }
 
     /// <summary>
-    /// Represents an assignment expression.
+    /// Represents a simple assignment expression.
     /// </summary>
-    internal sealed partial class LazyAssignmentExpression : BaseAssignmentExpression, IAssignmentExpression
+    internal sealed partial class LazySimpleAssignmentExpression : BaseSimpleAssignmentExpression, ISimpleAssignmentExpression
     {
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyAssignmentExpression(Lazy<IOperation> target, Lazy<IOperation> value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(OperationKind.AssignmentExpression, isInvalid, syntax, type, constantValue)
+        public LazySimpleAssignmentExpression(Lazy<IOperation> target, Lazy<IOperation> value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
         {
-            _lazyTarget = target ?? throw new System.ArgumentNullException("target");
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         /// <summary>
         /// Target of the assignment.
@@ -432,15 +445,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be assigned to the target of the assignment.
         /// </summary>
         public override IOperation Value => _lazyValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitAssignmentExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitAssignmentExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -491,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyAwaitExpression(Lazy<IOperation> awaitedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyAwaitedValue = awaitedValue ?? throw new System.ArgumentNullException("awaitedValue");
+            _lazyAwaitedValue = awaitedValue ?? throw new System.ArgumentNullException(nameof(awaitedValue));
         }
         /// <summary>
         /// Value to be awaited.
@@ -572,8 +576,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyBinaryOperatorExpression(BinaryOperationKind binaryOperationKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(binaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException("leftOperand");
-            _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException("rightOperand");
+            _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException(nameof(leftOperand));
+            _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException(nameof(rightOperand));
         }
         /// <summary>
         /// Left operand.
@@ -760,8 +764,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyCatchClause(Lazy<IBlockStatement> handler, ITypeSymbol caughtType, Lazy<IOperation> filter, ILocalSymbol exceptionLocal, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(caughtType, exceptionLocal, isInvalid, syntax, type, constantValue)
         {
-            _lazyHandler = handler ?? throw new System.ArgumentNullException("handler");
-            _lazyFilter = filter ?? throw new System.ArgumentNullException("filter");
+            _lazyHandler = handler ?? throw new System.ArgumentNullException(nameof(handler));
+            _lazyFilter = filter ?? throw new System.ArgumentNullException(nameof(filter));
         }
         /// <summary>
         /// Body of the exception handler.
@@ -777,10 +781,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
-    internal abstract partial class BaseCompoundAssignmentExpression : BaseAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
+    internal abstract partial class BaseCompoundAssignmentExpression : AssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
-        protected BaseCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(kind, isInvalid, syntax, type, constantValue)
+        protected BaseCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.CompoundAssignmentExpression, isInvalid, syntax, type, constantValue)
         {
             BinaryOperationKind = binaryOperationKind;
             UsesOperatorMethod = usesOperatorMethod;
@@ -798,6 +802,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitCompoundAssignmentExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitCompoundAssignmentExpression(this, argument);
+        }
     }
 
     /// <summary>
@@ -806,7 +819,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class CompoundAssignmentExpression : BaseCompoundAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
         public CompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.CompoundAssignmentExpression, isInvalid, syntax, type, constantValue)
+            base(binaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
             Target = target;
             Value = value;
@@ -819,14 +832,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be assigned to the target of the assignment.
         /// </summary>
         public override IOperation Value { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitCompoundAssignmentExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitCompoundAssignmentExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -837,10 +842,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, Lazy<IOperation> target, Lazy<IOperation> value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.CompoundAssignmentExpression, isInvalid, syntax, type, constantValue)
+        public LazyCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, Lazy<IOperation> target, Lazy<IOperation> value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(binaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            _lazyTarget = target ?? throw new System.ArgumentNullException("target");
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         /// <summary>
         /// Target of the assignment.
@@ -851,15 +857,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be assigned to the target of the assignment.
         /// </summary>
         public override IOperation Value => _lazyValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitCompoundAssignmentExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitCompoundAssignmentExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -920,8 +917,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyConditionalAccessExpression(Lazy<IOperation> conditionalValue, Lazy<IOperation> conditionalInstance, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyConditionalValue = conditionalValue ?? throw new System.ArgumentNullException("conditionalValue");
-            _lazyConditionalInstance = conditionalInstance ?? throw new System.ArgumentNullException("conditionalInstance");
+            _lazyConditionalValue = conditionalValue ?? throw new System.ArgumentNullException(nameof(conditionalValue));
+            _lazyConditionalInstance = conditionalInstance ?? throw new System.ArgumentNullException(nameof(conditionalInstance));
         }
         /// <summary>
         /// Expression to be evaluated if the conditional instance is non null.
@@ -1021,9 +1018,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyConditionalChoiceExpression(Lazy<IOperation> condition, Lazy<IOperation> ifTrueValue, Lazy<IOperation> ifFalseValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyCondition = condition ?? throw new System.ArgumentNullException("condition");
-            _lazyIfTrueValue = ifTrueValue ?? throw new System.ArgumentNullException("ifTrueValue");
-            _lazyIfFalseValue = ifFalseValue ?? throw new System.ArgumentNullException("ifFalseValue");
+            _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
+            _lazyIfTrueValue = ifTrueValue ?? throw new System.ArgumentNullException(nameof(ifTrueValue));
+            _lazyIfFalseValue = ifFalseValue ?? throw new System.ArgumentNullException(nameof(ifFalseValue));
         }
         /// <summary>
         /// Condition to be tested.
@@ -1109,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyConversionExpression(Lazy<IOperation> operand, ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(conversionKind, isExplicit, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            _lazyOperand = operand ?? throw new System.ArgumentNullException("operand");
+            _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
         /// <summary>
         /// Value to be converted.
@@ -1248,8 +1245,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyEventAssignmentExpression(IEventSymbol @event, Lazy<IOperation> eventInstance, Lazy<IOperation> handlerValue, bool adds, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(@event, adds, isInvalid, syntax, type, constantValue)
         {
-            _lazyEventInstance = eventInstance ?? throw new System.ArgumentNullException("eventInstance");
-            _lazyHandlerValue = handlerValue ?? throw new System.ArgumentNullException("handlerValue");
+            _lazyEventInstance = eventInstance ?? throw new System.ArgumentNullException(nameof(eventInstance));
+            _lazyHandlerValue = handlerValue ?? throw new System.ArgumentNullException(nameof(handlerValue));
         }
 
         /// <summary>
@@ -1266,22 +1263,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to an event.
     /// </summary>
-    internal sealed partial class EventReferenceExpression : MemberReferenceExpression, IEventReferenceExpression
+    internal abstract partial class BaseEventReferenceExpression : MemberReferenceExpression, IEventReferenceExpression
     {
-        public EventReferenceExpression(IEventSymbol @event, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseEventReferenceExpression(IEventSymbol @event, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(member, OperationKind.EventReferenceExpression, isInvalid, syntax, type, constantValue)
         {
             Event = @event;
-            Instance = instance;
         }
         /// <summary>
         /// Referenced event.
         /// </summary>
         public IEventSymbol Event { get; }
-        /// <summary>
-        /// Instance of the type. Null if the reference is to a static/shared member.
-        /// </summary>
-        public override IOperation Instance { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitEventReferenceExpression(this);
@@ -1295,32 +1288,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to an event.
     /// </summary>
-    internal sealed partial class LazyEventReferenceExpression : MemberReferenceExpression, IEventReferenceExpression
+    internal sealed partial class EventReferenceExpression : BaseEventReferenceExpression, IEventReferenceExpression
+    {
+        public EventReferenceExpression(IEventSymbol @event, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(@event, member, isInvalid, syntax, type, constantValue)
+        {
+            Instance = instance;
+        }
+        /// <summary>
+        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// </summary>
+        public override IOperation Instance { get; }
+    }
+
+    /// <summary>
+    /// Represents a reference to an event.
+    /// </summary>
+    internal sealed partial class LazyEventReferenceExpression : BaseEventReferenceExpression, IEventReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyEventReferenceExpression(IEventSymbol @event, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(member, OperationKind.EventReferenceExpression, isInvalid, syntax, type, constantValue)
+        public LazyEventReferenceExpression(IEventSymbol @event, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(@event, member, isInvalid, syntax, type, constantValue)
         {
-            Event = @event;
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
+            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
-        /// <summary>
-        /// Referenced event.
-        /// </summary>
-        public IEventSymbol Event { get; }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
         public override IOperation Instance => _lazyInstance.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitEventReferenceExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitEventReferenceExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -1371,7 +1367,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyExpressionStatement(Lazy<IOperation> expression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyExpression = expression ?? throw new System.ArgumentNullException("expression");
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
         }
         /// <summary>
         /// Expression of the statement.
@@ -1382,19 +1378,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a field.
     /// </summary>
-    internal sealed partial class FieldInitializer : SymbolInitializer, IFieldInitializer
+    internal abstract partial class BaseFieldInitializer : SymbolInitializer, IFieldInitializer
     {
-        public FieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseFieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
             InitializedFields = initializedFields;
-            Value = value;
         }
         /// <summary>
         /// Initialized fields. There can be multiple fields for Visual Basic fields declared with As New.
         /// </summary>
         public ImmutableArray<IFieldSymbol> InitializedFields { get; }
-        public override IOperation Value { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFieldInitializer(this);
@@ -1408,89 +1403,88 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a field.
     /// </summary>
-    internal sealed partial class LazyFieldInitializer : SymbolInitializer, IFieldInitializer
+    internal sealed partial class FieldInitializer : BaseFieldInitializer, IFieldInitializer
+    {
+        public FieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(initializedFields, kind, isInvalid, syntax, type, constantValue)
+        {
+            Value = value;
+        }
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents an initialization of a field.
+    /// </summary>
+    internal sealed partial class LazyFieldInitializer : BaseFieldInitializer, IFieldInitializer
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyFieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(kind, isInvalid, syntax, type, constantValue)
+        public LazyFieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(initializedFields, kind, isInvalid, syntax, type, constantValue)
         {
-            InitializedFields = initializedFields;
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+        public override IOperation Value => _lazyValue.Value;
+    }
+
+    /// <summary>
+    /// Represents a reference to a field.
+    /// </summary>
+    internal abstract partial class BaseFieldReferenceExpression : MemberReferenceExpression, IFieldReferenceExpression
+    {
+        public BaseFieldReferenceExpression(IFieldSymbol field, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(member, OperationKind.FieldReferenceExpression, isInvalid, syntax, type, constantValue)
+        {
+            Field = field;
         }
         /// <summary>
-        /// Initialized fields. There can be multiple fields for Visual Basic fields declared with As New.
+        /// Referenced field.
         /// </summary>
-        public ImmutableArray<IFieldSymbol> InitializedFields { get; }
-        public override IOperation Value => _lazyValue.Value;
+        public IFieldSymbol Field { get; }
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitFieldInitializer(this);
+            visitor.VisitFieldReferenceExpression(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitFieldInitializer(this, argument);
+            return visitor.VisitFieldReferenceExpression(this, argument);
         }
     }
 
     /// <summary>
     /// Represents a reference to a field.
     /// </summary>
-    internal sealed partial class FieldReferenceExpression : MemberReferenceExpression, IFieldReferenceExpression
+    internal sealed partial class FieldReferenceExpression : BaseFieldReferenceExpression, IFieldReferenceExpression
     {
         public FieldReferenceExpression(IFieldSymbol field, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(member, OperationKind.FieldReferenceExpression, isInvalid, syntax, type, constantValue)
+            base(field, member, isInvalid, syntax, type, constantValue)
         {
-            Field = field;
             Instance = instance;
         }
-        /// <summary>
-        /// Referenced field.
-        /// </summary>
-        public IFieldSymbol Field { get; }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
         public override IOperation Instance { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitFieldReferenceExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitFieldReferenceExpression(this, argument);
-        }
     }
 
     /// <summary>
     /// Represents a reference to a field.
     /// </summary>
-    internal sealed partial class LazyFieldReferenceExpression : MemberReferenceExpression, IFieldReferenceExpression
+    internal sealed partial class LazyFieldReferenceExpression : BaseFieldReferenceExpression, IFieldReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyFieldReferenceExpression(IFieldSymbol field, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(member, OperationKind.FieldReferenceExpression, isInvalid, syntax, type, constantValue)
+        public LazyFieldReferenceExpression(IFieldSymbol field, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(field, member, isInvalid, syntax, type, constantValue)
         {
-            Field = field;
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
+            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
-        /// <summary>
-        /// Referenced field.
-        /// </summary>
-        public IFieldSymbol Field { get; }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
         public override IOperation Instance => _lazyInstance.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitFieldReferenceExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitFieldReferenceExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -1551,8 +1545,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyFixedStatement(Lazy<IVariableDeclarationStatement> variables, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyVariables = variables ?? throw new System.ArgumentNullException("variables");
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyVariables = variables ?? throw new System.ArgumentNullException(nameof(variables));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
         /// <summary>
         /// Variables to be fixed.
@@ -1568,14 +1562,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# foreach statement or a VB For Each statement.
     /// </summary>
-    internal sealed partial class ForEachLoopStatement : LoopStatement, IForEachLoopStatement
+    internal abstract partial class BaseForEachLoopStatement : LoopStatement, IForEachLoopStatement
     {
-        public ForEachLoopStatement(ILocalSymbol iterationVariable, IOperation collection, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseForEachLoopStatement(ILocalSymbol iterationVariable, LoopKind loopKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
         {
             IterationVariable = iterationVariable;
-            Collection = collection;
-            Body = body;
         }
         /// <summary>
         /// Iteration variable of the loop.
@@ -1584,11 +1576,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Collection value over which the loop iterates.
         /// </summary>
-        public IOperation Collection { get; }
-        /// <summary>
-        /// Body of the loop.
-        /// </summary>
-        public override IOperation Body { get; }
+        public abstract IOperation Collection { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitForEachLoopStatement(this);
@@ -1602,75 +1591,71 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# foreach statement or a VB For Each statement.
     /// </summary>
-    internal sealed partial class LazyForEachLoopStatement : LoopStatement, IForEachLoopStatement
+    internal sealed partial class ForEachLoopStatement : BaseForEachLoopStatement, IForEachLoopStatement
+    {
+        public ForEachLoopStatement(ILocalSymbol iterationVariable, IOperation collection, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(iterationVariable, loopKind, isInvalid, syntax, type, constantValue)
+        {
+            Collection = collection;
+            Body = body;
+        }
+        /// <summary>
+        /// Collection value over which the loop iterates.
+        /// </summary>
+        public override IOperation Collection { get; }
+        /// <summary>
+        /// Body of the loop.
+        /// </summary>
+        public override IOperation Body { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# foreach statement or a VB For Each statement.
+    /// </summary>
+    internal sealed partial class LazyForEachLoopStatement : BaseForEachLoopStatement, IForEachLoopStatement
     {
         private readonly Lazy<IOperation> _lazyCollection;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyForEachLoopStatement(ILocalSymbol iterationVariable, Lazy<IOperation> collection, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
+        public LazyForEachLoopStatement(ILocalSymbol iterationVariable, Lazy<IOperation> collection, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(iterationVariable, loopKind, isInvalid, syntax, type, constantValue)
         {
-            IterationVariable = iterationVariable;
-            _lazyCollection = collection ?? throw new System.ArgumentNullException("collection");
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyCollection = collection ?? throw new System.ArgumentNullException(nameof(collection));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
-        /// <summary>
-        /// Iteration variable of the loop.
-        /// </summary>
-        public ILocalSymbol IterationVariable { get; }
         /// <summary>
         /// Collection value over which the loop iterates.
         /// </summary>
-        public IOperation Collection => _lazyCollection.Value;
-
+        public override IOperation Collection => _lazyCollection.Value;
         /// <summary>
         /// Body of the loop.
         /// </summary>
         public override IOperation Body => _lazyBody.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitForEachLoopStatement(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitForEachLoopStatement(this, argument);
-        }
     }
 
     /// <summary>
     /// Represents a C# for statement or a VB For statement.
     /// </summary>
-    internal sealed partial class ForLoopStatement : ForWhileUntilLoopStatement, IForLoopStatement
+    internal abstract partial class BaseForLoopStatement : ForWhileUntilLoopStatement, IForLoopStatement
     {
-        public ForLoopStatement(ImmutableArray<IOperation> before, ImmutableArray<IOperation> atLoopBottom, ImmutableArray<ILocalSymbol> locals, IOperation condition, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseForLoopStatement(ImmutableArray<ILocalSymbol> locals, LoopKind loopKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
         {
-            Before = before;
-            AtLoopBottom = atLoopBottom;
             Locals = locals;
-            Condition = condition;
-            Body = body;
         }
         /// <summary>
         /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
         /// </summary>
-        public ImmutableArray<IOperation> Before { get; }
+        public abstract ImmutableArray<IOperation> Before { get; }
         /// <summary>
         /// Statements to execute at the bottom of the loop. For C# these come from the third clause of the for statement. For VB these increment the index variable of the For statement.
         /// </summary>
-        public ImmutableArray<IOperation> AtLoopBottom { get; }
+        public abstract ImmutableArray<IOperation> AtLoopBottom { get; }
         /// <summary>
         /// Declarations local to the loop.
         /// </summary>
         public ImmutableArray<ILocalSymbol> Locals { get; }
-        /// <summary>
-        /// Condition of the loop.
-        /// </summary>
-        public override IOperation Condition { get; }
-        /// <summary>
-        /// Body of the loop.
-        /// </summary>
-        public override IOperation Body { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitForLoopStatement(this);
@@ -1684,35 +1669,62 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# for statement or a VB For statement.
     /// </summary>
-    internal sealed partial class LazyForLoopStatement : ForWhileUntilLoopStatement, IForLoopStatement
+    internal sealed partial class ForLoopStatement : BaseForLoopStatement, IForLoopStatement
+    {
+        public ForLoopStatement(ImmutableArray<IOperation> before, ImmutableArray<IOperation> atLoopBottom, ImmutableArray<ILocalSymbol> locals, IOperation condition, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(locals, loopKind, isInvalid, syntax, type, constantValue)
+        {
+            Before = before;
+            AtLoopBottom = atLoopBottom;
+            Condition = condition;
+            Body = body;
+        }
+        /// <summary>
+        /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
+        /// </summary>
+        public override ImmutableArray<IOperation> Before { get; }
+        /// <summary>
+        /// Statements to execute at the bottom of the loop. For C# these come from the third clause of the for statement. For VB these increment the index variable of the For statement.
+        /// </summary>
+        public override ImmutableArray<IOperation> AtLoopBottom { get; }
+        /// <summary>
+        /// Condition of the loop.
+        /// </summary>
+        public override IOperation Condition { get; }
+        /// <summary>
+        /// Body of the loop.
+        /// </summary>
+        public override IOperation Body { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# for statement or a VB For statement.
+    /// </summary>
+    internal sealed partial class LazyForLoopStatement : BaseForLoopStatement, IForLoopStatement
     {
         private readonly Lazy<ImmutableArray<IOperation>> _lazyBefore;
         private readonly Lazy<ImmutableArray<IOperation>> _lazyAtLoopBottom;
         private readonly Lazy<IOperation> _lazyCondition;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyForLoopStatement(Lazy<ImmutableArray<IOperation>> before, Lazy<ImmutableArray<IOperation>> atLoopBottom, ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> condition, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
+        public LazyForLoopStatement(Lazy<ImmutableArray<IOperation>> before, Lazy<ImmutableArray<IOperation>> atLoopBottom, ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> condition, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(locals, loopKind, isInvalid, syntax, type, constantValue)
         {
             _lazyBefore = before;
             _lazyAtLoopBottom = atLoopBottom;
-            Locals = locals;
-            _lazyCondition = condition ?? throw new System.ArgumentNullException("condition");
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
         /// <summary>
         /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
         /// </summary>
-        public ImmutableArray<IOperation> Before => _lazyBefore.Value;
+        public override ImmutableArray<IOperation> Before => _lazyBefore.Value;
 
         /// <summary>
         /// Statements to execute at the bottom of the loop. For C# these come from the third clause of the for statement. For VB these increment the index variable of the For statement.
         /// </summary>
-        public ImmutableArray<IOperation> AtLoopBottom => _lazyAtLoopBottom.Value;
+        public override ImmutableArray<IOperation> AtLoopBottom => _lazyAtLoopBottom.Value;
 
-        /// <summary>
-        /// Declarations local to the loop.
-        /// </summary>
-        public ImmutableArray<ILocalSymbol> Locals { get; }
         /// <summary>
         /// Condition of the loop.
         /// </summary>
@@ -1722,15 +1734,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Body of the loop.
         /// </summary>
         public override IOperation Body => _lazyBody.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitForLoopStatement(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitForLoopStatement(this, argument);
-        }
     }
 
     /// <summary>
@@ -1816,9 +1819,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyIfStatement(Lazy<IOperation> condition, Lazy<IOperation> ifTrueStatement, Lazy<IOperation> ifFalseStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyCondition = condition ?? throw new System.ArgumentNullException("condition");
-            _lazyIfTrueStatement = ifTrueStatement ?? throw new System.ArgumentNullException("ifTrueStatement");
-            _lazyIfFalseStatement = ifFalseStatement ?? throw new System.ArgumentNullException("ifFalseStatement");
+            _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
+            _lazyIfTrueStatement = ifTrueStatement ?? throw new System.ArgumentNullException(nameof(ifTrueStatement));
+            _lazyIfFalseStatement = ifFalseStatement ?? throw new System.ArgumentNullException(nameof(ifFalseStatement));
         }
         /// <summary>
         /// Condition of the if statement. For C# there is naturally one clause per if, but for VB If statements with multiple clauses are rewritten to have only one.
@@ -1839,14 +1842,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an increment expression.
     /// </summary>
-    internal sealed partial class IncrementExpression : BaseCompoundAssignmentExpression, IIncrementExpression
+    internal abstract partial class BaseIncrementExpression : Operation, IIncrementExpression
     {
-        public IncrementExpression(UnaryOperationKind incrementOperationKind, BinaryOperationKind binaryOperationKind, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.IncrementExpression, isInvalid, syntax, type, constantValue)
+        public BaseIncrementExpression(UnaryOperationKind incrementOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.IncrementExpression, isInvalid, syntax, type, constantValue)
         {
             IncrementOperationKind = incrementOperationKind;
-            Target = target;
-            Value = value;
+            UsesOperatorMethod = usesOperatorMethod;
+            OperatorMethod = operatorMethod;
         }
         /// <summary>
         /// Kind of increment.
@@ -1855,11 +1858,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Target of the assignment.
         /// </summary>
-        public override IOperation Target { get; }
+        public abstract IOperation Target { get; }
         /// <summary>
-        /// Value to be assigned to the target of the assignment.
+        /// True if and only if the operation is performed by an operator method.
         /// </summary>
-        public override IOperation Value { get; }
+        public bool UsesOperatorMethod { get; }
+        /// <summary>
+        /// Operation method used by the operation, null if the operation does not use an operator method.
+        /// </summary>
+        public IMethodSymbol OperatorMethod { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitIncrementExpression(this);
@@ -1873,109 +1881,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an increment expression.
     /// </summary>
-    internal sealed partial class LazyIncrementExpression : BaseCompoundAssignmentExpression, IIncrementExpression
+    internal sealed partial class IncrementExpression : BaseIncrementExpression, IIncrementExpression
     {
-        private readonly Lazy<IOperation> _lazyTarget;
-        private readonly Lazy<IOperation> _lazyValue;
-
-        public LazyIncrementExpression(UnaryOperationKind incrementOperationKind, BinaryOperationKind binaryOperationKind, Lazy<IOperation> target, Lazy<IOperation> value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.IncrementExpression, isInvalid, syntax, type, constantValue)
+        public IncrementExpression(UnaryOperationKind incrementOperationKind, IOperation target, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(incrementOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            IncrementOperationKind = incrementOperationKind;
-            _lazyTarget = target ?? throw new System.ArgumentNullException("target");
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            Target = target;
         }
         /// <summary>
-        /// Kind of increment.
+        /// Target of the assignment.
         /// </summary>
-        public UnaryOperationKind IncrementOperationKind { get; }
+        public override IOperation Target { get; }
+    }
+
+    /// <summary>
+    /// Represents an increment expression.
+    /// </summary>
+    internal sealed partial class LazyIncrementExpression : BaseIncrementExpression, IIncrementExpression
+    {
+        private readonly Lazy<IOperation> _lazyTarget;
+
+        public LazyIncrementExpression(UnaryOperationKind incrementOperationKind, Lazy<IOperation> target, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(incrementOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+        {
+            _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
+        }
         /// <summary>
         /// Target of the assignment.
         /// </summary>
         public override IOperation Target => _lazyTarget.Value;
-
-        /// <summary>
-        /// Value to be assigned to the target of the assignment.
-        /// </summary>
-        public override IOperation Value => _lazyValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitIncrementExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitIncrementExpression(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents a reference to an indexed property.
-    /// </summary>
-    internal sealed partial class IndexedPropertyReferenceExpression : BasePropertyReferenceExpression, IHasArgumentsExpression, IIndexedPropertyReferenceExpression
-    {
-        public IndexedPropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, ImmutableArray<IArgument> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(property, member, OperationKind.IndexedPropertyReferenceExpression, isInvalid, syntax, type, constantValue)
-        {
-            ArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
-            Instance = instance;
-        }
-        /// <summary>
-        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
-        /// </summary>
-        /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
-        /// Default values are supplied for optional arguments missing in source.
-        /// </remarks>
-        public ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
-        /// <summary>
-        /// Instance of the type. Null if the reference is to a static/shared member.
-        /// </summary>
-        public override IOperation Instance { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitIndexedPropertyReferenceExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitIndexedPropertyReferenceExpression(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents a reference to an indexed property.
-    /// </summary>
-    internal sealed partial class LazyIndexedPropertyReferenceExpression : BasePropertyReferenceExpression, IHasArgumentsExpression, IIndexedPropertyReferenceExpression
-    {
-        private readonly Lazy<IOperation> _lazyInstance;
-        private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
-
-        public LazyIndexedPropertyReferenceExpression(IPropertySymbol property, Lazy<IOperation> instance, ISymbol member, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(property, member, OperationKind.IndexedPropertyReferenceExpression, isInvalid, syntax, type, constantValue)
-        {
-            _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
-        }
-        /// <summary>
-        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
-        /// </summary>
-        /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
-        /// Default values are supplied for optional arguments missing in source.
-        /// </remarks>
-        public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => _lazyArgumentsInEvaluationOrder.Value;
-
-        /// <summary>
-        /// Instance of the type. Null if the reference is to a static/shared member.
-        /// </summary>
-        public override IOperation Instance => _lazyInstance.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitIndexedPropertyReferenceExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitIndexedPropertyReferenceExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -2001,6 +1935,205 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitInstanceReferenceExpression(this, argument);
         }
+    }
+
+    /// <remarks>
+    /// Represents an interpolated string expression.
+    /// </remarks>
+    internal abstract partial class BaseInterpolatedStringExpression : Operation, IInterpolatedStringExpression
+    {
+        protected BaseInterpolatedStringExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.InterpolatedStringExpression, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Constituent parts of interpolated string, each of which is an <see cref="IInterpolatedStringContent"/>.
+        /// </summary>
+        public abstract ImmutableArray<IInterpolatedStringContent> Parts { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitInterpolatedStringExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitInterpolatedStringExpression(this, argument);
+        }
+    }
+
+    /// <remarks>
+    /// Represents an interpolated string expression.
+    /// </remarks>
+    internal sealed partial class InterpolatedStringExpression : BaseInterpolatedStringExpression, IInterpolatedStringExpression
+    {
+        public InterpolatedStringExpression(ImmutableArray<IInterpolatedStringContent> parts, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Parts = parts;
+        }
+        /// <summary>
+        /// Constituent parts of interpolated string, each of which is an <see cref="IInterpolatedStringContent"/>.
+        /// </summary>
+        public override ImmutableArray<IInterpolatedStringContent> Parts { get; }
+    }
+
+    /// <remarks>
+    /// Represents an interpolated string expression.
+    /// </remarks>
+    internal sealed partial class LazyInterpolatedStringExpression : BaseInterpolatedStringExpression, IInterpolatedStringExpression
+    {
+        private readonly Lazy<ImmutableArray<IInterpolatedStringContent>> _lazyParts;
+
+        public LazyInterpolatedStringExpression(Lazy<ImmutableArray<IInterpolatedStringContent>> parts, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyParts = parts;
+        }
+        /// <summary>
+        /// Constituent parts of interpolated string, each of which is an <see cref="IInterpolatedStringContent"/>.
+        /// </summary>
+        public override ImmutableArray<IInterpolatedStringContent> Parts => _lazyParts.Value;
+    }
+
+    /// <remarks>
+    /// Represents a constituent string literal part of an interpolated string expression.
+    /// </remarks>
+    internal abstract partial class BaseInterpolatedStringText : Operation, IInterpolatedStringText
+    {
+        protected BaseInterpolatedStringText(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.InterpolatedStringText, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Text content.
+        /// </summary>
+        public abstract IOperation Text { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitInterpolatedStringText(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitInterpolatedStringText(this, argument);
+        }
+    }
+
+    /// <remarks>
+    /// Represents a constituent string literal part of an interpolated string expression.
+    /// </remarks>
+    internal sealed partial class InterpolatedStringText : BaseInterpolatedStringText, IInterpolatedStringText
+    {
+        public InterpolatedStringText(IOperation text, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Text = text;
+        }
+        /// <summary>
+        /// Text content.
+        /// </summary>
+        public override IOperation Text { get; }
+    }
+
+    /// <remarks>
+    /// Represents a constituent string literal part of an interpolated string expression.
+    /// </remarks>
+    internal sealed partial class LazyInterpolatedStringText : BaseInterpolatedStringText, IInterpolatedStringText
+    {
+        private readonly Lazy<IOperation> _lazyText;
+
+        public LazyInterpolatedStringText(Lazy<IOperation> text, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyText = text;
+        }
+        /// <summary>
+        /// Text content.
+        /// </summary>
+        public override IOperation Text => _lazyText.Value;
+    }
+
+    /// <remarks>
+    /// Represents a constituent interpolation part of an interpolated string expression.
+    /// </remarks>
+    internal abstract partial class BaseInterpolation : Operation, IInterpolation
+    {
+        protected BaseInterpolation(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.Interpolation, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Expression of the interpolation.
+        /// </summary>
+        public abstract IOperation Expression { get; }
+        /// <summary>
+        /// Optional alignment of the interpolation.
+        /// </summary>
+        public abstract IOperation Alignment { get; }
+        /// <summary>
+        /// Optional format string of the interpolation.
+        /// </summary>
+        public abstract IOperation FormatString { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitInterpolation(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitInterpolation(this, argument);
+        }
+    }
+
+    /// <remarks>
+    /// Represents a constituent interpolation part of an interpolated string expression.
+    /// </remarks>
+    internal sealed partial class Interpolation : BaseInterpolation, IInterpolation
+    {
+        public Interpolation(IOperation expression, IOperation alignment, IOperation formatString, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Expression = expression;
+            Alignment = alignment;
+            FormatString = formatString;
+        }
+        /// <summary>
+        /// Expression of the interpolation.
+        /// </summary>
+        public override IOperation Expression { get; }
+        /// <summary>
+        /// Optional alignment of the interpolation.
+        /// </summary>
+        public override IOperation Alignment { get; }
+        /// <summary>
+        /// Optional format string of the interpolation.
+        /// </summary>
+        public override IOperation FormatString { get; }
+    }
+
+    /// <remarks>
+    /// Represents a constituent interpolation part of an interpolated string expression.
+    /// </remarks>
+    internal sealed partial class LazyInterpolation : BaseInterpolation, IInterpolation
+    {
+        private readonly Lazy<IOperation> _lazyExpression;
+        private readonly Lazy<IOperation> _lazyAlignment;
+        private readonly Lazy<IOperation> _lazyFormatString;
+
+        public LazyInterpolation(Lazy<IOperation> expression, Lazy<IOperation> alignment, Lazy<IOperation> formatString, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyExpression = expression;
+            _lazyAlignment = alignment;
+            _lazyFormatString = formatString;
+        }
+        /// <summary>
+        /// Expression of the interpolation.
+        /// </summary>
+        public override IOperation Expression => _lazyExpression.Value;
+        /// <summary>
+        /// Optional alignment of the interpolation.
+        /// </summary>
+        public override IOperation Alignment => _lazyAlignment.Value;
+        /// <summary>
+        /// Optional format string of the interpolation.
+        /// </summary>
+        public override IOperation FormatString => _lazyFormatString.Value;
     }
 
     /// <remarks>
@@ -2194,7 +2327,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyInvocationExpression(IMethodSymbol targetMethod, Lazy<IOperation> instance, bool isVirtual, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(targetMethod, isVirtual, isInvalid, syntax, type, constantValue)
         {
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
+            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
             _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
         }
         /// <summary>
@@ -2265,7 +2398,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyIsTypeExpression(Lazy<IOperation> operand, ITypeSymbol isType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isType, isInvalid, syntax, type, constantValue)
         {
-            _lazyOperand = operand ?? throw new System.ArgumentNullException("operand");
+            _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
         /// <summary>
         /// Value to test.
@@ -2326,7 +2459,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyLabelStatement(ILabelSymbol label, Lazy<IOperation> labeledStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(label, isInvalid, syntax, type, constantValue)
         {
-            _lazyLabeledStatement = labeledStatement ?? throw new System.ArgumentNullException("labeledStatement");
+            _lazyLabeledStatement = labeledStatement ?? throw new System.ArgumentNullException(nameof(labeledStatement));
         }
         /// <summary>
         /// Statement that has been labeled.
@@ -2387,7 +2520,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyLambdaExpression(IMethodSymbol signature, Lazy<IBlockStatement> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(signature, isInvalid, syntax, type, constantValue)
         {
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
         /// <summary>
         /// Body of the lambda.
@@ -2448,7 +2581,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyLateBoundMemberReferenceExpression(Lazy<IOperation> instance, string memberName, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(memberName, isInvalid, syntax, type, constantValue)
         {
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
+            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
         /// <summary>
         /// Instance used to bind the member reference.
@@ -2562,8 +2695,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyLockStatement(Lazy<IOperation> lockedObject, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyLockedObject = lockedObject ?? throw new System.ArgumentNullException("lockedObject");
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyLockedObject = lockedObject ?? throw new System.ArgumentNullException(nameof(lockedObject));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
         /// <summary>
         /// Value to be locked.
@@ -2620,14 +2753,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a method other than as the target of an invocation.
     /// </summary>
-    internal sealed partial class MethodBindingExpression : MemberReferenceExpression, IMethodBindingExpression
+    internal abstract partial class BaseMethodBindingExpression : MemberReferenceExpression, IMethodBindingExpression
     {
-        public MethodBindingExpression(IMethodSymbol method, bool isVirtual, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseMethodBindingExpression(IMethodSymbol method, bool isVirtual, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(member, OperationKind.MethodBindingExpression, isInvalid, syntax, type, constantValue)
         {
             Method = method;
             IsVirtual = isVirtual;
-            Instance = instance;
         }
         /// <summary>
         /// Referenced method.
@@ -2638,10 +2770,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Indicates whether the reference uses virtual semantics.
         /// </summary>
         public bool IsVirtual { get; }
-        /// <summary>
-        /// Instance of the type. Null if the reference is to a static/shared member.
-        /// </summary>
-        public override IOperation Instance { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitMethodBindingExpression(this);
@@ -2655,38 +2784,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a method other than as the target of an invocation.
     /// </summary>
-    internal sealed partial class LazyMethodBindingExpression : MemberReferenceExpression, IMethodBindingExpression
+    internal sealed partial class MethodBindingExpression : BaseMethodBindingExpression, IMethodBindingExpression
+    {
+        public MethodBindingExpression(IMethodSymbol method, bool isVirtual, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(method, isVirtual, member, isInvalid, syntax, type, constantValue)
+        {
+            Instance = instance;
+        }
+        /// <summary>
+        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// </summary>
+        public override IOperation Instance { get; }
+    }
+
+    /// <summary>
+    /// Represents a reference to a method other than as the target of an invocation.
+    /// </summary>
+    internal sealed partial class LazyMethodBindingExpression : BaseMethodBindingExpression, IMethodBindingExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyMethodBindingExpression(IMethodSymbol method, bool isVirtual, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(member, OperationKind.MethodBindingExpression, isInvalid, syntax, type, constantValue)
+        public LazyMethodBindingExpression(IMethodSymbol method, bool isVirtual, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(method, isVirtual, member, isInvalid, syntax, type, constantValue)
         {
-            Method = method;
-            IsVirtual = isVirtual;
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
+            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
-        /// <summary>
-        /// Referenced method.
-        /// </summary>
-        public IMethodSymbol Method { get; }
-
-        /// <summary>
-        /// Indicates whether the reference uses virtual semantics.
-        /// </summary>
-        public bool IsVirtual { get; }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
         public override IOperation Instance => _lazyInstance.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitMethodBindingExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitMethodBindingExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -2747,8 +2873,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyNullCoalescingExpression(Lazy<IOperation> primaryOperand, Lazy<IOperation> secondaryOperand, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyPrimaryOperand = primaryOperand ?? throw new System.ArgumentNullException("primaryOperand");
-            _lazySecondaryOperand = secondaryOperand ?? throw new System.ArgumentNullException("secondaryOperand");
+            _lazyPrimaryOperand = primaryOperand ?? throw new System.ArgumentNullException(nameof(primaryOperand));
+            _lazySecondaryOperand = secondaryOperand ?? throw new System.ArgumentNullException(nameof(secondaryOperand));
         }
         /// <summary>
         /// Value to be unconditionally evaluated.
@@ -2851,6 +2977,62 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# or VB new/New anonymous object creation expression.
+    /// </summary>
+    internal abstract partial class BaseAnonymousObjectCreationExpression : Operation, IAnonymousObjectCreationExpression
+    {
+        protected BaseAnonymousObjectCreationExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.AnonymousObjectCreationExpression, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Explicitly-specified member initializers.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> Initializers { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitAnonymousObjectCreationExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitAnonymousObjectCreationExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# or VB new/New anonymous object creation expression.
+    /// </summary>
+    internal sealed partial class AnonymousObjectCreationExpression : BaseAnonymousObjectCreationExpression, IAnonymousObjectCreationExpression
+    {
+        public AnonymousObjectCreationExpression(ImmutableArray<IOperation> initializers, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Initializers = initializers;
+        }
+        /// <summary>
+        /// Explicitly-specified member initializers.
+        /// </summary>
+        public override ImmutableArray<IOperation> Initializers { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# or VB new/New anonymous object creation expression.
+    /// </summary>
+    internal sealed partial class LazyAnonymousObjectCreationExpression : BaseAnonymousObjectCreationExpression, IAnonymousObjectCreationExpression
+    {
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyInitializers;
+
+        public LazyAnonymousObjectCreationExpression(Lazy<ImmutableArray<IOperation>> initializers, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyInitializers = initializers;
+        }
+        /// <summary>
+        /// Explicitly-specified member initializers.
+        /// </summary>
+        public override ImmutableArray<IOperation> Initializers => _lazyInitializers.Value;
+    }
+
+    /// <summary>
     /// Represents an argument value that has been omitted in an invocation.
     /// </summary>
     internal sealed partial class OmittedArgumentExpression : Operation, IOmittedArgumentExpression
@@ -2872,19 +3054,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a parameter at the point of declaration.
     /// </summary>
-    internal sealed partial class ParameterInitializer : SymbolInitializer, IParameterInitializer
+    internal abstract partial class BaseParameterInitializer : SymbolInitializer, IParameterInitializer
     {
-        public ParameterInitializer(IParameterSymbol parameter, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseParameterInitializer(IParameterSymbol parameter, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
             Parameter = parameter;
-            Value = value;
         }
         /// <summary>
         /// Initialized parameter.
         /// </summary>
         public IParameterSymbol Parameter { get; }
-        public override IOperation Value { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitParameterInitializer(this);
@@ -2898,29 +3079,29 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a parameter at the point of declaration.
     /// </summary>
-    internal sealed partial class LazyParameterInitializer : SymbolInitializer, IParameterInitializer
+    internal sealed partial class ParameterInitializer : BaseParameterInitializer, IParameterInitializer
+    {
+        public ParameterInitializer(IParameterSymbol parameter, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(parameter, kind, isInvalid, syntax, type, constantValue)
+        {
+            Value = value;
+        }
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents an initialization of a parameter at the point of declaration.
+    /// </summary>
+    internal sealed partial class LazyParameterInitializer : BaseParameterInitializer, IParameterInitializer
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyParameterInitializer(IParameterSymbol parameter, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(kind, isInvalid, syntax, type, constantValue)
+        public LazyParameterInitializer(IParameterSymbol parameter, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(parameter, kind, isInvalid, syntax, type, constantValue)
         {
-            Parameter = parameter;
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
-        /// <summary>
-        /// Initialized parameter.
-        /// </summary>
-        public IParameterSymbol Parameter { get; }
         public override IOperation Value => _lazyValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitParameterInitializer(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitParameterInitializer(this, argument);
-        }
     }
 
     /// <summary>
@@ -2995,7 +3176,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyParenthesizedExpression(Lazy<IOperation> operand, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyOperand = operand ?? throw new System.ArgumentNullException("operand");
+            _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
         /// <summary>
         /// Operand enclosed in parentheses.
@@ -3071,7 +3252,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyPointerIndirectionReferenceExpression(Lazy<IOperation> pointer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyPointer = pointer ?? throw new System.ArgumentNullException("pointer");
+            _lazyPointer = pointer ?? throw new System.ArgumentNullException(nameof(pointer));
         }
         /// <summary>
         /// Pointer to be dereferenced.
@@ -3082,19 +3263,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a property.
     /// </summary>
-    internal sealed partial class PropertyInitializer : SymbolInitializer, IPropertyInitializer
+    internal abstract partial class BasePropertyInitializer : SymbolInitializer, IPropertyInitializer
     {
-        public PropertyInitializer(IPropertySymbol initializedProperty, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BasePropertyInitializer(IPropertySymbol initializedProperty, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
             InitializedProperty = initializedProperty;
-            Value = value;
         }
         /// <summary>
         /// Set method used to initialize the property.
         /// </summary>
         public IPropertySymbol InitializedProperty { get; }
-        public override IOperation Value { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPropertyInitializer(this);
@@ -3108,38 +3288,38 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a property.
     /// </summary>
-    internal sealed partial class LazyPropertyInitializer : SymbolInitializer, IPropertyInitializer
+    internal sealed partial class PropertyInitializer : BasePropertyInitializer, IPropertyInitializer
+    {
+        public PropertyInitializer(IPropertySymbol initializedProperty, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(initializedProperty, kind, isInvalid, syntax, type, constantValue)
+        {
+            Value = value;
+        }
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents an initialization of a property.
+    /// </summary>
+    internal sealed partial class LazyPropertyInitializer : BasePropertyInitializer, IPropertyInitializer
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyPropertyInitializer(IPropertySymbol initializedProperty, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(kind, isInvalid, syntax, type, constantValue)
+        public LazyPropertyInitializer(IPropertySymbol initializedProperty, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(initializedProperty, kind, isInvalid, syntax, type, constantValue)
         {
-            InitializedProperty = initializedProperty;
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
-        /// <summary>
-        /// Set method used to initialize the property.
-        /// </summary>
-        public IPropertySymbol InitializedProperty { get; }
         public override IOperation Value => _lazyValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitPropertyInitializer(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitPropertyInitializer(this, argument);
-        }
     }
 
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal abstract partial class BasePropertyReferenceExpression : MemberReferenceExpression, IPropertyReferenceExpression
+    internal abstract partial class BasePropertyReferenceExpression : MemberReferenceExpression, IPropertyReferenceExpression, IHasArgumentsExpression
     {
-        protected BasePropertyReferenceExpression(IPropertySymbol property, ISymbol member, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(member, kind, isInvalid, syntax, type, constantValue)
+        protected BasePropertyReferenceExpression(IPropertySymbol property, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(member, OperationKind.PropertyReferenceExpression, isInvalid, syntax, type, constantValue)
         {
             Property = property;
         }
@@ -3147,22 +3327,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Referenced property.
         /// </summary>
         public IPropertySymbol Property { get; }
-    }
-
-    /// <summary>
-    /// Represents a reference to a property.
-    /// </summary>
-    internal sealed partial class PropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression
-    {
-        public PropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(property, member, OperationKind.PropertyReferenceExpression, isInvalid, syntax, type, constantValue)
-        {
-            Instance = instance;
-        }
         /// <summary>
-        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
-        public override IOperation Instance { get; }
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source.
+        /// </remarks>
+        public abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPropertyReferenceExpression(this);
@@ -3176,18 +3349,63 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal sealed partial class LazyPropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression
+    internal sealed partial class PropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression, IHasArgumentsExpression
+    {
+        public PropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, ImmutableArray<IArgument> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(property, member, isInvalid, syntax, type, constantValue)
+        {
+            Instance = instance;
+            ArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
+        }
+        /// <summary>
+        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// </summary>
+        public override IOperation Instance { get; }
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
+        /// </summary>
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source.
+        /// </remarks>
+        public override ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitPropertyReferenceExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitPropertyReferenceExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a reference to a property.
+    /// </summary>
+    internal sealed partial class LazyPropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression, IHasArgumentsExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
+        private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
 
-        public LazyPropertyReferenceExpression(IPropertySymbol property, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(property, member, OperationKind.PropertyReferenceExpression, isInvalid, syntax, type, constantValue)
+        public LazyPropertyReferenceExpression(IPropertySymbol property, Lazy<IOperation> instance, ISymbol member, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(property, member, isInvalid, syntax, type, constantValue)
         {
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
+            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
+            _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder ?? throw new System.ArgumentNullException(nameof(argumentsInEvaluationOrder));
         }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
         public override IOperation Instance => _lazyInstance.Value;
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
+        /// </summary>
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source.
+        /// </remarks>
+        public override ImmutableArray<IArgument> ArgumentsInEvaluationOrder => _lazyArgumentsInEvaluationOrder.Value;
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -3202,10 +3420,38 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents Case x To y in VB.
     /// </summary>
-    internal sealed partial class RangeCaseClause : CaseClause, IRangeCaseClause
+    internal abstract partial class BaseRangeCaseClause : CaseClause, IRangeCaseClause
+    {
+        public BaseRangeCaseClause(CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(caseKind, OperationKind.RangeCaseClause, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Minimum value of the case range.
+        /// </summary>
+        public abstract IOperation MinimumValue { get; }
+        /// <summary>
+        /// Maximum value of the case range.
+        /// </summary>
+        public abstract IOperation MaximumValue { get; }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitRangeCaseClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitRangeCaseClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents Case x To y in VB.
+    /// </summary>
+    internal sealed partial class RangeCaseClause : BaseRangeCaseClause, IRangeCaseClause
     {
         public RangeCaseClause(IOperation minimumValue, IOperation maximumValue, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(caseKind, OperationKind.RangeCaseClause, isInvalid, syntax, type, constantValue)
+            base(caseKind, isInvalid, syntax, type, constantValue)
         {
             MinimumValue = minimumValue;
             MaximumValue = maximumValue;
@@ -3213,73 +3459,57 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Minimum value of the case range.
         /// </summary>
-        public IOperation MinimumValue { get; }
+        public override IOperation MinimumValue { get; }
         /// <summary>
         /// Maximum value of the case range.
         /// </summary>
-        public IOperation MaximumValue { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitRangeCaseClause(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitRangeCaseClause(this, argument);
-        }
+        public override IOperation MaximumValue { get; }
     }
 
     /// <summary>
     /// Represents Case x To y in VB.
     /// </summary>
-    internal sealed partial class LazyRangeCaseClause : CaseClause, IRangeCaseClause
+    internal sealed partial class LazyRangeCaseClause : BaseRangeCaseClause, IRangeCaseClause
     {
         private readonly Lazy<IOperation> _lazyMinimumValue;
         private readonly Lazy<IOperation> _lazyMaximumValue;
 
-        public LazyRangeCaseClause(Lazy<IOperation> minimumValue, Lazy<IOperation> maximumValue, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(caseKind, OperationKind.RangeCaseClause, isInvalid, syntax, type, constantValue)
+        public LazyRangeCaseClause(Lazy<IOperation> minimumValue, Lazy<IOperation> maximumValue, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(caseKind, isInvalid, syntax, type, constantValue)
         {
-            _lazyMinimumValue = minimumValue ?? throw new System.ArgumentNullException("minimumValue");
-            _lazyMaximumValue = maximumValue ?? throw new System.ArgumentNullException("maximumValue");
+            _lazyMinimumValue = minimumValue ?? throw new System.ArgumentNullException(nameof(minimumValue));
+            _lazyMaximumValue = maximumValue ?? throw new System.ArgumentNullException(nameof(maximumValue));
         }
         /// <summary>
         /// Minimum value of the case range.
         /// </summary>
-        public IOperation MinimumValue => _lazyMinimumValue.Value;
+        public override IOperation MinimumValue => _lazyMinimumValue.Value;
 
         /// <summary>
         /// Maximum value of the case range.
         /// </summary>
-        public IOperation MaximumValue => _lazyMaximumValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitRangeCaseClause(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitRangeCaseClause(this, argument);
-        }
+        public override IOperation MaximumValue => _lazyMaximumValue.Value;
     }
 
     /// <summary>
     /// Represents Case Is op x in VB.
     /// </summary>
-    internal sealed partial class RelationalCaseClause : CaseClause, IRelationalCaseClause
+    internal abstract partial class BaseRelationalCaseClause : CaseClause, IRelationalCaseClause
     {
-        public RelationalCaseClause(IOperation value, BinaryOperationKind relation, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseRelationalCaseClause(BinaryOperationKind relation, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(caseKind, OperationKind.RelationalCaseClause, isInvalid, syntax, type, constantValue)
         {
-            Value = value;
             Relation = relation;
         }
         /// <summary>
         /// Case value.
         /// </summary>
-        public IOperation Value { get; }
+        public abstract IOperation Value { get; }
         /// <summary>
         /// Relational operator used to compare the switch value with the case value.
         /// </summary>
         public BinaryOperationKind Relation { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitRelationalCaseClause(this);
@@ -3293,32 +3523,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents Case Is op x in VB.
     /// </summary>
-    internal sealed partial class LazyRelationalCaseClause : CaseClause, IRelationalCaseClause
+    internal sealed partial class RelationalCaseClause : BaseRelationalCaseClause, IRelationalCaseClause
+    {
+        public RelationalCaseClause(IOperation value, BinaryOperationKind relation, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(relation, caseKind, isInvalid, syntax, type, constantValue)
+        {
+            Value = value;
+        }
+        /// <summary>
+        /// Case value.
+        /// </summary>
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents Case Is op x in VB.
+    /// </summary>
+    internal sealed partial class LazyRelationalCaseClause : BaseRelationalCaseClause, IRelationalCaseClause
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyRelationalCaseClause(Lazy<IOperation> value, BinaryOperationKind relation, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(caseKind, OperationKind.RelationalCaseClause, isInvalid, syntax, type, constantValue)
+        public LazyRelationalCaseClause(Lazy<IOperation> value, BinaryOperationKind relation, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(relation, caseKind, isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
-            Relation = relation;
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         /// <summary>
         /// Case value.
         /// </summary>
-        public IOperation Value => _lazyValue.Value;
-
-        /// <summary>
-        /// Relational operator used to compare the switch value with the case value.
-        /// </summary>
-        public BinaryOperationKind Relation { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitRelationalCaseClause(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitRelationalCaseClause(this, argument);
-        }
+        public override IOperation Value => _lazyValue.Value;
     }
 
     /// <summary>
@@ -3326,9 +3559,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseReturnStatement : Operation, IReturnStatement
     {
-        protected BaseReturnStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.ReturnStatement, isInvalid, syntax, type, constantValue)
+        protected BaseReturnStatement(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(kind, isInvalid, syntax, type, constantValue)
         {
+            Debug.Assert(kind == OperationKind.ReturnStatement
+                      || kind == OperationKind.YieldReturnStatement
+                      || kind == OperationKind.YieldBreakStatement);
         }
         /// <summary>
         /// Value to be returned.
@@ -3336,11 +3572,25 @@ namespace Microsoft.CodeAnalysis.Semantics
         public abstract IOperation ReturnedValue { get; }
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitReturnStatement(this);
+            if (Kind == OperationKind.YieldBreakStatement)
+            {
+                visitor.VisitYieldBreakStatement(this);
+            }
+            else
+            {
+                visitor.VisitReturnStatement(this);
+            }
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitReturnStatement(this, argument);
+            if (Kind == OperationKind.YieldBreakStatement)
+            {
+                return visitor.VisitYieldBreakStatement(this, argument);
+            }
+            else
+            {
+                return visitor.VisitReturnStatement(this, argument);
+            }
         }
     }
 
@@ -3349,8 +3599,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class ReturnStatement : BaseReturnStatement, IReturnStatement
     {
-        public ReturnStatement(IOperation returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(isInvalid, syntax, type, constantValue)
+        public ReturnStatement(OperationKind kind, IOperation returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(kind, isInvalid, syntax, type, constantValue)
         {
             ReturnedValue = returnedValue;
         }
@@ -3367,9 +3617,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyReturnedValue;
 
-        public LazyReturnStatement(Lazy<IOperation> returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
+        public LazyReturnStatement(OperationKind kind, Lazy<IOperation> returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(kind, isInvalid, syntax, type, constantValue)
         {
-            _lazyReturnedValue = returnedValue ?? throw new System.ArgumentNullException("returnedValue");
+            _lazyReturnedValue = returnedValue ?? throw new System.ArgumentNullException(nameof(returnedValue));
         }
         /// <summary>
         /// Value to be returned.
@@ -3380,22 +3630,22 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents case x in C# or Case x in VB.
     /// </summary>
-    internal sealed partial class SingleValueCaseClause : CaseClause, ISingleValueCaseClause
+    internal abstract partial class BaseSingleValueCaseClause : CaseClause, ISingleValueCaseClause
     {
-        public SingleValueCaseClause(IOperation value, BinaryOperationKind equality, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseSingleValueCaseClause(BinaryOperationKind equality, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(caseKind, OperationKind.SingleValueCaseClause, isInvalid, syntax, type, constantValue)
         {
-            Value = value;
             Equality = equality;
         }
         /// <summary>
         /// Case value.
         /// </summary>
-        public IOperation Value { get; }
+        public abstract IOperation Value { get; }
         /// <summary>
         /// Relational operator used to compare the switch value with the case value.
         /// </summary>
         public BinaryOperationKind Equality { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitSingleValueCaseClause(this);
@@ -3409,32 +3659,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents case x in C# or Case x in VB.
     /// </summary>
-    internal sealed partial class LazySingleValueCaseClause : CaseClause, ISingleValueCaseClause
+    internal sealed partial class SingleValueCaseClause : BaseSingleValueCaseClause, ISingleValueCaseClause
     {
-        private readonly Lazy<IOperation> _lazyValue;
-
-        public LazySingleValueCaseClause(Lazy<IOperation> value, BinaryOperationKind equality, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(caseKind, OperationKind.SingleValueCaseClause, isInvalid, syntax, type, constantValue)
+        public SingleValueCaseClause(IOperation value, BinaryOperationKind equality, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(equality, caseKind, isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
-            Equality = equality;
+            Value = value;
         }
         /// <summary>
         /// Case value.
         /// </summary>
-        public IOperation Value => _lazyValue.Value;
+        public override IOperation Value { get; }
+    }
 
+    /// <summary>
+    /// Represents case x in C# or Case x in VB.
+    /// </summary>
+    internal sealed partial class LazySingleValueCaseClause : BaseSingleValueCaseClause, ISingleValueCaseClause
+    {
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazySingleValueCaseClause(Lazy<IOperation> value, BinaryOperationKind equality, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(equality, caseKind, isInvalid, syntax, type, constantValue)
+        {
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
         /// <summary>
-        /// Relational operator used to compare the switch value with the case value.
+        /// Case value.
         /// </summary>
-        public BinaryOperationKind Equality { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitSingleValueCaseClause(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitSingleValueCaseClause(this, argument);
-        }
+        public override IOperation Value => _lazyValue.Value;
     }
 
     /// <summary>
@@ -3605,7 +3858,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazySwitchStatement(Lazy<IOperation> value, Lazy<ImmutableArray<ISwitchCase>> cases, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
             _lazyCases = cases;
         }
         /// <summary>
@@ -3684,7 +3937,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazySyntheticLocalReferenceExpression(SyntheticLocalKind syntheticLocalKind, Lazy<IOperation> containingStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(syntheticLocalKind, isInvalid, syntax, type, constantValue)
         {
-            _lazyContainingStatement = containingStatement ?? throw new System.ArgumentNullException("containingStatement");
+            _lazyContainingStatement = containingStatement ?? throw new System.ArgumentNullException(nameof(containingStatement));
         }
         /// <summary>
         /// Statement defining the lifetime of the synthetic local.
@@ -3740,7 +3993,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyThrowStatement(Lazy<IOperation> thrownObject, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyThrownObject = thrownObject ?? throw new System.ArgumentNullException("thrownObject");
+            _lazyThrownObject = thrownObject ?? throw new System.ArgumentNullException(nameof(thrownObject));
         }
         /// <summary>
         /// Value to be thrown.
@@ -3816,9 +4069,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyTryStatement(Lazy<IBlockStatement> body, Lazy<ImmutableArray<ICatchClause>> catches, Lazy<IBlockStatement> finallyHandler, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
             _lazyCatches = catches;
-            _lazyFinallyHandler = finallyHandler ?? throw new System.ArgumentNullException("finallyHandler");
+            _lazyFinallyHandler = finallyHandler ?? throw new System.ArgumentNullException(nameof(finallyHandler));
         }
         /// <summary>
         /// Body of the try, over which the handlers are active.
@@ -4011,32 +4264,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyUnaryOperatorExpression(UnaryOperationKind unaryOperationKind, Lazy<IOperation> operand, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(unaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            _lazyOperand = operand ?? throw new System.ArgumentNullException("operand");
+            _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
         /// <summary>
         /// Single operand.
         /// </summary>
         public override IOperation Operand => _lazyOperand.Value;
-    }
-
-    /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
-    /// </remarks>
-    internal sealed partial class UnboundLambdaExpression : Operation, IUnboundLambdaExpression
-    {
-        public UnboundLambdaExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.UnboundLambdaExpression, isInvalid, syntax, type, constantValue)
-        {
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitUnboundLambdaExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitUnboundLambdaExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -4111,9 +4344,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyUsingStatement(Lazy<IOperation> body, Lazy<IVariableDeclarationStatement> declaration, Lazy<IOperation> value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
-            _lazyDeclaration = declaration ?? throw new System.ArgumentNullException("declaration");
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
+            _lazyDeclaration = declaration ?? throw new System.ArgumentNullException(nameof(declaration));
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         /// <summary>
         /// Body of the using, over which the resources of the using are maintained.
@@ -4187,7 +4420,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyVariableDeclaration(ImmutableArray<ILocalSymbol> variables, Lazy<IOperation> initializer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(variables, isInvalid, syntax, type, constantValue)
         {
-            _lazyInitializer = initializer ?? throw new System.ArgumentNullException("initializer");
+            _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
 
         /// <summary>
@@ -4255,15 +4488,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# while or do statement, or a VB While or Do statement.
     /// </summary>
-    internal sealed partial class WhileUntilLoopStatement : ForWhileUntilLoopStatement, IWhileUntilLoopStatement
+    internal abstract partial class BaseWhileUntilLoopStatement : ForWhileUntilLoopStatement, IWhileUntilLoopStatement
     {
-        public WhileUntilLoopStatement(bool isTopTest, bool isWhile, IOperation condition, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseWhileUntilLoopStatement(bool isTopTest, bool isWhile, LoopKind loopKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
         {
             IsTopTest = isTopTest;
             IsWhile = isWhile;
-            Condition = condition;
-            Body = body;
         }
         /// <summary>
         /// True if the loop test executes at the top of the loop; false if the loop test executes at the bottom of the loop.
@@ -4273,14 +4504,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// True if the loop is a while loop; false if the loop is an until loop.
         /// </summary>
         public bool IsWhile { get; }
-        /// <summary>
-        /// Condition of the loop.
-        /// </summary>
-        public override IOperation Condition { get; }
-        /// <summary>
-        /// Body of the loop.
-        /// </summary>
-        public override IOperation Body { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitWhileUntilLoopStatement(this);
@@ -4294,44 +4518,46 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# while or do statement, or a VB While or Do statement.
     /// </summary>
-    internal sealed partial class LazyWhileUntilLoopStatement : ForWhileUntilLoopStatement, IWhileUntilLoopStatement
+    internal sealed partial class WhileUntilLoopStatement : BaseWhileUntilLoopStatement, IWhileUntilLoopStatement
+    {
+        public WhileUntilLoopStatement(bool isTopTest, bool isWhile, IOperation condition, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isTopTest, isWhile, loopKind, isInvalid, syntax, type, constantValue)
+        {
+            Condition = condition;
+            Body = body;
+        }
+        /// <summary>
+        /// Condition of the loop.
+        /// </summary>
+        public override IOperation Condition { get; }
+        /// <summary>
+        /// Body of the loop.
+        /// </summary>
+        public override IOperation Body { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# while or do statement, or a VB While or Do statement.
+    /// </summary>
+    internal sealed partial class LazyWhileUntilLoopStatement : BaseWhileUntilLoopStatement, IWhileUntilLoopStatement
     {
         private readonly Lazy<IOperation> _lazyCondition;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyWhileUntilLoopStatement(bool isTopTest, bool isWhile, Lazy<IOperation> condition, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
+        public LazyWhileUntilLoopStatement(bool isTopTest, bool isWhile, Lazy<IOperation> condition, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isTopTest, isWhile, loopKind, isInvalid, syntax, type, constantValue)
         {
-            IsTopTest = isTopTest;
-            IsWhile = isWhile;
-            _lazyCondition = condition ?? throw new System.ArgumentNullException("condition");
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
-        /// <summary>
-        /// True if the loop test executes at the top of the loop; false if the loop test executes at the bottom of the loop.
-        /// </summary>
-        public bool IsTopTest { get; }
-        /// <summary>
-        /// True if the loop is a while loop; false if the loop is an until loop.
-        /// </summary>
-        public bool IsWhile { get; }
         /// <summary>
         /// Condition of the loop.
         /// </summary>
         public override IOperation Condition => _lazyCondition.Value;
-
         /// <summary>
         /// Body of the loop.
         /// </summary>
         public override IOperation Body => _lazyBody.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitWhileUntilLoopStatement(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitWhileUntilLoopStatement(this, argument);
-        }
     }
 
     /// <summary>
@@ -4392,8 +4618,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyWithStatement(Lazy<IOperation> body, Lazy<IOperation> value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         /// <summary>
         /// Body of the with.
@@ -4406,4 +4632,295 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override IOperation Value => _lazyValue.Value;
     }
 
+    /// <summary>
+    /// Represents a local function statement.
+    /// </summary>
+    internal abstract partial class BaseLocalFunctionStatement : Operation, ILocalFunctionStatement
+    {
+        protected BaseLocalFunctionStatement(IMethodSymbol localFunctionSymbol, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.LocalFunctionStatement, isInvalid, syntax, type, constantValue)
+        {
+            LocalFunctionSymbol = localFunctionSymbol;
+        }
+        /// <summary>
+        /// Local function symbol.
+        /// </summary>
+        public IMethodSymbol LocalFunctionSymbol { get; }
+        /// <summary>
+        /// Body of the local function.
+        /// </summary>
+        public abstract IBlockStatement Body { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitLocalFunctionStatement(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLocalFunctionStatement(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a local function statement.
+    /// </summary>
+    internal sealed partial class LocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionStatement
+    {
+        public LocalFunctionStatement(IMethodSymbol localFunctionSymbol, IBlockStatement body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(localFunctionSymbol, isInvalid, syntax, type, constantValue)
+        {
+            Body = body;
+        }
+        /// <summary>
+        /// Body of the local function.
+        /// </summary>
+        public override IBlockStatement Body { get; }
+    }
+
+    /// <summary>
+    /// Represents a local function statement.
+    /// </summary>
+    internal sealed partial class LazyLocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionStatement
+    {
+        private readonly Lazy<IBlockStatement> _lazyBody;
+
+        public LazyLocalFunctionStatement(IMethodSymbol localFunctionSymbol, Lazy<IBlockStatement> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+            : base(localFunctionSymbol, isInvalid, syntax, type, constantValue)
+        {
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
+        }
+        /// <summary>
+        /// Body of the local function.
+        /// </summary>
+        public override IBlockStatement Body => _lazyBody.Value;
+    }
+
+    /// <summary>
+    /// Represents a C# constant pattern.
+    /// </summary>
+    internal abstract partial class BaseConstantPattern : Operation, IConstantPattern
+    {
+        protected BaseConstantPattern(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ConstantPattern, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Constant value of the pattern.
+        /// </summary>
+        public abstract IOperation Value { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitConstantPattern(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitConstantPattern(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# constant pattern.
+    /// </summary>
+    internal sealed partial class ConstantPattern : BaseConstantPattern, IConstantPattern
+    {
+        public ConstantPattern(IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Value = value;
+        }
+        /// <summary>
+        /// Constant value of the pattern.
+        /// </summary>
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# constant pattern.
+    /// </summary>
+    internal sealed partial class LazyConstantPattern : BaseConstantPattern, IConstantPattern
+    {
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazyConstantPattern(Lazy<IOperation> value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+            : base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+        /// <summary>
+        /// Constant value of the pattern.
+        /// </summary>
+        public override IOperation Value => _lazyValue.Value;
+    }
+
+    /// <summary>
+    /// Represents a C# declaration pattern.
+    /// </summary>
+    internal sealed partial class DeclarationPattern : Operation, IDeclarationPattern
+    {
+        public DeclarationPattern(ISymbol declaredSymbol, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.DeclarationPattern, isInvalid, syntax, type, constantValue)
+        {
+            DeclaredSymbol = declaredSymbol;
+        }
+        /// <summary>
+        /// Symbol declared by the pattern.
+        /// </summary>
+        public ISymbol DeclaredSymbol { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDeclarationPattern(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDeclarationPattern(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# pattern case clause.
+    /// </summary>
+    internal abstract partial class BasePatternCaseClause : CaseClause, IPatternCaseClause
+    {
+        protected BasePatternCaseClause(ILabelSymbol label, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(CaseKind.Pattern, OperationKind.PatternCaseClause, isInvalid, syntax, type, constantValue)
+        {
+            Label = label;
+        }
+        /// <summary>
+        /// Label associated with the case clause.
+        /// </summary>
+        public ILabelSymbol Label { get; }
+        /// <summary>
+        /// Pattern associated with case clause.
+        /// </summary>
+        public abstract IPattern Pattern { get; }
+        /// <summary>
+        /// Guard expression associated with the pattern case clause.
+        /// </summary>
+        public abstract IOperation GuardExpression { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitPatternCaseClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitPatternCaseClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# pattern case clause.
+    /// </summary>
+    internal sealed partial class PatternCaseClause : BasePatternCaseClause, IPatternCaseClause
+    {
+        public PatternCaseClause(ILabelSymbol label, IPattern pattern, IOperation guardExpression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(label, isInvalid, syntax, type, constantValue)
+        {
+            Pattern = pattern;
+            GuardExpression = guardExpression;
+        }
+        /// <summary>
+        /// Pattern associated with case clause.
+        /// </summary>
+        public override IPattern Pattern { get; }
+        /// <summary>
+        /// Guard expression associated with the pattern case clause.
+        /// </summary>
+        public override IOperation GuardExpression { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# pattern case clause.
+    /// </summary>
+    internal sealed partial class LazyPatternCaseClause : BasePatternCaseClause, IPatternCaseClause
+    {
+        private readonly Lazy<IPattern> _lazyPattern;
+        private readonly Lazy<IOperation> _lazyGuardExpression;
+
+        public LazyPatternCaseClause(ILabelSymbol label, Lazy<IPattern> lazyPattern, Lazy<IOperation> lazyGuardExpression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+            : base(label, isInvalid, syntax, type, constantValue)
+        {
+            _lazyPattern = lazyPattern ?? throw new System.ArgumentNullException(nameof(lazyPattern));
+            _lazyGuardExpression = lazyGuardExpression ?? throw new System.ArgumentNullException(nameof(lazyGuardExpression));
+        }
+        /// <summary>
+        /// Pattern associated with case clause.
+        /// </summary>
+        public override IPattern Pattern => _lazyPattern.Value;
+        /// <summary>
+        /// Guard expression associated with the pattern case clause.
+        /// </summary>
+        public override IOperation GuardExpression => _lazyGuardExpression.Value;
+    }
+
+    /// <summary>
+    /// Represents a C# is pattern expression. For example, "x is int i".
+    /// </summary>
+    internal abstract partial class BaseIsPatternExpression : Operation, IIsPatternExpression
+    {
+        protected BaseIsPatternExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.IsPatternExpression, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Expression.
+        /// </summary>
+        public abstract IOperation Expression { get; }
+        /// <summary>
+        /// Pattern.
+        /// </summary>
+        public abstract IPattern Pattern { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitIsPatternExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitIsPatternExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# is pattern expression. For example, "x is int i".
+    /// </summary>
+    internal sealed partial class IsPatternExpression : BaseIsPatternExpression, IIsPatternExpression
+    {
+        public IsPatternExpression(IOperation expression, IPattern pattern, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Expression = expression;
+            Pattern = pattern;
+        }
+        /// <summary>
+        /// Expression.
+        /// </summary>
+        public override IOperation Expression { get; }
+        /// <summary>
+        /// Pattern.
+        /// </summary>
+        public override IPattern Pattern { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# is pattern expression. For example, "x is int i".
+    /// </summary>
+    internal sealed partial class LazyIsPatternExpression : BaseIsPatternExpression, IIsPatternExpression
+    {
+        private readonly Lazy<IOperation> _lazyExpression;
+        private readonly Lazy<IPattern> _lazyPattern;
+
+        public LazyIsPatternExpression(Lazy<IOperation> lazyExpression, Lazy<IPattern> lazyPattern, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+            : base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyExpression = lazyExpression ?? throw new System.ArgumentNullException(nameof(lazyExpression));
+            _lazyPattern = lazyPattern ?? throw new System.ArgumentNullException(nameof(lazyPattern));
+        }
+        /// <summary>
+        /// Expression.
+        /// </summary>
+        public override IOperation Expression => _lazyExpression.Value;
+        /// <summary>
+        /// Pattern.
+        /// </summary>
+        public override IPattern Pattern => _lazyPattern.Value;
+    }
 }

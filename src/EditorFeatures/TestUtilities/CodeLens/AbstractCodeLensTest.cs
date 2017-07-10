@@ -103,5 +103,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
         {
             return RunMethodReferenceTest(XElement.Parse(input));
         }
+
+        protected static async Task RunFullyQualifiedNameTest(XElement input)
+        {
+            using (var workspace = TestWorkspace.Create(input))
+            {
+                foreach (var annotatedDocument in workspace.Documents.Where(d => d.AnnotatedSpans.Any()))
+                {
+                    var document = workspace.CurrentSolution.GetDocument(annotatedDocument.Id);
+                    var syntaxNode = await document.GetSyntaxRootAsync();
+                    foreach (var annotatedSpan in annotatedDocument.AnnotatedSpans)
+                    {
+                        var expected = annotatedSpan.Key;
+
+                        foreach (var span in annotatedSpan.Value)
+                        {
+                            var declarationSyntaxNode = syntaxNode.FindNode(span);
+                            var actual = await new CodeLensReferencesService().GetFullyQualifiedName(workspace.CurrentSolution,
+                                annotatedDocument.Id, declarationSyntaxNode, CancellationToken.None);
+                            Assert.Equal(expected, actual);
+                        }
+                    }
+                }
+            }
+        }
+
+        protected static Task RunFullyQualifiedNameTest(string input)
+        {
+            return RunFullyQualifiedNameTest(XElement.Parse(input));
+        }
     }
 }

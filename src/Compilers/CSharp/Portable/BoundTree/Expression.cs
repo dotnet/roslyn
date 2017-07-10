@@ -64,26 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Value);
     }
 
-    internal partial class BoundPattern
-    {
-        protected override abstract ImmutableArray<BoundNode> Children { get; }
-    }
-
-    internal partial class BoundDeclarationPattern
-    {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.VariableAccess);
-    }
-
-    internal partial class BoundConstantPattern
-    {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Value);
-    }
-
-    internal partial class BoundWildcardPattern
-    {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray<BoundNode>.Empty;
-    }
-
     internal partial class BoundArgListOperator
     {
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments);
@@ -154,11 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments.AddRange(BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt)));
     }
 
-    internal partial class BoundInterpolatedString
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Parts);
-    }
-
     internal partial class BoundNoPiaObjectCreationExpression
     {
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt));
@@ -167,11 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundObjectInitializerExpression
     {
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Initializers);
-    }
-
-    internal partial class BoundStringInsert
-    {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Value, this.Alignment, this.Format);
     }
 
     partial class BoundThrowExpression

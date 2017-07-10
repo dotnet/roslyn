@@ -21,6 +21,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 Assert.Equal(expectedType, entry.Type);
                 Assert.Equal(expectedValue, entry.Value);
             }
+
+            public void CheckEntry(string[] entryNames, string expectedType, string expectedValue)
+            {
+                var entry = _localsWindow._localsWindowInProc.GetEntry(entryNames);
+                Assert.Equal(expectedType, entry.Type);
+                Assert.Equal(expectedValue, entry.Value);
+            }
+
+            public void CheckCount(int expectedCount)
+            {
+                var actualCount = _localsWindow._localsWindowInProc.GetCount();
+                Assert.Equal(expectedCount, actualCount);
+            }
         }
     }
 }

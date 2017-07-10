@@ -46,7 +46,8 @@ Public Class class3
     Public Sub PerformClick() Implements System.Windows.Forms.IButtonControl.PerformClick
 
     End Sub
-End Class";
+End Class
+";
         private const string FileInLibraryProject2 = @"Public Class Class1
     Inherits System.Xml.XmlAttribute
     Sub New()
@@ -56,7 +57,8 @@ End Class";
 
     End Sub
     Public bar As ClassLibrary3.Class1
-End Class";
+End Class
+";
         private const string FileInLibraryProject3 = @"Public Class Class1
     Public Enum E
         E1
@@ -69,7 +71,8 @@ End Class";
     End Function
 
 
-End Class";
+End Class
+";
         private const string FileInConsoleProject1 = @"
 class Program
 {
@@ -87,7 +90,8 @@ class Program
         var a = new ClassLibrary2.Class1();
         var d = a.bar;
     }
-}";
+}
+";
 
         private const string ClassLibrary1Name = "ClassLibrary1";
         private const string ClassLibrary2Name = "ClassLibrary2";

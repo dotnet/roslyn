@@ -43,6 +43,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.UseNamedArguments
             Protected Overrides Function IsLegalToAddNamedArguments(parameters As ImmutableArray(Of IParameterSymbol), argumentCount As Integer) As Boolean
                 Return Not parameters.LastOrDefault().IsParams OrElse parameters.Length > argumentCount
             End Function
+
+            Protected Overrides Function IsCloseParenOrComma(token As SyntaxToken) As Boolean
+                Return token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken)
+            End Function
         End Class
 
         Public Sub New()

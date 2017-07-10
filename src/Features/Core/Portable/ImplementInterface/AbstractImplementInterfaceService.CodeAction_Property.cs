@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     updatedProperty,
                     accessibility: accessibility,
                     modifiers: modifiers,
-                    explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property : null,
+                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property) : default,
                     name: memberName,
                     getMethod: getAccessor,
                     setMethod: setAccessor);
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     setMethod,
                     attributes: default(ImmutableArray<AttributeData>),
                     accessibility: accessibility,
-                    explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.SetMethod : null,
+                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property.SetMethod) : default,
                     statements: GetSetAccessorStatements(
                         compilation, property, generateAbstractly, propertyGenerationBehavior, cancellationToken));
             }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     getMethod,
                     attributes: default(ImmutableArray<AttributeData>),
                     accessibility: accessibility,
-                    explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.GetMethod : null,
+                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property.GetMethod) : default,
                     statements: GetGetAccessorStatements(
                         compilation, property, generateAbstractly, propertyGenerationBehavior, cancellationToken));
             }

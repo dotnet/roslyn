@@ -12,6 +12,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class StructTests : FlowTestBase
     {
         [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void TupleFieldNameAliasing()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+
+class C
+{
+    void M()
+    {
+        (int x, int y) t;
+        t.x = 0;
+        Console.Write(t.x);
+        Console.Write(t.Item1);
+    }
+    void M2()
+    {
+        (int x, int y) t;
+        Console.Write(t.y);
+        // No error, error is reported once per field
+        // and t.Item2 is alias for the same field
+        Console.Write(t.Item2);
+    }
+    void M3()
+    {
+        (int x, int y) t;
+        Console.Write(t.Item2);
+        // No error, error is reported once per field
+        // and t.y is alias for the same field
+        Console.Write(t.y);
+    }
+}", references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            comp.VerifyDiagnostics(
+                // (16,23): error CS0170: Use of possibly unassigned field 'y'
+                //         Console.Write(t.y);
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "t.y").WithArguments("y").WithLocation(16, 23),
+                // (24,23): error CS0170: Use of possibly unassigned field 'Item2'
+                //         Console.Write(t.Item2);
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "t.Item2").WithArguments("Item2").WithLocation(24, 23));
+        }
+
+        [Fact]
         public void SelfDefaultConstructor()
         {
             string program = @"

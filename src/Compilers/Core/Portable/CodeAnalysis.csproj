@@ -11,7 +11,6 @@
     <AssemblyName>Microsoft.CodeAnalysis</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
@@ -36,6 +35,7 @@
     <Compile Include="InternalUtilities\NoThrowStreamDisposer.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
     <Compile Include="InternalUtilities\PlatformInformation.cs" />
+    <Compile Include="InternalUtilities\SemaphoreExtensions.cs" />
     <Compile Include="Operations\ArgumentKind.cs" />
     <Compile Include="Operations\BinaryOperandsKind.cs" />
     <Compile Include="Operations\BinaryOperationKind.cs" />
@@ -45,15 +45,25 @@
     <Compile Include="Operations\IAddressOfExpression.cs" />
     <Compile Include="Operations\IArgument.cs" />
     <Compile Include="Operations\IArrayCreationExpression.cs" />
+    <Compile Include="Operations\IAnonymousObjectCreationExpression.cs" />
     <Compile Include="Operations\IArrayElementReferenceExpression.cs" />
     <Compile Include="Operations\IArrayInitializer.cs" />
     <Compile Include="Operations\IAssignmentExpression.cs" />
     <Compile Include="Operations\IAwaitExpression.cs" />
     <Compile Include="Operations\IBinaryOperatorExpression.cs" />
+    <Compile Include="Operations\IIsPatternExpression.cs" />
+    <Compile Include="Operations\IPatternCaseClause.cs" />
+    <Compile Include="Operations\IConstantPattern.cs" />
+    <Compile Include="Operations\IDeclarationPattern.cs" />
+    <Compile Include="Operations\IPattern.cs" />
     <Compile Include="Operations\IBlockStatement.cs" />
     <Compile Include="Operations\IBranchStatement.cs" />
     <Compile Include="Operations\ICaseClause.cs" />
     <Compile Include="Operations\ICatchClause.cs" />
+    <Compile Include="Operations\IInterpolatedStringText.cs" />
+    <Compile Include="Operations\IInterpolation.cs" />
+    <Compile Include="Operations\IInterpolatedStringContent.cs" />
+    <Compile Include="Operations\IInterpolatedStringExpression.cs" />
     <Compile Include="Operations\ICompoundAssignmentExpression.cs" />
     <Compile Include="Operations\IConditionalAccessExpression.cs" />
     <Compile Include="Operations\IConditionalAccessInstanceExpression.cs" />
@@ -75,13 +85,13 @@
     <Compile Include="Operations\IHasOperatorMethodExpression.cs" />
     <Compile Include="Operations\IIfStatement.cs" />
     <Compile Include="Operations\IIncrementExpression.cs" />
-    <Compile Include="Operations\IIndexedPropertyReferenceExpression.cs" />
     <Compile Include="Operations\IInstanceReferenceExpression.cs" />
     <Compile Include="Operations\IInvalidExpression.cs" />
     <Compile Include="Operations\IInvalidStatement.cs" />
     <Compile Include="Operations\IInvocationExpression.cs" />
     <Compile Include="Operations\IIsTypeExpression.cs" />
     <Compile Include="Operations\ILabelStatement.cs" />
+    <Compile Include="Operations\ILocalFunctionStatement.cs" />
     <Compile Include="Operations\ILambdaExpression.cs" />
     <Compile Include="Operations\ILateBoundMemberReferenceExpression.cs" />
     <Compile Include="Operations\ILiteralExpression.cs" />
@@ -96,7 +106,7 @@
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
     <Compile Include="Operations\IOperationWithChildren.cs" />
     <Compile Include="Operations\Operation.cs" />
-    <Compile Include="Operations\IOperationKind.cs" />
+    <Compile Include="Operations\OperationKind.cs" />
     <Compile Include="Operations\IParameterInitializer.cs" />
     <Compile Include="Operations\IParameterReferenceExpression.cs" />
     <Compile Include="Operations\IParenthesizedExpression.cs" />
@@ -121,7 +131,6 @@
     <Compile Include="Operations\ITypeOperationExpression.cs" />
     <Compile Include="Operations\ITypeParameterObjectCreationExpression.cs" />
     <Compile Include="Operations\IUnaryOperatorExpression.cs" />
-    <Compile Include="Operations\IUnboundLambdaExpression.cs" />
     <Compile Include="Operations\IUsingStatement.cs" />
     <Compile Include="Operations\IVariableDeclaration.cs" />
     <Compile Include="Operations\IVariableDeclarationStatement.cs" />
@@ -896,6 +905,7 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Test.PdbUtilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
@@ -918,7 +928,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
-  <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

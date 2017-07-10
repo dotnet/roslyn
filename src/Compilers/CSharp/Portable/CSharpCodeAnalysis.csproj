@@ -11,7 +11,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <!-- This is required to prevent downgrade references from CscCore/VbcCode since we must
@@ -291,9 +290,7 @@
     <Compile Include="Emitter\Model\NamedTypeReference.cs" />
     <Compile Include="Emitter\Model\NamedTypeSymbolAdapter.cs" />
     <Compile Include="Emitter\Model\NamespaceSymbolAdapter.cs" />
-    <Compile Include="Emitter\Model\ParameterSymbolAdapter.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Emitter\Model\ParameterSymbolAdapter.cs" />
     <Compile Include="Emitter\Model\ParameterTypeInformation.cs" />
     <Compile Include="Emitter\Model\PEAssemblyBuilder.cs" />
     <Compile Include="Emitter\Model\PEModuleBuilder.cs" />
@@ -514,6 +511,7 @@
     <Compile Include="Symbols\DiscardSymbol.cs" />
     <Compile Include="Symbols\Metadata\PE\TupleTypeDecoder.cs" />
     <Compile Include="Symbols\Source\GlobalExpressionVariable.cs" />
+    <Compile Include="Symbols\Source\SourceMethodSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleEventSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleFieldSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleMethodSymbol.cs" />
@@ -653,8 +651,8 @@
     <Compile Include="Symbols\Source\SourceMemberContainerSymbol.cs" />
     <Compile Include="Symbols\Source\SourceMemberContainerSymbol_ImplementationChecks.cs" />
     <Compile Include="Symbols\Source\SourceMemberFieldSymbol.cs" />
+    <Compile Include="Symbols\Source\SourceOrdinaryMethodSymbol.cs" />
     <Compile Include="Symbols\Source\SourceMemberMethodSymbol.cs" />
-    <Compile Include="Symbols\Source\SourceMethodSymbol.cs" />
     <Compile Include="Symbols\Source\SourceModuleSymbol.cs" />
     <Compile Include="Symbols\Source\SourceNamedTypeSymbol.cs" />
     <Compile Include="Symbols\Source\SourceNamedTypeSymbol_Bases.cs" />
@@ -874,6 +872,7 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Destkop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
   </ItemGroup>

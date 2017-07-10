@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
@@ -201,6 +201,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 project.Disconnect()
             End Using
+        End Sub
+
+        <WpfFact()>
+        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        <WorkItem(18098, "https://github.com/dotnet/roslyn/issues/18098")>
+        Sub NullBinPath()
+            Using environment = New TestEnvironment()
+                Dim project = CreateVisualBasicProjectWithNullBinPath(environment, "Test")
+
+                Dim compilerOptions = CreateMinimalCompilerOptions(project)
+                project.SetCompilerOptions(compilerOptions)
+
+                ' Mostly, we're just validating that we didn't crash on the way here
+                Assert.NotNull(project)
+                Assert.Null(project.BinOutputPath)
+                project.Disconnect()
+            End Using
+
         End Sub
     End Class
 End Namespace

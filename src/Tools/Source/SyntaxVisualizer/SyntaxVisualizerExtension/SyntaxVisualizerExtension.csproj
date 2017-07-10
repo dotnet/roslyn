@@ -58,9 +58,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common">
       <Version>$(MicrosoftCodeAnalysisWorkspacesCommonVersion)</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.Composition">
-      <Version>$(MicrosoftCompositionVersion)</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility">
       <Version>$(MicrosoftVisualStudioCoreUtilityFixedVersion)</Version>
     </PackageReference>

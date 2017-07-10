@@ -6,6 +6,7 @@
 
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
@@ -355,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' grab the part that doesn't contain the preceding and trailing trivia.
 
-            Dim builder = Collections.PooledStringBuilder.GetInstance()
+            Dim builder = PooledStringBuilder.GetInstance()
             Dim writer As New IO.StringWriter(builder)
 
             firstToken.WriteTo(writer)
@@ -376,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' grab the part that doesn't contain the preceding and trailing trivia.
 
-            Dim builder = Collections.PooledStringBuilder.GetInstance()
+            Dim builder = PooledStringBuilder.GetInstance()
             Dim writer As New IO.StringWriter(builder)
 
             firstToken.WriteTo(writer)

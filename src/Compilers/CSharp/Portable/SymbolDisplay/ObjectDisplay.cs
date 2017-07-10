@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
-using System.Text;
-using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
-using ExceptionUtilities = Roslyn.Utilities.ExceptionUtilities;
 using System.Reflection;
+using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
+using ExceptionUtilities = Roslyn.Utilities.ExceptionUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -131,20 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static string FormatLiteral(bool value)
         {
             return value ? "true" : "false";
-        }
-
-        private static bool TryReplaceQuote(char c, char quote, out string replaceWith)
-        {
-            Debug.Assert(quote == '"' || quote == '\'');
-
-            if (c == quote)
-            {
-                replaceWith = "\\" + c;
-                return true;
-            }
-
-            replaceWith = null;
-            return false;
         }
 
         /// <summary>

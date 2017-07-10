@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public abstract partial class CommonTestBase : TestBase
     {
-        internal abstract IEnumerable<IModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public);
-
         #region Emit
 
         protected abstract Compilation GetCompilationForEmit(
@@ -214,9 +212,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             EmitOptions emitOptions,
             bool verify)
         {
-            CompilationVerifier verifier = null;
-
-            verifier = new CompilationVerifier(this, compilation, dependencies);
+            var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
 
             verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 

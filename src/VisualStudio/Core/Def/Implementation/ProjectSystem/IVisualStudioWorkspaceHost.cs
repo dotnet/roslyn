@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         void OnAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference);
         void OnAdditionalDocumentAdded(DocumentInfo documentInfo);
         void OnAdditionalDocumentRemoved(DocumentId documentInfo);
-        void OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer, bool isCurrentContext);
+        void OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer);
         void OnAdditionalDocumentClosed(DocumentId documentId, ITextBuffer textBuffer, TextLoader loader);
         void OnAdditionalDocumentTextUpdatedOnDisk(DocumentId id);
     }

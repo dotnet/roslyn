@@ -251,6 +251,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
         {
             Visit(operation.Instance);
+            VisitArray(operation.ArgumentsInEvaluationOrder);
         }
 
         public override void VisitEventReferenceExpression(IEventReferenceExpression operation)
@@ -276,12 +277,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitPlaceholderExpression(IPlaceholderExpression operation)
         {
-        }
-
-        public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
-        {
-            Visit(operation.Instance);
-            VisitArray(operation.ArgumentsInEvaluationOrder);
         }
 
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
@@ -329,6 +324,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Body);
         }
 
+        public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
+        {
+            Visit(operation.Body);
+        }
+
         public override void VisitLiteralExpression(ILiteralExpression operation)
         { }
 
@@ -345,6 +345,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
             VisitArray(operation.ArgumentsInEvaluationOrder);
+            VisitArray(operation.Initializers);
+        }
+
+        public override void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
+        {
             VisitArray(operation.Initializers);
         }
 
@@ -374,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             VisitArray(operation.ElementValues);
         }
 
-        public override void VisitAssignmentExpression(IAssignmentExpression operation)
+        public override void VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation)
         {
             Visit(operation.Target);
             Visit(operation.Value);
@@ -389,7 +394,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitIncrementExpression(IIncrementExpression operation)
         {
             Visit(operation.Target);
-            Visit(operation.Value);
         }
 
         public override void VisitParenthesizedExpression(IParenthesizedExpression operation)
@@ -401,9 +405,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             Visit(operation.Instance);
         }
-
-        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        { }
 
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         { }
@@ -424,6 +425,44 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitTupleExpression(ITupleExpression operation)
         {
             VisitArray(operation.Elements);
+        }
+
+        public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
+        {
+            VisitArray(operation.Parts);
+        }
+
+        public override void VisitInterpolatedStringText(IInterpolatedStringText operation)
+        {
+            Visit(operation.Text);
+        }
+
+        public override void VisitInterpolation(IInterpolation operation)
+        {
+            Visit(operation.Expression);
+            Visit(operation.Alignment);
+            Visit(operation.FormatString);
+        }
+
+        public override void VisitConstantPattern(IConstantPattern operation)
+        {
+            Visit(operation.Value);
+        }
+
+        public override void VisitDeclarationPattern(IDeclarationPattern operation)
+        {
+        }
+
+        public override void VisitIsPatternExpression(IIsPatternExpression operation)
+        {
+            Visit(operation.Expression);
+            Visit(operation.Pattern);
+        }
+
+        public override void VisitPatternCaseClause(IPatternCaseClause operation)
+        {
+            Visit(operation.Pattern);
+            Visit(operation.GuardExpression);
         }
     }
 }

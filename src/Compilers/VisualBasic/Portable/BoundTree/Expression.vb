@@ -1,6 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundBadExpression
@@ -191,26 +194,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend Partial Class BoundNameOfOperator
+    Partial Friend Class BoundNameOfOperator
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
                 Return ImmutableArray.Create(Of BoundNode)(Me.Argument)
-            End Get
-        End Property
-    End Class
-
-    Friend Partial Class BoundInterpolatedStringExpression
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return Me.Contents
-            End Get
-        End Property
-    End Class
-
-    Friend Partial Class BoundInterpolation
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return ImmutableArray.Create(Of BoundNode)(Me.Expression, Me.AlignmentOpt, Me.FormatStringOpt)
             End Get
         End Property
     End Class

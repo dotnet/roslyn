@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
@@ -15,17 +16,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
         Public Shared Sub InsertStatement(
                 editor As SyntaxEditor,
-                body As SyntaxNode,
+                methodBlock As MethodBlockBaseSyntax,
                 statementToAddAfterOpt As SyntaxNode,
                 statement As StatementSyntax)
-            Dim methodBlock = DirectCast(body, MethodBlockBaseSyntax)
+
             Dim statements = methodBlock.Statements
 
             If statementToAddAfterOpt IsNot Nothing Then
                 editor.InsertAfter(statementToAddAfterOpt, statement)
             Else
                 Dim newStatements = statements.Insert(0, statement)
-                editor.SetStatements(body, newStatements)
+                editor.SetStatements(methodBlock, newStatements)
             End If
         End Sub
     End Class

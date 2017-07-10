@@ -51,9 +51,9 @@ public class Cls
 
             compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
 @"IInvocationExpression (static void Cls.Test2(System.Int32 y, params System.Int32[] x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
-  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'new object()')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'new object()')
       IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'new object()')
-    IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'null')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'null')
       ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')");
         }
 
@@ -85,19 +85,19 @@ public class C
             IOperation operation1 = model.GetOperation(assignments[0]);
             Assert.NotNull(operation1);
             Assert.Equal(OperationKind.None, operation1.Kind);
-            Assert.False(operation1 is IAssignmentExpression);
+            Assert.False(operation1 is ISimpleAssignmentExpression);
 
             Assert.Equal("(x, y, z) = new C()", assignments[1].ToString());
             IOperation operation2 = model.GetOperation(assignments[1]);
             Assert.NotNull(operation2);
             Assert.Equal(OperationKind.None, operation2.Kind);
-            Assert.False(operation2 is IAssignmentExpression);
+            Assert.False(operation2 is ISimpleAssignmentExpression);
 
             Assert.Equal("var (a, b) = (1, 2)", assignments[2].ToString());
             IOperation operation3 = model.GetOperation(assignments[2]);
             Assert.NotNull(operation3);
             Assert.Equal(OperationKind.None, operation3.Kind);
-            Assert.False(operation3 is IAssignmentExpression);
+            Assert.False(operation3 is ISimpleAssignmentExpression);
         }
     }
 }

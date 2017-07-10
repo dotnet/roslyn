@@ -11,6 +11,10 @@
     <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <!--
+       xunit.console.netcore 1.0.2-prerelease-00104 is not compatible with netcoreapp2.0
+       Microsoft.TestPlatform.ObjectModel 11.0.0 is not compatible with netcoreapp2.0
+     -->
     <PackageTargetFallback>portable-net452;dotnet;netstandard1.6</PackageTargetFallback>
     <RuntimeIdentifiers>win7-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;osx.10.12-x64</RuntimeIdentifiers>
     <RuntimeIdentifier>$(RoslynRuntimeIdentifier)</RuntimeIdentifier>

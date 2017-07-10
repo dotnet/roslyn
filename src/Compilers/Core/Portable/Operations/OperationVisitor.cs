@@ -245,11 +245,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
-        {
-            DefaultVisit(operation);
-        }
-
         public virtual void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
         {
             DefaultVisit(operation);
@@ -315,6 +310,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitFieldInitializer(IFieldInitializer operation)
         {
             DefaultVisit(operation);
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitAssignmentExpression(IAssignmentExpression operation)
+        public virtual void VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -365,11 +365,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        {
-            DefaultVisit(operation);
-        }
-
         public virtual void VisitDefaultValueExpression(IDefaultValueExpression operation)
         {
             DefaultVisit(operation);
@@ -390,7 +385,42 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitLocalFunctionStatement(IOperation operation)
+        public virtual void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitInterpolatedStringText(IInterpolatedStringText operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitInterpolation(IInterpolation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitIsPatternExpression(IIsPatternExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitConstantPattern(IConstantPattern operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitDeclarationPattern(IDeclarationPattern operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitPatternCaseClause(IPatternCaseClause operation)
         {
             DefaultVisit(operation);
         }
@@ -650,11 +680,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
         public virtual TResult VisitUnaryOperatorExpression(IUnaryOperatorExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -720,6 +745,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
+        public virtual TResult VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
         public virtual TResult VisitFieldInitializer(IFieldInitializer operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -745,7 +775,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitAssignmentExpression(IAssignmentExpression operation, TArgument argument)
+        public virtual TResult VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -770,11 +800,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitUnboundLambdaExpression(IUnboundLambdaExpression operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
         public virtual TResult VisitDefaultValueExpression(IDefaultValueExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -793,9 +818,44 @@ namespace Microsoft.CodeAnalysis.Semantics
         public virtual TResult VisitInvalidExpression(IInvalidExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
+        }        
+
+        public virtual TResult VisitLocalFunctionStatement(ILocalFunctionStatement operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitLocalFunctionStatement(IOperation operation, TArgument argument)
+        public virtual TResult VisitInterpolatedStringExpression(IInterpolatedStringExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitInterpolatedStringText(IInterpolatedStringText operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitInterpolation(IInterpolation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitIsPatternExpression(IIsPatternExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitConstantPattern(IConstantPattern operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDeclarationPattern(IDeclarationPattern operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitPatternCaseClause(IPatternCaseClause operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

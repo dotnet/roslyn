@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+
+        private static readonly ParseOptions CSharp7_1 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1);
 
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
@@ -178,7 +180,7 @@ class Class : IInterface
 }");
         }
 
-        private static readonly string s_tupleElementNamesAttribute =
+        private const string s_tupleElementNamesAttribute =
 @"namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Event )]
@@ -6788,6 +6790,38 @@ class Class : IInterface
 }", parameters: new TestParameters(options: Option(
     ImplementTypeOptions.PropertyGenerationBehavior,
     ImplementTypePropertyGenerationBehavior.PreferAutoProperties)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestOptionalParameterWithDefaultLiteral()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+using System.Threading;
+
+interface IInterface
+{
+    void Method1(CancellationToken cancellationToken = default(CancellationToken));
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"
+using System.Threading;
+
+interface IInterface
+{
+    void Method1(CancellationToken cancellationToken = default(CancellationToken));
+}
+
+class Class : IInterface
+{
+    public void Method1(CancellationToken cancellationToken = default)
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: CSharp7_1);
         }
     }
 }

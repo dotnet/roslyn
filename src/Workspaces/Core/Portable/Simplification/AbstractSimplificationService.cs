@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
                         using (var rewriter = reducer.GetOrCreateRewriter())
                         {
-                            rewriter.Initialize(optionSet, cancellationToken);
+                            rewriter.Initialize(document.Project.ParseOptions, optionSet, cancellationToken);
 
                             do
                             {
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                                         if (this.CanNodeBeSimplifiedWithoutSpeculation(nodeOrToken.AsNode()))
                                         {
                                             // Since this node cannot be speculated, we are replacing the Document with the changes and get a new SemanticModel
-                                            SyntaxAnnotation marker = new SyntaxAnnotation();
+                                            var marker = new SyntaxAnnotation();
                                             var newRoot = root.ReplaceNode(nodeOrToken.AsNode(), currentNode.WithAdditionalAnnotations(marker));
                                             var newDocument = document.WithSyntaxRoot(newRoot);
                                             semanticModelForReduce = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

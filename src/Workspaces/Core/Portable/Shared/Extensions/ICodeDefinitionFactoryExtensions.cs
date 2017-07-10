@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -443,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 attributes: default(ImmutableArray<AttributeData>),
                 accessibility: overriddenEvent.ComputeResultantAccessibility(newContainingType),
                 modifiers: modifiers,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: overriddenEvent.Name);
         }
 

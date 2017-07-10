@@ -11,8 +11,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -57,12 +55,12 @@
     <Compile Include="AddImports\CSharpAddImportsService.cs" />
     <Compile Include="CaseCorrection\CSharpCaseCorrectionService.cs" />
     <Compile Include="Classification\ClassificationHelpers.cs" />
-    <Compile Include="Classification\Classifiers\AbstractSyntaxClassifier.cs" />
-    <Compile Include="Classification\Classifiers\NameSyntaxClassifier.cs" />
-    <Compile Include="Classification\Classifiers\SyntaxTokenClassifier.cs" />
-    <Compile Include="Classification\Classifiers\UsingDirectiveSyntaxClassifier.cs" />
     <Compile Include="Classification\CSharpClassificationService.cs" />
-    <Compile Include="Classification\SyntaxClassifier.cs" />
+    <Compile Include="Classification\SyntaxClassification\AbstractSyntaxClassifier.cs" />
+    <Compile Include="Classification\SyntaxClassification\NameSyntaxClassifier.cs" />
+    <Compile Include="Classification\SyntaxClassification\SyntaxTokenClassifier.cs" />
+    <Compile Include="Classification\SyntaxClassification\UsingDirectiveSyntaxClassifier.cs" />
+    <Compile Include="Classification\SyntaxClassification\CSharpSyntaxClassificationService.cs" />
     <Compile Include="Classification\Worker.cs" />
     <Compile Include="Classification\Worker_DocumentationComments.cs" />
     <Compile Include="Classification\Worker_Preprocesser.cs" />
@@ -98,11 +96,17 @@
     <Compile Include="CodeStyle\TypeStyle\TypeStyle.cs" />
     <Compile Include="CodeStyle\TypeStyle\TypeStyleHelper.cs" />
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
+    <Compile Include="Extensions\BaseMethodDeclarationSyntaxExtensions.cs" />
+    <Compile Include="Extensions\UsingDirectiveSyntaxExtensions.cs" />
+    <Compile Include="Formatting\CSharpFormattingService.cs" />
+    <Compile Include="FindSymbols\CSharpDeclaredSymbolInfoFactoryService.cs" />
+    <Compile Include="Simplification\Reducers\CSharpDefaultExpressionReducer.Rewriter.cs" />
     <Compile Include="Diagnostics\CSharpDiagnosticPropertiesService.cs" />
     <Compile Include="Execution\CSharpOptionsSerializationService.cs" />
     <Compile Include="Extensions\ArrowExpressionClauseSyntaxExtensions.cs" />
     <Compile Include="Extensions\AssignmentExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\BlockSyntaxExtensions.cs" />
+    <Compile Include="Extensions\DefaultExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\SemanticModelExtensions.cs" />
     <Compile Include="Formatting\CSharpFormattingOptions.Parsers.cs" />
     <Compile Include="LanguageServices\CSharpCommandLineParserService.cs" />
@@ -212,6 +216,7 @@
     <Compile Include="Simplification\Reducers\AbstractCSharpReducer.AbstractReductionRewriter.cs" />
     <Compile Include="Simplification\Reducers\AbstractCSharpReducer.cs" />
     <Compile Include="Simplification\Reducers\CSharpCastReducer.cs" />
+    <Compile Include="Simplification\Reducers\CSharpDefaultExpressionReducer.cs" />
     <Compile Include="Simplification\Reducers\CSharpInferredMemberNameReducer.cs" />
     <Compile Include="Simplification\Reducers\CSharpInferredMemberNameReducer.Rewriter.cs" />
     <Compile Include="Simplification\Reducers\CSharpCastReducer.Rewriter.cs" />

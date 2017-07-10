@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
     internal class PackageWithTypeResult : PackageResult
     {
-        public readonly IReadOnlyList<string> ContainingNamespaceNames;
+        public readonly ImmutableArray<string> ContainingNamespaceNames;
         public readonly string TypeName;
         public readonly string Version;
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             string typeName,
             string version,
             int rank,
-            IReadOnlyList<string> containingNamespaceNames)
+            ImmutableArray<string> containingNamespaceNames)
             : base(packageName, rank)
         {
             TypeName = typeName;
@@ -118,14 +118,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
     internal class ReferenceAssemblyWithTypeResult
     {
-        public readonly IReadOnlyList<string> ContainingNamespaceNames;
+        public readonly ImmutableArray<string> ContainingNamespaceNames;
         public readonly string AssemblyName;
         public readonly string TypeName;
 
         public ReferenceAssemblyWithTypeResult(
             string assemblyName,
             string typeName,
-            IReadOnlyList<string> containingNamespaceNames)
+            ImmutableArray<string> containingNamespaceNames)
         {
             AssemblyName = assemblyName;
             TypeName = typeName;

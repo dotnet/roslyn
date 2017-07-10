@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 
@@ -30,6 +30,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Conversion is implemented by a conversion operator method.
         /// </summary>
         OperatorMethod = 0x5,
+        /// <summary>
+        /// Conversion is defined by the underlying type, and is created when an interpolated
+        /// string expression is being converted to an IFormattable or FormattableString.
+        /// </summary>
+        InterpolatedString = 0x6,
         /// <summary>
         /// Conversion is invalid.
         /// </summary>

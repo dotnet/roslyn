@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PortableTestUtils;
 
 using System;
+using System.IO;
 using System.Reflection;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -124,6 +125,26 @@ Console.Write(""OK"");
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("OK", result.Output);
             Assert.False(result.ContainsErrors);
+        }
+
+        [Fact]
+        public void LineNumber_Information_On_Exception()
+        {
+            var source = @"Console.WriteLine(""OK"");
+throw new Exception(""Error!"");
+";
+
+            var cwd = Temp.CreateDirectory();
+            cwd.CreateFile("a.csx").WriteAllText(source);
+
+            var result = ProcessUtilities.Run(CsiPath, "a.csx", workingDirectory: cwd.Path);
+
+            Assert.True(result.ContainsErrors);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("OK", result.Output);
+            AssertEx.AssertStartsWithToleratingWhitespaceDifferences($@"
+System.Exception: Error!
+   at Submission#0.<<Initialize>>d__0.MoveNext() in {cwd}{Path.DirectorySeparatorChar}a.csx:line 2
+", result.Errors);
         }
     }
 }

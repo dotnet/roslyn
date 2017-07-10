@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -187,8 +187,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 CancellationToken cancellationToken)
             {
                 if (!service.TryInitializeIdentifierNameState(
-                    document, simpleName, cancellationToken,
-                    out var identifierToken, out var simpleNameOrMemberAccessExpression, out var isInExecutableBlock, out var isInConditionalAccessExpression))
+                        document, simpleName, cancellationToken,
+                        out var identifierToken, out var simpleNameOrMemberAccessExpression, out var isInExecutableBlock, out var isInConditionalAccessExpression))
                 {
                     return false;
                 }

@@ -7,10 +7,11 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -18,9 +19,9 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using DocumentHighlighting = Microsoft.CodeAnalysis.DocumentHighlighting;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -33,14 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// </summary>
         private class DocumentSpanEntry : AbstractDocumentSpanEntry
         {
-            private readonly HighlightSpanKind _spanKind;
+            private readonly DocumentHighlighting.HighlightSpanKind _spanKind;
             private readonly ClassifiedSpansAndHighlightSpan _classifiedSpansAndHighlights;
 
             public DocumentSpanEntry(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
-                HighlightSpanKind spanKind,
+                DocumentHighlighting.HighlightSpanKind spanKind,
                 string documentName,
                 Guid projectGuid,
                 SourceText sourceText,
@@ -53,9 +54,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
             {
-                var propertyId = _spanKind == HighlightSpanKind.Definition
+                var propertyId = _spanKind == DocumentHighlighting.HighlightSpanKind.Definition
                     ? DefinitionHighlightTag.TagId
-                    : _spanKind == HighlightSpanKind.WrittenReference
+                    : _spanKind == DocumentHighlighting.HighlightSpanKind.WrittenReference
                         ? WrittenReferenceHighlightTag.TagId
                         : ReferenceHighlightTag.TagId;
 
@@ -163,9 +164,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     _sourceText.ToString(), contentType);
 
                 // Create an appropriate highlight span on that buffer for the reference.
-                var key = _spanKind == HighlightSpanKind.Definition
+                var key = _spanKind == DocumentHighlighting.HighlightSpanKind.Definition
                     ? PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey
-                    : _spanKind == HighlightSpanKind.WrittenReference
+                    : _spanKind == DocumentHighlighting.HighlightSpanKind.WrittenReference
                         ? PredefinedPreviewTaggerKeys.WrittenReferenceHighlightingSpansKey
                         : PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
                 textBuffer.Properties.RemoveProperty(key);

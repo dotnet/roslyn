@@ -1,22 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
-    internal static partial class CSharpOperationFactory
+    internal sealed partial class CSharpOperationFactory
     {
         private static Optional<object> ConvertToOptional(ConstantValue value)
         {
             return value != null ? new Optional<object>(value.Value) : default(Optional<object>);
         }
 
-        private static ImmutableArray<IOperation> ToStatements(BoundStatement statement)
+        private ImmutableArray<IOperation> ToStatements(BoundStatement statement)
         {
-            BoundStatementList statementList = statement as BoundStatementList;
+            var statementList = statement as BoundStatementList;
             if (statementList != null)
             {
                 return statementList.Statements.SelectAsArray(n => Create(n));
@@ -29,169 +32,97 @@ namespace Microsoft.CodeAnalysis.Semantics
             return ImmutableArray.Create(Create(statement));
         }
 
-        private static readonly ConditionalWeakTable<BoundIncrementOperator, ILiteralExpression> s_incrementValueMappings = new ConditionalWeakTable<BoundIncrementOperator, ILiteralExpression>();
-
-        private static ILiteralExpression CreateIncrementOneLiteralExpression(BoundIncrementOperator boundIncrementOperator)
+        internal static IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
         {
-            return s_incrementValueMappings.GetValue(boundIncrementOperator, (increment) =>
-            {
-                string text = increment.Syntax.ToString();
-                bool isInvalid = false;
-                SyntaxNode syntax = increment.Syntax;
-                ITypeSymbol type = increment.Type;
-                Optional<object> constantValue = ConvertToOptional(Semantics.Expression.SynthesizeNumeric(increment.Type, 1));
-                return new LiteralExpression(text, isInvalid, syntax, type, constantValue);
-            });
+            return new Argument(kind,
+                parameter,
+                value,
+                inConversion: null,
+                outConversion: null,
+                isInvalid: parameter == null || value.IsInvalid,
+                syntax: value.Syntax,
+                type: value.Type,
+                constantValue: default);
         }
 
-        private static readonly ConditionalWeakTable<BoundExpression, IArgument> s_argumentMappings = new ConditionalWeakTable<BoundExpression, IArgument>();
-
-        private static IArgument DeriveArgument(
-            int parameterIndex,
-            int argumentIndex,
+        private ImmutableArray<IArgument> DeriveArguments(
+            BoundExpression boundNode,
+            Binder binder,
+            Symbol methodOrIndexer,
+            MethodSymbol optionalParametersMethod,
             ImmutableArray<BoundExpression> boundArguments,
             ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<int> argumentsToParametersOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
-            ImmutableArray<CSharp.Symbols.ParameterSymbol> parameters,
-            SyntaxNode invocationSyntax)
+            ImmutableArray<ParameterSymbol> parameters,
+            bool expanded,
+            SyntaxNode invocationSyntax,
+            bool invokedAsExtensionMethod = false)
         {
-            if ((uint)argumentIndex >= (uint)boundArguments.Length)
+            // We can simply return empty array only if both parameters and boundArguments are empty, because:
+            // - if only parameters is empty, there's error in code but we still need to return provided expression.
+            // - if boundArguments is empty, then either there's error or we need to provide values for optional/param-array parameters. 
+            if (parameters.IsDefaultOrEmpty && boundArguments.IsDefaultOrEmpty)
             {
-                // Check for an omitted argument that becomes an empty params array.
-                if (parameters.Length > 0)
-                {
-                    IParameterSymbol lastParameter = parameters[parameters.Length - 1];
-                    if (lastParameter.IsParams)
-                    {
-                        var value = CreateParamArray(lastParameter, boundArguments, argumentIndex, invocationSyntax);
-                        return new Argument(
-                            argumentKind: ArgumentKind.ParamArray,
-                            parameter: lastParameter,
-                            value: value,
-                            inConversion: null,
-                            outConversion: null,
-                            isInvalid: lastParameter == null || value.IsInvalid,
-                            syntax: value.Syntax,
-                            type: null,
-                            constantValue: default(Optional<object>));
-                    }
-                }
-
-                // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
-                var invalid = OperationFactory.CreateInvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty);
-                return new Argument(
-                    argumentKind: ArgumentKind.Explicit,
-                    parameter: null,
-                    value: invalid,
-                    inConversion: null,
-                    outConversion: null,
-                    isInvalid: true,
-                    syntax: null,
-                    type: null,
-                    constantValue: default(Optional<object>));
+                return ImmutableArray<IArgument>.Empty;
             }
 
-            return s_argumentMappings.GetValue(
-                boundArguments[argumentIndex],
-                (argument) =>
-                {
-                    string nameOpt = !argumentNamesOpt.IsDefaultOrEmpty ? argumentNamesOpt[argumentIndex] : null;
-                    IParameterSymbol parameterOpt = (uint)parameterIndex < (uint)parameters.Length ? parameters[parameterIndex] : null;
-
-                    if ((object)nameOpt == null)
-                    {
-                        RefKind refMode = argumentRefKindsOpt.IsDefaultOrEmpty ? RefKind.None : argumentRefKindsOpt[argumentIndex];
-
-                        if (refMode != RefKind.None)
-                        {
-                            var value = Create(argument);
-                            return new Argument(
-                                argumentKind: ArgumentKind.Explicit,
-                                parameter: parameterOpt,
-                                value: value,
-                                inConversion: null,
-                                outConversion: null,
-                                isInvalid: parameterOpt == null || value.IsInvalid,
-                                syntax: argument.Syntax,
-                                type: null,
-                                constantValue: default(Optional<object>));
-                        }
-
-                        if (argumentIndex >= parameters.Length - 1 &&
-                            parameters.Length > 0 &&
-                            parameters[parameters.Length - 1].IsParams &&
-                            // An argument that is an array of the appropriate type is not a params argument.
-                            (boundArguments.Length > argumentIndex + 1 ||
-                             ((object)argument.Type != null && // If argument type is null, we are in an error scenario and cannot tell if it is a param array, or not. 
-                              (argument.Type.TypeKind != TypeKind.Array ||
-                              !argument.Type.Equals((CSharp.Symbols.TypeSymbol)parameters[parameters.Length - 1].Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)))))
-                        {
-                            var parameter = parameters[parameters.Length - 1];
-                            var value = CreateParamArray(parameter, boundArguments, argumentIndex, invocationSyntax);
-
-                            return new Argument(
-                                argumentKind: ArgumentKind.ParamArray,
-                                parameter: parameter,
-                                value: value,
-                                inConversion: null,
-                                outConversion: null,
-                                isInvalid: parameter == null || value.IsInvalid,
-                                syntax: value.Syntax,
-                                type: null,
-                                constantValue: default(Optional<object>));
-                        }
-                        else
-                        {
-                            var value = Create(argument);
-                            return new Argument(
-                                argumentKind: ArgumentKind.Explicit,
-                                parameter: parameterOpt,
-                                value: value,
-                                inConversion: null,
-                                outConversion: null,
-                                isInvalid: parameterOpt == null || value.IsInvalid,
-                                syntax: value.Syntax,
-                                type: null,
-                                constantValue: default(Optional<object>));
-                        }
-                    }
-
-                    var operation = Create(argument);
-                    return new Argument(
-                        argumentKind: ArgumentKind.Explicit,
-                        parameter: parameterOpt,
-                        value: operation,
-                        inConversion: null,
-                        outConversion: null,
-                        isInvalid: parameterOpt == null || operation.IsInvalid,
-                        syntax: operation.Syntax,
-                        type: null,
-                        constantValue: default(Optional<object>));
-                });
-        }
-
-        private static IOperation CreateParamArray(IParameterSymbol parameter, ImmutableArray<BoundExpression> boundArguments, int firstArgumentElementIndex, SyntaxNode invocationSyntax)
-        {
-            if (parameter.Type.TypeKind == TypeKind.Array)
+            //TODO: https://github.com/dotnet/roslyn/issues/18722
+            //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
+            //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid 
+            //      invocation instead.
+            //      Note this check doesn't cover all scenarios. For example, when a parameter is a generic type but the type of the type argument 
+            //      is undefined.
+            if ((object)optionalParametersMethod == null 
+                || boundNode.HasAnyErrors
+                || parameters.Any(p => p.Type.IsErrorType())
+                || optionalParametersMethod.GetUseSiteDiagnostic()?.DefaultSeverity == DiagnosticSeverity.Error)
             {
-                IArrayTypeSymbol arrayType = (IArrayTypeSymbol)parameter.Type;
-                ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
-
-                for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
-                {
-                    builder.Add(Create(boundArguments[index]));
-                }
-
-                var paramArrayArguments = builder.ToImmutableAndFree();
-
-                // Use the invocation syntax node if there is no actual syntax available for the argument (because the paramarray is empty.)
-                return OperationFactory.CreateArrayCreationExpression(arrayType, paramArrayArguments, paramArrayArguments.Length > 0 ? paramArrayArguments[0].Syntax : invocationSyntax);
+                // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
+                // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
+                return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, Create(arg)));
             }
 
-            return OperationFactory.CreateInvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty);
+            return LocalRewriter.MakeArgumentsInEvaluationOrder(
+                 operationFactory: this,
+                 binder: binder,
+                 syntax: invocationSyntax,
+                 arguments: boundArguments,
+                 methodOrIndexer: methodOrIndexer,
+                 optionalParametersMethod: optionalParametersMethod,
+                 expanded: expanded,
+                 argsToParamsOpt: argumentsToParametersOpt,
+                 invokedAsExtensionMethod: invokedAsExtensionMethod);
         }
 
-        private static ImmutableArray<IOperation> GetObjectCreationInitializers(BoundObjectCreationExpression expression)
+        private ImmutableArray<IOperation> GetAnonymousObjectCreationInitializers(BoundAnonymousObjectCreationExpression expression)
+        {
+            // For error cases, the binder generates only the argument.
+            Debug.Assert(expression.Arguments.Length >= expression.Declarations.Length);
+
+            var builder = ArrayBuilder<IOperation>.GetInstance(expression.Arguments.Length);
+            for (int i = 0; i < expression.Arguments.Length; i++)
+            {
+                IOperation value = Create(expression.Arguments[i]);
+                if (i >= expression.Declarations.Length)
+                {
+                    builder.Add(value);
+                    continue;
+                }
+
+                IOperation target = Create(expression.Declarations[i]);
+                bool isInvalid = target.IsInvalid || value.IsInvalid;
+                SyntaxNode syntax = value.Syntax?.Parent ?? expression.Syntax;
+                ITypeSymbol type = target.Type;
+                Optional<object> constantValue = value.ConstantValue;
+                var assignment = new SimpleAssignmentExpression(target, value, isInvalid, syntax, type, constantValue);
+                builder.Add(assignment);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        private ImmutableArray<IOperation> GetObjectCreationInitializers(BoundObjectCreationExpression expression)
         {
             return BoundObjectCreationExpression.GetChildInitializers(expression.InitializerExpressionOpt).SelectAsArray(n => Create(n));
         }
@@ -235,6 +166,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 case CSharp.ConversionKind.PointerToVoid:
                     return Semantics.ConversionKind.CSharp;
 
+                case CSharp.ConversionKind.InterpolatedString:
+                    return Semantics.ConversionKind.InterpolatedString;
+
                 default:
                     return Semantics.ConversionKind.Invalid;
             }
@@ -251,35 +185,26 @@ namespace Microsoft.CodeAnalysis.Semantics
             return null;
         }
 
-        private static readonly ConditionalWeakTable<BoundBlock, object> s_blockStatementsMappings =
-            new ConditionalWeakTable<BoundBlock, object>();
-
-        private static ImmutableArray<IOperation> GetBlockStatement(BoundBlock block)
+        private ImmutableArray<ISwitchCase> GetSwitchStatementCases(BoundSwitchStatement statement)
         {
-            // This is to filter out operations of kind None.
-            return (ImmutableArray<IOperation>)s_blockStatementsMappings.GetValue(block,
-                blockStatement =>
-                {
-                    return blockStatement.Statements.Select(s => Create(s)).Where(s => s.Kind != OperationKind.None).ToImmutableArray();
-                });
+            return statement.SwitchSections.SelectAsArray(switchSection =>
+            {
+                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
+                var body = switchSection.Statements.SelectAsArray(s => Create(s));
+
+                return (ISwitchCase)new SwitchCase(clauses, body, switchSection.HasErrors, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+            });
         }
 
-        private static readonly ConditionalWeakTable<BoundSwitchStatement, object> s_switchSectionsMappings =
-            new ConditionalWeakTable<BoundSwitchStatement, object>();
-
-        private static ImmutableArray<ISwitchCase> GetSwitchStatementCases(BoundSwitchStatement statement)
+        private ImmutableArray<ISwitchCase> GetPatternSwitchStatementCases(BoundPatternSwitchStatement statement)
         {
-            return (ImmutableArray<ISwitchCase>)s_switchSectionsMappings.GetValue(statement,
-                switchStatement =>
-                {
-                    return switchStatement.SwitchSections.SelectAsArray(switchSection =>
-                    {
-                        var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
-                        var body = switchSection.Statements.SelectAsArray(s => Create(s));
+            return statement.SwitchSections.SelectAsArray(switchSection =>
+            {
+                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
+                var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                        return (ISwitchCase)new SwitchCase(clauses, body, switchSection.HasErrors, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
-                    });
-                });
+                return (ISwitchCase)new SwitchCase(clauses, body, switchSection.HasErrors, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+            });
         }
 
         private static BinaryOperationKind GetLabelEqualityKind(BoundSwitchLabel label)
@@ -317,99 +242,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             // Return None for `default` case.
             return BinaryOperationKind.None;
-        }
-
-        private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
-            new ConditionalWeakTable<BoundLocalDeclaration, object>();
-
-        private static ImmutableArray<IVariableDeclaration> GetVariableDeclarationStatementVariables(BoundLocalDeclaration decl)
-        {
-            return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(decl,
-                declaration => ImmutableArray.Create<IVariableDeclaration>(
-                    OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
-        }
-
-        private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_multiVariablesMappings =
-            new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
-
-        private static ImmutableArray<IVariableDeclaration> GetVariableDeclarationStatementVariables(BoundMultipleLocalDeclarations decl)
-        {
-            return (ImmutableArray<IVariableDeclaration>)s_multiVariablesMappings.GetValue(decl,
-                multipleDeclarations =>
-                    multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
-                        OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
-        }
-
-        private static readonly ConditionalWeakTable<BoundTupleExpression, object> s_tupleElementsMappings =
-            new ConditionalWeakTable<BoundTupleExpression, object>();
-
-        private static ImmutableArray<IOperation> GetTupleElements(BoundTupleExpression boundTupleExpression)
-        {
-            return (ImmutableArray<IOperation>)s_tupleElementsMappings.GetValue(boundTupleExpression,
-                tupleExpr => tupleExpr.Arguments.SelectAsArray(element => Create(element)));
-        }
-
-        // TODO: We need to reuse the logic in `LocalRewriter.MakeArguments` instead of using private implementation. 
-        //       Also. this implementation here was for the (now removed) API `ArgumentsInParameter`, which doesn't fulfill
-        //       the contract of `ArgumentsInEvaluationOrder` plus it doesn't handle various scenarios correctly even for parameter order, 
-        //       e.g. default arguments, erroneous code, etc. 
-        //       https://github.com/dotnet/roslyn/issues/18549
-        internal static ImmutableArray<IArgument> DeriveArguments(
-            ImmutableArray<BoundExpression> boundArguments,
-            ImmutableArray<string> argumentNamesOpt,
-            ImmutableArray<int> argumentsToParametersOpt,
-            ImmutableArray<RefKind> argumentRefKindsOpt,
-            ImmutableArray<CSharp.Symbols.ParameterSymbol> parameters,
-            SyntaxNode invocationSyntax)
-        {
-            ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
-            for (int parameterIndex = 0; parameterIndex < parameters.Length; parameterIndex++)
-            {
-                int argumentIndex = -1;
-                if (argumentsToParametersOpt.IsDefault)
-                {
-                    argumentIndex = parameterIndex;
-                }
-                else
-                {
-                    argumentIndex = argumentsToParametersOpt.IndexOf(parameterIndex);
-                }
-
-                if ((uint)argumentIndex >= (uint)boundArguments.Length)
-                {
-                    // No argument has been supplied for the parameter at `parameterIndex`:
-                    // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
-                    // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
-
-                    var parameter = parameters[parameterIndex];
-                    if (parameter.HasExplicitDefaultValue)
-                    {
-                        // The parameter is optional with a default value.
-                        arguments.Add(new Argument(
-                            ArgumentKind.DefaultValue,
-                            parameter,
-                            OperationFactory.CreateLiteralExpression(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax),
-                            inConversion: null,
-                            outConversion: null,
-                            isInvalid: parameter.ExplicitDefaultConstantValue.IsBad,
-                            syntax: invocationSyntax,
-                            type: null,
-                            constantValue: default(Optional<object>)));
-                    }
-                    else
-                    {
-                        // If the invocation is semantically valid, the parameter will be a params array and an empty array will be provided.
-                        // If the argument is otherwise omitted for a parameter with no default value, the invocation is not valid and a null argument will be provided.
-                        arguments.Add(DeriveArgument(parameterIndex, boundArguments.Length, boundArguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax));
-                    }
-                }
-                else
-                {
-                    arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax));
-                }
-            }
-
-            return arguments.ToImmutableAndFree();
         }
 
         internal class Helper

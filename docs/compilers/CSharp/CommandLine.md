@@ -50,7 +50,8 @@
 | `/checked`{`+`&#124;`-`} | Generate overflow checks
 | `/unsafe`{`+`&#124;`-`} | Allow 'unsafe' code
 | `/define:`*symbol list* | Define conditional compilation symbol(s) (Short form: `/d`)
-| `/langversion`:*string* | Specify language version mode: `ISO-1`, `ISO-2`, `3`, `4`, `5`, `6`, `7`, `7.1`, `Default` (latest major version), or `Latest` (latest version, including minor versions)
+| `/langversion:?` | Display the allowed values for language version
+| `/langversion`:*string* | Specify language version such as `default` (latest major version), or `latest` (latest version, including minor versions)
 | **SECURITY**
 | `/delaysign`{`+`&#124;`-`} | Delay-sign the assembly using only the public portion of the strong name key
 | `/keyfile:`*file* | Specify a strong name key file

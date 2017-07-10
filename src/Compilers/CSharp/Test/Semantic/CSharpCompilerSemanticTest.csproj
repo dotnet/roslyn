@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -11,9 +11,8 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Semantic.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -61,12 +60,19 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.cs" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.cs" />
+    <Compile Include="IOperation\IOperationTests_IInterpolatedStringExpression.cs" />
     <Compile Include="IOperation\IOperationTests_IArgument.cs" />
     <Compile Include="IOperation\IOperationTests_ITupleExpression.cs" />
+    <Compile Include="IOperation\IOperationTests_IConversionExpression.cs" />
     <Compile Include="IOperation\IOperationTests_IIfStatement.cs" />
     <Compile Include="IOperation\IOperationTests_IFieldReferenceExpression.cs" />
+    <Compile Include="IOperation\IOperationTests_ILambdaExpression.cs" />
+    <Compile Include="IOperation\IOperationTests_IPatternSwitchCase.cs" />
     <Compile Include="IOperation\IOperationTests_IObjectCreationExpression.cs" />
+    <Compile Include="IOperation\IOperationTests_IIsPatternExpression.cs" />
     <Compile Include="IOperation\IOperationTests_IParameterReferenceExpression.cs" />
+    <Compile Include="IOperation\IOperationTests_ILocalFunctionStatement.cs" />
+    <Compile Include="IOperation\IOperationTests_IReturnStatement.cs" />
     <Compile Include="IOperation\IOperationTests_ISymbolInitializer.cs" />
     <Compile Include="IOperation\IOperationTests_InvalidExpression.cs" />
     <Compile Include="IOperation\IOperationTests_InvalidStatement.cs" />
@@ -81,6 +87,7 @@
     <Compile Include="FlowAnalysis\RegionAnalysisTests.cs" />
     <Compile Include="FlowAnalysis\StructTests.cs" />
     <Compile Include="FlowAnalysis\TryLockUsingStatementTests.cs" />
+    <Compile Include="IOperation\IOperationTests_IUnaryOperatorExpression.cs" />
     <Compile Include="IOperation\IOperationTests_IVariableDeclaration.cs" />
     <Compile Include="Semantics\FuzzTests.cs" />
     <Compile Include="Semantics\OverloadResolutionPerfTests.cs" />
@@ -163,15 +170,8 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <PackageReference Include="xunit">
-      <Version>$(xunitVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.console">
-      <Version>$(xunitrunnerconsoleVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio">
-      <Version>$(xunitrunnervisualstudioVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

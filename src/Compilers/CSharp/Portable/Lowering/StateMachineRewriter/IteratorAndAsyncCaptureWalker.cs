@@ -224,11 +224,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetOrCreateSlot(parameter);
         }
 
-        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
-            if (symbol is LocalSymbol || symbol is ParameterSymbol)
+            switch (symbol.Kind)
             {
-                CaptureVariable(symbol, node);
+                case SymbolKind.Field:
+                    symbol = GetNonFieldSymbol(slot);
+                    goto case SymbolKind.Local;
+
+                case SymbolKind.Local:
+                case SymbolKind.Parameter:
+                    CaptureVariable(symbol, node);
+                    break;
             }
         }
 
@@ -237,11 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override LocalState UnreachableState()
         {
             return this.State;
-        }
-
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
-        {
-            CaptureVariable(GetNonFieldSymbol(unassignedSlot), node);
         }
 
         protected override void VisitLvalueParameter(BoundParameter node)

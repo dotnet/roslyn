@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                 default(Optional<object>));
         }
 
-        public static IExpressionStatement CreateAssignmentExpressionStatement(IOperation target, IOperation value, SyntaxNode syntax)
+        public static IExpressionStatement CreateSimpleAssignmentExpressionStatement(IOperation target, IOperation value, SyntaxNode syntax)
         {
             var isInvalid = target == null || target.IsInvalid || value == null || value.IsInvalid;
-            var expression = new AssignmentExpression(target, value, isInvalid, syntax, target.Type, default(Optional<object>));
+            var expression = new SimpleAssignmentExpression(target, value, isInvalid, syntax, target.Type, default(Optional<object>));
             return new ExpressionStatement(expression, expression.IsInvalid, syntax, type: null, constantValue: default(Optional<object>));
         }
 

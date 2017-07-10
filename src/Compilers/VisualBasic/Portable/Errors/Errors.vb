@@ -1977,7 +1977,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IDS_LogoLine1 = 56007
         IDS_LogoLine2 = 56008
         IDS_VBCHelp = 56009
-        ' available: 56010
+        IDS_LangVersions = 56010
         IDS_ToolName = 56011
 
         ' Feature codes

@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
@@ -2282,6 +2283,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (argumentSyntax.RefOrOutKeyword.Kind() != SyntaxKind.None)
+            {
+                argumentSyntax.Expression.CheckDeconstructionCompatibleArgument(diagnostics);
+            }
+
             return hadError;
         }
 
@@ -3431,6 +3437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: memberResolutionResult.Result.ArgsToParamsOpt,
                         resultKind: LookupResultKind.Viable,
+                        binderOpt: this,
                         type: constructorReturnType,
                         hasErrors: hasErrors)
                     { WasCompilerGenerated = initializerArgumentListOpt == null };
@@ -4524,6 +4531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     memberResolutionResult.Result.ArgsToParamsOpt,
                     constantValueOpt,
                     boundInitializerOpt,
+                    this,
                     type,
                     hasError);
 
@@ -4663,7 +4671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var creation = (BoundObjectCreationExpression)classCreation;
                         return creation.Update(creation.Constructor, creation.ConstructorsGroup, creation.Arguments, creation.ArgumentNamesOpt,
                                                creation.ArgumentRefKindsOpt, creation.Expanded, creation.ArgsToParamsOpt, creation.ConstantValueOpt,
-                                               creation.InitializerExpressionOpt, interfaceType);
+                                               creation.InitializerExpressionOpt, creation.BinderOpt, interfaceType);
 
                     case BoundKind.BadExpression:
                         var bad = (BoundBadExpression)classCreation;
@@ -6827,6 +6835,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentRefKinds,
                     isExpanded,
                     argsToParams,
+                    this,
+                    false,
                     property.Type,
                     gotError);
             }

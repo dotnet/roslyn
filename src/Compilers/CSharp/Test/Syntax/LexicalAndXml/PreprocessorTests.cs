@@ -3425,10 +3425,10 @@ public class Test
             var text = @"
 class A
 {
-    static void Main(bool b)
+    static void Main(int i)
     {
-#pragma warning disable 642
-        if (b);{}
+#pragma warning disable 1522
+        switch (i) { }
     }
 }
 ";
@@ -3436,7 +3436,7 @@ class A
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var diagnostic = tree.GetDiagnostics().Single();
             Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
-            Assert.Equal(642, diagnostic.Code);
+            Assert.Equal(1522, diagnostic.Code);
 
             // verify pragma information
             var node = tree.GetCompilationUnitRoot();
@@ -3445,7 +3445,7 @@ class A
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "642" }
+                WarningList = new[] { "1522" }
             });
 
             // verify that GetParseDiagnostics filters disabled warning

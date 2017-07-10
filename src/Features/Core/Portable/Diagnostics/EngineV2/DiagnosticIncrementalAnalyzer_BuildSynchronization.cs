@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -15,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         public async Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
         {
+            DebugVerifyDiagnosticLocations(map);
+
             if (!PreferBuildErrors(workspace))
             {
                 // prefer live errors over build errors
@@ -48,6 +52,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // enqueue re-analysis of open documents.
                 this.Owner.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private void DebugVerifyDiagnosticLocations(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
+        {
+            foreach (var diagnostic in map.Values.SelectMany(v => v))
+            {
+                // errors from build shouldn't have any span set.
+                // this is debug check since it gets data from us only not from third party unlike one in compiler
+                // that checks span for third party reported diagnostics
+                Contract.Requires(!diagnostic.HasTextSpan);
             }
         }
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -21,18 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => this.ChildBoundNodes;
     }
 
-    partial class BoundPatternSwitchStatement
+    partial class BoundLocalFunctionStatement
     {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.SwitchSections).Insert(0, this.Expression);
-    }
-
-    partial class BoundPatternSwitchSection
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.SwitchLabels).AddRange(this.Statements);
-    }
-
-    partial class BoundPatternSwitchLabel
-    {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Pattern, this.Guard);
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Body);
     }
 }

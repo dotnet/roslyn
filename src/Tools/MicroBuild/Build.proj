@@ -5,6 +5,8 @@
 
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <ConfigurationArg Condition="'$(Configuration)' == 'Release'">-release</ConfigurationArg>
+    <OfficialArg Condition="'$(OfficialBuild)' == 'true'">-official</OfficialArg>
     <RepoRoot>$(MSBuildThisFileDirectory)..\..\..\</RepoRoot>
     <BranchName Condition="'$(BranchName)' == ''">$(BUILD_SOURCEBRANCH)</BranchName>
     <BinariesPath>$(RepoRoot)Binaries\$(Configuration)</BinariesPath>
@@ -24,9 +26,7 @@
 
   <Target Name="Build">
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(RepoRoot)build\scripts\build.ps1 -restore -msbuildDir &quot;$(MSBuildBinPath)&quot;" Condition="'$(SkipRestore)' != 'true'" />
-
-    <MSBuild Projects="$(RepoRoot)Roslyn.sln" BuildInParallel="true" Properties="DeployExtension=false" />
-
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(RepoRoot)build\scripts\build.ps1 -build $(ConfigurationArg) $(OfficialArg) -msbuildDir &quot;$(MSBuildBinPath)&quot;" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\create-perftests.ps1 -buildDir &quot;$(BinariesPath)&quot;" />
 
@@ -38,7 +38,7 @@
     <MSBuild Projects="$(RepoRoot)src\NuGet\NuGet.proj" />
     <MSBuild Projects="$(RepoRoot)src\Setup\SetupStep2.proj" Properties="$(SetupStep2Properties);DeployExtension=false" />
 
-    <MSBuild Projects="$(RepoRoot)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' != 'true'" Properties="Test32=true" />
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(RepoRoot)build\scripts\build.ps1 -testDesktop $(ConfigurationArg) -msbuildDir &quot;$(MSBuildBinPath)&quot;" Condition="'$(SkipTest)' != 'true'" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\check-toolset-insertion.ps1 &quot;$(MSBuildThisFileDirectory)..\..\..&quot; &quot;$(BinariesPath)&quot;" />
     

@@ -12,7 +12,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpSendToInteractive : AbstractInteractiveWindowTest
     {
-        private const string FileName = "test.cs";
+        private const string FileName = "Program.cs";
 
         public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
@@ -21,16 +21,16 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var project = new Project(ProjectName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ConsoleApplication, Microsoft.CodeAnalysis.LanguageNames.CSharp);
 
-            VisualStudio.SolutionExplorer.AddFile(
-                project,
+            VisualStudio.SolutionExplorer.UpdateFile(
+                ProjectName,
                 FileName,
                 @"using System;
 
  namespace TestProj
  {
-     public class Program1
+     public class Program
      {
-         public static void Main1(string[] args)
+         public static void Main(string[] args)
          {
             /* 1 */int x = 1;/* 2 */
             
@@ -51,7 +51,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
              return ""C.M()"";
          }
      }
- }");
+ }
+", 
+                open: true);
 
             VisualStudio.InteractiveWindow.SubmitText("using System;");
         }
@@ -214,7 +216,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19441")]
+        [Fact]
         public void ResetInteractiveFromProjectAndVerify()
         {
             var assembly = new ProjectUtils.AssemblyReference("System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");

@@ -242,6 +242,15 @@ End Class
             VerifySyntax(Of TypeSyntax)(_g.ArrayTypeExpression(_g.ArrayTypeExpression(_g.IdentifierName("x"))), "x()()")
             VerifySyntax(Of TypeSyntax)(_g.NullableTypeExpression(_g.IdentifierName("x")), "x?")
             VerifySyntax(Of TypeSyntax)(_g.NullableTypeExpression(_g.NullableTypeExpression(_g.IdentifierName("x"))), "x?")
+
+            Dim intType = _emptyCompilation.GetSpecialType(SpecialType.System_Int32)
+            VerifySyntax(Of TupleElementSyntax)(_g.TupleElementExpression(_g.IdentifierName("x")), "x")
+            VerifySyntax(Of TupleElementSyntax)(_g.TupleElementExpression(_g.IdentifierName("x"), "y"), "y As x")
+            VerifySyntax(Of TupleElementSyntax)(_g.TupleElementExpression(intType), "System.Int32")
+            VerifySyntax(Of TupleElementSyntax)(_g.TupleElementExpression(intType, "y"), "y As System.Int32")
+            VerifySyntax(Of TypeSyntax)(_g.TupleTypeExpression(_g.TupleElementExpression(_g.IdentifierName("x")), _g.TupleElementExpression(_g.IdentifierName("y"))), "(x, y)")
+            VerifySyntax(Of TypeSyntax)(_g.TupleTypeExpression(new ITypeSymbol() { intType, intType }), "(System.Int32, System.Int32)")
+            VerifySyntax(Of TypeSyntax)(_g.TupleTypeExpression(new ITypeSymbol() { intType, intType }, New String() { "x", "y" }), "(x As System.Int32, y As System.Int32)")
         End Sub
 
         <Fact>
@@ -445,6 +454,15 @@ End Class
         <Fact>
         Public Sub TestNameOfExpressions()
             VerifySyntax(Of NameOfExpressionSyntax)(_g.NameOfExpression(_g.IdentifierName("x")), "NameOf(x)")
+        End Sub
+
+        <Fact>
+        Public Sub TestTupleExpression()
+            VerifySyntax(Of TupleExpressionSyntax)(_g.TupleExpression(
+                {_g.IdentifierName("x"), _g.IdentifierName("y")}), "(x, y)")
+            VerifySyntax(Of TupleExpressionSyntax)(_g.TupleExpression(
+                {_g.Argument("foo", RefKind.None, _g.IdentifierName("x")),
+                 _g.Argument("bar", RefKind.None, _g.IdentifierName("y"))}), "(foo:=x, bar:=y)")
         End Sub
 
         <Fact>

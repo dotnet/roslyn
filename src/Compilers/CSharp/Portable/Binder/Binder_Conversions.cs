@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
-using System.Collections.Immutable;
-using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -114,38 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 source,
                 conversion,
-                IsCheckedConversion(source.Type, destination),
+                @checked: CheckOverflowAtRuntime,
                 explicitCastInCode: isCast && !wasCompilerGenerated,
                 constantValueOpt: constantValue,
                 type: destination)
             { WasCompilerGenerated = wasCompilerGenerated };
-        }
-
-        private bool IsCheckedConversion(TypeSymbol source, TypeSymbol target)
-        {
-            Debug.Assert((object)target != null);
-
-            if ((object)source == null || !CheckOverflowAtRuntime)
-            {
-                return false;
-            }
-
-            if (source.IsDynamic())
-            {
-                return true;
-            }
-
-            SpecialType sourceST = source.StrippedType().EnumUnderlyingType().SpecialType;
-            SpecialType targetST = target.StrippedType().EnumUnderlyingType().SpecialType;
-
-            // integral to double or float is never checked, but float/double to integral 
-            // may be checked.
-            bool sourceIsNumeric = SpecialType.System_Char <= sourceST && sourceST <= SpecialType.System_Double;
-            bool targetIsNumeric = SpecialType.System_Char <= targetST && targetST <= SpecialType.System_UInt64;
-
-            return
-                sourceIsNumeric && (targetIsNumeric || target.IsPointerType()) ||
-                targetIsNumeric && source.IsPointerType();
         }
 
         protected BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
@@ -806,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var sourceMethod = selectedMethod as SourceMemberMethodSymbol;
+            var sourceMethod = selectedMethod as SourceOrdinaryMethodSymbol;
             if ((object)sourceMethod != null && sourceMethod.IsPartialWithoutImplementation)
             {
                 // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration

@@ -223,6 +223,15 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<TypeSyntax>(_g.ArrayTypeExpression(_g.ArrayTypeExpression(_g.IdentifierName("x"))), "x[][]");
             VerifySyntax<TypeSyntax>(_g.NullableTypeExpression(_g.IdentifierName("x")), "x?");
             VerifySyntax<TypeSyntax>(_g.NullableTypeExpression(_g.NullableTypeExpression(_g.IdentifierName("x"))), "x?");
+
+            var intType = _emptyCompilation.GetSpecialType(SpecialType.System_Int32);
+            VerifySyntax<TupleElementSyntax>(_g.TupleElementExpression(_g.IdentifierName("x")), "x");
+            VerifySyntax<TupleElementSyntax>(_g.TupleElementExpression(_g.IdentifierName("x"), "y"), "x y");
+            VerifySyntax<TupleElementSyntax>(_g.TupleElementExpression(intType), "global::System.Int32");
+            VerifySyntax<TupleElementSyntax>(_g.TupleElementExpression(intType, "y"), "global::System.Int32 y");
+            VerifySyntax<TypeSyntax>(_g.TupleTypeExpression(_g.TupleElementExpression(_g.IdentifierName("x")), _g.TupleElementExpression(_g.IdentifierName("y"))), "(x, y)");
+            VerifySyntax<TypeSyntax>(_g.TupleTypeExpression(new[] { intType, intType }), "(global::System.Int32, global::System.Int32)");
+            VerifySyntax<TypeSyntax>(_g.TupleTypeExpression(new[] { intType, intType }, new[] { "x", "y" }), "(global::System.Int32 x, global::System.Int32 y)");
         }
 
         [Fact]
@@ -460,6 +469,17 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         public void TestNameOfExpressions()
         {
             VerifySyntax<InvocationExpressionSyntax>(_g.NameOfExpression(_g.IdentifierName("x")), "nameof(x)");
+        }
+
+        [Fact]
+        public void TestTupleExpression()
+        {
+            VerifySyntax<TupleExpressionSyntax>(_g.TupleExpression(
+                new[] { _g.IdentifierName("x"), _g.IdentifierName("y") }), "(x, y)");
+
+            VerifySyntax<TupleExpressionSyntax>(_g.TupleExpression(
+                new[] { _g.Argument("foo", RefKind.None, _g.IdentifierName("x")),
+                        _g.Argument("bar", RefKind.None, _g.IdentifierName("y")) }), "(foo: x, bar: y)");
         }
 
         [Fact]

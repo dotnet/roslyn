@@ -73,7 +73,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var solution = workspace.CurrentSolution;
 
-                var comments = await client.RunCodeAnalysisServiceOnRemoteHostAsync<IList<TodoComment>>(
+                var comments = await client.TryRunCodeAnalysisRemoteAsync<IList<TodoComment>>(
                     solution, nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
                     new object[] { solution.Projects.First().DocumentIds.First(), ImmutableArray.Create(new TodoCommentDescriptor("TODO", 0)) }, CancellationToken.None);
 
@@ -93,7 +93,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var solution = workspace.CurrentSolution;
 
-                var result = await client.RunCodeAnalysisServiceOnRemoteHostAsync<DesignerAttributeDocumentData[]>(
+                var result = await client.TryRunCodeAnalysisRemoteAsync<ImmutableArray<DesignerAttributeDocumentData>>(
                     solution, nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
                     solution.Projects.First().Id, CancellationToken.None);
 
@@ -110,7 +110,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 
-                await client.RunOnRemoteHostAsync(
+                await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     workspace.CurrentSolution,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
@@ -311,7 +311,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
-            await client.RunOnRemoteHostAsync(
+            await client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService, solution,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);

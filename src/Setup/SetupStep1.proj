@@ -20,7 +20,15 @@
     <PowerShellScriptsToCopy Include="PowerShell\*.ps1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <CoreClrProject Include="$(MSBuildThisFileDirectory)..\Compilers\CSharp\CscCore\CscCore.csproj" />
+    <CoreClrProject Include="$(MSBuildThisFileDirectory)..\Compilers\VisualBasic\VbcCore\VbcCore.csproj" />
+  </ItemGroup>
+
   <Target Name="Build">
+    <!-- Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging. -->
+    <MSBuild BuildInParallel="true" Projects="@(CoreClrProject)" Targets="PublishWithoutBuilding" />
+
     <!-- We build these serially to work around https://github.com/dotnet/roslyn/issues/11856,
          where building multiple projects that produce VSIXes larger than 10MB will race against each other -->
     <MSBuild Projects="@(Project)" Targets="Build" BuildInParallel="false" />
@@ -40,4 +48,5 @@
   <Target Name="Rebuild">
     <MSBuild Projects="@(Project)" Targets="Rebuild" BuildInParallel="false" />
   </Target>
+
 </Project>

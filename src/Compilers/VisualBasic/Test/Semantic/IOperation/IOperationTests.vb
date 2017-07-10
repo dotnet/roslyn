@@ -56,8 +56,8 @@ End Module
             Dim statement1 As IOperation = model.GetOperation(nodes(0))
             Assert.Equal(statement1.Kind, OperationKind.ExpressionStatement)
             Dim expression1 As IOperation = DirectCast(statement1, IExpressionStatement).Expression
-            Assert.Equal(expression1.Kind, OperationKind.AssignmentExpression)
-            Dim assignment1 As IAssignmentExpression = DirectCast(expression1, IAssignmentExpression)
+            Assert.Equal(expression1.Kind, OperationKind.SimpleAssignmentExpression)
+            Dim assignment1 As ISimpleAssignmentExpression = DirectCast(expression1, ISimpleAssignmentExpression)
             Assert.Equal(assignment1.Value.Kind, OperationKind.BinaryOperatorExpression)
             Dim add1 As IBinaryOperatorExpression = DirectCast(assignment1.Value, IBinaryOperatorExpression)
             Assert.Equal(add1.BinaryOperationKind, BinaryOperationKind.OperatorMethodAdd)
@@ -73,7 +73,7 @@ End Module
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = x + 10')
-  IAssignmentExpression (OperationKind.AssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = x + 10')
+  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = x + 10')
     Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
     Right: IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd) (OperationKind.BinaryOperatorExpression, Type: B2, IsInvalid) (Syntax: 'x + 10')
         Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
@@ -86,8 +86,8 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
             Dim statement2 As IOperation = model.GetOperation(nodes(1))
             Assert.Equal(statement2.Kind, OperationKind.ExpressionStatement)
             Dim expression2 As IOperation = DirectCast(statement2, IExpressionStatement).Expression
-            Assert.Equal(expression2.Kind, OperationKind.AssignmentExpression)
-            Dim assignment2 As IAssignmentExpression = DirectCast(expression2, IAssignmentExpression)
+            Assert.Equal(expression2.Kind, OperationKind.SimpleAssignmentExpression)
+            Dim assignment2 As ISimpleAssignmentExpression = DirectCast(expression2, ISimpleAssignmentExpression)
             Assert.Equal(assignment2.Value.Kind, OperationKind.BinaryOperatorExpression)
             Dim add2 As IBinaryOperatorExpression = DirectCast(assignment2.Value, IBinaryOperatorExpression)
             Assert.Equal(add2.BinaryOperationKind, BinaryOperationKind.OperatorMethodAdd)
@@ -103,7 +103,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
-  IAssignmentExpression (OperationKind.AssignmentExpression, Type: B2) (Syntax: 'x = x + y')
+  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2) (Syntax: 'x = x + y')
     Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
     Right: IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.BinaryOperatorExpression, Type: B2) (Syntax: 'x + y')
         Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
@@ -116,8 +116,8 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
             Dim statement3 As IOperation = model.GetOperation(nodes(2))
             Assert.Equal(statement3.Kind, OperationKind.ExpressionStatement)
             Dim expression3 As IOperation = DirectCast(statement3, IExpressionStatement).Expression
-            Assert.Equal(expression3.Kind, OperationKind.AssignmentExpression)
-            Dim assignment3 As IAssignmentExpression = DirectCast(expression3, IAssignmentExpression)
+            Assert.Equal(expression3.Kind, OperationKind.SimpleAssignmentExpression)
+            Dim assignment3 As ISimpleAssignmentExpression = DirectCast(expression3, ISimpleAssignmentExpression)
             Assert.Equal(assignment3.Value.Kind, OperationKind.UnaryOperatorExpression)
             Dim negate3 As IUnaryOperatorExpression = DirectCast(assignment3.Value, IUnaryOperatorExpression)
             Assert.Equal(negate3.UnaryOperationKind, UnaryOperationKind.OperatorMethodMinus)
@@ -129,7 +129,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
 
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = -x')
-  IAssignmentExpression (OperationKind.AssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = -x')
+  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = -x')
     Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
     Right: IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperationKind.UnaryOperatorExpression, Type: B2, IsInvalid) (Syntax: '-x')
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
@@ -264,7 +264,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i =
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '0')
-      IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32) (Syntax: '0')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '0')
         Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
         Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For i = 0 T ... Next')

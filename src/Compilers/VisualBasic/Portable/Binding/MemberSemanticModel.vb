@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -25,6 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _speculatedPosition As Integer
         Private ReadOnly _ignoresAccessibility As Boolean
 
+        Private ReadOnly _operationFactory As VisualBasicOperationFactory
+
         Friend Sub New(root As SyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer, Optional ignoreAccessibility As Boolean = False)
             Debug.Assert(parentSemanticModelOpt Is Nothing OrElse Not parentSemanticModelOpt.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
 
@@ -33,6 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _rootBinder = SemanticModelBinder.Mark(rootBinder, ignoreAccessibility)
             _parentSemanticModelOpt = parentSemanticModelOpt
             _speculatedPosition = speculatedPosition
+
+            _operationFactory = New VisualBasicOperationFactory()
         End Sub
 
         Friend ReadOnly Property RootBinder As Binder
@@ -800,7 +805,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = summary.LowestBoundNode
             End Select
 
-            Return VisualBasicOperationFactory.Create(result)
+            Return _operationFactory.Create(result)
         End Function
 
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
