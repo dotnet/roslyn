@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             /// The current connection we have open to the remote host.  Only accessible from the
             /// UI thread.
             /// </summary>
-            private ReferenceCountedDisposable<Connection> _currentConnection;
+            private ReferenceCountedDisposable<Connection>.WeakReference _currentConnection;
 
             // We have to capture the solution ID because otherwise we won't know
             // what is is when we get told about OnSolutionRemoved.  If we try
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _workspace = workspace;
                 _client = client;
                 _currentSolutionId = workspace.CurrentSolution.Id;
-                _currentConnection = currentConnection;
+                _currentConnection = new ReferenceCountedDisposable<Connection>.WeakReference(currentConnection);
             }
 
             public void OnAfterWorkingFolderChange()
@@ -59,8 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 this.AssertIsForeground();
 
                 // If we have an existing connection, add a ref to it and use that.
-                _currentConnection = _currentConnection?.TryAddReference();
-                if (_currentConnection == null)
+                var connectionRef = _currentConnection.TryAddReference();
+                if (connectionRef == null)
                 {
                     // Otherwise, try to create an actual connection to the OOP server
                     var connection = await _client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
@@ -70,10 +70,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }
 
                     // And set the ref count to it to 1.
-                    _currentConnection = new ReferenceCountedDisposable<Connection>(connection);
+                    connectionRef = new ReferenceCountedDisposable<Connection>(connection);
+                    _currentConnection = new ReferenceCountedDisposable<Connection>.WeakReference(connectionRef);
                 }
 
-                return _currentConnection;
+                return connectionRef;
             }
 
             private async Task RegisterPrimarySolutionAsync()
