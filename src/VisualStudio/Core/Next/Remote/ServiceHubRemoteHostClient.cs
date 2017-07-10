@@ -79,24 +79,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // that ref-count at the end of the using block.  During this time though, when the 
             // projectTracker is sending events, the workspace host can then use that connection 
             // instead of having to expensively spin up a fresh one.
-            var currentConnection = await client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
-            var refCountedConnection = currentConnection == null
-                ? null
-                : new ReferenceCountedDisposable<Connection>(currentConnection);
-            using (refCountedConnection)
+            var session = await client.TryCreateKeepAliveSessionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
+            var host = new WorkspaceHost(vsWorkspace, session);
+
+            // RegisterWorkspaceHost is required to be called from UI thread so push the code
+            // to UI thread to run. 
+            await Task.Factory.SafeStartNew(() =>
             {
-                var host = new WorkspaceHost(vsWorkspace, client, refCountedConnection);
+                var projectTracker = vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider);
 
-                // RegisterWorkspaceHost is required to be called from UI thread so push the code
-                // to UI thread to run. 
-                await Task.Factory.SafeStartNew(() =>
-                {
-                    var projectTracker = vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider);
-
-                    projectTracker.RegisterWorkspaceHost(host);
-                    projectTracker.StartSendingEventsToWorkspaceHost(host);
-                }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
-            }
+                projectTracker.RegisterWorkspaceHost(host);
+                projectTracker.StartSendingEventsToWorkspaceHost(host);
+            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
         }
 
         private ServiceHubRemoteHostClient(

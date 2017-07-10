@@ -17,13 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private class WorkspaceHost : ForegroundThreadAffinitizedObject, IVisualStudioWorkspaceHost, IVisualStudioWorkingFolder
         {
             private readonly VisualStudioWorkspaceImpl _workspace;
-            private readonly RemoteHostClient _client;
 
             /// <summary>
-            /// The current connection we have open to the remote host.  Only accessible from the
+            /// The current session we have open to the remote host.  Only accessible from the
             /// UI thread.
             /// </summary>
-            private ReferenceCountedDisposable<Connection>.WeakReference _currentConnection;
+            private readonly KeepAliveSession _session;
 
             // We have to capture the solution ID because otherwise we won't know
             // what is is when we get told about OnSolutionRemoved.  If we try
@@ -31,17 +30,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // gone.
             private SolutionId _currentSolutionId;
 
-            public WorkspaceHost(
-                VisualStudioWorkspaceImpl workspace,
-                RemoteHostClient client,
-                ReferenceCountedDisposable<Connection> currentConnection)
+            public WorkspaceHost(VisualStudioWorkspaceImpl workspace, KeepAliveSession session)
             {
                 _workspace = workspace;
-                _client = client;
                 _currentSolutionId = workspace.CurrentSolution.Id;
-                _currentConnection = currentConnection == null
-                    ? default
-                    : new ReferenceCountedDisposable<Connection>.WeakReference(currentConnection);
+                _session = session;
             }
 
             public void OnAfterWorkingFolderChange()
@@ -56,50 +49,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 RegisterPrimarySolution();
             }
 
-            private ReferenceCountedDisposable<Connection> GetOrCreateConnection()
-            {
-                this.AssertIsForeground();
-
-                // If we have an existing connection, add a ref to it and use that.
-                var connectionRef = _currentConnection.TryAddReference();
-                if (connectionRef == null)
-                {
-                    // Otherwise, try to create an actual connection to the OOP server
-                    var connection = _client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None)
-                                            .WaitAndGetResult(CancellationToken.None);
-                    if (connection == null)
-                    {
-                        return null;
-                    }
-
-                    // And set the ref count to it to 1.
-                    connectionRef = new ReferenceCountedDisposable<Connection>(connection);
-                    _currentConnection = new ReferenceCountedDisposable<Connection>.WeakReference(connectionRef);
-                }
-
-                return connectionRef;
-            }
-
             private void RegisterPrimarySolution()
             {
                 this.AssertIsForeground();
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
-                using (var connection = GetOrCreateConnection())
-                {
-                    if (connection == null)
-                    {
-                        // failed to create connection. remote host might not responding or gone. 
-                        return;
-                    }
+                var storageLocation = _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution);
 
-                    var storageLocation = _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution);
-
-                    connection.Target.InvokeAsync(
-                        nameof(IRemoteHostService.RegisterPrimarySolutionId),
-                        new object[] { solutionId, storageLocation }, CancellationToken.None).Wait(CancellationToken.None);
-                }
+                _session.TryInvokeAsync(
+                    nameof(IRemoteHostService.RegisterPrimarySolutionId),
+                    new object[] { solutionId, storageLocation }, CancellationToken.None).Wait(CancellationToken.None);
             }
 
             public void OnBeforeWorkingFolderChange()
@@ -127,9 +87,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private void UnregisterPrimarySolution(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                _client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
-                    nameof(IRemoteHostService.UnregisterPrimarySolutionId), new object[] { solutionId, synchronousShutdown },
+                _session.TryInvokeAsync(
+                    nameof(IRemoteHostService.UnregisterPrimarySolutionId),
+                    _workspace.CurrentSolution,
+                    new object[] { solutionId, synchronousShutdown },
                     CancellationToken.None).Wait(CancellationToken.None);
             }
 
