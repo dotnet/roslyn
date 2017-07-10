@@ -107,6 +107,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundArrayAccessOperation((BoundArrayAccess)boundNode);
                 case BoundKind.PointerIndirectionOperator:
                     return CreateBoundPointerIndirectionOperatorOperation((BoundPointerIndirectionOperator)boundNode);
+                case BoundKind.NameOfOperator:
+                    return CreateBoundNameOfOperatorOperation((BoundNameOfOperator)boundNode);
+                case BoundKind.ThrowExpression:
+                    return CreateBoundThrowExpressionOperation((BoundThrowExpression)boundNode);
                 case BoundKind.AddressOfOperator:
                     return CreateBoundAddressOfOperatorOperation((BoundAddressOfOperator)boundNode);
                 case BoundKind.ImplicitReceiver:
@@ -705,6 +709,26 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundPointerIndirectionOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundPointerIndirectionOperator.ConstantValue);
             return new LazyPointerIndirectionReferenceExpression(pointer, isInvalid, syntax, type, constantValue);
+        }
+
+        private INameOfExpression CreateBoundNameOfOperatorOperation(BoundNameOfOperator boundNameOfOperator)
+        {
+            Lazy<IOperation> argument = new Lazy<IOperation>(() => Create(boundNameOfOperator.Argument));
+            bool isInvalid = boundNameOfOperator.HasErrors;
+            SyntaxNode syntax = boundNameOfOperator.Syntax;
+            ITypeSymbol type = boundNameOfOperator.Type;
+            Optional<object> constantValue = ConvertToOptional(boundNameOfOperator.ConstantValue);
+            return new LazyNameOfExpression(argument, isInvalid, syntax, type, constantValue);
+        }
+
+        private IThrowExpression CreateBoundThrowExpressionOperation(BoundThrowExpression boundThrowExpression)
+        {
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundThrowExpression.Expression));
+            bool isInvalid = boundThrowExpression.HasErrors;
+            SyntaxNode syntax = boundThrowExpression.Syntax;
+            ITypeSymbol type = boundThrowExpression.Type;
+            Optional<object> constantValue = ConvertToOptional(boundThrowExpression.ConstantValue);
+            return new LazyThrowExpression(expression, isInvalid, syntax, type, constantValue);
         }
 
         private IAddressOfExpression CreateBoundAddressOfOperatorOperation(BoundAddressOfOperator boundAddressOfOperator)

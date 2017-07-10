@@ -128,6 +128,8 @@ namespace Microsoft.CodeAnalysis
         InterpolatedStringExpression = 0x11e,
         /// <summary>Indicates an <see cref="IAnonymousObjectCreationExpression"/>.</summary>
         AnonymousObjectCreationExpression = 0x11f,
+        /// <summary>Indicates an <see cref="INameOfExpression"/>.</summary>
+        NameOfExpression = 0x123,
         /// <summary>Indicates an <see cref="ITupleExpression"/>.</summary>
         TupleExpression = 0x124,
 
@@ -147,7 +149,9 @@ namespace Microsoft.CodeAnalysis
         IsPatternExpression = 0x205,
         /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>
         IncrementExpression = 0x206,
-        
+        /// <summary>Indicates an <see cref="IThrowExpression"/>.</summary>
+        ThrowExpression = 0x207,
+
         // Expressions that occur only in Visual Basic.
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
