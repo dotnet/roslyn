@@ -24,6 +24,7 @@ param (
     [switch]$build = $false,
     [switch]$buildAll = $false,
     [switch]$bootstrap = $false,
+    [switch]$sign = $false
     [string]$msbuildDir = "",
 
     # Test options 
@@ -53,6 +54,7 @@ function Print-Usage() {
     Write-Host "  -buildAll                 Build all Roslyn source items"
     Write-Host "  -official                 Perform an official build"
     Write-Host "  -bootstrap                Build using a bootstrap Roslyn"
+    Write-Host "  -sign                     Sign our binaries"
     Write-Host "  -msbuildDir               MSBuild to use for operations"
     Write-Host "" 
     Write-Host "Test options" 
@@ -397,6 +399,23 @@ function Deploy-VsixViaTool() {
     }
 }
 
+# Sign all of our binaries that need to be signed
+function Run-SignTool() { 
+    Push-Location $repoDir
+    try {
+        $signTool = Join-Path (Get-PackageDir "RoslynTools.Microsoft.SignTool") "tools\SignTool.exe"
+        $signToolArgs = "-msbuildPath $msbuild"
+        if (-not $official) {
+            $signToolArgs += " -test"
+        }
+        $signToolArgs += " `"$configDir`""
+        Exec-Command $signTool $signToolArgs
+    }
+    finally { 
+        Pop-Location
+    }
+}
+
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains 
 # the procdump binaries (both 32 and 64 bit)
 function Ensure-ProcDump() {
@@ -509,6 +528,10 @@ try {
 
     if ($build) {
         Build-Artifacts
+    }
+
+    if ($sign) {
+        Run-SignTool
     }
 
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore) {

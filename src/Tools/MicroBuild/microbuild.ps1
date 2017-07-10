@@ -53,22 +53,6 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
     Exec-Console $msbuild $args
 }
 
-function Run-SignTool() { 
-    Push-Location $repoDir
-    try {
-        $signTool = Join-Path (Get-PackageDir "RoslynTools.Microsoft.SignTool") "tools\SignTool.exe"
-        $signToolArgs = "-msbuildPath `"$msbuild`""
-        if (-not $official) {
-            $signToolArgs += " -test"
-        }
-        $signToolArgs += " `"$configDir`""
-        Exec-Command $signTool $signToolArgs
-    }
-    finally { 
-        Pop-Location
-    }
-}
-
 function Build-InsertionItems() { 
     Push-Location $setupDir
     try { 
@@ -143,8 +127,12 @@ try {
     $configDir = Join-Path $binariesDir $config
     $setupDir = Join-Path $repoDir "src\Setup"
 
+<<<<<<< HEAD
     Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -official:$official -msbuildDir $msbuildDir -release:$release }
     Run-SignTool
+=======
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -official:$official -msbuildDir $msbuildDir -release:$release -sign }
+>>>>>>> Move signing into build.ps1
     Exec-Block { & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config }
     Run-MSBuild (Join-Path $repoDir "src\NuGet\NuGet.proj")
     Build-InsertionItems
