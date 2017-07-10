@@ -161,13 +161,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //
             // Foo((object)null);
 
-            var argument = cast.WalkUpParentheses().Parent as ArgumentSyntax;
-            if (argument != null)
+            var parent = cast.WalkUpParentheses().Parent;
+            if (parent is ArgumentSyntax argument)
             {
                 // If there are any arguments to the right, we can assume that this is not a
                 // *single* argument passed to a params parameter.
-                var argumentList = argument.Parent as BaseArgumentListSyntax;
-                if (argumentList != null)
+                if (argument.Parent is BaseArgumentListSyntax argumentList)
                 {
                     var argumentIndex = argumentList.Arguments.IndexOf(argument);
                     if (argumentIndex < argumentList.Arguments.Count - 1)
@@ -177,25 +176,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                if (parameter != null && parameter.IsParams)
+                return CheckConversionOfParamToParamArray(parameter, castType, semanticModel);
+            }
+
+            if (parent is AttributeArgumentSyntax attributeArgument)
+            {
+                if (attributeArgument.Parent is AttributeArgumentListSyntax attributeArgumentList)
                 {
-                    Debug.Assert(parameter.Type is IArrayTypeSymbol);
+                    // We don't check the position of the argument because in attributes it is allowed that 
+                    // params parameter are positioned in between if named arguments are used.
+                    // The *single* argument check above is also broken: https://github.com/dotnet/roslyn/issues/20742
+                    var parameter = attributeArgument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                    return CheckConversionOfParamToParamArray(parameter, castType, semanticModel);
+                }
+            }
 
-                    var parameterType = (IArrayTypeSymbol)parameter.Type;
+            return false;
+        }
 
-                    var conversion = semanticModel.Compilation.ClassifyConversion(castType, parameterType);
-                    if (conversion.Exists &&
-                        conversion.IsImplicit)
-                    {
-                        return false;
-                    }
+        private static bool CheckConversionOfParamToParamArray(IParameterSymbol parameter, ITypeSymbol castType, SemanticModel semanticModel)
+        {
+            if (parameter != null && parameter.IsParams)
+            {
+                Debug.Assert(parameter.Type is IArrayTypeSymbol);
 
-                    var conversionElementType = semanticModel.Compilation.ClassifyConversion(castType, parameterType.ElementType);
-                    if (conversionElementType.Exists &&
-                        conversionElementType.IsImplicit)
-                    {
-                        return true;
-                    }
+                var parameterType = (IArrayTypeSymbol)parameter.Type;
+
+                var conversion = semanticModel.Compilation.ClassifyConversion(castType, parameterType);
+                if (conversion.Exists &&
+                    conversion.IsImplicit)
+                {
+                    return false;
+                }
+
+                var conversionElementType = semanticModel.Compilation.ClassifyConversion(castType, parameterType.ElementType);
+                if (conversionElementType.Exists &&
+                    conversionElementType.IsImplicit)
+                {
+                    return true;
                 }
             }
 

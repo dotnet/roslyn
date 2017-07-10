@@ -3969,5 +3969,130 @@ class Program
     }
 }");
         }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnCallToAttributeWithParamsArgs()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+  public readonly string[] Arr;
+
+  public MarkAttribute(params string[] arr)
+  {
+    Arr = arr;
+  }
+}
+[Mark([|(string)|]null)]   // wrong instance of: IDE0004 Cast is redundant.
+static class Program
+{
+  static void Main()
+  {
+  }
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsAndProperty()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(params string[] arr)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark([|(string)|]null, Prop = 1)] 
+static class Program
+{
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsPropertyAndOtherArg()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool otherArg, params string[] arr)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(true, [|(string)|]null, Prop = 1)] 
+static class Program
+{
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsNamedArgsAndProperty()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool otherArg, params string[] arr)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(arr: [|(string)|]null, otherArg: true, Prop = 1)]
+static class Program
+{
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastOnCallToAttributeWithParamsArgsWithImplicitCast()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool otherArg, params object[] arr)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(arr: ([|object[])new[]|] { ""Hello"", ""World"" }, otherArg: true, Prop = 1)]
+static class Program
+{
+}",
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool otherArg, params object[] arr)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(arr: (new[] { ""Hello"", ""World"" }), otherArg: true, Prop = 1)]
+static class Program
+{
+}");
+        }
     }
 }
