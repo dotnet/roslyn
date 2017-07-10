@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -929,16 +929,22 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazySwitchStatement(value, cases, isInvalid, syntax, type, constantValue);
         }
 
-        private ISingleValueCaseClause CreateBoundSwitchLabelOperation(BoundSwitchLabel boundSwitchLabel)
+        private ICaseClause CreateBoundSwitchLabelOperation(BoundSwitchLabel boundSwitchLabel)
         {
-            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSwitchLabel.ExpressionOpt));
-            BinaryOperationKind equality = GetLabelEqualityKind(boundSwitchLabel);
-            CaseKind caseKind = boundSwitchLabel.ExpressionOpt != null ? CaseKind.SingleValue : CaseKind.Default;
             bool isInvalid = boundSwitchLabel.HasErrors;
             SyntaxNode syntax = boundSwitchLabel.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazySingleValueCaseClause(value, equality, caseKind, isInvalid, syntax, type, constantValue);
+            if (boundSwitchLabel.ExpressionOpt != null)
+            {
+                Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSwitchLabel.ExpressionOpt));
+                BinaryOperationKind equality = GetLabelEqualityKind(boundSwitchLabel);
+                return new LazySingleValueCaseClause(value, equality, CaseKind.SingleValue, isInvalid, syntax, type, constantValue);
+            }
+            else
+            {
+                return new DefaultCaseClause(isInvalid, syntax, type, constantValue);
+            }
         }
 
         private ITryStatement CreateBoundTryStatementOperation(BoundTryStatement boundTryStatement)
@@ -1186,7 +1192,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ICaseClause CreateBoundPatternSwitchLabelOperation(BoundPatternSwitchLabel boundPatternSwitchLabel)
         {
-            LabelSymbol label = boundPatternSwitchLabel.Label;
             bool isInvalid = boundPatternSwitchLabel.HasErrors;
             SyntaxNode syntax = boundPatternSwitchLabel.Syntax;
             ITypeSymbol type = null;
@@ -1194,12 +1199,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             if (boundPatternSwitchLabel.Pattern.Kind == BoundKind.WildcardPattern)
             {
-                // Default switch label in pattern switch statement is represented as a regular case clause.
-                Lazy<IOperation> value = new Lazy<IOperation>(() => null);
-                return new LazySingleValueCaseClause(value, BinaryOperationKind.None, CaseKind.Default, isInvalid, syntax, type, constantValue);
+                // Default switch label in pattern switch statement is represented as a default case clause.
+                return new DefaultCaseClause(isInvalid, syntax, type, constantValue);
             }
             else
             {
+                LabelSymbol label = boundPatternSwitchLabel.Label;
                 Lazy<IPattern> pattern = new Lazy<IPattern>(() => (IPattern)Create(boundPatternSwitchLabel.Pattern));
                 Lazy<IOperation> guardExpression = new Lazy<IOperation>(() => Create(boundPatternSwitchLabel.Guard));
                 return new LazyPatternCaseClause(label, pattern, guardExpression, isInvalid, syntax, type, constantValue);

@@ -201,5 +201,8 @@ namespace Microsoft.CodeAnalysis
         DeclarationPattern = 0x410,
         /// <summary>Indicates an <see cref="IPatternCaseClause"/>.</summary>
         PatternCaseClause = 0x411,
+
+        /// <summary>Indicates an <see cref="IDefaultCaseClause"/>.</summary>
+        DefaultCaseClause = 0x412,
     }
 }

@@ -191,10 +191,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Dim caseStatement = boundCaseBlock.CaseStatement
                     If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
                         clauses = ImmutableArray.Create(Of ICaseClause)(
-                                                                    New SingleValueCaseClause(
-                                                                        value:=Nothing,
-                                                                        equality:=BinaryOperationKind.None,
-                                                                        caseKind:=CaseKind.Default,
+                                                                    New DefaultCaseClause(
                                                                         isInvalid:=caseStatement.HasErrors,
                                                                         syntax:=caseStatement.Syntax,
                                                                         type:=Nothing,

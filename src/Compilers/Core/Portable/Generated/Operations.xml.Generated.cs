@@ -3691,6 +3691,25 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents default case in C# or Case Else in VB.
+    /// </summary>
+    internal sealed partial class DefaultCaseClause : CaseClause, IDefaultCaseClause
+    {
+        public DefaultCaseClause(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(CaseKind.Default, OperationKind.DefaultCaseClause, isInvalid, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDefaultCaseClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDefaultCaseClause(this, argument);
+        }
+    }
+
+    /// <summary>
     /// Represents a SizeOf expression.
     /// </summary>
     internal sealed partial class SizeOfExpression : TypeOperationExpression, ISizeOfExpression
