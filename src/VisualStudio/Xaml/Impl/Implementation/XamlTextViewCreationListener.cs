@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             vsDocument = _vsWorkspace.DeferredState.ProjectTracker.DocumentProvider.TryGetDocumentForFile(
                 project, filePath, SourceCodeKind.Regular,
                 tb => tb.ContentType.IsOfType(ContentTypeNames.XamlContentType),
-                _ => SpecializedCollections.EmptyReadOnlyList<string>());
+                _ => SpecializedCollections.EmptyReadOnlyList<string>(), isAdditionalFile: false);
 
             return vsDocument != null;
         }
