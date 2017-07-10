@@ -1,3 +1,19 @@
+#
+# This script controls the Roslyn build process. This encompasess everything from build, testing to
+# publishing of NuGet packages. The intent is to structure it to allow for a simple flow of logic 
+# between the following phases:
+#
+#   - restore
+#   - build
+#   - sign
+#   - pack
+#   - test
+#   - publish
+#
+# Each of these phases has a separate command which can be executed independently. For instance 
+# it's fine to call `build.ps1 -build -testDesktop` followed by repeated calls to 
+# `.\build.ps1 -testDesktop`. 
+
 [CmdletBinding(PositionalBinding=$false)]
 param (
     # Configuration
