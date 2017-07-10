@@ -172,7 +172,6 @@ try {
     Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -build -official:$official -msbuildDir $msbuildDir -release:$release }
     Create-PerfTests
     Build-ExtraSignArtifacts
-    Exec-Block { & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config }
     Run-MSBuild (Join-Path $repoDir "src\NuGet\NuGet.proj")
     Build-InsertionItems
 
