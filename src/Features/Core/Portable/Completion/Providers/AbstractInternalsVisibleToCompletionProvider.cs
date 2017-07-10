@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var publicKey = await GetPublicKeyOfProjectAsync(project, cancellationToken).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(publicKey))
             {
-                assemblyName += ", PublicKey=" + publicKey;
+                assemblyName += $", PublicKey={ publicKey }";
             }
 
             var textChange = new TextChange(item.Span, assemblyName);
