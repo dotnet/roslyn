@@ -92,11 +92,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly Func<ISymbol, bool> s_useSymbolNoPrivate =
             s => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
 
-        private static readonly Func<ISymbol, bool> s_useSymbolNoPrivateOrInternal =
-            s => s.CanBeReferencedByName &&
-            s.DeclaredAccessibility != Accessibility.Private &&
-            s.DeclaredAccessibility != Accessibility.Internal;
-
         // generate nodes for symbols that share the same name, and all their descendants
         private static void GenerateSourceNodes(
             string name,
