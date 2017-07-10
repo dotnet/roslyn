@@ -45,16 +45,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             public void OnAfterWorkingFolderChange()
             {
                 this.AssertIsForeground();
-                RegisterPrimarySolutionAsync().Wait();
+                RegisterPrimarySolution();
             }
 
             public void OnSolutionAdded(SolutionInfo solutionInfo)
             {
                 this.AssertIsForeground();
-                RegisterPrimarySolutionAsync().Wait();
+                RegisterPrimarySolution();
             }
 
-            private async Task<ReferenceCountedDisposable<Connection>> GetConnectionAsync()
+            private ReferenceCountedDisposable<Connection> GetOrCreateConnection()
             {
                 this.AssertIsForeground();
 
@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 if (connectionRef == null)
                 {
                     // Otherwise, try to create an actual connection to the OOP server
-                    var connection = await _client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
+                    var connection = _client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                     if (connection == null)
                     {
                         return null;
@@ -77,13 +77,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return connectionRef;
             }
 
-            private async Task RegisterPrimarySolutionAsync()
+            private void RegisterPrimarySolution()
             {
                 this.AssertIsForeground();
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
-                using (var connection = await GetConnectionAsync().ConfigureAwait(false))
+                using (var connection = GetOrCreateConnection())
                 {
                     if (connection == null)
                     {
@@ -93,9 +93,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     var storageLocation = _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution);
 
-                    await connection.Target.InvokeAsync(
+                    connection.Target.InvokeAsync(
                         nameof(IRemoteHostService.RegisterPrimarySolutionId),
-                        new object[] { solutionId, storageLocation }, CancellationToken.None).ConfigureAwait(false);
+                        new object[] { solutionId, storageLocation }, CancellationToken.None).Wait(CancellationToken.None);
                 }
             }
 
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
-                UnregisterPrimarySolutionAsync(solutionId, synchronousShutdown: true).Wait();
+                UnregisterPrimarySolution(solutionId, synchronousShutdown: true);
             }
 
             public void OnSolutionRemoved()
@@ -118,16 +118,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var solutionId = _currentSolutionId;
                 _currentSolutionId = null;
 
-                UnregisterPrimarySolutionAsync(solutionId, synchronousShutdown: false).Wait();
+                UnregisterPrimarySolution(solutionId, synchronousShutdown: false);
             }
 
-            private async Task UnregisterPrimarySolutionAsync(
+            private void UnregisterPrimarySolution(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                await _client.TryRunRemoteAsync(
+                _client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
                     nameof(IRemoteHostService.UnregisterPrimarySolutionId), new object[] { solutionId, synchronousShutdown },
-                    CancellationToken.None).ConfigureAwait(false);
+                    CancellationToken.None).Wait(CancellationToken.None);
             }
 
             public void ClearSolution() { }
