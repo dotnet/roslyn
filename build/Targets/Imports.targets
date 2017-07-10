@@ -100,7 +100,7 @@
     <!-- The netstandard 1.3 package by default includes Microsoft.CodeAnalysis.  That's a bit
          of a non-starter since we build it.  Using manual references for now -->
     <DisableImplicitFrameworkReferences Condition="'$(DisableImplicitFrameworkReferences)' == ''" >true</DisableImplicitFrameworkReferences>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendTargetFrameworkToOutputPath Condition="'$(TargetFrameworks)' == ''">false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
       
     <!-- Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
