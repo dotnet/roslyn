@@ -160,6 +160,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             /// <remarks>
             /// SymbolTreeInfo is an index of source symbols in a project.  As such, we only need
             /// to recompute the index for a project when the syntax for a document within it changes.
+            /// i.e. the change to syntax in one project P could not affect the SymbolTree index for
+            /// *any* other project.
             /// 
             /// Note that AnalyzeSyntaxAsync will be called if anything changes that could affect
             /// syntax (for example, if project preprocessor-definitions chnages), not just direct

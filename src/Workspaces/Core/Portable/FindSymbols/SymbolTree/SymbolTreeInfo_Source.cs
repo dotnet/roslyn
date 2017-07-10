@@ -49,6 +49,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project, Checksum checksum, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            // Note: we build our index from the source assembly for a compilation.  As such,
+            // the index only contains information about the source symbols defined in this 
+            // compilation.  If that ever changes then we need to change how we cache and recompute
+            // data in SymbolTreeInfoIncrementalAnalyzerProvider.
             var assembly = compilation.Assembly;
             if (assembly == null)
             {
