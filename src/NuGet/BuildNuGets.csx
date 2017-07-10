@@ -280,10 +280,12 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
             p.StartInfo.Arguments = $@"{Path.Combine(ToolsetPath, "NuGet.CommandLine.XPlat.dll")} pack {file} {commonArgs}";
         }
 
+        p.StartInfo.CreateNoWindow = true;
         p.StartInfo.UseShellExecute = false;
         p.StartInfo.RedirectStandardError = true;
+        p.StartInfo.RedirectStandardOutput = true;
 
-        Console.WriteLine($"{Environment.NewLine}Running: nuget pack {file} {commonArgs}");
+        Console.WriteLine($"Packing {file}");
 
         p.Start();
         p.WaitForExit();
@@ -291,6 +293,8 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         var currentExit = p.ExitCode;
         if (currentExit != 0)
         {
+            Console.WriteLine($"nuget pack {p.StartInfo.Arguments}");
+            Console.WriteLine(p.StandardOutput.ReadToEnd());
             var stdErr = p.StandardError.ReadToEnd();
             string message;
             if (BuildingReleaseNugets && stdErr.Contains("A stable release of a package should not have a prerelease dependency."))

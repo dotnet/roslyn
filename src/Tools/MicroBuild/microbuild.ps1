@@ -128,22 +128,10 @@ try {
     $configDir = Join-Path $binariesDir $config
     $setupDir = Join-Path $repoDir "src\Setup"
 
-<<<<<<< HEAD
-    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -official:$official -msbuildDir $msbuildDir -release:$release }
-    Run-SignTool
-=======
-    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -official:$official -msbuildDir $msbuildDir -release:$release -sign }
->>>>>>> Move signing into build.ps1
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -official:$official -msbuildDir $msbuildDir -release:$release -sign -pack -testDesktop -test32 }
+
     Exec-Block { & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config }
-    Run-MSBuild (Join-Path $repoDir "src\NuGet\NuGet.proj")
     Build-InsertionItems
-
-    # The desktop tests need to run after signing so that tests run against fully signed 
-    # assemblies.
-    if ($testDesktop) {
-        Exec-Block { & (Join-Path $scriptDir "build.ps1") -testDesktop -test32 -release:$release }
-    }
-
     Exec-Block { & (Join-Path $scriptDir "check-toolset-insertion.ps1") -sourcePath $repoDir -binariesPath $configDir }
 
     # Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green

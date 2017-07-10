@@ -25,6 +25,7 @@ param (
     [switch]$buildAll = $false,
     [switch]$bootstrap = $false,
     [switch]$sign = $false,
+    [switch]$pack = $false,
     [string]$msbuildDir = "",
 
     # Test options 
@@ -55,6 +56,7 @@ function Print-Usage() {
     Write-Host "  -official                 Perform an official build"
     Write-Host "  -bootstrap                Build using a bootstrap Roslyn"
     Write-Host "  -sign                     Sign our binaries"
+    Write-Host "  -pack                     Create our NuGet packages"
     Write-Host "  -msbuildDir               MSBuild to use for operations"
     Write-Host "" 
     Write-Host "Test options" 
@@ -209,6 +211,14 @@ function Build-ExtraSignArtifacts() {
     }
 }
 
+function Build-NuGetPackages() {
+    [string]$build = Join-Path $repoDir "src\NuGet\NuGet.proj"
+    if (-not $official) {
+        $build += ' /p:SkipReleaseVersion=true /p:SkipPreReleaseVersion=true'
+    }
+
+    Run-MSBuild $build
+}
 
 # These are tests that don't follow our standard restore, build, test pattern. They customize 
 # the processes in order to test specific elements of our build and hence are handled 
@@ -532,6 +542,12 @@ try {
 
     if ($sign) {
         Run-SignTool
+    }
+
+    # Must come after signing so that only the signed binaries are packed. Unlike 
+    # VSIX, NuGet doesn't support re-packing hence we have to order it this way.
+    if ($pack) {
+        Build-NuGetPackages
     }
 
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore) {
