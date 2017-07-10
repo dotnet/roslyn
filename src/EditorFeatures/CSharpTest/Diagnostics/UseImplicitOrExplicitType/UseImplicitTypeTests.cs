@@ -1082,7 +1082,7 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestVarOnFrameworkTypeEquivalentToBuiltInType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1093,18 +1093,7 @@ class C
     {
         [|Int32|] s = (unchecked(maxValue + 10));
     }
-}",
-@"using System;
-
-class C
-{
-    private const int maxValue = int.MaxValue;
-
-    static void M()
-    {
-        var s = (unchecked(maxValue + 10));
-    }
-}", options: ImplicitTypeButKeepIntrinsics());
+}", new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1204,8 +1193,8 @@ class C
 {
     public void Process()
     {
-        object o = int.MaxValue;
-        [|Int32|] i = (Int32)o;
+        object o = DateTime.MaxValue;
+        [|DateTime|] date = (DateTime)o;
     }
 }",
 @"using System;
@@ -1214,14 +1203,14 @@ class C
 {
     public void Process()
     {
-        object o = int.MaxValue;
-        var i = (Int32)o;
+        object o = DateTime.MaxValue;
+        var date = (DateTime)o;
     }
 }", options: ImplicitTypeWhereApparent());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task SuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule()
+        public async Task SuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule1()
         {
             // The option settings here say
             // "use explicit type for built-in types" and
@@ -1244,9 +1233,25 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        public async Task SuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    public void Process()
+    {
+        object o = int.MaxValue;
+        [|Int32|] i = (Int32)o;
+    }
+}", new TestParameters(options: ImplicitTypeWhereApparent()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestVarWhereTypeIsEvident_IsExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1254,7 +1259,7 @@ class C
     public void Process()
     {
         A a = new A();
-        [|Boolean|] s = a is IInterface;
+        [|bool|] s = a is IInterface;
     }
 }
 
@@ -1264,25 +1269,7 @@ class A : IInterface
 
 interface IInterface
 {
-}",
-@"using System;
-
-class C
-{
-    public void Process()
-    {
-        A a = new A();
-        var s = a is IInterface;
-    }
-}
-
-class A : IInterface
-{
-}
-
-interface IInterface
-{
-}", options: ImplicitTypeWhereApparent());
+}", new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1337,7 +1324,7 @@ class C
 {
     public void Process()
     {
-        [|Int32|] a = int.Parse(""1"");
+        [|DateTime|] a = DateTime.Parse(""1"");
     }
 }",
 @"using System;
@@ -1346,7 +1333,7 @@ class C
 {
     public void Process()
     {
-        var a = int.Parse(""1"");
+        var a = DateTime.Parse(""1"");
     }
 }", options: ImplicitTypeWhereApparent());
         }
@@ -1416,7 +1403,7 @@ class C
     public void Process()
     {
         int integralValue = 12534;
-        [|Decimal|] decimalValue = Convert.ToDecimal(integralValue);
+        [|DateTime|] date = Convert.ToDateTime(integralValue);
     }
 }",
 @"using System;
@@ -1426,7 +1413,7 @@ class C
     public void Process()
     {
         int integralValue = 12534;
-        var decimalValue = Convert.ToDecimal(integralValue);
+        var date = Convert.ToDateTime(integralValue);
     }
 }", options: ImplicitTypeWhereApparent());
         }
@@ -1443,7 +1430,7 @@ class C
     {
         int codePoint = 1067;
         IConvertible iConv = codePoint;
-        [|Char|] ch = iConv.ToChar(null);
+        [|DateTime|] date = iConv.ToDateTime(null);
     }
 }",
 @"using System;
@@ -1454,7 +1441,7 @@ class C
     {
         int codePoint = 1067;
         IConvertible iConv = codePoint;
-        var ch = iConv.ToChar(null);
+        var date = iConv.ToDateTime(null);
     }
 }", options: ImplicitTypeWhereApparent());
         }
