@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             public override void Initialize(AnalysisContext analysisContext)
             {
                 analysisContext.RegisterSyntaxTreeAction(
-                    (context) =>
+                    context =>
                     {
                         foreach (var node in AllNodes)
                         {

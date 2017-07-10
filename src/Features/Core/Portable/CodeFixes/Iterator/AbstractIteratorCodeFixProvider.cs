@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Iterator
                 return false;
             }
 
-            node = ancestors.FirstOrDefault((n) => n.Span.Contains(span) && n != root);
+            node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root);
             return node != null;
         }
     }

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 session.UndoManager.CreateStartRenameUndoTransaction(workspace, subjectBuffer, session);
 
-                _isBufferReadOnly = new DynamicReadOnlyRegionQuery((isEdit) => !_session._isApplyingEdit);
+                _isBufferReadOnly = new DynamicReadOnlyRegionQuery(isEdit => !_session._isApplyingEdit);
                 UpdateReadOnlyRegions();
             }
 
