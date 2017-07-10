@@ -107,6 +107,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundArrayAccessOperation((BoundArrayAccess)boundNode);
                 case BoundKind.PointerIndirectionOperator:
                     return CreateBoundPointerIndirectionOperatorOperation((BoundPointerIndirectionOperator)boundNode);
+                case BoundKind.NameOfOperator:
+                    return CreateBoundNameOfOperatorOperation((BoundNameOfOperator)boundNode);
+                case BoundKind.ThrowExpression:
+                    return CreateBoundThrowExpressionOperation((BoundThrowExpression)boundNode);
                 case BoundKind.AddressOfOperator:
                     return CreateBoundAddressOfOperatorOperation((BoundAddressOfOperator)boundNode);
                 case BoundKind.ImplicitReceiver:
@@ -664,6 +668,24 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyPointerIndirectionReferenceExpression(pointer, syntax, type, constantValue);
         }
 
+        private INameOfExpression CreateBoundNameOfOperatorOperation(BoundNameOfOperator boundNameOfOperator)
+        {
+            Lazy<IOperation> argument = new Lazy<IOperation>(() => Create(boundNameOfOperator.Argument));
+            SyntaxNode syntax = boundNameOfOperator.Syntax;
+            ITypeSymbol type = boundNameOfOperator.Type;
+            Optional<object> constantValue = ConvertToOptional(boundNameOfOperator.ConstantValue);
+            return new LazyNameOfExpression(argument, syntax, type, constantValue);
+        }
+
+        private IThrowExpression CreateBoundThrowExpressionOperation(BoundThrowExpression boundThrowExpression)
+        {
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundThrowExpression.Expression));
+            SyntaxNode syntax = boundThrowExpression.Syntax;
+            ITypeSymbol type = boundThrowExpression.Type;
+            Optional<object> constantValue = ConvertToOptional(boundThrowExpression.ConstantValue);
+            return new LazyThrowExpression(expression, syntax, type, constantValue);
+        }
+
         private IAddressOfExpression CreateBoundAddressOfOperatorOperation(BoundAddressOfOperator boundAddressOfOperator)
         {
             Lazy<IOperation> reference = new Lazy<IOperation>(() => Create(boundAddressOfOperator.Operand));
@@ -867,15 +889,22 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazySwitchStatement(value, cases, syntax, type, constantValue);
         }
 
-        private ISingleValueCaseClause CreateBoundSwitchLabelOperation(BoundSwitchLabel boundSwitchLabel)
+        private ICaseClause CreateBoundSwitchLabelOperation(BoundSwitchLabel boundSwitchLabel)
         {
-            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSwitchLabel.ExpressionOpt));
-            BinaryOperationKind equality = GetLabelEqualityKind(boundSwitchLabel);
-            CaseKind caseKind = boundSwitchLabel.ExpressionOpt != null ? CaseKind.SingleValue : CaseKind.Default;
             SyntaxNode syntax = boundSwitchLabel.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazySingleValueCaseClause(value, equality, caseKind, syntax, type, constantValue);
+
+            if (boundSwitchLabel.ExpressionOpt != null)
+            {
+                Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSwitchLabel.ExpressionOpt));
+                BinaryOperationKind equality = GetLabelEqualityKind(boundSwitchLabel);
+                return new LazySingleValueCaseClause(value, equality, CaseKind.SingleValue, syntax, type, constantValue);
+            }
+            else
+            {
+                return new DefaultCaseClause(syntax, type, constantValue);
+            }
         }
 
         private ITryStatement CreateBoundTryStatementOperation(BoundTryStatement boundTryStatement)
@@ -1090,19 +1119,18 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ICaseClause CreateBoundPatternSwitchLabelOperation(BoundPatternSwitchLabel boundPatternSwitchLabel)
         {
-            LabelSymbol label = boundPatternSwitchLabel.Label;
             SyntaxNode syntax = boundPatternSwitchLabel.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
 
             if (boundPatternSwitchLabel.Pattern.Kind == BoundKind.WildcardPattern)
             {
-                // Default switch label in pattern switch statement is represented as a regular case clause.
-                Lazy<IOperation> value = new Lazy<IOperation>(() => null);
-                return new LazySingleValueCaseClause(value, BinaryOperationKind.None, CaseKind.Default, syntax, type, constantValue);
+                // Default switch label in pattern switch statement is represented as a default case clause.
+                return new DefaultCaseClause(syntax, type, constantValue);
             }
             else
             {
+                LabelSymbol label = boundPatternSwitchLabel.Label;
                 Lazy<IPattern> pattern = new Lazy<IPattern>(() => (IPattern)Create(boundPatternSwitchLabel.Pattern));
                 Lazy<IOperation> guardExpression = new Lazy<IOperation>(() => Create(boundPatternSwitchLabel.Guard));
                 return new LazyPatternCaseClause(label, pattern, guardExpression, syntax, type, constantValue);

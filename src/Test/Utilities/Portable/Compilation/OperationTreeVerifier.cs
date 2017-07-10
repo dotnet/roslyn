@@ -861,6 +861,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAwaitExpression(operation);
         }
 
+        public override void VisitNameOfExpression(INameOfExpression operation)
+        {
+            LogString(nameof(INameOfExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Argument);
+        }
+
+        public override void VisitThrowExpression(IThrowExpression operation)
+        {
+            LogString(nameof(IThrowExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression);
+        }
+
         public override void VisitAddressOfExpression(IAddressOfExpression operation)
         {
             LogString(nameof(IAddressOfExpression));
@@ -1098,6 +1114,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.MinimumValue, "Min");
             Visit(operation.MaximumValue, "Max");
+        }
+
+        public override void VisitDefaultCaseClause(IDefaultCaseClause operation)
+        {
+            LogString(nameof(IDefaultCaseClause));
+            LogCaseClauseCommon(operation);
         }
 
         public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)

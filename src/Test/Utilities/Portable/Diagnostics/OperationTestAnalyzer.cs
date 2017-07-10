@@ -915,6 +915,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          case OperationKind.SingleValueCaseClause:
                          case OperationKind.RelationalCaseClause:
                          case OperationKind.RangeCaseClause:
+                         case OperationKind.DefaultCaseClause:
                              var caseClause = (ICaseClause)operationContext.Operation;
                              if (caseClause.CaseKind == CaseKind.Default)
                              {
@@ -933,7 +934,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.SwitchCase,
                  OperationKind.SingleValueCaseClause,
                  OperationKind.RangeCaseClause,
-                 OperationKind.RelationalCaseClause);
+                 OperationKind.RelationalCaseClause,
+                 OperationKind.DefaultCaseClause);
         }
 
         private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)

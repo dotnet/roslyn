@@ -92,6 +92,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitRelationalCaseClause(operation);
         }
 
+        public override void VisitDefaultCaseClause(IDefaultCaseClause operation)
+        {
+            base.VisitDefaultCaseClause(operation);
+        }
+
         public override void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
         {
             var loopKind = operation.LoopKind;
@@ -401,6 +406,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitAwaitExpression(IAwaitExpression operation)
         {
             base.VisitAwaitExpression(operation);
+        }
+
+        public override void VisitNameOfExpression(INameOfExpression operation)
+        {
+            base.VisitNameOfExpression(operation);
+        }
+
+        public override void VisitThrowExpression(IThrowExpression operation)
+        {
+            base.VisitThrowExpression(operation);
         }
 
         public override void VisitAddressOfExpression(IAddressOfExpression operation)

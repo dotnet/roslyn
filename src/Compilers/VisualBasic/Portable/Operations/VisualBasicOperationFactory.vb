@@ -33,6 +33,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundLiteralOperation(DirectCast(boundNode, BoundLiteral))
                 Case BoundKind.AwaitOperator
                     Return CreateBoundAwaitOperatorOperation(DirectCast(boundNode, BoundAwaitOperator))
+                Case BoundKind.NameOfOperator
+                    Return CreateBoundNameOfOperatorOperation(DirectCast(boundNode, BoundNameOfOperator))
                 Case BoundKind.Lambda
                     Return CreateBoundLambdaOperation(DirectCast(boundNode, BoundLambda))
                 Case BoundKind.Call
@@ -254,6 +256,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundAwaitOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAwaitOperator.ConstantValueOpt)
             Return New LazyAwaitExpression(awaitedValue, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundNameOfOperatorOperation(boundNameOfOperator As BoundNameOfOperator) As INameOfExpression
+            Dim argument As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundNameOfOperator.Argument))
+            Dim syntax As SyntaxNode = boundNameOfOperator.Syntax
+            Dim type As ITypeSymbol = boundNameOfOperator.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundNameOfOperator.ConstantValueOpt)
+            Return New LazyNameOfExpression(argument, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundLambdaOperation(boundLambda As BoundLambda) As ILambdaExpression
