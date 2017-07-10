@@ -32,9 +32,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         internal CancellationTokenSource CancellationTokenSource { get; }
         internal Task<ServerStats> ServerTask { get; }
         internal Task ListenTask { get; }
-        // fully constructed server pipe name
+
+        /// <summary>
+        /// Fully constructed server pipe name
+        /// </summary>
         internal string PipeName { get; }
-        // "uniqueifying" component for pipe name, unhashed
+
+        /// <summary>
+        /// "Uniqueifying" component for pipe name, unhashed
+        /// </summary>
         internal string SharedCompilationId { get; }
 
         internal ServerData(CancellationTokenSource cancellationTokenSource, string clientDirectory, string sharedCompilationId, Task<ServerStats> serverTask, Task listenTask)
@@ -87,14 +93,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// <summary>
         /// Gets the client directory from a host if it has one, or a default otherwise
         /// </summary>
-        private static string GetClientDirectory(ICompilerServerHost compilerServerHost)
+        private static string GetClientDirectoryOrDefault(ICompilerServerHost compilerServerHost)
         {
             var compilerHostImpl = compilerServerHost as CompilerServerHost;
             return compilerHostImpl?.ClientDirectory ?? DefaultClientDirectory;
         }
 
         internal static ServerData CreateServer(
-            // This is the "uniquefied" token ingredient for pipe name.
             string sharedCompilationId = null,
             TimeSpan? timeout = null,
             ICompilerServerHost compilerServerHost = null,
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             sharedCompilationId = sharedCompilationId ?? Guid.NewGuid().ToString();
             compilerServerHost = compilerServerHost ?? new DesktopCompilerServerHost(DefaultClientDirectory, DefaultSdkDirectory);
 
-            string clientDirectory = GetClientDirectory(compilerServerHost);
+            string clientDirectory = GetClientDirectoryOrDefault(compilerServerHost);
             // Get the fully constructed, hashed pipe name.
             string pipeName = BuildServerConnection.GetPipeNameForPathOpt(clientDirectory, sharedCompilationId);
 
