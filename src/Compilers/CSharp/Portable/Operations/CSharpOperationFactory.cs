@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             if (boundPatternSwitchLabel.Pattern.Kind == BoundKind.WildcardPattern)
             {
                 // Default switch label in pattern switch statement is represented as a default case clause.
-                return new DefaultCaseClause( isInvalid, syntax, type, constantValue);
+                return new DefaultCaseClause(isInvalid, syntax, type, constantValue);
             }
             else
             {

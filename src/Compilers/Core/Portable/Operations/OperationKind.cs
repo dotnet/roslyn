@@ -201,6 +201,6 @@ namespace Microsoft.CodeAnalysis
         PatternCaseClause = 0x411,
 
         /// <summary>Indicates an <see cref="IDefaultCaseClause"/>.</summary>
-        DefaultCaseClause = 0x4012,
+        DefaultCaseClause = 0x412,
     }
 }
