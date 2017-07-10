@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Move_declaration_near_reference,
-                    (c) => MoveDeclarationNearReferenceAsync(document, state, c)));
+                    c => MoveDeclarationNearReferenceAsync(document, state, c)));
         }
 
         private async Task<Document> MoveDeclarationNearReferenceAsync(Document document, State state, CancellationToken cancellationToken)

@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// Asset that is not part of solution, but want to participate in ISolutionSynchronizationService
+    /// Asset that is not part of solution, but want to participate in <see cref="IRemotableDataService"/>
     /// </summary>
     internal abstract class CustomAsset : RemotableData
     {

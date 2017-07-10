@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Interop
         void GetHashFromAssemblyFile(
             [In, MarshalAs(UnmanagedType.LPStr)] string pszFilePath,
             [In, Out, MarshalAs(UnmanagedType.U4)] ref int piHashAlg,
-            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] pbHash,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] byte[] pbHash,
             [In, MarshalAs(UnmanagedType.U4)] int cchHash,
             [MarshalAs(UnmanagedType.U4)] out int pchHash);
 
         void GetHashFromAssemblyFileW(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
             [In, Out, MarshalAs(UnmanagedType.U4)] ref int piHashAlg,
-            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] pbHash,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] byte[] pbHash,
             [In, MarshalAs(UnmanagedType.U4)] int cchHash,
             [MarshalAs(UnmanagedType.U4)] out int pchHash);
 
@@ -29,28 +29,28 @@ namespace Microsoft.CodeAnalysis.Interop
             [In] IntPtr pbBlob,
             [In, MarshalAs(UnmanagedType.U4)] int cchBlob,
             [In, Out, MarshalAs(UnmanagedType.U4)] ref int piHashAlg,
-            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] pbHash,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 5)] byte[] pbHash,
             [In, MarshalAs(UnmanagedType.U4)] int cchHash,
             [MarshalAs(UnmanagedType.U4)] out int pchHash);
 
         void GetHashFromFile(
             [In, MarshalAs(UnmanagedType.LPStr)] string pszFilePath,
             [In, Out, MarshalAs(UnmanagedType.U4)] ref int piHashAlg,
-            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] pbHash,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] byte[] pbHash,
             [In, MarshalAs(UnmanagedType.U4)] int cchHash,
             [MarshalAs(UnmanagedType.U4)] out int pchHash);
 
         void GetHashFromFileW(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
             [In, Out, MarshalAs(UnmanagedType.U4)] ref int piHashAlg,
-            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] pbHash,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] byte[] pbHash,
             [In, MarshalAs(UnmanagedType.U4)] int cchHash,
             [MarshalAs(UnmanagedType.U4)] out int pchHash);
 
         void GetHashFromHandle(
             [In] IntPtr hFile,
             [In, Out, MarshalAs(UnmanagedType.U4)] ref int piHashAlg,
-            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] pbHash,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] byte[] pbHash,
             [In, MarshalAs(UnmanagedType.U4)] int cchHash,
             [MarshalAs(UnmanagedType.U4)] out int pchHash);
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Interop
         void StrongNameGetBlobFromImage(
             [In] IntPtr pbBase,
             [In, MarshalAs(UnmanagedType.U4)] int dwLength,
-            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] pbBlob,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] pbBlob,
             [In, Out, MarshalAs(UnmanagedType.U4)] ref int pcbBlob);
 
         void StrongNameGetPublicKey(
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Interop
             [In, MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
             [In] IntPtr pbKeyBlob,
             [In, MarshalAs(UnmanagedType.U4)] int cbKeyBlob,
-            byte[] ppbSignatureBlob,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 5)]byte[] ppbSignatureBlob,
             [MarshalAs(UnmanagedType.U4)] out int pcbSignatureBlob);
 
         void StrongNameSignatureGenerationEx(

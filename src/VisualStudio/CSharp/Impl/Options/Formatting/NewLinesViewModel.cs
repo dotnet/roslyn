@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -44,7 +44,7 @@ class C {
 //]
 }";
 
-        private static readonly string s_tryCatchFinallyPreview = @"using System;
+        private const string s_tryCatchFinallyPreview = @"using System;
 class C {
     void Foo() {
 //[
@@ -58,7 +58,7 @@ class C {
     }
 }";
 
-        private static readonly string s_ifElsePreview = @"class C {
+        private const string s_ifElsePreview = @"class C {
     void Foo() {
 //[
         if (false) {
@@ -69,7 +69,7 @@ class C {
     }
 }";
 
-        private static readonly string s_forBlockPreview = @"class C {
+        private const string s_forBlockPreview = @"class C {
     void Foo() {
 //[
         for (int i; i < 10; i++){
@@ -78,17 +78,17 @@ class C {
     }
 }";
 
-        private static readonly string s_lambdaPreview = @"using System;
+        private const string s_lambdaPreview = @"using System;
 class C {
     void Foo() {
 //[
-        Func<int, int> f = (x) => {
+        Func<int, int> f = x => {
             return 2 * x;
         };
 //]
     }
 }";
-        private static readonly string s_anonymousMethodPreview = @"using System;
+        private const string s_anonymousMethodPreview = @"using System;
 
 delegate int D(int x);
 
@@ -102,7 +102,7 @@ class C {
     }
 }";
 
-        private static readonly string s_anonymousTypePreview = @"using System;
+        private const string s_anonymousTypePreview = @"using System;
 class C {
     void Foo() {
 //[
@@ -112,7 +112,7 @@ class C {
 //]
     }
 }";
-        private static readonly string s_InitializerPreviewTrue = @"using System;
+        private const string s_InitializerPreviewTrue = @"using System;
 using System.Collections.Generic;
 
 class C {
@@ -140,7 +140,7 @@ class B {
     public int A { get; set; }
     public int B { get; set; }
 }";
-        private static readonly string s_InitializerPreviewFalse = @"using System;
+        private const string s_InitializerPreviewFalse = @"using System;
 using System.Collections.Generic;
 
 class C {
@@ -165,7 +165,7 @@ class B {
     public int A { get; set; }
     public int B { get; set; }
 }";
-        private static readonly string s_objectInitializerPreview = @"using System;
+        private const string s_objectInitializerPreview = @"using System;
 class C {
     void Foo() {
 //[
@@ -180,7 +180,7 @@ class B {
     public int A { get; set; }
     public int B { get; set; }
 }";
-        private static readonly string s_queryExpressionPreview = @"using System;
+        private const string s_queryExpressionPreview = @"using System;
 using System.Linq;
 using System.Collections.Generic;
 class C {

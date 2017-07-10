@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     <ExportCodeCleanupProvider(PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators, LanguageNames.VisualBasic), [Shared]>
@@ -42,15 +43,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ' list of modifier syntax kinds in order
             ' this order will be used when the rewriter re-order modifiers
             ' PERF: Using UShort instead of SyntaxKind as the element type so that the compiler can use array literal initialization
-            Private Shared ReadOnly s_modifierKindsInOrder As SyntaxKind() = DirectCast(New UShort() {
-                SyntaxKind.PartialKeyword, SyntaxKind.DefaultKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword,
-                SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword, SyntaxKind.NotOverridableKeyword, SyntaxKind.OverridableKeyword,
-                SyntaxKind.MustOverrideKeyword, SyntaxKind.OverloadsKeyword, SyntaxKind.OverridesKeyword, SyntaxKind.MustInheritKeyword,
-                SyntaxKind.NotInheritableKeyword, SyntaxKind.StaticKeyword, SyntaxKind.SharedKeyword, SyntaxKind.ShadowsKeyword,
-                SyntaxKind.ReadOnlyKeyword, SyntaxKind.WriteOnlyKeyword, SyntaxKind.DimKeyword, SyntaxKind.ConstKeyword,
-                SyntaxKind.WithEventsKeyword, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword, SyntaxKind.CustomKeyword,
-                SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword},
-                SyntaxKind())
+            Private Shared ReadOnly s_modifierKindsInOrder As SyntaxKind() =
+                VisualBasicCodeStyleOptions.PreferredModifierOrderDefault.ToArray()
 
             Private Shared ReadOnly s_removeDimKeywordSet As HashSet(Of SyntaxKind) = New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer) From {
                 SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword,

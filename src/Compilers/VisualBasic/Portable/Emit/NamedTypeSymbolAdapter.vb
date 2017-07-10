@@ -5,6 +5,7 @@ Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -240,8 +241,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' must be declared in the module we are building
             CheckDefinitionInvariant()
 
-            For Each e In GetEventsToEmit()
-                If e.ShouldInclude(context) Then
+            For Each e As IEventDefinition In GetEventsToEmit()
+                If e.ShouldInclude(context) OrElse Not e.GetAccessors(context).IsEmpty() Then
                     Yield e
                 End If
             Next
@@ -737,9 +738,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' must be declared in the module we are building
             CheckDefinitionInvariant()
 
-            For Each [property] In Me.GetPropertiesToEmit()
+            For Each [property] As IPropertyDefinition In Me.GetPropertiesToEmit()
                 Debug.Assert([property] IsNot Nothing)
-                If [property].ShouldInclude(context) Then
+                If [property].ShouldInclude(context) OrElse Not [property].GetAccessors(context).IsEmpty() Then
                     Yield [property]
                 End If
             Next
@@ -747,7 +748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim syntheticProperties = DirectCast(context.Module, PEModuleBuilder).GetSynthesizedProperties(Me)
             If syntheticProperties IsNot Nothing Then
                 For Each prop In syntheticProperties
-                    If prop.ShouldInclude(context) Then
+                    If prop.ShouldInclude(context) OrElse Not prop.GetAccessors(context).IsEmpty() Then
                         Yield prop
                     End If
                 Next

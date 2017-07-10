@@ -1,9 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -311,6 +312,35 @@ class C
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Node.GetLocation()));
                 }
             }
+        }
+
+        [Fact]
+        public async Task TestDiagnosticSpan()
+        {
+            var source = @"// empty code";
+
+            var analyzer = new InvalidSpanAnalyzer();
+            using (var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source))
+            {
+                var compilerEngineCompilation = (CSharpCompilation)(await compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync());
+
+                var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });
+                AssertEx.Any(diagnostics, d => d.Id == AnalyzerHelper.AnalyzerExceptionDiagnosticId);
+            }
+        }
+
+        private class InvalidSpanAnalyzer : DiagnosticAnalyzer
+        {
+            public static DiagnosticDescriptor Descriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+                => context.RegisterSyntaxTreeAction(Analyze);
+
+            private void Analyze(SyntaxTreeAnalysisContext context)
+                => context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.Create(context.Tree, TextSpan.FromBounds(1000, 2000))));
         }
     }
 }

@@ -1,16 +1,15 @@
-using System;
+﻿using System;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
@@ -24,10 +23,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 var document = workspace.Documents.Single();
                 var view = document.GetTextView();
 
-                var snapshot = view.TextBuffer.CurrentSnapshot;
-                view.SetSelection(document.SelectedSpans.Single().ToSnapshotSpan(snapshot));
+                var originalSnapshot = view.TextBuffer.CurrentSnapshot;
+                var originalSelection = document.SelectedSpans.Single();
+                view.SetSelection(originalSelection.ToSnapshotSpan(originalSnapshot));
 
-                var commandHandler = new SplitStringLiteralCommandHandler();
+                var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
+                var commandHandler = new SplitStringLiteralCommandHandler(
+                    undoHistoryRegistry,
+                    workspace.GetService<IEditorOperationsFactoryService>());
                 commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), callback);
 
                 if (expectedOutputMarkup != null)
@@ -37,6 +40,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
                     Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
                     Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
+
+                    // Ensure that after undo we go back to where we were to begin with.
+                    var history = undoHistoryRegistry.GetHistory(document.TextBuffer);
+                    history.Undo(count: 1);
+
+                    var currentSnapshot = document.TextBuffer.CurrentSnapshot;
+                    Assert.Equal(originalSnapshot.GetText(), currentSnapshot.GetText());
+                    Assert.Equal(originalSelection.Start, view.Caret.Position.BufferPosition.Position);
                 }
             }
         }
@@ -381,6 +392,210 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     void M()
     {
         var v = ""now is [|the|] time"";
+    }
+}");
+        }
+
+        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestBeforeEndQuote1()
+        {
+            TestHandled(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}[||]"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""[||]"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"";
+    }
+}");
+        }
+
+        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestBeforeEndQuote2()
+        {
+            TestHandled(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}[||]"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""[||]"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"";
+    }
+}");
+        }
+
+        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestBeforeEndQuote3()
+        {
+            TestHandled(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}[||]"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"" +
+            $""[||]"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"";
+    }
+}");
+        }
+
+        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestBeforeEndQuote4()
+        {
+            TestHandled(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1[||]"" +
+            ""string2"" +
+            ""string3"";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""[||]"" +
+            ""string2"" +
+            ""string3"";
+    }
+}");
+        }
+
+        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestBeforeEndQuote5()
+        {
+            TestHandled(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2[||]"" +
+            ""string3"";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""[||]"" +
+            ""string3"";
+    }
+}");
+        }
+
+        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestBeforeEndQuote6()
+        {
+            TestHandled(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3[||]"";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"" +
+            ""[||]"";
     }
 }");
         }

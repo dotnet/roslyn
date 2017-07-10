@@ -5,6 +5,7 @@ Imports System.Collections.ObjectModel
 Imports System.ComponentModel
 Imports System.Reflection
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var lazyProvider = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => provider, metadata);
 
                 // update existing map for future solution crawler registration - no need for interlock but this makes add or update easier
-                ImmutableInterlocked.AddOrUpdate(ref _analyzerProviders, metadata.Name, (n) => ImmutableArray.Create(lazyProvider), (n, v) => v.Add(lazyProvider));
+                ImmutableInterlocked.AddOrUpdate(ref _analyzerProviders, metadata.Name, n => ImmutableArray.Create(lazyProvider), (n, v) => v.Add(lazyProvider));
 
                 // assert map integrity
                 AssertAnalyzerProviders(_analyzerProviders);
@@ -152,17 +152,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         internal void WaitUntilCompletion_ForTestingPurposesOnly(Workspace workspace, ImmutableArray<IIncrementalAnalyzer> workers)
         {
-            if (_documentWorkCoordinatorMap.ContainsKey(workspace))
+            if (_documentWorkCoordinatorMap.TryGetValue(workspace, out var coordinator))
             {
-                _documentWorkCoordinatorMap[workspace].WaitUntilCompletion_ForTestingPurposesOnly(workers);
+                coordinator.WaitUntilCompletion_ForTestingPurposesOnly(workers);
             }
         }
 
         internal void WaitUntilCompletion_ForTestingPurposesOnly(Workspace workspace)
         {
-            if (_documentWorkCoordinatorMap.ContainsKey(workspace))
+            if (_documentWorkCoordinatorMap.TryGetValue(workspace, out var coordinator))
             {
-                _documentWorkCoordinatorMap[workspace].WaitUntilCompletion_ForTestingPurposesOnly();
+                coordinator.WaitUntilCompletion_ForTestingPurposesOnly();
             }
         }
 

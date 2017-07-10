@@ -257,15 +257,6 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>
-    
-    <!-- 
-      Normal address-of operators can only operate on non-moveable variables. 
-      Fixed statement address-of operators (note: only applies to the top-level
-      expression in the initializer, not nested expressions) can only operate
-      on moveable variables.  This flag indicates which sort of address-of
-      operator we're dealing with.
-      -->
-    <Field Name="IsFixedStatementAddressOf" Type="bool"/>
   </Node>
   <Node Name="BoundPointerIndirectionOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
@@ -396,6 +387,7 @@
 
     <Field Name="Left" Type="BoundTupleExpression" Null="disallow"/>
     <Field Name="Right" Type="BoundConversion" Null="disallow"/>
+    <Field Name="IsUsed" Type="Boolean" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
@@ -1201,6 +1193,9 @@
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    
+    <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
 
   <Node Name="BoundEventAssignmentOperator" Base="BoundExpression">
@@ -1246,6 +1241,9 @@
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
+
+    <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
   
 
@@ -1491,6 +1489,10 @@
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+
+    <!-- BinderOpt and UseSetterForDefaultArgumentGeneration are added as a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
+    <Field Name="UseSetterForDefaultArgumentGeneration" Type="bool"/>
   </Node>
 
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">

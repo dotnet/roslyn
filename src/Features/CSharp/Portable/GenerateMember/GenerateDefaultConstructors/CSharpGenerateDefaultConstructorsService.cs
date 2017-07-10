@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using System.Threading;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
     {
         protected override bool TryInitializeState(
             SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken,
-            out INamedTypeSymbol classOrStructType)
+            out INamedTypeSymbol classType)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
             var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsOnTypeHeader(document.Root, textSpan.Start))
             {
-                classOrStructType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
+                classType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
                     document.SemanticModel, document.Root, textSpan.Start, cancellationToken);
-                return classOrStructType != null;
+                return classType?.TypeKind == TypeKind.Class;
             }
 
             var syntaxTree = document.SyntaxTree;
@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
                         baseList.IsParentKind(SyntaxKind.ClassDeclaration))
                     {
                         var semanticModel = document.SemanticModel;
-                        classOrStructType = semanticModel.GetDeclaredSymbol(baseList.Parent, cancellationToken) as INamedTypeSymbol;
-                        return classOrStructType != null;
+                        classType = semanticModel.GetDeclaredSymbol(baseList.Parent, cancellationToken) as INamedTypeSymbol;
+                        return classType != null;
                     }
                 }
             }
 
-            classOrStructType = null;
+            classType = null;
             return false;
         }
     }

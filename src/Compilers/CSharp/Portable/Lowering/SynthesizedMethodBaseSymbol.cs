@@ -4,13 +4,14 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// A base method symbol used as a base class for lambda method symbol and base method wrapper symbol.
     /// </summary>
-    internal abstract class SynthesizedMethodBaseSymbol : SourceMethodSymbol
+    internal abstract class SynthesizedMethodBaseSymbol : SourceMemberMethodSymbol
     {
         protected readonly MethodSymbol BaseMethod;
         internal TypeMap TypeMap { get; private set; }
@@ -78,6 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _typeParameters; }
         }
+
+        public sealed override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override int ParameterCount
         {

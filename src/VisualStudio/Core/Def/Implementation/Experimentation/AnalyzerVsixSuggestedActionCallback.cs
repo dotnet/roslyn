@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experimentation;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.VisualStudio.Shell;
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
     [Export(typeof(ISuggestedActionCallback))]
     internal class AnalyzerVsixSuggestedActionCallback : ForegroundThreadAffinitizedObject, ISuggestedActionCallback
     {
-        private const string AnalyzerEnabledFlight = @"LiveCA/LiveCAcf";
+        private const string AnalyzerEnabledFlight = @"LiveCA";
         private const string AnalyzerVsixHyperlink = @"https://go.microsoft.com/fwlink/?linkid=849061";
         private static readonly Guid FxCopAnalyzersPackageGuid = Guid.Parse("{4A41D270-A97F-4639-A352-28732FC410E4}");
 
@@ -95,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 else
                 {
                     _installStatus = installed != 0 ? LiveCodeAnalysisInstallStatus.Installed : LiveCodeAnalysisInstallStatus.NotInstalled;
+                    AnalyzerABTestLogger.LogInstallationStatus(_workspace, _installStatus);
                 }
             }
 
@@ -103,6 +105,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         private bool IsCandidate()
         {
+            // if this user ever participated in the experiement and then uninstall the vsix, then
+            // this user will never be candidate again.
+            if (_workspace.Options.GetOption(AnalyzerABTestOptions.ParticipatedInExperiment))
+            {
+                return false;
+            }
+
             // Filter for valid A/B test candidates. Candidates fill the following critera:
             //     1: Are a Dotnet user (as evidenced by the fact that this code is being run)
             //     2: Have triggered a lightbulb on 3 separate days
@@ -114,21 +123,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             if (!isCandidate)
             {
                 // We store in UTC to avoid any timezone offset weirdness
-                var lastTriggeredTime = DateTime.FromBinary(options.GetOption(AnalyzerABTestOptions.LastDateTimeUsedSuggestionAction));
+                var lastTriggeredTimeBinary = options.GetOption(AnalyzerABTestOptions.LastDateTimeUsedSuggestionAction);
+                AnalyzerABTestLogger.LogCandidacyRequirementsTracking(lastTriggeredTimeBinary);
+
+                var lastTriggeredTime = DateTime.FromBinary(lastTriggeredTimeBinary);
                 var currentTime = DateTime.UtcNow;
                 var span = currentTime - lastTriggeredTime;
                 if (span.TotalDays >= 1)
                 {
                     options = options.WithChangedOption(AnalyzerABTestOptions.LastDateTimeUsedSuggestionAction, currentTime.ToBinary());
+
                     var usageCount = options.GetOption(AnalyzerABTestOptions.UsedSuggestedActionCount);
-                    usageCount++;
-                    options = options.WithChangedOption(AnalyzerABTestOptions.UsedSuggestedActionCount, usageCount);
+                    options = options.WithChangedOption(AnalyzerABTestOptions.UsedSuggestedActionCount, ++usageCount);
 
                     if (usageCount >= 3)
                     {
                         isCandidate = true;
                         options = options.WithChangedOption(AnalyzerABTestOptions.HasMetCandidacyRequirements, true);
+                        AnalyzerABTestLogger.Log(nameof(AnalyzerABTestOptions.HasMetCandidacyRequirements));
                     }
+
                     _workspace.Options = options;
                 }
             }
@@ -142,6 +156,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             _infoBarChecked = true;
             if (_experimentationService.IsExperimentEnabled(AnalyzerEnabledFlight))
             {
+                AnalyzerABTestLogger.Log(nameof(AnalyzerEnabledFlight));
+
                 // If we got true from the experimentation service, then we're in the treatment
                 // group, and the experiment is enabled. We determine if the infobar has been
                 // displayed in the past 24 hours. If it hasn't been displayed, then we do so now.
@@ -152,6 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 if (timeSinceLastShown.TotalDays >= 1)
                 {
                     _workspace.Options = _workspace.Options.WithChangedOption(AnalyzerABTestOptions.LastDateTimeInfoBarShown, utcNow.ToBinary());
+                    AnalyzerABTestLogger.Log("InfoBarShown");
 
                     var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
                     infoBarService.ShowInfoBarInGlobalView(
@@ -171,11 +188,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private void OpenInstallHyperlink()
         {
             System.Diagnostics.Process.Start(AnalyzerVsixHyperlink);
+            AnalyzerABTestLogger.Log(nameof(AnalyzerVsixHyperlink));
         }
 
         private void DoNotShowAgain()
         {
             _workspace.Options = _workspace.Options.WithChangedOption(AnalyzerABTestOptions.NeverShowAgain, true);
+            AnalyzerABTestLogger.Log(nameof(AnalyzerABTestOptions.NeverShowAgain));
         }
     }
 }

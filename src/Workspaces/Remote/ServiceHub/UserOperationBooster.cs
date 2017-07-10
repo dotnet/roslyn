@@ -2,66 +2,59 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
     /// Boost performance of any servicehub service which is invoked by user explicit actions
     /// </summary>
-    internal static class UserOperationBooster
+    internal struct UserOperationBooster : IDisposable
     {
         private static int s_count = 0;
+        private static readonly object s_gate = new object();
 
-        public static IDisposable Boost()
+        /// <summary>
+        /// Used to distinguish the default instance from one created by <see cref="Boost()"/>.
+        /// </summary>
+        private bool _isBoosted;
+
+        private UserOperationBooster(bool isBoosted)
         {
-            return new Booster();
+            _isBoosted = isBoosted;
         }
 
-        private static void Start()
+        public static UserOperationBooster Boost()
         {
-            var value = Interlocked.Increment(ref s_count);
-            Contract.Requires(value >= 0);
-
-            if (value == 1)
+            lock (s_gate)
             {
-                // boost to normal priority
-                Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Normal;
-            }
-        }
+                s_count++;
 
-        private static void Done()
-        {
-            var value = Interlocked.Decrement(ref s_count);
-            Contract.Requires(value >= 0);
-
-            if (value == 0)
-            {
-                // when boost is done, set process back to below normal priority
-                Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
-            }
-        }
-
-        private class Booster : IDisposable
-        {
-            public Booster()
-            {
-                Start();
-            }
-
-            public void Dispose()
-            {
-                Done();
-
-                GC.SuppressFinalize(this);
-            }
-
-            ~Booster()
-            {
-                if (!Environment.HasShutdownStarted)
+                if (s_count == 1)
                 {
-                    Contract.Fail($@"Should have been disposed!");
+                    // boost to normal priority
+                    Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Normal;
+                }
+
+                return new UserOperationBooster(isBoosted: true);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!_isBoosted)
+            {
+                // Avoid decrementing if default(UserOperationBooster).Dispose() is called.
+                return;
+            }
+
+            lock (s_gate)
+            {
+                s_count--;
+
+                if (s_count == 0)
+                {
+                    // when boost is done, set process back to below normal priority
+                    Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
                 }
             }
         }

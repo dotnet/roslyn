@@ -260,18 +260,20 @@ namespace Roslyn.Test.Utilities
             return true;
         }
 
-        public static void SetEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = "\r\n")
+        public static void SetEqual<T>(
+            IEnumerable<T> expected,
+            IEnumerable<T> actual,
+            IEqualityComparer<T> comparer = null,
+            string message = "",
+            string itemSeparator = "\r\n")
         {
             var expectedSet = new HashSet<T>(expected, comparer);
             var result = expected.Count() == actual.Count() && expectedSet.SetEquals(actual);
             if (!result)
             {
-                if (string.IsNullOrEmpty(message))
-                {
-                    message = GetAssertMessage(
-                        ToString(expected, itemSeparator),
-                        ToString(actual, itemSeparator));
-                }
+                message += GetAssertMessage(
+                    ToString(expected, itemSeparator),
+                    ToString(actual, itemSeparator));
 
                 Assert.True(result, message);
             }
@@ -447,6 +449,10 @@ namespace Roslyn.Test.Utilities
                 if (expected is IEnumerable<byte>)
                 {
                     itemInspector = b => $"0x{b:X2}";
+                }
+                else if (expected is IEnumerable<string>)
+                {
+                    itemInspector = new Func<T, string>(obj => (obj != null) ? string.Format("\"{0}\"", obj.ToString()) : "<null>");
                 }
                 else
                 {

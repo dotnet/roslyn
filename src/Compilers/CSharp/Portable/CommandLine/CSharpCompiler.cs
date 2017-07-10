@@ -267,6 +267,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             consoleOutput.WriteLine();
         }
 
+        public override void PrintLangVersions(TextWriter consoleOutput)
+        {
+            consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LangVersions, Culture));
+            var defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
+            var latestVersion = LanguageVersion.Latest.MapSpecifiedToEffectiveVersion();
+            foreach (LanguageVersion v in Enum.GetValues(typeof(LanguageVersion)))
+            {
+                if (v == defaultVersion)
+                {
+                    consoleOutput.WriteLine($"{v.ToDisplayString()} (default)");
+                }
+                else if (v == latestVersion)
+                {
+                    consoleOutput.WriteLine($"{v.ToDisplayString()} (latest)");
+                }
+                else
+                {
+                    consoleOutput.WriteLine(v.ToDisplayString());
+                }
+            }
+            consoleOutput.WriteLine();
+        }
 
         internal override Type Type
         {
