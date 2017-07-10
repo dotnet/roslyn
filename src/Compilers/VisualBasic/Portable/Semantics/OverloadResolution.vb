@@ -4532,8 +4532,8 @@ ContinueCandidatesLoop:
 
             ' Both are generics
             If leftType.Kind = SymbolKind.NamedType AndAlso rightType.Kind = SymbolKind.NamedType Then
-                Dim leftNamedType = DirectCast(leftType, NamedTypeSymbol)
-                Dim rightNamedType = DirectCast(rightType, NamedTypeSymbol)
+                Dim leftNamedType = DirectCast(leftType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
+                Dim rightNamedType = DirectCast(rightType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
                 ' If their arities are equal
                 If leftNamedType.Arity = rightNamedType.Arity Then
