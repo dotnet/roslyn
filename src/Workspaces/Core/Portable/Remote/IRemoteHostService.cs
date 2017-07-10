@@ -11,9 +11,7 @@ namespace Microsoft.CodeAnalysis.Remote
         Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken);
         Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken);
 
-        void RegisterPrimarySolutionId(SolutionId solutionId, CancellationToken cancellationToken);
+        void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken);
         void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken);
-
-        void UpdateSolutionIdStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken);
     }
 }

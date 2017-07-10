@@ -74,17 +74,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return;
             }
 
-            // RegisterWorkspaceHost is required to be called from UI thread so push the code
-            // to UI thread to run. 
-            await Task.Factory.SafeStartNew(() =>
+            // Create a connection to the host in the BG to avoid taking the hit of loading 
+            // service hub on the UI thread.
+            using (var connection = await client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false))
             {
-                var projectTracker = vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider);
-
                 var host = new WorkspaceHost(vsWorkspace, client);
 
-                projectTracker.RegisterWorkspaceHost(host);
-                projectTracker.StartSendingEventsToWorkspaceHost(host);
-            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
+                // RegisterWorkspaceHost is required to be called from UI thread so push the code
+                // to UI thread to run. 
+                await Task.Factory.SafeStartNew(() =>
+                {
+                    host.SetPreferredConnection(connection);
+                    var projectTracker = vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider);
+
+                    projectTracker.RegisterWorkspaceHost(host);
+                    projectTracker.StartSendingEventsToWorkspaceHost(host);
+
+                    host.SetPreferredConnection(null);
+                }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
+            }
         }
 
         private ServiceHubRemoteHostClient(

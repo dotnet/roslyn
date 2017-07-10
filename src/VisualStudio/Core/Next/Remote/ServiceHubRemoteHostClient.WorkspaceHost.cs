@@ -18,6 +18,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly VisualStudioWorkspaceImpl _workspace;
             private readonly RemoteHostClient _client;
 
+            /// <summary>
+            /// A <see cref="RemoteHostClient.Connection"/> to use if non-null.  If null, we'll create 
+            /// our own connection to the OOP process.
+            /// </summary>
+            private Connection _preferredConnection;
+
             // We have to capture the solution ID because otherwise we won't know
             // what is is when we get told about OnSolutionRemoved.  If we try
             // to access the solution off of _workspace at that point, it will be
@@ -33,6 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _currentSolutionId = workspace.CurrentSolution.Id;
             }
 
+            public void SetPreferredConnection(Connection connection)
+            {
+                this.AssertIsForeground();
+                _preferredConnection = connection;
+            }
+
             public void OnAfterWorkingFolderChange()
             {
                 this.AssertIsForeground();
@@ -45,12 +57,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 RegisterPrimarySolutionAsync().Wait();
             }
 
+            private async Task<(Connection, bool dispose)> GetConnectionAsync()
+            {
+                this.AssertIsForeground();
+                if (_preferredConnection != null)
+                {
+                    return (_preferredConnection, dispose: false);
+                }
+
+                var connection = await _client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
+                return (connection, dispose: true);
+            }
+
             private async Task RegisterPrimarySolutionAsync()
             {
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
-                using (var connection = await _client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false))
+                var (connection, dispose) = await GetConnectionAsync().ConfigureAwait(false);
+                try
                 {
                     if (connection == null)
                     {
@@ -58,13 +83,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return;
                     }
 
-                    await connection.InvokeAsync(
-                        nameof(IRemoteHostService.RegisterPrimarySolutionId), new object[] { solutionId }, CancellationToken.None).ConfigureAwait(false);
+                    var storageLocation = _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution);
 
                     await connection.InvokeAsync(
-                        nameof(IRemoteHostService.UpdateSolutionIdStorageLocation),
-                        new object[] { solutionId, _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution) },
-                        CancellationToken.None).ConfigureAwait(false);
+                        nameof(IRemoteHostService.RegisterPrimarySolutionId), 
+                        new object[] { solutionId, storageLocation }, CancellationToken.None).ConfigureAwait(false);
+                }
+                finally
+                {
+                    if (dispose)
+                    {
+                        connection?.Dispose();
+                    }
                 }
             }
 
