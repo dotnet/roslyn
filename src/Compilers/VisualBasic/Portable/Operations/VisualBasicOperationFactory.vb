@@ -163,7 +163,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundAddHandlerStatementOperation(DirectCast(boundNode, BoundAddHandlerStatement))
                 Case BoundKind.RemoveHandlerStatement
                     Return CreateBoundRemoveHandlerStatementOperation(DirectCast(boundNode, BoundRemoveHandlerStatement))
-                Case BoundKind.TupleLiteral, BoundKind.ConvertedTupleLiteral
+                Case BoundKind.TupleLiteral,
+                     BoundKind.ConvertedTupleLiteral
                     Return CreateBoundTupleExpressionOperation(DirectCast(boundNode, BoundTupleExpression))
                 Case BoundKind.InterpolatedStringExpression
                     Return CreateBoundInterpolatedStringExpressionOperation(DirectCast(boundNode, BoundInterpolatedStringExpression))

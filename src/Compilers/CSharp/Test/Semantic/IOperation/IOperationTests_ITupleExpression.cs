@@ -36,6 +36,34 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int
         }
 
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_NoConversions_ParentVariableDeclaration()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/(int, int) t = (1, 2)/*</bind>*/;
+        Console.WriteLine(t);
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int, int)  ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(int, int)  ... *</bind>*/;')
+    Variables: Local_1: (System.Int32, System.Int32) t
+    Initializer: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+        Elements(2): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversions()
         {
             string source = @"
@@ -60,6 +88,37 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UI
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_ImplicitConversions_ParentVariableDeclaration()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/(uint, uint) t = (1, 2)/*</bind>*/;
+        Console.WriteLine(t);
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, uint ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(uint, uint ... *</bind>*/;')
+    Variables: Local_1: (System.UInt32, System.UInt32) t
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
+          Elements(2): IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1) (Syntax: '1')
+              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 2) (Syntax: '2')
+              ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
@@ -90,7 +149,38 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.St
         }
 
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
-        public void TupleExpression_NamedArguments()
+        public void TupleExpression_ImplicitConversionFromNull_ParentVariableDeclaration()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/(uint, string) t = (1, null)/*</bind>*/;
+        Console.WriteLine(t);
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, stri ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(uint, stri ... *</bind>*/;')
+    Variables: Local_1: (System.UInt32, System.String) t
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, null)')
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, null)')
+          Elements(2): IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1) (Syntax: '1')
+              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'null')
+              ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_NamedElements()
         {
             string source = @"
 using System;
@@ -112,6 +202,34 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 A, System.I
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_NamedElements_ParentVariableDeclaration()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/var t = (A: 1, B: 2)/*</bind>*/;
+        Console.WriteLine(t);
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var t = (A: ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'var t = (A: ... *</bind>*/;')
+    Variables: Local_1: (System.Int32 A, System.Int32 B) t
+    Initializer: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 A, System.Int32 B)) (Syntax: '(A: 1, B: 2)')
+        Elements(2): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
@@ -137,6 +255,35 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_NamedElementsInTupleType_ParentVariableDeclaration()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/(int A, int B) t = (1, 2)/*</bind>*/;
+        Console.WriteLine(t);
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int A, int ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(int A, int ... *</bind>*/;')
+    Variables: Local_1: (System.Int32 A, System.Int32 B) t
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: (System.Int32 A, System.Int32 B)) (Syntax: '(1, 2)')
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+          Elements(2): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
@@ -171,6 +318,44 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16 A, System.S
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_NamedElementsAndImplicitConversions_ParentVariableDeclaration()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/(short, string) t = (A: 1, B: null)/*</bind>*/;
+        Console.WriteLine(t);
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(short, str ... *</bind>*/;')
+    Variables: Local_1: (System.Int16, System.String) t
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: (System.Int16, System.String)) (Syntax: '(A: 1, B: null)')
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16 A, System.String B)) (Syntax: '(A: 1, B: null)')
+          Elements(2): IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 1) (Syntax: '1')
+              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'null')
+              ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8123: The tuple element name 'A' is ignored because a different name or no name is specified by the target type '(short, string)'.
+                //         /*<bind>*/(short, string) t = (A: 1, B: null)/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "A: 1").WithArguments("A", "(short, string)").WithLocation(8, 40),
+                // CS8123: The tuple element name 'B' is ignored because a different name or no name is specified by the target type '(short, string)'.
+                //         /*<bind>*/(short, string) t = (A: 1, B: null)/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "B: null").WithArguments("B", "(short, string)").WithLocation(8, 46)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
@@ -224,6 +409,60 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, System.Str
         }
 
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_UserDefinedConversionsForArguments_ParentVariableDeclaration()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    private readonly int _x;
+    public C(int x)
+    {
+        _x = x;
+    }
+
+    public static implicit operator C(int value)
+    {
+        return new C(value);
+    }
+
+    public static implicit operator short(C c)
+    {
+        return (short)c._x;
+    }
+
+    public static implicit operator string(C c)
+    {
+        return c._x.ToString();
+    }
+
+    public void M(C c1)
+    {
+        /*<bind>*/(short, string) t = (new C(0), c1)/*</bind>*/;
+        Console.WriteLine(t);
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(short, str ... *</bind>*/;')
+    Variables: Local_1: (System.Int16, System.String) t
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: (System.Int16, System.String)) (Syntax: '(new C(0), c1)')
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, System.String c1)) (Syntax: '(new C(0), c1)')
+          Elements(2): IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: System.Int16 C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: System.Int16) (Syntax: 'new C(0)')
+              IObjectCreationExpression (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C(0)')
+                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
+                    ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'c1')
+              IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionFromTupleExpression()
         {
             string source = @"
@@ -242,21 +481,63 @@ class C
         return new C(x.Item1);
     }
 
-    public static implicit operator (int, string)(C c)
+    public static implicit operator (int, string) (C c)
     {
         return (c._x, c._x.ToString());
     }
 
     public void M(C c1)
     {
-        C t /*<bind>*/= (0, null)/*</bind>*/;
+        C t = /*<bind>*/(0, null)/*</bind>*/;
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C t /*<bind ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'C t /*<bind ... *</bind>*/;')
+ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.String)) (Syntax: '(0, null)')
+  Elements(2): ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'null')
+      ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_UserDefinedConversionFromTupleExpression_ParentVariableDeclaration()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    private readonly int _x;
+    public C(int x)
+    {
+        _x = x;
+    }
+
+    public static implicit operator C((int, string) x)
+    {
+        return new C(x.Item1);
+    }
+
+    public static implicit operator (int, string) (C c)
+    {
+        return (c._x, c._x.ToString());
+    }
+
+    public void M(C c1)
+    {
+        /*<bind>*/C t = (0, null)/*</bind>*/;
+        Console.WriteLine(t);
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C t = (0, n ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'C t = (0, n ... *</bind>*/;')
     Variables: Local_1: C t
     Initializer: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: C C.op_Implicit((System.Int32, System.String) x)) (OperationKind.ConversionExpression, Type: C) (Syntax: '(0, null)')
         IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: (System.Int32, System.String)) (Syntax: '(0, null)')
@@ -267,7 +548,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
@@ -289,14 +570,53 @@ class C
         return new C(x.Item1);
     }
 
-    public static implicit operator (int, string)(C c)
+    public static implicit operator (int, string) (C c)
     {
         return (c._x, c._x.ToString());
     }
 
     public void M(C c1)
     {
-        (int, string) t /*<bind>*/= c1/*</bind>*/;
+        (int, string) t = /*<bind>*/c1/*</bind>*/;
+        Console.WriteLine(t);
+    }
+}
+";
+            string expectedOperationTree = @"
+IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_UserDefinedConversionToTupleType_ParentVariableDeclaration()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    private readonly int _x;
+    public C(int x)
+    {
+        _x = x;
+    }
+
+    public static implicit operator C((int, string) x)
+    {
+        return new C(x.Item1);
+    }
+
+    public static implicit operator (int, string) (C c)
+    {
+        return (c._x, c._x.ToString());
+    }
+
+    public void M(C c1)
+    {
+        /*<bind>*/(int, string) t = c1/*</bind>*/;
         Console.WriteLine(t);
     }
 }
@@ -310,7 +630,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
@@ -344,16 +664,68 @@ class C
 
     public void M(C c1)
     {
-        /*<bind>*/(short, string) t = (new C(0), c1);/*</bind>*/
+        (short, string) t = /*<bind>*/(new C(0), c1)/*</bind>*/;
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: '(short, str ...  C(0), c1);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '(short, str ...  C(0), c1);')
+ITupleExpression (OperationKind.TupleExpression, Type: (C, C c1)) (Syntax: '(new C(0), c1)')
+  Elements(2): IObjectCreationExpression (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C(0)')
+      Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
+          ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'C' to 'short'
+                //         (short, string) t = /*<bind>*/(new C(0), c1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new C(0)").WithArguments("C", "short").WithLocation(29, 40)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_InvalidConversion_ParentVariableDeclaration()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    private readonly int _x;
+    public C(int x)
+    {
+        _x = x;
+    }
+
+    public static implicit operator C(int value)
+    {
+        return new C(value);
+    }
+
+    public static implicit operator int(C c)
+    {
+        return (short)c._x;
+    }
+
+    public static implicit operator string(C c)
+    {
+        return c._x.ToString();
+    }
+
+    public void M(C c1)
+    {
+        /*<bind>*/(short, string) t = (new C(0), c1)/*</bind>*/;
+        Console.WriteLine(t);
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: '(short, str ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '(short, str ... *</bind>*/;')
     Variables: Local_1: (System.Int16, System.String) t
-    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: (System.Int16, System.String), IsInvalid) (Syntax: '(new C(0), c1)')
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: (System.Int16, System.String), IsInvalid) (Syntax: '(new C(0), c1)')
         ITupleExpression (OperationKind.TupleExpression, Type: (C, C c1)) (Syntax: '(new C(0), c1)')
           Elements(2): IObjectCreationExpression (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C(0)')
               Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
@@ -362,11 +734,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C' to 'short'
-                //         /*<bind>*/(short, string) t = (new C(0), c1);/*</bind>*/
+                //         /*<bind>*/(short, string) t = (new C(0), c1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new C(0)").WithArguments("C", "short").WithLocation(29, 40)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
