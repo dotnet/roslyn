@@ -149,11 +149,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Checksum GetMetadataChecksum(
             Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
-            // We can reuse the index for any given reference as long as it hasn't changed.
-            // So our checksum is just the checksum for the PEReference itself.
-            var serializer = new Serializer(solution.Workspace);
-            var checksum = serializer.CreateChecksum(reference, cancellationToken);
-            return checksum;
+            return ChecksumCache.GetOrCreate(reference, _ =>
+            {
+
+                // We can reuse the index for any given reference as long as it hasn't changed.
+                // So our checksum is just the checksum for the PEReference itself.
+                var serializer = new Serializer(solution.Workspace);
+                var checksum = serializer.CreateChecksum(reference, cancellationToken);
+                return checksum;
+            });
         }
 
         private static Task<SymbolTreeInfo> TryLoadOrCreateMetadataSymbolTreeInfoAsync(

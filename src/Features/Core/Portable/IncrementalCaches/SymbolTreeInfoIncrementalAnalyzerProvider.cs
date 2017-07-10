@@ -157,52 +157,46 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public override void RemoveDocument(DocumentId documentId)
+            {
+                // Removing a document can affect the symbol index.  Clear what we have so
+                // it will be recomputed.
+                _projectToInfo.TryRemove(documentId.ProjectId, out _);
+            }
+
+            /// <remarks>
+            /// SymbolTreeInfo is an index of source symbols in a project.  As such, we only need
+            /// to recompute the index for a project when the syntax for a document within it changes.
+            /// i.e. the change to syntax in one project P could not affect the SymbolTree index for
+            /// *any* other project.
+            /// 
+            /// Note that AnalyzeSyntaxAsync will be called if anything changes that could affect
+            /// syntax (for example, if project preprocessor-definitions chnages), not just direct
+            /// edits of that file.
+            /// </remarks>
+            public override async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!document.SupportsSyntaxTree)
                 {
                     // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
-                    return SpecializedTasks.EmptyTask;
-                }
-
-                if (bodyOpt != null)
-                {
-                    // This was a method level edit.  This can't change the symbol tree info
-                    // for this project.  Bail immediately.
-                    return SpecializedTasks.EmptyTask;
-                }
-
-                return UpdateSymbolTreeInfoAsync(document.Project, cancellationToken);
-            }
-
-            public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
-            {
-                return UpdateSymbolTreeInfoAsync(project, cancellationToken);
-            }
-
-            private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
-            {
-                if (!project.SupportsCompilation)
-                {
-                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
                     return;
                 }
 
-                if (!RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace))
+                if (!RemoteFeatureOptions.ShouldComputeIndex(document.Project.Solution.Workspace))
                 {
                     return;
                 }
 
-                // Produce the indices for the source and metadata symbols in parallel.
-                var projectTask = UpdateSourceSymbolTreeInfoAsync(project, cancellationToken);
-                var referencesTask = UpdateReferencesAync(project, cancellationToken);
-
-                await Task.WhenAll(projectTask, referencesTask).ConfigureAwait(false);
+                await CreateSourceIndexAsync(document.Project, cancellationToken);
             }
 
-            private async Task UpdateSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
+            private async Task CreateSourceIndexAsync(Project project, CancellationToken cancellationToken)
             {
+                // Cache data at the project level.  That way if we get a N AnalyzeSyntaxAsync calls
+                // for all the documents in a project, we'll only compute the index for the first call
+                // and we'll bail out immediately for all subsequent calls.
                 var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+
                 if (!_projectToInfo.TryGetValue(project.Id, out var projectInfo) ||
                     projectInfo.Checksum != checksum)
                 {
@@ -218,14 +212,42 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
             }
 
-            private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
+            public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                // Process all metadata references in parallel.
-                var tasks = project.MetadataReferences.OfType<PortableExecutableReference>()
-                                   .Select(r => UpdateReferenceAsync(project, r, cancellationToken))
-                                   .ToArray();
+                if (!project.SupportsCompilation)
+                {
+                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
+                    return;
+                }
 
-                return Task.WhenAll(tasks);
+                if (!RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace))
+                {
+                    return;
+                }
+
+                // Check if we have no index cached at all.  If so, create one.  If we do have one
+                // no need to do anything to it.  The index will be updated as appropriate through
+                // the calls to AnalyzeSyntaxAsync.
+                if (!_projectToInfo.ContainsKey(project.Id))
+                {
+                    await CreateSourceIndexAsync(project, cancellationToken).ConfigureAwait(false);
+                }
+
+                // If a project changes, see if it was because any metadata references changed.  If so,
+                // attempt to recompute the indices for those metadata references.
+                //
+                // If this is the remote workspace, do it in parallel.
+                var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace ||
+                                        project.Solution.Workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace;
+                var tasks = new List<Task>();
+                foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                {
+                    tasks.Add(isRemoteWorkspace
+                        ? Task.Run(() => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken)
+                        : UpdateReferenceAsync(project, reference, cancellationToken));
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             private async Task UpdateReferenceAsync(
