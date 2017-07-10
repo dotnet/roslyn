@@ -69,40 +69,10 @@ function Run-SignTool() {
     }
 }
 
-# Not all of our artifacts needed for signing are included inside Roslyn.sln. Need to 
-# finish building these before we can run signing.
-function Build-ExtraSignArtifacts() { 
-
-    Push-Location $setupDir
-    try {
-        # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
-        Run-MSBuild "..\Compilers\CSharp\CscCore\CscCore.csproj /t:PublishWithoutBuilding"
-        Run-MSBuild "..\Compilers\VisualBasic\VbcCore\VbcCore.csproj /t:PublishWithoutBuilding"
-
-        # No need to build references here as we just built the rest of the source tree. 
-        # We build these serially to work around https://github.com/dotnet/roslyn/issues/11856,
-        # where building multiple projects that produce VSIXes larger than 10MB will race against each other
-        Run-MSBuild "Deployment\Current\Roslyn.Deployment.Full.csproj /p:BuildProjectReferences=false" -parallel:$false
-        Run-MSBuild "Deployment\Next\Roslyn.Deployment.Full.Next.csproj /p:BuildProjectReferences=false" -parallel:$false
-
-        $dest = @(
-            $configDir,
-            "Templates\CSharp\Diagnostic\Analyzer",
-            "Templates\VisualBasic\Diagnostic\Analyzer\tools")
-        foreach ($dir in $dest) { 
-            Copy-Item "PowerShell\*.ps1" $dir
-        }
-
-        Run-MSBuild "Templates\Templates.sln /p:VersionType=Release"
-    }
-    finally {
-        Pop-Location
-    }
-}
-
 function Build-InsertionItems() { 
     Push-Location $setupDir
     try { 
+        Create-PerfTests
         Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln"
 
         Exec-Command (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $setupDir $(Get-PackagesDir) `"$assemblyVersion`"" | Out-Host
@@ -173,9 +143,7 @@ try {
     $configDir = Join-Path $binariesDir $config
     $setupDir = Join-Path $repoDir "src\Setup"
 
-    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -build -official:$official -msbuildDir $msbuildDir -release:$release }
-    Create-PerfTests
-    Build-ExtraSignArtifacts
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -official:$official -msbuildDir $msbuildDir -release:$release }
     Run-SignTool
     Exec-Block { & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config }
     Run-MSBuild (Join-Path $repoDir "src\NuGet\NuGet.proj")

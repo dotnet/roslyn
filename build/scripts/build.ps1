@@ -22,6 +22,7 @@ param (
     [switch]$official = $false,
     [switch]$cibuild = $false,
     [switch]$build = $false,
+    [switch]$buildAll = $false,
     [switch]$bootstrap = $false,
     [string]$msbuildDir = "",
 
@@ -48,7 +49,8 @@ function Print-Usage() {
     Write-Host "Usage: build.ps1"
     Write-Host "  -release                  Perform release build (default is debug)"
     Write-Host "  -restore                  Restore packages"
-    Write-Host "  -build                    Build the Roslyn source"
+    Write-Host "  -build                    Build Roslyn.sln"
+    Write-Host "  -buildAll                 Build all Roslyn source items"
     Write-Host "  -official                 Perform an official build"
     Write-Host "  -bootstrap                Build using a bootstrap Roslyn"
     Write-Host "  -msbuildDir               MSBuild to use for operations"
@@ -68,8 +70,13 @@ function Print-Usage() {
     Write-Host "  -testPerfCorrectness      Run perf tests"
 }
 
-# Process the command line arguments and establish defaults for the values which
-# are not specified.
+# Process the command line arguments and establish defaults for the values which are not 
+# specified.
+#
+# In this function it's okay to use two arguments to extend the effect of another. For 
+# example it's okay to look at $buildAll and infer $build. It's not okay though to infer 
+# $build based on say $testDesktop. It's possible the developer wanted only for testing 
+# to execute, not any build.
 function Process-Arguments() {
     if ($badArgs -ne $null) {
         Write-Host "Unsupported argument $badArgs"
@@ -95,16 +102,24 @@ function Process-Arguments() {
         exit 1
     }
 
+    if ($buildAll) {
+        $script:build = $true
+    }
+
     $script:test32 = -not $test64
     $script:debug = -not $release
 }
 
-function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "") {
+function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$parallel = $true) {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal;summary";
+    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal;summary";
+
+    if ($parallel) {
+        $args += " /m"
+    }
     
     if ($logFile -ne "") {
         $args += " /filelogger /fileloggerparameters:Verbosity=normal;logFile=$logFile";
@@ -154,8 +169,44 @@ function Build-Artifacts() {
         Run-MSBuild "src\Samples\Samples.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
     }
 
+    if ($buildAll) {
+        Build-ExtraSignArtifacts
+    }
+
     Stop-BuildProcesses
 }
+
+# Not all of our artifacts needed for signing are included inside Roslyn.sln. Need to 
+# finish building these before we can run signing.
+function Build-ExtraSignArtifacts() { 
+
+    Push-Location (Join-Path $repoDir "src\Setup")
+    try {
+        # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
+        Run-MSBuild "..\Compilers\CSharp\CscCore\CscCore.csproj /t:PublishWithoutBuilding"
+        Run-MSBuild "..\Compilers\VisualBasic\VbcCore\VbcCore.csproj /t:PublishWithoutBuilding"
+
+        # No need to build references here as we just built the rest of the source tree. 
+        # We build these serially to work around https://github.com/dotnet/roslyn/issues/11856,
+        # where building multiple projects that produce VSIXes larger than 10MB will race against each other
+        Run-MSBuild "Deployment\Current\Roslyn.Deployment.Full.csproj /p:BuildProjectReferences=false" -parallel:$false
+        Run-MSBuild "Deployment\Next\Roslyn.Deployment.Full.Next.csproj /p:BuildProjectReferences=false" -parallel:$false
+
+        $dest = @(
+            $configDir,
+            "Templates\CSharp\Diagnostic\Analyzer",
+            "Templates\VisualBasic\Diagnostic\Analyzer\tools")
+        foreach ($dir in $dest) { 
+            Copy-Item "PowerShell\*.ps1" $dir
+        }
+
+        Run-MSBuild "Templates\Templates.sln /p:VersionType=Release"
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 
 # These are tests that don't follow our standard restore, build, test pattern. They customize 
 # the processes in order to test specific elements of our build and hence are handled 
