@@ -8,13 +8,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
     Partial Friend Class Worker
-        Private ReadOnly _list As ArrayBuilder(Of ClassifiedSpan)
+        Private ReadOnly _list As ArrayBuilder(Of ClassifiedSpanSlim)
         Private ReadOnly _textSpan As TextSpan
         Private ReadOnly _docCommentClassifier As DocumentationCommentClassifier
         Private ReadOnly _xmlClassifier As XmlClassifier
         Private ReadOnly _cancellationToken As CancellationToken
 
-        Private Sub New(textSpan As TextSpan, list As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Private Sub New(textSpan As TextSpan, list As ArrayBuilder(Of ClassifiedSpanSlim), cancellationToken As CancellationToken)
             _textSpan = textSpan
             _list = list
             _docCommentClassifier = New DocumentationCommentClassifier(Me)
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         End Sub
 
         Friend Shared Sub CollectClassifiedSpans(
-            tokens As IEnumerable(Of SyntaxToken), textSpan As TextSpan, list As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            tokens As IEnumerable(Of SyntaxToken), textSpan As TextSpan, list As ArrayBuilder(Of ClassifiedSpanSlim), cancellationToken As CancellationToken)
             Dim worker = New Worker(textSpan, list, cancellationToken)
 
             For Each token In tokens
@@ -32,22 +32,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         End Sub
 
         Friend Shared Sub CollectClassifiedSpans(
-            node As SyntaxNode, textSpan As TextSpan, list As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            node As SyntaxNode, textSpan As TextSpan, list As ArrayBuilder(Of ClassifiedSpanSlim), cancellationToken As CancellationToken)
             Dim worker = New Worker(textSpan, list, cancellationToken)
             worker.ClassifyNode(node)
         End Sub
 
-        Private Sub AddClassification(textSpan As TextSpan, classificationType As String)
-            _list.Add(New ClassifiedSpan(classificationType, textSpan))
+        Private Sub AddClassification(textSpan As TextSpan, classificationType As ClassificationTypeKind?)
+            If classificationType IsNot Nothing Then
+                _list.Add(New ClassifiedSpanSlim(classificationType.Value, textSpan))
+            End If
         End Sub
 
-        Private Sub AddClassification(token As SyntaxToken, classificationType As String)
-            If token.Width() > 0 AndAlso _textSpan.OverlapsWith(token.Span) Then
+        Private Sub AddClassification(token As SyntaxToken, classificationType As ClassificationTypeKind?)
+            If token.Width() > 0 AndAlso _textSpan.OverlapsWith(token.Span) AndAlso classificationType IsNot Nothing Then
                 AddClassification(token.Span, classificationType)
             End If
         End Sub
 
-        Private Sub AddClassification(trivia As SyntaxTrivia, classificationType As String)
+        Private Sub AddClassification(trivia As SyntaxTrivia, classificationType As ClassificationTypeKind?)
             If trivia.Width() > 0 AndAlso _textSpan.OverlapsWith(trivia.Span) Then
                 AddClassification(trivia.Span, classificationType)
             End If
@@ -78,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End If
         End Sub
 
-        Friend Sub ClassifyToken(token As SyntaxToken, Optional type As String = Nothing)
+        Friend Sub ClassifyToken(token As SyntaxToken, Optional type As ClassificationTypeKind? = Nothing)
             Dim span = token.Span
             If span.Length <> 0 AndAlso _textSpan.OverlapsWith(span) Then
                 type = If(type, ClassificationHelpers.GetClassification(token))
@@ -128,20 +130,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                         ClassifySkippedTokens(DirectCast(trivia.GetStructure(), SkippedTokensTriviaSyntax))
                 End Select
             ElseIf trivia.Kind = SyntaxKind.CommentTrivia Then
-                AddClassification(trivia, ClassificationTypeNames.Comment)
+                AddClassification(trivia, ClassificationTypeKind.Comment)
             ElseIf trivia.Kind = SyntaxKind.DisabledTextTrivia Then
                 ClassifyDisabledText(trivia, triviaList)
             ElseIf trivia.Kind = SyntaxKind.ColonTrivia Then
-                AddClassification(trivia, ClassificationTypeNames.Punctuation)
+                AddClassification(trivia, ClassificationTypeKind.Punctuation)
             ElseIf trivia.Kind = SyntaxKind.LineContinuationTrivia Then
-                AddClassification(New TextSpan(trivia.SpanStart, 1), ClassificationTypeNames.Punctuation)
+                AddClassification(New TextSpan(trivia.SpanStart, 1), ClassificationTypeKind.Punctuation)
             ElseIf trivia.Kind = SyntaxKind.ConflictMarkerTrivia Then
                 ClassifyConflictMarker(trivia)
             End If
         End Sub
 
         Private Sub ClassifyConflictMarker(trivia As SyntaxTrivia)
-            AddClassification(trivia, ClassificationTypeNames.Comment)
+            AddClassification(trivia, ClassificationTypeKind.Comment)
         End Sub
 
         Private Sub ClassifyDisabledText(trivia As SyntaxTrivia, triviaList As SyntaxTriviaList)
@@ -154,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     ClassifyToken(token)
                 Next
             Else
-                AddClassification(trivia, ClassificationTypeNames.ExcludedCode)
+                AddClassification(trivia, ClassificationTypeKind.ExcludedCode)
             End If
         End Sub
 
@@ -171,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 equalsLineLength += 1
             End While
 
-            AddClassification(New TextSpan(trivia.SpanStart, equalsLineLength), ClassificationTypeNames.Comment)
+            AddClassification(New TextSpan(trivia.SpanStart, equalsLineLength), ClassificationTypeKind.Comment)
 
             ' Now lex out all the tokens in the rest of the trivia text.
             Dim tokens = SyntaxFactory.ParseTokens(
@@ -218,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                              SyntaxKind.WarningKeyword,
                              SyntaxKind.DisableKeyword
 
-                            ClassifyToken(child.AsToken(), ClassificationTypeNames.PreprocessorKeyword)
+                            ClassifyToken(child.AsToken(), ClassificationTypeKind.PreprocessorKeyword)
                         Case Else
                             ClassifyToken(child.AsToken())
                     End Select

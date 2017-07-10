@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Classification
             var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes);
             var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds);
 
-            var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            var temp = ArrayBuilder<ClassifiedSpanSlim>.GetInstance();
             await classificationService.AddSemanticClassificationsAsync(document, textSpan, getNodeClassifiers, getTokenClassifiers, temp, cancellationToken).ConfigureAwait(false);
             AddRange(temp, result);
             temp.Free();
@@ -37,17 +37,17 @@ namespace Microsoft.CodeAnalysis.Classification
             var classificationService = document.GetLanguageService<ISyntaxClassificationService>();
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-            var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            var temp = ArrayBuilder<ClassifiedSpanSlim>.GetInstance();
             classificationService.AddSyntacticClassifications(syntaxTree, textSpan, temp, cancellationToken);
             AddRange(temp, result);
             temp.Free();
         }
 
-        protected void AddRange(ArrayBuilder<ClassifiedSpan> temp, List<ClassifiedSpan> result)
+        protected void AddRange(ArrayBuilder<ClassifiedSpanSlim> temp, List<ClassifiedSpan> result)
         {
             foreach (var span in temp)
             {
-                result.Add(span);
+                result.Add(span.ToClassifiedSpan());
             }
         }
     }

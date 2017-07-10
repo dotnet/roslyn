@@ -25,11 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Return s_defaultSyntaxClassifiers
         End Function
 
-        Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpanSlim), cancellationToken As CancellationToken)
             ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken)
         End Sub
 
-        Public Overrides Sub AddSyntacticClassifications(syntaxTree As SyntaxTree, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Public Overrides Sub AddSyntacticClassifications(syntaxTree As SyntaxTree, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpanSlim), cancellationToken As CancellationToken)
             Dim root = syntaxTree.GetRoot(cancellationToken)
             Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken)
         End Sub

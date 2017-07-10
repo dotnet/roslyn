@@ -17,10 +17,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Dim tree = Await document.GetSyntaxTreeAsync()
 
                 Dim service = document.GetLanguageService(Of ISyntaxClassificationService)()
-                Dim result = ArrayBuilder(Of ClassifiedSpan).GetInstance
+                Dim result = ArrayBuilder(Of ClassifiedSpanSlim).GetInstance
                 service.AddSyntacticClassifications(tree, textSpan, result, CancellationToken.None)
 
-                Return result.ToImmutableAndFree()
+                Return result.Select(Function(cs) cs.ToClassifiedSpan()).ToImmutableArray()
             End Using
         End Function
 

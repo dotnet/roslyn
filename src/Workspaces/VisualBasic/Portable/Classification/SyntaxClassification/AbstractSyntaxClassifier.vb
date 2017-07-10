@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
         Protected Sub New()
         End Sub
 
-        Protected Function GetClassificationForType(type As ITypeSymbol) As String
+        Protected Function GetClassificationForType(type As ITypeSymbol) As ClassificationTypeKind?
             Return type.GetClassification()
         End Function
 
@@ -29,10 +29,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End Get
         End Property
 
-        Public Overridable Sub AddClassifications(syntax As SyntaxNode, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements ISyntaxClassifier.AddClassifications
+        Public Overridable Sub AddClassifications(syntax As SyntaxNode, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpanSlim), cancellationToken As CancellationToken) Implements ISyntaxClassifier.AddClassifications
         End Sub
 
-        Public Overridable Sub AddClassifications(syntax As SyntaxToken, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements ISyntaxClassifier.AddClassifications
+        Public Overridable Sub AddClassifications(syntax As SyntaxToken, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpanSlim), cancellationToken As CancellationToken) Implements ISyntaxClassifier.AddClassifications
         End Sub
     End Class
 End Namespace

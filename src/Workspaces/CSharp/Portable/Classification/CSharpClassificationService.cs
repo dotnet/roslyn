@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     {
         public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            var temp = ArrayBuilder<ClassifiedSpanSlim>.GetInstance();
             ClassificationHelpers.AddLexicalClassifications(text, textSpan, temp, cancellationToken);
             AddRange(temp, result);
             temp.Free();

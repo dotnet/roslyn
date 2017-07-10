@@ -4,26 +4,26 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal static class ClassificationExtensions
     {
-        public static string GetClassification(this ITypeSymbol type)
+        public static ClassificationTypeKind? GetClassification(this ITypeSymbol type)
         {
             switch (type.TypeKind)
             {
                 case TypeKind.Class:
-                    return ClassificationTypeNames.ClassName;
+                    return ClassificationTypeKind.ClassName;
                 case TypeKind.Module:
-                    return ClassificationTypeNames.ModuleName;
+                    return ClassificationTypeKind.ModuleName;
                 case TypeKind.Struct:
-                    return ClassificationTypeNames.StructName;
+                    return ClassificationTypeKind.StructName;
                 case TypeKind.Interface:
-                    return ClassificationTypeNames.InterfaceName;
+                    return ClassificationTypeKind.InterfaceName;
                 case TypeKind.Enum:
-                    return ClassificationTypeNames.EnumName;
+                    return ClassificationTypeKind.EnumName;
                 case TypeKind.Delegate:
-                    return ClassificationTypeNames.DelegateName;
+                    return ClassificationTypeKind.DelegateName;
                 case TypeKind.TypeParameter:
-                    return ClassificationTypeNames.TypeParameterName;
+                    return ClassificationTypeKind.TypeParameterName;
                 case TypeKind.Dynamic:
-                    return ClassificationTypeNames.Keyword;
+                    return ClassificationTypeKind.Keyword;
                 default:
                     return null;
             }

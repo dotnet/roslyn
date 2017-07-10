@@ -93,11 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         {
             if (allowComments && trivia.Kind() == SyntaxKind.SingleLineCommentTrivia)
             {
-                AddClassification(trivia, ClassificationTypeNames.Comment);
+                AddClassification(trivia, ClassificationTypeKind.Comment);
             }
             else
             {
-                AddClassification(trivia, ClassificationTypeNames.PreprocessorText);
+                AddClassification(trivia, ClassificationTypeKind.PreprocessorText);
             }
         }
 
@@ -111,135 +111,135 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             if (node is LiteralExpressionSyntax literal)
             {
                 // true or false
-                AddClassification(literal.Token, ClassificationTypeNames.Keyword);
+                AddClassification(literal.Token, ClassificationTypeKind.Keyword);
             }
             else if (node is IdentifierNameSyntax identifier)
             {
                 // DEBUG
-                AddClassification(identifier.Identifier, ClassificationTypeNames.Identifier);
+                AddClassification(identifier.Identifier, ClassificationTypeKind.Identifier);
             }
             else if (node is ParenthesizedExpressionSyntax parenExpression)
             {
                 // (true)
-                AddClassification(parenExpression.OpenParenToken, ClassificationTypeNames.Punctuation);
+                AddClassification(parenExpression.OpenParenToken, ClassificationTypeKind.Punctuation);
                 ClassifyPreprocessorExpression(parenExpression.Expression);
-                AddClassification(parenExpression.CloseParenToken, ClassificationTypeNames.Punctuation);
+                AddClassification(parenExpression.CloseParenToken, ClassificationTypeKind.Punctuation);
             }
             else if (node is PrefixUnaryExpressionSyntax prefixExpression)
             {
                 // !
-                AddClassification(prefixExpression.OperatorToken, ClassificationTypeNames.Operator);
+                AddClassification(prefixExpression.OperatorToken, ClassificationTypeKind.Operator);
                 ClassifyPreprocessorExpression(prefixExpression.Operand);
             }
             else if (node is BinaryExpressionSyntax binaryExpression)
             {
                 // &&, ||, ==, !=
                 ClassifyPreprocessorExpression(binaryExpression.Left);
-                AddClassification(binaryExpression.OperatorToken, ClassificationTypeNames.Operator);
+                AddClassification(binaryExpression.OperatorToken, ClassificationTypeKind.Operator);
                 ClassifyPreprocessorExpression(binaryExpression.Right);
             }
         }
 
         private void ClassifyIfDirective(IfDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.IfKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.IfKeyword, ClassificationTypeKind.PreprocessorKeyword);
             ClassifyPreprocessorExpression(node.Condition);
             ClassifyDirectiveTrivia(node);
         }
 
         private void ClassifyElifDirective(ElifDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.ElifKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.ElifKeyword, ClassificationTypeKind.PreprocessorKeyword);
             ClassifyPreprocessorExpression(node.Condition);
             ClassifyDirectiveTrivia(node);
         }
 
         private void ClassifyElseDirective(ElseDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.ElseKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.ElseKeyword, ClassificationTypeKind.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node);
         }
 
         private void ClassifyEndIfDirective(EndIfDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.EndIfKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.EndIfKeyword, ClassificationTypeKind.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node);
         }
 
         private void ClassifyErrorDirective(ErrorDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.ErrorKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.ErrorKeyword, ClassificationTypeKind.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node, allowComments: false);
         }
 
         private void ClassifyWarningDirective(WarningDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.WarningKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.WarningKeyword, ClassificationTypeKind.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node, allowComments: false);
         }
 
         private void ClassifyRegionDirective(RegionDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.RegionKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.RegionKeyword, ClassificationTypeKind.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node, allowComments: false);
         }
 
         private void ClassifyEndRegionDirective(EndRegionDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.EndRegionKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.EndRegionKeyword, ClassificationTypeKind.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node);
         }
 
         private void ClassifyDefineDirective(DefineDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.DefineKeyword, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.Name, ClassificationTypeNames.Identifier);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.DefineKeyword, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.Name, ClassificationTypeKind.Identifier);
             ClassifyDirectiveTrivia(node);
         }
 
         private void ClassifyUndefDirective(UndefDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.UndefKeyword, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.Name, ClassificationTypeNames.Identifier);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.UndefKeyword, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.Name, ClassificationTypeKind.Identifier);
             ClassifyDirectiveTrivia(node);
         }
 
         private void ClassifyBadDirective(BadDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.Identifier, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.Identifier, ClassificationTypeKind.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node);
         }
 
         private void ClassifyLineDirective(LineDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.LineKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.LineKeyword, ClassificationTypeKind.PreprocessorKeyword);
 
             switch (node.Line.Kind())
             {
                 case SyntaxKind.HiddenKeyword:
                 case SyntaxKind.DefaultKeyword:
-                    AddClassification(node.Line, ClassificationTypeNames.PreprocessorKeyword);
+                    AddClassification(node.Line, ClassificationTypeKind.PreprocessorKeyword);
                     break;
                 case SyntaxKind.NumericLiteralToken:
-                    AddClassification(node.Line, ClassificationTypeNames.NumericLiteral);
+                    AddClassification(node.Line, ClassificationTypeKind.NumericLiteral);
                     break;
             }
 
             if (node.File.Kind() != SyntaxKind.None)
             {
-                AddClassification(node.File, ClassificationTypeNames.StringLiteral);
+                AddClassification(node.File, ClassificationTypeKind.StringLiteral);
             }
 
             ClassifyDirectiveTrivia(node);
@@ -247,21 +247,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyPragmaChecksumDirective(PragmaChecksumDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.PragmaKeyword, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.ChecksumKeyword, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.File, ClassificationTypeNames.StringLiteral);
-            AddClassification(node.Guid, ClassificationTypeNames.StringLiteral);
-            AddClassification(node.Bytes, ClassificationTypeNames.StringLiteral);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.PragmaKeyword, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.ChecksumKeyword, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.File, ClassificationTypeKind.StringLiteral);
+            AddClassification(node.Guid, ClassificationTypeKind.StringLiteral);
+            AddClassification(node.Bytes, ClassificationTypeKind.StringLiteral);
             ClassifyDirectiveTrivia(node);
         }
 
         private void ClassifyPragmaWarningDirective(PragmaWarningDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.PragmaKeyword, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.WarningKeyword, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.DisableOrRestoreKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.PragmaKeyword, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.WarningKeyword, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.DisableOrRestoreKeyword, ClassificationTypeKind.PreprocessorKeyword);
 
             foreach (var nodeOrToken in node.ErrorCodes.GetWithSeparators())
             {
@@ -271,17 +271,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyReferenceDirective(ReferenceDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.ReferenceKeyword, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.File, ClassificationTypeNames.StringLiteral);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.ReferenceKeyword, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.File, ClassificationTypeKind.StringLiteral);
             ClassifyDirectiveTrivia(node);
         }
 
         private void ClassifyLoadDirective(LoadDirectiveTriviaSyntax node)
         {
-            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.LoadKeyword, ClassificationTypeNames.PreprocessorKeyword);
-            AddClassification(node.File, ClassificationTypeNames.StringLiteral);
+            AddClassification(node.HashToken, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.LoadKeyword, ClassificationTypeKind.PreprocessorKeyword);
+            AddClassification(node.File, ClassificationTypeKind.StringLiteral);
             ClassifyDirectiveTrivia(node);
         }
     }

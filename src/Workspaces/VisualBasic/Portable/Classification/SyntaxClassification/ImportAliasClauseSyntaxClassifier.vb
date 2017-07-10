@@ -12,14 +12,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
         Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(GetType(ImportAliasClauseSyntax))
 
-        Public Overrides Sub AddClassifications(syntax As SyntaxNode, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Public Overrides Sub AddClassifications(syntax As SyntaxNode, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpanSlim), cancellationToken As CancellationToken)
             ClassifyImportAliasClauseSyntax(DirectCast(syntax, ImportAliasClauseSyntax), semanticModel, result, cancellationToken)
         End Sub
 
         Private Sub ClassifyImportAliasClauseSyntax(
                 node As ImportAliasClauseSyntax,
                 semanticModel As SemanticModel,
-                result As ArrayBuilder(Of ClassifiedSpan),
+                result As ArrayBuilder(Of ClassifiedSpanSlim),
                 cancellationToken As CancellationToken)
 
             Dim symbolInfo = semanticModel.GetTypeInfo(DirectCast(node.Parent, SimpleImportsClauseSyntax).Name, cancellationToken)
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                 Dim classification = GetClassificationForType(symbolInfo.Type)
                 If classification IsNot Nothing Then
                     Dim token = node.Identifier
-                    result.Add(New ClassifiedSpan(token.Span, classification))
+                    result.Add(New ClassifiedSpanSlim(token.Span, classification.Value))
                     Return
                 End If
             End If

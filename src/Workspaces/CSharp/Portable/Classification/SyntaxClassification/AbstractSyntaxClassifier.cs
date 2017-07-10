@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
         }
 
-        protected string GetClassificationForType(ITypeSymbol type)
+        protected ClassificationTypeKind? GetClassificationForType(ITypeSymbol type)
             => type.GetClassification();
 
-        public virtual void AddClassifications(SyntaxNode syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public virtual void AddClassifications(SyntaxNode syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpanSlim> result, CancellationToken cancellationToken)
         {
         }
 
-        public virtual void AddClassifications(SyntaxToken syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public virtual void AddClassifications(SyntaxToken syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpanSlim> result, CancellationToken cancellationToken)
         {
         }
 

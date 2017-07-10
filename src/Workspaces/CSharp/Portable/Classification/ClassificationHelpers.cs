@@ -21,15 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         /// </summary>
         /// <param name="token">The token.</param>
         /// <returns>The correct syntactic classification for the token.</returns>
-        public static string GetClassification(SyntaxToken token)
+        public static ClassificationTypeKind? GetClassification(SyntaxToken token)
         {
             if (token.IsKind(SyntaxKind.DiscardDesignation, SyntaxKind.UnderscoreToken))
             {
-                return ClassificationTypeNames.Identifier;
+                return ClassificationTypeKind.Identifier;
             }
             if (SyntaxFacts.IsKeywordKind(token.Kind()))
             {
-                return ClassificationTypeNames.Keyword;
+                return ClassificationTypeKind.Keyword;
             }
             else if (SyntaxFacts.IsPunctuation(token.Kind()))
             {
@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             else if (IsStringToken(token))
             {
                 return IsVerbatimStringToken(token)
-                    ? ClassificationTypeNames.VerbatimStringLiteral
-                    : ClassificationTypeNames.StringLiteral;
+                    ? ClassificationTypeKind.VerbatimStringLiteral
+                    : ClassificationTypeKind.StringLiteral;
             }
             else if (token.Kind() == SyntaxKind.NumericLiteralToken)
             {
-                return ClassificationTypeNames.NumericLiteral;
+                return ClassificationTypeKind.NumericLiteral;
             }
 
             return null;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return false;
         }
 
-        private static string GetClassificationForIdentifier(SyntaxToken token)
+        private static ClassificationTypeKind? GetClassificationForIdentifier(SyntaxToken token)
         {
             var typeDeclaration = token.Parent as BaseTypeDeclarationSyntax;
 
@@ -113,40 +113,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration) && ((DelegateDeclarationSyntax)token.Parent).Identifier == token)
             {
-                return ClassificationTypeNames.DelegateName;
+                return ClassificationTypeKind.DelegateName;
             }
             else if (token.Parent.IsKind(SyntaxKind.TypeParameter) && ((TypeParameterSyntax)token.Parent).Identifier == token)
             {
-                return ClassificationTypeNames.TypeParameterName;
+                return ClassificationTypeKind.TypeParameterName;
             }
             else if (IsActualContextualKeyword(token))
             {
-                return ClassificationTypeNames.Keyword;
+                return ClassificationTypeKind.Keyword;
             }
             else
             {
-                return ClassificationTypeNames.Identifier;
+                return ClassificationTypeKind.Identifier;
             }
         }
 
-        private static string GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
+        private static ClassificationTypeKind? GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
         {
             switch (identifier.Parent.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
-                    return ClassificationTypeNames.ClassName;
+                    return ClassificationTypeKind.ClassName;
                 case SyntaxKind.EnumDeclaration:
-                    return ClassificationTypeNames.EnumName;
+                    return ClassificationTypeKind.EnumName;
                 case SyntaxKind.StructDeclaration:
-                    return ClassificationTypeNames.StructName;
+                    return ClassificationTypeKind.StructName;
                 case SyntaxKind.InterfaceDeclaration:
-                    return ClassificationTypeNames.InterfaceName;
+                    return ClassificationTypeKind.InterfaceName;
                 default:
                     return null;
             }
         }
 
-        private static string GetClassificationForPunctuation(SyntaxToken token)
+        private static ClassificationTypeKind? GetClassificationForPunctuation(SyntaxToken token)
         {
             if (token.Kind().IsOperator())
             {
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                             if (token.Parent.Kind() == SyntaxKind.TypeParameterList ||
                                 token.Parent.Kind() == SyntaxKind.TypeArgumentList)
                             {
-                                return ClassificationTypeNames.Punctuation;
+                                return ClassificationTypeKind.Punctuation;
                             }
                         }
 
@@ -174,18 +174,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         {
                             if (token.Parent.Kind() != SyntaxKind.ConditionalExpression)
                             {
-                                return ClassificationTypeNames.Punctuation;
+                                return ClassificationTypeKind.Punctuation;
                             }
                         }
 
                         break;
                 }
 
-                return ClassificationTypeNames.Operator;
+                return ClassificationTypeKind.Operator;
             }
             else
             {
-                return ClassificationTypeNames.Punctuation;
+                return ClassificationTypeKind.Punctuation;
             }
         }
 
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return false;
         }
 
-        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpanSlim> result, CancellationToken cancellationToken)
         {
             var text2 = text.ToString(textSpan);
             var tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition: textSpan.Start);

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private void ClassifyXmlTrivia(SyntaxTriviaList triviaList, string whitespaceClassificationType = null)
+        private void ClassifyXmlTrivia(SyntaxTriviaList triviaList, ClassificationTypeKind? whitespaceClassificationType = null)
         {
             foreach (var t in triviaList)
             {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 if (spanStart != null && char.IsWhiteSpace(ch))
                 {
                     var span = TextSpan.FromBounds(spanStart.Value, spanStart.Value + index);
-                    AddClassification(span, ClassificationTypeNames.XmlDocCommentDelimiter);
+                    AddClassification(span, ClassificationTypeKind.XmlDocCommentDelimiter);
 
                     spanStart = null;
                 }
@@ -122,11 +122,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             if (spanStart != null)
             {
                 var span = TextSpan.FromBounds(spanStart.Value, trivia.Span.End);
-                AddClassification(span, ClassificationTypeNames.XmlDocCommentDelimiter);
+                AddClassification(span, ClassificationTypeKind.XmlDocCommentDelimiter);
             }
         }
 
-        private void AddXmlClassification(SyntaxToken token, string classificationType)
+        private void AddXmlClassification(SyntaxToken token, ClassificationTypeKind classificationType)
         {
             if (token.HasLeadingTrivia)
             {
@@ -147,14 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 if (token.HasLeadingTrivia)
                 {
-                    ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType: ClassificationTypeNames.XmlDocCommentText);
+                    ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType: ClassificationTypeKind.XmlDocCommentText);
                 }
 
                 ClassifyXmlTextToken(token);
 
                 if (token.HasTrailingTrivia)
                 {
-                    ClassifyXmlTrivia(token.TrailingTrivia, whitespaceClassificationType: ClassificationTypeNames.XmlDocCommentText);
+                    ClassifyXmlTrivia(token.TrailingTrivia, whitespaceClassificationType: ClassificationTypeKind.XmlDocCommentText);
                 }
             }
         }
@@ -163,26 +163,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         {
             if (token.Kind() == SyntaxKind.XmlEntityLiteralToken)
             {
-                AddClassification(token, ClassificationTypeNames.XmlDocCommentEntityReference);
+                AddClassification(token, ClassificationTypeKind.XmlDocCommentEntityReference);
             }
             else if (token.Kind() != SyntaxKind.XmlTextLiteralNewLineToken)
             {
                 switch (token.Parent.Kind())
                 {
                     case SyntaxKind.XmlText:
-                        AddClassification(token, ClassificationTypeNames.XmlDocCommentText);
+                        AddClassification(token, ClassificationTypeKind.XmlDocCommentText);
                         break;
                     case SyntaxKind.XmlTextAttribute:
-                        AddClassification(token, ClassificationTypeNames.XmlDocCommentAttributeValue);
+                        AddClassification(token, ClassificationTypeKind.XmlDocCommentAttributeValue);
                         break;
                     case SyntaxKind.XmlComment:
-                        AddClassification(token, ClassificationTypeNames.XmlDocCommentComment);
+                        AddClassification(token, ClassificationTypeKind.XmlDocCommentComment);
                         break;
                     case SyntaxKind.XmlCDataSection:
-                        AddClassification(token, ClassificationTypeNames.XmlDocCommentCDataSection);
+                        AddClassification(token, ClassificationTypeKind.XmlDocCommentCDataSection);
                         break;
                     case SyntaxKind.XmlProcessingInstruction:
-                        AddClassification(token, ClassificationTypeNames.XmlDocCommentProcessingInstruction);
+                        AddClassification(token, ClassificationTypeKind.XmlDocCommentProcessingInstruction);
                         break;
                 }
             }
@@ -190,18 +190,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyXmlName(XmlNameSyntax node)
         {
-            string classificationType;
+            ClassificationTypeKind classificationType;
             if (node.Parent is XmlAttributeSyntax)
             {
-                classificationType = ClassificationTypeNames.XmlDocCommentAttributeName;
+                classificationType = ClassificationTypeKind.XmlDocCommentAttributeName;
             }
             else if (node.Parent is XmlProcessingInstructionSyntax)
             {
-                classificationType = ClassificationTypeNames.XmlDocCommentProcessingInstruction;
+                classificationType = ClassificationTypeKind.XmlDocCommentProcessingInstruction;
             }
             else
             {
-                classificationType = ClassificationTypeNames.XmlDocCommentName;
+                classificationType = ClassificationTypeKind.XmlDocCommentName;
             }
 
             var prefix = node.Prefix;
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyXmlElementStartTag(XmlElementStartTagSyntax node)
         {
-            AddXmlClassification(node.LessThanToken, ClassificationTypeNames.XmlDocCommentDelimiter);
+            AddXmlClassification(node.LessThanToken, ClassificationTypeKind.XmlDocCommentDelimiter);
             ClassifyXmlName(node.Name);
 
             foreach (var attribute in node.Attributes)
@@ -236,19 +236,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 ClassifyXmlAttribute(attribute);
             }
 
-            AddXmlClassification(node.GreaterThanToken, ClassificationTypeNames.XmlDocCommentDelimiter);
+            AddXmlClassification(node.GreaterThanToken, ClassificationTypeKind.XmlDocCommentDelimiter);
         }
 
         private void ClassifyXmlElementEndTag(XmlElementEndTagSyntax node)
         {
-            AddXmlClassification(node.LessThanSlashToken, ClassificationTypeNames.XmlDocCommentDelimiter);
+            AddXmlClassification(node.LessThanSlashToken, ClassificationTypeKind.XmlDocCommentDelimiter);
             ClassifyXmlName(node.Name);
-            AddXmlClassification(node.GreaterThanToken, ClassificationTypeNames.XmlDocCommentDelimiter);
+            AddXmlClassification(node.GreaterThanToken, ClassificationTypeKind.XmlDocCommentDelimiter);
         }
 
         private void ClassifyXmlEmptyElement(XmlEmptyElementSyntax node)
         {
-            AddXmlClassification(node.LessThanToken, ClassificationTypeNames.XmlDocCommentDelimiter);
+            AddXmlClassification(node.LessThanToken, ClassificationTypeKind.XmlDocCommentDelimiter);
             ClassifyXmlName(node.Name);
 
             foreach (var attribute in node.Attributes)
@@ -256,14 +256,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 ClassifyXmlAttribute(attribute);
             }
 
-            AddXmlClassification(node.SlashGreaterThanToken, ClassificationTypeNames.XmlDocCommentDelimiter);
+            AddXmlClassification(node.SlashGreaterThanToken, ClassificationTypeKind.XmlDocCommentDelimiter);
         }
 
         private void ClassifyXmlAttribute(XmlAttributeSyntax attribute)
         {
             ClassifyXmlName(attribute.Name);
-            AddXmlClassification(attribute.EqualsToken, ClassificationTypeNames.XmlDocCommentDelimiter);
-            AddXmlClassification(attribute.StartQuoteToken, ClassificationTypeNames.XmlDocCommentAttributeQuotes);
+            AddXmlClassification(attribute.EqualsToken, ClassificationTypeKind.XmlDocCommentDelimiter);
+            AddXmlClassification(attribute.StartQuoteToken, ClassificationTypeKind.XmlDocCommentAttributeQuotes);
 
             switch (attribute.Kind())
             {
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     break;
             }
 
-            AddXmlClassification(attribute.EndQuoteToken, ClassificationTypeNames.XmlDocCommentAttributeQuotes);
+            AddXmlClassification(attribute.EndQuoteToken, ClassificationTypeKind.XmlDocCommentAttributeQuotes);
         }
 
         private void ClassifyXmlText(XmlTextSyntax node)
@@ -288,24 +288,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyXmlComment(XmlCommentSyntax node)
         {
-            AddXmlClassification(node.LessThanExclamationMinusMinusToken, ClassificationTypeNames.XmlDocCommentDelimiter);
+            AddXmlClassification(node.LessThanExclamationMinusMinusToken, ClassificationTypeKind.XmlDocCommentDelimiter);
             ClassifyXmlTextTokens(node.TextTokens);
-            AddXmlClassification(node.MinusMinusGreaterThanToken, ClassificationTypeNames.XmlDocCommentDelimiter);
+            AddXmlClassification(node.MinusMinusGreaterThanToken, ClassificationTypeKind.XmlDocCommentDelimiter);
         }
 
         private void ClassifyXmlCDataSection(XmlCDataSectionSyntax node)
         {
-            AddXmlClassification(node.StartCDataToken, ClassificationTypeNames.XmlDocCommentDelimiter);
+            AddXmlClassification(node.StartCDataToken, ClassificationTypeKind.XmlDocCommentDelimiter);
             ClassifyXmlTextTokens(node.TextTokens);
-            AddXmlClassification(node.EndCDataToken, ClassificationTypeNames.XmlDocCommentDelimiter);
+            AddXmlClassification(node.EndCDataToken, ClassificationTypeKind.XmlDocCommentDelimiter);
         }
 
         private void ClassifyXmlProcessingInstruction(XmlProcessingInstructionSyntax node)
         {
-            AddXmlClassification(node.StartProcessingInstructionToken, ClassificationTypeNames.XmlDocCommentProcessingInstruction);
+            AddXmlClassification(node.StartProcessingInstructionToken, ClassificationTypeKind.XmlDocCommentProcessingInstruction);
             ClassifyXmlName(node.Name);
             ClassifyXmlTextTokens(node.TextTokens);
-            AddXmlClassification(node.EndProcessingInstructionToken, ClassificationTypeNames.XmlDocCommentProcessingInstruction);
+            AddXmlClassification(node.EndProcessingInstructionToken, ClassificationTypeKind.XmlDocCommentProcessingInstruction);
         }
     }
 }

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 _worker = worker
             End Sub
 
-            Private Sub AddTokenClassification(token As SyntaxToken, classificationType As String)
+            Private Sub AddTokenClassification(token As SyntaxToken, classificationType As ClassificationTypeKind?)
                 _worker.AddClassification(token, classificationType)
                 _worker.ClassifyTrivia(token)
             End Sub
@@ -93,24 +93,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Sub
 
             Private Sub ClassifyXmlStartElement(node As XmlElementStartTagSyntax)
-                AddTokenClassification(node.GreaterThanToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.GreaterThanToken, ClassificationTypeKind.XmlLiteralDelimiter)
                 ClassifyXmlNode(node.Name)
 
                 For Each attribute In node.Attributes
                     ClassifyXmlNode(attribute)
                 Next
 
-                AddTokenClassification(node.LessThanToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.LessThanToken, ClassificationTypeKind.XmlLiteralDelimiter)
             End Sub
 
             Private Sub ClassifyXmlEndElement(node As XmlElementEndTagSyntax)
-                AddTokenClassification(node.GreaterThanToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.GreaterThanToken, ClassificationTypeKind.XmlLiteralDelimiter)
 
                 If node.Name IsNot Nothing Then
                     ClassifyXmlName(node.Name)
                 End If
 
-                AddTokenClassification(node.LessThanSlashToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.LessThanSlashToken, ClassificationTypeKind.XmlLiteralDelimiter)
             End Sub
 
             Private Sub ClassifyXmlElement(node As XmlElementSyntax)
@@ -128,66 +128,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Sub
 
             Private Sub ClassifyXmlEmptyElement(node As XmlEmptyElementSyntax)
-                AddTokenClassification(node.LessThanToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.LessThanToken, ClassificationTypeKind.XmlLiteralDelimiter)
                 ClassifyXmlNode(node.Name)
 
                 For Each attribute In node.Attributes
                     ClassifyXmlNode(attribute)
                 Next
 
-                AddTokenClassification(node.SlashGreaterThanToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.SlashGreaterThanToken, ClassificationTypeKind.XmlLiteralDelimiter)
             End Sub
 
             Private Sub ClassifyXmlAttribute(node As XmlAttributeSyntax)
                 ClassifyXmlNode(node.Name)
-                AddTokenClassification(node.EqualsToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.EqualsToken, ClassificationTypeKind.XmlLiteralDelimiter)
                 ClassifyXmlNode(node.Value)
             End Sub
 
             Private Sub ClassifyXmlString(node As XmlStringSyntax)
-                AddTokenClassification(node.StartQuoteToken, ClassificationTypeNames.XmlLiteralAttributeQuotes)
+                AddTokenClassification(node.StartQuoteToken, ClassificationTypeKind.XmlLiteralAttributeQuotes)
 
                 For Each textToken In node.TextTokens
                     ClassifyToken(textToken)
                 Next
 
-                AddTokenClassification(node.EndQuoteToken, ClassificationTypeNames.XmlLiteralAttributeQuotes)
+                AddTokenClassification(node.EndQuoteToken, ClassificationTypeKind.XmlLiteralAttributeQuotes)
             End Sub
             Private Sub ClassifyXmlProcessingInstruction(node As XmlProcessingInstructionSyntax)
-                AddTokenClassification(node.LessThanQuestionToken, ClassificationTypeNames.XmlLiteralDelimiter)
-                AddTokenClassification(node.Name, ClassificationTypeNames.XmlLiteralName)
+                AddTokenClassification(node.LessThanQuestionToken, ClassificationTypeKind.XmlLiteralDelimiter)
+                AddTokenClassification(node.Name, ClassificationTypeKind.XmlLiteralName)
 
                 For Each textToken In node.TextTokens
                     ClassifyToken(textToken)
                 Next
 
-                AddTokenClassification(node.QuestionGreaterThanToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.QuestionGreaterThanToken, ClassificationTypeKind.XmlLiteralDelimiter)
             End Sub
 
             Private Sub ClassifyXmlEmbeddedExpression(node As XmlEmbeddedExpressionSyntax)
-                AddTokenClassification(node.LessThanPercentEqualsToken, ClassificationTypeNames.XmlLiteralEmbeddedExpression)
+                AddTokenClassification(node.LessThanPercentEqualsToken, ClassificationTypeKind.XmlLiteralEmbeddedExpression)
                 _worker.ClassifyNode(node.Expression)
-                AddTokenClassification(node.PercentGreaterThanToken, ClassificationTypeNames.XmlLiteralEmbeddedExpression)
+                AddTokenClassification(node.PercentGreaterThanToken, ClassificationTypeKind.XmlLiteralEmbeddedExpression)
             End Sub
 
             Private Sub ClassifyXmlComment(node As XmlCommentSyntax)
-                AddTokenClassification(node.LessThanExclamationMinusMinusToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.LessThanExclamationMinusMinusToken, ClassificationTypeKind.XmlLiteralDelimiter)
 
                 For Each textToken In node.TextTokens
                     ClassifyToken(textToken)
                 Next
 
-                AddTokenClassification(node.MinusMinusGreaterThanToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.MinusMinusGreaterThanToken, ClassificationTypeKind.XmlLiteralDelimiter)
             End Sub
 
             Private Sub ClassifyXmlCData(node As XmlCDataSectionSyntax)
-                AddTokenClassification(node.BeginCDataToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.BeginCDataToken, ClassificationTypeKind.XmlLiteralDelimiter)
 
                 For Each textToken In node.TextTokens
                     ClassifyToken(textToken)
                 Next
 
-                AddTokenClassification(node.EndCDataToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.EndCDataToken, ClassificationTypeKind.XmlLiteralDelimiter)
             End Sub
 
             Private Sub ClassifyXmlText(node As XmlTextSyntax)
@@ -197,8 +197,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Sub
 
             Private Sub ClassifyDeclaration(node As XmlDeclarationSyntax)
-                AddTokenClassification(node.LessThanQuestionToken, ClassificationTypeNames.XmlLiteralDelimiter)
-                AddTokenClassification(node.XmlKeyword, ClassificationTypeNames.XmlLiteralName)
+                AddTokenClassification(node.LessThanQuestionToken, ClassificationTypeKind.XmlLiteralDelimiter)
+                AddTokenClassification(node.XmlKeyword, ClassificationTypeKind.XmlLiteralName)
 
                 If node.Encoding IsNot Nothing Then
                     ClassifyDeclarationOption(node.Encoding)
@@ -210,33 +210,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
                 ClassifyDeclarationOption(node.Version)
 
-                AddTokenClassification(node.QuestionGreaterThanToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.QuestionGreaterThanToken, ClassificationTypeKind.XmlLiteralDelimiter)
             End Sub
 
             Private Sub ClassifyDeclarationOption(node As XmlDeclarationOptionSyntax)
-                AddTokenClassification(node.Name, ClassificationTypeNames.XmlLiteralAttributeName)
-                AddTokenClassification(node.Equals, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.Name, ClassificationTypeKind.XmlLiteralAttributeName)
+                AddTokenClassification(node.Equals, ClassificationTypeKind.XmlLiteralDelimiter)
                 ClassifyXmlNode(node.Value)
             End Sub
 
             Private Sub ClassifyXmlNamespaceImportsClause(node As XmlNamespaceImportsClauseSyntax)
-                AddTokenClassification(node.LessThanToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.LessThanToken, ClassificationTypeKind.XmlLiteralDelimiter)
                 ClassifyXmlNode(node.XmlNamespace)
-                AddTokenClassification(node.GreaterThanToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(node.GreaterThanToken, ClassificationTypeKind.XmlLiteralDelimiter)
             End Sub
 
             Private Sub ClassifyXmlName(element As XmlNameSyntax)
                 ' First we need to determine the context of the name so we know the type
-                Dim type As String = Nothing
+                Dim type As ClassificationTypeKind? = Nothing
                 If TypeOf element.Parent Is XmlAttributeSyntax AndAlso
                     DirectCast(element.Parent, XmlAttributeSyntax).Name Is element Then
-                    type = ClassificationTypeNames.XmlLiteralAttributeName
+                    type = ClassificationTypeKind.XmlLiteralAttributeName
                 ElseIf TypeOf element.Parent Is XmlMemberAccessExpressionSyntax AndAlso
                     element.Parent.Kind = SyntaxKind.XmlAttributeAccessExpression AndAlso
                     DirectCast(element.Parent, XmlMemberAccessExpressionSyntax).Name Is element Then
-                    type = ClassificationTypeNames.XmlLiteralAttributeName
+                    type = ClassificationTypeKind.XmlLiteralAttributeName
                 ElseIf IsElementName(element) Then
-                    type = ClassificationTypeNames.XmlLiteralName
+                    type = ClassificationTypeKind.XmlLiteralName
                 End If
 
                 If type IsNot Nothing Then
@@ -278,9 +278,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Function
 
             Private Sub ClassifyXmlBracketedName(bracketedName As XmlBracketedNameSyntax)
-                AddTokenClassification(bracketedName.LessThanToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(bracketedName.LessThanToken, ClassificationTypeKind.XmlLiteralDelimiter)
                 ClassifyXmlName(bracketedName.Name)
-                AddTokenClassification(bracketedName.GreaterThanToken, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(bracketedName.GreaterThanToken, ClassificationTypeKind.XmlLiteralDelimiter)
             End Sub
 
             Private Sub ClassifyXmlMemberAccessExpression(syntax As XmlMemberAccessExpressionSyntax)
@@ -295,15 +295,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 ' After the operator, is a name -- which might need to be classified as an element or an attribute name
 
                 ' Classify initial '.'
-                AddTokenClassification(syntax.Token1, ClassificationTypeNames.XmlLiteralDelimiter)
+                AddTokenClassification(syntax.Token1, ClassificationTypeKind.XmlLiteralDelimiter)
 
                 ' Classify access modifier (e.g. '..' or '@')
                 If Not syntax.Token2.IsMissing Then
-                    AddTokenClassification(syntax.Token2, ClassificationTypeNames.XmlLiteralDelimiter)
+                    AddTokenClassification(syntax.Token2, ClassificationTypeKind.XmlLiteralDelimiter)
                 End If
 
                 If Not syntax.Token3.IsMissing Then
-                    AddTokenClassification(syntax.Token3, ClassificationTypeNames.XmlLiteralDelimiter)
+                    AddTokenClassification(syntax.Token3, ClassificationTypeKind.XmlLiteralDelimiter)
                 End If
 
                 ' Classify name -- which should be the last child of the expression (e.g.
@@ -323,14 +323,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Sub
 
             Private Sub ClassifyGetXmlNamespaceExpression(node As GetXmlNamespaceExpressionSyntax)
-                AddTokenClassification(node.GetXmlNamespaceKeyword, ClassificationTypeNames.Keyword)
-                AddTokenClassification(node.OpenParenToken, ClassificationTypeNames.Punctuation)
+                AddTokenClassification(node.GetXmlNamespaceKeyword, ClassificationTypeKind.Keyword)
+                AddTokenClassification(node.OpenParenToken, ClassificationTypeKind.Punctuation)
 
                 If node.Name IsNot Nothing Then
-                    AddTokenClassification(node.Name.Name, ClassificationTypeNames.XmlLiteralName)
+                    AddTokenClassification(node.Name.Name, ClassificationTypeKind.XmlLiteralName)
                 End If
 
-                AddTokenClassification(node.CloseParenToken, ClassificationTypeNames.Punctuation)
+                AddTokenClassification(node.CloseParenToken, ClassificationTypeKind.Punctuation)
             End Sub
         End Class
     End Class

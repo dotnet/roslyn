@@ -209,6 +209,8 @@
     </Compile>
     <Compile Include="AddImports\AddImportHelpers.cs" />
     <Compile Include="Classification\AbstractClassificationService.cs" />
+    <Compile Include="Classification\ClassificationTypeKind.cs" />
+    <Compile Include="Classification\ClassifiedSpanSlim.cs" />
     <Compile Include="Classification\IClassificationService.cs" />
     <Compile Include="ExtensionManager\IInfoBarService.cs" />
     <Compile Include="FindSymbols\FindReferences\DependentTypeFinder_ProjectIndex.cs" />

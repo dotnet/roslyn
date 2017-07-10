@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         public override void AddClassifications(
             SyntaxNode syntax,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            ArrayBuilder<ClassifiedSpanSlim> result,
             CancellationToken cancellationToken)
         {
             if (syntax is UsingDirectiveSyntax usingDirective)
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private void ClassifyUsingDirectiveSyntax(
             UsingDirectiveSyntax usingDirective,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            ArrayBuilder<ClassifiedSpanSlim> result,
             CancellationToken cancellationToken)
         {
             // For using aliases, we bind the target on the right of the equals and use that
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     if (classification != null)
                     {
                         var token = usingDirective.Alias.Name;
-                        result.Add(new ClassifiedSpan(token.Span, classification));
+                        result.Add(new ClassifiedSpanSlim(token.Span, classification.Value));
                     }
                 }
             }

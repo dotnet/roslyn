@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         public override void AddClassifications(
             SyntaxNode syntax,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            ArrayBuilder<ClassifiedSpanSlim> result,
             CancellationToken cancellationToken)
         {
             var name = syntax as NameSyntax;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private void ClassifyTypeSyntax(
             NameSyntax name,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            ArrayBuilder<ClassifiedSpanSlim> result,
             CancellationToken cancellationToken)
         {
             if (!IsNamespaceName(name))
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             NameSyntax name,
             SymbolInfo symbolInfo,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            ArrayBuilder<ClassifiedSpanSlim> result,
             CancellationToken cancellationToken)
         {
             if (symbolInfo.CandidateReason == CandidateReason.Ambiguous)
@@ -87,11 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             NameSyntax name,
             SymbolInfo symbolInfo,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            ArrayBuilder<ClassifiedSpanSlim> result,
             CancellationToken cancellationToken)
         {
             // If everything classifies the same way, then just pick that classification.
-            var set = PooledHashSet<ClassifiedSpan>.GetInstance();
+            var set = PooledHashSet<ClassifiedSpanSlim>.GetInstance();
             try
             {
                 foreach (var symbol in symbolInfo.CandidateSymbols)
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             ISymbol symbol,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
-            out ClassifiedSpan classifiedSpan)
+            out ClassifiedSpanSlim classifiedSpan)
         {
             if (symbol != null)
             {
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         // We bound to a symbol.  If we bound to a symbol called "var" then we want to
                         // classify this appropriately as a type.  Otherwise, we want to classify this as
                         // a keyword.
-                        classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
+                        classifiedSpan = new ClassifiedSpanSlim(name.Span, ClassificationTypeKind.Keyword);
                         return true;
                     }
                 }
@@ -162,13 +162,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     if (classification != null)
                     {
                         var token = name.GetNameToken();
-                        classifiedSpan = new ClassifiedSpan(token.Span, classification);
+                        classifiedSpan = new ClassifiedSpanSlim(token.Span, classification.Value);
                         return true;
                     }
                 }
             }
 
-            classifiedSpan = default(ClassifiedSpan);
+            classifiedSpan = default(ClassifiedSpanSlim);
             return false;
         }
 
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private bool TryClassifyFromIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
-            ArrayBuilder<ClassifiedSpan> result)
+            ArrayBuilder<ClassifiedSpanSlim> result)
         {
             // Okay - it wasn't a type. If the syntax matches "var q = from" or "q = from", and from
             // doesn't bind to anything then optimistically color from as a keyword.
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 var token = identifierName.Identifier;
                 if (identifierName.IsRightSideOfAnyAssignExpression() || identifierName.IsVariableDeclaratorValue())
                 {
-                    result.Add(new ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword));
+                    result.Add(new ClassifiedSpanSlim(token.Span, ClassificationTypeKind.Keyword));
                     return true;
                 }
             }
@@ -263,12 +263,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private bool TryClassifyValueIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
-            ArrayBuilder<ClassifiedSpan> result)
+            ArrayBuilder<ClassifiedSpanSlim> result)
         {
             var identifierName = name as IdentifierNameSyntax;
             if (symbolInfo.Symbol.IsImplicitValueParameter())
             {
-                result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
+                result.Add(new ClassifiedSpanSlim(identifierName.Identifier.Span, ClassificationTypeKind.Keyword));
                 return true;
             }
 
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         }
 
         private bool TryClassifyNameOfIdentifier(
-            NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
+            NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpanSlim> result)
         {
             var identifierName = name as IdentifierNameSyntax;
             if (identifierName != null &&
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 symbolInfo.Symbol == null &&
                 !symbolInfo.CandidateSymbols.Any())
             {
-                result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
+                result.Add(new ClassifiedSpanSlim(identifierName.Identifier.Span, ClassificationTypeKind.Keyword));
                 return true;
             }
 

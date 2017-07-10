@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         public override void AddClassifications(
             SyntaxToken lessThanToken,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            ArrayBuilder<ClassifiedSpanSlim> result,
             CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
@@ -41,7 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     var types = semanticModel.LookupTypeRegardlessOfArity(identifier, cancellationToken);
                     if (types.Any(s_shouldInclude))
                     {
-                        result.Add(new ClassifiedSpan(identifier.Span, GetClassificationForType(types.First())));
+                        var classification = GetClassificationForType(types.First());
+                        if (classification != null)
+                        {
+                            result.Add(new ClassifiedSpanSlim(identifier.Span, classification.Value));
+                        }
                     }
                 }
             }

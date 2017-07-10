@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         /// This method will be called for all nodes that match the types specified by the SyntaxNodeTypes property.
         /// Implementations should return null (instead of an empty enumerable) if they have no classifications for the provided node.
         /// </summary>
-        void AddClassifications(SyntaxNode node, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+        void AddClassifications(SyntaxNode node, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpanSlim> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// This method will be called for all nodes that match the types specified by the SyntaxTokenKinds property.
         /// Implementations should return null (instead of an empty enumerable) if they have no classifications for the provided token.
         /// </summary>
-        void AddClassifications(SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+        void AddClassifications(SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpanSlim> result, CancellationToken cancellationToken);
     }
 }

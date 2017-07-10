@@ -17,19 +17,19 @@ namespace Microsoft.CodeAnalysis.Classification
 
         void AddLexicalClassifications(SourceText text,
             TextSpan textSpan,
-            ArrayBuilder<ClassifiedSpan> result,
+            ArrayBuilder<ClassifiedSpanSlim> result,
             CancellationToken cancellationToken);
 
         void AddSyntacticClassifications(SyntaxTree syntaxTree,
             TextSpan textSpan,
-            ArrayBuilder<ClassifiedSpan> result,
+            ArrayBuilder<ClassifiedSpanSlim> result,
             CancellationToken cancellationToken);
 
         Task AddSemanticClassificationsAsync(Document document,
             TextSpan textSpan,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
             Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
-            ArrayBuilder<ClassifiedSpan> result,
+            ArrayBuilder<ClassifiedSpanSlim> result,
             CancellationToken cancellationToken);
 
         void AddSemanticClassifications(
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Classification
             Workspace workspace,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
             Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
-            ArrayBuilder<ClassifiedSpan> result,
+            ArrayBuilder<ClassifiedSpanSlim> result,
             CancellationToken cancellationToken);
 
         ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan);

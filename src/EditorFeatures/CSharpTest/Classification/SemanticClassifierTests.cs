@@ -43,13 +43,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var classifiers = service.GetDefaultSyntaxClassifiers();
                 var extensionManager = workspace.Services.GetService<IExtensionManager>();
 
-                var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                var results = ArrayBuilder<ClassifiedSpanSlim>.GetInstance();
                 await service.AddSemanticClassificationsAsync(document, textSpan,
                     extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
                     extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
                     results, CancellationToken.None);
 
-                return results.ToImmutableAndFree();
+                return results.Select(cs => cs.ToClassifiedSpan()).ToImmutableArray();
             }
         }
 

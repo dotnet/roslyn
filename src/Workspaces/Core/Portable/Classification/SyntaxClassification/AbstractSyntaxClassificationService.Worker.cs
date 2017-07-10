@@ -18,18 +18,18 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly SemanticModel _semanticModel;
             private readonly SyntaxTree _syntaxTree;
             private readonly TextSpan _textSpan;
-            private readonly ArrayBuilder<ClassifiedSpan> _list;
+            private readonly ArrayBuilder<ClassifiedSpanSlim> _list;
             private readonly CancellationToken _cancellationToken;
             private readonly Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> _getNodeClassifiers;
             private readonly Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> _getTokenClassifiers;
-            private readonly HashSet<ClassifiedSpan> _set;
+            private readonly HashSet<ClassifiedSpanSlim> _set;
             private readonly Stack<SyntaxNodeOrToken> _pendingNodes;
 
             private Worker(
                 Workspace workspace,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                ArrayBuilder<ClassifiedSpan> list,
+                ArrayBuilder<ClassifiedSpanSlim> list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 CancellationToken cancellationToken)
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 _cancellationToken = cancellationToken;
 
                 // get one from pool
-                _set = SharedPools.Default<HashSet<ClassifiedSpan>>().AllocateAndClear();
+                _set = SharedPools.Default<HashSet<ClassifiedSpanSlim>>().AllocateAndClear();
                 _pendingNodes = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
             }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 Workspace workspace,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                ArrayBuilder<ClassifiedSpan> list,
+                ArrayBuilder<ClassifiedSpanSlim> list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 CancellationToken cancellationToken)
@@ -66,16 +66,24 @@ namespace Microsoft.CodeAnalysis.Classification
                 finally
                 {
                     // release collections to the pool
-                    SharedPools.Default<HashSet<ClassifiedSpan>>().ClearAndFree(worker._set);
+                    SharedPools.Default<HashSet<ClassifiedSpanSlim>>().ClearAndFree(worker._set);
                     SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(worker._pendingNodes);
                 }
             }
 
-            private void AddClassification(TextSpan textSpan, string type)
+            private void AddClassification(TextSpan textSpan, ClassificationTypeKind? type)
+            {
+                if (type != null)
+                {
+                    AddClassification(textSpan, type.Value);
+                }
+            }
+
+            private void AddClassification(TextSpan textSpan, ClassificationTypeKind type)
             {
                 if (textSpan.Length > 0 && textSpan.OverlapsWith(_textSpan))
                 {
-                    var tuple = new ClassifiedSpan(type, textSpan);
+                    var tuple = new ClassifiedSpanSlim(type, textSpan);
                     if (!_set.Contains(tuple))
                     {
                         _list.Add(tuple);
@@ -122,14 +130,14 @@ namespace Microsoft.CodeAnalysis.Classification
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                    var result = ArrayBuilder<ClassifiedSpanSlim>.GetInstance();
                     classifier.AddClassifications(syntax, _semanticModel, result, _cancellationToken);
                     AddClassifications(result);
                     result.Free();
                 }
             }
 
-            private void AddClassifications(ArrayBuilder<ClassifiedSpan> classifications)
+            private void AddClassifications(ArrayBuilder<ClassifiedSpanSlim> classifications)
             {
                 if (classifications != null)
                 {
@@ -140,12 +148,9 @@ namespace Microsoft.CodeAnalysis.Classification
                 }
             }
 
-            private void AddClassification(ClassifiedSpan classification)
+            private void AddClassification(ClassifiedSpanSlim classifiedSpan)
             {
-                if (classification.ClassificationType != null)
-                {
-                    AddClassification(classification.TextSpan, classification.ClassificationType);
-                }
+                AddClassification(classifiedSpan.TextSpan, classifiedSpan.Kind);
             }
 
             private void ClassifyToken(SyntaxToken syntax)
@@ -156,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                    var result = ArrayBuilder<ClassifiedSpanSlim>.GetInstance();
                     classifier.AddClassifications(syntax, _semanticModel, result, _cancellationToken);
                     AddClassifications(result);
                     result.Free();

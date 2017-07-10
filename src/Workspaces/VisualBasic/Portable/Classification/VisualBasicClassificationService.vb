@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Inherits AbstractClassificationService
 
         Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            Dim temp = ArrayBuilder(Of ClassifiedSpan).GetInstance()
+            Dim temp = ArrayBuilder(Of ClassifiedSpanSlim).GetInstance()
             ClassificationHelpers.AddLexicalClassifications(text, textSpan, temp, cancellationToken)
             AddRange(temp, result)
             temp.Free()

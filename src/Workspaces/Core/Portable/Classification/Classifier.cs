@@ -38,21 +38,23 @@ namespace Microsoft.CodeAnalysis.Classification
             var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(syntaxClassifiers, c => c.SyntaxNodeTypes);
             var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(syntaxClassifiers, c => c.SyntaxTokenKinds);
 
-            var syntacticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
-            var semanticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            var syntacticClassifications = ArrayBuilder<ClassifiedSpanSlim>.GetInstance();
+            var semanticClassifications = ArrayBuilder<ClassifiedSpanSlim>.GetInstance();
             try
             {
                 service.AddSyntacticClassifications(semanticModel.SyntaxTree, textSpan, syntacticClassifications, cancellationToken);
                 service.AddSemanticClassifications(semanticModel, textSpan, workspace, getNodeClassifiers, getTokenClassifiers, semanticClassifications, cancellationToken);
 
-                var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
+                var allClassifications = ArrayBuilder<ClassifiedSpanSlim>.GetInstance();
+                    
+                allClassifications.AddRange(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
                 var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();
 
                 allClassifications.AddRange(syntacticClassifications.Where(
                     s => s.TextSpan.OverlapsWith(textSpan) && !semanticSet.Contains(s.TextSpan)));
                 allClassifications.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 
-                return allClassifications;
+                return allClassifications.Select(cs => cs.ToClassifiedSpan());
             }
             finally
             {

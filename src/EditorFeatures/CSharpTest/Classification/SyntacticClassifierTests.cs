@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var tree = await document.GetSyntaxTreeAsync();
 
                 var service = document.GetLanguageService<ISyntaxClassificationService>();
-                var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                var result = ArrayBuilder<ClassifiedSpanSlim>.GetInstance();
                 service.AddSyntacticClassifications(tree, textSpan, result, CancellationToken.None);
 
-                return result.ToImmutableAndFree();
+                return result.Select(cs => cs.ToClassifiedSpan()).ToImmutableArray();
             }
         }
 

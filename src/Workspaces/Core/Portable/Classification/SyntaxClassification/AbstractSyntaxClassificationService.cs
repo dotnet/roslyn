@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Classification
         {
         }
 
-        public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
-        public abstract void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+        public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpanSlim> result, CancellationToken cancellationToken);
+        public abstract void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, ArrayBuilder<ClassifiedSpanSlim> result, CancellationToken cancellationToken);
 
         public abstract ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers();
         public abstract ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan);
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Classification
             Document document, TextSpan textSpan,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
             Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
-            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            ArrayBuilder<ClassifiedSpanSlim> result, CancellationToken cancellationToken)
         {
             try
             {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Classification
             SemanticModel semanticModel, TextSpan textSpan, Workspace workspace,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
             Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
-            ArrayBuilder<ClassifiedSpan> result,
+            ArrayBuilder<ClassifiedSpanSlim> result,
             CancellationToken cancellationToken)
         {
             Worker.Classify(workspace, semanticModel, textSpan, result, getNodeClassifiers, getTokenClassifiers, cancellationToken);

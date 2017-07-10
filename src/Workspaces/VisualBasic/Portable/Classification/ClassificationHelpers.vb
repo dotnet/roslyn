@@ -15,77 +15,77 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         ''' <param name="token">The token to be classified.</param>
         ''' <returns>The classification type for the token</returns>
         ''' <remarks></remarks>
-        Public Function GetClassification(token As SyntaxToken) As String
+        Public Function GetClassification(token As SyntaxToken) As ClassificationTypeKind?
             If SyntaxFacts.IsKeywordKind(token.Kind) Then
-                Return ClassificationTypeNames.Keyword
+                Return ClassificationTypeKind.Keyword
             ElseIf IsStringToken(token) Then
-                Return ClassificationTypeNames.StringLiteral
+                Return ClassificationTypeKind.StringLiteral
             ElseIf SyntaxFacts.IsPunctuation(token.Kind) Then
                 Return ClassifyPunctuation(token)
             ElseIf token.Kind = SyntaxKind.IdentifierToken Then
                 Return ClassifyIdentifierSyntax(token)
             ElseIf token.IsNumericLiteral() Then
-                Return ClassificationTypeNames.NumericLiteral
+                Return ClassificationTypeKind.NumericLiteral
             ElseIf token.Kind = SyntaxKind.XmlNameToken Then
-                Return ClassificationTypeNames.XmlLiteralName
+                Return ClassificationTypeKind.XmlLiteralName
             ElseIf token.Kind = SyntaxKind.XmlTextLiteralToken Then
                 Select Case token.Parent.Kind
                     Case SyntaxKind.XmlString
-                        Return ClassificationTypeNames.XmlLiteralAttributeValue
+                        Return ClassificationTypeKind.XmlLiteralAttributeValue
                     Case SyntaxKind.XmlProcessingInstruction
-                        Return ClassificationTypeNames.XmlLiteralProcessingInstruction
+                        Return ClassificationTypeKind.XmlLiteralProcessingInstruction
                     Case SyntaxKind.XmlComment
-                        Return ClassificationTypeNames.XmlLiteralComment
+                        Return ClassificationTypeKind.XmlLiteralComment
                     Case SyntaxKind.XmlCDataSection
-                        Return ClassificationTypeNames.XmlLiteralCDataSection
+                        Return ClassificationTypeKind.XmlLiteralCDataSection
                     Case Else
-                        Return ClassificationTypeNames.XmlLiteralText
+                        Return ClassificationTypeKind.XmlLiteralText
                 End Select
             ElseIf token.Kind = SyntaxKind.XmlEntityLiteralToken Then
-                Return ClassificationTypeNames.XmlLiteralEntityReference
+                Return ClassificationTypeKind.XmlLiteralEntityReference
             ElseIf token.IsKind(SyntaxKind.None, SyntaxKind.BadToken) Then
                 Return Nothing
             Else
-                Return Contract.FailWithReturn(Of String)("Unhandled token kind: " & token.Kind().ToString())
+                Return Contract.FailWithReturn(Of ClassificationTypeKind)("Unhandled token kind: " & token.Kind().ToString())
             End If
         End Function
 
-        Private Function ClassifyPunctuation(token As SyntaxToken) As String
+        Private Function ClassifyPunctuation(token As SyntaxToken) As ClassificationTypeKind
             If AllOperators.Contains(token.Kind) Then
                 ' special cases...
                 Select Case token.Kind
                     Case SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken
                         If TypeOf token.Parent Is AttributeListSyntax Then
-                            Return ClassificationTypeNames.Punctuation
+                            Return ClassificationTypeKind.Punctuation
                         End If
                 End Select
 
-                Return ClassificationTypeNames.Operator
+                Return ClassificationTypeKind.Operator
             Else
-                Return ClassificationTypeNames.Punctuation
+                Return ClassificationTypeKind.Punctuation
             End If
         End Function
 
-        Private Function ClassifyIdentifierSyntax(identifier As SyntaxToken) As String
+        Private Function ClassifyIdentifierSyntax(identifier As SyntaxToken) As ClassificationTypeKind
             'Note: parent might be Nothing, if we are classifying raw tokens.
             Dim parent = identifier.Parent
 
             If TypeOf parent Is TypeStatementSyntax AndAlso DirectCast(parent, TypeStatementSyntax).Identifier = identifier Then
                 Return ClassifyTypeDeclarationIdentifier(identifier)
             ElseIf TypeOf parent Is EnumStatementSyntax AndAlso DirectCast(parent, EnumStatementSyntax).Identifier = identifier Then
-                Return ClassificationTypeNames.EnumName
+                Return ClassificationTypeKind.EnumName
             ElseIf TypeOf parent Is DelegateStatementSyntax AndAlso DirectCast(parent, DelegateStatementSyntax).Identifier = identifier AndAlso
                   (parent.Kind = SyntaxKind.DelegateSubStatement OrElse parent.Kind = SyntaxKind.DelegateFunctionStatement) Then
 
-                Return ClassificationTypeNames.DelegateName
+                Return ClassificationTypeKind.DelegateName
             ElseIf TypeOf parent Is TypeParameterSyntax AndAlso DirectCast(parent, TypeParameterSyntax).Identifier = identifier Then
-                Return ClassificationTypeNames.TypeParameterName
+                Return ClassificationTypeKind.TypeParameterName
             ElseIf (identifier.ToString() = "IsTrue" OrElse identifier.ToString() = "IsFalse") AndAlso
                 TypeOf parent Is OperatorStatementSyntax AndAlso DirectCast(parent, OperatorStatementSyntax).OperatorToken = identifier Then
 
-                Return ClassificationTypeNames.Keyword
+                Return ClassificationTypeKind.Keyword
             Else
-                Return ClassificationTypeNames.Identifier
+                Return ClassificationTypeKind.Identifier
             End If
         End Function
 
@@ -98,22 +98,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                    token.Parent.IsKind(SyntaxKind.InterpolatedStringExpression)
         End Function
 
-        Private Function ClassifyTypeDeclarationIdentifier(identifier As SyntaxToken) As String
+        Private Function ClassifyTypeDeclarationIdentifier(identifier As SyntaxToken) As ClassificationTypeKind
             Select Case identifier.Parent.Kind
                 Case SyntaxKind.ClassStatement
-                    Return ClassificationTypeNames.ClassName
+                    Return ClassificationTypeKind.ClassName
                 Case SyntaxKind.ModuleStatement
-                    Return ClassificationTypeNames.ModuleName
+                    Return ClassificationTypeKind.ModuleName
                 Case SyntaxKind.InterfaceStatement
-                    Return ClassificationTypeNames.InterfaceName
+                    Return ClassificationTypeKind.InterfaceName
                 Case SyntaxKind.StructureStatement
-                    Return ClassificationTypeNames.StructName
+                    Return ClassificationTypeKind.StructName
                 Case Else
-                    Return Contract.FailWithReturn(Of String)("Unhandled type declaration")
+                    Return Contract.FailWithReturn(Of ClassificationTypeKind)("Unhandled type declaration")
             End Select
         End Function
 
-        Friend Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Friend Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpanSlim), cancellationToken As CancellationToken)
             Dim text2 = text.ToString(textSpan)
             Dim tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition:=textSpan.Start)
             Worker.CollectClassifiedSpans(tokens, textSpan, result, cancellationToken)

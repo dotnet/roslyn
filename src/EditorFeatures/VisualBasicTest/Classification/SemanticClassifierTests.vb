@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
                 Dim tree = Await document.GetSyntaxTreeAsync()
 
-                Dim result = ArrayBuilder(Of ClassifiedSpan).GetInstance()
+                Dim result = ArrayBuilder(Of ClassifiedSpanSlim).GetInstance()
                 Dim classifiers = service.GetDefaultSyntaxClassifiers()
                 Dim extensionManager = workspace.Services.GetService(Of IExtensionManager)
 
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                     extensionManager.CreateTokenExtensionGetter(classifiers, Function(c) c.SyntaxTokenKinds),
                     result, CancellationToken.None)
 
-                Return result.ToImmutableAndFree()
+                Return result.Select(Function(cs) cs.ToClassifiedSpan()).ToImmutableArray()
             End Using
         End Function
 

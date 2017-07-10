@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var classifiers = service.GetDefaultSyntaxClassifiers();
                 var extensionManager = workspace.Services.GetService<IExtensionManager>();
 
-                var semanticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                var syntacticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                var semanticClassifications = ArrayBuilder<ClassifiedSpanSlim>.GetInstance();
+                var syntacticClassifications = ArrayBuilder<ClassifiedSpanSlim>.GetInstance();
                 await service.AddSemanticClassificationsAsync(document, textSpan,
                     extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
                     extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var classificationsSpans = new HashSet<TextSpan>();
 
                 // Add all the semantic classifications in.
-                var allClassifications = new List<ClassifiedSpan>(semanticClassifications);
+                var allClassifications = new List<ClassifiedSpanSlim>(semanticClassifications);
                 classificationsSpans.AddRange(allClassifications.Select(t => t.TextSpan));
 
                 // Add the syntactic classifications.  But only if they don't conflict with a semantic
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
                 syntacticClassifications.Free();
                 semanticClassifications.Free();
-                return allClassifications.ToImmutableArray();
+                return allClassifications.Select(cs => cs.ToClassifiedSpan()).ToImmutableArray();
             }
         }
 
