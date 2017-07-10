@@ -82,7 +82,7 @@ class C {
 class C {
     void Foo() {
 //[
-        Func<int, int> f = (x) => {
+        Func<int, int> f = x => {
             return 2 * x;
         };
 //]
