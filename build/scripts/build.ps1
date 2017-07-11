@@ -79,7 +79,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "") {
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal";
+    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal;summary";
     
     if ($logFile -ne "") {
         $args += " /filelogger /fileloggerparameters:Verbosity=normal;logFile=$logFile";
