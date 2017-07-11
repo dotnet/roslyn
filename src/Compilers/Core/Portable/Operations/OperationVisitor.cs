@@ -330,6 +330,21 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitMemberInitializerExpression(IMemberInitializerExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitCollectionElementInitializerExpression(ICollectionElementInitializerExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitFieldInitializer(IFieldInitializer operation)
         {
             DefaultVisit(operation);
@@ -771,6 +786,21 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitMemberInitializerExpression(IMemberInitializerExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitCollectionElementInitializerExpression(ICollectionElementInitializerExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

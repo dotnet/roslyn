@@ -78,26 +78,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend Partial Class BoundAnonymousTypeFieldInitializer
+    Partial Friend Class BoundAnonymousTypeFieldInitializer
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
                 Return ImmutableArray.Create(Of BoundNode)(Me.Value)
-            End Get
-        End Property
-    End Class
-
-    Friend Partial Class BoundObjectInitializerExpression
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return StaticCast(Of BoundNode).From(Me.Initializers)
-            End Get
-        End Property
-    End Class
-
-    Friend Partial Class BoundCollectionInitializerExpression
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return StaticCast(Of BoundNode).From(Me.Initializers)
             End Get
         End Property
     End Class

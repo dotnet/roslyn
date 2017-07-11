@@ -892,7 +892,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             VisitArguments(operation);
-            VisitArray(operation.Initializers, "Initializers", logElementCount: true);
+            Visit(operation.Initializer, "Initializer");
         }
 
         public override void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
@@ -901,6 +901,36 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             VisitArray(operation.Initializers, "Initializers", logElementCount: true);
+        }
+
+        public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
+        {
+            LogString(nameof(IObjectOrCollectionInitializerExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Initializers, "Initializers", logElementCount: true);
+        }
+
+        public override void VisitMemberInitializerExpression(IMemberInitializerExpression operation)
+        {
+            LogString(nameof(IMemberInitializerExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.InitializedMember, "InitializedMember");
+            Visit(operation.Initializer, "Initializer");
+        }
+
+        public override void VisitCollectionElementInitializerExpression(ICollectionElementInitializerExpression operation)
+        {
+            LogString(nameof(ICollectionElementInitializerExpression));
+            if (operation.AddMethod != null)
+            {
+                LogString($" (AddMethod: {operation.AddMethod.ToTestDisplayString()})");
+            }
+            LogString($" (IsDynamic: {operation.IsDynamic})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Arguments, "Arguments", logElementCount: true);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)
