@@ -176,8 +176,6 @@ function Build-Artifacts() {
     if ($buildAll) {
         Build-ExtraSignArtifacts
     }
-
-    Stop-BuildProcesses
 }
 
 # Not all of our artifacts needed for signing are included inside Roslyn.sln. Need to 
