@@ -125,12 +125,6 @@ namespace Roslyn.Utilities
         [StructLayout(LayoutKind.Explicit)]
         internal struct GuidAccessor
         {
-            unsafe static GuidAccessor()
-            {
-                Debug.Assert(sizeof(Guid) == 16);
-                Debug.Assert(sizeof(long) == 8);
-            }
-
             [FieldOffset(0)]
             public Guid Guid;
 
