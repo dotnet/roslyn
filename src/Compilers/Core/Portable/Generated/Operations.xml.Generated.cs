@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Reference;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -87,7 +86,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Argument;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -150,7 +148,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Expression;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -233,7 +230,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Value;
                 yield return InConversion;
                 yield return OutConversion;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -334,7 +330,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                     yield return dimensionSize;
                 }
                 yield return Initializer;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -418,7 +413,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return index;
                 }
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -497,7 +491,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return elementValue;
                 }
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -577,7 +570,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return Target;
                 yield return Value;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -654,7 +646,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return AwaitedValue;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -738,7 +729,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return LeftOperand;
                 yield return RightOperand;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -822,7 +812,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return statement;
                 }
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -892,7 +881,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -954,7 +942,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return Filter;
                 yield return Handler;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1042,7 +1029,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return Target;
                 yield return Value;
-
             }
         }
 
@@ -1125,7 +1111,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return ConditionalInstance;
                 yield return ConditionalValue;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1197,7 +1182,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1238,7 +1222,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Condition;
                 yield return IfTrueValue;
                 yield return IfFalseValue;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1346,7 +1329,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Operand;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1407,7 +1389,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1434,7 +1415,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1461,7 +1441,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1510,7 +1489,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return EventInstance;
                 yield return HandlerValue;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1590,7 +1568,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Instance;
-
             }
         }
 
@@ -1656,7 +1633,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Expression;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1721,7 +1697,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Value;
-
             }
         }
 
@@ -1782,7 +1757,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Instance;
-
             }
         }
 
@@ -1853,7 +1827,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return Variables;
                 yield return Body;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -1935,7 +1908,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return Collection;
                 yield return Body;
-
             }
         }
 
@@ -2030,7 +2002,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return atLoopBottom;
                 }
-
             }
         }
 
@@ -2157,7 +2128,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Condition;
                 yield return IfTrueStatement;
                 yield return IfFalseStatement;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -2260,7 +2230,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Target;
-
             }
         }
 
@@ -2328,7 +2297,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -2362,7 +2330,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return part;
                 }
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -2426,7 +2393,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Text;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -2500,7 +2466,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Expression;
                 yield return Alignment;
                 yield return FormatString;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -2716,7 +2681,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return argumentsInEvaluationOrder;
                 }
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -2805,7 +2769,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Operand;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -2874,7 +2837,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return LabeledStatement;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -2943,7 +2905,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Body;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3012,7 +2973,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Instance;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3077,7 +3037,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3109,7 +3068,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3145,7 +3103,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return LockedObject;
                 yield return Body;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3269,7 +3226,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Instance;
-
             }
         }
 
@@ -3340,7 +3296,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return PrimaryOperand;
                 yield return SecondaryOperand;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3436,7 +3391,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return initializer;
                 }
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3523,7 +3477,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return initializer;
                 }
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3584,7 +3537,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3616,7 +3568,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Value;
-
             }
         }
 
@@ -3677,7 +3628,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3708,7 +3658,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Operand;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3769,7 +3718,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3800,7 +3748,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Pointer;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3865,7 +3812,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Value;
-
             }
         }
 
@@ -3938,7 +3884,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return argumentsInEvaluationOrder;
                 }
-
             }
         }
 
@@ -4046,7 +3991,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return MinimumValue;
                 yield return MaximumValue;
-
             }
         }
 
@@ -4129,7 +4073,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Value;
-
             }
         }
 
@@ -4198,7 +4141,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return ReturnedValue;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4281,7 +4223,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Value;
-
             }
         }
 
@@ -4343,7 +4284,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4370,7 +4310,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4397,7 +4336,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4439,7 +4377,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return body;
                 }
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4523,7 +4460,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return @case;
                 }
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4616,7 +4552,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4680,7 +4615,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return ThrownObject;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4757,7 +4691,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                     yield return catche;
                 }
                 yield return FinallyHandler;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4841,7 +4774,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4885,7 +4817,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -4931,7 +4862,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Operand;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -5007,7 +4937,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Declaration;
                 yield return Value;
                 yield return Body;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -5104,7 +5033,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Initializer;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -5173,7 +5101,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return declaration;
                 }
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -5243,7 +5170,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
 
@@ -5325,7 +5251,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return Value;
                 yield return Body;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -5406,7 +5331,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Body;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -5471,7 +5395,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Value;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -5537,7 +5460,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield break;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -5578,7 +5500,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return Pattern;
                 yield return GuardExpression;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -5659,7 +5580,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 yield return Expression;
                 yield return Pattern;
-
             }
         }
         public override void Accept(OperationVisitor visitor)
