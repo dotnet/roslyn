@@ -299,6 +299,19 @@ namespace Microsoft.CodeAnalysis.Editing
                     setAccessorStatements);
         }
 
+        public SyntaxNode WithAccessorDeclarations(SyntaxNode declaration, params SyntaxNode[] accessorDeclarations)
+            => WithAccessorDeclarations(declaration, (IEnumerable<SyntaxNode>)accessorDeclarations);
+
+        public abstract SyntaxNode WithAccessorDeclarations(SyntaxNode declaration, IEnumerable<SyntaxNode> accessorDeclarations);
+
+        public abstract SyntaxNode GetAccessorDeclaration(
+            Accessibility accessibility = Accessibility.NotApplicable,
+            IEnumerable<SyntaxNode> statements = null);
+
+        public abstract SyntaxNode SetAccessorDeclaration(
+            Accessibility accessibility = Accessibility.NotApplicable,
+            IEnumerable<SyntaxNode> statements = null);
+
         /// <summary>
         /// Creates an indexer declaration.
         /// </summary>

@@ -59,30 +59,6 @@ try
 
     $exitCode = 0
 
-    Write-Host "Uploading CoreXT packages..."
-
-    try
-    {
-        $packagesDropDir = (Join-Path $binariesPath "DevDivPackages")
-        $coreXTRoot = "\\cpvsbuild\drops\dd\NuGet"
-
-        if (-not $test) 
-        {
-            <# Do not overwrite existing packages. #>
-            robocopy /xo /xn /xc (Join-Path $packagesDropDir "Roslyn") $coreXTRoot "*.nupkg"
-
-            <# TODO: Once all dependencies are available on NuGet we can merge the following two commands. #>
-            robocopy /xo /xn /xc (Join-Path $packagesDropDir "ManagedDependencies") $coreXTRoot "VS.ExternalAPIs.*.nupkg"
-            robocopy /xo /xn /xc (Join-Path $packagesDropDir "ManagedDependencies") (Join-Path $coreXTRoot "nugetorg") "Microsoft.*.nupkg" "System.*.nupkg" "ManagedEsent.*.nupkg"
-            robocopy /xo /xn /xc (Join-Path $packagesDropDir "NativeDependencies") (Join-Path $coreXTRoot "nugetorg") "Microsoft.*.nupkg" "System.*.nupkg" "ManagedEsent.*.nupkg"
-        }
-    }
-    catch [exception]
-    {
-        write-host $_.Exception
-        $exitCode = 5
-    }
-
     Write-Host "Uploading NuGet packages..."
 
     $nugetPath = Join-Path $binariesPath "NuGet\PerBuildPreRelease"

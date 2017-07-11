@@ -19276,9 +19276,9 @@ public class Cls
                 // (10,28): error CS1003: Syntax error, ']' expected
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(10, 28),
-                // (7,13): error CS0501: 'b(out var)' must declare a body because it is not marked abstract, extern, or partial
+                // (7,13): error CS08112: 'b(out var)' is a local function and must therefore always have a body.
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
                 // (7,19): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 19),

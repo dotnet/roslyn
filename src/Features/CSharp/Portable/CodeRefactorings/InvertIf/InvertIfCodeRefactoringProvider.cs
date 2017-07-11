@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Invert_if_statement,
-                    (c) => InvertIfAsync(document, ifStatement, c)));
+                    c => InvertIfAsync(document, ifStatement, c)));
         }
 
         private async Task<Document> InvertIfAsync(Document document, IfStatementSyntax ifStatement, CancellationToken cancellationToken)

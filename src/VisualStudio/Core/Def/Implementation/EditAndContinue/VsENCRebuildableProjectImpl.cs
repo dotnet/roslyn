@@ -151,12 +151,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             }
 
             // NotifyEncEditDisallowedByProject is broken if the project isn't built at the time the debugging starts (debugger bug 877586).
-            // TODO: localize messages https://github.com/dotnet/roslyn/issues/16656
-
             string message;
             if (sessionReason == SessionReadOnlyReason.Running)
             {
-                message = "Changes are not allowed while code is running.";
+                message = ServicesVSResources.ChangesNotAllowedWhileCodeIsRunning;
             }
             else
             {
@@ -169,21 +167,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         bool deferredLoad = (_vsProject.ServiceProvider.GetService(typeof(SVsSolution)) as IVsSolution7)?.IsSolutionLoadDeferred() == true;
                         if (deferredLoad)
                         {
-                            message = "Changes are not allowed if the project wasn't loaded and built when debugging started." + Environment.NewLine + 
-                                      Environment.NewLine +
-                                      "'Lightweight solution load' is enabled for the current solution. " +
-                                      "Disable it to ensure that all projects are loaded when debugging starts.";
-
+                            message = ServicesVSResources.ChangesNotAllowedIfProjectWasntLoadedWhileDebugging;
                             s_encDebuggingSessionInfo?.LogReadOnlyEditAttemptedProjectNotBuiltOrLoaded();
                         }
                         else
                         {
-                            message = "Changes are not allowed if the project wasn't built when debugging started.";
+                            message = ServicesVSResources.ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted;
                         }
                         break;
 
                     case ProjectReadOnlyReason.NotLoaded:
-                        message = "Changes are not allowed if the assembly has not been loaded.";
+                        message = ServicesVSResources.ChangesNotAllowedIFAssemblyHasNotBeenLoaded;
                         break;
 
                     default:
