@@ -22,24 +22,40 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            var linkedDocumentIds = document.GetLinkedDocumentIds();
+            var (model, symbols, supportedPlatforms) = await ComputeQuickInfoDataAsync(document, token, cancellationToken).ConfigureAwait(false);
 
-            var modelAndSymbols = await this.BindTokenAsync(document, token, cancellationToken).ConfigureAwait(false);
-            if (modelAndSymbols.Item2.Length == 0 && !linkedDocumentIds.Any())
+            if (symbols.IsDefault || symbols.IsEmpty)
             {
                 return null;
             }
 
-            if (!linkedDocumentIds.Any())
+            return await CreateContentAsync(document.Project.Solution.Workspace,
+                token, model, symbols, supportedPlatforms,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<(SemanticModel model, ImmutableArray<ISymbol> symbols, SupportedPlatformData supportedPlatforms)> ComputeQuickInfoDataAsync(
+            Document document,
+            SyntaxToken token,
+            CancellationToken cancellationToken)
+        {
+            var linkedDocumentIds = document.GetLinkedDocumentIds();
+            if (linkedDocumentIds.Any())
             {
-                return await CreateContentAsync(document.Project.Solution.Workspace,
-                    token,
-                    modelAndSymbols.Item1,
-                    modelAndSymbols.Item2,
-                    supportedPlatforms: null,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await ComputeFromLinkedDocumentsAsync(document, linkedDocumentIds, token, cancellationToken).ConfigureAwait(false);
             }
 
+            var (model, symbols) = await BindTokenAsync(document, token, cancellationToken).ConfigureAwait(false);
+
+            return (model, symbols, supportedPlatforms: null);
+        }
+
+        private async Task<(SemanticModel model, ImmutableArray<ISymbol> symbols, SupportedPlatformData supportedPlatforms)> ComputeFromLinkedDocumentsAsync(
+            Document document,
+            ImmutableArray<DocumentId> linkedDocumentIds,
+            SyntaxToken token,
+            CancellationToken cancellationToken)
+        {
             // Linked files/shared projects: imagine the following when FOO is false
             // #if FOO
             // int x = 3;
@@ -47,42 +63,41 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             // var y = x$$;
             //
             // 'x' will bind as an error type, so we'll show incorrect information.
-            // Instead, we need to find the head in which we get the best binding, 
+            // Instead, we need to find the head in which we get the best binding,
             // which in this case is the one with no errors.
+
+            var (model, symbols) = await BindTokenAsync(document, token, cancellationToken).ConfigureAwait(false);
 
             var candidateProjects = new List<ProjectId>() { document.Project.Id };
             var invalidProjects = new List<ProjectId>();
 
-            var candidateResults = new List<Tuple<DocumentId, SemanticModel, ImmutableArray<ISymbol>>>();
-            candidateResults.Add(Tuple.Create(document.Id, modelAndSymbols.Item1, modelAndSymbols.Item2));
-
-            foreach (var link in linkedDocumentIds)
+            var candidateResults = new List<(DocumentId docId, SemanticModel model, ImmutableArray<ISymbol> symbols)>
             {
-                var linkedDocument = document.Project.Solution.GetDocument(link);
-                var linkedToken = await FindTokenInLinkedDocument(token, document, linkedDocument, cancellationToken).ConfigureAwait(false);
+                (document.Id, model, symbols)
+            };
+
+            foreach (var linkedDocumentId in linkedDocumentIds)
+            {
+                var linkedDocument = document.Project.Solution.GetDocument(linkedDocumentId);
+                var linkedToken = await FindTokenInLinkedDocumentAsync(token, document, linkedDocument, cancellationToken).ConfigureAwait(false);
 
                 if (linkedToken != default)
                 {
                     // Not in an inactive region, so this file is a candidate.
-                    candidateProjects.Add(link.ProjectId);
-                    var linkedModelAndSymbols = await this.BindTokenAsync(linkedDocument, linkedToken, cancellationToken).ConfigureAwait(false);
-                    candidateResults.Add(Tuple.Create(link, linkedModelAndSymbols.Item1, linkedModelAndSymbols.Item2));
+                    candidateProjects.Add(linkedDocumentId.ProjectId);
+                    var (linkedModel, linkedSymbols) = await BindTokenAsync(linkedDocument, linkedToken, cancellationToken).ConfigureAwait(false);
+                    candidateResults.Add((linkedDocumentId, linkedModel, linkedSymbols));
                 }
             }
 
             // Take the first result with no errors.
-            var bestBinding = candidateResults.FirstOrDefault(
-                c => c.Item3.Length > 0 && !ErrorVisitor.ContainsError(c.Item3.FirstOrDefault()));
+            // If every file binds with errors, take the first candidate, which is from the current file.
+            var bestBinding = candidateResults.FirstOrNullable(c => HasNoErrors(c.symbols))
+                ?? candidateResults.First();
 
-            // Every file binds with errors. Take the first candidate, which is from the current file.
-            if (bestBinding == null)
+            if (bestBinding.symbols.IsDefault || bestBinding.symbols.IsEmpty)
             {
-                bestBinding = candidateResults.First();
-            }
-
-            if (bestBinding.Item3 == null || !bestBinding.Item3.Any())
-            {
-                return null;
+                return default;
             }
 
             // We calculate the set of supported projects
@@ -90,17 +105,26 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             foreach (var candidate in candidateResults)
             {
                 // Does the candidate have anything remotely equivalent?
-                if (!candidate.Item3.Intersect(bestBinding.Item3, LinkedFilesSymbolEquivalenceComparer.Instance).Any())
+                if (!candidate.symbols.Intersect(bestBinding.symbols, LinkedFilesSymbolEquivalenceComparer.Instance).Any())
                 {
-                    invalidProjects.Add(candidate.Item1.ProjectId);
+                    invalidProjects.Add(candidate.docId.ProjectId);
                 }
             }
 
             var supportedPlatforms = new SupportedPlatformData(invalidProjects, candidateProjects, document.Project.Solution.Workspace);
-            return await CreateContentAsync(document.Project.Solution.Workspace, token, bestBinding.Item2, bestBinding.Item3, supportedPlatforms, cancellationToken).ConfigureAwait(false);
+
+            return (bestBinding.model, bestBinding.symbols, supportedPlatforms);
         }
 
-        private async Task<SyntaxToken> FindTokenInLinkedDocument(SyntaxToken token, Document originalDocument, Document linkedDocument, CancellationToken cancellationToken)
+        private static bool HasNoErrors(ImmutableArray<ISymbol> symbols)
+            => symbols.Length > 0
+                && !ErrorVisitor.ContainsError(symbols.FirstOrDefault());
+
+        private async Task<SyntaxToken> FindTokenInLinkedDocumentAsync(
+            SyntaxToken token,
+            Document originalDocument,
+            Document linkedDocument,
+            CancellationToken cancellationToken)
         {
             if (!linkedDocument.SupportsSyntaxTree)
             {
@@ -148,16 +172,16 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var showWarningGlyph = supportedPlatforms != null && supportedPlatforms.HasValidAndInvalidProjects();
             var showSymbolGlyph = true;
 
-            var sections = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols.AsImmutable(), cancellationToken).ConfigureAwait(false);
-            var blocks = new List<QuickInfoSection>(sections.Count);
+            var groups = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols.AsImmutable(), cancellationToken).ConfigureAwait(false);
+            var sections = new List<QuickInfoSection>(groups.Count);
 
-            if (sections.ContainsKey(SymbolDescriptionGroups.MainDescription) && !sections[SymbolDescriptionGroups.MainDescription].IsDefaultOrEmpty)
+            if (groups.ContainsKey(SymbolDescriptionGroups.MainDescription) && !groups[SymbolDescriptionGroups.MainDescription].IsDefaultOrEmpty)
             {
-                blocks.Add(QuickInfoSection.Create(QuickInfoSectionKinds.Description, sections[SymbolDescriptionGroups.MainDescription]));
+                sections.Add(QuickInfoSection.Create(QuickInfoSectionKinds.Description, groups[SymbolDescriptionGroups.MainDescription]));
             }
 
-            var documentationContent = GetDocumentationContent(symbols, sections, semanticModel, token, formatter, syntaxFactsService, cancellationToken);
-            if (workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>().IsAwaitKeyword(token) &&
+            var documentationContent = GetDocumentationContent(symbols, groups, semanticModel, token, formatter, syntaxFactsService, cancellationToken);
+            if (syntaxFactsService.IsAwaitKeyword(token) &&
                 (symbols.First() as INamedTypeSymbol)?.SpecialType == SpecialType.System_Void)
             {
                 documentationContent = default;
@@ -166,29 +190,29 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             if (!documentationContent.IsDefaultOrEmpty)
             {
-                blocks.Add(QuickInfoSection.Create(QuickInfoSectionKinds.DocumentationComments, documentationContent));
+                sections.Add(QuickInfoSection.Create(QuickInfoSectionKinds.DocumentationComments, documentationContent));
             }
 
-            if (sections.ContainsKey(SymbolDescriptionGroups.TypeParameterMap) && !sections[SymbolDescriptionGroups.TypeParameterMap].IsDefaultOrEmpty)
+            if (groups.ContainsKey(SymbolDescriptionGroups.TypeParameterMap) && !groups[SymbolDescriptionGroups.TypeParameterMap].IsDefaultOrEmpty)
             {
                 var builder = new List<TaggedText>();
                 builder.AddLineBreak();
-                builder.AddRange(sections[SymbolDescriptionGroups.TypeParameterMap]);
-                blocks.Add(QuickInfoSection.Create(QuickInfoSectionKinds.TypeParameters, builder.ToImmutableArray()));
+                builder.AddRange(groups[SymbolDescriptionGroups.TypeParameterMap]);
+                sections.Add(QuickInfoSection.Create(QuickInfoSectionKinds.TypeParameters, builder.ToImmutableArray()));
             }
 
-            if (sections.ContainsKey(SymbolDescriptionGroups.AnonymousTypes) && !sections[SymbolDescriptionGroups.AnonymousTypes].IsDefaultOrEmpty)
+            if (groups.ContainsKey(SymbolDescriptionGroups.AnonymousTypes) && !groups[SymbolDescriptionGroups.AnonymousTypes].IsDefaultOrEmpty)
             {
                 var builder = new List<TaggedText>();
                 builder.AddLineBreak();
-                builder.AddRange(sections[SymbolDescriptionGroups.AnonymousTypes]);
-                blocks.Add(QuickInfoSection.Create(QuickInfoSectionKinds.AnonymousTypes, builder.ToImmutableArray()));
+                builder.AddRange(groups[SymbolDescriptionGroups.AnonymousTypes]);
+                sections.Add(QuickInfoSection.Create(QuickInfoSectionKinds.AnonymousTypes, builder.ToImmutableArray()));
             }
 
             var usageTextBuilder = new List<TaggedText>();
-            if (sections.ContainsKey(SymbolDescriptionGroups.AwaitableUsageText) && !sections[SymbolDescriptionGroups.AwaitableUsageText].IsDefaultOrEmpty)
+            if (groups.ContainsKey(SymbolDescriptionGroups.AwaitableUsageText) && !groups[SymbolDescriptionGroups.AwaitableUsageText].IsDefaultOrEmpty)
             {
-                usageTextBuilder.AddRange(sections[SymbolDescriptionGroups.AwaitableUsageText]);
+                usageTextBuilder.AddRange(groups[SymbolDescriptionGroups.AwaitableUsageText]);
             }
 
             if (supportedPlatforms != null)
@@ -198,12 +222,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             if (usageTextBuilder.Count > 0)
             {
-                blocks.Add(QuickInfoSection.Create(QuickInfoSectionKinds.Usage, usageTextBuilder.ToImmutableArray()));
+                sections.Add(QuickInfoSection.Create(QuickInfoSectionKinds.Usage, usageTextBuilder.ToImmutableArray()));
             }
 
-            if (sections.ContainsKey(SymbolDescriptionGroups.Exceptions) && !sections[SymbolDescriptionGroups.Exceptions].IsDefaultOrEmpty)
+            if (groups.ContainsKey(SymbolDescriptionGroups.Exceptions) && !groups[SymbolDescriptionGroups.Exceptions].IsDefaultOrEmpty)
             {
-                blocks.Add(QuickInfoSection.Create(QuickInfoSectionKinds.Exception, sections[SymbolDescriptionGroups.Exceptions]));
+                sections.Add(QuickInfoSection.Create(QuickInfoSectionKinds.Exception, groups[SymbolDescriptionGroups.Exceptions]));
             }
 
             var tags = ImmutableArray<string>.Empty;
@@ -217,7 +241,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 tags = tags.Add(Completion.CompletionTags.Warning);
             }
 
-            return QuickInfoItem.Create(token.Span, tags: tags, sections: blocks.ToImmutableArray());
+            return QuickInfoItem.Create(token.Span, tags: tags, sections: sections.ToImmutableArray());
         }
 
         private ImmutableArray<TaggedText> GetDocumentationContent(
@@ -257,10 +281,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default;
         }
 
-        private async Task<ValueTuple<SemanticModel, ImmutableArray<ISymbol>>> BindTokenAsync(
-            Document document,
-            SyntaxToken token,
-            CancellationToken cancellationToken)
+        private async Task<(SemanticModel semanticModel, ImmutableArray<ISymbol> symbols)> BindTokenAsync(
+            Document document, SyntaxToken token, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
@@ -280,9 +302,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             if (symbols.Any())
             {
                 var typeParameter = symbols.First() as ITypeParameterSymbol;
-                return ValueTuple.Create(
-                    semanticModel,
-                    typeParameter != null && typeParameter.TypeParameterKind == TypeParameterKind.Cref
+                return (semanticModel,
+                    symbols: typeParameter != null && typeParameter.TypeParameterKind == TypeParameterKind.Cref
                         ? ImmutableArray<ISymbol>.Empty
                         : symbols);
             }
@@ -295,22 +316,20 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 var typeInfo = semanticModel.GetTypeInfo(token.Parent, cancellationToken);
                 if (IsOk(typeInfo.Type))
                 {
-                    return ValueTuple.Create(semanticModel,
-                        ImmutableArray.Create<ISymbol>(typeInfo.Type));
+                    return (semanticModel, symbols: ImmutableArray.Create<ISymbol>(typeInfo.Type));
                 }
             }
 
-            return ValueTuple.Create(semanticModel, ImmutableArray<ISymbol>.Empty);
+            return (semanticModel, symbols: ImmutableArray<ISymbol>.Empty);
         }
 
         private static bool IsOk(ISymbol symbol)
-        {
-            return symbol != null && !symbol.IsErrorType() && !symbol.IsAnonymousFunction();
-        }
+            => symbol != null
+                && !symbol.IsErrorType()
+                && !symbol.IsAnonymousFunction();
 
         private static bool IsAccessible(ISymbol symbol, INamedTypeSymbol within)
-        {
-            return within == null || symbol.IsAccessibleWithin(within);
-        }
+            => within == null
+                || symbol.IsAccessibleWithin(within);
     }
 }
