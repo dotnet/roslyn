@@ -247,7 +247,22 @@ namespace Microsoft.CodeAnalysis.Semantics
                         boundCall.ReceiverOpt != null &&
                         (boundCall.Method.IsVirtual || boundCall.Method.IsAbstract || boundCall.Method.IsOverride) &&
                         !boundCall.ReceiverOpt.SuppressVirtualCalls;
-            Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() => DeriveArguments(boundCall.HasErrors, boundCall.BinderOpt, boundCall.Method, boundCall.Method, boundCall.Arguments, boundCall.ArgumentNamesOpt, boundCall.ArgsToParamsOpt, boundCall.ArgumentRefKindsOpt, boundCall.Method.Parameters, boundCall.Expanded, boundCall.Syntax, boundCall.InvokedAsExtensionMethod));
+            Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() =>
+            {
+                return DeriveArguments(
+                    boundCall,
+                    boundCall.BinderOpt,
+                    boundCall.Method,
+                    boundCall.Method,
+                    boundCall.Arguments,
+                    boundCall.ArgumentNamesOpt,
+                    boundCall.ArgsToParamsOpt,
+                    boundCall.ArgumentRefKindsOpt,
+                    boundCall.Method.Parameters,
+                    boundCall.Expanded,
+                    boundCall.Syntax,
+                    boundCall.InvokedAsExtensionMethod);
+            });
             bool isInvalid = boundCall.HasErrors;
             SyntaxNode syntax = boundCall.Syntax;
             ITypeSymbol type = boundCall.Type;
@@ -301,7 +316,8 @@ namespace Microsoft.CodeAnalysis.Semantics
                     ? boundIndexerAccess.Indexer.GetOwnOrInheritedSetMethod()
                     : boundIndexerAccess.Indexer.GetOwnOrInheritedGetMethod();
 
-                return DeriveArguments(boundIndexerAccess.HasErrors,
+                return DeriveArguments(
+                    boundIndexerAccess,
                     boundIndexerAccess.BinderOpt,
                     boundIndexerAccess.Indexer,
                     accessor,
@@ -395,17 +411,20 @@ namespace Microsoft.CodeAnalysis.Semantics
             IMethodSymbol constructor = boundObjectCreationExpression.Constructor;
             Lazy<IObjectOrCollectionInitializerExpression> initializer = new Lazy<IObjectOrCollectionInitializerExpression>(() => (IObjectOrCollectionInitializerExpression)Create(boundObjectCreationExpression.InitializerExpressionOpt));
             Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() =>
-                DeriveArguments(boundObjectCreationExpression.HasErrors,
-                                boundObjectCreationExpression.BinderOpt,
-                                boundObjectCreationExpression.Constructor,
-                                boundObjectCreationExpression.Constructor,
-                                boundObjectCreationExpression.Arguments,
-                                boundObjectCreationExpression.ArgumentNamesOpt,
-                                boundObjectCreationExpression.ArgsToParamsOpt,
-                                boundObjectCreationExpression.ArgumentRefKindsOpt,
-                                boundObjectCreationExpression.Constructor.Parameters,
-                                boundObjectCreationExpression.Expanded,
-                                boundObjectCreationExpression.Syntax));
+            {
+                return DeriveArguments(
+                    boundObjectCreationExpression,
+                    boundObjectCreationExpression.BinderOpt,
+                    boundObjectCreationExpression.Constructor,
+                    boundObjectCreationExpression.Constructor,
+                    boundObjectCreationExpression.Arguments,
+                    boundObjectCreationExpression.ArgumentNamesOpt,
+                    boundObjectCreationExpression.ArgsToParamsOpt,
+                    boundObjectCreationExpression.ArgumentRefKindsOpt,
+                    boundObjectCreationExpression.Constructor.Parameters,
+                    boundObjectCreationExpression.Expanded,
+                    boundObjectCreationExpression.Syntax);
+            });
             bool isInvalid = boundObjectCreationExpression.HasErrors;
             SyntaxNode syntax = boundObjectCreationExpression.Syntax;
             ITypeSymbol type = boundObjectCreationExpression.Type;
@@ -462,10 +481,11 @@ namespace Microsoft.CodeAnalysis.Semantics
                         // Indexed property reference.
                         argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() =>
                         {
-                            return DeriveArguments(boundObjectInitializerMember.HasErrors,
+                            return DeriveArguments(
+                                boundObjectInitializerMember,
                                 boundObjectInitializerMember.BinderOpt,
                                 property,
-                                property.SetMethod,
+                                property.GetOwnOrInheritedSetMethod(),
                                 boundObjectInitializerMember.Arguments,
                                 boundObjectInitializerMember.ArgumentNamesOpt,
                                 boundObjectInitializerMember.ArgsToParamsOpt,

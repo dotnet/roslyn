@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         private ImmutableArray<IArgument> DeriveArguments(
-            bool hasErrors,
+            BoundNode boundNode,
             Binder binder,
             Symbol methodOrIndexer,
             MethodSymbol optionalParametersMethod,
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             //      Note this check doesn't cover all scenarios. For example, when a parameter is a generic type but the type of the type argument 
             //      is undefined.
             if ((object)optionalParametersMethod == null 
-                || hasErrors
+                || boundNode.HasAnyErrors
                 || parameters.Any(p => p.Type.IsErrorType())
                 || optionalParametersMethod.GetUseSiteDiagnostic()?.DefaultSeverity == DiagnosticSeverity.Error)
             {

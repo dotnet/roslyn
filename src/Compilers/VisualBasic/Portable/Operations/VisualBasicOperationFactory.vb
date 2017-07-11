@@ -521,7 +521,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundCollectionElementInitializerOperation(boundExpression As BoundExpression) As IOperation
-            If (boundExpression.Kind <> BoundKind.Call) Then
+            If boundExpression.Kind <> BoundKind.Call Then
                 ' Error case, not an Add method call for collection element initializer
                 Return Create(boundExpression)
             End If

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface ICollectionElementInitializerExpression : IOperation
     {
         /// <summary>
-        /// Add method invoked on collection. Might be null for dynamic invocation.
+        /// Add method invoked on collection. Null for dynamic invocation.
         /// </summary>
         IMethodSymbol AddMethod { get; }
 

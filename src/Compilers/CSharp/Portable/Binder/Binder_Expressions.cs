@@ -4009,7 +4009,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 resultKind,
                 binderOpt: this,
-                useSetterForDefaultArgumentGeneration: true,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
         }
