@@ -57,9 +57,6 @@ function Build-InsertionItems() {
     Push-Location $setupDir
     try { 
         Create-PerfTests
-        Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln"
-        Create-PerfTests
-
         Exec-Command (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $setupDir $(Get-PackagesDir) `"$assemblyVersion`"" | Out-Host
         
         # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
@@ -74,7 +71,7 @@ function Build-InsertionItems() {
         Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj $extraArgs"
         Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj $extraArgs"
         Run-MSBuild "..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj"
-        Run-MSBuild "Vsix\Vsix.proj" 
+        Copy-Item -Force "Vsix\myget_org-extensions.config" $configDir
     }
     finally {
         Pop-Location
@@ -128,7 +125,7 @@ try {
     $configDir = Join-Path $binariesDir $config
     $setupDir = Join-Path $repoDir "src\Setup"
 
-    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -official:$official -msbuildDir $msbuildDir -release:$release -sign -pack -testDesktop -test32 }
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -official:$official -msbuildDir $msbuildDir -release:$release -sign -pack -testDesktop:$testDesktop }
 
     Exec-Block { & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config }
     Build-InsertionItems

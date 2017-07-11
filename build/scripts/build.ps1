@@ -187,7 +187,9 @@ function Build-ExtraSignArtifacts() {
     Push-Location (Join-Path $repoDir "src\Setup")
     try {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
+        Write-Host "Publishing CscCore"
         Run-MSBuild "..\Compilers\CSharp\CscCore\CscCore.csproj /t:PublishWithoutBuilding"
+        Write-Host "Publishing VbcCore"
         Run-MSBuild "..\Compilers\VisualBasic\VbcCore\VbcCore.csproj /t:PublishWithoutBuilding"
 
         # No need to build references here as we just built the rest of the source tree. 
@@ -205,6 +207,7 @@ function Build-ExtraSignArtifacts() {
         }
 
         Run-MSBuild "Templates\Templates.sln /p:VersionType=Release"
+        Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln"
     }
     finally {
         Pop-Location
@@ -500,14 +503,7 @@ try {
 
     Process-Arguments
 
-    if ($msbuildDir -eq "") {
-        $msbuild = Ensure-MSBuild
-        $msbuildDir = Split-Path -parent $msbuild
-    }
-    else {
-        $msbuild = Join-Path $msbuildDir "msbuild.exe"
-    }
-
+    $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDIr $buildConfiguration
     $bootstrapDir = ""
