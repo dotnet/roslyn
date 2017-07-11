@@ -1425,6 +1425,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        // Can be called as part of a bad expression.
+        public override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
+        {
+            foreach (var child in node.Initializers)
+            {
+                VisitRvalue(child);
+            }
+
+            return null;
+        }
+
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
         {
             var methodGroup = node.Argument as BoundMethodGroup;
@@ -1531,11 +1542,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitRvalue(node.Operand);
+                Visit(node.Operand);
                 if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             }
 
+            if (IsConditionalState)
+            {
+                var whenTrue = this.StateWhenTrue;
+                var whenFalse = this.StateWhenFalse;
+
+                SetState(whenTrue);
+                VisitConversionNoConditionalState(node);
+                Debug.Assert(!IsConditionalState);
+                whenTrue = this.State;
+
+                SetState(whenFalse);
+                VisitConversionNoConditionalState(node);
+                Debug.Assert(!IsConditionalState);
+                whenFalse = this.State;
+
+                SetConditionalState(whenTrue, whenFalse);
+            }
+            else
+            {
+                VisitConversionNoConditionalState(node);
+            }
+
             return null;
+        }
+
+        protected virtual void VisitConversionNoConditionalState(BoundConversion node)
+        {
         }
 
         public override BoundNode VisitIfStatement(BoundIfStatement node)
@@ -2250,17 +2287,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual BoundNode VisitArrayElementInitializer(BoundArrayCreation arrayCreation, BoundExpression child)
         {
             return VisitRvalue(child);
-        }
-
-        // Can be called as part of a bad expression.
-        public override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
-        {
-            foreach (var child in node.Initializers)
-            {
-                VisitRvalue(child);
-            }
-
-            return null;
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)

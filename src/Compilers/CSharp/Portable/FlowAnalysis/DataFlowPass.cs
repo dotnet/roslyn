@@ -2205,13 +2205,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Assign(node, value: null, valueIsNotNull: null);
             }
 
+            var result = base.VisitLocalDeclaration(node);
             if (node.InitializerOpt != null)
             {
-                VisitRvalue(node.InitializerOpt); // analyze the expression
                 Assign(node, node.InitializerOpt, this.State.ResultIsNotNull);
             }
-
-            return null;
+            return result;
         }
 
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
@@ -2746,8 +2745,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, syntax, writes: false);
             }
 
-            var result = base.VisitConversion(node);
+            return base.VisitConversion(node);
+        }
 
+        protected override void VisitConversionNoConditionalState(BoundConversion node)
+        {
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
@@ -2779,8 +2781,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 this.State.ResultIsNotNull = InferResultNullability(node.ConversionKind, node.Operand.Type, node.Type, node.SymbolOpt, this.State.ResultIsNotNull);
             }
-
-            return result;
         }
 
         private void ReportNullabilityMismatchWithTargetDelegate(SyntaxNode syntax, NamedTypeSymbol delegateType, MethodSymbol method)

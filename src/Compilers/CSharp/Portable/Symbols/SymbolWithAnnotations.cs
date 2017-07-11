@@ -266,12 +266,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool IsReferenceType => TypeSymbol.IsReferenceType;
         public bool IsValueType => TypeSymbol.IsValueType;
         public TypeKind TypeKind => TypeSymbol.TypeKind;
-        public SpecialType SpecialType => TypeSymbol.SpecialType;
+        public virtual SpecialType SpecialType => TypeSymbol.SpecialType;
         public bool IsManagedType => TypeSymbol.IsManagedType;
         public Cci.PrimitiveTypeCode PrimitiveTypeCode => TypeSymbol.PrimitiveTypeCode;
         public bool IsEnumType() => TypeSymbol.IsEnumType();
         public bool IsDynamic() => TypeSymbol.IsDynamic();
-        public bool IsRestrictedType() => TypeSymbol.IsRestrictedType();
+        public virtual bool IsRestrictedType() => TypeSymbol.IsRestrictedType();
         public bool IsPointerType() => TypeSymbol.IsPointerType();
         public bool IsUnsafe() => TypeSymbol.IsUnsafe();
         public virtual bool IsStatic => TypeSymbol.IsStatic;
@@ -737,6 +737,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public override TypeSymbol NullableUnderlyingTypeOrSelf => _underlying.TypeSymbol;
+
+            public override SpecialType SpecialType
+            {
+                get
+                {
+                    var specialType = _underlying.SpecialType;
+                    return specialType.IsValueType() ? SpecialType.None : specialType;
+                }
+            }
+
+            public override bool IsRestrictedType() => _underlying.IsRestrictedType();
 
             public override TypeSymbol AsTypeSymbolOnly()
             {
