@@ -224,5 +224,49 @@ This is random top-level text.
             Assert.Equal(fragment, comments.FullXmlFragment);
             Assert.True(comments.HadXmlParseError);
         }
+
+        [Fact, WorkItem(18901, "https://github.com/dotnet/roslyn/pull/18901")]
+        public void TrimEachLine()
+        {
+            string multiLineText = @"
+
+
+
+Hello
+     World     .        
++
+.......
+
+
+
+
+123
+
+                                           1";
+
+            string fullXml = $@"<summary>{multiLineText}</summary>
+                  <returns>{multiLineText}</returns>
+                  <example>{multiLineText}</example>
+                  <param name=""foo"">{multiLineText}</param>
+                  <typeparam name=""T"">{multiLineText}</typeparam>
+                  <remarks>{multiLineText}</remarks>";
+                                 
+
+            string expected = @"Hello
+World     .
++
+.......
+123
+1";
+
+            var comment = DocumentationComment.FromXmlFragment(fullXml);
+
+            Assert.Equal(expected, comment.SummaryText);
+            Assert.Equal(expected, comment.ReturnsText);
+            Assert.Equal(expected, comment.ExampleText);
+            Assert.Equal(expected, comment.GetParameterText("foo"));
+            Assert.Equal(expected, comment.GetTypeParameterText("T"));
+            Assert.Equal(expected, comment.RemarksText);
+        }
     }
 }

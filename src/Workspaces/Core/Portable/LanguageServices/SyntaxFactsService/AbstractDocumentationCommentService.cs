@@ -74,51 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var sb = new StringBuilder(summaryElement.Span.Length);
                 sb.Append(prefix);
                 sb.Append(" <summary>");
-                foreach (var node in summaryElement.ChildNodes())
-                {
-                    if (node.HasLeadingTrivia)
-                    {
-                        // Collapse all trailing trivia to a single space.
-                        AddSpaceIfNotAlreadyThere(sb);
-                    }
-
-                    if (node is TXmlTextSyntax xmlText)
-                    {
-                        var textTokens = GetTextTokens(xmlText);
-                        AppendTextTokens(sb, textTokens);
-                    }
-                    else if (node is TXmlEmptyElementSyntax xmlEmpty)
-                    {
-                        foreach (var attribute in GetAttributes(xmlEmpty))
-                        {
-                            if (attribute is TXmlCrefAttributeSyntax xmlCref)
-                            {
-                                AddSpaceIfNotAlreadyThere(sb);
-                                sb.Append(GetCref(xmlCref).ToString());
-                            }
-                            else if (attribute is TXmlNameAttributeSyntax xmlName)
-                            {
-                                AddSpaceIfNotAlreadyThere(sb);
-                                sb.Append(GetIdentifier(xmlName).Text);
-                            }
-                            else if (attribute is TXmlTextAttributeSyntax xmlTextAttribute)
-                            {
-                                AddSpaceIfNotAlreadyThere(sb);
-                                AppendTextTokens(sb, GetTextTokens(xmlTextAttribute));
-                            }
-                            else
-                            {
-                                Debug.Assert(false, $"Unexpected XML syntax kind {attribute.RawKind}");
-                            }
-                        }
-                    }
-
-                    if (node.HasTrailingTrivia)
-                    {
-                        // Collapse all trailing trivia to a single space.
-                        AddSpaceIfNotAlreadyThere(sb);
-                    }
-                }
+                HandleElement(summaryElement, sb);
 
                 text = sb.ToString().Trim();
             }
@@ -139,6 +95,63 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return text;
         }
 
+        private void HandleElement(TXmlElementSyntax summaryElement, StringBuilder sb)
+        {
+            foreach (var node in summaryElement.ChildNodes())
+            {
+                HandleNode(node, sb);
+            }
+        }
+
+        private void HandleNode(SyntaxNode node, StringBuilder sb)
+        {
+            if (node.HasLeadingTrivia)
+            {
+                // Collapse all trailing trivia to a single space.
+                AddSpaceIfNotAlreadyThere(sb);
+            }
+
+            if (node is TXmlTextSyntax xmlText)
+            {
+                var textTokens = GetTextTokens(xmlText);
+                AppendTextTokens(sb, textTokens);
+            }
+            else if (node is TXmlElementSyntax xmlElement)
+            {
+                HandleElement(xmlElement, sb);
+            }
+            else if (node is TXmlEmptyElementSyntax xmlEmpty)
+            {
+                foreach (var attribute in GetAttributes(xmlEmpty))
+                {
+                    switch (attribute)
+                    {
+                        case TXmlCrefAttributeSyntax xmlCref:
+                            AddSpaceIfNotAlreadyThere(sb);
+                            sb.Append(GetCref(xmlCref).ToString());
+                            break;
+                        case TXmlNameAttributeSyntax xmlName:
+                            AddSpaceIfNotAlreadyThere(sb);
+                            sb.Append(GetIdentifier(xmlName).Text);
+                            break;
+                        case TXmlTextAttributeSyntax xmlTextAttribute:
+                            AddSpaceIfNotAlreadyThere(sb);
+                            AppendTextTokens(sb, GetTextTokens(xmlTextAttribute));
+                            break;
+                        default:
+                            Debug.Assert(false, $"Unexpected XML syntax kind {attribute.RawKind}");
+                            break;
+                    }
+                }
+            }
+
+            if (node.HasTrailingTrivia)
+            {
+                // Collapse all trailing trivia to a single space.
+                AddSpaceIfNotAlreadyThere(sb);
+            }
+        }
+
         protected abstract SyntaxToken GetIdentifier(TXmlNameAttributeSyntax xmlName);
         protected abstract TCrefSyntax GetCref(TXmlCrefAttributeSyntax xmlCref);
         protected abstract SyntaxList<TXmlAttributeSyntax> GetAttributes(TXmlEmptyElementSyntax xmlEmpty);
@@ -150,25 +163,29 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             foreach (var token in textTokens)
             {
-                var trimmed = token.ToString().Trim();
+                var tokenText = token.ToString();
 
-                if (trimmed == string.Empty)
+                // Collapse all preceding trivia or whitespace for this token to a single space.
+                if (token.LeadingTrivia.Count > 0 || HasLeadingWhitespace(tokenText))
                 {
-                    // If it's all whitespace, then just add a single whitespace.
                     AddSpaceIfNotAlreadyThere(sb);
                 }
-                else
-                {
-                    // Collapse all preceding trivia for this token to a single space.
-                    if (token.LeadingTrivia.Count > 0)
-                    {
-                        AddSpaceIfNotAlreadyThere(sb);
-                    }
 
-                    sb.Append(trimmed);
+                sb.Append(tokenText.Trim());
+
+                // Collapse all trailing trivia or whitespace for this token to a single space.
+                if (token.TrailingTrivia.Count > 0 || HasTrailingWhitespace(tokenText))
+                {
+                    AddSpaceIfNotAlreadyThere(sb);
                 }
             }
         }
+
+        private static bool HasLeadingWhitespace(string tokenText)
+            => tokenText.Length > 0 && char.IsWhiteSpace(tokenText[0]);
+
+        private static bool HasTrailingWhitespace(string tokenText)
+            => tokenText.Length > 0 && char.IsWhiteSpace(tokenText[tokenText.Length - 1]);
 
         public string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken)
             => GetBannerText((TDocumentationCommentTriviaSyntax)documentationCommentTriviaSyntax, cancellationToken);

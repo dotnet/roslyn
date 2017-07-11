@@ -247,6 +247,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (haveVsInstallDir)
             {
                 vsInstallDir = Path.GetFullPath(vsInstallDir);
+                vsInstallDir = vsInstallDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 Debug.WriteLine($"An environment variable named 'VSInstallDir' was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
             }
 
@@ -258,6 +259,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     if (haveVsInstallDir)
                     {
                         var installationPath = instance.GetInstallationPath();
+                        installationPath = Path.GetFullPath(installationPath);
+                        installationPath = installationPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                         isMatch &= installationPath.Equals(vsInstallDir, StringComparison.OrdinalIgnoreCase);
                     }
                 }

@@ -339,7 +339,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 case SymbolKind.NamedType:
                     var typeSymbol = (INamedTypeSymbol)symbol;
-                    if (typeSymbol != null && typeSymbol.IsGenericType)
+                    if (typeSymbol.IsGenericType)
                     {
                         // Symbol.name does not contain type params for generic types, so we populate them here for some requiring cases like VS properties panel.
                         node.Label = (string)node[RoslynGraphProperties.FormattedLabelWithoutContainingSymbol];
@@ -388,8 +388,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 case SymbolKind.Property:
                     node.Label = symbol.MetadataName;
 
-                    var propertySymbol = symbol as IPropertySymbol;
-                    if (propertySymbol != null && propertySymbol.IsIndexer && LanguageNames.CSharp == propertySymbol.Language)
+                    var propertySymbol = (IPropertySymbol)symbol;
+                    if (propertySymbol.IsIndexer && LanguageNames.CSharp == propertySymbol.Language)
                     {
                         // For C# indexer, we will strip off the "[]"
                         node.Label = symbol.Name.Replace("[]", string.Empty);
