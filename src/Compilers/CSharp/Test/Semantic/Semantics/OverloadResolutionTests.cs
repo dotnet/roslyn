@@ -9357,6 +9357,56 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(11, 20));
         }
 
+        [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_None_WrongType()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        System.Exception x = null;
+        Method(x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'in int'
+                //         Method(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16)
+            );
+        }
+
+        [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]
+        [Fact]
+        public void PassingArgumentsToRefParameters_RefKind_None_WrongType()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        System.Exception x = null;
+        Method(x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         Method(x);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref").WithLocation(11, 16)
+            );
+        }
+
         [Fact]
         public void PassingArgumentsToRefReadOnlyParameters_RefKind_RefReadOnly()
         {

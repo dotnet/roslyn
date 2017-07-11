@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UnwrapIfParamsArray(parameter, isLastParameter));
                 }
             }
-            else if (refArg != refParm)
+            else if (refArg != refParm && !(refArg == RefKind.None && refParm == RefKind.RefReadOnly))
             {
                 if (refParm == RefKind.None || refParm == RefKind.RefReadOnly)
                 {
