@@ -124,6 +124,17 @@ namespace Roslyn.Utilities
         public ushort ReadUInt16() => _reader.ReadUInt16();
         public string ReadString() => ReadStringValue();
 
+        public Guid ReadGuid()
+        {
+            var accessor = new ObjectWriter.GuidAccessor
+            {
+                Low64 = ReadInt64(),
+                High64 = ReadInt64()
+            };
+
+            return accessor.Guid;
+        }
+
         public object ReadValue()
         {
             var oldDepth = _recursionDepth;
