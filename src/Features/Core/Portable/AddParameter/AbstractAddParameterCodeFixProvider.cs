@@ -247,6 +247,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
                 if (placeOnNewLine)
                 {
+                    // Placing the last parameter on its own line.  Get the indentation of the 
+                    // curent last parameter and give the new last parameter the same indentation.
                     var leadingIndentation = GetDesiredLeadingIndentation(
                         generator, syntaxFacts, existingParameters.Last(), includeLeadingNewLine: true);
                     parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation)
@@ -257,11 +259,15 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
             else
             {
+                // Inserting the parameter somewhere other than the end.
                 if (placeOnNewLine)
                 {
                     if (argumentIndex == 0)
                     {
-                        // Have to move the next parameter to the next line.
+                        // We want to insert the parameter at the front of the exsiting parameter
+                        // list.  That means we need to move the current first parameter to a new
+                        // line.  Give the current first parameter the indentation of the second
+                        // parameter in the list.
                         editor.InsertParameter(declaration, argumentIndex, parameterDeclaration);
                         var nextParameter = existingParameters[argumentIndex];
 
@@ -274,6 +280,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     }
                     else
                     {
+                        // We're inserting somewhere after the start (but not at the end). Because 
+                        // we've set placeOnNewLine, we know that the current comma we'll be placed
+                        // after already have a newline following it.  So all we need for this new 
+                        // parameter is to get the indentation of the following parameter.
+                        // Because we're going to 'steal' the existing comma from that parameter,
+                        // ensure that the next parameter has a new-line added to it so that it will
+                        // still stay on a new line.
                         var nextParameter = existingParameters[argumentIndex];
                         var leadingIndentation = GetDesiredLeadingIndentation(
                             generator, syntaxFacts, existingParameters[argumentIndex], includeLeadingNewLine: false);
