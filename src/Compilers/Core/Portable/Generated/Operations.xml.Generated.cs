@@ -3368,9 +3368,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public IMethodSymbol Constructor { get; }
         /// <summary>
-        /// Explicitly-specified member initializers.
+        /// Object or collection initializer, if any.
         /// </summary>
-        public abstract ImmutableArray<IOperation> Initializers { get; }
+        public abstract IObjectOrCollectionInitializerExpression Initializer { get; }
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
@@ -3387,10 +3387,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return argumentsInEvaluationOrder;
                 }
-                foreach (var initializer in Initializers)
-                {
-                    yield return initializer;
-                }
+                yield return Initializer;
             }
         }
         public override void Accept(OperationVisitor visitor)
@@ -3408,16 +3405,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class ObjectCreationExpression : BaseObjectCreationExpression, IHasArgumentsExpression, IObjectCreationExpression
     {
-        public ObjectCreationExpression(IMethodSymbol constructor, ImmutableArray<IOperation> initializers, ImmutableArray<IArgument> argumentsInEvaluationOrder, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public ObjectCreationExpression(IMethodSymbol constructor, IObjectOrCollectionInitializerExpression initializer, ImmutableArray<IArgument> argumentsInEvaluationOrder, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(constructor, syntax, type, constantValue)
         {
-            Initializers = initializers;
+            Initializer = initializer;
             ArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
         }
         /// <summary>
-        /// Explicitly-specified member initializers.
+        /// Object or collection initializer, if any.
         /// </summary>
-        public override ImmutableArray<IOperation> Initializers { get; }
+        public override IObjectOrCollectionInitializerExpression Initializer { get; }
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
@@ -3433,18 +3430,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyObjectCreationExpression : BaseObjectCreationExpression, IHasArgumentsExpression, IObjectCreationExpression
     {
-        private readonly Lazy<ImmutableArray<IOperation>> _lazyInitializers;
+        private readonly Lazy<IObjectOrCollectionInitializerExpression> _lazyInitializer;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
 
-        public LazyObjectCreationExpression(IMethodSymbol constructor, Lazy<ImmutableArray<IOperation>> initializers, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(constructor, syntax, type, constantValue)
+        public LazyObjectCreationExpression(IMethodSymbol constructor, Lazy<IObjectOrCollectionInitializerExpression> initializer, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(constructor, syntax, type, constantValue)
         {
-            _lazyInitializers = initializers;
+            _lazyInitializer = initializer;
             _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
         }
         /// <summary>
-        /// Explicitly-specified member initializers.
+        /// Object or collection initializer, if any.
         /// </summary>
-        public override ImmutableArray<IOperation> Initializers => _lazyInitializers.Value;
+        public override IObjectOrCollectionInitializerExpression Initializer => _lazyInitializer.Value;
 
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
@@ -3454,6 +3451,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public override ImmutableArray<IArgument> ArgumentsInEvaluationOrder => _lazyArgumentsInEvaluationOrder.Value;
+
     }
 
     /// <summary>
@@ -5635,5 +5633,232 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Pattern.
         /// </summary>
         public override IPattern Pattern => _lazyPattern.Value;
+    }
+
+    /// <summary>
+    /// Represents a C# or VB object or collection initializer expression.
+    /// </summary>
+    internal abstract partial class BaseObjectOrCollectionInitializerExpression : Operation, IObjectOrCollectionInitializerExpression
+    {
+        protected BaseObjectOrCollectionInitializerExpression(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ObjectOrCollectionInitializerExpression, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Object member or collection initializers.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> Initializers { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var initializer in Initializers)
+                {
+                    yield return initializer;
+                }
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitObjectOrCollectionInitializerExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitObjectOrCollectionInitializerExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# or VB object or collection initializer expression.
+    /// </summary>
+    internal sealed partial class ObjectOrCollectionInitializerExpression : BaseObjectOrCollectionInitializerExpression, IObjectOrCollectionInitializerExpression
+    {
+        public ObjectOrCollectionInitializerExpression(ImmutableArray<IOperation> initializers, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            Initializers = initializers;
+        }
+        /// <summary>
+        /// Object member or collection initializers.
+        /// </summary>
+        public override ImmutableArray<IOperation> Initializers { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# or VB object or collection initializer expression.
+    /// </summary>
+    internal sealed partial class LazyObjectOrCollectionInitializerExpression : BaseObjectOrCollectionInitializerExpression, IObjectOrCollectionInitializerExpression
+    {
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyInitializers;
+
+        public LazyObjectOrCollectionInitializerExpression(Lazy<ImmutableArray<IOperation>> initializers, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            _lazyInitializers = initializers ?? throw new System.ArgumentNullException(nameof(initializers));
+        }
+        /// <summary>
+        /// Object member or collection initializers.
+        /// </summary>
+        public override ImmutableArray<IOperation> Initializers => _lazyInitializers.Value;
+    }
+
+    /// <summary>
+    /// Represents a C# or VB member initializer expression within an object initializer expression.
+    /// </summary>
+    internal abstract partial class BaseMemberInitializerExpression : Operation, IMemberInitializerExpression
+    {
+        protected BaseMemberInitializerExpression(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.MemberInitializerExpression, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Initialized member.
+        /// </summary>
+        public abstract IMemberReferenceExpression InitializedMember { get; }
+
+        /// <summary>
+        /// Member initializer.
+        /// </summary>
+        public abstract IObjectOrCollectionInitializerExpression Initializer { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return InitializedMember;
+                yield return Initializer;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitMemberInitializerExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitMemberInitializerExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# or VB member initializer expression within an object initializer expression.
+    /// </summary>
+    internal sealed partial class MemberInitializerExpression : BaseMemberInitializerExpression, IMemberInitializerExpression
+    {
+        public MemberInitializerExpression(IMemberReferenceExpression initializedMember, IObjectOrCollectionInitializerExpression initializer, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            InitializedMember = initializedMember;
+            Initializer = initializer;
+        }
+        /// <summary>
+        /// Initialized member.
+        /// </summary>
+        public override IMemberReferenceExpression InitializedMember { get; }
+
+        /// <summary>
+        /// Member initializer.
+        /// </summary>
+        public override IObjectOrCollectionInitializerExpression Initializer { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# or VB member initializer expression within an object initializer expression.
+    /// </summary>
+    internal sealed partial class LazyMemberInitializerExpression : BaseMemberInitializerExpression, IMemberInitializerExpression
+    {
+        private readonly Lazy<IMemberReferenceExpression> _lazyInitializedMember;
+        private readonly Lazy<IObjectOrCollectionInitializerExpression> _lazyInitializer;
+
+        public LazyMemberInitializerExpression(Lazy<IMemberReferenceExpression> initializedMember, Lazy<IObjectOrCollectionInitializerExpression> initializer, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            _lazyInitializedMember = initializedMember ?? throw new System.ArgumentNullException(nameof(initializedMember));
+            _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
+        }
+        /// <summary>
+        /// Initialized member.
+        /// </summary>
+        public override IMemberReferenceExpression InitializedMember => _lazyInitializedMember.Value;
+
+        /// <summary>
+        /// Member initializer.
+        /// </summary>
+        public override IObjectOrCollectionInitializerExpression Initializer => _lazyInitializer.Value;
+    }
+
+    /// <summary>
+    /// Represents a C# nested collection element initializer expression within a collection initializer.
+    /// </summary>
+    internal abstract partial class BaseCollectionElementInitializerExpression : Operation, ICollectionElementInitializerExpression
+    {
+        protected BaseCollectionElementInitializerExpression(IMethodSymbol addMethod, bool isDynamic, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.CollectionElementInitializerExpression, syntax, type, constantValue)
+        {
+            AddMethod = addMethod;
+            IsDynamic = isDynamic;
+        }
+        /// <summary>
+        /// Add method invoked on collection. Might be null for dynamic invocation.
+        /// </summary>
+        public IMethodSymbol AddMethod { get; }
+        /// <summary>
+        /// Arguments passed to add method invocation.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> Arguments { get; }
+        /// <summary>
+        /// Flag indicating if this is a dynamic invocation.
+        /// </summary>
+        public bool IsDynamic { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var argument in Arguments)
+                {
+                    yield return argument;
+                }
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitCollectionElementInitializerExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitCollectionElementInitializerExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# nested collection element initializer expression within a collection initializer.
+    /// </summary>
+    internal sealed partial class CollectionElementInitializerExpression : BaseCollectionElementInitializerExpression, ICollectionElementInitializerExpression
+    {
+        public CollectionElementInitializerExpression(IMethodSymbol addMethod, ImmutableArray<IOperation> arguments, bool isDynamic, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(addMethod, isDynamic, syntax, type, constantValue)
+        {
+            Arguments = arguments;
+        }
+        /// <summary>
+        /// Arguments passed to add method invocation.
+        /// </summary>
+        public override ImmutableArray<IOperation> Arguments { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# nested collection element initializer expression within a collection initializer.
+    /// </summary>
+    internal sealed partial class LazyCollectionElementInitializerExpression : BaseCollectionElementInitializerExpression, ICollectionElementInitializerExpression
+    {
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyArguments;
+
+        public LazyCollectionElementInitializerExpression(IMethodSymbol addMethod, Lazy<ImmutableArray<IOperation>> arguments, bool isDynamic, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(addMethod, isDynamic, syntax, type, constantValue)
+        {
+            _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
+        }
+        /// <summary>
+        /// Arguments passed to add method invocation.
+        /// </summary>
+        public override ImmutableArray<IOperation> Arguments => _lazyArguments.Value;
     }
 }

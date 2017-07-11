@@ -435,6 +435,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAnonymousObjectCreationExpression(operation);
         }
 
+        public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
+        {
+            base.VisitObjectOrCollectionInitializerExpression(operation);
+        }
+
+        public override void VisitMemberInitializerExpression(IMemberInitializerExpression operation)
+        {
+            base.VisitMemberInitializerExpression(operation);
+        }
+
+        public override void VisitCollectionElementInitializerExpression(ICollectionElementInitializerExpression operation)
+        {
+            var addMethod = operation.AddMethod;
+            var isDynamic = operation.IsDynamic;
+
+            base.VisitCollectionElementInitializerExpression(operation);
+        }
+
         public override void VisitFieldInitializer(IFieldInitializer operation)
         {
             foreach (var field in operation.InitializedFields)

@@ -54,6 +54,9 @@
     <Compile Include="Operations\IAwaitExpression.cs" />
     <Compile Include="Operations\IBinaryOperatorExpression.cs" />
     <Compile Include="Operations\IIsPatternExpression.cs" />
+    <Compile Include="Operations\IMemberInitializerExpression.cs" />
+    <Compile Include="Operations\ICollectionElementInitializerExpression.cs" />
+    <Compile Include="Operations\IObjectOrCollectionInitializerExpression.cs" />
     <Compile Include="Operations\IPatternCaseClause.cs" />
     <Compile Include="Operations\IConstantPattern.cs" />
     <Compile Include="Operations\IDeclarationPattern.cs" />
