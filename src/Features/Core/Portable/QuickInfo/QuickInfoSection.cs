@@ -9,25 +9,25 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     /// <summary>
     /// 
     /// </summary>
-    internal sealed class QuickInfoTextBlock
+    internal sealed class QuickInfoSection
     {
         public string Kind { get; }
         public ImmutableArray<TaggedText> TaggedParts { get; }
 
-        private QuickInfoTextBlock(string kind, ImmutableArray<TaggedText> taggedParts)
+        private QuickInfoSection(string kind, ImmutableArray<TaggedText> taggedParts)
         {
             this.Kind = kind ?? string.Empty;
             this.TaggedParts = taggedParts.NullToEmpty();
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="QuickInfoTextBlock"/>.
+        /// Creates a new instance of <see cref="QuickInfoSection"/>.
         /// </summary>
-        /// <param name="kind">The kind of the text. Use <see cref="QuickInfoTextKinds"/> for the most common kinds.</param>
+        /// <param name="kind">The kind of the text. Use <see cref="QuickInfoSectionKinds"/> for the most common kinds.</param>
         /// <param name="taggedParts">The text</param>
-        public static QuickInfoTextBlock Create(string kind, ImmutableArray<TaggedText> taggedParts)
+        public static QuickInfoSection Create(string kind, ImmutableArray<TaggedText> taggedParts)
         {
-            return new QuickInfoTextBlock(kind, taggedParts);
+            return new QuickInfoSection(kind, taggedParts);
         }
 
         private string _text;

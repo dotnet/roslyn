@@ -173,13 +173,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return SymbolGlyph(expectedGlyph);
         }
 
-        internal void AssertTextBlock(
+        internal void AssertSection(
             string expectedText,
-            ImmutableArray<QuickInfoTextBlock> textBlocks,
+            ImmutableArray<QuickInfoSection> sections,
             string textBlockKind,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            var textBlock = textBlocks.FirstOrDefault(tb => tb.Kind == textBlockKind);
+            var textBlock = sections.FirstOrDefault(tb => tb.Kind == textBlockKind);
             var text = textBlock != null ? textBlock.TaggedParts : ImmutableArray<TaggedText>.Empty;
             AssertTaggedText(expectedText, text, expectedClassifications);
         }
@@ -197,74 +197,43 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-<<<<<<< HEAD
-            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.Description, expectedClassifications);
-=======
-            return content =>
-            {
-                var actualContent = ((QuickInfoDisplayDeferredContent)content).TypeParameterMap.ClassifiableContent;
-
-                // The type parameter map should have an additional line break at the beginning. We
-                // create a copy here because we've captured expectedText and this delegate might be
-                // executed more than once (e.g. with different parse options).
-
-                // var expectedTextCopy = "\r\n" + expectedText;
-                ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-            };
->>>>>>> master
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Description, expectedClassifications);
         }
 
         internal Action<QuickInfoItem> Documentation(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-<<<<<<< HEAD
-            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.DocumentationComments, expectedClassifications);
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.DocumentationComments, expectedClassifications);
         }
-=======
-            return content =>
-            {
-                var actualContent = ((QuickInfoDisplayDeferredContent)content).AnonymousTypes.ClassifiableContent;
->>>>>>> master
 
         internal Action<QuickInfoItem> TypeParameterMap(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.TypeParameters, expectedClassifications);
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.TypeParameters, expectedClassifications);
         }
 
         internal Action<QuickInfoItem> AnonymousTypes(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.AnonymousTypes, expectedClassifications);
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.AnonymousTypes, expectedClassifications);
         }
 
         internal Action<QuickInfoItem> NoTypeParameterMap
         {
             get
             {
-<<<<<<< HEAD
-                return item => AssertTextBlock(string.Empty, item.TextBlocks, QuickInfoTextKinds.TypeParameters);
-=======
-                return content =>
-                {
-                    Assert.Equal(string.Empty, ((QuickInfoDisplayDeferredContent)content).TypeParameterMap.ClassifiableContent.GetFullText());
-                };
->>>>>>> master
+                return item => AssertSection(string.Empty, item.Sections, QuickInfoSectionKinds.TypeParameters);
             }
         }
 
         internal Action<QuickInfoItem> Usage(string expectedText, bool expectsWarningGlyph = false)
         {
-<<<<<<< HEAD
             return item => 
-=======
-            return content =>
->>>>>>> master
             {
-                AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.Usage);
+                AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Usage);
 
                 if (expectsWarningGlyph)
                 {
@@ -279,15 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 
         internal Action<QuickInfoItem> Exceptions(string expectedText)
         {
-<<<<<<< HEAD
-            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.Exception);
-=======
-            return content =>
-            {
-                var quickInfoContent = (QuickInfoDisplayDeferredContent)content;
-                Assert.Equal(expectedText, quickInfoContent.ExceptionText.ClassifiableContent.GetFullText());
-            };
->>>>>>> master
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Exception);
         }
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)

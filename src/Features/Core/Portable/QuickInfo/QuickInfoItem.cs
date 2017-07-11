@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         public ImmutableArray<string> Tags { get; }
 
         /// <summary>
-        /// One or more <see cref="QuickInfoTextBlock"/> describing the item.
+        /// One or more <see cref="QuickInfoSection"/> describing the item.
         /// </summary>
-        public ImmutableArray<QuickInfoTextBlock> TextBlocks { get; }
+        public ImmutableArray<QuickInfoSection> Sections { get; }
 
         /// <summary>
         /// Alternate regions of the document that help describe the item.
@@ -31,22 +31,22 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         private QuickInfoItem(
             TextSpan span,
             ImmutableArray<string> tags,
-            ImmutableArray<QuickInfoTextBlock> textBlocks,
+            ImmutableArray<QuickInfoSection> sections,
             ImmutableArray<TextSpan> relatedSpans)
         {
             this.Span = span;
             this.Tags = tags.IsDefault ? ImmutableArray<string>.Empty : tags;
-            this.TextBlocks = textBlocks.IsDefault ? ImmutableArray<QuickInfoTextBlock>.Empty : textBlocks;
+            this.Sections = sections.IsDefault ? ImmutableArray<QuickInfoSection>.Empty : sections;
             this.RelatedSpans = relatedSpans.IsDefault ? ImmutableArray<TextSpan>.Empty : relatedSpans;
         }
 
         public static QuickInfoItem Create(
             TextSpan span,
             ImmutableArray<string> tags = default,
-            ImmutableArray<QuickInfoTextBlock> textBlocks = default,
+            ImmutableArray<QuickInfoSection> sections = default,
             ImmutableArray<TextSpan> relatedSpans = default)
         {
-            return new QuickInfoItem(span, tags, textBlocks, relatedSpans);
+            return new QuickInfoItem(span, tags, sections, relatedSpans);
         }
 
         public bool IsEmpty
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 return this == Empty
                     || (this.Span == default
                     && this.Tags.Length == 0
-                    && this.TextBlocks.Length == 0
+                    && this.Sections.Length == 0
                     && this.RelatedSpans.Length == 0);
             }
         }

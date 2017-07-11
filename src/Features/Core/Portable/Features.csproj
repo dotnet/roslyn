@@ -186,8 +186,8 @@
     <Compile Include="RemoveUnnecessaryImports\IUnnecessaryImportsService.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
-    <Compile Include="QuickInfo\QuickInfoTextBlock.cs" />
-    <Compile Include="QuickInfo\QuickInfoTextKinds.cs" />
+    <Compile Include="QuickInfo\QuickInfoSection.cs" />
+    <Compile Include="QuickInfo\QuickInfoSectionKinds.cs" />
     <Compile Include="AddMissingReference\AddMissingReferenceCodeAction.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.Remote.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.InProcess.cs" />

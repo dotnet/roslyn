@@ -149,11 +149,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var showSymbolGlyph = true;
 
             var sections = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols.AsImmutable(), cancellationToken).ConfigureAwait(false);
-            var blocks = new List<QuickInfoTextBlock>(sections.Count);
+            var blocks = new List<QuickInfoSection>(sections.Count);
 
             if (sections.ContainsKey(SymbolDescriptionGroups.MainDescription) && !sections[SymbolDescriptionGroups.MainDescription].IsDefaultOrEmpty)
             {
-                blocks.Add(QuickInfoTextBlock.Create(QuickInfoTextKinds.Description, sections[SymbolDescriptionGroups.MainDescription]));
+                blocks.Add(QuickInfoSection.Create(QuickInfoSectionKinds.Description, sections[SymbolDescriptionGroups.MainDescription]));
             }
 
             var documentationContent = GetDocumentationContent(symbols, sections, semanticModel, token, formatter, syntaxFactsService, cancellationToken);
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             if (!documentationContent.IsDefaultOrEmpty)
             {
-                blocks.Add(QuickInfoTextBlock.Create(QuickInfoTextKinds.DocumentationComments, documentationContent));
+                blocks.Add(QuickInfoSection.Create(QuickInfoSectionKinds.DocumentationComments, documentationContent));
             }
 
             if (sections.ContainsKey(SymbolDescriptionGroups.TypeParameterMap) && !sections[SymbolDescriptionGroups.TypeParameterMap].IsDefaultOrEmpty)
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 var builder = new List<TaggedText>();
                 builder.AddLineBreak();
                 builder.AddRange(sections[SymbolDescriptionGroups.TypeParameterMap]);
-                blocks.Add(QuickInfoTextBlock.Create(QuickInfoTextKinds.TypeParameters, builder.ToImmutableArray()));
+                blocks.Add(QuickInfoSection.Create(QuickInfoSectionKinds.TypeParameters, builder.ToImmutableArray()));
             }
 
             if (sections.ContainsKey(SymbolDescriptionGroups.AnonymousTypes) && !sections[SymbolDescriptionGroups.AnonymousTypes].IsDefaultOrEmpty)
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 var builder = new List<TaggedText>();
                 builder.AddLineBreak();
                 builder.AddRange(sections[SymbolDescriptionGroups.AnonymousTypes]);
-                blocks.Add(QuickInfoTextBlock.Create(QuickInfoTextKinds.AnonymousTypes, builder.ToImmutableArray()));
+                blocks.Add(QuickInfoSection.Create(QuickInfoSectionKinds.AnonymousTypes, builder.ToImmutableArray()));
             }
 
             var usageTextBuilder = new List<TaggedText>();
@@ -198,12 +198,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             if (usageTextBuilder.Count > 0)
             {
-                blocks.Add(QuickInfoTextBlock.Create(QuickInfoTextKinds.Usage, usageTextBuilder.ToImmutableArray()));
+                blocks.Add(QuickInfoSection.Create(QuickInfoSectionKinds.Usage, usageTextBuilder.ToImmutableArray()));
             }
 
             if (sections.ContainsKey(SymbolDescriptionGroups.Exceptions) && !sections[SymbolDescriptionGroups.Exceptions].IsDefaultOrEmpty)
             {
-                blocks.Add(QuickInfoTextBlock.Create(QuickInfoTextKinds.Exception, sections[SymbolDescriptionGroups.Exceptions]));
+                blocks.Add(QuickInfoSection.Create(QuickInfoSectionKinds.Exception, sections[SymbolDescriptionGroups.Exceptions]));
             }
 
             var tags = ImmutableArray<string>.Empty;
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 tags = tags.Add(Completion.CompletionTags.Warning);
             }
 
-            return QuickInfoItem.Create(token.Span, tags: tags, textBlocks: blocks.ToImmutableArray());
+            return QuickInfoItem.Create(token.Span, tags: tags, sections: blocks.ToImmutableArray());
         }
 
         private ImmutableArray<TaggedText> GetDocumentationContent(

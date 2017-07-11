@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             private void OnEditorSessionDismissed()
             {
                 AssertIsForeground();
-                this.Dismissed?.Invoke(this, new EventArgs());
+                this.Dismissed?.Invoke(this, EventArgs.Empty);
             }
 
             internal void AugmentQuickInfoSession(IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
                 return new QuickInfoDisplayPanel(
                     symbolGlyph: symbolGlyph != default ? CreateSymbolPresentation(symbolGlyph) : null,
                     warningGlyph: warningGlyph != default ? CreateSymbolPresentation(warningGlyph) : null,
-                    textBlocks: quickInfo.TextBlocks.Select(tb => new TextBlockElement(tb.Kind, CreateTextPresentation(tb))).ToImmutableArray(),
+                    textBlocks: quickInfo.Sections.Select(section => new TextBlockElement(section.Kind, CreateTextPresentation(section))).ToImmutableArray(),
                     documentSpan: documentSpan);
             }
 
@@ -161,15 +161,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
                 return image;
             }
 
-            private TextBlock CreateTextPresentation(QuickInfoTextBlock block)
+            private TextBlock CreateTextPresentation(QuickInfoSection section)
             {
-                if (block.Kind == QuickInfoTextKinds.DocumentationComments)
+                if (section.Kind == QuickInfoSectionKinds.DocumentationComments)
                 {
-                    return CreateDocumentationCommentPresentation(block.TaggedParts);
+                    return CreateDocumentationCommentPresentation(section.TaggedParts);
                 }
                 else
                 {
-                    return CreateTextPresentation(block.TaggedParts);
+                    return CreateTextPresentation(section.TaggedParts);
                 }
             }
 

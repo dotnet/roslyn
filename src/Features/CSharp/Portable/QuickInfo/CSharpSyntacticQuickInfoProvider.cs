@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         private static bool TryFindFurthestNearbyComment<T>(ref T triviaSearchList, out SyntaxTrivia nearbyTrivia)
             where T : IEnumerable<SyntaxTrivia>
         {
-            nearbyTrivia = default(SyntaxTrivia);
+            nearbyTrivia = default;
 
             foreach (var trivia in triviaSearchList)
             {

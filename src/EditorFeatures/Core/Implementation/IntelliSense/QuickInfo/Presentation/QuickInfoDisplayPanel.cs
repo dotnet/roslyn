@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     {
         private ImmutableArray<TextBlockElement> _textBlocks;
 
-        internal TextBlock MainDescription => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoTextKinds.Description)?.Block;
-        internal TextBlock Documentation => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoTextKinds.DocumentationComments)?.Block;
-        internal TextBlock TypeParameterMap => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoTextKinds.TypeParameters)?.Block;
-        internal TextBlock AnonymousTypes => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoTextKinds.AnonymousTypes)?.Block;
-        internal TextBlock UsageText => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoTextKinds.Usage)?.Block;
-        internal TextBlock ExceptionText => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoTextKinds.Exception)?.Block;
+        internal TextBlock MainDescription => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoSectionKinds.Description)?.Block;
+        internal TextBlock Documentation => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoSectionKinds.DocumentationComments)?.Block;
+        internal TextBlock TypeParameterMap => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoSectionKinds.TypeParameters)?.Block;
+        internal TextBlock AnonymousTypes => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoSectionKinds.AnonymousTypes)?.Block;
+        internal TextBlock UsageText => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoSectionKinds.Usage)?.Block;
+        internal TextBlock ExceptionText => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoSectionKinds.Exception)?.Block;
 
         public QuickInfoDisplayPanel(
             FrameworkElement symbolGlyph,
