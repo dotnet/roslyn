@@ -188,10 +188,7 @@
   </ItemGroup>
   <!-- These are None\Content items from above. Don't pass them to the compiler -->
   <ItemGroup>
-    <Compile Remove="PerfTests\Sources\BasicClassesAtEndBase.vb" />
-    <Compile Remove="PerfTests\Sources\IndividualDS.vb" />
-    <Compile Remove="PerfTests\Sources\LargeMethod.vb" />
-    <Compile Remove="PerfTests\Sources\Scrolling.vb" />
+    <Compile Remove="PerfTests\Sources\*.vb" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -37,9 +37,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpResources.resx</DependentUpon>
     </Compile>
-    <Compile Update="Emitter\Model\ParameterSymbolAdapter.cs">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />

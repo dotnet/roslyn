@@ -389,6 +389,8 @@
     <EmbeddedResource Include="NetFX\ValueTuple\TupleElementNamesAttribute.cs" />
     <Content Include="SymbolsTests\CustomModifiers\GenericMethodWithModifiers.cpp" />
     <None Include="SymbolsTests\Metadata\public-and-private.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="ResourceLoader.cs" />
     <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />
