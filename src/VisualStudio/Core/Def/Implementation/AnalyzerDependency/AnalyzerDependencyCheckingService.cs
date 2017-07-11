@@ -85,8 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Report conflict resolution diagnostics on a background thread.
             // This is done to avoid blocking the UI thread for attribute binding to determine diagnostic suppression.
             // See https://github.com/dotnet/roslyn/issues/20476 for further details.
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            Task.Run(() =>
+            await Task.Run(() =>
             {
                 foreach (var project in projects)
                 {
@@ -129,8 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     LogMissingDependency(missingDependency);
                 }
-            });
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            }).ConfigureAwait(false);
         }
 
         private void LogConflict(AnalyzerDependencyConflict conflict)
