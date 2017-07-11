@@ -512,5 +512,37 @@ public class C
 ";
             await VerifyNoItemsExistAsync(markup);
         }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutVarArgument()
+        {
+            var markup = @"
+class Test
+{
+    void Do(out Test foo)
+    {
+        Do(out var $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
+        }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutArgument()
+        {
+            var markup = @"
+class Test
+{
+    void Do(out Test foo)
+    {
+        Do(out Test $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
+        }
     }
 }
