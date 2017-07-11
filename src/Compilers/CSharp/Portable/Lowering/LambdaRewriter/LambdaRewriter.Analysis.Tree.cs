@@ -215,6 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 private ScopeTreeBuilder(Scope rootScope, Analysis analysis)
                 {
+                    Debug.Assert(rootScope != null);
+                    Debug.Assert(analysis != null);
+
                     _currentScope = rootScope;
                     _analysis = analysis;
                 }
