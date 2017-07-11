@@ -4197,7 +4197,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield break;
+                yield return ReturnedValue;
 
             }
         }
