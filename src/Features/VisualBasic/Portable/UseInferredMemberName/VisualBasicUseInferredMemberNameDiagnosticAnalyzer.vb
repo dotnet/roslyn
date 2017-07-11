@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
         End Sub
 
         Private Sub ReportDiagnosticsIfNeeded(nameColonEquals As NameColonEqualsSyntax, context As SyntaxNodeAnalysisContext,
-            optionSet As OptionSet, syntaxTree As SyntaxTree, parseOptions As VisualBasicParseOptions)
+                                              optionSet As OptionSet, syntaxTree As SyntaxTree, parseOptions As VisualBasicParseOptions)
 
             If Not nameColonEquals.IsParentKind(SyntaxKind.SimpleArgument) Then
                 Return
@@ -83,8 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
         End Sub
 
         Private Sub ReportDiagnosticsIfNeeded(fieldInitializer As NamedFieldInitializerSyntax, context As SyntaxNodeAnalysisContext,
-            optionSet As OptionSet, syntaxTree As SyntaxTree)
-
+                                              optionSet As OptionSet, syntaxTree As SyntaxTree)
 
             If Not optionSet.GetOption(VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames).Value OrElse
                 Not VisualBasicInferredMemberNameReducer.CanSimplifyNamedFieldInitializer(fieldInitializer) Then

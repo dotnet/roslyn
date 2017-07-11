@@ -2747,7 +2747,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TupleWithInferredName_LeaveExplicitName() As Task
-            Dim code = <File>
+            Dim code = "
 Class C
     Shared Dim y As Integer = 2
     Sub M()
@@ -2755,8 +2755,8 @@ Class C
         Dim t = (a, x:=[|C.y|])
     End Sub
 End Class
-</File>
-            Dim expected = <File>
+"
+            Dim expected = "
 Class C
     Shared Dim y As Integer = 2
     Sub M()
@@ -2765,13 +2765,13 @@ Class C
         Dim t = (a, x:=y1)
     End Sub
 End Class
-</File>
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+"
+            Await TestAsync(code, expected, ignoreTrivia:=False, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TupleWithInferredName_InferredNameBecomesExplicit() As Task
-            Dim code = <File>
+            Dim code = "
 Class C
     Shared Dim y As Integer = 2
     Sub M()
@@ -2779,8 +2779,8 @@ Class C
         Dim t = (a, [|C.y|])
     End Sub
 End Class
-</File>
-            Dim expected = <File>
+"
+            Dim expected = "
 Class C
     Shared Dim y As Integer = 2
     Sub M()
@@ -2789,13 +2789,13 @@ Class C
         Dim t = (a, y:=y1)
     End Sub
 End Class
-</File>
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+"
+            Await TestAsync(code, expected, ignoreTrivia:=False, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TupleWithInferredName_AllOccurrences() As Task
-            Dim code = <File>
+            Dim code = "
 Class C
     Shared Dim y As Integer = 2
     Sub M()
@@ -2804,8 +2804,8 @@ Class C
         Dim t2 = (C.y, a)
     End Sub
 End Class
-</File>
-            Dim expected = <File>
+"
+            Dim expected = "
 Class C
     Shared Dim y As Integer = 2
     Sub M()
@@ -2815,8 +2815,9 @@ Class C
         Dim t2 = (y:=y1, a)
     End Sub
 End Class
-</File>
-            Await TestAsync(code, expected, index:=1, ignoreTrivia:=False)
+"
+            Await TestAsync(code, expected, index:=1, ignoreTrivia:=False,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -2843,7 +2844,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TupleWithInferredName_NoReservedNames() As Task
-            Dim code = <File>
+            Dim code = "
 Class C
     Shared Dim rest As Integer = 2
     Sub M()
@@ -2851,8 +2852,8 @@ Class C
         Dim t = (a, [|C.rest|])
     End Sub
 End Class
-</File>
-            Dim expected = <File>
+"
+            Dim expected = "
 Class C
     Shared Dim rest As Integer = 2
     Sub M()
@@ -2861,8 +2862,8 @@ Class C
         Dim t = (a, rest1)
     End Sub
 End Class
-</File>
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+"
+            Await TestAsync(code, expected, ignoreTrivia:=False, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
