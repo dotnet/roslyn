@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             out LocalSymbol pinnedTemp)
         {
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
 
             // initializer expr should be either an address(&) of something or a fixed field access.
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             pinnedTemp = factory.SynthesizedLocal(initializerType, isPinned: true);
             ArrayTypeSymbol arrayType = (ArrayTypeSymbol)pinnedTemp.Type.TypeSymbol;
-            TypeSymbol arrayElementType = arrayType.ElementType.TypeSymbol;
+            TypeSymbolWithAnnotations arrayElementType = arrayType.ElementType;
 
             // NOTE: we pin the array, not the pointer.
             Debug.Assert(pinnedTemp.IsPinned);

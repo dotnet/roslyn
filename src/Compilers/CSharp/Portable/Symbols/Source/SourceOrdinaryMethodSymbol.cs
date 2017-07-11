@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
-        private CustomModifiersTuple _lazyCustomModifiers;
+        private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeSymbol _lazyReturnType;
+        private TypeSymbolWithAnnotations _lazyReturnType;
         private bool _lazyIsVararg;
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Method or delegate cannot return type '{0}'
-                    diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType);
+                    diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType.TypeSymbol);
                 }
             }
 
@@ -208,13 +208,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsExtensionMethod)
             {
                 var parameter0Type = this.Parameters[0].Type;
-                if (!parameter0Type.IsValidExtensionParameterType())
+                if (!parameter0Type.TypeSymbol.IsValidExtensionParameterType())
                 {
                     // Duplicate Dev10 behavior by selecting the parameter type.
                     var parameterSyntax = syntax.ParameterList.Parameters[0];
                     Debug.Assert(parameterSyntax.Type != null);
                     var loc = parameterSyntax.Type.Location;
-                    diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type);
+                    diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type.TypeSymbol);
                 }
                 else if ((object)ContainingType.ContainingType != null)
                 {
@@ -297,12 +297,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // unnecessary for implicit implementations because, if the custom modifiers don't match,
             // we'll insert a bridge method (an explicit implementation that delegates to the implicit
             // implementation) with the correct custom modifiers 
-            // (see SourceNamedTypeSymbol.ImplementInterfaceMember).
+            // (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
 
-            // This value may not be correct, but we need something while we compute overridden/implemented method.
+            // This value may not be correct, but we need something while we compute this.OverriddenMethod.
             // May be re-assigned below.
-            Debug.Assert(_lazyCustomModifiers == null);
-            _lazyCustomModifiers = CustomModifiersTuple.Empty;
+            Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty);
+            _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
             // Note: we're checking if the syntax indicates explicit implementation rather,
             // than if explicitInterfaceType is null because we don't want to look for an
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if ((object)overriddenMethod != null)
                     {
                         CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, 
-                                                                      out _lazyCustomModifiers, 
+                                                                      out _lazyRefCustomModifiers, 
                                                                       out _lazyParameters, alsoCopyParamsModifier: true);
                     }
                 }
@@ -345,13 +345,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(implementedMethod);
 
                     CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, 
-                                                                  out _lazyCustomModifiers,
+                                                                  out _lazyRefCustomModifiers,
                                                                   out _lazyParameters, alsoCopyParamsModifier: false);
+                    this.FindExplicitlyImplementedMemberVerification(implementedMethod, diagnostics);
+                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, implementedMethod, true, diagnostics);
                 }
                 else
                 {
                     Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
                     _lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
+
+                    Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty);
                 }
             }
 
@@ -374,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (parameter.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type.TypeSymbol);
                 }
             }
         }
@@ -424,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
             }
 
-            if (diagnostics.IsEmptyWithoutResolution)
+            if (!diagnostics.HasAnyResolvedErrors())
             {
                 ReportAsyncParameterErrors(_lazyParameters, diagnostics, errorLocation);
             }
@@ -543,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
@@ -668,21 +672,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyCustomModifiers.TypeCustomModifiers;
-            }
-        }
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
                 LazyMethodChecks();
-                return _lazyCustomModifiers.RefCustomModifiers;
+                return _lazyRefCustomModifiers;
             }
         }
 
@@ -900,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (!ContainingType.IsInterfaceType() && _lazyReturnType.IsStatic)
             {
                 // '{0}': static types cannot be used as return types
-                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, location, _lazyReturnType);
+                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, location, _lazyReturnType.TypeSymbol);
             }
             else if (IsAbstract && IsExtern)
             {
@@ -1045,6 +1040,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!HaveSameConstraints(definition, implementation))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation);
+            }
+
+            if (((CSharpParseOptions)implementation.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
+                !implementation.NullableOptOut)
+            {
+                ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
+                ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).Parameters;
+
+                for (int i = 0; i < implementationParameters.Length; i++)
+                {
+                    if (!implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes) &&
+                        implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementation.Locations[0], new FormattedSymbol(implementationParameters[i], SymbolDisplayFormat.ShortFormat));
+                    }
+                }
             }
         }
 

@@ -2407,7 +2407,7 @@ class C
             comp.VerifyDiagnostics(
                 // (5,21): error CS8314: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
                 //         return o is T t ? t : default(T);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7", "7.1").WithLocation(5, 21));
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(5, 21));
         }
     }
 }

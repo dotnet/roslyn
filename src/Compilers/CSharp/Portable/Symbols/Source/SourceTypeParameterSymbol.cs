@@ -442,8 +442,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var constraintClauses = _owner.TypeParameterConstraintClauses;
             var constraintTypes = constraintClauses.IsEmpty
-                ? ImmutableArray<TypeSymbol>.Empty
-                : constraintClauses[Ordinal]?.ConstraintTypes ?? ImmutableArray<TypeSymbol>.Empty;
+                ? ImmutableArray<TypeSymbolWithAnnotations>.Empty
+                : constraintClauses[Ordinal]?.ConstraintTypes ?? ImmutableArray<TypeSymbolWithAnnotations>.Empty;
             return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, false, this.DeclaringCompilation, diagnostics);
         }
 

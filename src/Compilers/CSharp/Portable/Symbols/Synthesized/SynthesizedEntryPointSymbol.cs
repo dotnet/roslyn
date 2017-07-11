@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var systemVoid = Binder.GetSpecialType(compilation, SpecialType.System_Void, DummySyntax(), diagnostics);
-                return new ScriptEntryPoint(containingType, systemVoid);
+                return new ScriptEntryPoint(containingType, TypeSymbolWithAnnotations.Create(systemVoid));
             }
         }
 
@@ -397,9 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class ScriptEntryPoint : SynthesizedEntryPointSymbol
         {
-            private readonly TypeSymbol _returnType;
+            private readonly TypeSymbolWithAnnotations _returnType;
 
-            internal ScriptEntryPoint(NamedTypeSymbol containingType, TypeSymbol returnType) :
+            internal ScriptEntryPoint(NamedTypeSymbol containingType, TypeSymbolWithAnnotations returnType) :
                 base(containingType)
             {
                 Debug.Assert(containingType.IsScriptClass);

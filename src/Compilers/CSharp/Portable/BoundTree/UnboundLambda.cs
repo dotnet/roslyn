@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return delegateType.GetDelegateType()?.DelegateInvokeMethod;
         }
 
-        private static TypeSymbolWithAnnotations DelegateReturnType(MethodSymbol invokeMethod, out RefKind refKind)
+        private TypeSymbolWithAnnotations DelegateReturnType(MethodSymbol invokeMethod, out RefKind refKind)
         {
             if ((object)invokeMethod == null)
             {

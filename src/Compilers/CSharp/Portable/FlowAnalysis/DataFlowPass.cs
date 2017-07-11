@@ -2523,56 +2523,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node)
-        {
-            var initializer = node.Expression;
-
-            if (initializer.Kind == BoundKind.AddressOfOperator)
-            {
-                initializer = ((BoundAddressOfOperator)initializer).Operand;
-            }
-
-            // If the node is a fixed statement address-of operator (e.g. fixed(int *p = &...)),
-            // then we don't need to consider it for membership in unsafeAddressTakenVariables,
-            // because it is either not a local/parameter/range variable (if the variable is
-            // non-moveable) or it is and it has a RefKind other than None, in which case it can't
-            // be referred to in a lambda (i.e. can't be captured).
-            VisitAddressOfOperand(initializer, shouldReadOperand: false);
-            return null;
-        }
-
-        public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
-        {
-            BoundExpression operand = node.Operand;
-            bool shouldReadOperand = false;
-
-            Symbol variable = UseNonFieldSymbolUnsafely(operand);
-            if ((object)variable != null)
-            {
-                // The goal here is to treat address-of as a read in cases where
-                // we (a) care about a read happening (e.g. for DataFlowsIn) and
-                // (b) have information indicating that this will not result in
-                // a read to an unassigned variable (i.e. the operand is definitely
-                // assigned).
-                if (_unassignedVariableAddressOfSyntaxes?.Contains(node.Syntax as PrefixUnaryExpressionSyntax) == false)
-                {
-                    shouldReadOperand = true;
-                }
-
-                if (!_unsafeAddressTakenVariables.ContainsKey(variable))
-                {
-                    _unsafeAddressTakenVariables.Add(variable, node.Syntax.Location);
-                }
-            }
-            else
-            {
-                VisitAddressOfOperand(node.Operand, shouldReadOperand);
-            }
-
-            SetUnknownResultNullability();
-            return null;
-        }
-
         private static BoundExpression SkipReferenceConversions(BoundExpression possiblyConversion)
         {
             while (possiblyConversion.Kind == BoundKind.Conversion)
@@ -3253,6 +3203,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Assign(node.Left, value: node, valueIsNotNull: resultIsNotNull); 
+            return null;
+        }
+
+        public override BoundNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node)
+        {
+            var initializer = node.Expression;
+
+            if (initializer.Kind == BoundKind.AddressOfOperator)
+            {
+                initializer = ((BoundAddressOfOperator)initializer).Operand;
+            }
+
+            // If the node is a fixed statement address-of operator (e.g. fixed(int *p = &...)),
+            // then we don't need to consider it for membership in unsafeAddressTakenVariables,
+            // because it is either not a local/parameter/range variable (if the variable is
+            // non-moveable) or it is and it has a RefKind other than None, in which case it can't
+            // be referred to in a lambda (i.e. can't be captured).
+            VisitAddressOfOperand(initializer, shouldReadOperand: false);
+            return null;
+        }
+
+        public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
+        {
+            BoundExpression operand = node.Operand;
+            bool shouldReadOperand = false;
+
+            Symbol variable = UseNonFieldSymbolUnsafely(operand);
+            if ((object)variable != null)
+            {
+                // The goal here is to treat address-of as a read in cases where
+                // we (a) care about a read happening (e.g. for DataFlowsIn) and
+                // (b) have information indicating that this will not result in
+                // a read to an unassigned variable (i.e. the operand is definitely
+                // assigned).
+                if (_unassignedVariableAddressOfSyntaxes?.Contains(node.Syntax as PrefixUnaryExpressionSyntax) == false)
+                {
+                    shouldReadOperand = true;
+                }
+
+                if (!_unsafeAddressTakenVariables.ContainsKey(variable))
+                {
+                    _unsafeAddressTakenVariables.Add(variable, node.Syntax.Location);
+                }
+            }
+
+            VisitAddressOfOperand(node.Operand, shouldReadOperand);
+
+            SetUnknownResultNullability();
             return null;
         }
 
@@ -4059,13 +4057,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitArgListOperator(node);
             Debug.Assert((object)node.Type == null);
-            SetUnknownResultNullability();
-            return result;
-        }
-
-        public override BoundNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node)
-        {
-            var result = base.VisitFixedLocalCollectionInitializer(node);
             SetUnknownResultNullability();
             return result;
         }
