@@ -85,6 +85,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Marshal.ThrowExceptionForHR(runningDocumentTableForEvents.AdviseRunningDocTableEvents(new RunningDocTableEventsSink(this), out _runningDocumentTableEventCookie));
         }
 
+        [Obsolete("Use the overload with 'isAdditionalFile' instead", error: true)]
+        public IVisualStudioHostDocument TryGetDocumentForFile(
+            IVisualStudioHostProject hostProject,
+            string filePath,
+            SourceCodeKind sourceCodeKind,
+            Func<ITextBuffer, bool> canUseTextBuffer,
+            Func<uint, IReadOnlyList<string>> getFolderNames,
+            EventHandler updatedOnDiskHandler = null,
+            EventHandler<bool> openedHandler = null,
+            EventHandler<bool> closingHandler = null)
+        {
+            return TryGetDocumentForFile(
+                hostProject, filePath, sourceCodeKind, canUseTextBuffer, getFolderNames, isAdditionalFile: false,
+                updatedOnDiskHandler: updatedOnDiskHandler, openedHandler: openedHandler, closingHandler: closingHandler);
+        }
+
         /// <summary>
         /// Gets the <see cref="IVisualStudioHostDocument"/> for the file at the given filePath.
         /// If we are on the foreground thread and this document is already open in the editor,
