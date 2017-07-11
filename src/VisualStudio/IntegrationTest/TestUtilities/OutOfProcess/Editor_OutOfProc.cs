@@ -5,6 +5,7 @@ using System.Windows.Automation;
 using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;

@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
@@ -17,9 +18,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                                                   expectedMarkup As String,
                                                   Optional index As Integer = 0,
                                                   Optional ignoreTrivia As Boolean = True,
-                                                  Optional priority As CodeActionPriority? = Nothing) As Task
-            Await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, outOfProcess:=False)
-            Await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, outOfProcess:=True)
+                                                  Optional priority As CodeActionPriority? = Nothing,
+                                                  Optional placeSystemFirst As Boolean = True) As Task
+            Await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, placeSystemFirst, outOfProcess:=False)
+            Await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, placeSystemFirst, outOfProcess:=True)
         End Function
 
         Friend Overloads Async Function TestAsync(initialMarkup As String,
@@ -27,10 +29,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                                                   index As Integer,
                                                   ignoreTrivia As Boolean,
                                                   priority As CodeActionPriority?,
+                                                  placeSystemFirst As Boolean,
                                                   outOfProcess As Boolean) As Task
             Await TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index, ignoreTrivia, priority,
-                parameters:=New TestParameters(fixProviderData:=outOfProcess))
+                parameters:=New TestParameters(
+                    options:=[Option](GenerationOptions.PlaceSystemNamespaceFirst, placeSystemFirst),
+                    fixProviderData:=outOfProcess))
         End Function
     End Class
 
@@ -2354,6 +2359,64 @@ Namespace Y
         End Function
     End Module
 End Namespace")
+        End Function
+
+        <WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Async Function TestWhenInRome1() As Task
+            Await TestAsync(
+"
+Imports System
+Imports B
+
+Class Class1
+    Dim v As [|AType|]
+End Class
+Namespace A
+    Public Class AType
+    End Class
+End Namespace",
+"
+Imports System
+Imports A
+Imports B
+
+Class Class1
+    Dim v As AType
+End Class
+Namespace A
+    Public Class AType
+    End Class
+End Namespace", placeSystemFirst:=False)
+        End Function
+
+        <WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Async Function TestWhenInRome2() As Task
+            Await TestAsync(
+"
+Imports B
+Imports System
+
+Class Class1
+    Dim v As [|AType|]
+End Class
+Namespace A
+    Public Class AType
+    End Class
+End Namespace",
+"
+Imports A
+Imports B
+Imports System
+
+Class Class1
+    Dim v As AType
+End Class
+Namespace A
+    Public Class AType
+    End Class
+End Namespace", placeSystemFirst:=True)
         End Function
     End Class
 

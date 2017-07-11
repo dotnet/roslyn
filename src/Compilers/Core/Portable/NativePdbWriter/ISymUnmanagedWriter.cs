@@ -147,48 +147,35 @@ namespace Microsoft.Cci
     [StructLayout(LayoutKind.Explicit)]
     internal struct VariantStructure
     {
-        public VariantStructure(DateTime date) : this() // Need this to avoid errors about the uninteresting union fields.
+        public unsafe VariantStructure(DateTime date) : this() // Need this to avoid errors about the uninteresting union fields.
         {
-            _longValue = date.Ticks;
+            fixed (VariantStructure* thisPtr = &this)
+            {
+                *((long*)((byte*)thisPtr + 8)) = date.Ticks;
+            }
+
             _type = (short)VarEnum.VT_DATE;
         }
 
         [FieldOffset(0)]
         private readonly short _type;
 
-        [FieldOffset(8)]
-        private readonly long _longValue;
-
         /// <summary>
         /// This field determines the size of the struct 
         /// (16 bytes on 32-bit platforms, 24 bytes on 64-bit platforms).
         /// </summary>
         [FieldOffset(8)]
-        private readonly VariantPadding _padding;
-
-        // Fields below this point are only used to make inspecting this struct in the debugger easier.
-
-        [FieldOffset(0)] // NB: 0, not 8
-        private readonly decimal _decimalValue;
-
-        [FieldOffset(8)]
-        private readonly bool _boolValue;
-
-        [FieldOffset(8)]
-        private readonly long _intValue;
-
-        [FieldOffset(8)]
-        private readonly double _doubleValue;
+        private readonly VariantData _data;
     }
 
     /// <summary>
     /// This type is 8 bytes on a 32-bit platforms and 16 bytes on 64-bit platforms.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct VariantPadding
+    internal struct VariantData
     {
-        public readonly IntPtr Data2;
-        public readonly IntPtr Data3;
+        public readonly IntPtr Data0;
+        public readonly IntPtr Data1;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\Pia1.vb
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\Pia1.dll
         /// </summary>
-        private static readonly string s_sourcePia1 =
+        private const string s_sourcePia1 =
 @"
 using System;
 using System.Reflection;
@@ -58,7 +58,7 @@ namespace NS1
         /// <summary>
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes1.dll
         /// </summary>
-        private static readonly string s_sourceLocalTypes1_IL =
+        private const string s_sourceLocalTypes1_IL =
 @"
 using System;
 using System.Runtime.CompilerServices;
@@ -91,7 +91,7 @@ namespace NS1
         /// <summary>
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes1.vb
         /// </summary>
-        private static readonly string s_sourceLocalTypes1 =
+        private const string s_sourceLocalTypes1 =
 @"
 using NS1;
 
@@ -106,7 +106,7 @@ public class LocalTypes1
         /// <summary>
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes2.dll
         /// </summary>
-        private static readonly string s_sourceLocalTypes2_IL =
+        private const string s_sourceLocalTypes2_IL =
 @"
 using NS1;
 using System;
@@ -139,7 +139,7 @@ namespace NS1
         /// <summary>
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes2.vb
         /// </summary>
-        private static readonly string s_sourceLocalTypes2 =
+        private const string s_sourceLocalTypes2 =
 @"
 using NS1;
 
@@ -154,7 +154,7 @@ public class LocalTypes2
         /// <summary>
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes3.dll
         /// </summary>
-        private static readonly string s_sourceLocalTypes3_IL =
+        private const string s_sourceLocalTypes3_IL =
 @"
 using System;
 using System.Reflection;
@@ -219,7 +219,7 @@ public class LocalTypes3
         /// <summary>
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes3.vb
         /// </summary>
-        private static readonly string s_sourceLocalTypes3 =
+        private const string s_sourceLocalTypes3 =
 @"
 using System;
 using System.Collections.Generic;
@@ -1499,7 +1499,7 @@ public class C
     public void TestDeconstruction()
     {
         int x, y;
-        (x, y) = new C();
+        var resultingTuple = ((x, y) = new C());
     }
     public void Deconstruct(out int a, out int b) { a = b = 1; }
 }";
@@ -1515,9 +1515,9 @@ public class C
                 // (14,16): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 //         return (1, 2);
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(14, 16),
-                // (19,9): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(x, y)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(19, 9)
+                // (19,31): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //         var resultingTuple = ((x, y) = new C());
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(x, y)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(19, 31)
             };
 
             var comp1 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,

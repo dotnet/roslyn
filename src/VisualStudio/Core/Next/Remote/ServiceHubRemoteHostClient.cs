@@ -5,10 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
@@ -27,9 +25,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private static int s_instanceId = 0;
 
         private readonly HubClient _hubClient;
-        private readonly JsonRpc _rpc;
         private readonly HostGroup _hostGroup;
         private readonly TimeSpan _timeout;
+
+        private readonly JsonRpc _rpc;
+        private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
 
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
@@ -46,7 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
                 var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
-                var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, remoteHostStream);
+                var remotableDataRpc = new RemotableDataJsonRpc(workspace, await RequestServiceAsync(primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
+                var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
 
                 // make sure connection is done right
                 var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, TelemetryService.DefaultSession.SerializeSettings()).ConfigureAwait(false);
@@ -54,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // TODO: change this to non fatal watson and make VS to use inproc implementation
                 Contract.ThrowIfFalse(host == current.ToString());
 
-                instance.Connected();
+                instance.Started();
 
                 // Create a workspace host to hear about workspace changes.  We'll 
                 // remote those changes over to the remote side when they happen.
@@ -73,38 +74,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return;
             }
 
-            // don't block UI thread while initialize workspace host
-            var host = new WorkspaceHost(vsWorkspace, client);
-
-            // Initialize the remote side with whatever data we have currently for the workspace.
-            // As workspace changes happen, this host will get notified, and it can remote those
-            // changes appropriately over to the remote size.
-            await host.InitializeAsync().ConfigureAwait(false);
+            // Create a connection to the host in the BG to avoid taking the hit of loading service 
+            // hub on the UI thread.  We'll initially set its ref count to 1, and we will decrement 
+            // that ref-count at the end of the using block.  During this time though, when the 
+            // projectTracker is sending events, the workspace host can then use that connection 
+            // instead of having to expensively spin up a fresh one.
+            var session = await client.TryCreateKeepAliveSessionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
+            var host = new WorkspaceHost(vsWorkspace, session);
 
             // RegisterWorkspaceHost is required to be called from UI thread so push the code
             // to UI thread to run. 
             await Task.Factory.SafeStartNew(() =>
             {
-                vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider).RegisterWorkspaceHost(host);
+                var projectTracker = vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider);
 
-                // There may have been notifications fired by the workspace between the time we 
-                // were created and now when we let it know about us.  Because of that, we need
-                // to do another initialization pass to make sure all the current workpsace
-                // state is pushed over to the remote side.
-                // 
-                // We can do this in a fire and forget manner.  We don't want to block the UI
-                // thread while we're pushing this data over.
-                Task.Run(() => host.InitializeAsync());
+                projectTracker.RegisterWorkspaceHost(host);
+                projectTracker.StartSendingEventsToWorkspaceHost(host);
             }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
         }
 
         private ServiceHubRemoteHostClient(
-            Workspace workspace, HubClient hubClient, HostGroup hostGroup, Stream stream) :
+            Workspace workspace,
+            HubClient hubClient,
+            HostGroup hostGroup,
+            ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
+            Stream stream) :
             base(workspace)
         {
+            Contract.ThrowIfNull(remotableDataRpc);
+
             _hubClient = hubClient;
             _hostGroup = hostGroup;
             _timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
+            _remotableDataRpc = remotableDataRpc;
 
             _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: this);
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
@@ -115,37 +117,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.StartListening();
         }
 
-        protected override async Task<Session> TryCreateServiceSessionAsync(string serviceName, Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken)
+        public override async Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
-            // get stream from service hub to communicate snapshot/asset related information
-            // this is the back channel the system uses to move data between VS and remote host for solution related information
-            var snapshotStream = getSnapshotAsync.Value == null ? null : await RequestServiceAsync(_hubClient, WellKnownServiceHubServices.SnapshotService, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
-
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information
             var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
-            return await JsonRpcSession.CreateAsync(getSnapshotAsync, callbackTarget, serviceStream, snapshotStream, cancellationToken).ConfigureAwait(false);
+            return new JsonRpcConnection(callbackTarget, serviceStream, _remotableDataRpc.TryAddReference());
         }
 
-        protected override void OnConnected()
+        protected override void OnStarted()
         {
         }
 
-        protected override void OnDisconnected()
+        protected override void OnStopped()
         {
-            // we are asked to disconnect. unsubscribe and dispose to disconnect.
+            // we are asked to stop. unsubscribe and dispose to disconnect.
             // there are 2 ways to get disconnected. one is Roslyn decided to disconnect with RemoteHost (ex, cancellation or recycle OOP) and
             // the other is external thing disconnecting remote host from us (ex, user killing OOP process).
             // the Disconnected event we subscribe is to detect #2 case. and this method is for #1 case. so when we are willingly disconnecting
             // we don't need the event, otherwise, Disconnected event will be called twice.
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
+            _remotableDataRpc.Dispose();
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
-            Disconnected();
+            Stopped();
         }
 
         private static async Task<Stream> RequestServiceAsync(

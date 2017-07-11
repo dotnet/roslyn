@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// Base for object that will use ISolutionSynchronizationService framework to synchronize data to remote host
+    /// Base for object that will use <see cref="IRemotableDataService"/> framework to synchronize data to remote host
     /// </summary>
     internal abstract partial class RemotableData
     {

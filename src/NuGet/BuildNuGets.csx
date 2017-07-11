@@ -1,4 +1,4 @@
-#r "System.Xml.XDocument.dll"
+﻿#r "System.Xml.XDocument.dll"
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,11 +7,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory>";
+string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory> <git sha> [<filter>]";
 
-if (Args.Count() != 3)
+if (Args.Count < 4 || Args.Count > 5)
 {
     Console.WriteLine(usage);
     Environment.Exit(1);
@@ -33,9 +34,23 @@ var BuildingReleaseNugets = IsReleaseVersion(BuildVersion);
 var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
 
+var CommitSha = Args[3];
+var CommitIsDeveloperBuild = CommitSha == "<developer build>";
+if (!CommitIsDeveloperBuild && !Regex.IsMatch(CommitSha, "[A-Fa-f0-9]+"))
+{
+    Console.WriteLine("Invalid Git sha value: expected <developer build> or a valid sha");
+    Environment.Exit(1);
+}
+var CommitPathMessage = CommitIsDeveloperBuild
+    ? "This an unofficial build from a developer's machine"
+    : $"This package was built from the source at https://github.com/dotnet/roslyn/commit/{CommitSha}";
+
+var NuspecNameFilter = Args.Count > 4 ? Args[4] : null;
+
 var LicenseUrlRedist = @"http://go.microsoft.com/fwlink/?LinkId=529443";
 var LicenseUrlNonRedist = @"http://go.microsoft.com/fwlink/?LinkId=529444";
 var LicenseUrlTest = @"http://go.microsoft.com/fwlink/?LinkId=529445";
+var LicenseUrlSource = @"https://github.com/dotnet/roslyn/blob/master/License.txt";
 
 var Authors = @"Microsoft";
 var ProjectURL = @"http://msdn.com/roslyn";
@@ -76,6 +91,7 @@ var IsCoreBuild = File.Exists(Path.Combine(ToolsetPath, "corerun"));
 #endregion
 
 var NuGetAdditionalFilesPath = Path.Combine(SolutionRoot, "build/NuGetAdditionalFiles");
+var SrcDirPath = Path.Combine(SolutionRoot, "src");
 
 string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis",
@@ -102,6 +118,11 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.Workspaces.Common",
     "Microsoft.VisualStudio.LanguageServices",
     "Microsoft.VisualStudio.LanguageServices.Next",
+};
+
+string[] SourcePackageNames = {
+    "Microsoft.CodeAnalysis.PooledObjects",
+    "Microsoft.CodeAnalysis.Debugging",
 };
 
 string[] NonRedistPackageNames = {
@@ -135,6 +156,8 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
     "Microsoft.VisualStudio.LanguageServices.Next",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
+    "Microsoft.CodeAnalysis.PooledObjects",
+    "Microsoft.CodeAnalysis.Debugging",
 };
 
 // The assets for these packages are not produced when building on Unix
@@ -205,7 +228,9 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         { "projectURL", ProjectURL },
         { "tags", Tags },
         { "emptyDirPath", emptyDir },
-        { "additionalFilesPath", NuGetAdditionalFilesPath }
+        { "additionalFilesPath", NuGetAdditionalFilesPath },
+        { "commitPathMessage", CommitPathMessage },
+        { "srcDirPath", SrcDirPath }
     };
 
     foreach (var dependencyVersion in dependencyVersions)
@@ -235,6 +260,11 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
     int exit = 0;
     foreach (var file in nuspecFiles)
     {
+        if (NuspecNameFilter != null && !file.Contains(NuspecNameFilter))
+        {
+            continue;
+        }
+
         var p = new Process();
 
         if (!IsCoreBuild)
@@ -361,8 +391,9 @@ catch
 int exit = DoWork(RedistPackageNames, LicenseUrlRedist);
 exit |= DoWork(NonRedistPackageNames, LicenseUrlNonRedist);
 exit |= DoWork(TestPackageNames, LicenseUrlTest);
+exit |= DoWork(SourcePackageNames, LicenseUrlSource);
 
-var allPackageNames = RedistPackageNames.Concat(NonRedistPackageNames).Concat(TestPackageNames).ToArray();
+var allPackageNames = RedistPackageNames.Concat(NonRedistPackageNames).Concat(TestPackageNames).Concat(SourcePackageNames).ToArray();
 var roslynPackageNames = GetRoslynPackageNames(allPackageNames);
 GeneratePublishingConfig(roslynPackageNames);
 

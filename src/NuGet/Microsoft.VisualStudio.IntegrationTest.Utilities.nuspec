@@ -2,7 +2,8 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.VisualStudio.IntegrationTest.Utilities</id>
-    <description>Utility methods used to run Visual Studio integration tests.</description>
+    <summary>Utility methods used to run Visual Studio integration tests.</summary>
+    <description>$commitPathMessage$</description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
@@ -18,6 +19,7 @@
     </dependencies>
   </metadata>
   <files>
+    <file src="Dlls\TestUtilities\Roslyn.Test.Utilities.dll" target="lib\net46" />
     <file src="Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.dll" target="lib\net46" />
     <file src="Dlls\ServicesTestUtilities\Roslyn.Services.Test.Utilities.dll" target="lib\net46" />
   </files>

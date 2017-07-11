@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -802,11 +803,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 labelStateChanged = true;
                 _labels[label] = state;
             }
-        }
-
-        private bool ResolveBranches(BoundLabeledStatement target)
-        {
-            return ResolveBranches(target.Label, target);
         }
 
         protected struct SavedPending
@@ -2715,7 +2711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
-            VisitAddressOfOperator(node, shouldReadOperand: false);
+            VisitAddressOfOperand(node.Operand, shouldReadOperand: false);
             return null;
         }
 
@@ -2723,10 +2719,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If the operand is definitely assigned, we may want to perform a read (in addition to
         /// a write) so that the operand can show up as ReadInside/DataFlowsIn.
         /// </summary>
-        protected void VisitAddressOfOperator(BoundAddressOfOperator node, bool shouldReadOperand)
+        protected void VisitAddressOfOperand(BoundExpression operand, bool shouldReadOperand)
         {
-            BoundExpression operand = node.Operand;
-
             if (shouldReadOperand)
             {
                 this.VisitRvalue(operand);

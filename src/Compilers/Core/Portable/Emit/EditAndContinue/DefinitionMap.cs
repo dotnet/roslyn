@@ -233,12 +233,13 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
                 catch (InvalidDataException)
                 {
-                    // TODO: localize message & use better error code (https://github.com/dotnet/roslyn/issues/11512): 
                     diagnostics.Add(MessageProvider.CreateDiagnostic(
-                        MessageProvider.ERR_ModuleEmitFailure,
+                        MessageProvider.ERR_InvalidDebugInfo,
                         method.Locations.First(),
-                        $"Unable to read debug information of method '{MessageProvider.GetErrorDisplayString(method)}' (token 0x{MetadataTokens.GetToken(previousHandle):X8}) " + 
-                        $"from assembly '{MessageProvider.GetErrorDisplayString(method.ContainingAssembly)}'"));
+                        method,
+                        MetadataTokens.GetToken(previousHandle),
+                        method.ContainingAssembly
+                    ));
 
                     return null;
                 }

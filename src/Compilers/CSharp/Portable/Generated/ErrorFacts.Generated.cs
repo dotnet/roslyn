@@ -1,4 +1,4 @@
-namespace Microsoft.CodeAnalysis.CSharp
+﻿namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ErrorFacts
     {
@@ -175,6 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_DefaultInSwitch:
+<<<<<<< HEAD
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:
                 case ErrorCode.WRN_NullReferenceReturn:
@@ -193,6 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInArgument:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
+=======
+                case ErrorCode.WRN_UnreferencedLocalFunction:
+>>>>>>> upstream/master
                     return true;
                 default:
                     return false;

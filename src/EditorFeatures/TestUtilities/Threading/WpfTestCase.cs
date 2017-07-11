@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,12 +18,20 @@ namespace Roslyn.Test.Utilities
 {
     public class WpfTestCase : XunitTestCase
     {
-        private readonly SemaphoreSlim _wpfTestSerializationGate;
+        private Guid _semaphoreName;
+        private Semaphore _wpfTestSerializationGate;
 
-        public WpfTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, SemaphoreSlim wpfTestSerializationGate, object[] testMethodArguments = null)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Called by the de-serializer; should only be called by deriving classes for de-serialization purposes")]
+        public WpfTestCase()
+        {
+        }
+
+        public WpfTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, Guid wpfTestSerializationGate, object[] testMethodArguments = null)
             : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments)
         {
-            _wpfTestSerializationGate = wpfTestSerializationGate;
+            _semaphoreName = wpfTestSerializationGate;
+            _wpfTestSerializationGate = new Semaphore(1, 1, _semaphoreName.ToString("N"));
         }
 
         public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
@@ -33,7 +42,7 @@ namespace Roslyn.Test.Utilities
                 Debug.Assert(sta.Threads.Length == 1);
                 Debug.Assert(sta.Threads[0] == Thread.CurrentThread);
 
-                using (await _wpfTestSerializationGate.DisposableWaitAsync())
+                using (await _wpfTestSerializationGate.DisposableWaitAsync(CancellationToken.None))
                 {
                     try
                     {
@@ -86,6 +95,19 @@ namespace Roslyn.Test.Utilities
             }, cancellationTokenSource.Token, TaskCreationOptions.None, sta);
 
             return task.Unwrap();
+        }
+
+        public override void Serialize(IXunitSerializationInfo data)
+        {
+            base.Serialize(data);
+            data.AddValue(nameof(_semaphoreName), _semaphoreName.ToString("N"));
+        }
+
+        public override void Deserialize(IXunitSerializationInfo data)
+        {
+            base.Deserialize(data);
+            _semaphoreName = Guid.ParseExact(data.GetValue<string>(nameof(_semaphoreName)), "N");
+            _wpfTestSerializationGate = new Semaphore(1, 1, _semaphoreName.ToString("N"));
         }
 
         private static string s_wpfFactRequirementReason;

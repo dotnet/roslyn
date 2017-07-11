@@ -518,7 +518,8 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
 
         ''' <summary>
         ''' If this test fails, please update the <see cref="VisualBasicCompilationOptions.GetHashCode" />
-        ''' and <see cref="VisualBasicCompilationOptions.Equals" /> methods and <see cref="VisualBasicCompilationOptions.New"/> to
+        ''' and <see cref="VisualBasicCompilationOptions.Equals" /> methods and
+        ''' <see cref="VisualBasicCompilationOptions"/> constructor(s) to
         ''' make sure they are doing the right thing with your new field And then update the baseline
         ''' here.
         ''' </summary>

@@ -569,5 +569,29 @@ class C
     public string T { get; }
 }");
         }
+
+        [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNoBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private string s;
+
+    public C(string s[||])
+}",
+@"
+class C
+{
+    private string s;
+
+    public C(string s)
+    {
+        this.s = s;
+    }
+}", ignoreTrivia: false);
+        }
     }
 }

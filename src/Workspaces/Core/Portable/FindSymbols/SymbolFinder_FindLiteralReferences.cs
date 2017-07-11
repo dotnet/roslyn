@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -52,20 +53,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // the 'progress' parameter which will then update the UI.
             var serverCallback = new FindLiteralsServerCallback(solution, progress, cancellationToken);
 
-            using (var session = await TryGetRemoteSessionAsync(
-                solution, serverCallback, cancellationToken).ConfigureAwait(false))
-            {
-                if (session == null)
-                {
-                    return false;
-                }
-
-                await session.InvokeAsync(
-                    nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
-                    value, typeCode).ConfigureAwait(false);
-
-                return true;
-            }
+            return await solution.TryRunCodeAnalysisRemoteAsync(
+                RemoteFeatureOptions.SymbolFinderEnabled,
+                serverCallback,
+                nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
+                new object[] { value, typeCode },
+                cancellationToken).ConfigureAwait(false);
         }
     }
 }

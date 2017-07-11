@@ -933,4 +933,24 @@ Additional information: {1}</value>
   <data name="Perform_editor_feature_analysis_in_external_process" xml:space="preserve">
     <value>Perform editor _feature analysis in external process (experimental)</value>
   </data>
+  <data name="Fade_out_unreachable_code" xml:space="preserve">
+    <value>Fade out unreachable code</value>
+  </data>
+  <data name="Fading" xml:space="preserve">
+    <value>Fading</value>
+  </data>
+  <data name="ChangesNotAllowedIFAssemblyHasNotBeenLoaded" xml:space="preserve">
+    <value>Changes are not allowed if the assembly has not been loaded.</value>
+  </data>
+  <data name="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted" xml:space="preserve">
+    <value>Changes are not allowed if the project wasn't built when debugging started.</value>
+  </data>
+  <data name="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging" xml:space="preserve">
+    <value>Changes are not allowed if the project wasn't loaded and built when debugging started.
+
+'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</value>
+  </data>
+  <data name="ChangesNotAllowedWhileCodeIsRunning" xml:space="preserve">
+    <value>Changes are not allowed while code is running.</value>
+  </data>
 </root>

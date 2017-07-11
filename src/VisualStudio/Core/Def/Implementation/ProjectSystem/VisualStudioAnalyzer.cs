@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -31,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _tracker = new FileChangeTracker(fileChangeService, fullPath);
             _tracker.UpdatedOnDisk += OnUpdatedOnDisk;
             _tracker.StartFileChangeListeningAsync();
-            _tracker.EnsureSubscription();
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _projectId = projectId;
             _workspace = workspace;
@@ -55,7 +55,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (File.Exists(_fullPath))
                 {
-                    _analyzerReference = new AnalyzerFileReference(_fullPath, _loader);
+                    // Pass down a custom loader that will ensure we are watching for file changes once we actually load the assembly.
+                    var assemblyLoaderForFileTracker = new AnalyzerAssemblyLoaderThatEnsuresFileBeingWatched(this);
+                    _analyzerReference = new AnalyzerFileReference(_fullPath, assemblyLoaderForFileTracker);
                     ((AnalyzerFileReference)_analyzerReference).AnalyzerLoadFailed += OnAnalyzerLoadError;
                 }
                 else
@@ -107,6 +109,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void OnUpdatedOnDisk(object sender, EventArgs e)
         {
             UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// This custom loader just wraps an existing loader, but ensures that we start listening to the file
+        /// for changes once we've actually looked at the file.
+        /// </summary>
+        private class AnalyzerAssemblyLoaderThatEnsuresFileBeingWatched : IAnalyzerAssemblyLoader
+        {
+            private readonly VisualStudioAnalyzer _analyzer;
+
+            public AnalyzerAssemblyLoaderThatEnsuresFileBeingWatched(VisualStudioAnalyzer analyzer)
+            {
+                _analyzer = analyzer;
+            }
+
+            public void AddDependencyLocation(string fullPath)
+            {
+                _analyzer._loader.AddDependencyLocation(fullPath);
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                _analyzer._tracker.EnsureSubscription();
+                return _analyzer._loader.LoadFromPath(fullPath);
+            }
         }
     }
 }

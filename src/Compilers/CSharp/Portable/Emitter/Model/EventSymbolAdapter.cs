@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -12,18 +13,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         #region IEventDefinition Members
 
-        IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.Accessors
+        IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.GetAccessors(EmitContext context)
         {
-            get
+            CheckDefinitionInvariant();
+
+            var addMethod = this.AddMethod;
+            Debug.Assert((object)addMethod != null);
+            if (addMethod.ShouldInclude(context))
             {
-                CheckDefinitionInvariant();
-
-                var addMethod = this.AddMethod;
-                Debug.Assert((object)addMethod != null);
                 yield return addMethod;
+            }
 
-                var removeMethod = this.RemoveMethod;
-                Debug.Assert((object)removeMethod != null);
+            var removeMethod = this.RemoveMethod;
+            Debug.Assert((object)removeMethod != null);
+            if (removeMethod.ShouldInclude(context))
+            {
                 yield return removeMethod;
             }
         }

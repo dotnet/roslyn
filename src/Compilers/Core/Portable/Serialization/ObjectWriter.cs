@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
@@ -483,7 +484,8 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        () => WriteArrayValues(array),
+                        a => WriteArrayValues((Array)a), 
+                        array,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
@@ -841,22 +843,22 @@ namespace Roslyn.Utilities
         /// <summary>
         /// byte marker mask for encoding compressed uint 
         /// </summary>
-        internal static readonly byte ByteMarkerMask = 3 << 6;
+        internal const byte ByteMarkerMask = 3 << 6;
 
         /// <summary>
         /// byte marker bits for uint encoded in 1 byte.
         /// </summary>
-        internal static readonly byte Byte1Marker = 0;
+        internal const byte Byte1Marker = 0;
 
         /// <summary>
         /// byte marker bits for uint encoded in 2 bytes.
         /// </summary>
-        internal static readonly byte Byte2Marker = 1 << 6;
+        internal const byte Byte2Marker = 1 << 6;
 
         /// <summary>
         /// byte marker bits for uint encoded in 4 bytes.
         /// </summary>
-        internal static readonly byte Byte4Marker = 2 << 6;
+        internal const byte Byte4Marker = 2 << 6;
 
         internal enum EncodingKind : byte
         {

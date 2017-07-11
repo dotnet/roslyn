@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    public abstract class AbstractUserDiagnosticTest : AbstractCodeActionOrUserDiagnosticTest
+    public abstract partial class AbstractUserDiagnosticTest : AbstractCodeActionOrUserDiagnosticTest
     {
         internal abstract Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters);
@@ -199,27 +199,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             var diagnostic = diagnostics.First();
-            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync =
-                async (d, diagIds, c) =>
-                {
-                    var root = await d.GetSyntaxRootAsync();
-                    var diags = await testDriver.GetDocumentDiagnosticsAsync(provider, d, root.FullSpan);
-                    diags = diags.Where(diag => diagIds.Contains(diag.Id));
-                    return diags;
-                };
-
-            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync =
-                async (p, includeAllDocumentDiagnostics, diagIds, c) =>
-                {
-                    var diags = includeAllDocumentDiagnostics
-                        ? await testDriver.GetAllDiagnosticsAsync(provider, p)
-                        : await testDriver.GetProjectDiagnosticsAsync(provider, p);
-                    diags = diags.Where(diag => diagIds.Contains(diag.Id));
-                    return diags;
-                };
-
             var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
-            var fixAllDiagnosticProvider = new FixAllState.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+            var fixAllDiagnosticProvider = new FixAllDiagnosticProvider(provider, testDriver, diagnosticIds);
+
             return diagnostic.Location.IsInSource
                 ? new FixAllState(fixAllProvider, document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider)
                 : new FixAllState(fixAllProvider, document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider);
