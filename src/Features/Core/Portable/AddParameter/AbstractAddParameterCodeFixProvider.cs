@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -169,10 +170,35 @@ namespace Microsoft.CodeAnalysis.AddParameter
             SeparatedSyntaxList<TArgumentSyntax> argumentList,
             CancellationToken cancellationToken)
         {
-            var generator = SyntaxGenerator.GetGenerator(invocationDocument.Project.Solution.Workspace, method.Language);
-
             var methodDeclaration = await method.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
 
+            var (parameterSymbol, isNamedArgument) = await CreateParameterSymbolAsync(
+                invocationDocument, method, argument, cancellationToken).ConfigureAwait(false);
+
+            var methodDocument = invocationDocument.Project.Solution.GetDocument(methodDeclaration.SyntaxTree);
+            var syntaxFacts = methodDocument.GetLanguageService<ISyntaxFactsService>();
+            var methodDeclarationRoot = methodDeclaration.SyntaxTree.GetRoot(cancellationToken);
+            var editor = new SyntaxEditor(methodDeclarationRoot, methodDocument.Project.Solution.Workspace);
+
+            var parameterDeclaration = editor.Generator.ParameterDeclaration(parameterSymbol)
+                                                       .WithAdditionalAnnotations(Formatter.Annotation);
+
+            AddParameter(
+                syntaxFacts, editor, methodDeclaration, isNamedArgument, argument, 
+                argumentList, parameterDeclaration, cancellationToken);
+            
+            var newRoot = editor.GetChangedRoot();
+            var newDocument = methodDocument.WithSyntaxRoot(newRoot);
+
+            return newDocument;
+        }
+
+        private async Task<(IParameterSymbol, bool isNamedArgument)> CreateParameterSymbolAsync(
+            Document invocationDocument,
+            IMethodSymbol method,
+            TArgumentSyntax argument,
+            CancellationToken cancellationToken)
+        {
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
             var semanticFacts = invocationDocument.GetLanguageService<ISemanticFactsService>();
             var argumentName = syntaxFacts.GetNameForArgument(argument);
@@ -181,44 +207,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var parameterType = semanticModel.GetTypeInfo(expression).Type ?? semanticModel.Compilation.ObjectType;
 
-            var newMethodDeclaration = GetNewMethodDeclaration(
-                method, argument, argumentList, generator, methodDeclaration, 
-                semanticFacts, argumentName, expression, semanticModel, 
-                parameterType, cancellationToken);
-
-            var root = methodDeclaration.SyntaxTree.GetRoot(cancellationToken);
-            var newRoot = root.ReplaceNode(methodDeclaration, newMethodDeclaration);
-
-            var methodDocument = invocationDocument.Project.Solution.GetDocument(methodDeclaration.SyntaxTree);
-            var newDocument = methodDocument.WithSyntaxRoot(newRoot);
-
-            return newDocument;
-        }
-
-        private static SyntaxNode GetNewMethodDeclaration(
-            IMethodSymbol method,
-            TArgumentSyntax argument,
-            SeparatedSyntaxList<TArgumentSyntax> argumentList,
-            SyntaxGenerator generator,
-            SyntaxNode declaration,
-            ISemanticFactsService semanticFacts,
-            string argumentName,
-            SyntaxNode expression,
-            SemanticModel semanticModel,
-            ITypeSymbol parameterType,
-            CancellationToken cancellationToken)
-        {
             if (!string.IsNullOrWhiteSpace(argumentName))
             {
                 var newParameterSymbol = CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
-                    refKind: RefKind.None,
-                    isParams: false,
-                    type: parameterType,
-                    name: argumentName);
+                    attributes: default, refKind: RefKind.None, isParams: false, type: parameterType, name: argumentName);
 
-                var newParameterDeclaration = generator.ParameterDeclaration(newParameterSymbol);
-                return generator.AddParameters(declaration, new[] { newParameterDeclaration });
+                return (newParameterSymbol, isNamedArgument: true);
             }
             else
             {
@@ -227,17 +221,131 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var uniqueName = NameGenerator.EnsureUniqueness(name, method.Parameters.Select(p => p.Name));
 
                 var newParameterSymbol = CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
-                    refKind: RefKind.None,
-                    isParams: false,
-                    type: parameterType,
-                    name: uniqueName);
+                    attributes: default, refKind: RefKind.None, isParams: false, type: parameterType, name: uniqueName);
 
-                var argumentIndex = argumentList.IndexOf(argument);
-                var newParameterDeclaration = generator.ParameterDeclaration(newParameterSymbol);
-                return generator.InsertParameters(
-                    declaration, argumentIndex, new[] { newParameterDeclaration });
+                return (newParameterSymbol, isNamedArgument: false);
             }
+        }
+
+        private static void AddParameter(
+            ISyntaxFactsService syntaxFacts,
+            SyntaxEditor editor,
+            SyntaxNode declaration,
+            bool isNamedArgument,
+            TArgumentSyntax argument,
+            SeparatedSyntaxList<TArgumentSyntax> argumentList,
+            SyntaxNode parameterDeclaration,
+            CancellationToken cancellationToken)
+        {
+            var generator = editor.Generator;
+
+            var existingParameters = generator.GetParameters(declaration);
+            var placeOnNewLine = ShouldPlaceParametersOnNewLine(existingParameters, cancellationToken);
+
+            var argumentIndex = argumentList.IndexOf(argument);
+            if (isNamedArgument || argumentIndex == existingParameters.Count)
+            {
+                if (placeOnNewLine)
+                {
+                    var leadingIndentation = GetDesiredLeadingIndentation(
+                        generator, syntaxFacts, existingParameters.Last(), includeLeadingNewLine: true);
+                    parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation)
+                                                               .WithAdditionalAnnotations(Formatter.Annotation);
+                }
+                
+                editor.AddParameter(declaration, parameterDeclaration);
+            }
+            else
+            {
+                if (placeOnNewLine)
+                {
+                    if (argumentIndex == 0)
+                    {
+                        // Have to move the next parameter to the next line.
+                        editor.InsertParameter(declaration, argumentIndex, parameterDeclaration);
+                        var nextParameter = existingParameters[argumentIndex];
+
+                        var leadingIndentation = GetDesiredLeadingIndentation(
+                            generator, syntaxFacts, existingParameters[argumentIndex + 1], includeLeadingNewLine: true);
+                        editor.ReplaceNode(
+                            nextParameter,
+                            nextParameter.WithPrependedLeadingTrivia(leadingIndentation)
+                                         .WithAdditionalAnnotations(Formatter.Annotation));
+                    }
+                    else
+                    {
+                        var nextParameter = existingParameters[argumentIndex];
+                        var leadingIndentation = GetDesiredLeadingIndentation(
+                            generator, syntaxFacts, existingParameters[argumentIndex], includeLeadingNewLine: false);
+                        parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation);
+
+                        editor.InsertParameter(declaration, argumentIndex, parameterDeclaration);
+                        editor.ReplaceNode(
+                            nextParameter,
+                            nextParameter.WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed)
+                                         .WithAdditionalAnnotations(Formatter.Annotation));
+                    }
+                }
+                else
+                {
+                    editor.InsertParameter(declaration, argumentIndex, parameterDeclaration);
+                }
+            }
+        }
+
+        private static List<SyntaxTrivia> GetDesiredLeadingIndentation(
+            SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, 
+            SyntaxNode node, bool includeLeadingNewLine)
+        {
+            var triviaList = new List<SyntaxTrivia>();
+            if (includeLeadingNewLine)
+            {
+                triviaList.Add(generator.ElasticCarriageReturnLineFeed);
+            }
+
+            var lastWhitespace = default(SyntaxTrivia); 
+            foreach(var trivia in node.GetLeadingTrivia().Reverse())
+            {
+                if (syntaxFacts.IsWhitespaceTrivia(trivia))
+                {
+                    lastWhitespace = trivia;
+                }
+                else if (syntaxFacts.IsEndOfLineTrivia(trivia))
+                {
+                    break;
+                }
+            }
+
+            if (lastWhitespace.RawKind != 0)
+            {
+                triviaList.Add(lastWhitespace);
+            }
+
+            return triviaList;
+        }
+
+        private static bool ShouldPlaceParametersOnNewLine(
+            IReadOnlyList<SyntaxNode> parameters, CancellationToken cancellationToken)
+        {
+            if (parameters.Count <= 1)
+            {
+                return false;
+            }
+
+            var text = parameters[0].SyntaxTree.GetText(cancellationToken);
+            for (int i = 1, n = parameters.Count; i < n; i++)
+            {
+                var lastParameter = parameters[i - 1];
+                var thisParameter = parameters[i];
+
+                if (text.AreOnSameLine(lastParameter.GetLastToken(), thisParameter.GetFirstToken()))
+                {
+                    return false;
+                }
+            }
+
+            // All parameters are on different lines.  Place the new parameter on a new line as well.
+            return true;
         }
 
         private static readonly SymbolDisplayFormat SimpleFormat =
