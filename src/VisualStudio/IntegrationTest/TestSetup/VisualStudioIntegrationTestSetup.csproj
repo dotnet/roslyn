@@ -59,16 +59,21 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Test\Diagnostics\Diagnostics.csproj">
+      <Name>Diagnostics</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
+      <Name>Workspaces</Name>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Setup\VisualStudioSetup.csproj">
+      <Name>VisualStudioSetup</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\TestUtilities\VisualStudioIntegrationTestUtilities.csproj" />
+    <ProjectReference Include="..\TestUtilities\VisualStudioIntegrationTestUtilities.csproj">
+      <Name>VisualStudioIntegrationTestUtilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <VSIXSourceItem Include="$(OutputPath)Microsoft.Diagnostics.Runtime.dll" />

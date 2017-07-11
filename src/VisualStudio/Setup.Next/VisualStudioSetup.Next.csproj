@@ -28,6 +28,7 @@
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\EditorFeatures\Next\EditorFeatures.Next.csproj">
+      <Name>EditorFeatures.Next</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <Ngen>true</Ngen>
@@ -35,18 +36,22 @@
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
+      <Name>RemoteWorkspaces</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\Razor\RazorServiceHub.csproj">
+      <Name>RazorServiceHub</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
+      <Name>ServiceHub</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\Core\Next\ServicesVisualStudio.Next.csproj">
+      <Name>ServicesVisualStudio.Next</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <Ngen>true</Ngen>
@@ -54,6 +59,7 @@
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\Razor\RazorVisualStudio.csproj">
+      <Name>RazorVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <Ngen>true</Ngen>
@@ -61,10 +67,12 @@
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
+      <Name>VisualStudioSetup</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\Xaml\Impl\XamlVisualStudio.csproj">
+      <Name>XamlVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <Ngen>true</Ngen>
       <NgenArchitecture>All</NgenArchitecture>
