@@ -927,9 +927,17 @@ class C
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentTestAnalyzer() }, null, null, false,
-                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "x1.Field = 10").WithLocation(28, 9),
-                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "x1.Property1 = null").WithLocation(29, 9),
-                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "x2.Field = true").WithLocation(32, 9));
+                Diagnostic("DoNotUseMemberAssignment", "Property2 = new Bar { Field = true }").WithLocation(27, 30),
+                Diagnostic("DoNotUseMemberAssignment", "Field = true").WithLocation(27, 52),
+                Diagnostic("DoNotUseMemberAssignment", "x1.Field = 10").WithLocation(28, 9),
+                Diagnostic("DoNotUseMemberAssignment", "x1.Property1 = null").WithLocation(29, 9),
+                Diagnostic("DoNotUseMemberAssignment", "x2.Field = true").WithLocation(32, 9),
+                Diagnostic("DoNotUseMemberAssignment", "Field = 2").WithLocation(19, 30),
+                Diagnostic("DoNotUseMemberAssignment", @"Property1 = """"").WithLocation(20, 30),
+                Diagnostic("DoNotUseMemberAssignment", @"Property1 = """"").WithLocation(21, 30),
+                Diagnostic("DoNotUseMemberAssignment", "Field = 2").WithLocation(21, 46),
+                Diagnostic("DoNotUseMemberAssignment", "Property2 = new Bar { Field = true }").WithLocation(22, 30),
+                Diagnostic("DoNotUseMemberAssignment", "Field = true").WithLocation(22, 52));
         }
 
         [Fact]

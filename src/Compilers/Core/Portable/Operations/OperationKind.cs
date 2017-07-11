@@ -128,6 +128,12 @@ namespace Microsoft.CodeAnalysis
         InterpolatedStringExpression = 0x11e,
         /// <summary>Indicates an <see cref="IAnonymousObjectCreationExpression"/>.</summary>
         AnonymousObjectCreationExpression = 0x11f,
+        /// <summary>Indicates an <see cref="IObjectOrCollectionInitializerExpression"/>.</summary>
+        ObjectOrCollectionInitializerExpression = 0x120,
+        /// <summary>Indicates an <see cref="IMemberInitializerExpression"/>.</summary>
+        MemberInitializerExpression = 0x121,
+        /// <summary>Indicates an <see cref="ICollectionElementInitializerExpression"/>.</summary>
+        CollectionElementInitializerExpression = 0x122,
         /// <summary>Indicates an <see cref="INameOfExpression"/>.</summary>
         NameOfExpression = 0x123,
 

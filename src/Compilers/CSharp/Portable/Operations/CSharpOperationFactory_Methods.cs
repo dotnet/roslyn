@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         private ImmutableArray<IArgument> DeriveArguments(
-            BoundExpression boundNode,
+            BoundNode boundNode,
             Binder binder,
             Symbol methodOrIndexer,
             MethodSymbol optionalParametersMethod,
@@ -118,11 +118,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             return builder.ToImmutableAndFree();
-        }
-
-        private ImmutableArray<IOperation> GetObjectCreationInitializers(BoundObjectCreationExpression expression)
-        {
-            return BoundObjectCreationExpression.GetChildInitializers(expression.InitializerExpressionOpt).SelectAsArray(n => Create(n));
         }
 
         private static ConversionKind GetConversionKind(CSharp.ConversionKind kind)
