@@ -3,10 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -38,7 +34,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
                 var adjustedSpans = new List<TextSpan>();
 
-                for (int i = 0; i < spans.Length; i++)
+                for (var i = 0; i < spans.Length; i++)
                 {
                     var span = spans[i];
                     var startLineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber;
@@ -114,7 +110,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 for (var lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++)
                 {
                     var line = text.Lines[lineNumber];
-                    if (IsWhitespace(line))
+                    if (line.IsEmptyOrWhitespace())
                     {
                         continue;
                     }
@@ -126,20 +122,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
 
             return indentationColumn ?? 0;
-        }
-
-        private static bool IsWhitespace(TextLine line)
-        {
-            var text = line.Text;
-            for (int i = line.Span.Start; i < line.Span.End; i++)
-            {
-                if (!char.IsWhiteSpace(text[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
     }
 }

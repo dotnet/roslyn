@@ -55,7 +55,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool IsEmptyOrWhitespace(this TextLine line)
         {
-            return string.IsNullOrWhiteSpace(line.ToString());
+            var text = line.Text;
+            for (var i = line.Span.Start; i < line.Span.End; i++)
+            {
+                if (!char.IsWhiteSpace(text[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static int GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(this TextLine line, int tabSize)
