@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void Analyze(BoundNode node)
             {
-                this._scopeTree = ScopeTreeBuilder.Build(node, this);
+                _scopeTree = ScopeTreeBuilder.Build(node, this);
                 _currentScope = FindNodeToAnalyze(node);
 
                 Debug.Assert(!_inExpressionLambda);

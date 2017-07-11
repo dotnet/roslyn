@@ -179,6 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     action(scope, closure);
                 }
+
                 foreach (var nested in scope.NestedScopes)
                 {
                     VisitClosures(nested, action);
@@ -245,8 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var oldScope = _currentScope;
-                    _currentScope = NewNestedScope(node);
-                    DeclareLocals(_currentScope, node.Locals);
+                    _currentScope = CreateOrReuseScope(node, node.Locals);
                     var result = base.VisitBlock(node);
                     _currentScope = oldScope;
                     return result; 
@@ -255,8 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode VisitCatchBlock(BoundCatchBlock node)
                 {
                     var oldScope = _currentScope;
-                    _currentScope = NewNestedScope(node);
-                    DeclareLocals(_currentScope, node.Locals);
+                    _currentScope = CreateOrReuseScope(node, node.Locals);
                     var result = base.VisitCatchBlock(node);
                     _currentScope = oldScope;
                     return result;
@@ -265,8 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode VisitSequence(BoundSequence node)
                 {
                     var oldScope = _currentScope;
-                    _currentScope = NewNestedScope(node);
-                    DeclareLocals(_currentScope, node.Locals);
+                    _currentScope = CreateOrReuseScope(node, node.Locals);
                     var result = base.VisitSequence(node);
                     _currentScope = oldScope;
                     return result;
@@ -281,8 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var oldScope = _currentScope;
-                    _currentScope = NewNestedScope(node);
-                    DeclareLocals(_currentScope, node.InnerLocals);
+                    _currentScope = CreateOrReuseScope(node, node.InnerLocals);
                     var result = base.VisitSwitchStatement(node);
                     _currentScope = oldScope;
                     return result;
@@ -379,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _currentClosure = closure;
 
                     var oldScope = _currentScope;
-                    _currentScope = NewNestedScope(body);
+                    _currentScope = CreateNestedScope(body);
 
                     BoundNode result;
                     if (!_inExpressionTree)
@@ -458,18 +455,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                private Scope NewNestedScope(BoundNode node)
+                private Scope CreateOrReuseScope<TSymbol>(BoundNode node, ImmutableArray<TSymbol> locals)
+                    where TSymbol : Symbol
                 {
                     // We should never create a new scope with the same bound
                     // node. We can get into this situation for methods and
                     // closures where a new scope is created to add parameters
                     // and a new scope would be created for the method block,
                     // despite the fact that they should be the same scope.
-                    if (_currentScope.BoundNode == node)
-                    {
-                        return _currentScope;
-                    }
+                    var scope = _currentScope.BoundNode == node
+                        ? _currentScope
+                        : CreateNestedScope(node);
+                    DeclareLocals(scope, locals);
+                    return scope;
+                }
 
+                private Scope CreateNestedScope(BoundNode node)
+                {
+                    Debug.Assert(_currentScope.BoundNode != node);
                     var newScope = new Scope(_currentScope, node, _currentClosure);
                     _currentScope.NestedScopes.Add(newScope);
                     return newScope;
