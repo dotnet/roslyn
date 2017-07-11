@@ -182,8 +182,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Assert.Equal("ChrW(&HFFFF)", FormatValue(CStr(Char.MaxValue), useHexadecimal:=True))
 
             Dim multiByte = ChrW(&HD83C) & ChrW(&HDFC8)
-            Assert.Equal("""🏈""", FormatValue(multiByte))
-            Assert.Equal("""🏈""", FormatValue(multiByte, useHexadecimal:=True))
+
+            Assert.Equal("ChrW(55356) & ChrW(57288)", FormatValue(multiByte))
+            Assert.Equal("ChrW(&HD83C) & ChrW(&HDFC8)", FormatValue(multiByte, useHexadecimal:=True))
         End Sub
 
         <Fact>

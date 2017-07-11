@@ -214,8 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             Assert.Equal("\"\\uffff\"", FormatValue(s, useHexadecimal: true));
 
             string multiByte = "\ud83c\udfc8";
-            Assert.Equal(string.Format(format, "🏈"), FormatValue(multiByte));
-            Assert.Equal(string.Format(format, "🏈"), FormatValue(multiByte, useHexadecimal: true));
+            Assert.Equal(string.Format(format, "\\ud83c\\udfc8"), FormatValue(multiByte));
+            Assert.Equal(string.Format(format, "\\ud83c\\udfc8"), FormatValue(multiByte, useHexadecimal: true));
         }
 
         private static string FormatStringChar(char c)

@@ -2940,7 +2940,7 @@ End Class",
 End Interface
 Class C
     Implements I
-    Public Sub Foo(Optional x As String = ""𪛖"") Implements I.Foo
+    Public Sub Foo(Optional x As String = ChrW(55401) & ChrW(57046)) Implements I.Foo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
