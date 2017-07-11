@@ -5060,7 +5060,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseMemberInitializerExpression : Operation, IMemberInitializerExpression
     {
-        protected BaseMemberInitializerExpression(bool SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseMemberInitializerExpression(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.MemberInitializerExpression, syntax, type, constantValue)
         {
         }
