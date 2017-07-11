@@ -34,7 +34,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BasicAnalyzers\BasicAnalyzers.vbproj" />
+    <ProjectReference Include="..\BasicAnalyzers\BasicAnalyzers.vbproj">
+      <Name>BasicAnalyzers</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

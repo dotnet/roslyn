@@ -33,7 +33,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CSharpAnalyzers\CSharpAnalyzers.csproj" />
+    <ProjectReference Include="..\CSharpAnalyzers\CSharpAnalyzers.csproj">
+      <Name>CSharpAnalyzers</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="..\..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>
