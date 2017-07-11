@@ -237,7 +237,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Debug.Assert(!string.IsNullOrEmpty(header));
 
-            var elementCount = logElementCount ? $"({list.Count()})" : string.Empty;
+            var count = list.Count();
+            if (count == 0)
+            {
+                return;
+            }
+
+            var elementCount = logElementCount ? $"({count})" : string.Empty;
             Indent();
             LogString($"{header}{elementCount}: ");
             VisitArray(list);
