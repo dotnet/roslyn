@@ -9,10 +9,11 @@
     <ScriptArgs Condition="'$(Configuration)' == 'Release'">-release</ScriptArgs>
     <ScriptArgs Condition="'$(BUILD_SOURCEBRANCH)' != ''">$(ScriptArgs) -branch $(BUILD_SOURCEBRANCH)</ScriptArgs>
     <ScriptArgs Condition="'$(RoslynNuGetApiKey)' != ''">$(ScriptArgs) -nugetApiKey $(RoslynNuGetApiKey)</ScriptArgs>
+    <ScriptArgs Condition="'$(SkipTest)' != 'true'">$(ScriptArgs) -testDesktop</ScriptArgs>
   </PropertyGroup>
 
   <Target Name="Build">
-    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)microbuild.ps1 -restore -official -testDesktop -publish -assemblyVersion $(AssemblyVersion) -msbuildDir &quot;$(MSBuildBinPath)&quot; $(ScriptArgs) " />
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)microbuild.ps1 -restore -official -publish -assemblyVersion $(AssemblyVersion) -msbuildDir &quot;$(MSBuildBinPath)&quot; $(ScriptArgs) " />
   </Target>
 
 </Project>
