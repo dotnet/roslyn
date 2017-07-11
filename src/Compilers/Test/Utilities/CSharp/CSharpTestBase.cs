@@ -1127,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         #region IOperation tree validation
 
         protected static (IOperation operation, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
-    where TSyntaxNode : SyntaxNode
+            where TSyntaxNode : SyntaxNode
         {
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1144,12 +1144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             where TSyntaxNode : SyntaxNode
         {
             var (operation, syntax) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
-            return operation != null ? OperationTreeVerifier.GetOperationTree(operation) : null;
+            return operation != null ? OperationTreeVerifier.GetOperationTree(compilation, operation) : null;
         }
 
-        protected static string GetOperationTreeForTest(IOperation operation)
+        protected static string GetOperationTreeForTest(CSharpCompilation compilation, IOperation operation)
         {
-            return operation != null ? OperationTreeVerifier.GetOperationTree(operation) : null;
+            return operation != null ? OperationTreeVerifier.GetOperationTree(compilation, operation) : null;
         }
 
         protected static string GetOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
@@ -1163,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             where TSyntaxNode : SyntaxNode
         {
             var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
-            var actualOperationTree = GetOperationTreeForTest(actualOperation);
+            var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
             AdditionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
         }

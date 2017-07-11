@@ -66,8 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
             var declaration = declarationLocation.FindNode(cancellationToken);
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
+            var parseOptions = declaration.SyntaxTree.Options;
 
-            var updatedDeclaration = helper.Update(declaration, options, useExpressionBody)
+            var updatedDeclaration = helper.Update(declaration, options, parseOptions, useExpressionBody)
                                            .WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(declaration, updatedDeclaration);

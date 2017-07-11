@@ -256,6 +256,7 @@ class X
                             Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_PdbLocalNameTooLong:
+                        case ErrorCode.WRN_UnreferencedLocalFunction:
                             Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

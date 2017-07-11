@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -93,23 +94,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindAllDeclarationsWithNormalQueryInRemoteProcessAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            using (var session = await SymbolFinder.TryGetRemoteSessionAsync(
-                project.Solution, cancellationToken).ConfigureAwait(false))
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
             {
-                if (session != null)
-                {
-                    var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
-                        nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
-                        project.Id, query.Name, query.Kind, criteria).ConfigureAwait(false);
-
-                    var rehydrated = await RehydrateAsync(
-                        project.Solution, result, cancellationToken).ConfigureAwait(false);
-
-                    return (true, rehydrated);
-                }
+                return (false, ImmutableArray<SymbolAndProjectId>.Empty);
             }
 
-            return (false, ImmutableArray<SymbolAndProjectId>.Empty);
+            var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                RemoteFeatureOptions.SymbolFinderEnabled,
+                nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
+                new object[] { project.Id, query.Name, query.Kind, criteria }, cancellationToken).ConfigureAwait(false);
+
+            if (result.IsDefault)
+            {
+                return (false, ImmutableArray<SymbolAndProjectId>.Empty);
+            }
+
+            var rehydrated = await RehydrateAsync(
+                project.Solution, result, cancellationToken).ConfigureAwait(false);
+
+            return (true, rehydrated);
         }
 
         private static async Task<ImmutableArray<SymbolAndProjectId>> RehydrateAsync(

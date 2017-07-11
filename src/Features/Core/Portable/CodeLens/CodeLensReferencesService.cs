@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -34,46 +35,38 @@ namespace Microsoft.CodeAnalysis.CodeLens
             }
 
             var cacheService = solution.Services.CacheService;
-            var caches = solution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(document.Project.Id).Select(pid => cacheService?.EnableCaching(pid)).ToList();
 
-            try
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
+            if (symbol == null)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
-                if (symbol == null)
-                {
-                    return null;
-                }
-
-                using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken))
-                {
-                    try
-                    {
-                        await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
-                            progress.CancellationToken).ConfigureAwait(false);
-
-                        return await onResults(progress).ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        if (onCapped != null && progress.SearchCapReached)
-                        {
-                            // search was cancelled, and it was cancelled by us because a cap was reached.
-                            return await onCapped(progress).ConfigureAwait(false);
-                        }
-
-                        // search was cancelled, but not because of cap.
-                        // this always throws.
-                        throw;
-                    }
-                }
+                return null;
             }
-            finally
+
+            using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken))
             {
-                caches.WhereNotNull().Do(c => c.Dispose());
+                try
+                {
+                    await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
+                        progress.CancellationToken).ConfigureAwait(false);
+
+                    return await onResults(progress).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    if (onCapped != null && progress.SearchCapReached)
+                    {
+                        // search was cancelled, and it was cancelled by us because a cap was reached.
+                        return await onCapped(progress).ConfigureAwait(false);
+                    }
+
+                    // search was cancelled, but not because of cap.
+                    // this always throws.
+                    throw;
+                }
             }
         }
 
@@ -288,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                     for (var index = 0; index < parts.Length; index++)
                     {
                         var part = parts[index];
-                        if (previousWasClass && 
+                        if (previousWasClass &&
                             part.Kind == SymbolDisplayPartKind.Punctuation &&
                             index < parts.Length - 1)
                         {

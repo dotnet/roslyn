@@ -15,18 +15,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// Helper type that abstract out JsonRpc communication with extra capability of
     /// using raw stream to move over big chunk of data
     /// </summary>
-    internal class JsonRpcClient : IDisposable
+    internal abstract class JsonRpcEx : IDisposable
     {
         private readonly JsonRpc _rpc;
-        private readonly CancellationToken _cancellationToken;
 
-        public JsonRpcClient(
-            Stream stream, object callbackTarget, bool useThisAsCallback, CancellationToken cancellationToken)
+        public JsonRpcEx(Stream stream, object callbackTarget, bool useThisAsCallback)
         {
             Contract.Requires(stream != null);
 
             var target = useThisAsCallback ? this : callbackTarget;
-            _cancellationToken = cancellationToken;
 
             _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target);
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
@@ -34,32 +31,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.Disconnected += OnDisconnected;
         }
 
-        public async Task InvokeAsync(string targetName, params object[] arguments)
+        protected abstract void Dispose(bool disposing);
+
+        public async Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                await _rpc.InvokeAsync(targetName, arguments).ConfigureAwait(false);
-            }
-            catch 
-            {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
-                _cancellationToken.ThrowIfCancellationRequested();
-                throw;
-            }
-        }
 
-        public async Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            try
-            {
-                return await _rpc.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false);
+                await _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
             catch
             {
@@ -67,25 +48,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
                 // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
                 // the exception
-                _cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
                 throw;
             }
         }
 
-        public Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
+        public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, _cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
+                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
+                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
+                // the exception
+                cancellationToken.ThrowIfCancellationRequested();
+                throw;
+            }
         }
 
-        public Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+        public Task InvokeAsync(
+            string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, _cancellationToken);
+            return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
         }
 
-        public void Dispose()
+        public Task<T> InvokeAsync<T>(
+            string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            OnDisposed();
+            return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+        }
 
+        protected void Disconnect()
+        {
             _rpc.Dispose();
         }
 
@@ -96,14 +96,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.StartListening();
         }
 
-        protected virtual void OnDisposed()
+        protected virtual void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             // do nothing
         }
 
-        protected virtual void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+        public void Dispose()
         {
-            // do nothing
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

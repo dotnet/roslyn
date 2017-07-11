@@ -205,6 +205,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fade out unused usings.
+        /// </summary>
+        internal static string Fade_out_unused_usings {
+            get {
+                return ResourceManager.GetString("Fade_out_unused_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to For built-in types.
         /// </summary>
         internal static string For_built_in_types {
@@ -300,6 +309,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Indent_case_contents {
             get {
                 return ResourceManager.GetString("Indent_case_contents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent case contents (when block).
+        /// </summary>
+        internal static string Indent_case_contents_when_block {
+            get {
+                return ResourceManager.GetString("Indent_case_contents_when_block", resourceCulture);
             }
         }
         

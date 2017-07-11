@@ -778,6 +778,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fade out unreachable code.
+        /// </summary>
+        internal static string Fade_out_unreachable_code {
+            get {
+                return ResourceManager.GetString("Fade_out_unreachable_code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fading.
+        /// </summary>
+        internal static string Fading {
+            get {
+                return ResourceManager.GetString("Fading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to create document in miscellaneous files project..
         /// </summary>
         internal static string Failed_to_create_document_in_miscellaneous_files_project {

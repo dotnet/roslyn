@@ -11,7 +11,6 @@
     <AssemblyName>Microsoft.CodeAnalysis</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
@@ -36,12 +35,15 @@
     <Compile Include="InternalUtilities\NoThrowStreamDisposer.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
     <Compile Include="InternalUtilities\PlatformInformation.cs" />
+    <Compile Include="InternalUtilities\SemaphoreExtensions.cs" />
     <Compile Include="Operations\ArgumentKind.cs" />
     <Compile Include="Operations\BinaryOperandsKind.cs" />
     <Compile Include="Operations\BinaryOperationKind.cs" />
     <Compile Include="Operations\BranchKind.cs" />
     <Compile Include="Operations\CaseKind.cs" />
     <Compile Include="Operations\ConversionKind.cs" />
+    <Compile Include="Operations\IThrowExpression.cs" />
+    <Compile Include="Operations\INameOfExpression.cs" />
     <Compile Include="Operations\IAddressOfExpression.cs" />
     <Compile Include="Operations\IArgument.cs" />
     <Compile Include="Operations\IArrayCreationExpression.cs" />
@@ -108,6 +110,7 @@
     <Compile Include="Operations\IObjectCreationExpression.cs" />
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
     <Compile Include="Operations\IOperationWithChildren.cs" />
+    <Compile Include="Operations\IDefaultCaseClause.cs" />
     <Compile Include="Operations\Operation.cs" />
     <Compile Include="Operations\OperationKind.cs" />
     <Compile Include="Operations\IParameterInitializer.cs" />
@@ -930,7 +933,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
-  <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

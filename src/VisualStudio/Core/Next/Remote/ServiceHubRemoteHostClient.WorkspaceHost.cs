@@ -50,21 +50,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
-                using (var session = await _client.TryCreateServiceSessionAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, callbackTarget: null, cancellationToken: CancellationToken.None).ConfigureAwait(false))
+                using (var connection = await _client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false))
                 {
-                    if (session == null)
+                    if (connection == null)
                     {
-                        // failed to create session. remote host might not responding or gone. 
+                        // failed to create connection. remote host might not responding or gone. 
                         return;
                     }
 
-                    await session.InvokeAsync(
-                        nameof(IRemoteHostService.RegisterPrimarySolutionId), solutionId).ConfigureAwait(false);
+                    await connection.InvokeAsync(
+                        nameof(IRemoteHostService.RegisterPrimarySolutionId), new object[] { solutionId }, CancellationToken.None).ConfigureAwait(false);
 
-                    await session.InvokeAsync(
-                        nameof(IRemoteHostService.UpdateSolutionIdStorageLocation), solutionId,
-                        _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
+                    await connection.InvokeAsync(
+                        nameof(IRemoteHostService.UpdateSolutionIdStorageLocation),
+                        new object[] { solutionId, _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution) },
+                        CancellationToken.None).ConfigureAwait(false);
                 }
             }
 
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private async Task UnregisterPrimarySolutionAsync(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                await _client.RunOnRemoteHostAsync(
+                await _client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
                     nameof(IRemoteHostService.UnregisterPrimarySolutionId), new object[] { solutionId, synchronousShutdown },
                     CancellationToken.None).ConfigureAwait(false);
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             public void ClearSolution() { }
             public void OnAdditionalDocumentAdded(DocumentInfo documentInfo) { }
             public void OnAdditionalDocumentClosed(DocumentId documentId, ITextBuffer textBuffer, TextLoader loader) { }
-            public void OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer, bool isCurrentContext) { }
+            public void OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer) { }
             public void OnAdditionalDocumentRemoved(DocumentId documentInfo) { }
             public void OnAdditionalDocumentTextUpdatedOnDisk(DocumentId id) { }
             public void OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference) { }

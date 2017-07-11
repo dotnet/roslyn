@@ -21,6 +21,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public sealed class VisualStudioInstanceFactory : IDisposable
     {
+        [ThreadStatic]
+        private static bool s_inHandler;
+
         public static readonly string VsProductVersion = Settings.Default.VsProductVersion;
 
         public static readonly string VsLaunchArgs = $"{(string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? "/log" : $"/rootsuffix {Settings.Default.VsRootSuffix}")} /log";
@@ -50,8 +53,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static void FirstChanceExceptionHandler(object sender, FirstChanceExceptionEventArgs eventArgs)
         {
+            if (s_inHandler)
+            {
+                // An exception was thrown from within the handler, resulting in a recursive call to the handler.
+                // Bail out now we so don't recursively throw another exception and overflow the stack.
+                return;
+            }
+
             try
             {
+                s_inHandler = true;
+
                 var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
                 var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
@@ -64,11 +76,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     $"{exception}.GetType().Name{Environment.NewLine}{exception.StackTrace}");
 
             }
-            catch (Exception e)
+            finally
             {
-                Debug.WriteLine(e);
-                // Per the AppDomain.FirstChanceException contract we must catch and deal with all exceptions that arise in the handler.
-                // Otherwise, we are likely to end up with recursive calls into this method until we overflow the stack.
+                s_inHandler = false;
             }
         }
 
@@ -231,14 +241,35 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static ISetupInstance LocateVisualStudioInstance(ImmutableHashSet<string> requiredPackageIds)
         {
-            var instances = EnumerateVisualStudioInstances().Where((instance) => instance.GetInstallationVersion().StartsWith(VsProductVersion));
+            var vsInstallDir = Environment.GetEnvironmentVariable("VSInstallDir");
+            var haveVsInstallDir = !string.IsNullOrEmpty(vsInstallDir);
+
+            if (haveVsInstallDir)
+            {
+                vsInstallDir = Path.GetFullPath(vsInstallDir);
+                Debug.WriteLine($"An environment variable named 'VSInstallDir' was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
+            }
+
+            var instances = EnumerateVisualStudioInstances().Where((instance) => {
+                var isMatch = true;
+                {
+                    isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);
+
+                    if (haveVsInstallDir)
+                    {
+                        var installationPath = instance.GetInstallationPath();
+                        isMatch &= installationPath.Equals(vsInstallDir, StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                return isMatch;
+            });
 
             var instanceFoundWithInvalidState = false;
 
             foreach (ISetupInstance2 instance in instances)
             {
                 var packages = instance.GetPackages()
-                                        .Where((package) => requiredPackageIds.Contains(package.GetId()));
+                                       .Where((package) => requiredPackageIds.Contains(package.GetId()));
 
                 if (packages.Count() != requiredPackageIds.Count())
                 {
@@ -260,7 +291,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             throw new Exception(instanceFoundWithInvalidState ?
                                 "An instance matching the specified requirements was found but it was in an invalid state." :
-                                "There were no instances of Visual Studio 15.0 or later found that match the specified requirements.");
+                                "There were no instances of Visual Studio found that match the specified requirements.");
         }
 
         private static Process StartNewVisualStudioProcess(string installationPath)

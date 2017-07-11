@@ -134,6 +134,8 @@ namespace Microsoft.CodeAnalysis
         MemberInitializerExpression = 0x121,
         /// <summary>Indicates an <see cref="ICollectionElementInitializerExpression"/>.</summary>
         CollectionElementInitializerExpression = 0x122,
+        /// <summary>Indicates an <see cref="INameOfExpression"/>.</summary>
+        NameOfExpression = 0x123,
 
         // Expressions that occur only in C#.
 
@@ -151,7 +153,9 @@ namespace Microsoft.CodeAnalysis
         IsPatternExpression = 0x205,
         /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>
         IncrementExpression = 0x206,
-        
+        /// <summary>Indicates an <see cref="IThrowExpression"/>.</summary>
+        ThrowExpression = 0x207,
+
         // Expressions that occur only in Visual Basic.
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
@@ -205,5 +209,8 @@ namespace Microsoft.CodeAnalysis
         DeclarationPattern = 0x410,
         /// <summary>Indicates an <see cref="IPatternCaseClause"/>.</summary>
         PatternCaseClause = 0x411,
+
+        /// <summary>Indicates an <see cref="IDefaultCaseClause"/>.</summary>
+        DefaultCaseClause = 0x412,
     }
 }

@@ -6,14 +6,13 @@
     <MinimumVisualStudioVersion>11.0</MinimumVisualStudioVersion>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <ProjectGuid>{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>BasicAnalyzers</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <OptionStrict>Off</OptionStrict>
-    <NoWarn>$(NoWarn);41999,42016,42017,42018,42019,42020,42021,42022,42032,42036;40057</NoWarn>
+    <NoWarn>$(NoWarn);41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

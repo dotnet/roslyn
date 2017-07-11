@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -318,7 +318,7 @@ ILocalFunctionStatement (Local Function: void Foo(out System.Int32 y)) (Operatio
   IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '=> ')
     IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
       IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: '=> ')
+    IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '=> ')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -327,9 +327,9 @@ ILocalFunctionStatement (Local Function: void Foo(out System.Int32 y)) (Operatio
                 // CS0177: The out parameter 'y' must be assigned to before control leaves the current method
                 //         /*<bind>*/void Foo(out int y) => ;/*</bind>*/
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "Foo").WithArguments("y").WithLocation(6, 24),
-                // CS0168: The variable 'Foo' is declared but never used
+                // CS8321: The local function 'Foo' is declared but never used
                 //         /*<bind>*/void Foo(out int y) => ;/*</bind>*/
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 24)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(6, 24)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -348,17 +348,17 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: void Foo()) (OperationKind.LocalFunctionStatement) (Syntax: 'void Foo( { }')
-  IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
+ILocalFunctionStatement (Local Function: void Foo()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void Foo( { }')
+  IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
+    IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1026: ) expected
                 //         /*<bind>*/void Foo( { }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(6, 29),
-                // CS0168: The variable 'Foo' is declared but never used
+                // CS8321: The local function 'Foo' is declared but never used
                 //         /*<bind>*/void Foo( { }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 24)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(6, 24)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -377,7 +377,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: X Foo()) (OperationKind.LocalFunctionStatement) (Syntax: 'X Foo() { }')
+ILocalFunctionStatement (Local Function: X Foo()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'X Foo() { }')
   IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -387,9 +387,9 @@ ILocalFunctionStatement (Local Function: X Foo()) (OperationKind.LocalFunctionSt
                 // CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/X Foo() { }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 19),
-                // CS0168: The variable 'Foo' is declared but never used
+                // CS8321: The local function 'Foo' is declared but never used
                 //         /*<bind>*/X Foo() { }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 21)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(6, 21)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);

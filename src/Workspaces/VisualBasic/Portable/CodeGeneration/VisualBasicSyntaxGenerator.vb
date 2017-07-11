@@ -1,10 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -39,6 +40,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function NameOfExpression(expression As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.NameOfExpression(DirectCast(expression, ExpressionSyntax))
+        End Function
+
+        Public Overrides Function TupleExpression(arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AddressOf AsSimpleArgument)))
         End Function
 
         Private Function Parenthesize(expression As SyntaxNode) As ParenthesizedExpressionSyntax
@@ -418,12 +423,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function AsArgument(argOrExpression As SyntaxNode) As ArgumentSyntax
-            Dim arg = TryCast(argOrExpression, ArgumentSyntax)
-            If arg IsNot Nothing Then
-                Return arg
-            Else
-                Return SyntaxFactory.SimpleArgument(DirectCast(argOrExpression, ExpressionSyntax))
-            End If
+            Return If(TryCast(argOrExpression, ArgumentSyntax),
+                      SyntaxFactory.SimpleArgument(DirectCast(argOrExpression, ExpressionSyntax)))
+        End Function
+
+        Private Function AsSimpleArgument(argOrExpression As SyntaxNode) As SimpleArgumentSyntax
+            Return If(TryCast(argOrExpression, SimpleArgumentSyntax),
+                      SyntaxFactory.SimpleArgument(DirectCast(argOrExpression, ExpressionSyntax)))
         End Function
 
         Public Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As String, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
@@ -528,6 +534,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return nullableType
             Else
                 Return SyntaxFactory.NullableType(DirectCast(type, TypeSyntax))
+            End If
+        End Function
+
+        Friend Overrides Function CreateTupleType(elements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast(Of TupleElementSyntax)()))
+        End Function
+
+        Public Overrides Function TupleElementExpression(type As SyntaxNode, Optional name As String = Nothing) As SyntaxNode
+            If name Is Nothing Then
+                Return SyntaxFactory.TypedTupleElement(DirectCast(type, TypeSyntax))
+            Else
+                Return SyntaxFactory.NamedTupleElement(name.ToIdentifierToken(), SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax)))
             End If
         End Function
 
@@ -2447,11 +2465,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Else
                 Return declaration
             End If
-        End Function
-
-        Private Function Merge(original As SyntaxTokenList, newList As SyntaxTokenList) As SyntaxTokenList
-            '' return tokens from newList, but use original tokens if kind matches
-            Return SyntaxFactory.TokenList(newList.Select(Function(token) If(original.Any(token.Kind), original.First(Function(tk) tk.IsKind(token.Kind)), token)))
         End Function
 
         Private Function GetModifierTokens(declaration As SyntaxNode) As SyntaxTokenList

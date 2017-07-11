@@ -5848,5 +5848,51 @@ class C
             Assert.Null(model.GetSymbolInfo(expr).Symbol);
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType);
         }
+
+        [Fact]
+        public void GetSpecialType_ThrowsOnLessThanZero()
+        {
+            var source = "class C1 { }";
+            var comp = CreateStandardCompilation(source);
+
+            var specialType = (SpecialType)(-1);
+
+            var exceptionThrown = false;
+
+            try
+            {
+                comp.GetSpecialType(specialType);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                exceptionThrown = true;
+                Assert.StartsWith(expectedStartString: $"Unexpected SpecialType: '{(int)specialType}'.", actualString: e.Message);
+            }
+
+            Assert.True(exceptionThrown, $"{nameof(comp.GetSpecialType)} did not throw when it should have.");
+        }
+
+        [Fact]
+        public void GetSpecialType_ThrowsOnGreaterThanCount()
+        {
+            var source = "class C1 { }";
+            var comp = CreateStandardCompilation(source);
+
+            var specialType = SpecialType.Count + 1;
+
+            var exceptionThrown = false;
+
+            try
+            {
+                comp.GetSpecialType(specialType);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                exceptionThrown = true;
+                Assert.StartsWith(expectedStartString: $"Unexpected SpecialType: '{(int)specialType}'.", actualString: e.Message);
+            }
+
+            Assert.True(exceptionThrown, $"{nameof(comp.GetSpecialType)} did not throw when it should have.");
+        }
     }
 }

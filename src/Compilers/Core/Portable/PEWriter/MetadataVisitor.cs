@@ -76,7 +76,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IEventDefinition eventDefinition)
         {
-            this.Visit(eventDefinition.Accessors);
+            this.Visit(eventDefinition.GetAccessors(Context));
             this.Visit(eventDefinition.GetType(Context));
         }
 

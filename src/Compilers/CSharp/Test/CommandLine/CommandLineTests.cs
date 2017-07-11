@@ -1110,6 +1110,12 @@ d.cs
             Assert.True(parsedArgs.DisplayVersion);
             Assert.False(parsedArgs.SourceFiles.Any());
 
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/langversion:?" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2007: Unrecognized option: '/langversion:?'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/langversion:?").WithLocation(1, 1)
+                );
+
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/version", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.DisplayVersion);
@@ -1268,8 +1274,9 @@ d.cs
         public void LangVersion_BadVersion(string value)
         {
             DefaultParse(new[] { $"/langversion:{value}", "a.cs" }, _baseDirectory).Errors.Verify(
-                // error CS1617: Invalid option 'XXX' for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.1.
-                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments(value).WithLocation(1, 1));
+                // error CS1617: Invalid option 'XXX' for /langversion. Use '/langversion:?' to list supported values.
+                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments(value).WithLocation(1, 1)
+                );
         }
 
         [Theory]
@@ -1296,6 +1303,19 @@ d.cs
         }
 
         [Fact]
+        public void LangVersion_LangVersions()
+        {
+            var args = DefaultParse(new[] { "/langversion:?" }, _baseDirectory);
+            args.Errors.Verify(
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1)
+                );
+            Assert.True(args.DisplayLangVersions);
+        }
+
+        [Fact]
         public void LanguageVersionAdded_Canary()
         {
             // When a new version is added, this test will break. This list must be checked:
@@ -1304,7 +1324,7 @@ d.cs
             // - update the IDE drop-down for selecting Language Version
             // - update all the tests that call this canary
             // - update the command-line documentation (CommandLine.md)
-            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7", "7.1", "latest" },
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "latest" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions, the format should be "x.y", such as "7.1"
         }
@@ -1325,7 +1345,8 @@ d.cs
                 ErrorCode.ERR_FeatureNotAvailableInVersion5,
                 ErrorCode.ERR_FeatureNotAvailableInVersion6,
                 ErrorCode.ERR_FeatureNotAvailableInVersion7,
-                ErrorCode.ERR_FeatureNotAvailableInVersion7_1
+                ErrorCode.ERR_FeatureNotAvailableInVersion7_1,
+                ErrorCode.ERR_FeatureNotAvailableInVersion7_2
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1345,9 +1366,10 @@ d.cs
             Assert.Equal(LanguageVersion.CSharp6, LanguageVersion.CSharp6.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.CSharp7.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.CSharp7_1.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2.MapSpecifiedToEffectiveVersion());
 
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7_2, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
 
             // The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary();
@@ -1374,6 +1396,7 @@ d.cs
             InlineData("7.0", true, LanguageVersion.CSharp7),
             InlineData("07", false, LanguageVersion.Default),
             InlineData("7.1", true, LanguageVersion.CSharp7_1),
+            InlineData("7.2", true, LanguageVersion.CSharp7_2),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
             InlineData("latest", true, LanguageVersion.Latest),
@@ -1389,29 +1412,26 @@ d.cs
         }
 
         [Fact]
-        public void LanguageVersion_CommandLineUsage()
+        public void LangVersion_ListLangVersions()
         {
+            var dir = Temp.CreateDirectory();
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/langversion:?" });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
             var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>()
-                .Where(v => v != LanguageVersion.CSharp1 && v != LanguageVersion.CSharp2)
                 .Select(v => v.ToDisplayString());
-            string help = CSharpResources.IDS_CSCHelp;
 
-            var rangeStart = help.IndexOf("/langversion");
-            var rangeEnd = help.IndexOf("/delaysign");
-            Assert.True(rangeEnd > rangeStart);
-
-            string helpRange = help.Substring(rangeStart, rangeEnd - rangeStart).ToLowerInvariant();
-            var acceptableSurroundingChar = new[] { '\r', '\n', ',' , ' '};
+            var actual = outWriter.ToString();
+            var acceptableSurroundingChar = new[] { '\r', '\n', '(' , ')', ' '};
             foreach (var version in expected)
             {
-                var foundIndex = helpRange.IndexOf(version);
+                var foundIndex = actual.IndexOf(version);
                 Assert.True(foundIndex > 0, $"Missing version '{version}'");
-                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange[foundIndex - 1]) >= 0);
-                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange[foundIndex + version.Length]) >= 0);
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex - 1]) >= 0);
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex + version.Length]) >= 0);
             }
-
-            // The canary check is a reminder that this test needs to be updated when a language version is added
-            LanguageVersionAdded_Canary();
         }
 
         [Fact]
@@ -9366,7 +9386,7 @@ class C
         {
             var parsedArgs = DefaultParse(new[] { "/langversion:1000", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
-                // error CS1617: Invalid option '1000' for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 6.
+                // error CS1617: Invalid option '1000' for /langversion. Use '/langversion:?' to list supported values.
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("1000").WithLocation(1, 1));
         }
 

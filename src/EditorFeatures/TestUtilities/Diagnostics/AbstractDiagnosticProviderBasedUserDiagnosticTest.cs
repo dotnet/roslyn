@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -59,18 +59,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }
 
-            using (var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider))
-            {
-                var diagnostics = await testDriver.GetAllDiagnosticsAsync(provider, document, span);
+            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider);
+            var diagnostics = await testDriver.GetAllDiagnosticsAsync(provider, document, span);
+            AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
-                AssertNoAnalyzerExceptionDiagnostics(diagnostics);
-
-                var fixer = providerAndFixer.Item2;
-                var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
-                var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
-                return await GetDiagnosticAndFixesAsync(
-                    dxs, provider, fixer, testDriver, document, span, annotation, parameters.fixAllActionEquivalenceKey);
-            }
+            var fixer = providerAndFixer.Item2;
+            var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
+            var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
+            return await GetDiagnosticAndFixesAsync(
+                dxs, provider, fixer, testDriver, document, span, annotation, parameters.fixAllActionEquivalenceKey);
         }
 
         protected async Task TestDiagnosticSeverityAndCountAsync(

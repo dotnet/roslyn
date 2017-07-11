@@ -1129,11 +1129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void InvokeMethodNamedVar()
         {
-            UsingStatement("var(1, 2) = e;",
-                // (1,1): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                // var(1, 2) = e;
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(1, 2)").WithLocation(1, 1)
-                );
+            UsingStatement("var(1, 2) = e;");
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);

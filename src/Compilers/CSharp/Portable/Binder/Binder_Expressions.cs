@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
@@ -2280,6 +2281,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.IndexerAccess:
                         return CheckIsVariable(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
                 }
+            }
+
+            if (argumentSyntax.RefOrOutKeyword.Kind() != SyntaxKind.None)
+            {
+                argumentSyntax.Expression.CheckDeconstructionCompatibleArgument(diagnostics);
             }
 
             return hadError;

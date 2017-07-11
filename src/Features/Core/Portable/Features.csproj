@@ -10,7 +10,6 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Features</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -120,8 +119,11 @@
     <Compile Include="AddPackage\InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageParentCodeAction.cs" />
     <Compile Include="AddParameter\AbstractAddParameterCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\RemoveUnusedVariable\AbstractRemoveUnusedVariableCodeFixProvider.cs" />
+    <Compile Include="RemoveUnusedVariable\AbstractRemoveUnusedVariableCodeFixProvider.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\ISymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
+    <Compile Include="CommentSelection\AbstractCommentSelectionService.cs" />
+    <Compile Include="CommentSelection\CommentSelectionInfo.cs" />
+    <Compile Include="CommentSelection\ICommentSelectionService.cs" />
     <Compile Include="Completion\CompletionHelperServiceFactory.cs" />
     <Compile Include="Completion\FileSystemCompletionHelper.cs" />
     <Compile Include="Completion\ICompletionHelperService.cs" />
@@ -151,6 +153,7 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
     <Compile Include="AddConstructorParametersFromMembers\State.cs" />
+    <Compile Include="Fading\FadingOptions.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -167,6 +170,9 @@
     <Compile Include="InitializeParameter\AbstractInitializeMemberFromParameterCodeRefactoringProviderMemberCreation.cs" />
     <Compile Include="InitializeParameter\AbstractAddParameterCheckCodeRefactoringProvider.cs" />
     <Compile Include="InitializeParameter\AbstractInitializeParameterCodeRefactoringProvider.cs" />
+    <Compile Include="OrderModifiers\AbstractOrderModifiersDiagnosticAnalyzer.cs" />
+    <Compile Include="OrderModifiers\AbstractOrderModifiersCodeFixProvider.cs" />
+    <Compile Include="OrderModifiers\OrderModifiersHelpers.cs" />
     <Compile Include="PickMembers\IPickMembersService.cs" />
     <Compile Include="PickMembers\PickMembersResult.cs" />
     <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />

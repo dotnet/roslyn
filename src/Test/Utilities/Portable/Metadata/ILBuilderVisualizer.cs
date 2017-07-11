@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.Metadata.Tools;
