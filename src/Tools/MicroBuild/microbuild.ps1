@@ -31,7 +31,7 @@ function Print-Usage() {
 }
 
 function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$parallel = $true) {
-    $args = "/nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /p:DeployExtension=false";
+    $args = "/nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /p:DeployExtension=false /p:Configuration=$config";
 
     if ($parallel) { 
         $args += " /m"
