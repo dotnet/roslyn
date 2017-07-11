@@ -961,7 +961,7 @@ L:
             Dim o4 = New MyObject(dynamic) With {.A = 0, .B = 0, .C = 0}
             Dim o5 = New With {Key .A = 0}
             Dim a() As Integer = {0, 1, 2, 3, 4, 5}
-            Dim a As (named As Integer, Integer) = (named:=1, 2)
+            Dim a As(named As Integer, Integer) =(named:=1, 2)
             Select Case i
                 Case 1
                     GoTo CaseLabel1
@@ -1992,7 +1992,7 @@ L:
             Dim o4 = New MyObject(dynamic) With {.A = 0, .B = 0, .C = 0}
             Dim o5 = New With {Key .A = 0}
             Dim a() As Integer = {0, 1, 2, 3, 4, 5}
-            Dim a As (named As Integer, Integer) = (named:=1, 2)
+            Dim a As(named As Integer, Integer) =(named:=1, 2)
             Select Case i
                 Case 1
                     GoTo CaseLabel1
