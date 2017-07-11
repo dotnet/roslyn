@@ -17,7 +17,7 @@
     <MicrosoftAzureKeyVaultVersion>2.0.6</MicrosoftAzureKeyVaultVersion>
     <MicrosoftBuildVersion>15.1.0-preview-000458-02</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>15.1.0-preview-000458-02</MicrosoftBuildFrameworkVersion>
-    <MicrosoftBuildLoggingStructuredLoggerVersion>1.0.58</MicrosoftBuildLoggingStructuredLoggerVersion>
+    <MicrosoftBuildLoggingStructuredLoggerVersion>1.1.130</MicrosoftBuildLoggingStructuredLoggerVersion>
     <MicrosoftBuildRuntimeVersion>15.1.0-preview-000458-02</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.1.0-preview-000458-02</MicrosoftBuildTasksCoreVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
@@ -46,7 +46,7 @@
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-61531-03</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
     <MicrosoftNetCompilersVersion>2.3.0-beta3-61821-14</MicrosoftNetCompilersVersion>
-    <MicrosoftNetRoslynDiagnosticsVersion>2.3.0-beta1</MicrosoftNetRoslynDiagnosticsVersion>
+    <MicrosoftNetRoslynDiagnosticsVersion>2.5.0-beta1-61906-01</MicrosoftNetRoslynDiagnosticsVersion>
     <MicrosoftNetCoreILAsmVersion>1.1.0</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCoreCompilersVersion>2.3.0-beta3-61821-14</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>

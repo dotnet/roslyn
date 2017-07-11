@@ -252,7 +252,8 @@
     <Compile Include="Diagnostics\NamingStyles\NamingStylesTests_OptionSets.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\RemoveUnusedVariable\RemoveUnusedVariableTest.cs" />
+    <Compile Include="RemoveUnusedLocalFunction\RemoveUnusedLocalFunctionTest.cs" />
+    <Compile Include="RemoveUnusedVariable\RemoveUnusedVariableTest.cs" />
     <Compile Include="Extensions\ContextQuery\IsPossibleDeconstructionDesignationTests.cs" />
     <Compile Include="Extensions\ContextQuery\PossibleTupleContextTests.cs" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersTests.cs" />

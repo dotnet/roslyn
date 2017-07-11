@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -196,11 +196,11 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'x is 12.0')
+IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is 12.0')
   Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
-  Pattern: IConstantPattern (OperationKind.ConstantPattern) (Syntax: '12.0')
-      Value: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 12) (Syntax: '12.0')
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 12) (Syntax: '12.0')
+  Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: '12.0')
+      Value: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 12, IsInvalid) (Syntax: '12.0')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 12, IsInvalid) (Syntax: '12.0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'double' to 'int?'. An explicit conversion exists (are you missing a cast?)
@@ -230,7 +230,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
   Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: 'null')
       Value: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'null')
-          ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+          ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0037: Cannot convert null to 'int' because it is a non-nullable value type
@@ -287,7 +287,7 @@ class X
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is y')
   Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: 'y')
-      Value: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'y')
+      Value: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32?, IsInvalid) (Syntax: 'y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0150: A constant value is expected
@@ -464,9 +464,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'string.Empty is string y')
-  Expression: IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'string.Empty')
-  Pattern: IDeclarationPattern (Declared Symbol: System.String y) (OperationKind.DeclarationPattern) (Syntax: 'string y')
+IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'string.Empty is string y')
+  Expression: IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+  Pattern: IDeclarationPattern (Declared Symbol: System.String y) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'string y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1736: Default parameter value for 'x' must be a compile-time constant
@@ -488,9 +488,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'o is int x')
+IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'o is int x')
   Expression: IFieldReferenceExpression: System.Object C.o (Static) (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
-  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern) (Syntax: 'int x')
+  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
@@ -518,9 +518,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'o is int x')
+IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'o is int x')
   Expression: IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
-  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern) (Syntax: 'int x')
+  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
@@ -549,9 +549,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'o is int x')
-  Expression: IFieldReferenceExpression: System.Object C.o (Static) (OperationKind.FieldReferenceExpression, Type: System.Object, Constant: 1) (Syntax: 'o')
-  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern) (Syntax: 'int x')
+IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'o is int x')
+  Expression: IFieldReferenceExpression: System.Object C.o (Static) (OperationKind.FieldReferenceExpression, Type: System.Object, Constant: 1, IsInvalid) (Syntax: 'o')
+  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0134: 'C.o' is of type 'object'. A const field of a reference type other than string can only be initialized with null.

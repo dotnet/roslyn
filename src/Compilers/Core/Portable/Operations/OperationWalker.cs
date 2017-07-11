@@ -91,6 +91,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.MaximumValue);
         }
 
+        public override void VisitDefaultCaseClause(IDefaultCaseClause operation)
+        {
+        }
+
         public override void VisitIfStatement(IIfStatement operation)
         {
             Visit(operation.Condition);
@@ -335,6 +339,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitAwaitExpression(IAwaitExpression operation)
         {
             Visit(operation.AwaitedValue);
+        }
+
+        public override void VisitNameOfExpression(INameOfExpression operation)
+        {
+            Visit(operation.Argument);
+        }
+
+        public override void VisitThrowExpression(IThrowExpression operation)
+        {
+            Visit(operation.Expression);
         }
 
         public override void VisitAddressOfExpression(IAddressOfExpression operation)

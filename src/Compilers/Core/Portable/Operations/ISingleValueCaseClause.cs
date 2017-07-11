@@ -23,4 +23,3 @@ namespace Microsoft.CodeAnalysis.Semantics
         BinaryOperationKind Equality { get; }
     }
 }
-

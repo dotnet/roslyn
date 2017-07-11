@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -1702,7 +1702,7 @@ End CLass
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: CustomType, IsInvalid) (Syntax: '+i')
   IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
-    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType) (Syntax: 'i')
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType, IsInvalid) (Syntax: 'i')
 ]]>.Value
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
@@ -1762,7 +1762,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: BaseType, IsInvalid) (Syntax: '+i')
   IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
-    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType) (Syntax: 'i')
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType, IsInvalid) (Syntax: 'i')
 ]]>.Value
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
@@ -1793,7 +1793,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: BaseType, IsInvalid) (Syntax: '+i')
   IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
-    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType) (Syntax: 'i')
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType, IsInvalid) (Syntax: 'i')
 ]]>.Value
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
@@ -1818,7 +1818,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: BaseType, IsInvalid) (Syntax: '+i')
   IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
-    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: BaseType) (Syntax: 'i')
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: BaseType, IsInvalid) (Syntax: 'i')
 ]]>.Value
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)

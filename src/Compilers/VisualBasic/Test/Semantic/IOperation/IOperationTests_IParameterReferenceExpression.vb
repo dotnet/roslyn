@@ -356,7 +356,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'New EventHandler(x)')
-  Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+  Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -378,11 +378,36 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, Constant: "x") (Syntax: 'NameOf(x)')
-  Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+INameOfExpression (OperationKind.NameOfExpression, Type: System.String, Constant: "x") (Syntax: 'NameOf(x)')
+  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of NameOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_NameOfExpression_ErrorCase()
+            Dim source = <![CDATA[
+Class Class1
+    Public Function M(x As Integer, y As Integer) As String
+        Return NameOf(x + y)'BIND:"NameOf(x + y)"
+    End Function
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+INameOfExpression (OperationKind.NameOfExpression, Type: System.String, Constant: null, IsInvalid) (Syntax: 'NameOf(x + y)')
+  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'x + y')
+    Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
+    Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC37244: This expression does not have a name.
+        Return NameOf(x + y)'BIND:"NameOf(x + y)"
+                      ~~~~~
+]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of NameOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
@@ -534,9 +559,9 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'Case x')
-  Children(1): IOperation:  (OperationKind.None) (Syntax: 'Case x')
-      Children(1): ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.IntegerEquals) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause) (Syntax: 'x')
-          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Case x')
+      Children(1): ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.IntegerEquals) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'x')
+          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -714,8 +739,8 @@ End Structure
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: I, IsInvalid) (Syntax: 'New I(x)')
-  Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
-    IOperation:  (OperationKind.None) (Syntax: 'New I(x)')
+  Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
+    IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New I(x)')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

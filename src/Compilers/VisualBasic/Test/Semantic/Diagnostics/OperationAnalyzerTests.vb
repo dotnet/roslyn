@@ -1755,9 +1755,9 @@ End Module
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_DuplicateProcDef1, "-", New Object() {"Public Shared Operator -(x As B2) As B2"}).WithLocation(8, 28),
                                    Diagnostic(ERRID.ERR_TypeMismatch2, "10", New Object() {"Integer", "B2"}).WithLocation(23, 17),
                                    Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "-x", New Object() {"-", vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific." & vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific."}).WithLocation(25, 13))
-            comp.VerifyAnalyzerDiagnostics({New OperatorPropertyPullerTestAnalyzer}, Nothing, Nothing, False,
-                                           Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x + 10").WithArguments("OperatorMethodAdd").WithLocation(23, 13),
-                                           Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-x").WithArguments("OperatorMethodMinus").WithLocation(25, 13))
+
+            ' no diagnostic since nodes are invalid
+            comp.VerifyAnalyzerDiagnostics({New OperatorPropertyPullerTestAnalyzer}, Nothing, Nothing, False)
         End Sub
 
         <Fact>
@@ -1982,7 +1982,6 @@ End Module
                 Diagnostic(ERRID.ERR_ForLoopOperatorRequired2, "For i As C1(Of Integer) = 1 To 10").WithArguments("M1.C1(Of Integer)", ">=").WithLocation(19, 9),
                 Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System").WithLocation(1, 1))
             comp.VerifyAnalyzerDiagnostics({New ForLoopConditionCrashVBTestAnalyzer}, Nothing, Nothing, False,
-                Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "Moo").WithLocation(38, 24),
                 Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "Boo").WithLocation(41, 24),
                 Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "10").WithLocation(19, 40))
         End Sub
