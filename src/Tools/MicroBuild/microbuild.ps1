@@ -184,7 +184,7 @@ try {
     # The desktop tests need to run after signing so that tests run against fully signed 
     # assemblies.
     if ($testDesktop) {
-        Exec-Block { & (Join-Path $scriptDir "build.ps1") -testDesktop -test32 }
+        Exec-Block { & (Join-Path $scriptDir "build.ps1") -testDesktop -test32 -release:$release }
     }
 
     Exec-Block { & (Join-Path $scriptDir "check-toolset-insertion.ps1") -sourcePath $repoDir -binariesPath $configDir }
