@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public Scope(Scope parent, BoundNode boundNode, Closure containingClosure)
                 {
+                    Debug.Assert(parent != null);
+                    Debug.Assert(boundNode != null);
+
                     Parent = parent;
                     BoundNode = boundNode;
                     ContainingClosure = containingClosure;
