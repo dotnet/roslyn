@@ -434,6 +434,8 @@
     <Compile Include="UseCollectionInitializer\VisualBasicUseCollectionInitializerDiagnosticAnalyzer.vb" />
     <Compile Include="UseCoalesceExpression\VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer.vb" />
     <Compile Include="UseCoalesceExpression\VisualBasicUseCoalesceExpressionDiagnosticAnalyzer.vb" />
+    <Compile Include="UseInferredMemberName\VisualBasicUseInferredMemberNameCodeFixProvider.vb" />
+    <Compile Include="UseInferredMemberName\VisualBasicUseInferredMemberNameDiagnosticAnalyzer.vb" />
     <Compile Include="UseNullPropagation\VisualBasicUseNullPropagationCodeFixProvider.vb" />
     <Compile Include="UseNullPropagation\VisualBasicUseNullPropagationDiagnosticAnalyzer.vb" />
     <Compile Include="UseObjectInitializer\UseInitializerHelpers.vb" />

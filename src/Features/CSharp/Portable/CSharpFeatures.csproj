@@ -103,6 +103,8 @@
     <Compile Include="UpgradeProject\CSharpUpgradeProjectCodeFixProvider.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="UseInferredMemberName\CSharpUseInferredMemberNameCodeFixProvider.cs" />
+    <Compile Include="UseInferredMemberName\CSharpUseInferredMemberNameDiagnosticAnalyzer.cs" />
     <Compile Include="UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />
     <Compile Include="UseExpressionBody\Helpers\UseExpressionBodyHelper.cs" />
     <Compile Include="UseExpressionBody\UseExpressionBodyCodeRefactoringProvider.cs" />
