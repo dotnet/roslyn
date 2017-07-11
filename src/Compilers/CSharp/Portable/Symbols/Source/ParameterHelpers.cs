@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParamModThis, modifier.GetLocation());
                         }
-                        else if (seenRef || seenOut || seenThis)
+                        else if (seenRef || seenOut)
                         {
                             diagnostics.Add(ErrorCode.ERR_MultiParamMod, modifier.GetLocation());
                         }

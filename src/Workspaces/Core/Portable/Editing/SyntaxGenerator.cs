@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public static SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
+        internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
@@ -298,6 +299,19 @@ namespace Microsoft.CodeAnalysis.Editing
                     getAccessorStatements,
                     setAccessorStatements);
         }
+
+        public SyntaxNode WithAccessorDeclarations(SyntaxNode declaration, params SyntaxNode[] accessorDeclarations)
+            => WithAccessorDeclarations(declaration, (IEnumerable<SyntaxNode>)accessorDeclarations);
+
+        public abstract SyntaxNode WithAccessorDeclarations(SyntaxNode declaration, IEnumerable<SyntaxNode> accessorDeclarations);
+
+        public abstract SyntaxNode GetAccessorDeclaration(
+            Accessibility accessibility = Accessibility.NotApplicable,
+            IEnumerable<SyntaxNode> statements = null);
+
+        public abstract SyntaxNode SetAccessorDeclaration(
+            Accessibility accessibility = Accessibility.NotApplicable,
+            IEnumerable<SyntaxNode> statements = null);
 
         /// <summary>
         /// Creates an indexer declaration.
@@ -1230,6 +1244,28 @@ namespace Microsoft.CodeAnalysis.Editing
         #endregion
 
         #region Utility
+
+        internal static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
+        {
+            // return tokens from newList, but use original tokens of kind matches
+            return new SyntaxTokenList(newList.Select(
+                token => Any(original, token.RawKind)
+                    ? original.First(tk => tk.RawKind == token.RawKind)
+                    : token));
+        }
+
+        private static bool Any(SyntaxTokenList original, int rawKind)
+        {
+            foreach (var token in original)
+            {
+                if (token.RawKind == rawKind)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         protected static SyntaxNode PreserveTrivia<TNode>(TNode node, Func<TNode, SyntaxNode> nodeChanger) where TNode : SyntaxNode
         {

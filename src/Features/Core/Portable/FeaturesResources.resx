@@ -1046,11 +1046,8 @@ This version used in: {2}</value>
   <data name="Use_throw_expression" xml:space="preserve">
     <value>Use 'throw' expression</value>
   </data>
-  <data name="project_space" xml:space="preserve">
-    <value>project </value>
-  </data>
-  <data name="type_space" xml:space="preserve">
-    <value>type </value>
+  <data name="project_0" xml:space="preserve">
+    <value>project {0}</value>
   </data>
   <data name="Inline_variable_declaration" xml:space="preserve">
     <value>Inline variable declaration</value>
@@ -1267,5 +1264,8 @@ This version used in: {2}</value>
   </data>
   <data name="Order_modifiers" xml:space="preserve">
     <value>Order modifiers</value>
+  </data>
+  <data name="in_0_project_1" xml:space="preserve">
+    <value>in {0} (project {1})</value>
   </data>
 </root>

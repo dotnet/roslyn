@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Xml;
 using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
 
@@ -63,6 +64,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// Null if the tag or cref attribute didn't exist.
         /// </summary>
         public string CompletionListCref { get; private set; }
+
+        /// <summary>
+        /// Used for <see cref="CommentBuilder.TrimEachLine"/> method, to prevent new allocation of string
+        /// </summary>
+        private static readonly string[] s_NewLineAsStringArray = new string[] { "\n" };
 
         private DocumentationComment()
         {
@@ -154,6 +160,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 builder.ParseCallback(reader);
             }
 
+            private string TrimEachLine(string text)
+            {
+                return string.Join(Environment.NewLine, text.Split(s_NewLineAsStringArray, StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim()));
+            }
+
             private void ParseCallback(XmlReader reader)
             {
                 if (reader.NodeType == XmlNodeType.Element)
@@ -161,19 +172,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     string localName = reader.LocalName;
                     if (XmlNames.ElementEquals(localName, XmlNames.ExampleElementName) && _comment.ExampleText == null)
                     {
-                        _comment.ExampleText = reader.ReadInnerXml().Trim(); // TODO: trim each line
+                        _comment.ExampleText = TrimEachLine(reader.ReadInnerXml());
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.SummaryElementName) && _comment.SummaryText == null)
                     {
-                        _comment.SummaryText = reader.ReadInnerXml().Trim(); // TODO: trim each line
+                        _comment.SummaryText = TrimEachLine(reader.ReadInnerXml());
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.ReturnsElementName) && _comment.ReturnsText == null)
                     {
-                        _comment.ReturnsText = reader.ReadInnerXml().Trim(); // TODO: trim each line
+                        _comment.ReturnsText = TrimEachLine(reader.ReadInnerXml());
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.RemarksElementName) && _comment.RemarksText == null)
                     {
-                        _comment.RemarksText = reader.ReadInnerXml().Trim(); // TODO: trim each line
+                        _comment.RemarksText = TrimEachLine(reader.ReadInnerXml());
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.ParameterElementName))
                     {
@@ -183,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         if (!string.IsNullOrWhiteSpace(name) && !_comment._parameterTexts.ContainsKey(name))
                         {
                             (_parameterNamesBuilder ?? (_parameterNamesBuilder = ImmutableArray.CreateBuilder<string>())).Add(name);
-                            _comment._parameterTexts.Add(name, paramText.Trim()); // TODO: trim each line
+                            _comment._parameterTexts.Add(name, TrimEachLine(paramText));
                         }
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.TypeParameterElementName))
@@ -194,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         if (!string.IsNullOrWhiteSpace(name) && !_comment._typeParameterTexts.ContainsKey(name))
                         {
                             (_typeParameterNamesBuilder ?? (_typeParameterNamesBuilder = ImmutableArray.CreateBuilder<string>())).Add(name);
-                            _comment._typeParameterTexts.Add(name, typeParamText.Trim()); // TODO: trim each line
+                            _comment._typeParameterTexts.Add(name, TrimEachLine(typeParamText));
                         }
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.ExceptionElementName))

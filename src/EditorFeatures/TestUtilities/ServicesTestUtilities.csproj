@@ -173,6 +173,7 @@
     <Compile Include="Diagnostics\AbstractUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\DiagnosticProviderTestUtilities.cs" />
     <Compile Include="Diagnostics\DiagnosticTaggerWrapper.cs" />
+    <Compile Include="Diagnostics\FixAllDiagnosticProvider.cs" />
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTestState.cs" />
     <Compile Include="Diagnostics\GenerateType\TestGenerateTypeOptionsService.cs" />
     <Compile Include="Diagnostics\GenerateType\TestProjectManagementService.cs" />
