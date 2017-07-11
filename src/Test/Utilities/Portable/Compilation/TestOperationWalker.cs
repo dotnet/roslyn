@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var syntax = operation.Syntax;
                 var type = operation.Type;
                 var constantValue = operation.ConstantValue;
-                var isInvlid = operation.IsInvalid;
             }
             base.Visit(operation);
         }

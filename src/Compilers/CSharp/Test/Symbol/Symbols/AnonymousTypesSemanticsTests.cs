@@ -1057,10 +1057,10 @@ class ClassA
 ";
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (/*<b ... }')
-  Declaration: IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var v1 = new { }')
-      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v1 = new { }')
+  Declaration: IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var v1 = new { }')
+      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'v1 = new { }')
         Variables: Local_1: <empty anonymous type> v1
-        Initializer: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>) (Syntax: 'new { }')
+        Initializer: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>, IsInvalid) (Syntax: 'new { }')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
