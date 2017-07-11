@@ -124,7 +124,7 @@ namespace Roslyn.Utilities
         public ushort ReadUInt16() => _reader.ReadUInt16();
         public string ReadString() => ReadStringValue();
 
-        public unsafe Guid ReadGuid()
+        public Guid ReadGuid()
         {
             var accessor = new ObjectWriter.GuidAccessor
             {
