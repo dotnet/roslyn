@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
         End Sub
 
         Public Overrides Function GetAnalyzerCategory() As DiagnosticAnalyzerCategory
-            Return DiagnosticAnalyzerCategory.SyntaxAnalysis
+            Return DiagnosticAnalyzerCategory.SemanticSpanAnalysis
         End Function
 
         Public Overrides Function OpenFileOnly(workspace As Workspace) As Boolean

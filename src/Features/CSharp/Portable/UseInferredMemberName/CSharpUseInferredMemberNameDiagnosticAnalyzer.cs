@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         public override bool OpenFileOnly(Workspace workspace)
             => false;
