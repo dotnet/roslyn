@@ -93,9 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static bool CanRemoveInterfacePrefix(string name)
-        {
-            return name.Length > 1 && name[0] == 'I' && char.IsUpper(name[1]);
-        }
+        private static bool CanRemoveInterfacePrefix(string name) => name.Length > 1 && name[0] == 'I' && char.IsUpper(name[1]);
     }
 }

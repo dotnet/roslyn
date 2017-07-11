@@ -544,5 +544,21 @@ class Test
 ";
             await VerifyItemExistsAsync(markup, "test");
         }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutGenericArgument()
+        {
+            var markup = @"
+class Test
+{
+    void Do<T>(out T foo)
+    {
+        Do(out Test $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
+        }
     }
 }
