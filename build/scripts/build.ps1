@@ -119,7 +119,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal;summary";
+    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal;summary /p:Configuration=$buildConfiguration";
 
     if ($parallel) {
         $args += " /m"
@@ -154,23 +154,23 @@ function Make-BootstrapBuild() {
 
     $bootstrapLog = Join-Path $binariesDir "Bootstrap.log"
     Write-Host "Building Bootstrap compiler"
-    Run-MSBuild "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP build\Toolset\Toolset.csproj /p:Configuration=$buildConfiguration" -logFile $bootstrapLog 
+    Run-MSBuild "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP build\Toolset\Toolset.csproj" -logFile $bootstrapLog 
     $dir = Join-Path $binariesDir "Bootstrap"
     Remove-Item -re $dir -ErrorAction SilentlyContinue
     Create-Directory $dir
     Move-Item "$configDir\Exes\Toolset\*" $dir
 
     Write-Host "Cleaning Bootstrap compiler artifacts"
-    Run-MSBuild "/t:Clean build\Toolset\Toolset.csproj /p:Configuration=$buildConfiguration"
+    Run-MSBuild "/t:Clean build\Toolset\Toolset.csproj"
     Stop-BuildProcesses
     return $dir
 }
 
 function Build-Artifacts() { 
-    Run-MSBuild "Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
+    Run-MSBuild "Roslyn.sln /p:DeployExtension=false"
 
     if ($testDesktop) { 
-        Run-MSBuild "src\Samples\Samples.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
+        Run-MSBuild "src\Samples\Samples.sln /p:DeployExtension=false"
     }
 
     if ($buildAll) {
@@ -252,12 +252,12 @@ function Test-Special() {
 }
 
 function Test-PerfCorrectness() {
-    Run-MSBuild "Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
+    Run-MSBuild "Roslyn.sln /p:DeployExtension=false"
     Exec-Block { & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe" --ci-test } | Out-Host
 }
 
 function Test-PerfRun() { 
-    Run-MSBuild "Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
+    Run-MSBuild "Roslyn.sln /p:DeployExtension=false"
 
     # Check if we have credentials to upload to benchview
     $extraArgs = @()
