@@ -45,6 +45,10 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
         $args += " /filelogger /fileloggerparameters:Verbosity=normal;logFile=$logFile";
     }
 
+    if ($release) { 
+        $args += " /p:Configuration=Release"
+    }
+
     $args += " $buildArgs"
     Exec-Console $msbuild $args
 }
@@ -53,7 +57,7 @@ function Run-SignTool() {
     Push-Location $repoDir
     try {
         $signTool = Join-Path (Get-PackageDir "RoslynTools.Microsoft.SignTool") "tools\SignTool.exe"
-        $signToolArgs = "-msbuildPath $msbuild"
+        $signToolArgs = "-msbuildPath `"$msbuild`""
         if (-not $official) {
             $signToolArgs += " -test"
         }
@@ -180,7 +184,7 @@ try {
     # The desktop tests need to run after signing so that tests run against fully signed 
     # assemblies.
     if ($testDesktop) {
-        Exec-Block { & (Join-Path $scriptDir "build.ps1") -testDesktop -test32 }
+        Exec-Block { & (Join-Path $scriptDir "build.ps1") -testDesktop -test32 -release:$release }
     }
 
     Exec-Block { & (Join-Path $scriptDir "check-toolset-insertion.ps1") -sourcePath $repoDir -binariesPath $configDir }
@@ -191,7 +195,11 @@ try {
     New-Item -Force $sentinelFile -type file
 
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | Stop-Process
-    Exec-Block { & .\publish-assets.ps1 -binariesPath $configDir -branchName $branchName -apiKey $nugetApiKey -test:$(-not $official) }
+
+    if ($publish) { 
+        Exec-Block { & .\publish-assets.ps1 -binariesPath $configDir -branchName $branchName -apiKey $nugetApiKey -test:$(-not $official) }
+    }
+
     Exec-Block { & .\copy-insertion-items.ps1 -binariesPath $configDir -test:$(-not $official) }
 
     exit 0
