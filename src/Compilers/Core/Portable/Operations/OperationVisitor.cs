@@ -65,6 +65,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitDefaultCaseClause(IDefaultCaseClause operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitIfStatement(IIfStatement operation)
         {
             DefaultVisit(operation);
@@ -300,6 +305,16 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitNameOfExpression(INameOfExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitThrowExpression(IThrowExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitAddressOfExpression(IAddressOfExpression operation)
         {
             DefaultVisit(operation);
@@ -311,6 +326,21 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitMemberInitializerExpression(IMemberInitializerExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitCollectionElementInitializerExpression(ICollectionElementInitializerExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -491,6 +521,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitRangeCaseClause(IRangeCaseClause operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDefaultCaseClause(IDefaultCaseClause operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -730,6 +765,16 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
+        public virtual TResult VisitNameOfExpression(INameOfExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitThrowExpression(IThrowExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
         public virtual TResult VisitAddressOfExpression(IAddressOfExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -741,6 +786,21 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitMemberInitializerExpression(IMemberInitializerExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitCollectionElementInitializerExpression(ICollectionElementInitializerExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

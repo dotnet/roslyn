@@ -91,6 +91,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.MaximumValue);
         }
 
+        public override void VisitDefaultCaseClause(IDefaultCaseClause operation)
+        {
+        }
+
         public override void VisitIfStatement(IIfStatement operation)
         {
             Visit(operation.Condition);
@@ -337,6 +341,16 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.AwaitedValue);
         }
 
+        public override void VisitNameOfExpression(INameOfExpression operation)
+        {
+            Visit(operation.Argument);
+        }
+
+        public override void VisitThrowExpression(IThrowExpression operation)
+        {
+            Visit(operation.Expression);
+        }
+
         public override void VisitAddressOfExpression(IAddressOfExpression operation)
         {
             Visit(operation.Reference);
@@ -345,12 +359,28 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
             VisitArray(operation.ArgumentsInEvaluationOrder);
-            VisitArray(operation.Initializers);
+            Visit(operation.Initializer);
         }
 
         public override void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
         {
             VisitArray(operation.Initializers);
+        }
+
+        public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
+        {
+            VisitArray(operation.Initializers);
+        }
+
+        public override void VisitMemberInitializerExpression(IMemberInitializerExpression operation)
+        {
+            Visit(operation.InitializedMember);
+            Visit(operation.Initializer);
+        }
+
+        public override void VisitCollectionElementInitializerExpression(ICollectionElementInitializerExpression operation)
+        {
+            VisitArray(operation.Arguments);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)

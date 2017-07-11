@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Semantics;
@@ -944,10 +944,10 @@ class P
 ";
             string expectedOperationTree = @"
 IInvocationExpression ( void P.M2([System.Int32 x = 0])) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1, 2)')
-  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
-  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'M2')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '1')
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-    IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '2')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '2')
       ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -978,7 +978,7 @@ class P
 IInvocationExpression ( void P.M2(System.String x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1)')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
-      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -1020,7 +1020,7 @@ IInvocationExpression (static void System.Console.Write(System.String format, Sy
     IArgument (ArgumentKind.Explicit, Matching Parameter: arg3) (OperationKind.Argument) (Syntax: '4')
       IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '4')
         ILiteralExpression (Text: 4) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
-    IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '__arglist(5)')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '__arglist(5)')
       IOperation:  (OperationKind.None) (Syntax: '__arglist(5)')
         Children(1): ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
@@ -1047,8 +1047,8 @@ class P
             string expectedOperationTree = @"
 IInvocationExpression ( void P.M2([System.Int32 x = default(System.Int32)])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
-  Arguments(1): IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: 'M2()')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: null, IsInvalid) (Syntax: 'M2()')
+  Arguments(1): IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'M2()')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: null) (Syntax: 'M2()')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1750: A value of type 'string' cannot be used as a default parameter because there are no standard conversions to type 'int'
@@ -1172,9 +1172,9 @@ class P
 ";
             string expectedOperationTree = @"
 IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
-  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
-      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')";
+      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')";
             var expectedDiagnostics = new DiagnosticDescription[] {               
                 // file.cs(12,27): error CS0154: The property or indexer 'P.this[int]' cannot be used in this context because it lacks the get accessor
                 //         var x = /*<bind>*/this[10]/*</bind>*/;
@@ -1204,9 +1204,9 @@ class P
 ";
             string expectedOperationTree = @"
 IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
-  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
-      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1702,8 +1702,8 @@ class C
             string expectedOperationTree = @"
 IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'p.M1()')
   Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
-  Arguments(1): IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsInvalid) (Syntax: 'p.M1()')
-      IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'p.M1()')
+  Arguments(1): IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument) (Syntax: 'p.M1()')
+      IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'p.M1()')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""abc"") (Syntax: 'p.M1()')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1727,7 +1727,7 @@ class P
     }
 }
 ";
-            string expectedOperationTree = @"IInvocationExpression (static void P.M2([System.Boolean[missing]? x = null])) (OperationKind.InvocationExpression, Type: System.Void[missing]) (Syntax: 'M2()')";
+            string expectedOperationTree = @"IInvocationExpression (static void P.M2([System.Boolean[missing]? x = null])) (OperationKind.InvocationExpression, Type: System.Void[missing], IsInvalid) (Syntax: 'M2()')";
 
             var expectedDiagnostics = new DiagnosticDescription[] { 
                 // (3,7): error CS0518: Predefined type 'System.Object' is not defined or imported
@@ -1775,7 +1775,7 @@ class P
 ";
             string expectedOperationTree = @"
 IInvocationExpression (static void P.M2(System.Int32 x, [S s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
-  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '1')
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
 
@@ -1871,20 +1871,21 @@ IInvocationExpression (static void P.M2(System.Int32 x, [G<S>? s = null])) (Oper
 
         private class IndexerAccessArgumentVerifier : OperationWalker
         {
-            public static readonly IndexerAccessArgumentVerifier Instance = new IndexerAccessArgumentVerifier();
+            private readonly Compilation _compilation;
 
-            private IndexerAccessArgumentVerifier()
+            private IndexerAccessArgumentVerifier(Compilation compilation)
             {
+                _compilation = compilation;
             }
 
-            public static void Verify(IOperation operation, Compilation compilationIgnored, SyntaxNode syntaxNode)
+            public static void Verify(IOperation operation, Compilation compilation, SyntaxNode syntaxNode)
             {
-                Instance.Visit(operation);
+                new IndexerAccessArgumentVerifier(compilation).Visit(operation);
             }
 
             public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
             {
-                if (operation.IsInvalid || operation.ArgumentsInEvaluationOrder.Length == 0)
+                if (operation.IsInvalid(_compilation) || operation.ArgumentsInEvaluationOrder.Length == 0)
                 {
                     return;
                 }
@@ -1893,7 +1894,7 @@ IInvocationExpression (static void P.M2(System.Int32 x, [G<S>? s = null])) (Oper
                 var indexerSymbol = operation.Property;
                 foreach (var argument in operation.ArgumentsInEvaluationOrder)
                 {
-                    if (!argument.IsInvalid)
+                    if (!argument.IsInvalid(_compilation))
                     {
                         Assert.Same(indexerSymbol, argument.Parameter.ContainingSymbol);
                     }

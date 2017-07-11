@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed class OperationTreeVerifier : OperationWalker
     {
+        private readonly Compilation _compilation;
         private readonly IOperation _root;
         private readonly StringBuilder _builder;
 
@@ -25,8 +26,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private string _currentIndent;
         private bool _pendingIndent;
 
-        public OperationTreeVerifier(IOperation root, int initialIndent)
+        public OperationTreeVerifier(Compilation compilation, IOperation root, int initialIndent)
         {
+            _compilation = compilation;
             _root = root;
             _builder = new StringBuilder();
 
@@ -34,15 +36,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _pendingIndent = true;
         }
 
-        public static void Verify(IOperation operation, string expectedOperationTree, int initialIndent = 0)
+        public static void Verify(Compilation compilation, IOperation operation, string expectedOperationTree, int initialIndent = 0)
         {
-            var actual = GetOperationTree(operation, initialIndent);
+            var actual = GetOperationTree(compilation, operation, initialIndent);
             Assert.Equal(expectedOperationTree, actual);
         }
 
-        public static string GetOperationTree(IOperation operation, int initialIndent = 0)
+        public static string GetOperationTree(Compilation compilation, IOperation operation, int initialIndent = 0)
         {
-            var walker = new OperationTreeVerifier(operation, initialIndent);
+            var walker = new OperationTreeVerifier(compilation, operation, initialIndent);
             walker.Visit(operation);
             return walker._builder.ToString();
         }
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             // IsInvalid
-            if (operation.IsInvalid)
+            if (operation.IsInvalid(_compilation))
             {
                 LogString(", IsInvalid");
             }
@@ -859,6 +861,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAwaitExpression(operation);
         }
 
+        public override void VisitNameOfExpression(INameOfExpression operation)
+        {
+            LogString(nameof(INameOfExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Argument);
+        }
+
+        public override void VisitThrowExpression(IThrowExpression operation)
+        {
+            LogString(nameof(IThrowExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression);
+        }
+
         public override void VisitAddressOfExpression(IAddressOfExpression operation)
         {
             LogString(nameof(IAddressOfExpression));
@@ -874,7 +892,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             VisitArguments(operation);
-            VisitArray(operation.Initializers, "Initializers", logElementCount: true);
+            Visit(operation.Initializer, "Initializer");
         }
 
         public override void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
@@ -883,6 +901,36 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             VisitArray(operation.Initializers, "Initializers", logElementCount: true);
+        }
+
+        public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
+        {
+            LogString(nameof(IObjectOrCollectionInitializerExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Initializers, "Initializers", logElementCount: true);
+        }
+
+        public override void VisitMemberInitializerExpression(IMemberInitializerExpression operation)
+        {
+            LogString(nameof(IMemberInitializerExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.InitializedMember, "InitializedMember");
+            Visit(operation.Initializer, "Initializer");
+        }
+
+        public override void VisitCollectionElementInitializerExpression(ICollectionElementInitializerExpression operation)
+        {
+            LogString(nameof(ICollectionElementInitializerExpression));
+            if (operation.AddMethod != null)
+            {
+                LogString($" (AddMethod: {operation.AddMethod.ToTestDisplayString()})");
+            }
+            LogString($" (IsDynamic: {operation.IsDynamic})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Arguments, "Arguments", logElementCount: true);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)
@@ -1096,6 +1144,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.MinimumValue, "Min");
             Visit(operation.MaximumValue, "Max");
+        }
+
+        public override void VisitDefaultCaseClause(IDefaultCaseClause operation)
+        {
+            LogString(nameof(IDefaultCaseClause));
+            LogCaseClauseCommon(operation);
         }
 
         public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)

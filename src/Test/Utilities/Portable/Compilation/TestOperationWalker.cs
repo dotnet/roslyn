@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var syntax = operation.Syntax;
                 var type = operation.Type;
                 var constantValue = operation.ConstantValue;
-                var isInvlid = operation.IsInvalid;
             }
             base.Visit(operation);
         }
@@ -91,6 +90,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var relation = operation.Relation;
 
             base.VisitRelationalCaseClause(operation);
+        }
+
+        public override void VisitDefaultCaseClause(IDefaultCaseClause operation)
+        {
+            base.VisitDefaultCaseClause(operation);
         }
 
         public override void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
@@ -404,6 +408,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAwaitExpression(operation);
         }
 
+        public override void VisitNameOfExpression(INameOfExpression operation)
+        {
+            base.VisitNameOfExpression(operation);
+        }
+
+        public override void VisitThrowExpression(IThrowExpression operation)
+        {
+            base.VisitThrowExpression(operation);
+        }
+
         public override void VisitAddressOfExpression(IAddressOfExpression operation)
         {
             base.VisitAddressOfExpression(operation);
@@ -419,6 +433,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
         {
             base.VisitAnonymousObjectCreationExpression(operation);
+        }
+
+        public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
+        {
+            base.VisitObjectOrCollectionInitializerExpression(operation);
+        }
+
+        public override void VisitMemberInitializerExpression(IMemberInitializerExpression operation)
+        {
+            base.VisitMemberInitializerExpression(operation);
+        }
+
+        public override void VisitCollectionElementInitializerExpression(ICollectionElementInitializerExpression operation)
+        {
+            var addMethod = operation.AddMethod;
+            var isDynamic = operation.IsDynamic;
+
+            base.VisitCollectionElementInitializerExpression(operation);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)

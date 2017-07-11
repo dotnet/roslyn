@@ -5,22 +5,18 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a new/New expression.
+    /// Represents C# throw expression.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IObjectCreationExpression : IHasArgumentsExpression
+    public interface IThrowExpression : IOperation
     {
         /// <summary>
-        /// Constructor to be invoked on the created instance.
+        /// Expression.
         /// </summary>
-        IMethodSymbol Constructor { get; }
-        /// <summary>
-        /// Object or collection initializer, if any.
-        /// </summary>
-        IObjectOrCollectionInitializerExpression Initializer { get; }
+        IOperation Expression { get; }
     }
 }
 

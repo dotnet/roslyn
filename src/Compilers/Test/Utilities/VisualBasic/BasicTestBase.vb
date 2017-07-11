@@ -800,7 +800,7 @@ Public MustInherit Class BasicTestBaseBase
         Dim semanticModel = compilation.GetSemanticModel(tree)
         Dim operation = semanticModel.GetOperationInternal(node)
         If operation IsNot Nothing Then
-            Return (OperationTreeVerifier.GetOperationTree(operation), node, operation)
+            Return (OperationTreeVerifier.GetOperationTree(compilation, operation), node, operation)
         Else
             Return (Nothing, Nothing, Nothing)
         End If

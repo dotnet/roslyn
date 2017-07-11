@@ -74,11 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments);
     }
 
-    internal partial class BoundCollectionElementInitializer
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments);
-    }
-
     internal partial class BoundNameOfOperator
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Argument);
@@ -114,16 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments.Insert(0, this.Expression));
     }
 
-    internal partial class BoundCollectionInitializerExpression
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Initializers);
-    }
-
-    internal partial class BoundDynamicCollectionElementInitializer
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments);
-    }
-
     internal partial class BoundFixedLocalCollectionInitializer
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Expression);
@@ -142,11 +127,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundNoPiaObjectCreationExpression
     {
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt));
-    }
-
-    internal partial class BoundObjectInitializerExpression
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Initializers);
     }
 
     partial class BoundThrowExpression

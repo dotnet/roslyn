@@ -1321,6 +1321,10 @@
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    
+    <!-- BinderOpt is a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
 
   <Node Name="BoundDynamicObjectInitializerMember" Base="BoundExpression">
@@ -1491,6 +1495,7 @@
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
 
     <!-- BinderOpt and UseSetterForDefaultArgumentGeneration are added as a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
     <Field Name="BinderOpt" Type="Binder" Null="allow"/>
     <Field Name="UseSetterForDefaultArgumentGeneration" Type="bool"/>
   </Node>

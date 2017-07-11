@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -33,6 +33,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundLiteralOperation(DirectCast(boundNode, BoundLiteral))
                 Case BoundKind.AwaitOperator
                     Return CreateBoundAwaitOperatorOperation(DirectCast(boundNode, BoundAwaitOperator))
+                Case BoundKind.NameOfOperator
+                    Return CreateBoundNameOfOperatorOperation(DirectCast(boundNode, BoundNameOfOperator))
                 Case BoundKind.Lambda
                     Return CreateBoundLambdaOperation(DirectCast(boundNode, BoundLambda))
                 Case BoundKind.Call
@@ -71,6 +73,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundTypeOfOperation(DirectCast(boundNode, BoundTypeOf))
                 Case BoundKind.ObjectCreationExpression
                     Return CreateBoundObjectCreationExpressionOperation(DirectCast(boundNode, BoundObjectCreationExpression))
+                Case BoundKind.ObjectInitializerExpression
+                    Return CreateBoundObjectInitializerExpressionOperation(DirectCast(boundNode, BoundObjectInitializerExpression))
+                Case BoundKind.CollectionInitializerExpression
+                    Return CreateBoundCollectionInitializerExpressionOperation(DirectCast(boundNode, BoundCollectionInitializerExpression))
                 Case BoundKind.NewT
                     Return CreateBoundNewTOperation(DirectCast(boundNode, BoundNewT))
                 Case BoundKind.ArrayCreation
@@ -175,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundAnonymousTypePropertyAccessOperation(DirectCast(boundNode, BoundAnonymousTypePropertyAccess))
                 Case Else
                     Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
-                    Return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax, constantValue, Function() GetIOperationChildren(boundNode))
+                    Return Operation.CreateOperationNone(boundNode.Syntax, constantValue, Function() GetIOperationChildren(boundNode))
             End Select
         End Function
 
@@ -202,75 +208,75 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() DirectCast(Create(boundAssignmentOperator.Right), IBinaryOperatorExpression).RightOperand)
                 Dim usesOperatorMethod As Boolean = DirectCast(Create(boundAssignmentOperator.Right), IBinaryOperatorExpression).UsesOperatorMethod
                 Dim operatorMethod As IMethodSymbol = DirectCast(Create(boundAssignmentOperator.Right), IBinaryOperatorExpression).OperatorMethod
-                Dim isInvalid As Boolean = boundAssignmentOperator.HasErrors
                 Dim syntax As SyntaxNode = boundAssignmentOperator.Syntax
                 Dim type As ITypeSymbol = boundAssignmentOperator.Type
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
-                Return New LazyCompoundAssignmentExpression(binaryOperationKind, target, value, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+                Return New LazyCompoundAssignmentExpression(binaryOperationKind, target, value, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
             Else
                 Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Left))
                 Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Right))
-                Dim isInvalid As Boolean = boundAssignmentOperator.HasErrors
                 Dim syntax As SyntaxNode = boundAssignmentOperator.Syntax
                 Dim type As ITypeSymbol = boundAssignmentOperator.Type
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
-                Return New LazySimpleAssignmentExpression(target, value, isInvalid, syntax, type, constantValue)
+                Return New LazySimpleAssignmentExpression(target, value, syntax, type, constantValue)
             End If
         End Function
 
         Private Function CreateBoundMeReferenceOperation(boundMeReference As BoundMeReference) As IInstanceReferenceExpression
             Dim instanceReferenceKind As InstanceReferenceKind = If(boundMeReference.WasCompilerGenerated, InstanceReferenceKind.Implicit, InstanceReferenceKind.Explicit)
-            Dim isInvalid As Boolean = boundMeReference.HasErrors
             Dim syntax As SyntaxNode = boundMeReference.Syntax
             Dim type As ITypeSymbol = boundMeReference.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundMeReference.ConstantValueOpt)
-            Return New InstanceReferenceExpression(instanceReferenceKind, isInvalid, syntax, type, constantValue)
+            Return New InstanceReferenceExpression(instanceReferenceKind, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundMyBaseReferenceOperation(boundMyBaseReference As BoundMyBaseReference) As IInstanceReferenceExpression
             Dim instanceReferenceKind As InstanceReferenceKind = InstanceReferenceKind.BaseClass
-            Dim isInvalid As Boolean = boundMyBaseReference.HasErrors
             Dim syntax As SyntaxNode = boundMyBaseReference.Syntax
             Dim type As ITypeSymbol = boundMyBaseReference.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundMyBaseReference.ConstantValueOpt)
-            Return New InstanceReferenceExpression(instanceReferenceKind, isInvalid, syntax, type, constantValue)
+            Return New InstanceReferenceExpression(instanceReferenceKind, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundMyClassReferenceOperation(boundMyClassReference As BoundMyClassReference) As IInstanceReferenceExpression
             Dim instanceReferenceKind As InstanceReferenceKind = InstanceReferenceKind.ThisClass
-            Dim isInvalid As Boolean = boundMyClassReference.HasErrors
             Dim syntax As SyntaxNode = boundMyClassReference.Syntax
             Dim type As ITypeSymbol = boundMyClassReference.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundMyClassReference.ConstantValueOpt)
-            Return New InstanceReferenceExpression(instanceReferenceKind, isInvalid, syntax, type, constantValue)
+            Return New InstanceReferenceExpression(instanceReferenceKind, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundLiteralOperation(boundLiteral As BoundLiteral) As ILiteralExpression
             Dim text As String = boundLiteral.Syntax.ToString()
-            Dim isInvalid As Boolean = boundLiteral.HasErrors
             Dim syntax As SyntaxNode = boundLiteral.Syntax
             Dim type As ITypeSymbol = boundLiteral.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLiteral.ConstantValueOpt)
-            Return New LiteralExpression(text, isInvalid, syntax, type, constantValue)
+            Return New LiteralExpression(text, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundAwaitOperatorOperation(boundAwaitOperator As BoundAwaitOperator) As IAwaitExpression
             Dim awaitedValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAwaitOperator.Operand))
-            Dim isInvalid As Boolean = boundAwaitOperator.HasErrors
             Dim syntax As SyntaxNode = boundAwaitOperator.Syntax
             Dim type As ITypeSymbol = boundAwaitOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAwaitOperator.ConstantValueOpt)
-            Return New LazyAwaitExpression(awaitedValue, isInvalid, syntax, type, constantValue)
+            Return New LazyAwaitExpression(awaitedValue, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundNameOfOperatorOperation(boundNameOfOperator As BoundNameOfOperator) As INameOfExpression
+            Dim argument As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundNameOfOperator.Argument))
+            Dim syntax As SyntaxNode = boundNameOfOperator.Syntax
+            Dim type As ITypeSymbol = boundNameOfOperator.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundNameOfOperator.ConstantValueOpt)
+            Return New LazyNameOfExpression(argument, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundLambdaOperation(boundLambda As BoundLambda) As ILambdaExpression
             Dim signature As IMethodSymbol = boundLambda.LambdaSymbol
             Dim body As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundLambda.Body), IBlockStatement))
-            Dim isInvalid As Boolean = boundLambda.HasErrors
             Dim syntax As SyntaxNode = boundLambda.Syntax
             Dim type As ITypeSymbol = boundLambda.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLambda.ConstantValueOpt)
-            Return New LazyLambdaExpression(signature, body, isInvalid, syntax, type, constantValue)
+            Return New LazyLambdaExpression(signature, body, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundCallOperation(boundCall As BoundCall) As IInvocationExpression
@@ -282,38 +288,34 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim isVirtual As Boolean = method IsNot Nothing AndAlso instance IsNot Nothing AndAlso (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso receiver.Kind <> BoundKind.MyBaseReference AndAlso receiver.Kind <> BoundKind.MyClassReference
 
             Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(Function() DeriveArguments(boundCall.Arguments, boundCall.Method.Parameters))
-            Dim isInvalid As Boolean = boundCall.HasErrors
             Dim syntax As SyntaxNode = boundCall.Syntax
             Dim type As ITypeSymbol = boundCall.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundCall.ConstantValueOpt)
-            Return New LazyInvocationExpression(targetMethod, instance, isVirtual, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue)
+            Return New LazyInvocationExpression(targetMethod, instance, isVirtual, argumentsInEvaluationOrder, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundOmittedArgumentOperation(boundOmittedArgument As BoundOmittedArgument) As IOmittedArgumentExpression
-            Dim isInvalid As Boolean = boundOmittedArgument.HasErrors
             Dim syntax As SyntaxNode = boundOmittedArgument.Syntax
             Dim type As ITypeSymbol = boundOmittedArgument.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundOmittedArgument.ConstantValueOpt)
-            Return New OmittedArgumentExpression(isInvalid, syntax, type, constantValue)
+            Return New OmittedArgumentExpression(syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundParenthesizedOperation(boundParenthesized As BoundParenthesized) As IParenthesizedExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundParenthesized.Expression))
-            Dim isInvalid As Boolean = boundParenthesized.HasErrors
             Dim syntax As SyntaxNode = boundParenthesized.Syntax
             Dim type As ITypeSymbol = boundParenthesized.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundParenthesized.ConstantValueOpt)
-            Return New LazyParenthesizedExpression(operand, isInvalid, syntax, type, constantValue)
+            Return New LazyParenthesizedExpression(operand, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundArrayAccessOperation(boundArrayAccess As BoundArrayAccess) As IArrayElementReferenceExpression
             Dim arrayReference As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundArrayAccess.Expression))
             Dim indices As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundArrayAccess.Indices.SelectAsArray(Function(n) DirectCast(Create(n), IOperation)))
-            Dim isInvalid As Boolean = boundArrayAccess.HasErrors
             Dim syntax As SyntaxNode = boundArrayAccess.Syntax
             Dim type As ITypeSymbol = boundArrayAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundArrayAccess.ConstantValueOpt)
-            Return New LazyArrayElementReferenceExpression(arrayReference, indices, isInvalid, syntax, type, constantValue)
+            Return New LazyArrayElementReferenceExpression(arrayReference, indices, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundUnaryOperatorOperation(boundUnaryOperator As BoundUnaryOperator) As IUnaryOperatorExpression
@@ -321,11 +323,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUnaryOperator.Operand))
             Dim usesOperatorMethod As Boolean = False
             Dim operatorMethod As IMethodSymbol = Nothing
-            Dim isInvalid As Boolean = boundUnaryOperator.HasErrors
             Dim syntax As SyntaxNode = boundUnaryOperator.Syntax
             Dim type As ITypeSymbol = boundUnaryOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUnaryOperator.ConstantValueOpt)
-            Return New LazyUnaryOperatorExpression(unaryOperationKind, operand, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+            Return New LazyUnaryOperatorExpression(unaryOperationKind, operand, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundUserDefinedUnaryOperatorOperation(boundUserDefinedUnaryOperator As BoundUserDefinedUnaryOperator) As IUnaryOperatorExpression
@@ -339,11 +340,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                                                          End Function)
             Dim operatorMethod As IMethodSymbol = If(boundUserDefinedUnaryOperator.UnderlyingExpression.Kind = BoundKind.Call, boundUserDefinedUnaryOperator.Call.Method, Nothing)
             Dim usesOperatorMethod As Boolean = operatorMethod IsNot Nothing
-            Dim isInvalid As Boolean = boundUserDefinedUnaryOperator.HasErrors
             Dim syntax As SyntaxNode = boundUserDefinedUnaryOperator.Syntax
             Dim type As ITypeSymbol = boundUserDefinedUnaryOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedUnaryOperator.ConstantValueOpt)
-            Return New LazyUnaryOperatorExpression(unaryOperationKind, operand, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+            Return New LazyUnaryOperatorExpression(unaryOperationKind, operand, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundBinaryOperatorOperation(boundBinaryOperator As BoundBinaryOperator) As IBinaryOperatorExpression
@@ -352,11 +352,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundBinaryOperator.Right))
             Dim usesOperatorMethod As Boolean = False
             Dim operatorMethod As IMethodSymbol = Nothing
-            Dim isInvalid As Boolean = boundBinaryOperator.HasErrors
             Dim syntax As SyntaxNode = boundBinaryOperator.Syntax
             Dim type As ITypeSymbol = boundBinaryOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundBinaryOperator.ConstantValueOpt)
-            Return New LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+            Return New LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundUserDefinedBinaryOperatorOperation(boundUserDefinedBinaryOperator As BoundUserDefinedBinaryOperator) As IBinaryOperatorExpression
@@ -365,21 +364,19 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(boundUserDefinedBinaryOperator, 1))
             Dim operatorMethod As IMethodSymbol = If(boundUserDefinedBinaryOperator.UnderlyingExpression.Kind = BoundKind.Call, boundUserDefinedBinaryOperator.Call.Method, Nothing)
             Dim usesOperatorMethod As Boolean = operatorMethod IsNot Nothing
-            Dim isInvalid As Boolean = boundUserDefinedBinaryOperator.HasErrors
             Dim syntax As SyntaxNode = boundUserDefinedBinaryOperator.Syntax
             Dim type As ITypeSymbol = boundUserDefinedBinaryOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedBinaryOperator.ConstantValueOpt)
-            Return New LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+            Return New LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundBinaryConditionalExpressionOperation(boundBinaryConditionalExpression As BoundBinaryConditionalExpression) As INullCoalescingExpression
             Dim primaryOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundBinaryConditionalExpression.TestExpression))
             Dim secondaryOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundBinaryConditionalExpression.ElseExpression))
-            Dim isInvalid As Boolean = boundBinaryConditionalExpression.HasErrors
             Dim syntax As SyntaxNode = boundBinaryConditionalExpression.Syntax
             Dim type As ITypeSymbol = boundBinaryConditionalExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundBinaryConditionalExpression.ConstantValueOpt)
-            Return New LazyNullCoalescingExpression(primaryOperand, secondaryOperand, isInvalid, syntax, type, constantValue)
+            Return New LazyNullCoalescingExpression(primaryOperand, secondaryOperand, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundUserDefinedShortCircuitingOperatorOperation(boundUserDefinedShortCircuitingOperator As BoundUserDefinedShortCircuitingOperator) As IBinaryOperatorExpression
@@ -388,20 +385,18 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUserDefinedShortCircuitingOperator.BitwiseOperator.Right))
             Dim usesOperatorMethod As Boolean = True
             Dim operatorMethod As IMethodSymbol = boundUserDefinedShortCircuitingOperator.BitwiseOperator.Call.Method
-            Dim isInvalid As Boolean = boundUserDefinedShortCircuitingOperator.HasErrors
             Dim syntax As SyntaxNode = boundUserDefinedShortCircuitingOperator.Syntax
             Dim type As ITypeSymbol = boundUserDefinedShortCircuitingOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedShortCircuitingOperator.ConstantValueOpt)
-            Return New LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+            Return New LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidExpression
             Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundBadExpression.ChildBoundNodes.SelectAsArray(Function(n) Create(n)))
-            Dim isInvalid As Boolean = boundBadExpression.HasErrors
             Dim syntax As SyntaxNode = boundBadExpression.Syntax
             Dim type As ITypeSymbol = boundBadExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundBadExpression.ConstantValueOpt)
-            Return New LazyInvalidExpression(children, isInvalid, syntax, type, constantValue)
+            Return New LazyInvalidExpression(children, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IConversionExpression
@@ -410,11 +405,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim isExplicit As Boolean = True
             Dim usesOperatorMethod As Boolean = False
             Dim operatorMethod As IMethodSymbol = Nothing
-            Dim isInvalid As Boolean = boundTryCast.HasErrors
             Dim syntax As SyntaxNode = boundTryCast.Syntax
             Dim type As ITypeSymbol = boundTryCast.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTryCast.ConstantValueOpt)
-            Return New LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+            Return New LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundDirectCastOperation(boundDirectCast As BoundDirectCast) As IConversionExpression
@@ -423,11 +417,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim isExplicit As Boolean = True
             Dim usesOperatorMethod As Boolean = False
             Dim operatorMethod As IMethodSymbol = Nothing
-            Dim isInvalid As Boolean = boundDirectCast.HasErrors
             Dim syntax As SyntaxNode = boundDirectCast.Syntax
             Dim type As ITypeSymbol = boundDirectCast.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDirectCast.ConstantValueOpt)
-            Return New LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+            Return New LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundConversionOperation(boundConversion As BoundConversion) As IConversionExpression
@@ -436,11 +429,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim isExplicit As Boolean = boundConversion.ExplicitCastInCode
             Dim usesOperatorMethod As Boolean = False
             Dim operatorMethod As IMethodSymbol = Nothing
-            Dim isInvalid As Boolean = boundConversion.HasErrors
             Dim syntax As SyntaxNode = boundConversion.Syntax
             Dim type As ITypeSymbol = boundConversion.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
-            Return New LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+            Return New LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundUserDefinedConversionOperation(boundUserDefinedConversion As BoundUserDefinedConversion) As IConversionExpression
@@ -449,39 +441,36 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim isExplicit As Boolean = Not boundUserDefinedConversion.WasCompilerGenerated
             Dim usesOperatorMethod As Boolean = True
             Dim operatorMethod As IMethodSymbol = boundUserDefinedConversion.Call.Method
-            Dim isInvalid As Boolean = boundUserDefinedConversion.HasErrors
             Dim syntax As SyntaxNode = boundUserDefinedConversion.Syntax
             Dim type As ITypeSymbol = boundUserDefinedConversion.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedConversion.ConstantValueOpt)
-            Return New LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+            Return New LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundTernaryConditionalExpressionOperation(boundTernaryConditionalExpression As BoundTernaryConditionalExpression) As IConditionalChoiceExpression
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.Condition))
             Dim ifTrueValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.WhenTrue))
             Dim ifFalseValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.WhenFalse))
-            Dim isInvalid As Boolean = boundTernaryConditionalExpression.HasErrors
             Dim syntax As SyntaxNode = boundTernaryConditionalExpression.Syntax
             Dim type As ITypeSymbol = boundTernaryConditionalExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTernaryConditionalExpression.ConstantValueOpt)
-            Return New LazyConditionalChoiceExpression(condition, ifTrueValue, ifFalseValue, isInvalid, syntax, type, constantValue)
+            Return New LazyConditionalChoiceExpression(condition, ifTrueValue, ifFalseValue, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundTypeOfOperation(boundTypeOf As BoundTypeOf) As IIsTypeExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTypeOf.Operand))
             Dim isType As ITypeSymbol = boundTypeOf.TargetType
-            Dim isInvalid As Boolean = boundTypeOf.HasErrors
             Dim syntax As SyntaxNode = boundTypeOf.Syntax
             Dim type As ITypeSymbol = boundTypeOf.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTypeOf.ConstantValueOpt)
-            Return New LazyIsTypeExpression(operand, isType, isInvalid, syntax, type, constantValue)
+            Return New LazyIsTypeExpression(operand, isType, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundObjectCreationExpressionOperation(boundObjectCreationExpression As BoundObjectCreationExpression) As IObjectCreationExpression
             Dim constructor As IMethodSymbol = boundObjectCreationExpression.ConstructorOpt
-            Dim memberInitializers As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+            Dim memberInitializers As Lazy(Of IObjectOrCollectionInitializerExpression) = New Lazy(Of IObjectOrCollectionInitializerExpression)(
                 Function()
-                    Return GetObjectCreationInitializers(boundObjectCreationExpression)
+                    Return DirectCast(Create(boundObjectCreationExpression.InitializerOpt), IObjectOrCollectionInitializerExpression)
                 End Function)
 
             Debug.Assert(boundObjectCreationExpression.ConstructorOpt IsNot Nothing OrElse boundObjectCreationExpression.Arguments.IsEmpty())
@@ -492,39 +481,66 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         DeriveArguments(boundObjectCreationExpression.Arguments, boundObjectCreationExpression.ConstructorOpt.Parameters))
                 End Function)
 
-            Dim isInvalid As Boolean = boundObjectCreationExpression.HasErrors
             Dim syntax As SyntaxNode = boundObjectCreationExpression.Syntax
             Dim type As ITypeSymbol = boundObjectCreationExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundObjectCreationExpression.ConstantValueOpt)
-            Return New LazyObjectCreationExpression(constructor, memberInitializers, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue)
+            Return New LazyObjectCreationExpression(constructor, memberInitializers, argumentsInEvaluationOrder, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundObjectInitializerExpressionOperation(boundObjectInitializerExpression As BoundObjectInitializerExpression) As IObjectOrCollectionInitializerExpression
+            Dim initializers As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundObjectInitializerExpression.Initializers.SelectAsArray(Function(n) Create(n)))
+            Dim syntax As SyntaxNode = boundObjectInitializerExpression.Syntax
+            Dim type As ITypeSymbol = boundObjectInitializerExpression.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundObjectInitializerExpression.ConstantValueOpt)
+            Return New LazyObjectOrCollectionInitializerExpression(initializers, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundCollectionInitializerExpressionOperation(boundCollectionInitializerExpression As BoundCollectionInitializerExpression) As IObjectOrCollectionInitializerExpression
+            Dim initializers As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundCollectionInitializerExpression.Initializers.SelectAsArray(Function(n) CreateBoundCollectionElementInitializerOperation(n)))
+            Dim syntax As SyntaxNode = boundCollectionInitializerExpression.Syntax
+            Dim type As ITypeSymbol = boundCollectionInitializerExpression.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundCollectionInitializerExpression.ConstantValueOpt)
+            Return New LazyObjectOrCollectionInitializerExpression(initializers, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundCollectionElementInitializerOperation(boundExpression As BoundExpression) As IOperation
+            If boundExpression.Kind <> BoundKind.Call Then
+                ' Error case, not an Add method call for collection element initializer
+                Return Create(boundExpression)
+            End If
+            Dim boundCall = DirectCast(boundExpression, BoundCall)
+            Dim addMethod As IMethodSymbol = boundCall.Method
+            Dim arguments As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundCall.Arguments.SelectAsArray(Function(n) Create(n)))
+            Dim isDynamic As Boolean = addMethod Is Nothing
+            Dim syntax As SyntaxNode = boundExpression.Syntax
+            Dim type As ITypeSymbol = boundExpression.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundExpression.ConstantValueOpt)
+            Return New LazyCollectionElementInitializerExpression(addMethod, arguments, isDynamic, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundNewTOperation(boundNewT As BoundNewT) As ITypeParameterObjectCreationExpression
-            Dim isInvalid As Boolean = boundNewT.HasErrors
             Dim syntax As SyntaxNode = boundNewT.Syntax
             Dim type As ITypeSymbol = boundNewT.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundNewT.ConstantValueOpt)
-            Return New TypeParameterObjectCreationExpression(isInvalid, syntax, type, constantValue)
+            Return New TypeParameterObjectCreationExpression(syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundArrayCreationOperation(boundArrayCreation As BoundArrayCreation) As IArrayCreationExpression
             Dim elementType As ITypeSymbol = TryCast(boundArrayCreation.Type, IArrayTypeSymbol)?.ElementType
             Dim dimensionSizes As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundArrayCreation.Bounds.SelectAsArray(Function(n) Create(n)))
             Dim initializer As Lazy(Of IArrayInitializer) = New Lazy(Of IArrayInitializer)(Function() DirectCast(Create(boundArrayCreation.InitializerOpt), IArrayInitializer))
-            Dim isInvalid As Boolean = boundArrayCreation.HasErrors
             Dim syntax As SyntaxNode = boundArrayCreation.Syntax
             Dim type As ITypeSymbol = boundArrayCreation.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundArrayCreation.ConstantValueOpt)
-            Return New LazyArrayCreationExpression(elementType, dimensionSizes, initializer, isInvalid, syntax, type, constantValue)
+            Return New LazyArrayCreationExpression(elementType, dimensionSizes, initializer, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundArrayInitializationOperation(boundArrayInitialization As BoundArrayInitialization) As IArrayInitializer
             Dim elementValues As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundArrayInitialization.Initializers.SelectAsArray(Function(n) Create(n)))
-            Dim isInvalid As Boolean = boundArrayInitialization.HasErrors
             Dim syntax As SyntaxNode = boundArrayInitialization.Syntax
             Dim type As ITypeSymbol = boundArrayInitialization.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundArrayInitialization.ConstantValueOpt)
-            Return New LazyArrayInitializer(elementValues, isInvalid, syntax, type, constantValue)
+            Return New LazyArrayInitializer(elementValues, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundPropertyAccessOperation(boundPropertyAccess As BoundPropertyAccess) As IPropertyReferenceExpression
@@ -545,11 +561,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         ImmutableArray(Of IArgument).Empty,
                         DeriveArguments(boundPropertyAccess.Arguments, boundPropertyAccess.PropertySymbol.Parameters))
                 End Function)
-            Dim isInvalid As Boolean = boundPropertyAccess.HasErrors
             Dim syntax As SyntaxNode = boundPropertyAccess.Syntax
             Dim type As ITypeSymbol = boundPropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundPropertyAccess.ConstantValueOpt)
-            Return New LazyPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue)
+            Return New LazyPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundEventAccessOperation(boundEventAccess As BoundEventAccess) As IEventReferenceExpression
@@ -564,11 +579,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             Dim [event] As IEventSymbol = boundEventAccess.EventSymbol
             Dim member As ISymbol = boundEventAccess.EventSymbol
-            Dim isInvalid As Boolean = boundEventAccess.HasErrors
             Dim syntax As SyntaxNode = boundEventAccess.Syntax
             Dim type As ITypeSymbol = boundEventAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundEventAccess.ConstantValueOpt)
-            Return New LazyEventReferenceExpression([event], instance, member, isInvalid, syntax, type, constantValue)
+            Return New LazyEventReferenceExpression([event], instance, member, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundFieldAccessOperation(boundFieldAccess As BoundFieldAccess) As IFieldReferenceExpression
@@ -583,130 +597,117 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 End Function)
 
             Dim member As ISymbol = boundFieldAccess.FieldSymbol
-            Dim isInvalid As Boolean = boundFieldAccess.HasErrors
             Dim syntax As SyntaxNode = boundFieldAccess.Syntax
             Dim type As ITypeSymbol = boundFieldAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundFieldAccess.ConstantValueOpt)
-            Return New LazyFieldReferenceExpression(field, instance, member, isInvalid, syntax, type, constantValue)
+            Return New LazyFieldReferenceExpression(field, instance, member, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundConditionalAccessOperation(boundConditionalAccess As BoundConditionalAccess) As IConditionalAccessExpression
             Dim conditionalValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundConditionalAccess.AccessExpression))
             Dim conditionalInstance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundConditionalAccess.Receiver))
-            Dim isInvalid As Boolean = boundConditionalAccess.HasErrors
             Dim syntax As SyntaxNode = boundConditionalAccess.Syntax
             Dim type As ITypeSymbol = boundConditionalAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConditionalAccess.ConstantValueOpt)
-            Return New LazyConditionalAccessExpression(conditionalValue, conditionalInstance, isInvalid, syntax, type, constantValue)
+            Return New LazyConditionalAccessExpression(conditionalValue, conditionalInstance, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundConditionalAccessReceiverPlaceholderOperation(boundConditionalAccessReceiverPlaceholder As BoundConditionalAccessReceiverPlaceholder) As IConditionalAccessInstanceExpression
-            Dim isInvalid As Boolean = boundConditionalAccessReceiverPlaceholder.HasErrors
             Dim syntax As SyntaxNode = boundConditionalAccessReceiverPlaceholder.Syntax
             Dim type As ITypeSymbol = boundConditionalAccessReceiverPlaceholder.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConditionalAccessReceiverPlaceholder.ConstantValueOpt)
-            Return New ConditionalAccessInstanceExpression(isInvalid, syntax, type, constantValue)
+            Return New ConditionalAccessInstanceExpression(syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundParameterOperation(boundParameter As BoundParameter) As IParameterReferenceExpression
             Dim parameter As IParameterSymbol = boundParameter.ParameterSymbol
-            Dim isInvalid As Boolean = boundParameter.HasErrors
             Dim syntax As SyntaxNode = boundParameter.Syntax
             Dim type As ITypeSymbol = boundParameter.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundParameter.ConstantValueOpt)
-            Return New ParameterReferenceExpression(parameter, isInvalid, syntax, type, constantValue)
+            Return New ParameterReferenceExpression(parameter, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundLocalOperation(boundLocal As BoundLocal) As ILocalReferenceExpression
             Dim local As ILocalSymbol = boundLocal.LocalSymbol
-            Dim isInvalid As Boolean = boundLocal.HasErrors
             Dim syntax As SyntaxNode = boundLocal.Syntax
             Dim type As ITypeSymbol = boundLocal.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLocal.ConstantValueOpt)
-            Return New LocalReferenceExpression(local, isInvalid, syntax, type, constantValue)
+            Return New LocalReferenceExpression(local, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundLateMemberAccessOperation(boundLateMemberAccess As BoundLateMemberAccess) As ILateBoundMemberReferenceExpression
             Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLateMemberAccess.ReceiverOpt))
             Dim memberName As String = boundLateMemberAccess.NameOpt
-            Dim isInvalid As Boolean = boundLateMemberAccess.HasErrors
             Dim syntax As SyntaxNode = boundLateMemberAccess.Syntax
             Dim type As ITypeSymbol = boundLateMemberAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLateMemberAccess.ConstantValueOpt)
-            Return New LazyLateBoundMemberReferenceExpression(instance, memberName, isInvalid, syntax, type, constantValue)
+            Return New LazyLateBoundMemberReferenceExpression(instance, memberName, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundFieldInitializerOperation(boundFieldInitializer As BoundFieldInitializer) As IFieldInitializer
             Dim initializedFields As ImmutableArray(Of IFieldSymbol) = ImmutableArray(Of IFieldSymbol).CastUp(boundFieldInitializer.InitializedFields)
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundFieldInitializer.InitialValue))
             Dim kind As OperationKind = OperationKind.FieldInitializer
-            Dim isInvalid As Boolean = boundFieldInitializer.HasErrors
             Dim syntax As SyntaxNode = boundFieldInitializer.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyFieldInitializer(initializedFields, value, kind, isInvalid, syntax, type, constantValue)
+            Return New LazyFieldInitializer(initializedFields, value, kind, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundPropertyInitializerOperation(boundPropertyInitializer As BoundPropertyInitializer) As IPropertyInitializer
             Dim initializedProperty As IPropertySymbol = boundPropertyInitializer.InitializedProperties.FirstOrDefault()
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundPropertyInitializer.InitialValue))
             Dim kind As OperationKind = OperationKind.PropertyInitializer
-            Dim isInvalid As Boolean = boundPropertyInitializer.HasErrors
             Dim syntax As SyntaxNode = boundPropertyInitializer.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyPropertyInitializer(initializedProperty, value, kind, isInvalid, syntax, type, constantValue)
+            Return New LazyPropertyInitializer(initializedProperty, value, kind, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundParameterEqualsValueOperation(boundParameterEqualsValue As BoundParameterEqualsValue) As IParameterInitializer
             Dim parameter As IParameterSymbol = boundParameterEqualsValue.Parameter
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundParameterEqualsValue.Value))
             Dim kind As OperationKind = OperationKind.ParameterInitializer
-            Dim isInvalid As Boolean = boundParameterEqualsValue.Value.HasErrors
             Dim syntax As SyntaxNode = boundParameterEqualsValue.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyParameterInitializer(parameter, value, kind, isInvalid, syntax, type, constantValue)
+            Return New LazyParameterInitializer(parameter, value, kind, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundRValuePlaceholderOperation(boundRValuePlaceholder As BoundRValuePlaceholder) As IPlaceholderExpression
-            Dim isInvalid As Boolean = boundRValuePlaceholder.HasErrors
             Dim syntax As SyntaxNode = boundRValuePlaceholder.Syntax
             Dim type As ITypeSymbol = boundRValuePlaceholder.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundRValuePlaceholder.ConstantValueOpt)
-            Return New PlaceholderExpression(isInvalid, syntax, type, constantValue)
+            Return New PlaceholderExpression(syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundIfStatementOperation(boundIfStatement As BoundIfStatement) As IIfStatement
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundIfStatement.Condition))
             Dim ifTrueStatement As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundIfStatement.Consequence))
             Dim ifFalseStatement As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundIfStatement.AlternativeOpt))
-            Dim isInvalid As Boolean = boundIfStatement.HasErrors
             Dim syntax As SyntaxNode = boundIfStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyIfStatement(condition, ifTrueStatement, ifFalseStatement, isInvalid, syntax, type, constantValue)
+            Return New LazyIfStatement(condition, ifTrueStatement, ifFalseStatement, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundSelectStatementOperation(boundSelectStatement As BoundSelectStatement) As ISwitchStatement
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundSelectStatement.ExpressionStatement.Expression))
             Dim cases As Lazy(Of ImmutableArray(Of ISwitchCase)) = New Lazy(Of ImmutableArray(Of ISwitchCase))(Function() GetSwitchStatementCases(boundSelectStatement))
-            Dim isInvalid As Boolean = boundSelectStatement.HasErrors
             Dim syntax As SyntaxNode = boundSelectStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazySwitchStatement(value, cases, isInvalid, syntax, type, constantValue)
+            Return New LazySwitchStatement(value, cases, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundSimpleCaseClauseOperation(boundSimpleCaseClause As BoundSimpleCaseClause) As ISingleValueCaseClause
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(GetSingleValueCaseClauseValue(boundSimpleCaseClause)))
             Dim equality As BinaryOperationKind = GetSingleValueCaseClauseEquality(boundSimpleCaseClause)
             Dim caseKind As CaseKind = CaseKind.SingleValue
-            Dim isInvalid As Boolean = boundSimpleCaseClause.HasErrors
             Dim syntax As SyntaxNode = boundSimpleCaseClause.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazySingleValueCaseClause(value, equality, caseKind, isInvalid, syntax, type, constantValue)
+            Return New LazySingleValueCaseClause(value, equality, caseKind, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundRangeCaseClauseOperation(boundRangeCaseClause As BoundRangeCaseClause) As IRangeCaseClause
@@ -741,11 +742,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return Nothing
                 End Function)
             Dim caseKind As CaseKind = CaseKind.Range
-            Dim isInvalid As Boolean = boundRangeCaseClause.HasErrors
             Dim syntax As SyntaxNode = boundRangeCaseClause.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyRangeCaseClause(minimumValue, maximumValue, caseKind, isInvalid, syntax, type, constantValue)
+            Return New LazyRangeCaseClause(minimumValue, maximumValue, caseKind, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundRelationalCaseClauseOperation(boundRelationalCaseClause As BoundRelationalCaseClause) As IRelationalCaseClause
@@ -753,11 +753,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(valueExpression))
             Dim relation As BinaryOperationKind = If(valueExpression IsNot Nothing, Helper.DeriveBinaryOperationKind(boundRelationalCaseClause.OperatorKind, valueExpression), BinaryOperationKind.Invalid)
             Dim caseKind As CaseKind = CaseKind.Relational
-            Dim isInvalid As Boolean = boundRelationalCaseClause.HasErrors
             Dim syntax As SyntaxNode = boundRelationalCaseClause.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyRelationalCaseClause(value, relation, caseKind, isInvalid, syntax, type, constantValue)
+            Return New LazyRelationalCaseClause(value, relation, caseKind, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundDoLoopStatementOperation(boundDoLoopStatement As BoundDoLoopStatement) As IWhileUntilLoopStatement
@@ -766,11 +765,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDoLoopStatement.ConditionOpt))
             Dim loopKind As LoopKind = LoopKind.WhileUntil
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDoLoopStatement.Body))
-            Dim isInvalid As Boolean = boundDoLoopStatement.HasErrors
             Dim syntax As SyntaxNode = boundDoLoopStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, loopKind, body, isInvalid, syntax, type, constantValue)
+            Return New LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, loopKind, body, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundForToStatementOperation(boundForToStatement As BoundForToStatement) As IForLoopStatement
@@ -780,11 +778,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetForWhileUntilLoopStatmentCondition(boundForToStatement))
             Dim loopKind As LoopKind = LoopKind.For
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForToStatement.Body))
-            Dim isInvalid As Boolean = boundForToStatement.HasErrors
             Dim syntax As SyntaxNode = boundForToStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyForLoopStatement(before, atLoopBottom, locals, condition, loopKind, body, isInvalid, syntax, type, constantValue)
+            Return New LazyForLoopStatement(before, atLoopBottom, locals, condition, loopKind, body, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundForEachStatementOperation(boundForEachStatement As BoundForEachStatement) As IForEachLoopStatement
@@ -792,22 +789,20 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim collection As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForEachStatement.Collection))
             Dim loopKind As LoopKind = LoopKind.ForEach
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForEachStatement.Body))
-            Dim isInvalid As Boolean = boundForEachStatement.HasErrors
             Dim syntax As SyntaxNode = boundForEachStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyForEachLoopStatement(iterationVariable, collection, loopKind, body, isInvalid, syntax, type, constantValue)
+            Return New LazyForEachLoopStatement(iterationVariable, collection, loopKind, body, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundTryStatementOperation(boundTryStatement As BoundTryStatement) As ITryStatement
             Dim body As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundTryStatement.TryBlock), IBlockStatement))
             Dim catches As Lazy(Of ImmutableArray(Of ICatchClause)) = New Lazy(Of ImmutableArray(Of ICatchClause))(Function() boundTryStatement.CatchBlocks.As(Of ICatchClause)())
             Dim finallyHandler As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundTryStatement.FinallyBlockOpt), IBlockStatement))
-            Dim isInvalid As Boolean = boundTryStatement.HasErrors
             Dim syntax As SyntaxNode = boundTryStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyTryStatement(body, catches, finallyHandler, isInvalid, syntax, type, constantValue)
+            Return New LazyTryStatement(body, catches, finallyHandler, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundCatchBlockOperation(boundCatchBlock As BoundCatchBlock) As ICatchClause
@@ -815,11 +810,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim caughtType As ITypeSymbol = Nothing ' Manual
             Dim filter As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundCatchBlock.ExceptionFilterOpt))
             Dim exceptionLocal As ILocalSymbol = boundCatchBlock.LocalOpt
-            Dim isInvalid As Boolean = boundCatchBlock.HasErrors
             Dim syntax As SyntaxNode = boundCatchBlock.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyCatchClause(handler, caughtType, filter, exceptionLocal, isInvalid, syntax, type, constantValue)
+            Return New LazyCatchClause(handler, caughtType, filter, exceptionLocal, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundBlockOperation(boundBlock As BoundBlock) As IBlockStatement
@@ -828,11 +822,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return boundBlock.Statements.Select(Function(n) Create(n)).Where(Function(s) s.Kind <> OperationKind.None).ToImmutableArray()
                 End Function)
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()
-            Dim isInvalid As Boolean = boundBlock.HasErrors
             Dim syntax As SyntaxNode = boundBlock.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyBlockStatement(statements, locals, isInvalid, syntax, type, constantValue)
+            Return New LazyBlockStatement(statements, locals, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundBadStatementOperation(boundBadStatement As BoundBadStatement) As IInvalidStatement
@@ -848,29 +841,26 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
                     Return builder.ToImmutableAndFree()
                 End Function)
-            Dim isInvalid As Boolean = boundBadStatement.HasErrors
             Dim syntax As SyntaxNode = boundBadStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyInvalidStatement(children, isInvalid, syntax, type, constantValue)
+            Return New LazyInvalidStatement(children, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundReturnStatementOperation(boundReturnStatement As BoundReturnStatement) As IReturnStatement
             Dim returnedValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundReturnStatement.ExpressionOpt))
-            Dim isInvalid As Boolean = boundReturnStatement.HasErrors
             Dim syntax As SyntaxNode = boundReturnStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyReturnStatement(OperationKind.ReturnStatement, returnedValue, isInvalid, syntax, type, constantValue)
+            Return New LazyReturnStatement(OperationKind.ReturnStatement, returnedValue, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundThrowStatementOperation(boundThrowStatement As BoundThrowStatement) As IThrowStatement
             Dim thrownObject As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundThrowStatement.ExpressionOpt))
-            Dim isInvalid As Boolean = boundThrowStatement.HasErrors
             Dim syntax As SyntaxNode = boundThrowStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyThrowStatement(thrownObject, isInvalid, syntax, type, constantValue)
+            Return New LazyThrowStatement(thrownObject, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundWhileStatementOperation(boundWhileStatement As BoundWhileStatement) As IWhileUntilLoopStatement
@@ -879,160 +869,143 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundWhileStatement.Condition))
             Dim loopKind As LoopKind = LoopKind.WhileUntil
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundWhileStatement.Body))
-            Dim isInvalid As Boolean = boundWhileStatement.HasErrors
             Dim syntax As SyntaxNode = boundWhileStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, loopKind, body, isInvalid, syntax, type, constantValue)
+            Return New LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, loopKind, body, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationStatement
             Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclaration)) = New Lazy(Of ImmutableArray(Of IVariableDeclaration))(Function() GetVariableDeclarationStatementVariables(boundDimStatement))
-            Dim isInvalid As Boolean = boundDimStatement.HasErrors
             Dim syntax As SyntaxNode = boundDimStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyVariableDeclarationStatement(declarations, isInvalid, syntax, type, constantValue)
+            Return New LazyVariableDeclarationStatement(declarations, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundYieldStatementOperation(boundYieldStatement As BoundYieldStatement) As IReturnStatement
             Dim returnedValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundYieldStatement.Expression))
-            Dim isInvalid As Boolean = boundYieldStatement.HasErrors
             Dim syntax As SyntaxNode = boundYieldStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyReturnStatement(OperationKind.YieldReturnStatement, returnedValue, isInvalid, syntax, type, constantValue)
+            Return New LazyReturnStatement(OperationKind.YieldReturnStatement, returnedValue, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundLabelStatementOperation(boundLabelStatement As BoundLabelStatement) As ILabelStatement
             Dim label As ILabelSymbol = boundLabelStatement.Label
             Dim labeledStatement As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(Nothing))
-            Dim isInvalid As Boolean = boundLabelStatement.HasErrors
             Dim syntax As SyntaxNode = boundLabelStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyLabelStatement(label, labeledStatement, isInvalid, syntax, type, constantValue)
+            Return New LazyLabelStatement(label, labeledStatement, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundGotoStatementOperation(boundGotoStatement As BoundGotoStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundGotoStatement.Label
             Dim branchKind As BranchKind = BranchKind.GoTo
-            Dim isInvalid As Boolean = boundGotoStatement.HasErrors
             Dim syntax As SyntaxNode = boundGotoStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New BranchStatement(target, branchKind, isInvalid, syntax, type, constantValue)
+            Return New BranchStatement(target, branchKind, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundContinueStatementOperation(boundContinueStatement As BoundContinueStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundContinueStatement.Label
             Dim branchKind As BranchKind = BranchKind.Continue
-            Dim isInvalid As Boolean = boundContinueStatement.HasErrors
             Dim syntax As SyntaxNode = boundContinueStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New BranchStatement(target, branchKind, isInvalid, syntax, type, constantValue)
+            Return New BranchStatement(target, branchKind, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundExitStatementOperation(boundExitStatement As BoundExitStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundExitStatement.Label
             Dim branchKind As BranchKind = BranchKind.Break
-            Dim isInvalid As Boolean = boundExitStatement.HasErrors
             Dim syntax As SyntaxNode = boundExitStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New BranchStatement(target, branchKind, isInvalid, syntax, type, constantValue)
+            Return New BranchStatement(target, branchKind, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundSyncLockStatementOperation(boundSyncLockStatement As BoundSyncLockStatement) As ILockStatement
             Dim lockedObject As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundSyncLockStatement.LockExpression))
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundSyncLockStatement.Body))
-            Dim isInvalid As Boolean = boundSyncLockStatement.HasErrors
             Dim syntax As SyntaxNode = boundSyncLockStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyLockStatement(lockedObject, body, isInvalid, syntax, type, constantValue)
+            Return New LazyLockStatement(lockedObject, body, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundNoOpStatementOperation(boundNoOpStatement As BoundNoOpStatement) As IEmptyStatement
-            Dim isInvalid As Boolean = boundNoOpStatement.HasErrors
             Dim syntax As SyntaxNode = boundNoOpStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New EmptyStatement(isInvalid, syntax, type, constantValue)
+            Return New EmptyStatement(syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundStopStatementOperation(boundStopStatement As BoundStopStatement) As IStopStatement
-            Dim isInvalid As Boolean = boundStopStatement.HasErrors
             Dim syntax As SyntaxNode = boundStopStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New StopStatement(isInvalid, syntax, type, constantValue)
+            Return New StopStatement(syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundEndStatementOperation(boundEndStatement As BoundEndStatement) As IEndStatement
-            Dim isInvalid As Boolean = boundEndStatement.HasErrors
             Dim syntax As SyntaxNode = boundEndStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New EndStatement(isInvalid, syntax, type, constantValue)
+            Return New EndStatement(syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundWithStatementOperation(boundWithStatement As BoundWithStatement) As IWithStatement
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundWithStatement.Body))
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundWithStatement.OriginalExpression))
-            Dim isInvalid As Boolean = boundWithStatement.HasErrors
             Dim syntax As SyntaxNode = boundWithStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyWithStatement(body, value, isInvalid, syntax, type, constantValue)
+            Return New LazyWithStatement(body, value, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundUsingStatementOperation(boundUsingStatement As BoundUsingStatement) As IUsingStatement
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUsingStatement.Body))
             Dim declaration As Lazy(Of IVariableDeclarationStatement) = New Lazy(Of IVariableDeclarationStatement)(Function() GetUsingStatementDeclaration(boundUsingStatement))
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUsingStatement.ResourceExpressionOpt))
-            Dim isInvalid As Boolean = boundUsingStatement.HasErrors
             Dim syntax As SyntaxNode = boundUsingStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyUsingStatement(body, declaration, value, isInvalid, syntax, type, constantValue)
+            Return New LazyUsingStatement(body, declaration, value, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundExpressionStatementOperation(boundExpressionStatement As BoundExpressionStatement) As IExpressionStatement
             Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundExpressionStatement.Expression))
-            Dim isInvalid As Boolean = boundExpressionStatement.HasErrors
             Dim syntax As SyntaxNode = boundExpressionStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyExpressionStatement(expression, isInvalid, syntax, type, constantValue)
+            Return New LazyExpressionStatement(expression, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundRaiseEventStatementOperation(boundRaiseEventStatement As BoundRaiseEventStatement) As IExpressionStatement
             Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundRaiseEventStatement.EventInvocation))
-            Dim isInvalid As Boolean = boundRaiseEventStatement.HasErrors
             Dim syntax As SyntaxNode = boundRaiseEventStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyExpressionStatement(expression, isInvalid, syntax, type, constantValue)
+            Return New LazyExpressionStatement(expression, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundAddHandlerStatementOperation(boundAddHandlerStatement As BoundAddHandlerStatement) As IExpressionStatement
             Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetAddHandlerStatementExpression(boundAddHandlerStatement))
-            Dim isInvalid As Boolean = boundAddHandlerStatement.HasErrors
             Dim syntax As SyntaxNode = boundAddHandlerStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyExpressionStatement(expression, isInvalid, syntax, type, constantValue)
+            Return New LazyExpressionStatement(expression, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundRemoveHandlerStatementOperation(boundRemoveHandlerStatement As BoundRemoveHandlerStatement) As IExpressionStatement
             Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetRemoveStatementExpression(boundRemoveHandlerStatement))
-            Dim isInvalid As Boolean = boundRemoveHandlerStatement.HasErrors
             Dim syntax As SyntaxNode = boundRemoveHandlerStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyExpressionStatement(expression, isInvalid, syntax, type, constantValue)
+            Return New LazyExpressionStatement(expression, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundInterpolatedStringExpressionOperation(boundInterpolatedString As BoundInterpolatedStringExpression) As IInterpolatedStringExpression
@@ -1041,11 +1014,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return boundInterpolatedString.Contents.SelectAsArray(Function(interpolatedStringContent) CreateBoundInterpolatedStringContentOperation(interpolatedStringContent))
                 End Function)
 
-            Dim isInvalid As Boolean = boundInterpolatedString.HasErrors
             Dim syntax As SyntaxNode = boundInterpolatedString.Syntax
             Dim type As ITypeSymbol = boundInterpolatedString.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundInterpolatedString.ConstantValueOpt)
-            Return New LazyInterpolatedStringExpression(parts, isInvalid, syntax, type, constantValue)
+            Return New LazyInterpolatedStringExpression(parts, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundInterpolatedStringContentOperation(boundNode As BoundNode) As IInterpolatedStringContent
@@ -1060,20 +1032,18 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundInterpolation.Expression))
             Dim alignment As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundInterpolation.AlignmentOpt))
             Dim format As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundInterpolation.FormatStringOpt))
-            Dim isInvalid As Boolean = boundInterpolation.HasErrors
             Dim syntax As SyntaxNode = boundInterpolation.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = Nothing
-            Return New LazyInterpolation(expression, alignment, format, isInvalid, syntax, type, constantValue)
+            Return New LazyInterpolation(expression, alignment, format, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundInterpolatedStringTextOperation(boundNode As BoundNode) As IInterpolatedStringText
             Dim text As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundNode))
-            Dim isInvalid As Boolean = boundNode.HasErrors
             Dim syntax As SyntaxNode = boundNode.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = Nothing
-            Return New LazyInterpolatedStringText(text, isInvalid, syntax, type, constantValue)
+            Return New LazyInterpolatedStringText(text, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundAnonymousTypeCreationExpressionOperation(boundAnonymousTypeCreationExpression As BoundAnonymousTypeCreationExpression) As IAnonymousObjectCreationExpression
@@ -1082,11 +1052,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return GetAnonymousTypeCreationInitializers(boundAnonymousTypeCreationExpression)
                 End Function)
 
-            Dim isInvalid As Boolean = boundAnonymousTypeCreationExpression.HasErrors
             Dim syntax As SyntaxNode = boundAnonymousTypeCreationExpression.Syntax
             Dim type As ITypeSymbol = boundAnonymousTypeCreationExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypeCreationExpression.ConstantValueOpt)
-            Return New LazyAnonymousObjectCreationExpression(initializers, isInvalid, syntax, type, constantValue)
+            Return New LazyAnonymousObjectCreationExpression(initializers, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundAnonymousTypePropertyAccessOperation(boundAnonymousTypePropertyAccess As BoundAnonymousTypePropertyAccess) As IPropertyReferenceExpression
@@ -1094,11 +1063,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim [property] As IPropertySymbol = DirectCast(boundAnonymousTypePropertyAccess.ExpressionSymbol, IPropertySymbol)
             Dim member As ISymbol = boundAnonymousTypePropertyAccess.ExpressionSymbol
             Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(Function() ImmutableArray(Of IArgument).Empty)
-            Dim isInvalid As Boolean = boundAnonymousTypePropertyAccess.HasErrors
             Dim syntax As SyntaxNode = boundAnonymousTypePropertyAccess.Syntax
             Dim type As ITypeSymbol = boundAnonymousTypePropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
-            Return New LazyPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue)
+            Return New LazyPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, syntax, type, constantValue)
         End Function
     End Class
 End Namespace

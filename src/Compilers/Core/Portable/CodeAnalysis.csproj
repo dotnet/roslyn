@@ -42,6 +42,8 @@
     <Compile Include="Operations\BranchKind.cs" />
     <Compile Include="Operations\CaseKind.cs" />
     <Compile Include="Operations\ConversionKind.cs" />
+    <Compile Include="Operations\IThrowExpression.cs" />
+    <Compile Include="Operations\INameOfExpression.cs" />
     <Compile Include="Operations\IAddressOfExpression.cs" />
     <Compile Include="Operations\IArgument.cs" />
     <Compile Include="Operations\IArrayCreationExpression.cs" />
@@ -52,6 +54,9 @@
     <Compile Include="Operations\IAwaitExpression.cs" />
     <Compile Include="Operations\IBinaryOperatorExpression.cs" />
     <Compile Include="Operations\IIsPatternExpression.cs" />
+    <Compile Include="Operations\IMemberInitializerExpression.cs" />
+    <Compile Include="Operations\ICollectionElementInitializerExpression.cs" />
+    <Compile Include="Operations\IObjectOrCollectionInitializerExpression.cs" />
     <Compile Include="Operations\IPatternCaseClause.cs" />
     <Compile Include="Operations\IConstantPattern.cs" />
     <Compile Include="Operations\IDeclarationPattern.cs" />
@@ -105,6 +110,7 @@
     <Compile Include="Operations\IObjectCreationExpression.cs" />
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
     <Compile Include="Operations\IOperationWithChildren.cs" />
+    <Compile Include="Operations\IDefaultCaseClause.cs" />
     <Compile Include="Operations\Operation.cs" />
     <Compile Include="Operations\OperationKind.cs" />
     <Compile Include="Operations\IParameterInitializer.cs" />
