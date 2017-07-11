@@ -425,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundConversionOperation(boundConversion As BoundConversion) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundConversion.Operand))
-            Dim conversionKind As ConversionKind = Semantics.ConversionKind.Basic
+            Dim conversionKind As ConversionKind = GetConversionKind(boundConversion.ConversionKind)
             Dim isExplicit As Boolean = boundConversion.ExplicitCastInCode
             Dim usesOperatorMethod As Boolean = False
             Dim operatorMethod As IMethodSymbol = Nothing
