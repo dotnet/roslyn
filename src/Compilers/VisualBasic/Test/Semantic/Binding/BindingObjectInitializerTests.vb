@@ -99,8 +99,8 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'New C2() With {}')
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2) (Syntax: 'With {}')
+IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() With {}')
+  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {}')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -181,8 +181,8 @@ End Class]]>.Value
 IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() With {.Field}')
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {.Field}')
       Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field')
-          Left: IFieldReferenceExpression: C2.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
-              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() With {.Field}')
+          Left: IFieldReferenceExpression: C2.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Field')
+              Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() With {.Field}')
           Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
 ]]>.Value
@@ -221,7 +221,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {.Field =}')
       Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field =')
           Left: IFieldReferenceExpression: C2.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
-              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() With {.Field =}')
+              Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() With {.Field =}')
           Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
 ]]>.Value
@@ -297,15 +297,15 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'New C2() Wi ... ield = "b"}')
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2) (Syntax: 'With {.Fiel ... ield = "b"}')
+IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... ield = "b"}')
+  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {.Fiel ... ield = "b"}')
       Initializers(2): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '.Field = "a"')
           Left: IFieldReferenceExpression: C2.Field As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'Field')
-              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ... ield = "b"}')
+              Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ... ield = "b"}')
           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "a") (Syntax: '"a"')
-        ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '.Field = "b"')
-          Left: IFieldReferenceExpression: C2.Field As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'Field')
-              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ... ield = "b"}')
+        ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: '.Field = "b"')
+          Left: IFieldReferenceExpression: C2.Field As System.String (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'Field')
+              Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ... ield = "b"}')
           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "b") (Syntax: '"b"')
 ]]>.Value
 
@@ -338,7 +338,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid) (Syntax: 'New Object( ... ield = "a"}')
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Object, IsInvalid) (Syntax: 'With {.Field = "a"}')
-      Initializers(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "a") (Syntax: '"a"')
+      Initializers(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "a", IsInvalid) (Syntax: '"a"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -402,10 +402,10 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1) (Syntax: 'New C1() Wi ... lo World!"}')
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1) (Syntax: 'With {.Fiel ... lo World!"}')
-      Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '.Field1 = "Hello World!"')
-          Left: IFieldReferenceExpression: C1.Field1 As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'Field1')
+IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... lo World!"}')
+      Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: '.Field1 = "Hello World!"')
+          Left: IFieldReferenceExpression: C1.Field1 As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'Field1')
           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
 
@@ -439,11 +439,11 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
       Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
           Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
               Children(1): IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Field1')
-                  Children(1): IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... r(.Field1)}')
+                  Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... r(.Field1)}')
           Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Bar(.Field1)')
               Children(2): IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Bar')
                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field1')
-                  Children(1): IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... r(.Field1)}')
+                  Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... r(.Field1)}')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -486,8 +486,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
       Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.Field = 23')
           Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field = 23')
               Children(1): IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'Field')
-                  Children(1): IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ... Field = 23}')
-          Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: ?, IsInvalid) (Syntax: '23')
+                  Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ... Field = 23}')
+          Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: ?) (Syntax: '23')
               ILiteralExpression (Text: 23) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23) (Syntax: '23')
 ]]>.Value
 
@@ -522,8 +522,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.Foo  ... lo World!"}')
       Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.Foo = "Hello World!"')
           Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Foo = "Hello World!"')
-              Children(1): IOperation:  (OperationKind.None) (Syntax: 'Foo')
-          Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: ?, IsInvalid) (Syntax: '"Hello World!"')
+              Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Foo')
+          Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: ?) (Syntax: '"Hello World!"')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
 
@@ -559,9 +559,9 @@ End Class]]>.Value
 IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.X =  ... lo World!"}')
       Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '.X = "Hello World!"')
-          Left: IPropertyReferenceExpression: ReadOnly Property C1.X As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'X')
-              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... lo World!"}')
-          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+          Left: IPropertyReferenceExpression: ReadOnly Property C1.X As System.String (OperationKind.PropertyReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
+              Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -593,9 +593,9 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.X =  ... lo World!"}')
       Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = "Hello World!"')
           Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'X')
-              Children(1): IFieldReferenceExpression: C1.X As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'X')
-                  Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... lo World!"}')
-          Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: ?, IsInvalid) (Syntax: '"Hello World!"')
+              Children(1): IFieldReferenceExpression: C1.X As System.String (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
+                  Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+          Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: ?) (Syntax: '"Hello World!"')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
 
@@ -633,9 +633,9 @@ End Module]]>.Value
 IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... .X = "foo"}')
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.X = "foo"}')
       Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '.X = "foo"')
-          Left: IPropertyReferenceExpression: Property C1.X As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'X')
-              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... .X = "foo"}')
-          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "foo") (Syntax: '"foo"')
+          Left: IPropertyReferenceExpression: Property C1.X As System.String (OperationKind.PropertyReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
+              Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... .X = "foo"}')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "foo", IsInvalid) (Syntax: '"foo"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -668,15 +668,15 @@ End Module]]>.Value
 IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: x As C3
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "foo"}')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'x')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x')
       Variables: Local_1: x As C3
       Initializer: IObjectCreationExpression (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "foo"}')
           Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C3, IsInvalid) (Syntax: 'With {.X = "foo"}')
               Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = "foo"')
                   Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.X = "foo"')
                       Children(1): IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'X')
-                          Children(1): IOperation:  (OperationKind.None) (Syntax: 'New C3() Wi ... .X = "foo"}')
-                  Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: ?, IsInvalid) (Syntax: '"foo"')
+                          Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C3() Wi ... .X = "foo"}')
+                  Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: ?) (Syntax: '"foo"')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "foo") (Syntax: '"foo"')
   IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: C3, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
@@ -686,7 +686,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
               Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
                   Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
                       Children(1): IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'X')
-                          Children(1): IOperation:  (OperationKind.None) (Syntax: 'New C3() Wi ...  Unknown()}')
+                          Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C3() Wi ...  Unknown()}')
                   Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Unknown()')
                       Children(1): IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Unknown')
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
@@ -868,10 +868,10 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.Field = .Field2}')
       Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field = .Field2')
           Left: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
-              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ...  = .Field2}')
+              Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ...  = .Field2}')
           Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field2')
               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field2')
-                Children(1): IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ...  = .Field2}')
+                Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ...  = .Field2}')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -966,19 +966,19 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... = .Field2}}')
       Initializers(2): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.Field1 = 23')
           Left: IFieldReferenceExpression: C1.Field1 As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field1')
-              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... = .Field2}}')
+              Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... = .Field2}}')
           Right: ILiteralExpression (Text: 23) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23) (Syntax: '23')
         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: C2, IsInvalid) (Syntax: '.FieldC2 =  ...  = .Field2}')
           Left: IFieldReferenceExpression: C1.FieldC2 As C2 (OperationKind.FieldReferenceExpression, Type: C2) (Syntax: 'FieldC2')
-              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... = .Field2}}')
+              Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... = .Field2}}')
           Right: IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ...  = .Field2}')
               Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {.Field1 = .Field2}')
                   Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field1 = .Field2')
                       Left: IFieldReferenceExpression: C2.Field1 As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field1')
-                          Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ...  = .Field2}')
+                          Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ...  = .Field2}')
                       Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field2')
                           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field2')
-                            Children(1): IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ...  = .Field2}')
+                            Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ...  = .Field2}')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
