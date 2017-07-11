@@ -1046,6 +1046,7 @@
     <Compile Include="Workspace\Host\TextFactory\ITextFactoryService.cs" />
     <Compile Include="Workspace\Host\HostWorkspaceServices.cs" />
     <Compile Include="Workspace\Host\TextFactory\TextFactoryService.cs" />
+    <Compile Include="Workspace\Solution\DocumentState_IncrementalTreeSource.cs" />
     <Compile Include="Workspace\Solution\IChecksummedObject.cs" />
     <Compile Include="Workspace\Solution\ITextVersionable.cs" />
     <Compile Include="Workspace\PrimaryWorkspace.cs" />

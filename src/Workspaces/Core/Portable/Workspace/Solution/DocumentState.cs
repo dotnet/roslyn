@@ -104,6 +104,20 @@ namespace Microsoft.CodeAnalysis
                 : "";
         }
 
+        private ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
+            ValueSource<TextAndVersion> textAndVersion, 
+            PreservationMode mode = PreservationMode.PreserveValue)
+        {
+            return CreateLazyFullyParsedTree(
+                textAndVersion,
+                this.Id.ProjectId,
+                GetSyntaxTreeFilePath(this.info),
+                _options,
+                _languageServices,
+                this.solutionServices,
+                mode);
+        }
+
         private static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
             ValueSource<TextAndVersion> newTextSource,
             ProjectId cacheKey,
@@ -178,14 +192,23 @@ namespace Microsoft.CodeAnalysis
             return TreeAndVersion.Create(tree, textAndVersion.Version);
         }
 
+        private static int GetIncrementalParseDepth(ValueSource<TreeAndVersion> treeSource)
+        {
+            var incrementalTreeSource = treeSource as IncrementalTreeSource;
+            return incrementalTreeSource != null ? incrementalTreeSource.GetIncrementalParseDepth() : 0;
+        }
+
         private static ValueSource<TreeAndVersion> CreateLazyIncrementallyParsedTree(
             ValueSource<TreeAndVersion> oldTreeSource,
             ValueSource<TextAndVersion> newTextSource)
         {
-            return new AsyncLazy<TreeAndVersion>(
-                c => IncrementallyParseTreeAsync(oldTreeSource, newTextSource, c),
-                c => IncrementallyParseTree(oldTreeSource, newTextSource, c),
-                cacheResult: true);
+            return
+                new IncrementalTreeSource(
+                    new AsyncLazy<TreeAndVersion>(
+                        c => IncrementallyParseTreeAsync(oldTreeSource, newTextSource, c),
+                        c => IncrementallyParseTree(oldTreeSource, newTextSource, c),
+                        cacheResult: true),
+                    oldTreeSource);
         }
 
         private static async Task<TreeAndVersion> IncrementallyParseTreeAsync(
@@ -431,6 +454,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        // This number is arbitrary. It is intended to keep the chain of incremental parses relatively small
+        private const int MAX_INCREMENTAL_PARSE_DEPTH = 32;
+
         public new DocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
         {
             if (newTextAndVersion == null)
@@ -442,17 +468,11 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(newTextAndVersion)
                 : CreateRecoverableText(newTextAndVersion, this.solutionServices);
 
-            // always chain incremental parsing request, it will internally put 
-            // appropriate request such as full parsing request if there are too many pending 
-            // incremental parsing requests hanging around.
-            //
-            // However, don't bother with the chaining if this is a document that doesn't support
-            // syntax trees.  The chaining will keep old data alive (like the old tree source,
-            // which itself is keeping an old tree source which itself is keeping a ... alive),
-            // causing a slow memory leak.
             var newTreeSource = !this.SupportsSyntaxTree
                 ? ValueSource<TreeAndVersion>.Empty
-                : CreateLazyIncrementallyParsedTree(_treeSource, newTextSource);
+                : GetIncrementalParseDepth(_treeSource) < MAX_INCREMENTAL_PARSE_DEPTH
+                    ? CreateLazyIncrementallyParsedTree(_treeSource, newTextSource)
+                    : CreateLazyFullyParsedTree(newTextSource, mode);
 
             return new DocumentState(
                 this.LanguageServices,
@@ -486,14 +506,7 @@ namespace Microsoft.CodeAnalysis
             // this data otherwise.
             var newTreeSource = !this.SupportsSyntaxTree
                 ? ValueSource<TreeAndVersion>.Empty
-                : CreateLazyFullyParsedTree(
-                    newTextSource,
-                    this.Id.ProjectId,
-                    GetSyntaxTreeFilePath(this.info),
-                    _options,
-                    _languageServices,
-                    this.solutionServices,
-                    mode);
+                : CreateLazyFullyParsedTree(newTextSource, mode);
 
             return new DocumentState(
                 this.LanguageServices,
