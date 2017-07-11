@@ -1353,7 +1353,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         ERR_LocalFunctionMissingBody = 8112,
-
         // Available = 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
@@ -1440,6 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleElementNamesInDeconstruction = 8187,
         ERR_ExpressionTreeContainsThrowExpression = 8188,
         ERR_DelegateRefMismatch = 8189,
+        ERR_ThrowExpressionNotAvailable = 8190,
         #endregion stragglers for C# 7
 
         #region diagnostics for parse options

@@ -5111,4 +5111,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
     <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</value>
   </data>
+  <data name="ERR_ThrowExpressionNotAvailable" xml:space="preserve">
+    <value>Feature '{0}' is not available. Please use language version {1} or greater.</value>
+  </data>
 </root>
