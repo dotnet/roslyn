@@ -126,15 +126,13 @@ namespace Roslyn.Utilities
 
         public unsafe Guid ReadGuid()
         {
-            Debug.Assert(sizeof(Guid) == 16);
-            Debug.Assert(sizeof(long) == 8);
+            var accessor = new ObjectWriter.GuidAccessor
+            {
+                Low64 = ReadInt64(),
+                High64 = ReadInt64()
+            };
 
-            Guid guid;
-            long* pGuid = (long*)&guid;
-            pGuid[0] = ReadInt64();
-            pGuid[1] = ReadInt64();
-
-            return guid;
+            return accessor.Guid;
         }
 
         public object ReadValue()

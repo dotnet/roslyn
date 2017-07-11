@@ -119,13 +119,32 @@ namespace Roslyn.Utilities
         public void WriteUInt16(ushort value) => _writer.Write(value);
         public void WriteString(string value) => WriteStringValue(value);
 
-        public unsafe void WriteGuid(Guid guid)
+        /// <summary>
+        /// Used so we can easily grab the low/high 64bits of a guid for serialization.
+        /// </summary>
+        [StructLayout(LayoutKind.Explicit)]
+        internal struct GuidAccessor
         {
-            Debug.Assert(sizeof(Guid) == 16);
-            Debug.Assert(sizeof(long) == 8);
-            long* pGuid = (long*)&guid;
-            WriteInt64(pGuid[0]);
-            WriteInt64(pGuid[1]);
+            unsafe static GuidAccessor()
+            {
+                Debug.Assert(sizeof(Guid) == 16);
+                Debug.Assert(sizeof(long) == 8);
+            }
+
+            [FieldOffset(0)]
+            public Guid Guid;
+
+            [FieldOffset(0)]
+            public long Low64;
+            [FieldOffset(8)]
+            public long High64;
+        }
+
+        public void WriteGuid(Guid guid)
+        {
+            var accessor = new GuidAccessor { Guid = guid };
+            WriteInt64(accessor.Low64);
+            WriteInt64(accessor.High64);
         }
 
         public void WriteValue(object value)

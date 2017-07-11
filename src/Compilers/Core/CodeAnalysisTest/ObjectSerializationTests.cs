@@ -1036,6 +1036,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestRoundTripGuid()
         {
             TestRoundTripGuid(Guid.Empty);
+            TestRoundTripGuid(new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
+            TestRoundTripGuid(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
+            TestRoundTripGuid(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
             for (int i = 0; i < 10; i++)
             {
                 TestRoundTripGuid(Guid.NewGuid());
