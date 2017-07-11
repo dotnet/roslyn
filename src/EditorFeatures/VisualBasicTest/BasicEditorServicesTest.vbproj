@@ -586,6 +586,7 @@
     <Compile Include="TypeInferrer\TypeInferrerTests.vb" />
     <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.vb" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.vb" />
+    <Compile Include="UseInferredMemberName\UseInferredMemberNameTests.vb" />
     <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.vb" />
     <Compile Include="UseObjectInitializer\UseObjectInitializerTests.vb" />
     <Compile Include="Utilities\CodeSnippets.vb" />

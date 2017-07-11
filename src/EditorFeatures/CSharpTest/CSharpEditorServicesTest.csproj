@@ -374,6 +374,7 @@
     <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
+    <Compile Include="UseInferredMemberName\UseInferredMemberNameTests.cs" />
     <Compile Include="UseDefaultLiteral\UseDefaultLiteralTests.cs" />
     <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForConstructorsRefactoringTests.cs" />
