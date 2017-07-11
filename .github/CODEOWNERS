@@ -1,0 +1,8 @@
+# Automatically request reviews when a pull request changes any owned files
+# More information: https://github.com/blog/2392-introducing-code-owners 
+
+build/* @dotnet/roslyn-infrastructure
+src/Compilers/* @dotnet/roslyn-compiler
+src/NuGet/* @dotnet/roslyn-infrastructure
+src/Setup/* @dotnet/roslyn-infrastructure
+

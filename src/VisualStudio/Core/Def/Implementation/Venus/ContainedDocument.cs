@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 _itemMoniker = moniker;
             }
 
-            this.Key = new DocumentKey(Project, filePath, isAdditionalFile: false);
+            this.Key = new DocumentKey(Project, filePath);
             this.Id = DocumentId.CreateNewId(Project.Id, filePath);
             this.Folders = containedLanguage.Project.GetFolderNamesFromHierarchy(itemId);
             this.Loader = TextLoader.From(containedLanguage.SubjectBuffer.AsTextContainer(), VersionStamp.Create(), filePath);
