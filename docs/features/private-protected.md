@@ -53,7 +53,7 @@ We modify the language specification as follows (additions in bold). Section num
 - A static class shall not include a sealed or abstract modifier. (However, since a static class cannot be instantiated or derived from, it behaves as if it was both sealed and abstract.)
 - A static class shall not include a class-base specification (§16.2.5) and cannot explicitly specify a base class or a list of implemented interfaces. A static class implicitly inherits from type object.
 - A static class shall only contain static members (§16.4.8). [Note: All constants and nested types are classified as static members. end note]
-- A static class shall not have members with protected **, private protected** or protected internal declared accessibility.
+- A static class shall not have members with protected **, private protected, ** or protected internal declared accessibility.
 
 > It is a compile-time error to violate any of these restrictions. 
 
