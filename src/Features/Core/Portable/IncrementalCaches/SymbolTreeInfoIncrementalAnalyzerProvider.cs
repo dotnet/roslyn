@@ -176,7 +176,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                         var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(
                             document.Project, cancellationToken).ConfigureAwait(false);
 
-                        _projectToInfo.TryAdd(document.Project.Id, cachedInfo.WithChecksum(checksum));
+                        var newInfo = cachedInfo.WithChecksum(checksum);
+                        _projectToInfo.AddOrUpdate(document.Project.Id, newInfo, (_1, _2) => newInfo);
                         return;
                     }
                 }
