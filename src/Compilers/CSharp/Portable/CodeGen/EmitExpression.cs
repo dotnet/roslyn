@@ -604,7 +604,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 default:
                     var unexpectedTemp = EmitAddress(argument, AddressKind.Writeable);
-                    Debug.Assert(unexpectedTemp == null, "passing args byref should not clone them into temps");
+                    if (unexpectedTemp != null)
+                    {
+                        // interestingly enough "ref dynamic" sometimes is passed via a clone
+                        Debug.Assert(argument.Type.IsDynamic(), "passing args byref should not clone them into temps");
+                        AddExpressionTemp(unexpectedTemp);
+                    }
+
                     break;
             }
         }
@@ -2331,17 +2337,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                {
                     var exprTempsAfter = _expressionTemps?.Count ?? 0;
 
-                    Debug.Assert(exprTempsBefore == exprTempsAfter,
-                        "Expr temps produced when ref-assinging to a long-lived variable. Life time of those temps may be insufficient.");
-
-                    // I cannot see how this could happen, thus there is an assert above.
-                    // If that does happen, we would need to understand whether that is intentional.
+                    // This situation is extremely rare. We are assigning a ref to a local with unknown lifetime
+                    // while computing that ref required expression temps.
                     //
-                    // However, if it were to happen, leaking those extra temps would be the right thing to do. 
-                    // Any of them could be directly or indirectly referred by the LHS now
+                    // We cannot reuse any of those temps and must leak them from the retained set.
+                    // Any of them could be directly or indirectly referred by the LHS after the assignment.
                     // and we do not know the scope of the LHS - could be the whole method.
-                    //
-                    if (exprTempsAfter > exprTempsAfter)
+                    if (exprTempsAfter > exprTempsBefore)
                     {
                         _expressionTemps.Count = exprTempsBefore;
                     }
