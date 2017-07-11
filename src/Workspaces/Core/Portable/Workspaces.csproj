@@ -206,6 +206,7 @@
     </Compile>
     <Compile Include="ExtensionManager\IInfoBarService.cs" />
     <Compile Include="Remote\RemoteFeatureOptions.cs" />
+    <Compile Include="Workspace\Host\PersistentStorage\IPersistentStorageFaultInjectionService.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="csi" />

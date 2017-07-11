@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.SQLite
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
 
+        private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
+
         public SQLitePersistentStorageService(
             IOptionService optionService,
             SolutionSizeTracker solutionSizeTracker)
@@ -22,9 +24,10 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
         }
 
-        public SQLitePersistentStorageService(IOptionService optionService, bool testing) 
-            : base(optionService, testing)
+        public SQLitePersistentStorageService(IOptionService optionService, IPersistentStorageFaultInjector faultInjector) 
+            : base(optionService, testing: true)
         {
+            _faultInjectorOpt = faultInjector;
         }
 
         protected override string GetDatabaseFilePath(string workingFolderPath)
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         protected override AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath)
             => new SQLitePersistentStorage(
-                OptionService, workingFolderPath, solution.FilePath, databaseFilePath, this.Release);
+                OptionService, workingFolderPath, solution.FilePath, databaseFilePath, this.Release, _faultInjectorOpt);
 
         protected override bool ShouldDeleteDatabase(Exception exception)
         {
