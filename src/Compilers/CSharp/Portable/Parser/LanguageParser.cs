@@ -3884,8 +3884,8 @@ tryAgain:
             this.ParseAttributeDeclarations(attributes);
             this.ParseParameterModifiers(modifiers);
 
-            TypeSyntax type = null;
-            SyntaxToken name = null;
+            TypeSyntax type;
+            SyntaxToken name;
             if (this.CurrentToken.Kind != SyntaxKind.ArgListKeyword)
             {
                 type = this.ParseType(mode: ParseTypeMode.Parameter);
@@ -3904,6 +3904,7 @@ tryAgain:
             {
                 // We store an __arglist parameter as a parameter with null type and whose 
                 // .Identifier has the kind ArgListKeyword.
+                type = null;
                 name = this.EatToken(SyntaxKind.ArgListKeyword);
             }
 
