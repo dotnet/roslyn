@@ -183,9 +183,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var parameterDeclaration = editor.Generator.ParameterDeclaration(parameterSymbol)
                                                        .WithAdditionalAnnotations(Formatter.Annotation);
 
+            var existingParameters = editor.Generator.GetParameters(methodDeclaration);
+            var insertionIndex = isNamedArgument
+                ? existingParameters.Count
+                : argumentList.IndexOf(argument);
+
             AddParameter(
-                syntaxFacts, editor, methodDeclaration, isNamedArgument, argument, 
-                argumentList, parameterDeclaration, cancellationToken);
+                syntaxFacts, editor, methodDeclaration, argument,
+                insertionIndex, parameterDeclaration, cancellationToken);
             
             var newRoot = editor.GetChangedRoot();
             var newDocument = methodDocument.WithSyntaxRoot(newRoot);
@@ -231,19 +236,18 @@ namespace Microsoft.CodeAnalysis.AddParameter
             ISyntaxFactsService syntaxFacts,
             SyntaxEditor editor,
             SyntaxNode declaration,
-            bool isNamedArgument,
             TArgumentSyntax argument,
-            SeparatedSyntaxList<TArgumentSyntax> argumentList,
+            int insertionIndex,
             SyntaxNode parameterDeclaration,
             CancellationToken cancellationToken)
         {
+            var sourceText = declaration.SyntaxTree.GetText(cancellationToken);
             var generator = editor.Generator;
 
             var existingParameters = generator.GetParameters(declaration);
             var placeOnNewLine = ShouldPlaceParametersOnNewLine(existingParameters, cancellationToken);
 
-            var argumentIndex = argumentList.IndexOf(argument);
-            if (isNamedArgument || argumentIndex == existingParameters.Count)
+            if (insertionIndex == existingParameters.Count)
             {
                 if (placeOnNewLine)
                 {
@@ -262,21 +266,52 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 // Inserting the parameter somewhere other than the end.
                 if (placeOnNewLine)
                 {
-                    if (argumentIndex == 0)
+                    if (insertionIndex == 0)
                     {
-                        // We want to insert the parameter at the front of the exsiting parameter
-                        // list.  That means we need to move the current first parameter to a new
-                        // line.  Give the current first parameter the indentation of the second
-                        // parameter in the list.
-                        editor.InsertParameter(declaration, argumentIndex, parameterDeclaration);
-                        var nextParameter = existingParameters[argumentIndex];
+                        var firstParameter = existingParameters[0];
+                        var previousToken = firstParameter.GetFirstToken().GetPreviousToken();
 
-                        var leadingIndentation = GetDesiredLeadingIndentation(
-                            generator, syntaxFacts, existingParameters[argumentIndex + 1], includeLeadingNewLine: true);
-                        editor.ReplaceNode(
-                            nextParameter,
-                            nextParameter.WithPrependedLeadingTrivia(leadingIndentation)
-                                         .WithAdditionalAnnotations(Formatter.Annotation));
+                        if (sourceText.AreOnSameLine(previousToken, firstParameter.GetFirstToken()))
+                        {
+                            // First parameter is on hte same line as the method.  
+
+                            // We want to insert the parameter at the front of the exsiting parameter
+                            // list.  That means we need to move the current first parameter to a new
+                            // line.  Give the current first parameter the indentation of the second
+                            // parameter in the list.
+                            editor.InsertParameter(declaration, insertionIndex, parameterDeclaration);
+                            var nextParameter = existingParameters[insertionIndex];
+
+                            var nextLeadingIndentation = GetDesiredLeadingIndentation(
+                                generator, syntaxFacts, existingParameters[insertionIndex + 1], includeLeadingNewLine: true);
+                            editor.ReplaceNode(
+                                nextParameter,
+                                nextParameter.WithPrependedLeadingTrivia(nextLeadingIndentation)
+                                             .WithAdditionalAnnotations(Formatter.Annotation));
+                        }
+                        else
+                        {
+                            // First parameter is on its own line.  No need to adjust its indentation.
+                            // Just copy its indentation over to the parameter we're inserting, and
+                            // make sure the current first parameter gets a newline so it stays on 
+                            // its own line.
+
+                            // We want to insert the parameter at the front of the exsiting parameter
+                            // list.  That means we need to move the current first parameter to a new
+                            // line.  Give the current first parameter the indentation of the second
+                            // parameter in the list.
+                            var firstLeadingIndentation = GetDesiredLeadingIndentation(
+                                generator, syntaxFacts, existingParameters[0], includeLeadingNewLine: false);
+
+                            editor.InsertParameter(declaration, insertionIndex,
+                                parameterDeclaration.WithLeadingTrivia(firstLeadingIndentation));
+                            var nextParameter = existingParameters[insertionIndex];
+
+                            editor.ReplaceNode(
+                                nextParameter,
+                                nextParameter.WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed)
+                                             .WithAdditionalAnnotations(Formatter.Annotation));
+                        }
                     }
                     else
                     {
@@ -287,12 +322,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
                         // Because we're going to 'steal' the existing comma from that parameter,
                         // ensure that the next parameter has a new-line added to it so that it will
                         // still stay on a new line.
-                        var nextParameter = existingParameters[argumentIndex];
+                        var nextParameter = existingParameters[insertionIndex];
                         var leadingIndentation = GetDesiredLeadingIndentation(
-                            generator, syntaxFacts, existingParameters[argumentIndex], includeLeadingNewLine: false);
+                            generator, syntaxFacts, existingParameters[insertionIndex], includeLeadingNewLine: false);
                         parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation);
 
-                        editor.InsertParameter(declaration, argumentIndex, parameterDeclaration);
+                        editor.InsertParameter(declaration, insertionIndex, parameterDeclaration);
                         editor.ReplaceNode(
                             nextParameter,
                             nextParameter.WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed)
@@ -301,7 +336,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 }
                 else
                 {
-                    editor.InsertParameter(declaration, argumentIndex, parameterDeclaration);
+                    editor.InsertParameter(declaration, insertionIndex, parameterDeclaration);
                 }
             }
         }
