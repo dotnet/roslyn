@@ -203,15 +203,10 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
 
                 // Produce the indices for the source and metadata symbols in parallel.
-                var isRemoteWorkspace = IsRemoteWorkspace(project);
-
-                var tasks = new List<Task> {
-                    isRemoteWorkspace
-                        ? Task.Run(() => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken)
-                        : UpdateSourceSymbolTreeInfoAsync(project, cancellationToken),
-                    isRemoteWorkspace
-                        ? Task.Run(() => UpdateReferencesAync(project, cancellationToken), cancellationToken)
-                        : UpdateReferencesAync(project, cancellationToken)
+                var tasks = new List<Task>
+                {
+                    GetTask(project, () => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
+                    GetTask(project, () => UpdateReferencesAync(project, cancellationToken), cancellationToken)
                 };
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -235,25 +230,26 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
             }
 
+            private Task GetTask(Project project, Func<Task> func, CancellationToken cancellationToken)
+            {
+                var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
+                return isRemoteWorkspace
+                    ? Task.Run(func, cancellationToken)
+                    : func();
+            }
+
             private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
             {
                 // Process all metadata references. If it remote workspace, do this in parallel.
                 var tasks = new List<Task>();
-                var isRemoteWorkspace = IsRemoteWorkspace(project);
 
                 foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
                 {
-                    tasks.Add(isRemoteWorkspace
-                        ? Task.Run(() => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken)
-                        : UpdateReferenceAsync(project, reference, cancellationToken));
+                    tasks.Add(
+                        GetTask(project, () => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken));
                 }
 
                 return Task.WhenAll(tasks);
-            }
-
-            private static bool IsRemoteWorkspace(Project project)
-            {
-                return project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
             }
 
             private async Task UpdateReferenceAsync(
