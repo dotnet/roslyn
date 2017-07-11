@@ -9026,7 +9026,16 @@ tryAgain:
             var throwToken = this.EatToken(SyntaxKind.ThrowKeyword);
             var thrown = this.ParseSubExpression(Precedence.Coalescing);
             var result = _syntaxFactory.ThrowExpression(throwToken, thrown);
-            return CheckFeatureAvailability(result, MessageID.IDS_FeatureThrowExpression);
+
+            var requiredVersion = MessageID.IDS_FeatureThrowExpression.RequiredVersion();
+            if (requiredVersion <= this.Options.LanguageVersion)
+            {
+                return result;
+            }
+
+            return AddError(result, ErrorCode.ERR_ThrowExpressionNotAvailable,
+                MessageID.IDS_FeatureThrowExpression.Localize(),
+                new CSharpRequiredLanguageVersion(requiredVersion));
         }
 
         private ExpressionSyntax ParseIsExpression(ExpressionSyntax leftOperand, SyntaxToken opToken)
