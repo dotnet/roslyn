@@ -13,25 +13,47 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LambdaRewriter
     {
-        /// <summary>
-        /// 
-        /// </summary>
         internal sealed partial class Analysis : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
+            /// <summary>
+            /// This is the core node for a Scope tree, which stores all semantically meaningful
+            /// information about declared variables, closures, and environments in each scope.
+            /// It can be thought of as the essence of the bound tree -- stripping away many of
+            /// the unnecessary details stored in the bound tree and just leaving the pieces that
+            /// are important for closure conversion. The root scope is the method scope for the
+            /// method being analyzed and has a null <see cref="Parent" />.
+            /// </summary>
+            [DebuggerDisplay("{ToString(), nq}")]
             private sealed class Scope
             {
                 public Scope Parent { get; }
 
                 public ArrayBuilder<Scope> NestedScopes { get; } = ArrayBuilder<Scope>.GetInstance();
 
+                /// <summary>
+                /// A list of all closures (all lambdas and local functions) declared in this scope.
+                /// </summary>
                 public ArrayBuilder<Closure> Closures { get; } = ArrayBuilder<Closure>.GetInstance();
 
+                /// <summary>
+                /// A list of all locals or parameters that were declared in this scope and captured
+                /// in nested scopes. "Declared" refers to the start of the variable lifetime (which,
+                /// at this point in lowering, should be equivalent to lexical scope).
+                /// </summary>
                 public ArrayBuilder<Symbol> DeclaredCapturedVariables { get; } = ArrayBuilder<Symbol>.GetInstance();
 
+                /// <summary>
+                /// The bound node representing this scope. This roughly corresponds to the bound
+                /// node for the block declaring locals for this scope, although parameters of
+                /// methods/closures are introduced into their Body's scope and do not get their
+                /// own scope.
+                /// </summary>
                 public BoundNode BoundNode { get; }
 
-                public ArrayBuilder<LambdaFrame> Environments { get; } = ArrayBuilder<LambdaFrame>.GetInstance();
-
+                /// <summary>
+                /// The closure that this scope is nested inside. Null if this scope is not nested
+                /// inside a closure.
+                /// </summary>
                 public Closure ContainingClosure { get; }
 
                 public Scope(Scope parent, BoundNode boundNode, Closure containingClosure)
@@ -55,29 +77,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     Closures.Free();
                     DeclaredCapturedVariables.Free();
-                    Environments.Free();
                 }
+
+                public override string ToString() => BoundNode.Syntax.GetText().ToString();
             }
 
+            /// <summary>
+            /// The Closure type represents a lambda or local function and stores
+            /// information related to that closure. After initially building the
+            /// <see cref="Scope"/> tree the only information available is
+            /// <see cref="OriginalMethodSymbol"/> and <see cref="CapturedVariables"/>.
+            /// Subsequent passes are responsible for translating captured
+            /// variables into captured environments and for calculating
+            /// the rewritten signature of the method.
+            /// </summary>
             private sealed class Closure
             {
-                public MethodSymbol Symbol { get; }
+                /// <summary>
+                /// The method symbol for the original lambda or local function.
+                /// </summary>
+                public MethodSymbol OriginalMethodSymbol { get; }
 
                 public PooledHashSet<Symbol> CapturedVariables { get; } = PooledHashSet<Symbol>.GetInstance();
 
-                public ArrayBuilder<LambdaFrame> CapturedEnvironments { get; } = ArrayBuilder<LambdaFrame>.GetInstance();
-
-                public NamedTypeSymbol ContainingType { get; set; }
-
                 public Closure(MethodSymbol symbol)
                 {
-                    Symbol = symbol;
+                    Debug.Assert(symbol != null);
+                    OriginalMethodSymbol = symbol;
                 }
 
                 public void Free()
                 {
                     CapturedVariables.Free();
-                    CapturedEnvironments.Free();
                 }
             }
 
@@ -96,18 +127,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (capture is MethodSymbol localFunc)
                         {
-                            methodGraph.Add(localFunc, closure.Symbol);
+                            methodGraph.Add(localFunc, closure.OriginalMethodSymbol);
                         }
                         else if (capture == _topLevelMethod.ThisParameter)
                         {
-                            if (capturesThis.Add(closure.Symbol))
+                            if (capturesThis.Add(closure.OriginalMethodSymbol))
                             {
-                                visitStack.Push(closure.Symbol);
+                                visitStack.Push(closure.OriginalMethodSymbol);
                             }
                         }
-                        else if (capturesVariable.Add(closure.Symbol) && !capturesThis.Contains(closure.Symbol))
+                        else if (capturesVariable.Add(closure.OriginalMethodSymbol) &&
+                                 !capturesThis.Contains(closure.OriginalMethodSymbol))
                         {
-                            visitStack.Push(closure.Symbol);
+                            visitStack.Push(closure.OriginalMethodSymbol);
                         }
                     }
                 });
@@ -127,11 +159,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 VisitClosures(_scopeTree, (scope, closure) =>
                 {
-                    if (!capturesVariable.Contains(closure.Symbol))
+                    if (!capturesVariable.Contains(closure.OriginalMethodSymbol))
                     {
                         closure.CapturedVariables.Clear();
                     }
-                    if (capturesThis.Contains(closure.Symbol))
+                    if (capturesThis.Contains(closure.OriginalMethodSymbol))
                     {
                         closure.CapturedVariables.Add(_topLevelMethod.ThisParameter);
                     }
@@ -153,16 +185,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            /// <summary>
+            /// Builds a tree of <see cref="Scope"/> nodes corresponding to a given method.
+            /// <see cref="Build(BoundNode, Analysis)"/> visits the bound tree and translates
+            /// information from the bound tree about variable scope, declared variables, and
+            /// variable captures into the resulting <see cref="Scope"/> tree.
+            /// </summary>
             private class ScopeTreeBuilder : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
             {
                 private Scope _currentScope;
-                // Null if we're not inside a closure scope, otherwise the nearest closure scope
-                private Closure _currentClosure;
+                /// <summary>
+                /// Null if we're not inside a closure scope, otherwise the nearest closure scope
+                /// </summary>
+                private Closure _currentClosure = null;
                 private bool _inExpressionTree = false;
 
-                // A mapping from all captured vars to the scope they were declared in. This
-                // is used when recording captured variables as we must know what the lifetime
-                // of a captured variable is to determine the lifetime of its capture environment.
+                /// <summary>
+                /// A mapping from all captured vars to the scope they were declared in. This
+                /// is used when recording captured variables as we must know what the lifetime
+                /// of a captured variable is to determine the lifetime of its capture environment.
+                /// </summary>
                 private readonly SmallDictionary<Symbol, Scope> _localToScope = new SmallDictionary<Symbol, Scope>();
 
                 private readonly Analysis _analysis;
@@ -171,7 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _currentScope = rootScope;
                     _analysis = analysis;
-                    _currentClosure = null;
                 }
 
                 public static Scope Build(BoundNode node, Analysis analysis)
@@ -372,12 +413,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    if (symbol.ContainingSymbol != _currentClosure.Symbol)
+                    if (symbol.ContainingSymbol != _currentClosure.OriginalMethodSymbol)
                     {
                         // Record the captured variable where it's captured
                         var scope = _currentScope;
                         var closure = _currentClosure;
-                        while (closure != null && symbol.ContainingSymbol != closure.Symbol)
+                        while (closure != null && symbol.ContainingSymbol != closure.OriginalMethodSymbol)
                         {
                             closure.CapturedVariables.Add(symbol);
 

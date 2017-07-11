@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          curScope = curScope.Parent)
                     {
                         if (!(capturedVars.Overlaps(curScope.DeclaredCapturedVariables) ||
-                              capturedVars.Overlaps(curScope.Closures.Select(c => c.Symbol))))
+                              capturedVars.Overlaps(curScope.Closures.Select(c => c.OriginalMethodSymbol))))
                         {
                             continue;
                         }
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         capturedVars.RemoveAll(curScope.DeclaredCapturedVariables);
-                        capturedVars.RemoveAll(curScope.Closures.Select(c => c.Symbol));
+                        capturedVars.RemoveAll(curScope.Closures.Select(c => c.OriginalMethodSymbol));
                     }
 
                     // If any captured variables are left, they're captured above method scope
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var currentScope = startingScope;
                     while (currentScope != null)
                     {
-                        var found = currentScope.Closures.SingleOrDefault(c => c.Symbol == closureSymbol);
+                        var found = currentScope.Closures.SingleOrDefault(c => c.OriginalMethodSymbol == closureSymbol);
                         if (found != null)
                         {
                             return found;
@@ -350,10 +350,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   Note that it is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
                     if (innermost != null)
                     {
-                        LambdaScopes.Add(closure.Symbol, innermost.BoundNode);
+                        LambdaScopes.Add(closure.OriginalMethodSymbol, innermost.BoundNode);
 
                         // Disable struct closures on methods converted to delegates, as well as on async and iterator methods.
-                        var markAsNoStruct = !CanTakeRefParameters(closure.Symbol);
+                        var markAsNoStruct = !CanTakeRefParameters(closure.OriginalMethodSymbol);
                         if (markAsNoStruct)
                         {
                             ScopesThatCantBeStructs.Add(innermost.BoundNode);
