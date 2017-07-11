@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -24,7 +23,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal sealed partial class VisualStudioProjectTracker : ForegroundThreadAffinitizedObject, IDisposable, IVisualStudioHostProjectContainer
+    internal sealed partial class VisualStudioProjectTracker : ForegroundThreadAffinitizedObject, IVisualStudioHostProjectContainer
     {
         #region Readonly fields
         private static readonly ConditionalWeakTable<SolutionId, string> s_workingFolderPathMap = new ConditionalWeakTable<SolutionId, string>();
@@ -243,14 +242,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public DocumentProvider DocumentProvider { get; private set; }
         public VisualStudioMetadataReferenceManager MetadataReferenceProvider { get; private set; }
         public VisualStudioRuleSetManager RuleSetFileProvider { get; private set; }
-
-        public void Dispose()
-        {
-            if (this.RuleSetFileProvider != null)
-            {
-                this.RuleSetFileProvider.Dispose();
-            }
-        }
 
         internal AbstractProject GetProject(ProjectId id)
         {
