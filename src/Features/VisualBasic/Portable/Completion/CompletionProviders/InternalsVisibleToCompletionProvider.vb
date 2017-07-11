@@ -26,16 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetConstructorArgumentOfInternalsVisibleToAttribute(internalsVisibleToAttribute As SyntaxNode) As SyntaxNode
-            Dim attributeSyntax = TryCast(internalsVisibleToAttribute, AttributeSyntax)
-            If Not attributeSyntax Is Nothing Then
-                For Each argument In attributeSyntax.ArgumentList.Arguments
-                    If Not argument.IsNamed Then
-                        Return argument.GetExpression()
-                    End If
-                Next
-            End If
-
-            Return Nothing
+            Dim arguments = DirectCast(internalsVisibleToAttribute, AttributeSyntax).ArgumentList.Arguments
+            ' InternalsVisibleTo has only one constructor argument. 
+            ' https://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.internalsvisibletoattribute(v=vs.110).aspx
+            ' We can assume that this is the assemblyName argument.
+            Return If(arguments.Count > 0, arguments(0).GetExpression(), Nothing)
         End Function
     End Class
 End Namespace

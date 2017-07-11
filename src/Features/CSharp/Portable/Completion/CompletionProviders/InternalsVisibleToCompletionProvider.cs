@@ -31,21 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override SyntaxNode GetConstructorArgumentOfInternalsVisibleToAttribute(SyntaxNode internalsVisibleToAttribute)
         {
-            if (internalsVisibleToAttribute is AttributeSyntax attributeSyntax)
-            {
-                // InternalsVisibleTo has only one constructor argument. 
-                // https://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.internalsvisibletoattribute(v=vs.110).aspx
-                // We can assume that this is the assemblyName argument.
-                foreach (var argument in attributeSyntax.ArgumentList.Arguments)
-                {
-                    if (argument.NameEquals == null) // Ignore attribute properties
-                    {
-                        return argument.Expression;
-                    }
-                }
-            }
-
-            return null;
+            var arguments = ((AttributeSyntax)internalsVisibleToAttribute).ArgumentList.Arguments;
+            // InternalsVisibleTo has only one constructor argument. 
+            // https://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.internalsvisibletoattribute(v=vs.110).aspx
+            // We can assume that this is the assemblyName argument.
+            return arguments.Count > 0
+                ? arguments[0].Expression
+                : null;
         }
     }
 }
