@@ -498,4 +498,10 @@
     <AdditionalFiles Include="@(PublicAPI)" />
   </ItemGroup>
 
+  <!-- CPS doesn't show these items by default, but we want to show them. -->
+  <ItemGroup>
+    <!-- XAML pages and resources -->
+    <None Include="@(Page)" />
+    <None Include="@(Resource)" />
+  </ItemGroup>
 </Project>
