@@ -1080,7 +1080,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task SuggestVarOnFrameworkTypeEquivalentToBuiltInType()
+        public async Task DoNotSuggestVarOnFrameworkTypeEquivalentToBuiltInType()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -1210,15 +1210,8 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task SuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule1()
+        public async Task DoNotSuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule1()
         {
-            // The option settings here say
-            // "use explicit type for built-in types" and
-            // "use implicit type where apparent".
-            // The rationale for preferring explicit type for built-in types is
-            // they have short names and using var doesn't gain anything.
-            // Accordingly, the `built-in type` rule precedes over the `where apparent` rule
-            // and we do not suggest `use var` here.
             await TestMissingInRegularAndScriptAsync(
 @"using System;
 
@@ -1233,7 +1226,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task SuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule2()
+        public async Task DoNotSuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -1249,7 +1242,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task SuggestVarWhereTypeIsEvident_IsExpression()
+        public async Task DoNotSuggestVarWhereTypeIsEvident_IsExpression()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -1259,7 +1252,7 @@ class C
     public void Process()
     {
         A a = new A();
-        [|bool|] s = a is IInterface;
+        [|Boolean|] s = a is IInterface;
     }
 }
 
