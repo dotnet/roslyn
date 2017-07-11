@@ -5769,6 +5769,7 @@ class C
 }");
         }
 
+        /// <summary>
         /// Local names array (from PDB) may have fewer slots than method
         /// signature (from metadata) when the trailing slots are unnamed.
         /// </summary>

@@ -680,7 +680,7 @@ class Derived : Base
 
         /// <summary>
         /// Instance field should be preferred to type
-        /// 7.5.4.1
+        /// §7.5.4.1
         /// </summary>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ColorColor4()
@@ -700,7 +700,7 @@ class Derived : Base
 
         /// <summary>
         /// Type should be preferred to a static field
-        /// 7.5.4.1
+        /// §7.5.4.1
         /// </summary>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ColorColor5()
@@ -985,7 +985,7 @@ class Derived : Base
         }
 
         /// <summary>
-        /// 7.5.4.2
+        /// §7.5.4.2
         /// </summary>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task GrammarAmbiguity_7_5_4_2()
