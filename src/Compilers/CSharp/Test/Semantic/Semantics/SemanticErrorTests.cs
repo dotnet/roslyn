@@ -2218,13 +2218,11 @@ class NamedExample
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (7,54): error CS0103: The name 'weight' does not exist in the current context
                 //     static int CalculateBMI(int weight, int height = weight)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "weight").WithArguments("weight"),
-                // (7,45): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //     static int CalculateBMI(int weight, int height = weight)
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "height").WithArguments("?", "int"),
-                // (1,1): info CS8019: Unnecessary using directive.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "weight").WithArguments("weight").WithLocation(7, 54),
+                // (1,1): hidden CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -23304,14 +23302,14 @@ class Program
 }
 ";
             var compilation = CreateStandardCompilation(text);
-            compilation.GetParseDiagnostics().Verify(
-                // (6,41): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //         if (((string)obj).Length == 0)  value: new Program();
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "value: new Program();").WithLocation(6, 41));
+            compilation.GetParseDiagnostics().Verify();
 
             // Make sure the compiler can handle producing method body diagnostics for this pattern when 
             // queried via an API (command line compile would exit after parse errors were reported). 
             compilation.GetMethodBodyDiagnostics().Verify(
+                // (6,41): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         if (((string)obj).Length == 0)  value: new Program();
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "value: new Program();").WithLocation(6, 41),
                 // (6,41): warning CS0164: This label has not been referenced
                 //         if (((string)obj).Length == 0)  value: new Program();
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "value").WithLocation(6, 41),

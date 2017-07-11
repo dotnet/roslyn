@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -150,6 +150,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     int Foo => Bar();
 }", parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
+        }
+
+        [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestAccessorListFormatting()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    int Foo { get => [||]Bar(); }
+}",
+@"class C
+{
+    int Foo
+    {
+        get
+        {
+            return Bar();
+        }
+    }
+}", ignoreTrivia: false, parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
         }
     }
 }

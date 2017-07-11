@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbol
     {
-        public SynthesizedAccessorValueParameterSymbol(SourceMethodSymbol accessor, TypeSymbolWithAnnotations paramType, int ordinal)
+        public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeSymbolWithAnnotations paramType, int ordinal)
             : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,
                    syntaxRef: null,
                    defaultSyntaxValue: ConstantValue.Unset, // the default value can be set via [param: DefaultParameterValue] applied on the accessor
@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override IAttributeTargetSymbol AttributeOwner
         {
-            get { return (SourceMethodSymbol)this.ContainingSymbol; }
+            get { return (SourceMemberMethodSymbol)this.ContainingSymbol; }
         }
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
             // Bind the attributes on the accessor's attribute syntax list with "param" target specifier.
-            var accessor = (SourceMethodSymbol)this.ContainingSymbol;
+            var accessor = (SourceMemberMethodSymbol)this.ContainingSymbol;
             return accessor.GetAttributeDeclarations();
         }
     }

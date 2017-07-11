@@ -12,28 +12,29 @@ Syntax Grammar
 This grammar is represented as a diff from the current spec grammar.
 
 ```diff
-declaration-statement
-    : local-variable-declaration ';'
-    | local-constant-declaration ';'
-+   | local-function-declaration
+ declaration_statement
+    : local_variable_declaration ';'
+    | local_constant_declaration ';'
++   | local_function_declaration
     ;
 
-+local-function-declaration
-+   : local-function-header local-function-body
++local_function_declaration
++   : local_function_header local_function_body
 +   ;
 
-+local-function-header
-+   : local-function-modifiers? return-type identifier type-parameter-list?
-+       ( formal-parameter-list? ) type-parameter-constraints-clauses
++local_function_header
++   : local_function_modifier* return_type identifier type_parameter_list?
++        '(' formal_parameter_list? ')' type_parameter_constraints_clauses
 +   ;
 
-+local-function-modifiers
-+   : (async | unsafe)
++local_function_modifier
++   : 'async'
++   | 'unsafe'
 +   ;
 
-+local-function-body
++local_function_body
 +   : block
-+   | arrow-expression-body
++   | arrow_expression_body
 +   ;
 ```
 

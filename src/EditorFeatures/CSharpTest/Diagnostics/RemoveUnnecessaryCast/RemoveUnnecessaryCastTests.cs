@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -3968,6 +3968,91 @@ class Program
         System.Console.WriteLine(foo.Length);
     }
 }");
+        }
+
+        [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [InlineData("-")]
+        [InlineData("+")]
+        public async Task DontRemoveCastOnInvalidUnaryOperatorEnumValue1(string op)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"
+enum Sign
+    {{
+        Positive = 1,
+        Negative = -1
+    }}
+
+    class T
+    {{
+        void Foo()
+        {{
+            Sign mySign = Sign.Positive;
+            Sign invertedSign = (Sign) ( [|{op}((int) mySign)|] );
+        }}
+    }}");
+        }
+
+        [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [InlineData("-")]
+        [InlineData("+")]
+        public async Task DontRemoveCastOnInvalidUnaryOperatorEnumValue2(string op)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"
+enum Sign
+    {{
+        Positive = 1,
+        Negative = -1
+    }}
+
+    class T
+    {{
+        void Foo()
+        {{
+            Sign mySign = Sign.Positive;
+            Sign invertedSign = (Sign) ( [|{op}(int) mySign|] );
+        }}
+    }}");
+        }
+
+        [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastOnValidUnaryOperatorEnumValue()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+enum Sign
+    {
+        Positive = 1,
+        Negative = -1
+    }
+
+    class T
+    {
+        void Foo()
+        {
+            Sign mySign = Sign.Positive;
+            Sign invertedSign = (Sign) ( [|~(int) mySign|] );
+        }
+    }",
+@"
+enum Sign
+    {
+        Positive = 1,
+        Negative = -1
+    }
+
+    class T
+    {
+        void Foo()
+        {
+            Sign mySign = Sign.Positive;
+            Sign invertedSign = (Sign) ( ~mySign );
+        }
+    }");
         }
     }
 }

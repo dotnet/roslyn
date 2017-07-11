@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Execution
             // additional assets that is not part of solution but added explicitly
             private ConcurrentDictionary<Checksum, CustomAsset> _additionalAssets;
 
-            public Storage(AssetStorages owner, SolutionState solutionState)
+            public Storage(SolutionState solutionState)
             {
                 SolutionState = solutionState;
 
@@ -37,10 +37,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public SolutionState SolutionState { get; }
 
-            public void AddAdditionalAsset(CustomAsset asset, CancellationToken cancellationToken)
+            public void AddAdditionalAsset(CustomAsset asset)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 LazyInitialization.EnsureInitialized(ref _additionalAssets, s_additionalAssetsCreator);
 
                 _additionalAssets.TryAdd(asset.Checksum, asset);

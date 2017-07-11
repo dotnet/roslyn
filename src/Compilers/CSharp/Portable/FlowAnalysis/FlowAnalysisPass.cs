@@ -5,6 +5,7 @@ using System.Linq;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we don't analyze synthesized void methods.
                 if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))
                 {
-                    block = AppendImplicitReturn(block, method, (CSharpSyntaxNode)(method as SourceMethodSymbol)?.BodySyntax, originalBodyNested);
+                    block = AppendImplicitReturn(block, method, (CSharpSyntaxNode)(method as SourceMemberMethodSymbol)?.BodySyntax, originalBodyNested);
                 }
             }
             else if (Analyze(compilation, method, block, diagnostics))

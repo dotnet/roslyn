@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
 
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
-            if (shouldCheckConstraints)
+            if (shouldCheckConstraints && diagnostics != null)
             {
                 constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnostics);
             }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             var hasErrors = IsOperandErrors(node, ref expression, diagnostics);
             var expressionType = expression.Type;
-            if ((object)expressionType == null)
+            if ((object)expressionType == null || expressionType.SpecialType == SpecialType.System_Void)
             {
                 expressionType = CreateErrorType();
                 if (!hasErrors)

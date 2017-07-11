@@ -159,6 +159,86 @@ class C
         }
 
         [Fact]
+        public void TestIsNullPatternNullable()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void M(Nullable<int> obj)
+    {
+        Console.Write(obj is null);
+        if (obj is null) {
+            Console.Write("" Branch taken"");
+        } else {
+            Console.Write("" Branch not taken"");
+        }
+    }
+    public static void Main()
+    {
+        M(5);
+        Console.Write(""-"");
+        M(null);
+    }
+}
+";
+
+            // Release
+            var compilation = CompileAndVerify(source, expectedOutput: "False Branch not taken-True Branch taken", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.M", @"{
+    // Code size       46 (0x2e)
+    .maxstack  2
+    IL_0000:  ldarga.s   V_0
+    IL_0002:  call       ""bool int?.HasValue.get""
+    IL_0007:  ldc.i4.0
+    IL_0008:  ceq
+    IL_000a:  call       ""void System.Console.Write(bool)""
+    IL_000f:  ldarga.s   V_0
+    IL_0011:  call       ""bool int?.HasValue.get""
+    IL_0016:  brtrue.s   IL_0023
+    IL_0018:  ldstr      "" Branch taken""
+    IL_001d:  call       ""void System.Console.Write(string)""
+    IL_0022:  ret
+    IL_0023:  ldstr      "" Branch not taken""
+    IL_0028:  call       ""void System.Console.Write(string)""
+    IL_002d:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, expectedOutput: "False Branch not taken-True Branch taken", options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.M", @"{
+    // Code size       60 (0x3c)
+    .maxstack  2
+    .locals init (bool V_0)
+    IL_0000:  nop
+    IL_0001:  ldarga.s   V_0
+    IL_0003:  call       ""bool int?.HasValue.get""
+    IL_0008:  ldc.i4.0
+    IL_0009:  ceq
+    IL_000b:  call       ""void System.Console.Write(bool)""
+    IL_0010:  nop
+    IL_0011:  ldarga.s   V_0
+    IL_0013:  call       ""bool int?.HasValue.get""
+    IL_0018:  ldc.i4.0
+    IL_0019:  ceq
+    IL_001b:  stloc.0
+    IL_001c:  ldloc.0
+    IL_001d:  brfalse.s  IL_002e
+    IL_001f:  nop
+    IL_0020:  ldstr      "" Branch taken""
+    IL_0025:  call       ""void System.Console.Write(string)""
+    IL_002a:  nop
+    IL_002b:  nop
+    IL_002c:  br.s       IL_003b
+    IL_002e:  nop
+    IL_002f:  ldstr      "" Branch not taken""
+    IL_0034:  call       ""void System.Console.Write(string)""
+    IL_0039:  nop
+    IL_003a:  nop
+    IL_003b:  ret
+}");
+        }
+
+        [Fact]
         public void TestIsNullPatternObjectLiteral()
         {
             var source = @"

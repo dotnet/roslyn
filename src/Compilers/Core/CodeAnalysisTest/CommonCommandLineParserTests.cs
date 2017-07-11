@@ -447,7 +447,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ruleSet.Includes.First().IncludePath, "foo.ruleset");
         }
 
+#pragma warning disable CA2243 // Attribute string literals should parse correctly
         [WorkItem(1184500, "DevDiv 1184500")]
+#pragma warning restore CA2243 // Attribute string literals should parse correctly
         [Fact]
         public void TestRuleSetInclude1()
         {

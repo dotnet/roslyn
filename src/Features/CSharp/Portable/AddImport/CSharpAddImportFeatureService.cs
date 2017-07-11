@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.AddImport.AddImportDiagnosticIds;
@@ -613,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return IsViableExtensionMethod(method, leftExpressionType);
         }
 
-        internal override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)
+        protected override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)
         {
             if (node.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
             {

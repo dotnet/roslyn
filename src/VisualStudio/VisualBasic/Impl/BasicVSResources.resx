@@ -267,4 +267,7 @@
   <data name="nothing_checking_colon" xml:space="preserve">
     <value>'nothing' checking:</value>
   </data>
+  <data name="Fade_out_unused_imports" xml:space="preserve">
+    <value>Fade out unused imports</value>
+  </data>
 </root>
