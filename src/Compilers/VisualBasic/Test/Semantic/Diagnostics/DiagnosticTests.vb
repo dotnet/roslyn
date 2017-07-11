@@ -19,12 +19,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 ERRID.ERR_CannotUseGenericBaseTypeAcrossAssemblyBoundaries ' Not reported. See ImportsBinder.ShouldReportUseSiteErrorForAlias.
             }
             For Each id As ERRID In [Enum].GetValues(GetType(ERRID))
-                If id >= ERRID.ERRWRN_Last Then
-                    Continue For
-                End If
                 If Array.IndexOf(excludedIds, id) >= 0 Then
                     Continue For
                 End If
+                If id >= ERRID_Helper.START_OF_FEATURES Then
+                    Continue For
+                End If
+
                 Dim message = ErrorFactory.IdToString(id, CultureInfo.InvariantCulture)
                 Assert.False(String.IsNullOrEmpty(message))
             Next
@@ -35,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' </summary>
         <Fact()>
         Public Sub NoDuplicates()
-            Dim excludedIds = {ERRID.ERRWRN_Last}
+            Dim excludedIds As ERRID() = {}
             Dim values = [Enum].GetValues(GetType(ERRID))
             Dim [set] = New HashSet(Of ERRID)
             For Each id As ERRID In values

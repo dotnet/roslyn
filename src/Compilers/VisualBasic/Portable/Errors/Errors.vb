@@ -27,6 +27,12 @@
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
+    Friend Module ERRID_Helper
+        Friend Const START_OF_FEATURES As ERRID = ERRID.FEATURE_AutoProperties
+        Friend Const LAST_OF_UNAVAILABLE_ERRWRNIDs As ERRID = ERRID.WRN_Experimental
+        Friend Const END_OF_ERRWRN_IDs As ERRID = DirectCast(49999, ERRID)
+    End Module
+
     Friend Enum ERRID
         Void = InternalErrorCode.Void
         Unknown = InternalErrorCode.Unknown
@@ -1955,10 +1961,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_UnableToLoadAnalyzer = 42378
 
         WRN_AttributeIgnoredWhenPublicSigning = 42379
+
         WRN_Experimental = 42380
 
         ' // AVAILABLE                             42381 - 49998
-        ERRWRN_Last = WRN_Experimental
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000
@@ -2009,5 +2015,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_BinaryLiterals
         FEATURE_Tuples
         FEATURE_IOperation
+        FEATURE_InterpolatedStrings
     End Enum
 End Namespace

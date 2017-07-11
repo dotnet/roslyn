@@ -11,7 +11,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         ' File: Parser.cpp
         ' Lines: 18978 - 18978
@@ -436,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             If statement IsNot Nothing Then
-                statement = CheckFeatureAvailability(Feature.WarningDirectives, statement)
+                statement = statement.CheckFeatureAvailable(Feature.WarningDirectives, Options)
             End If
 
             Me._pool.Free(errorCodes)

@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Diagnostics.VisualBasic
                     Continue For
                 End If
 
-                If errorCode > ERRID.ERR_None AndAlso errorCode <= ERRID.ERRWRN_Last Then
+                If errorCode > ERRID.ERR_None AndAlso errorCode <= ERRID_Helper.LAST_OF_UNAVAILABLE_ERRWRNIDs AndAlso errorCode <= ERRID_Helper.END_OF_ERRWRN_IDs Then
                     builder.Add(errorCode)
                 End If
             Next
