@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -99,7 +99,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
           Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, IsInvalid) (Syntax: 'With {.Property2 = 1}')
               Initializers(1): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '.Property2 = 1')
                   Left: IPropertyReferenceExpression: Property F.Property2 As B (OperationKind.PropertyReferenceExpression, Type: B) (Syntax: 'Property2')
-                      Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New F() Wit ... perty2 = 1}')
+                      Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New F() Wit ... perty2 = 1}')
                   Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: B, IsInvalid) (Syntax: '1')
                       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim e2 = Ne ... ) From {""}')

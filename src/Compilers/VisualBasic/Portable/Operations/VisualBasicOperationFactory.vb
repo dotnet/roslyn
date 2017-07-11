@@ -489,20 +489,18 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundObjectInitializerExpressionOperation(boundObjectInitializerExpression As BoundObjectInitializerExpression) As IObjectOrCollectionInitializerExpression
             Dim initializers As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundObjectInitializerExpression.Initializers.SelectAsArray(Function(n) Create(n)))
-            Dim isInvalid As Boolean = boundObjectInitializerExpression.HasErrors
             Dim syntax As SyntaxNode = boundObjectInitializerExpression.Syntax
             Dim type As ITypeSymbol = boundObjectInitializerExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundObjectInitializerExpression.ConstantValueOpt)
-            Return New LazyObjectOrCollectionInitializerExpression(initializers, isInvalid, syntax, type, constantValue)
+            Return New LazyObjectOrCollectionInitializerExpression(initializers, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundCollectionInitializerExpressionOperation(boundCollectionInitializerExpression As BoundCollectionInitializerExpression) As IObjectOrCollectionInitializerExpression
             Dim initializers As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundCollectionInitializerExpression.Initializers.SelectAsArray(Function(n) CreateBoundCollectionElementInitializerOperation(n)))
-            Dim isInvalid As Boolean = boundCollectionInitializerExpression.HasErrors
             Dim syntax As SyntaxNode = boundCollectionInitializerExpression.Syntax
             Dim type As ITypeSymbol = boundCollectionInitializerExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundCollectionInitializerExpression.ConstantValueOpt)
-            Return New LazyObjectOrCollectionInitializerExpression(initializers, isInvalid, syntax, type, constantValue)
+            Return New LazyObjectOrCollectionInitializerExpression(initializers, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundCollectionElementInitializerOperation(boundExpression As BoundExpression) As IOperation
@@ -514,11 +512,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim addMethod As IMethodSymbol = boundCall.Method
             Dim arguments As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundCall.Arguments.SelectAsArray(Function(n) Create(n)))
             Dim isDynamic As Boolean = addMethod Is Nothing
-            Dim isInvalid As Boolean = boundExpression.HasErrors
             Dim syntax As SyntaxNode = boundExpression.Syntax
             Dim type As ITypeSymbol = boundExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundExpression.ConstantValueOpt)
-            Return New LazyCollectionElementInitializerExpression(addMethod, arguments, isDynamic, isInvalid, syntax, type, constantValue)
+            Return New LazyCollectionElementInitializerExpression(addMethod, arguments, isDynamic, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundNewTOperation(boundNewT As BoundNewT) As ITypeParameterObjectCreationExpression

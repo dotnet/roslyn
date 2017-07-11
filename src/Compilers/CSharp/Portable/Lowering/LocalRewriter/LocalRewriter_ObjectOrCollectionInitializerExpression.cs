@@ -240,7 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 memberInit.ArgsToParamsOpt,
                                 memberInit.ResultKind,
                                 memberInit.BinderOpt,
-                                memberInit.UseSetterForDefaultArgumentGeneration,
                                 memberInit.Type);
                         }
 

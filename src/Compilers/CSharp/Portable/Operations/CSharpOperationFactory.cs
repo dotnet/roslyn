@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IMemberReferenceExpression CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember)
         {
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => new InstanceReferenceExpression(InstanceReferenceKind.Implicit, boundObjectInitializerMember.HasErrors, syntax: boundObjectInitializerMember.Syntax, type: boundObjectInitializerMember.MemberSymbol.ContainingType, constantValue: default(Optional<object>)));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => new InstanceReferenceExpression(InstanceReferenceKind.Implicit, syntax: boundObjectInitializerMember.Syntax, type: boundObjectInitializerMember.MemberSymbol.ContainingType, constantValue: default(Optional<object>)));
             SyntaxNode syntax = boundObjectInitializerMember.Syntax;
             ITypeSymbol type = boundObjectInitializerMember.Type;
             Optional<object> constantValue = ConvertToOptional(boundObjectInitializerMember.ConstantValue);
