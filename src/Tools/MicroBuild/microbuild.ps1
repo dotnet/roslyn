@@ -195,7 +195,11 @@ try {
     New-Item -Force $sentinelFile -type file
 
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | Stop-Process
-    Exec-Block { & .\publish-assets.ps1 -binariesPath $configDir -branchName $branchName -apiKey $nugetApiKey -test:$(-not $official) }
+
+    if ($publish) { 
+        Exec-Block { & .\publish-assets.ps1 -binariesPath $configDir -branchName $branchName -apiKey $nugetApiKey -test:$(-not $official) }
+    }
+
     Exec-Block { & .\copy-insertion-items.ps1 -binariesPath $configDir -test:$(-not $official) }
 
     exit 0
