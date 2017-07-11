@@ -119,6 +119,15 @@ namespace Roslyn.Utilities
         public void WriteUInt16(ushort value) => _writer.Write(value);
         public void WriteString(string value) => WriteStringValue(value);
 
+        public unsafe void WriteGuid(Guid guid)
+        {
+            Debug.Assert(sizeof(Guid) == 16);
+            Debug.Assert(sizeof(long) == 8);
+            long* pGuid = (long*)&guid;
+            WriteInt64(pGuid[0]);
+            WriteInt64(pGuid[1]);
+        }
+
         public void WriteValue(object value)
         {
             Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");

@@ -124,6 +124,19 @@ namespace Roslyn.Utilities
         public ushort ReadUInt16() => _reader.ReadUInt16();
         public string ReadString() => ReadStringValue();
 
+        public unsafe Guid ReadGuid()
+        {
+            Debug.Assert(sizeof(Guid) == 16);
+            Debug.Assert(sizeof(long) == 8);
+
+            Guid guid;
+            long* pGuid = (long*)&guid;
+            pGuid[0] = ReadInt64();
+            pGuid[1] = ReadInt64();
+
+            return guid;
+        }
+
         public object ReadValue()
         {
             var oldDepth = _recursionDepth;
