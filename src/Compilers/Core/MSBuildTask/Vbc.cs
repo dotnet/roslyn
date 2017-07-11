@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             else if (this.HostObject != null)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(string.Format(ErrorString.General_IncorrectHostObject, "Vbc", "IVbcHostObject"));
             }
             if (!designTime)
             {

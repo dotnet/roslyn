@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             else if (HostObject != null)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(string.Format(ErrorString.General_IncorrectHostObject, "Csc", "ICscHostObject"));
             }
             if (!designTime)
             {
