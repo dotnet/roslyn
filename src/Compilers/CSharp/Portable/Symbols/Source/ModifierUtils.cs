@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, ConvertSingleModifierToSyntaxText(oneError));
                         break;
                 }
+
                 modifierErrors = true;
             }
 
@@ -58,7 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isMethod && ((result & (DeclarationModifiers.Partial | DeclarationModifiers.Private)) == (DeclarationModifiers.Partial | DeclarationModifiers.Private)))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, errorLocation);
+                modifierErrors = true;
             }
+
+            if ((result & DeclarationModifiers.PrivateProtected) != 0)
+            {
+                modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeaturePrivateProtected, diagnostics, errorLocation);
+            }
+
             return result;
         }
 

@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.PrivateProtected)]
     public class PrivateProtected : CSharpTestBase
     {
         private static readonly string s_keyPairFile = SigningTestHelpers.KeyPairFile;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     internal protected private int Field4;
 }
 ";
-            CreateStandardCompilation(source)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (3,26): error CS0107: More than one protection modifier
                 //     private internal int Field1;
@@ -66,7 +67,7 @@ public class Derived : Base
     }
 }
 ";
-            CreateStandardCompilation(source)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
@@ -81,7 +82,7 @@ public class Base
     private protected int Field1;
     protected private int Field2;
 }";
-            var baseCompilation = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
+            var baseCompilation = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
             string source2 =
 @"public class Derived : Base
@@ -93,8 +94,8 @@ public class Base
     }
 }
 ";
-            CreateStandardCompilation(source2,
-                new[] { new CSharpCompilationReference(baseCompilation) },
+            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+                references: new[] { new CSharpCompilationReference(baseCompilation) },
                 assemblyName: "WantsIVTAccessButCantHave",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
             .VerifyDiagnostics(
@@ -105,8 +106,8 @@ public class Base
                 //         Field2 = 2;
                 Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(6, 9)
                 );
-            CreateStandardCompilation(source2,
-                new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
+            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+                references: new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
                 assemblyName: "WantsIVTAccessButCantHave",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
             .VerifyDiagnostics(
@@ -118,14 +119,14 @@ public class Base
                 Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(6, 9)
                 );
 
-            CreateStandardCompilation(source2,
-                new[] { new CSharpCompilationReference(baseCompilation) },
+            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+                references: new[] { new CSharpCompilationReference(baseCompilation) },
                 assemblyName: "WantsIVTAccess",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
                 .VerifyDiagnostics(
                 );
-            CreateStandardCompilation(source2,
-                new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
+            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+                references: new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
                 assemblyName: "WantsIVTAccess",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
                 .VerifyDiagnostics(
@@ -152,7 +153,7 @@ public class Derived // : Base
     }
 }
 ";
-            CreateStandardCompilation(source)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (12,11): error CS0122: 'Base.Field1' is inaccessible due to its protection level
                 //         b.Field1 = 1;
@@ -172,7 +173,7 @@ public class Derived // : Base
     private protected int Field1;
 }
 ";
-            CreateStandardCompilation(source)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (1,18): error CS1527: Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected
                 // protected private struct Struct
@@ -192,7 +193,7 @@ public class Derived // : Base
     static private protected int Field1 = 2;
 }
 ";
-            CreateStandardCompilation(source)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (3,34): error CS1057: 'C.Field1': static classes cannot contain protected members
                 //     static private protected int Field1 = 2;
@@ -231,7 +232,7 @@ struct Struct
     }
 }
 ";
-            CreateStandardCompilation(source)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (23,29): error CS0666: 'Struct.Inner': new protected member declared in struct
                 //     private protected class Inner // error: protected not allowed in struct
@@ -257,7 +258,7 @@ struct Struct
     internal int Prop4 { get; private protected set; }
     private protected int Prop5 { get; private set; }
 }";
-            CreateStandardCompilation(source)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
@@ -271,7 +272,7 @@ struct Struct
     private protected int Prop1 { get; private protected set; }
     private int Prop2 { get; private protected set; }
 }";
-            CreateStandardCompilation(source)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (3,58): error CS0273: The accessibility modifier of the 'Class.Prop1.set' accessor must be more restrictive than the property or indexer 'Class.Prop1'
                 //     private protected int Prop1 { get; private protected set; }
@@ -290,7 +291,7 @@ struct Struct
 {
     private protected int M();
 }";
-            CreateStandardCompilation(source)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (3,27): error CS0106: The modifier 'private protected' is not valid for this item
                 //     private protected int M();
@@ -316,7 +317,7 @@ public class C
     }
 }
 ";
-            CreateStandardCompilation(source)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
@@ -333,7 +334,7 @@ public class Container
     protected void M2(PrivateProtected x) {} // error: conflicting access
 }
 ";
-            CreateStandardCompilation(source)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (6,20): error CS0051: Inconsistent accessibility: parameter type 'Container.PrivateProtected' is less accessible than method 'Container.M2(Container.PrivateProtected)'
                 //     protected void M2(PrivateProtected x) {} // error: conflicting access
@@ -363,7 +364,7 @@ public class Container
     void Q() { V.Invoke(); V = null; }
 }
 ";
-            CreateStandardCompilation(source)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (7,26): error CS0107: More than one protection modifier
                 //     private public class C {}                           // 4
@@ -395,6 +396,60 @@ public class Container
                 // (12,43): error CS0107: More than one protection modifier
                 //     private public int this[int index] => 1;            // 9
                 Diagnostic(ErrorCode.ERR_BadMemberProtection, "1").WithLocation(12, 43)
+                );
+        }
+
+        [Fact]
+        public void NotInVersion71()
+        {
+            string source =
+@"
+public class Container
+{
+    private protected int Field;                           // 1
+    private protected int Property { get; set; }           // 2
+    private protected int M() => 1;                        // 3
+    private protected class C {}                           // 4
+    private protected struct S {}                          // 5
+    private protected enum E {}                            // 6
+    private protected event System.Action V;               // 7
+    private protected interface I {}                       // 8
+    private protected int this[int index] => 1;            // 9
+    void Q() { V.Invoke(); V = null; }
+}
+";
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1)
+                .VerifyDiagnostics(
+                // (7,29): error CS8302: Feature 'private protected' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     private protected class C {}                           // 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "C").WithArguments("private protected", "7.2").WithLocation(7, 29),
+                // (8,30): error CS8302: Feature 'private protected' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     private protected struct S {}                          // 5
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "S").WithArguments("private protected", "7.2").WithLocation(8, 30),
+                // (9,28): error CS8302: Feature 'private protected' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     private protected enum E {}                            // 6
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "E").WithArguments("private protected", "7.2").WithLocation(9, 28),
+                // (11,33): error CS8302: Feature 'private protected' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     private protected interface I {}                       // 8
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "I").WithArguments("private protected", "7.2").WithLocation(11, 33),
+                // (4,27): error CS8302: Feature 'private protected' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     private protected int Field;                           // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "Field").WithArguments("private protected", "7.2").WithLocation(4, 27),
+                // (5,27): error CS8302: Feature 'private protected' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     private protected int Property { get; set; }           // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "Property").WithArguments("private protected", "7.2").WithLocation(5, 27),
+                // (6,27): error CS8302: Feature 'private protected' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     private protected int M() => 1;                        // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "M").WithArguments("private protected", "7.2").WithLocation(6, 27),
+                // (10,43): error CS8302: Feature 'private protected' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     private protected event System.Action V;               // 7
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "V").WithArguments("private protected", "7.2").WithLocation(10, 43),
+                // (12,27): error CS8302: Feature 'private protected' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     private protected int this[int index] => 1;            // 9
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "this").WithArguments("private protected", "7.2").WithLocation(12, 27)
+                );
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+                .VerifyDiagnostics(
                 );
         }
     }
