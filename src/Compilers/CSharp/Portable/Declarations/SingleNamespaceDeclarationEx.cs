@@ -10,11 +10,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _hasExternAliases;
 
         public SingleNamespaceDeclarationEx(
-            string name, bool hasUsings, bool hasExternAliases, 
-            SyntaxReference syntaxReference, SourceLocation nameLocation,
+            string name,
+            bool hasUsings,
+            bool hasExternAliases,
+            SyntaxReference syntaxReference,
+            SyntaxReference fullDeclarationSyntaxReference,
+            SourceLocation nameLocation,
             ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
-            ImmutableArray<Diagnostic> diagnostics)
-            : base(name, syntaxReference, nameLocation, children, diagnostics)
+            ImmutableArray<Diagnostic> diagnostics) 
+            : base(name, syntaxReference, fullDeclarationSyntaxReference, nameLocation, children, diagnostics)
         {
             _hasUsings = hasUsings;
             _hasExternAliases = hasExternAliases;

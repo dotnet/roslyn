@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new RootSingleNamespaceDeclaration(
                 hasUsings: compilationUnit.Usings.Any(),
                 hasExternAliases: compilationUnit.Externs.Any(),
-                treeNode: _syntaxTree.GetReference(compilationUnit),
+                syntaxReference: _syntaxTree.GetReference(compilationUnit),
                 children: rootChildren.ToImmutableAndFree(),
                 referenceDirectives: GetReferenceDirectives(compilationUnit),
                 hasAssemblyAttributes: compilationUnit.AttributeLists.Any());
@@ -193,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasUsings: false,
                     hasExternAliases: false,
                     syntaxReference: parentReference,
+                    fullDeclarationSyntaxReference: parentReference,
                     nameLocation: new SourceLocation(parentReference),
                     children: ImmutableArray.Create(decl),
                     diagnostics: ImmutableArray<Diagnostic>.Empty);
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new RootSingleNamespaceDeclaration(
                 hasUsings: compilationUnit.Usings.Any(),
                 hasExternAliases: compilationUnit.Externs.Any(),
-                treeNode: _syntaxTree.GetReference(compilationUnit),
+                syntaxReference: _syntaxTree.GetReference(compilationUnit),
                 children: children,
                 referenceDirectives: ImmutableArray<ReferenceDirective>.Empty,
                 hasAssemblyAttributes: compilationUnit.AttributeLists.Any());
@@ -227,6 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasExterns = node.Externs.Any();
             NameSyntax name = node.Name;
             CSharpSyntaxNode currentNode = node;
+            SyntaxReference fullDeclarationSyntaxReference = _syntaxTree.GetReference(node);
             QualifiedNameSyntax dotted;
             while ((dotted = name as QualifiedNameSyntax) != null)
             {
@@ -234,7 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     name: dotted.Right.Identifier.ValueText,
                     hasUsings: hasUsings,
                     hasExternAliases: hasExterns,
-                    syntaxReference: _syntaxTree.GetReference(currentNode),
+                    syntaxReference: GetSyntaxReference(node, currentNode, fullDeclarationSyntaxReference),
+                    fullDeclarationSyntaxReference: fullDeclarationSyntaxReference,
                     nameLocation: new SourceLocation(dotted.Right),
                     children: children,
                     diagnostics: ImmutableArray<Diagnostic>.Empty);
@@ -265,7 +268,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 name: name.GetUnqualifiedName().Identifier.ValueText,
                 hasUsings: hasUsings,
                 hasExternAliases: hasExterns,
-                syntaxReference: _syntaxTree.GetReference(currentNode),
+                syntaxReference: GetSyntaxReference(node, currentNode, fullDeclarationSyntaxReference),
+                fullDeclarationSyntaxReference: fullDeclarationSyntaxReference,
                 nameLocation: new SourceLocation(name),
                 children: children,
                 diagnostics: diagnostics.ToReadOnlyAndFree());
@@ -302,6 +306,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+
+        private SyntaxReference GetSyntaxReference(NamespaceDeclarationSyntax rootNode, CSharpSyntaxNode currentNode, SyntaxReference fullDeclarationSyntaxReference) 
+            => currentNode == rootNode
+                ? fullDeclarationSyntaxReference
+                : _syntaxTree.GetReference(currentNode);
 
         public override SingleNamespaceOrTypeDeclaration VisitClassDeclaration(ClassDeclarationSyntax node)
         {

@@ -15,13 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public RootSingleNamespaceDeclaration(
             bool hasUsings,
             bool hasExternAliases,
-            SyntaxReference treeNode,
+            SyntaxReference syntaxReference,
             ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
             ImmutableArray<ReferenceDirective> referenceDirectives,
             bool hasAssemblyAttributes)
             : base(string.Empty,
-                   treeNode,
-                   nameLocation: new SourceLocation(treeNode),
+                   syntaxReference,
+                   fullDeclarationSyntaxReference: syntaxReference,
+                   nameLocation: new SourceLocation(syntaxReference),
                    children: children,
                    diagnostics: ImmutableArray<Diagnostic>.Empty)
         {

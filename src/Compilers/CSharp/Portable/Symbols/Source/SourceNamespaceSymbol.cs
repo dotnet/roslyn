@@ -113,24 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static readonly Func<SingleNamespaceDeclaration, SyntaxReference> s_declaringSyntaxReferencesSelector = d =>
-            new NamespaceDeclarationSyntaxReference(d.SyntaxReference);
-
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ComputeDeclaringReferencesCore();
-            }
-        }
-
-        private ImmutableArray<SyntaxReference> ComputeDeclaringReferencesCore()
-        {
-            // SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
-            // namespace decl node we want to return. here we will wrap the original syntax reference in 
-            // the translation syntax reference so that we can lazily manipulate a node return to the caller
-            return _mergedDeclaration.Declarations.SelectAsArray(s_declaringSyntaxReferencesSelector);
-        }
+            => _mergedDeclaration.FullDeclarationSyntaxReferences;
 
         internal override ImmutableArray<Symbol> GetMembersUnordered()
         {

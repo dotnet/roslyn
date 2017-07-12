@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly ImmutableArray<SingleNamespaceDeclaration> _declarations;
         private ImmutableArray<MergedNamespaceOrTypeDeclaration> _lazyChildren;
+        private ImmutableArray<SyntaxReference> _lazyFullDeclarationSyntaxReferences;
 
         private MergedNamespaceDeclaration(ImmutableArray<SingleNamespaceDeclaration> declarations)
             : base(declarations.IsEmpty ? string.Empty : declarations[0].Name)
@@ -35,6 +37,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return DeclarationKind.Namespace;
+            }
+        }
+
+        public ImmutableArray<SyntaxReference> FullDeclarationSyntaxReferences
+        {
+            get
+            {
+                if (_lazyFullDeclarationSyntaxReferences.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(
+                        ref _lazyFullDeclarationSyntaxReferences,
+                        this.Declarations.SelectAsArray(d => d.FullDeclarationSyntaxReference));
+                }
+
+                return _lazyFullDeclarationSyntaxReferences;
             }
         }
 
