@@ -123,17 +123,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // in.  That way we can get the initial set of results for the buffer as quickly as 
                 // possible, without kicking the work  down the road.
                 var initialTagsCancellationToken = _initialComputationCancellationTokenSource.Token;
-                if (_workQueue.IsForeground())
-                {
-                    RecomputeTagsForeground(cancellationTokenOpt: initialTagsCancellationToken);
-                }
-                else
-                {
-                    RegisterNotification(
-                        () => RecomputeTagsForeground(cancellationTokenOpt: initialTagsCancellationToken),
-                        delay: 0,
-                        cancellationToken: initialTagsCancellationToken);
-                }
+
+                // Note: we always kick this off to the new UI pump instead of computing tags right
+                // on this thread.  The reason for that is that we may be getting created at a time
+                // when the view itself is initializing.  As such the view is not in a state where
+                // we want code touching it.
+                RegisterNotification(
+                    () => RecomputeTagsForeground(cancellationTokenOpt: initialTagsCancellationToken),
+                    delay: 0,
+                    cancellationToken: initialTagsCancellationToken);
             }
 
             private ITaggerEventSource CreateEventSource()
