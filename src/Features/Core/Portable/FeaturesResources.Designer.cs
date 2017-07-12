@@ -1909,6 +1909,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Member name can be simplified.
+        /// </summary>
+        internal static string Member_name_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Member_name_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to method.
         /// </summary>
         internal static string method {
@@ -3423,6 +3432,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_framework_type {
             get {
                 return ResourceManager.GetString("Use_framework_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use inferred member name.
+        /// </summary>
+        internal static string Use_inferred_member_name {
+            get {
+                return ResourceManager.GetString("Use_inferred_member_name", resourceCulture);
             }
         }
         
