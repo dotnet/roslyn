@@ -130,6 +130,7 @@ namespace Roslyn.Test.Utilities
             public const string EncapsulateField = nameof(EncapsulateField);
             public const string EndConstructGeneration = nameof(EndConstructGeneration);
             public const string ErrorSquiggles = nameof(ErrorSquiggles);
+            public const string ErrorList = nameof(ErrorList);
             public const string EventHookup = nameof(EventHookup);
             public const string Expansion = nameof(Expansion);
             public const string ExtractInterface = "Refactoring.ExtractInterface";

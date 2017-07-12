@@ -2,19 +2,23 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    public abstract class BasicSquigglesCommon : AbstractEditorTest
+    [Collection(nameof(SharedIntegrationHostFixture))]
+    public class BasicSquiggles : AbstractEditorTest
     {
-        public BasicSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
-            :base(instanceFactory, nameof(BasicSquigglesCommon), projectTemplate)
+        public BasicSquiggles(VisualStudioInstanceFactory instanceFactory)
+            :base(instanceFactory, nameof(BasicSquiggles), WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public virtual void VerifySyntaxErrorSquiggles()
+        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public void VerifySyntaxErrorSquiggles()
         {
             VisualStudio.Editor.SetText(@"Class A
       Sub S()
@@ -24,7 +28,8 @@ End Class");
             VisualStudio.Editor.Verify.ErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\r'[43-44]");
         }
 
-        public virtual void VerifySemanticErrorSquiggles()
+        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public void VerifySemanticErrorSquiggles()
         {
             VisualStudio.Editor.SetText(@"Class A
       Sub S(b as Bar)

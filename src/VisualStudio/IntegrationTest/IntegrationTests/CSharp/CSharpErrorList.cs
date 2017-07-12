@@ -4,20 +4,23 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    public class CSharpErrorListCommon : AbstractEditorTest
+    [Collection(nameof(SharedIntegrationHostFixture))]
+    public class CSharpErrorList : AbstractEditorTest
     {
-        public CSharpErrorListCommon(VisualStudioInstanceFactory instanceFactor, string templateName)
-            : base(instanceFactor, nameof(CSharpErrorListCommon), templateName)
+        public CSharpErrorList(VisualStudioInstanceFactory instanceFactor)
+            : base(instanceFactor, nameof(CSharpErrorList), WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public virtual void ErrorList()
+        [Fact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        public void ErrorList()
         {
             VisualStudio.Editor.SetText(@"
 class C
@@ -59,7 +62,8 @@ class C
             Assert.Equal(expectedContents, actualContents);
         }
 
-        public virtual void ErrorLevelWarning()
+        [Fact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        public void ErrorLevelWarning()
         {
             VisualStudio.Editor.SetText(@"
 class C
@@ -84,7 +88,8 @@ class C
             Assert.Equal(expectedContents, actualContents);
         }
 
-        public virtual void ErrorsDuringMethodBodyEditing()
+        [Fact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        public void ErrorsDuringMethodBodyEditing()
         {
             VisualStudio.Editor.SetText(@"
 using System;

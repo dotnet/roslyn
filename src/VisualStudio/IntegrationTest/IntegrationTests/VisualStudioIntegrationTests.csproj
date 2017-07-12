@@ -27,9 +27,7 @@
     <Compile Include="CSharp\CSharpChangeSignatureDialog.cs" />
     <Compile Include="CSharp\CSharpGenerateFromUsage.cs" />
     <Compile Include="CSharp\CSharpClassification.cs" />
-    <Compile Include="CSharp\CSharpErrorListCommon.cs" />
-    <Compile Include="CSharp\CSharpErrorListDesktop.cs" />
-    <Compile Include="CSharp\CSharpErrorListNetCore.cs" />
+    <Compile Include="CSharp\CSharpErrorList.cs" />
     <Compile Include="CSharp\CSharpExtractInterfaceDialog.cs" />
     <Compile Include="CSharp\CSharpFindReferences.cs" />
     <Compile Include="CSharp\CSharpGoToImplementation.cs" />
@@ -58,9 +56,7 @@
     <Compile Include="CSharp\CSharpNavigateTo.cs" />
     <Compile Include="CSharp\CSharpRename.cs" />
     <Compile Include="CSharp\CSharpSignatureHelp.cs" />
-    <Compile Include="CSharp\CSharpSquigglesDesktop.cs" />
-    <Compile Include="CSharp\CSharpSquigglesCommon.cs" />
-    <Compile Include="CSharp\CSharpSquigglesNetCore.cs" />
+    <Compile Include="CSharp\CSharpSquiggles.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
     <Compile Include="VisualBasic\BasicEditAndContinue.cs" />
@@ -72,12 +68,8 @@
     <Compile Include="VisualBasic\BasicNavigationBar.cs" />
     <Compile Include="VisualBasic\BasicLineCommit.cs" />
     <Compile Include="VisualBasic\BasicF1Help.cs" />
-    <Compile Include="VisualBasic\BasicSquigglesCommon.cs" />
-    <Compile Include="VisualBasic\BasicSquigglesDesktop.cs" />
-    <Compile Include="VisualBasic\BasicSquigglesNetCore.cs" />
-    <Compile Include="VisualBasic\BasicErrorListCommon.cs" />
-    <Compile Include="VisualBasic\BasicErrorListDesktop.cs" />
-    <Compile Include="VisualBasic\BasicErrorListNetCore.cs" />
+    <Compile Include="VisualBasic\BasicSquiggles.cs" />
+    <Compile Include="VisualBasic\BasicErrorList.cs" />
     <Compile Include="VisualBasic\BasicOrganizing.cs" />
     <Compile Include="VisualBasic\BasicOutlining.cs" />
     <Compile Include="VisualBasic\BasicExtractMethod.cs" />

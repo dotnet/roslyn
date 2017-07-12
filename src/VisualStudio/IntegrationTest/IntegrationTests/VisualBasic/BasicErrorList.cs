@@ -4,20 +4,23 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    public class BasicErrorListCommon : AbstractEditorTest
+    [Collection(nameof(SharedIntegrationHostFixture))]
+    public class BasicErrorList : AbstractEditorTest
     {
-        public BasicErrorListCommon(VisualStudioInstanceFactory instanceFactor, string templateName)
-            : base(instanceFactor, nameof(BasicErrorListCommon), templateName)
+        public BasicErrorList(VisualStudioInstanceFactory instanceFactor)
+            : base(instanceFactor, nameof(BasicErrorList), WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public virtual void ErrorList()
+        [Fact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        public void ErrorList()
         {
             VisualStudio.Editor.SetText(@"
 Module Module1
@@ -59,7 +62,8 @@ End Module
             Assert.Equal(expectedContents, actualContents);
         }
 
-        public virtual void ErrorsDuringMethodBodyEditing()
+        [Fact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        public void ErrorsDuringMethodBodyEditing()
         {
             VisualStudio.Editor.SetText(@"
 Namespace N
