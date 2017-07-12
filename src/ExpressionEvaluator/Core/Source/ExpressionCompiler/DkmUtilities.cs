@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 });
         }
 
-        internal unsafe static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)
+        internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)
         {
             return runtime.GetMetadataBlocks(appDomain, ImmutableArray<MetadataBlock>.Empty);
         }
 
-        internal unsafe static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain, ImmutableArray<MetadataBlock> previousMetadataBlocks)
+        internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain, ImmutableArray<MetadataBlock> previousMetadataBlocks)
         {
             var builder = ArrayBuilder<MetadataBlock>.GetInstance();
             IntPtr ptr;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static MetadataBlock GetMetadataBlock(ImmutableArray<MetadataBlock> previousMetadataBlocks, int index, IntPtr ptr, uint size)
         {
-            if (previousMetadataBlocks != null && !previousMetadataBlocks.IsDefault && previousMetadataBlocks.Length > index)
+            if (!previousMetadataBlocks.IsDefault && index < previousMetadataBlocks.Length)
             {
                 var previousBlock = previousMetadataBlocks[index];
                 if (previousBlock.Pointer == ptr && previousBlock.Size == size)
