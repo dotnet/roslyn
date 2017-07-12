@@ -328,22 +328,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void MakeFrames(ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
         {
-            var closures = _analysis.CapturedVariablesByLambda.Keys;
-
-            foreach (var closure in closures)
+            Analysis.VisitClosures(_analysis.ScopeTree, (scope, closure) =>
             {
-                var capturedVars = _analysis.CapturedVariablesByLambda[closure];
-                bool canTakeRefParams = _analysis.CanTakeRefParameters(closure);
+                var capturedVars = closure.CapturedVariables;
+                MethodSymbol closureSymbol = closure.OriginalMethodSymbol;
+                bool canTakeRefParams = _analysis.CanTakeRefParameters(closureSymbol);
 
-                if (canTakeRefParams && OnlyCapturesThis((LocalFunctionSymbol)closure, capturedVars))
+                if (canTakeRefParams && OnlyCapturesThis(closure, scope))
                 {
-                    continue;
+                    return;
                 }
 
                 foreach (var captured in capturedVars)
                 {
-                    BoundNode scope;
-                    if (!_analysis.VariableScope.TryGetValue(captured, out scope))
+                    if (!_analysis.VariableScope.TryGetValue(captured, out BoundNode captureScope))
                     {
                         continue;
                     }
@@ -359,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    LambdaFrame frame = GetFrameForScope(scope, closureDebugInfo);
+                    LambdaFrame frame = GetFrameForScope(captureScope, closureDebugInfo);
 
                     if (captured.Kind != SymbolKind.Method && !proxies.ContainsKey(captured))
                     {
@@ -377,22 +375,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-            }
+            });
         }
 
-
-        private SmallDictionary<LocalFunctionSymbol, bool> _onlyCapturesThisMemoTable;
+        private SmallDictionary<Analysis.Closure, bool> _onlyCapturesThisMemoTable;
         /// <summary>
         /// Helper for determining whether a local function transitively
         /// only captures this (only captures this or other local functions
         /// which only capture this).
         /// </summary>
-        private bool OnlyCapturesThis<T>(
-            LocalFunctionSymbol closure,
-            T capturedVars, 
+        private bool OnlyCapturesThis(
+            Analysis.Closure closure,
+            Analysis.Scope scope,
             PooledHashSet<LocalFunctionSymbol> localFuncsInProgress = null)
-            where T : IEnumerable<Symbol>
         {
+            Debug.Assert(closure != null);
+            Debug.Assert(scope != null);
+
             bool result = false;
             if (_onlyCapturesThisMemoTable?.TryGetValue(closure, out result) == true)
             {
@@ -400,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             result = true;
-            foreach (var captured in capturedVars)
+            foreach (var captured in closure.CapturedVariables)
             {
                 var param = captured as ParameterSymbol;
                 if (param != null && param.IsThis)
@@ -423,10 +422,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     localFuncsInProgress.Add(localFunc);
-                    bool transitivelyTrue = OnlyCapturesThis(
-                          localFunc,
-                          _analysis.CapturedVariablesByLambda[localFunc],
-                          localFuncsInProgress);
+                    var (found, foundScope) = Analysis.FindClosureInScope(scope, localFunc);
+                    bool transitivelyTrue = OnlyCapturesThis(found, foundScope, localFuncsInProgress);
 
                     if (freePool)
                     {
@@ -446,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_onlyCapturesThisMemoTable == null)
             {
-                _onlyCapturesThisMemoTable = new SmallDictionary<LocalFunctionSymbol, bool>();
+                _onlyCapturesThisMemoTable = new SmallDictionary<Analysis.Closure, bool>();
             }
 
             _onlyCapturesThisMemoTable[closure] = result;
@@ -474,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 frame = new LambdaFrame(_topLevelMethod, containingMethod, canBeStruct, syntax, methodId, closureId);
                 _frames.Add(scope, frame);
 
-                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
+                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(ContainingType, frame);
                 if (frame.Constructor != null)
                 {
                     AddSynthesizedMethod(
@@ -1335,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureOrdinal = containerAsFrame.ClosureOrdinal;
                 }
             }
-            else if (_analysis.CapturedVariablesByLambda[node.Symbol].Count == 0)
+            else if (Analysis.FindClosureInTree(_analysis.ScopeTree, node.Symbol).CapturedVariables.Count == 0)
             {
                 if (_analysis.MethodsConvertedToDelegates.Contains(node.Symbol))
                 {
