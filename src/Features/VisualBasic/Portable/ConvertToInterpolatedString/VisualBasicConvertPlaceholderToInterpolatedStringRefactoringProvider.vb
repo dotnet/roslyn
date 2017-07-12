@@ -13,5 +13,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
         Protected Overrides Function GetInterpolatedString(text As String) As SyntaxNode
             Return TryCast(SyntaxFactory.ParseExpression("$" + text), InterpolatedStringExpressionSyntax)
         End Function
+
+        Protected Overrides Function GetArgumentName(argument As ArgumentSyntax) As String
+            If argument Is Nothing Or Not argument.IsNamed Then
+                Return Nothing
+            End If
+
+            Dim simpleArgumentSyntax As SimpleArgumentSyntax = CType(argument, SimpleArgumentSyntax)
+            If simpleArgumentSyntax Is Nothing Then
+                Return Nothing
+            End If
+
+            Return simpleArgumentSyntax.NameColonEquals.Name.Identifier.Text
+        End Function
     End Class
 End Namespace
