@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// 
     /// Immutable, since this object is used as a key into some dictionaries.
     /// </summary>
-    [DebuggerDisplay("{GetDebuggerDisplay(),nq")]
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal class DocumentKey : IEquatable<DocumentKey>
     {
         public IVisualStudioHostProject HostProject { get; }
