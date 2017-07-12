@@ -3487,6 +3487,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 );
         }
 
+        [Fact]
         public void AsyncTasklikeBadAttributeArgument4()
         {
             var source = @"
@@ -3851,7 +3852,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         }
 
         // Should check constraints (see https://github.com/dotnet/roslyn/issues/12616).
-        //[Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12616")]
         public void AsyncTasklikeBuilderConstraints()
         {
             var source1 = @"
