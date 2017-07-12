@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Semantics;
 
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Root type for representing the abstract semantics of C# and VB statements and expressions.
     /// </summary>
-    internal abstract class Operation : IOperation
+    internal abstract class Operation : IOperation, IOperationWithChildren
     {
         public Operation(OperationKind kind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
         {
@@ -38,6 +39,8 @@ namespace Microsoft.CodeAnalysis
         /// If the operation is an expression that evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression. Otherwise, <see cref="Optional{Object}.HasValue"/> is false.
         /// </summary>
         public Optional<object> ConstantValue { get; }
+
+        public abstract IEnumerable<IOperation> Children { get; }
 
         public abstract void Accept(OperationVisitor visitor);
 
@@ -77,7 +80,7 @@ namespace Microsoft.CodeAnalysis
                 return visitor.VisitNoneOperation(this, argument);
             }
 
-            public ImmutableArray<IOperation> Children => _getChildren();
+            public IEnumerable<IOperation> Children => _getChildren().NullToEmpty();
         }
     }
 }

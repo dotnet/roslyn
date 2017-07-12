@@ -454,9 +454,9 @@ Microsoft.CodeAnalysis.Semantics.IInterpolation.Alignment.get -> Microsoft.CodeA
 Microsoft.CodeAnalysis.Semantics.IInterpolation.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IInterpolation.FormatString.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IInvalidExpression
-Microsoft.CodeAnalysis.Semantics.IInvalidExpression.Children.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
+Microsoft.CodeAnalysis.Semantics.IInvalidExpression.Children.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IInvalidStatement
-Microsoft.CodeAnalysis.Semantics.IInvalidStatement.Children.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
+Microsoft.CodeAnalysis.Semantics.IInvalidStatement.Children.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression.Instance.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression.IsVirtual.get -> bool
@@ -734,92 +734,7 @@ abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAna
 const Microsoft.CodeAnalysis.LanguageNames.FSharp = "F#" -> string
 override Microsoft.CodeAnalysis.Optional<T>.ToString() -> string
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.Visit(Microsoft.CodeAnalysis.IOperation operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitAddressOfExpression(Microsoft.CodeAnalysis.Semantics.IAddressOfExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitAnonymousObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.IAnonymousObjectCreationExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitArgument(Microsoft.CodeAnalysis.Semantics.IArgument operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitArrayCreationExpression(Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitArrayElementReferenceExpression(Microsoft.CodeAnalysis.Semantics.IArrayElementReferenceExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitArrayInitializer(Microsoft.CodeAnalysis.Semantics.IArrayInitializer operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitAwaitExpression(Microsoft.CodeAnalysis.Semantics.IAwaitExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitBinaryOperatorExpression(Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitBlockStatement(Microsoft.CodeAnalysis.Semantics.IBlockStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitBranchStatement(Microsoft.CodeAnalysis.Semantics.IBranchStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitCatchClause(Microsoft.CodeAnalysis.Semantics.ICatchClause operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitCollectionElementInitializerExpression(Microsoft.CodeAnalysis.Semantics.ICollectionElementInitializerExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitCompoundAssignmentExpression(Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitConditionalAccessExpression(Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitConditionalAccessInstanceExpression(Microsoft.CodeAnalysis.Semantics.IConditionalAccessInstanceExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitConditionalChoiceExpression(Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitConstantPattern(Microsoft.CodeAnalysis.Semantics.IConstantPattern operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitConversionExpression(Microsoft.CodeAnalysis.Semantics.IConversionExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitDeclarationPattern(Microsoft.CodeAnalysis.Semantics.IDeclarationPattern operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitDefaultCaseClause(Microsoft.CodeAnalysis.Semantics.IDefaultCaseClause operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitDefaultValueExpression(Microsoft.CodeAnalysis.Semantics.IDefaultValueExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitEmptyStatement(Microsoft.CodeAnalysis.Semantics.IEmptyStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitEndStatement(Microsoft.CodeAnalysis.Semantics.IEndStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitEventAssignmentExpression(Microsoft.CodeAnalysis.Semantics.IEventAssignmentExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitEventReferenceExpression(Microsoft.CodeAnalysis.Semantics.IEventReferenceExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitExpressionStatement(Microsoft.CodeAnalysis.Semantics.IExpressionStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitFieldInitializer(Microsoft.CodeAnalysis.Semantics.IFieldInitializer operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitFieldReferenceExpression(Microsoft.CodeAnalysis.Semantics.IFieldReferenceExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitFixedStatement(Microsoft.CodeAnalysis.Semantics.IFixedStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitForEachLoopStatement(Microsoft.CodeAnalysis.Semantics.IForEachLoopStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitForLoopStatement(Microsoft.CodeAnalysis.Semantics.IForLoopStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitIfStatement(Microsoft.CodeAnalysis.Semantics.IIfStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitIncrementExpression(Microsoft.CodeAnalysis.Semantics.IIncrementExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInstanceReferenceExpression(Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInterpolatedStringExpression(Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInterpolatedStringText(Microsoft.CodeAnalysis.Semantics.IInterpolatedStringText operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInterpolation(Microsoft.CodeAnalysis.Semantics.IInterpolation operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInvalidExpression(Microsoft.CodeAnalysis.Semantics.IInvalidExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInvalidStatement(Microsoft.CodeAnalysis.Semantics.IInvalidStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInvocationExpression(Microsoft.CodeAnalysis.Semantics.IInvocationExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitIsPatternExpression(Microsoft.CodeAnalysis.Semantics.IIsPatternExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitIsTypeExpression(Microsoft.CodeAnalysis.Semantics.IIsTypeExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitLabelStatement(Microsoft.CodeAnalysis.Semantics.ILabelStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitLambdaExpression(Microsoft.CodeAnalysis.Semantics.ILambdaExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitLateBoundMemberReferenceExpression(Microsoft.CodeAnalysis.Semantics.ILateBoundMemberReferenceExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitLiteralExpression(Microsoft.CodeAnalysis.Semantics.ILiteralExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.Semantics.ILocalFunctionStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitLocalReferenceExpression(Microsoft.CodeAnalysis.Semantics.ILocalReferenceExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitLockStatement(Microsoft.CodeAnalysis.Semantics.ILockStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitMemberInitializerExpression(Microsoft.CodeAnalysis.Semantics.IMemberInitializerExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitMethodBindingExpression(Microsoft.CodeAnalysis.Semantics.IMethodBindingExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitNameOfExpression(Microsoft.CodeAnalysis.Semantics.INameOfExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitNullCoalescingExpression(Microsoft.CodeAnalysis.Semantics.INullCoalescingExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitObjectOrCollectionInitializerExpression(Microsoft.CodeAnalysis.Semantics.IObjectOrCollectionInitializerExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitOmittedArgumentExpression(Microsoft.CodeAnalysis.Semantics.IOmittedArgumentExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitParameterInitializer(Microsoft.CodeAnalysis.Semantics.IParameterInitializer operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitParameterReferenceExpression(Microsoft.CodeAnalysis.Semantics.IParameterReferenceExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitParenthesizedExpression(Microsoft.CodeAnalysis.Semantics.IParenthesizedExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitPatternCaseClause(Microsoft.CodeAnalysis.Semantics.IPatternCaseClause operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitPlaceholderExpression(Microsoft.CodeAnalysis.Semantics.IPlaceholderExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitPointerIndirectionReferenceExpression(Microsoft.CodeAnalysis.Semantics.IPointerIndirectionReferenceExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitPropertyInitializer(Microsoft.CodeAnalysis.Semantics.IPropertyInitializer operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitPropertyReferenceExpression(Microsoft.CodeAnalysis.Semantics.IPropertyReferenceExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitRangeCaseClause(Microsoft.CodeAnalysis.Semantics.IRangeCaseClause operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitRelationalCaseClause(Microsoft.CodeAnalysis.Semantics.IRelationalCaseClause operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitReturnStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitSimpleAssignmentExpression(Microsoft.CodeAnalysis.Semantics.ISimpleAssignmentExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitSingleValueCaseClause(Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitSizeOfExpression(Microsoft.CodeAnalysis.Semantics.ISizeOfExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitStopStatement(Microsoft.CodeAnalysis.Semantics.IStopStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitSwitchCase(Microsoft.CodeAnalysis.Semantics.ISwitchCase operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitSwitchStatement(Microsoft.CodeAnalysis.Semantics.ISwitchStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitSyntheticLocalReferenceExpression(Microsoft.CodeAnalysis.Semantics.ISyntheticLocalReferenceExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitThrowExpression(Microsoft.CodeAnalysis.Semantics.IThrowExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitThrowStatement(Microsoft.CodeAnalysis.Semantics.IThrowStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitTryStatement(Microsoft.CodeAnalysis.Semantics.ITryStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitTypeOfExpression(Microsoft.CodeAnalysis.Semantics.ITypeOfExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitTypeParameterObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.ITypeParameterObjectCreationExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitUnaryOperatorExpression(Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitUsingStatement(Microsoft.CodeAnalysis.Semantics.IUsingStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclaration(Microsoft.CodeAnalysis.Semantics.IVariableDeclaration operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclarationStatement(Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation) -> void
+override Microsoft.CodeAnalysis.Semantics.OperationWalker.DefaultVisit(Microsoft.CodeAnalysis.IOperation operation) -> void
 static Microsoft.CodeAnalysis.Compilation.GetRequiredLanguageVersion(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> string
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
