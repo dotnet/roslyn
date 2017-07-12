@@ -1048,11 +1048,34 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitParenthesizedExpression(operation);
         }
 
-        public override void VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation)
+        public override void VisitDynamicMemberReferenceExpression(IDynamicMemberReferenceExpression operation)
         {
-            LogString(nameof(ILateBoundMemberReferenceExpression));
-            LogString($" (Member name: {operation.MemberName})");
+            LogString(nameof(IDynamicMemberReferenceExpression));
+            LogString($" (Member name: {operation.MemberName}, Containing Type: {(object)operation.ContainingType ?? "null"})");
             LogCommonPropertiesAndNewLine(operation);
+
+            if (!operation.TypeArguments.IsDefaultOrEmpty)
+            {
+                Indent();
+                if (operation.TypeArguments.Length == 1)
+                {
+                    LogSymbol(operation.TypeArguments.Single(), "Type Arguments");
+                    LogNewLine();
+                }
+                else
+                {
+                    LogString("Type Arguments:");
+                    LogNewLine();
+                    Indent();
+                    foreach (var typeArg in operation.TypeArguments)
+                    {
+                        LogSymbol(typeArg, null);
+                        LogNewLine();
+                    }
+                    Unindent();
+                }
+                Unindent();
+            }
 
             VisitInstanceExpression(operation.Instance);
         }

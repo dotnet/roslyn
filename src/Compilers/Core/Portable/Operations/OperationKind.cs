@@ -138,6 +138,8 @@ namespace Microsoft.CodeAnalysis
         NameOfExpression = 0x123,
         /// <summary>Indicates an <see cref="ITupleExpression"/>.</summary>
         TupleExpression = 0x124,
+        /// <summary>Indicates an <see cref="IDynamicMemberReferenceExpression"/>.</summary>
+        DynamicAccessExpression = 0x125,
 
         // Expressions that occur only in C#.
 
@@ -162,8 +164,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
         OmittedArgumentExpression = 0x300,
-        /// <summary>Indicates an <see cref="ILateBoundMemberReferenceExpression"/>.</summary>
-        LateBoundMemberReferenceExpression = 0x301,
+        // 0x301 was removed, and is available for use.
         /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
         PlaceholderExpression = 0x302,
 

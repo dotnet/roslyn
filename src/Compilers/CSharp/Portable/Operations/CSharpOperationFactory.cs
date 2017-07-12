@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundObjectInitializerMemberOperation((BoundObjectInitializerMember)boundNode);
                 case BoundKind.CollectionElementInitializer:
                     return CreateBoundCollectionElementInitializerOperation((BoundCollectionElementInitializer)boundNode);
+                case BoundKind.DynamicMemberAccess:
+                    return CreateBoundDynamicMemberAccessOperation((BoundDynamicMemberAccess)boundNode);
                 case BoundKind.DynamicCollectionElementInitializer:
                     return CreateBoundDynamicCollectionElementInitializerOperation((BoundDynamicCollectionElementInitializer)boundNode);
                 case BoundKind.UnboundLambda:
@@ -501,6 +503,22 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundCollectionElementInitializer.Type;
             Optional<object> constantValue = ConvertToOptional(boundCollectionElementInitializer.ConstantValue);
             return new LazyCollectionElementInitializerExpression(addMethod, arguments, isDynamic, syntax, type, constantValue);
+        }
+
+        private IDynamicMemberReferenceExpression CreateBoundDynamicMemberAccessOperation(BoundDynamicMemberAccess boundDynamicMemberAccess)
+        {
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundDynamicMemberAccess.Receiver));
+            string memberName = boundDynamicMemberAccess.Name;
+            ImmutableArray<ITypeSymbol> typeArguments = ImmutableArray<ITypeSymbol>.Empty;
+            if (!boundDynamicMemberAccess.TypeArgumentsOpt.IsDefault)
+            {
+                typeArguments = ImmutableArray<ITypeSymbol>.CastUp(boundDynamicMemberAccess.TypeArgumentsOpt);
+            }
+            ITypeSymbol containingType = null;
+            SyntaxNode syntaxNode = boundDynamicMemberAccess.Syntax;
+            ITypeSymbol type = boundDynamicMemberAccess.Type;
+            Optional<object> constantValue = ConvertToOptional(boundDynamicMemberAccess.ConstantValue);
+            return new LazyDynamicMemberReferenceExpression(instance, memberName, typeArguments, containingType, syntaxNode, type, constantValue);
         }
 
         private ICollectionElementInitializerExpression CreateBoundDynamicCollectionElementInitializerOperation(BoundDynamicCollectionElementInitializer boundCollectionElementInitializer)

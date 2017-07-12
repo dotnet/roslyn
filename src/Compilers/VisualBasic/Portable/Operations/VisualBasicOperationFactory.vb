@@ -638,13 +638,18 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LocalReferenceExpression(local, syntax, type, constantValue)
         End Function
 
-        Private Function CreateBoundLateMemberAccessOperation(boundLateMemberAccess As BoundLateMemberAccess) As ILateBoundMemberReferenceExpression
+        Private Function CreateBoundLateMemberAccessOperation(boundLateMemberAccess As BoundLateMemberAccess) As IDynamicMemberReferenceExpression
             Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLateMemberAccess.ReceiverOpt))
             Dim memberName As String = boundLateMemberAccess.NameOpt
+            Dim typeArguments As ImmutableArray(Of ITypeSymbol) = ImmutableArray(Of ITypeSymbol).Empty
+            If boundLateMemberAccess.TypeArgumentsOpt IsNot Nothing Then
+                typeArguments = ImmutableArray(Of ITypeSymbol).CastUp(boundLateMemberAccess.TypeArgumentsOpt.Arguments)
+            End If
+            Dim containingType As ITypeSymbol = boundLateMemberAccess.ContainerTypeOpt
             Dim syntax As SyntaxNode = boundLateMemberAccess.Syntax
             Dim type As ITypeSymbol = boundLateMemberAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLateMemberAccess.ConstantValueOpt)
-            Return New LazyLateBoundMemberReferenceExpression(instance, memberName, syntax, type, constantValue)
+            Return New LazyDynamicMemberReferenceExpression(instance, memberName, typeArguments, containingType, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundFieldInitializerOperation(boundFieldInitializer As BoundFieldInitializer) As IFieldInitializer

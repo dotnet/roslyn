@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation)
+        public virtual void VisitDynamicMemberReferenceExpression(IDynamicMemberReferenceExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation, TArgument argument)
+        public virtual TResult VisitDynamicMemberReferenceExpression(IDynamicMemberReferenceExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public virtual TResult VisitInvalidExpression(IInvalidExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
-        }        
+        }
 
         public virtual TResult VisitLocalFunctionStatement(ILocalFunctionStatement operation, TArgument argument)
         {

@@ -5,22 +5,32 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a late-bound reference to a member of a class or struct.
+    /// Represents a dynamic reference to a member of a class, struct, or module.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ILateBoundMemberReferenceExpression : IOperation
+    public interface IDynamicMemberReferenceExpression : IOperation
     {
         /// <summary>
-        /// Instance used to bind the member reference.
+        /// Instance receiver. In VB, this can be null.
         /// </summary>
         IOperation Instance { get; }
+
         /// <summary>
-        /// Name of the member.
+        /// Referenced member.
         /// </summary>
         string MemberName { get; }
+
+        /// <summary>
+        /// Type arguments.
+        /// </summary>
+        ImmutableArray<ITypeSymbol> TypeArguments { get; }
+
+        /// <summary>
+        /// The containing type of this expression. In C#, this will always be null.
+        /// </summary>
+        ITypeSymbol ContainingType { get; }
     }
 }
-

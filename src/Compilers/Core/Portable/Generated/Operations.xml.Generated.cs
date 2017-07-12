@@ -2668,7 +2668,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
@@ -2712,7 +2712,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public override ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
@@ -2740,7 +2740,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public override ImmutableArray<IArgument> ArgumentsInEvaluationOrder => _lazyArgumentsInEvaluationOrder.Value;
@@ -2951,23 +2951,34 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a late-bound reference to a member of a class or struct.
+    /// Represents a dynamic access to a member of a class, struct, or module.
     /// </summary>
-    internal abstract partial class BaseLateBoundMemberReferenceExpression : Operation, ILateBoundMemberReferenceExpression
+    internal abstract partial class BaseDynamicMemberReferenceExpression : Operation, IDynamicMemberReferenceExpression
     {
-        protected BaseLateBoundMemberReferenceExpression(string memberName, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.LateBoundMemberReferenceExpression, syntax, type, constantValue)
+        protected BaseDynamicMemberReferenceExpression(string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.DynamicAccessExpression, syntax, type, constantValue)
         {
             MemberName = memberName;
+            TypeArguments = typeArguments;
+            ContainingType = containingType;
         }
         /// <summary>
-        /// Instance used to bind the member reference.
+        /// Instance receiver. In VB, this can be null.
         /// </summary>
         public abstract IOperation Instance { get; }
         /// <summary>
-        /// Name of the member.
+        /// Referenced member.
         /// </summary>
         public string MemberName { get; }
+        /// <summary>
+        /// Type arguments.
+        /// </summary>
+        public ImmutableArray<ITypeSymbol> TypeArguments { get; }
+        /// <summary>
+        /// The containing type of this expression. In C#, this will always be null.
+        /// </summary>
+        public ITypeSymbol ContainingType { get; }
+
         public override IEnumerable<IOperation> Children
         {
             get
@@ -2977,43 +2988,45 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitLateBoundMemberReferenceExpression(this);
+            visitor.VisitDynamicMemberReferenceExpression(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLateBoundMemberReferenceExpression(this, argument);
+            return visitor.VisitDynamicMemberReferenceExpression(this, argument);
         }
+
     }
 
     /// <summary>
-    /// Represents a late-bound reference to a member of a class or struct.
+    /// Represents a dynamic access to a member of a class, struct, or module.
     /// </summary>
-    internal sealed partial class LateBoundMemberReferenceExpression : BaseLateBoundMemberReferenceExpression, ILateBoundMemberReferenceExpression
+    internal sealed partial class DynamicMemberReferenceExpression : BaseDynamicMemberReferenceExpression, IDynamicMemberReferenceExpression
     {
-        public LateBoundMemberReferenceExpression(IOperation instance, string memberName, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(memberName, syntax, type, constantValue)
+        public DynamicMemberReferenceExpression(IOperation instance, string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(memberName, typeArguments, containingType, syntax, type, constantValue)
         {
             Instance = instance;
         }
         /// <summary>
-        /// Instance used to bind the member reference.
+        /// Instance receiver. In VB, this can be null.
         /// </summary>
         public override IOperation Instance { get; }
     }
 
-    /// <summary>
-    /// Represents a late-bound reference to a member of a class or struct.
+     /// <summary>
+    /// Represents a dynamic access to a member of a class, struct, or module.
     /// </summary>
-    internal sealed partial class LazyLateBoundMemberReferenceExpression : BaseLateBoundMemberReferenceExpression, ILateBoundMemberReferenceExpression
+    internal sealed partial class LazyDynamicMemberReferenceExpression : BaseDynamicMemberReferenceExpression, IDynamicMemberReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyLateBoundMemberReferenceExpression(Lazy<IOperation> instance, string memberName, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(memberName, syntax, type, constantValue)
+        public LazyDynamicMemberReferenceExpression(Lazy<IOperation> lazyInstance, string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(memberName, typeArguments, containingType, syntax, type, constantValue)
         {
-            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
+            _lazyInstance = lazyInstance;
         }
         /// <summary>
-        /// Instance used to bind the member reference.
+        /// Instance receiver. In VB, this can be null.
         /// </summary>
         public override IOperation Instance => _lazyInstance.Value;
     }
@@ -3375,7 +3388,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
@@ -3419,7 +3432,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public override ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
@@ -3447,7 +3460,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public override ImmutableArray<IArgument> ArgumentsInEvaluationOrder => _lazyArgumentsInEvaluationOrder.Value;
@@ -3869,7 +3882,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
@@ -3914,7 +3927,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public override ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
@@ -3951,7 +3964,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public override ImmutableArray<IArgument> ArgumentsInEvaluationOrder => _lazyArgumentsInEvaluationOrder.Value;
