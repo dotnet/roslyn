@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal sealed partial class VisualStudioProjectTracker : ForegroundThreadAffinitizedObject, IDisposable, IVisualStudioHostProjectContainer
+    internal sealed partial class VisualStudioProjectTracker : ForegroundThreadAffinitizedObject, IVisualStudioHostProjectContainer
     {
         #region Readonly fields
         private static readonly ConditionalWeakTable<SolutionId, string> s_workingFolderPathMap = new ConditionalWeakTable<SolutionId, string>();
@@ -243,14 +243,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public DocumentProvider DocumentProvider { get; private set; }
         public VisualStudioMetadataReferenceManager MetadataReferenceProvider { get; private set; }
         public VisualStudioRuleSetManager RuleSetFileProvider { get; private set; }
-
-        public void Dispose()
-        {
-            if (this.RuleSetFileProvider != null)
-            {
-                this.RuleSetFileProvider.Dispose();
-            }
-        }
 
         internal AbstractProject GetProject(ProjectId id)
         {
@@ -564,6 +556,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _projectPathToIdMap.Clear();
             }
+
+            RuleSetFileProvider.ClearCachedRuleSetFiles();
 
             foreach (var workspaceHost in _workspaceHosts)
             {
