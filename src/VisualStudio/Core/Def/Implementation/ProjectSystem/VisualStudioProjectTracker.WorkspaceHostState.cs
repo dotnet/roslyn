@@ -166,6 +166,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, _tracker._runningDocumentTable));
                         }
                     }
+
+                    foreach (var additionalDocument in project.GetCurrentAdditionalDocuments())
+                    {
+                        if (additionalDocument.IsOpen)
+                        {
+                            this.Host.OnAdditionalDocumentOpened(
+                                additionalDocument.Id,
+                                additionalDocument.GetOpenTextBuffer());
+                        }
+                    }
                 }
             }
 
