@@ -644,12 +644,12 @@ class Test
             Assert.DoesNotContain(not_expected_in_lookup[1], actual_lookupSymbols_ignoreAcc_as_string);
         }
 
-        [WorkItem(539814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539814")]
         /// <summary>
         /// Verify that there's a way to look up only the members of the base type that are visible
         /// from the current type.
         /// </summary>
         [Fact]
+        [WorkItem(539814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539814")]
         public void LookupProtectedInBase()
         {
             var testSrc = @"

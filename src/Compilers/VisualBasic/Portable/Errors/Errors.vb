@@ -1730,6 +1730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_BadLanguageVersion = 37287
         ERR_InvalidPreprocessorConstantType = 37288
         ERR_TupleInferredNamesNotAvailable = 37289
+        ERR_InvalidDebugInfo = 37290
 
         ERR_NoRefOutWhenRefOnly = 37300
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 37301

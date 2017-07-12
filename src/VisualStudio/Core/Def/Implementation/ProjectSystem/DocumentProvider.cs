@@ -65,10 +65,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
             _projectContainer = projectContainer;
-            _documentTrackingServiceOpt = documentTrackingService;
-            _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-            _contentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
+            this._documentTrackingServiceOpt = documentTrackingService;
+            this._runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+            this._editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            this._contentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
             _textUndoHistoryRegistry = componentModel.GetService<ITextUndoHistoryRegistry>();
             _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
 
@@ -98,12 +98,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer,
             Func<uint, IReadOnlyList<string>> getFolderNames,
-            bool isAdditionalFile,
             EventHandler updatedOnDiskHandler = null,
             EventHandler<bool> openedHandler = null,
             EventHandler<bool> closingHandler = null)
         {
-            var documentKey = new DocumentKey(hostProject, filePath, isAdditionalFile);
+            var documentKey = new DocumentKey(hostProject, filePath);
             StandardTextDocument document;
 
             lock (_gate)
@@ -115,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             ITextBuffer openTextBuffer = null;
-            var foundCookie = VSConstants.VSCOOKIE_NIL;
+            uint foundCookie = VSConstants.VSCOOKIE_NIL;
 
             if (IsForeground())
             {
@@ -193,7 +192,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            if (docData is IVsTextBuffer shimTextBuffer)
+            var shimTextBuffer = docData as IVsTextBuffer;
+
+            if (shimTextBuffer != null)
             {
                 return _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
             }
@@ -327,56 +328,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void TryProcessOpenForDocCookie_NoLock(uint docCookie)
         {
-            var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
+            string moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
             _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out var itemid);
 
-            if (_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer shimTextBuffer)
+            var shimTextBuffer = _runningDocumentTable.GetDocumentData(docCookie) as IVsTextBuffer;
+
+            if (shimTextBuffer != null)
             {
                 var hasAssociatedRoslynDocument = false;
                 foreach (var project in _projectContainer.GetProjects())
                 {
-                    var documentKeyForSource = new DocumentKey(project, moniker, isAdditionalFile: false);
-                    var documentKeyForAdditionalFiles = new DocumentKey(project, moniker, isAdditionalFile: true);
+                    var documentKey = new DocumentKey(project, moniker);
 
-                    foreach (var documentKey in new[] { documentKeyForSource, documentKeyForAdditionalFiles })
+                    if (_documentMap.ContainsKey(documentKey))
                     {
-                        if (_documentMap.ContainsKey(documentKey))
+                        hasAssociatedRoslynDocument = true;
+                        var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
+
+                        // If we already have an ITextBuffer for this document, then we can open it now.
+                        // Otherwise, setup an event handler that will do it when the buffer loads.
+                        if (textBuffer != null)
                         {
-                            hasAssociatedRoslynDocument = true;
-                            var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
-
-                            // If we already have an ITextBuffer for this document, then we can open it now.
-                            // Otherwise, setup an event handler that will do it when the buffer loads.
-                            if (textBuffer != null)
+                            // We might already have this docCookie marked as open an older document. This can happen
+                            // if we're in the middle of a rename but this class hasn't gotten the notification yet but
+                            // another listener for RDT events got it
+                            if (_docCookiesToOpenDocumentKeys.ContainsKey(docCookie))
                             {
-                                // We might already have this docCookie marked as open an older document. This can happen
-                                // if we're in the middle of a rename but this class hasn't gotten the notification yet but
-                                // another listener for RDT events got it
-                                if (_docCookiesToOpenDocumentKeys.ContainsKey(docCookie))
-                                {
-                                    CloseDocuments_NoLock(docCookie, monikerToKeep: moniker);
-                                }
+                                CloseDocuments_NoLock(docCookie, monikerToKeep: moniker);
+                            }
 
-                                if (hierarchy == project.Hierarchy)
-                                {
-                                    // This is the current context
-                                    NewBufferOpened_NoLock(docCookie, textBuffer, documentKey, isCurrentContext: true);
-                                }
-                                else
-                                {
-                                    // This is a non-current linked context
-                                    NewBufferOpened_NoLock(docCookie, textBuffer, documentKey, isCurrentContext: false);
-                                }
+                            if (hierarchy == project.Hierarchy)
+                            {
+                                // This is the current context
+                                NewBufferOpened_NoLock(docCookie, textBuffer, documentKey, isCurrentContext: true);
                             }
                             else
                             {
-                                TextBufferDataEventsSink.HookupHandler(shimTextBuffer, onDocumentLoadCompleted: () => OnDocumentLoadCompleted(shimTextBuffer, documentKey, moniker));
+                                // This is a non-current linked context
+                                NewBufferOpened_NoLock(docCookie, textBuffer, documentKey, isCurrentContext: false);
                             }
+                        }
+                        else
+                        {
+                            TextBufferDataEventsSink.HookupHandler(shimTextBuffer, onDocumentLoadCompleted: () => OnDocumentLoadCompleted(shimTextBuffer, documentKey, moniker));
                         }
                     }
                 }
 
-                if (!hasAssociatedRoslynDocument && _documentTrackingServiceOpt != null && !_docCookiesToNonRoslynDocumentBuffers.ContainsKey(docCookie))
+                if (!hasAssociatedRoslynDocument && this._documentTrackingServiceOpt != null && !_docCookiesToNonRoslynDocumentBuffers.ContainsKey(docCookie))
                 {
                     // Non-Roslyn document opened.
                     var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
@@ -410,7 +409,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Contract.ThrowIfNull(textBuffer);
             Contract.ThrowIfNull(_documentTrackingServiceOpt);
 
-            _documentTrackingServiceOpt.OnNonRoslynBufferOpened(textBuffer);
+            this._documentTrackingServiceOpt.OnNonRoslynBufferOpened(textBuffer);
             _docCookiesToNonRoslynDocumentBuffers.Add(docCookie, textBuffer);
         }
 
@@ -421,7 +420,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var ids = GetDocumentIdsFromDocCookie(docCookie);
             foreach (var id in ids)
             {
-                _documentTrackingServiceOpt?.DocumentFrameShowing(frame, id, firstShow);
+                this._documentTrackingServiceOpt?.DocumentFrameShowing(frame, id, firstShow);
             }
         }
 
@@ -473,12 +472,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out var documentKeys))
             {
                 // Handle non-Roslyn document close.
-                if (_documentTrackingServiceOpt != null && _docCookiesToNonRoslynDocumentBuffers.TryGetValue(docCookie, out ITextBuffer textBuffer))
+                if (this._documentTrackingServiceOpt != null && _docCookiesToNonRoslynDocumentBuffers.TryGetValue(docCookie, out ITextBuffer textBuffer))
                 {
                     var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
                     if (!StringComparer.OrdinalIgnoreCase.Equals(moniker, monikerToKeep))
                     {
-                        _documentTrackingServiceOpt.OnNonRoslynBufferClosed(textBuffer);
+                        this._documentTrackingServiceOpt.OnNonRoslynBufferClosed(textBuffer);
                         _docCookiesToNonRoslynDocumentBuffers.Remove(docCookie);
                     }
                 }
@@ -532,7 +531,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_Hierarchy) != 0)
             {
-                var itemidChanged = (grfAttribs & (uint)__VSRDTATTRIB.RDTA_ItemID) != 0;
+                bool itemidChanged = (grfAttribs & (uint)__VSRDTATTRIB.RDTA_ItemID) != 0;
                 OnHierarchyChanged(docCookie, pHierOld, itemidOld, pHierNew, itemidNew, itemidChanged);
             }
         }
@@ -619,7 +618,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             foreach (var document in documents)
             {
-                if (document.Project.Workspace is VisualStudioWorkspace workspace)
+                var workspace = document.Project.Workspace as VisualStudioWorkspace;
+                if (workspace != null)
                 {
                     workspace.RenameFileCodeModelInstance(document.Id, newMoniker);
                 }

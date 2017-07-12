@@ -441,5 +441,13 @@ namespace Roslyn.Test.Utilities
                 throw new NotImplementedException();
             }
         }
+
+        public override int ERR_InvalidDebugInfo
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 }
