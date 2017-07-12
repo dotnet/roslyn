@@ -168,6 +168,7 @@
     <Compile Include="PDB\PDBWinMdExpTests.cs" />
     <Compile Include="PDB\PortablePdbTests.cs" />
     <Compile Include="Perf.cs" />
+    <Compile Include="PrivateProtected.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

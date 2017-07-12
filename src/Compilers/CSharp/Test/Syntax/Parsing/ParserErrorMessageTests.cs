@@ -124,7 +124,12 @@ public class C
     }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadMemberProtection, "internal"));
+            ParseAndValidate(test);
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,27): error CS0107: More than one protection modifier
+                //     private internal void f() {}
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "f").WithLocation(4, 27)
+                );
         }
 
         [Fact, WorkItem(543622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543622")]
