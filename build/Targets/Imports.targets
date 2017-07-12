@@ -503,5 +503,8 @@
     <!-- XAML pages and resources -->
     <None Include="@(Page)" />
     <None Include="@(Resource)" />
+
+    <!-- Special items in VSSDK projects -->
+    <None Include="@(VSCTCompile)" />
   </ItemGroup>
 </Project>
