@@ -372,34 +372,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.FieldAccess:
                         var field = (BoundFieldAccess)expression;
-                        if (field.FieldSymbol.IsReadOnly)
+                        var fiedlSymbol = field.FieldSymbol;
+                        if (fiedlSymbol.IsStatic)
                         {
-                            if (field.FieldSymbol.IsStatic) return field;
-                            if (field.FieldSymbol.ContainingType.IsValueType) goto default;
-                            // save the receiver; can get the field later.
-                            var receiver = Spill(builder, field.ReceiverOpt, (refKind != RefKind.None && field.FieldSymbol.Type.IsReferenceType) ? refKind : RefKind.None, sideEffectsOnly);
-                            return field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
+                            // no need to spill static fields if used as locations or if readonly
+                            if (refKind != RefKind.None || fiedlSymbol.IsReadOnly)
+                            {
+                                return field;
+                            }
+                            goto default;
                         }
-                        goto default;
+
+                        if (refKind == RefKind.None) goto default;
+
+                        var receiver = Spill(builder, field.ReceiverOpt, field.FieldSymbol.ContainingType.IsValueType ? refKind : RefKind.None);
+                        return field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
 
                     case BoundKind.Call:
                         var call = (BoundCall)expression;
-                        if (refKind != RefKind.None)
+                        if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
                         {
                             Debug.Assert(call.Method.RefKind != RefKind.None);
                             _F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, _F.Syntax.Location, call.Method);
-                            refKind = RefKind.None; // Switch the RefKind to avoid asserting later in the pipeline
                         }
+                        // method call is not referentially transparent, we can only spill the result value. 
+                        refKind = RefKind.None; 
                         goto default;
 
                     case BoundKind.ConditionalOperator:
                         var conditional = (BoundConditionalOperator)expression;
-                        if (refKind != RefKind.None)
+                        if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
                         {
                             Debug.Assert(conditional.IsByRef);
                             _F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, _F.Syntax.Location);
-                            refKind = RefKind.None; // Switch the RefKind to avoid asserting later in the pipeline
                         }
+                        refKind = RefKind.None;
+                        // conditional expr is not referentially transparent, we can only spill the result value. 
                         goto default;
 
                     case BoundKind.Literal:
@@ -444,6 +452,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool forceSpill = false,
             bool sideEffectsOnly = false)
         {
+            Debug.Assert(refKinds.IsDefaultOrEmpty || refKinds.Length == args.Length);
+
             var newList = VisitList(args);
             Debug.Assert(newList.Length == args.Length);
 
@@ -478,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = ArrayBuilder<BoundExpression>.GetInstance();
             for (int i = 0; i <= lastSpill; i++)
             {
-                var refKind = (!refKinds.IsDefaultOrEmpty && refKinds.Length > i && refKinds[i] != RefKind.None) ? RefKind.Ref : RefKind.None;
+                var refKind = refKinds.IsDefaultOrEmpty? RefKind.None: refKinds[i];
                 var replacement = Spill(builder, newList[i], refKind, sideEffectsOnly);
 
                 Debug.Assert(sideEffectsOnly || replacement != null);
@@ -673,19 +683,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var right = VisitExpression(ref builder, node.Right);
-            BoundExpression left;
-            if (builder == null || node.Left.Kind == BoundKind.Local)
+
+            BoundExpression left = node.Left;
+            if (builder == null)
             {
-                left = VisitExpression(ref builder, node.Left);
+                left = VisitExpression(ref builder, left);
             }
             else
             {
                 // if the right-hand-side has await, spill the left
                 var leftBuilder = new BoundSpillSequenceBuilder();
-                left = VisitExpression(ref leftBuilder, node.Left);
-                if (left.Kind != BoundKind.Local)
+
+                switch (left.Kind)
                 {
-                    left = Spill(leftBuilder, left, RefKind.Ref);
+                    case BoundKind.Local:
+                    case BoundKind.Parameter:
+                        // locals and parameters are directly assignable, LHS is not on the stack so nothing to spill
+                        break;
+
+                    case BoundKind.FieldAccess:
+                        var field = (BoundFieldAccess)left;
+                        // static fields are directly assignable, LHS is not on th estack, nothing to spill
+                        if (field.FieldSymbol.IsStatic) break;
+
+                        // instance fields are directly assignable, but receiver is pushed, so need to spill that.
+                        var receiver = VisitExpression(ref leftBuilder, field.ReceiverOpt);
+                        receiver = Spill(builder, receiver, field.FieldSymbol.ContainingType.IsValueType ? RefKind.Ref : RefKind.None);
+                        left = field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
+                        break;
+
+                    case BoundKind.ArrayAccess:
+                        var arrayAccess = (BoundArrayAccess)left;
+                        // array and indices are pushed on stack so need to spill that
+                        var expression = VisitExpression(ref leftBuilder, arrayAccess.Expression);
+                        expression = Spill(builder, expression, RefKind.None);
+                        var indices = this.VisitExpressionList(ref builder, arrayAccess.Indices, forceSpill: true);
+                        left = arrayAccess.Update(expression, indices, arrayAccess.Type);
+                        break;
+
+                    default:
+                        // must be indirectly assignable, just visit and spill
+                        left = Spill(leftBuilder, VisitExpression(ref leftBuilder, left), RefKind.Ref);
+                        break;
                 }
 
                 leftBuilder.Include(builder);

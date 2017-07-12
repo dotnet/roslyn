@@ -771,7 +771,7 @@ class Program
 
         [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
         [Fact]
-        public void ReadonlyParamAsyncSpill3()
+        public void ReadonlyParamAsyncSpillMethods()
         {
             var text = @"
 using System.Threading.Tasks;
@@ -787,20 +787,15 @@ class Program
     {
         var local = new S1();
 
+        // BASELINE - without an await
         // prints   3 42 3 3       note the aliasing, 3 is the last state of the local.f
         M1(GetLocal(ref local).f,             42, GetLocal(ref local).f, GetLocal(ref local).f);
 
         local = new S1();
 
-        // prints   1 42 3 3       note no aliasing for the first argument because of spilling
+        // prints   1 42 3 3       note no aliasing for the first argument because of spilling of a call
         M1(GetLocal(ref local).f, await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
-
-        local = new S1();
-
-        // prints   0 42 2 2       note no aliasing for the first argument because of spilling
-        // NOTE!!! in this case we _could_ actually arrange aliasing and we would, if it was an ordinary 'ref'
-        M1(local.f, await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
-        }
+    }
 
         private static ref readonly S1 GetLocal(ref S1 local)
     {
@@ -839,11 +834,184 @@ public struct S1
 1
 42
 3
-3
-0
+3");
+        }
+
+        [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
+        [Fact]
+        public void ReadonlyParamAsyncSpillStructField()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test().Wait();
+    }
+
+    public static async Task Test()
+    {
+        var local = new S1();
+
+        // prints   2 42 2 2       note aliasing for all arguments regardless of spilling
+        M1(local.f, await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
+    }
+
+        private static ref readonly S1 GetLocal(ref S1 local)
+    {
+        local.f++;
+        return ref local;
+    }
+
+    public static async Task<T> GetT<T>(T val)
+    {
+        await Task.Yield();
+        return val;
+    }
+
+    public static void M1(in int arg1, in int arg2, in int arg3, in int arg4)
+    {
+        System.Console.WriteLine(arg1);
+        System.Console.WriteLine(arg2);
+        System.Console.WriteLine(arg3);
+        System.Console.WriteLine(arg4);
+    }
+}
+
+public struct S1
+{
+    public int f;
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: false, expectedOutput: @"
+2
 42
 2
 2");
         }
+
+        [Fact]
+        public void ReadonlyParamAsyncSpillClassField()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test().Wait();
+    }
+
+    public static async Task Test()
+    {
+        var local = new S1();
+
+        // prints   2 42 2 2       note aliasing for all arguments regardless of spilling
+        M1(local.f, await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
+    }
+
+        private static ref readonly S1 GetLocal(ref S1 local)
+    {
+        local.f++;
+        return ref local;
+    }
+
+    public static async Task<T> GetT<T>(T val)
+    {
+        await Task.Yield();
+        return val;
+    }
+
+    public static void M1(in int arg1, in int arg2, in int arg3, in int arg4)
+    {
+        System.Console.WriteLine(arg1);
+        System.Console.WriteLine(arg2);
+        System.Console.WriteLine(arg3);
+        System.Console.WriteLine(arg4);
+    }
+}
+
+public class S1
+{
+    public int f;
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: false, expectedOutput: @"
+2
+42
+2
+2");
+        }
+
+        [Fact]
+        public void ReadonlyParamAsyncSpillExtension()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test().Wait();
+    }
+
+    public static async Task Test()
+    {
+        var local = new S1();
+
+        // prints   2 42 2 2       note aliasing for all arguments regardless of spilling
+        local.f.M1(await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
+    }
+
+    private static ref readonly S1 GetLocal(ref S1 local)
+    {
+        local.f++;
+        return ref local;
+    }
+
+    public static async Task<T> GetT<T>(T val)
+    {
+        await Task.Yield();
+        return val;
+    }
+}
+
+static class Ext
+{
+    public static void M1(in this int arg1, in int arg2, in int arg3, in int arg4)
+    {
+        System.Console.WriteLine(arg1);
+        System.Console.WriteLine(arg2);
+        System.Console.WriteLine(arg3);
+        System.Console.WriteLine(arg4);
+    }
+}
+
+public struct S1
+{
+    public int f;
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: false, expectedOutput: @"
+2
+42
+2
+2");
+        }
+
+
     }
 }

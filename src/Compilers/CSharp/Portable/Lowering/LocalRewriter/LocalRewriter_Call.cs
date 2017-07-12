@@ -391,10 +391,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
+            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
 
             if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
             {
                 temps = temporariesBuilder.ToImmutableAndFree();
+                argumentRefKindsOpt = GetEffectiveArgumentRefKinds(argumentRefKindsOpt, parameters);
+
                 return rewrittenArguments;
             }
 
@@ -447,7 +450,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We start by binding everything that is not obviously reorderable as a temporary, and
             // then run an optimizer to remove unnecessary temporaries.
 
-            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
             BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
             ArrayBuilder<BoundAssignmentOperator> storesToTemps = ArrayBuilder<BoundAssignmentOperator>.GetInstance(rewrittenArguments.Length);
             ArrayBuilder<RefKind> refKinds = ArrayBuilder<RefKind>.GetInstance(parameters.Length, RefKind.None);
@@ -490,6 +492,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             refKinds.Free();
 
             return actualArguments.AsImmutableOrNull();
+        }
+
+        /// <summary>
+        /// patch refKinds for "redonly ref" to have effective RefReadOnly kind.
+        /// </summary>
+        private static ImmutableArray<RefKind> GetEffectiveArgumentRefKinds(ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<ParameterSymbol> parameters)
+        {
+            ArrayBuilder<RefKind> refKindsBuilder = null;
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                var paramRefKind = parameters[i].RefKind;
+                if (paramRefKind == RefKind.RefReadOnly)
+                {
+                    if (refKindsBuilder == null)
+                    {
+                        if (!argumentRefKindsOpt.IsDefault)
+                        {
+                            Debug.Assert(!argumentRefKindsOpt.IsEmpty);
+                            refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parameters.Length);
+                            refKindsBuilder.AddRange(argumentRefKindsOpt);
+                        }
+                        else
+                        {
+                            refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parameters.Length, fillWithValue: RefKind.None);
+                        }
+                    }
+
+                    refKindsBuilder[i] = paramRefKind;
+                }
+            }
+
+            if (refKindsBuilder != null)
+            {
+                argumentRefKindsOpt = refKindsBuilder.ToImmutableAndFree();
+            }
+
+            return argumentRefKindsOpt;
         }
 
         internal static ImmutableArray<IArgument> MakeArgumentsInEvaluationOrder(
