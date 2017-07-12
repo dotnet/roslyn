@@ -344,7 +344,7 @@ function Test-XUnit() {
     }
 
     # Exclude out the multi-targetted netcore app projects
-    $dlls = $dlls | ? { -not ($_ -match ".*\wnetcoreapp2.0\w.*" }
+    $dlls = $dlls | ? { -not ($_ -match ".*\wnetcoreapp2.0\w.*") }
 
     if ($cibuild) {
         # Use a 50 minute timeout on CI
