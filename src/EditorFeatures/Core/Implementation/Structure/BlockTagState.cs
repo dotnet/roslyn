@@ -77,12 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             var roles = textEditorFactoryService.CreateTextViewRoleSet(OutliningRegionTextViewRole);
             var view = textEditorFactoryService.CreateTextView(finalBuffer, roles);
 
+            view.SizeToContentsAndScale();
             view.Background = Brushes.Transparent;
-
-            view.SizeToFit();
-
-            // Zoom out a bit to shrink the text.
-            view.ZoomLevel *= 0.75;
 
             return view;
         }

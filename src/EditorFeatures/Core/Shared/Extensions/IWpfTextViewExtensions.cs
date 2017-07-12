@@ -1,16 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Windows.Media;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class IWpfTextViewExtensions
     {
-        public static void SizeToFit(this IWpfTextView view)
+        public static void SizeToContentsAndScale(this IWpfTextView view, double scaleFactor = 0.75)
         {
             // Computing the height of something is easy.
             view.VisualElement.Height = view.LineHeight * view.TextBuffer.CurrentSnapshot.LineCount;
+            
+            // view.ZoomLevel can cause clipping so use a ScaleTransform instead.
+            view.VisualElement.LayoutTransform = new ScaleTransform(scaleFactor, scaleFactor);
 
             // Computing the width... less so. We need "MaxTextRightCoordinate", but we won't have
             // that until a layout occurs.  Fortunately, a layout is going to occur because we set
