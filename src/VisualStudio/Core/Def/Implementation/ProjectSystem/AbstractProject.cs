@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly List<ProjectReference> _projectReferences = new List<ProjectReference>();
         private readonly List<VisualStudioMetadataReference> _metadataReferences = new List<VisualStudioMetadataReference>();
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _documents = new Dictionary<DocumentId, IVisualStudioHostDocument>();
-        private readonly MultiDictionary<string, IVisualStudioHostDocument> _documentMonikers = new MultiDictionary<string, IVisualStudioHostDocument>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, (IVisualStudioHostDocument source, IVisualStudioHostDocument additionalDocument)> _documentMonikers = new Dictionary<string, (IVisualStudioHostDocument source, IVisualStudioHostDocument additionalDocument)>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzers = new Dictionary<string, VisualStudioAnalyzer>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _additionalDocuments = new Dictionary<DocumentId, IVisualStudioHostDocument>();
 
@@ -410,12 +410,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                foreach (var document in _documentMonikers[filePath])
+                if (_documentMonikers.TryGetValue(filePath, out var value))
                 {
-                    if (document.Key.IsAdditionalFile == additionalFile)
-                    {
-                        return document;
-                    }
+                    return additionalFile
+                        ? value.additionalDocument
+                        : value.source;
                 }
 
                 return null;
@@ -1040,7 +1039,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 lock (_gate)
                 {
                     _documents.Add(document.Id, document);
-                    AddMoniker(document);
+                    AddToMonikerToDocumentMap(document, additionalDocument: false);
                 }
 
                 if (_pushingChangesToWorkspaceHosts)
@@ -1079,7 +1078,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 lock (_gate)
                 {
                     _documents.Remove(document.Id);
-                    RemoveMoniker(document);
+                    RemoveFromMonikerToDocumentMap(document, additionalDocument: false);
                 }
 
                 UninitializeDocument(document);
@@ -1094,7 +1093,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 _additionalDocuments.Add(document.Id, document);
-                AddMoniker(document);
+                AddToMonikerToDocumentMap(document, additionalDocument: true);
             }
 
             if (_pushingChangesToWorkspaceHosts)
@@ -1122,29 +1121,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 _additionalDocuments.Remove(document.Id);
-                RemoveMoniker(document);
+                RemoveFromMonikerToDocumentMap(document, additionalDocument: true);
             }
 
             UninitializeAdditionalDocument(document);
         }
 
-        private void AddMoniker(IVisualStudioHostDocument document)
+        private void AddToMonikerToDocumentMap(IVisualStudioHostDocument document, bool additionalDocument)
         {
             var moniker = document.Key.Moniker;
-            _documentMonikers.Add(moniker, document);
+            _documentMonikers.TryGetValue(moniker, out var value);
+
+            if (additionalDocument)
+            {
+                Contract.ThrowIfTrue(value.additionalDocument != null);
+                value.additionalDocument = document;
+            }
+            else
+            {
+                Contract.ThrowIfTrue(value.source != null);
+                value.source = document;
+            }
+
+            _documentMonikers[moniker] = value;
         }
 
-        private void RemoveMoniker(IVisualStudioHostDocument document)
+        private void RemoveFromMonikerToDocumentMap(IVisualStudioHostDocument document, bool additionalDocument)
         {
             var moniker = document.Key.Moniker;
-            var values = _documentMonikers[moniker];
-            _documentMonikers.Remove(moniker);
-            foreach (var value in values)
+            if (_documentMonikers.TryGetValue(moniker, out var value))
             {
-                if (value != document)
+                if (additionalDocument)
                 {
-                    _documentMonikers.Add(moniker, value);
+                    Contract.ThrowIfNull(value.additionalDocument);
+
+                    if (value.source == null)
+                    {
+                        _documentMonikers.Remove(moniker);
+                    }
+                    else
+                    {
+                        value.additionalDocument = null;
+                        _documentMonikers[moniker] = value;
+                    }
                 }
+                else
+                {
+                    Contract.ThrowIfNull(value.source);
+
+                    if (value.additionalDocument == null)
+                    {
+                        _documentMonikers.Remove(moniker);
+                    }
+                    else
+                    {
+                        value.source = null;
+                        _documentMonikers[moniker] = value;
+                    }
+                }
+            }
+            else
+            {
+                Contract.Fail($"Tried to remove a non-existing document: {moniker}, additional: {additionalDocument}");
             }
         }
 
