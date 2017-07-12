@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
                 if (shouldAnalyze)
                 {
-                    state = State.Generate(declarationStatement, semanticModel, optionSet, isVariableDeclarationContext: true, cancellationToken: cancellationToken);
+                    state = State.Generate(declarationStatement, semanticModel, optionSet, isVariableDeclarationContext: false, cancellationToken: cancellationToken);
                     shouldAnalyze = IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
                 }
             }
