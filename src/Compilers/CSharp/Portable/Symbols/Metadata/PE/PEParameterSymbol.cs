@@ -400,6 +400,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return value;
         }
 
+        internal override BoundExpression ExplicitDefaultExpression => null;
+
         internal override ConstantValue ExplicitDefaultConstantValue
         {
             get

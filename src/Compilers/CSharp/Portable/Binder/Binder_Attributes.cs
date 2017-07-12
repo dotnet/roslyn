@@ -285,6 +285,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var shouldHaveName = false;
 
+                // We assume that we cannot reference local variables in attributes in non-error cases.
+                // (as attributes in local functions are not allowed)
+                // As such, keep this simple and only visit fields.
+
+                var fieldUsePass = attributeArgumentList.Arguments.Count == 0 || this.IsSemanticModelBinder ?
+                    null :
+                    new FieldUsePass(this.Compilation.SourceAssembly);
+
                 foreach (var argument in attributeArgumentList.Arguments)
                 {
                     if (argument.NameEquals == null)
@@ -295,12 +303,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // Constructor argument
+                        var boundArgumentExpression = BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false);
+                        fieldUsePass?.Analyze(boundArgumentExpression, diagnostics);
                         hadError |= this.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
                             hadError,
                             argument,
-                            BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false),
+                            boundArgumentExpression,
                             argument.NameColon,
                             refKind: RefKind.None);
 
@@ -331,6 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         BoundExpression boundNamedArgument = BindNamedAttributeArgument(argument, attributeType, diagnostics);
+                        fieldUsePass?.Analyze(boundNamedArgument, diagnostics);
                         boundNamedArgumentsBuilder.Add(boundNamedArgument);
                         boundNamedArgumentsSet.Add(argumentName);
                     }

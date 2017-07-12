@@ -220,6 +220,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns the default expression of the parameter,
+        /// or null if the parameter doesn't have a default expression.
+        /// </summary>
+        internal abstract BoundExpression ExplicitDefaultExpression { get; }
+
+        /// <summary>
         /// Returns the default value constant of the parameter, 
         /// or null if the parameter doesn't have a default value or 
         /// the parameter type is a struct and the default value of the parameter

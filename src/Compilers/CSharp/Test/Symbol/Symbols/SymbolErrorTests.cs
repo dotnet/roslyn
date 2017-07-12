@@ -2624,10 +2624,7 @@ public class A4 : Attribute
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (5,46): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [System.Diagnostics.ConditionalAttribute(s)]   // CS0182
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "s"),
-                // (3,19): warning CS0414: The field 'MyClass.s' is assigned but its value is never used
-                //     static string s = "Test";
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("MyClass.s"));
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "s").WithLocation(5, 46));
         }
 
         [Fact]
@@ -15088,10 +15085,10 @@ using System.Runtime.CompilerServices;
             comp.VerifyDiagnostics(
                 // (4,33): error CS1736: Default parameter value for 'Para1' must be a compile-time constant
                 //     public void Foo(int Para1 = Age)
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Age").WithArguments("Para1"),
-                // (3,16): warning CS0169: The field 'A.Age' is never used
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Age").WithArguments("Para1").WithLocation(4, 33),
+                // (3,16): warning CS0649: Field 'A.Age' is never assigned to, and will always have its default value 0
                 //     static int Age;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Age").WithArguments("A.Age")
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Age").WithArguments("A.Age", "0").WithLocation(3, 16)
                 );
         }
 
@@ -15132,10 +15129,7 @@ class NamedExample
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (9,47): error CS1736: Default parameter value for 'height' must be a compile-time constant
                 //     int CalculateBMI(int weight, int height = y)
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "y").WithArguments("height"),
-                // (4,16): warning CS0414: The field 'NamedExample.y' is assigned but its value is never used
-                //     static int y = 1;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "y").WithArguments("NamedExample.y")
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "y").WithArguments("height").WithLocation(9, 47)
                 );
         }
 

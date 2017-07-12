@@ -77,6 +77,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SyntaxTree SyntaxTree => _syntaxRef == null ? null : _syntaxRef.SyntaxTree;
 
+        internal override BoundExpression ExplicitDefaultExpression
+        {
+            get
+            {
+                var diagnostics = DiagnosticBag.GetInstance();
+                MakeDefaultExpression(diagnostics, this.ParameterBinderOpt, out var result);
+                // Drop diagnostics. These are reported elsewhere (when computing DefaultSyntaxValue)
+                diagnostics.Free();
+                return result;
+            }
+        }
+
         internal override ConstantValue ExplicitDefaultConstantValue
         {
             get
@@ -154,20 +166,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        protected ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, Binder binder)
+        {
+            var result = MakeDefaultExpression(diagnostics, binder, out var convertedExpression);
+
+            if (binder?.IsSemanticModelBinder != true)
+            {
+                // It is okay to call this multiple times (in a multithreaded environment),
+                // as the only thing VariableUsePass is add/remove members from sets,
+                // which can be performed multiple times with no further effect.
+                new FieldUsePass(this.DeclaringCompilation.SourceAssembly).Analyze(convertedExpression, diagnostics);
+            }
+
+            return result;
+        }
+
         // If binder is null, then get it from the compilation. Otherwise use the provided binder.
         // Don't always get it from the compilation because we might be in a speculative context (local function parameter),
         // in which case the declaring compilation is the wrong one.
-        protected ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, Binder binder)
+        protected ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, Binder binder, out BoundExpression expressionOpt)
         {
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
             {
+                expressionOpt = null;
                 return ConstantValue.NotAvailable;
             }
 
             var defaultSyntax = parameterSyntax.Default;
             if (defaultSyntax == null)
             {
+                expressionOpt = null;
                 return ConstantValue.NotAvailable;
             }
 
@@ -195,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, diagnostics);
             if (hasErrors)
             {
+                expressionOpt = convertedExpression;
                 return ConstantValue.Bad;
             }
 
@@ -213,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // represent default(struct) by a Null constant:
             var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
             VerifyParamDefaultValueMatchesAttributeIfAny(value, defaultSyntax.Value, diagnostics);
+            expressionOpt = convertedExpression;
             return value;
         }
 

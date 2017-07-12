@@ -93,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
+        internal override BoundExpression ExplicitDefaultExpression
+        {
+            get { return null; }
+        }
+
         internal override ConstantValue ExplicitDefaultConstantValue
         {
             get { return null; }

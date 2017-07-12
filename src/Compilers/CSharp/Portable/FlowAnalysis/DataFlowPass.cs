@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledHashSet<LocalFunctionSymbol> _usedLocalFunctions = PooledHashSet<LocalFunctionSymbol>.GetInstance();
 
+        private readonly LocalVariableUsePass _variableUsePass;
+
         /// <summary>
         /// Variables that were initialized or written anywhere.
         /// </summary>
@@ -161,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _emptyStructTypeCache = new EmptyStructTypeCache(compilation, !strict);
             _requireOutParamsAssigned = requireOutParamsAssigned;
             this.topLevelMethod = member as MethodSymbol;
+            _variableUsePass = new LocalVariableUsePass(_usedVariables, _usedLocalFunctions);
         }
 
         internal DataFlowPass(
@@ -180,6 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _emptyStructTypeCache = emptyStructs ?? new EmptyStructTypeCache(compilation, !strict);
             _requireOutParamsAssigned = true;
             this.topLevelMethod = member as MethodSymbol;
+            _variableUsePass = new LocalVariableUsePass(_usedVariables, _usedLocalFunctions);
         }
 
         /// <summary>
@@ -201,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.currentMethodOrLambda = member as MethodSymbol;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _emptyStructTypeCache = new NeverEmptyStructTypeCache();
+            _variableUsePass = new LocalVariableUsePass(_usedVariables, _usedLocalFunctions);
         }
 
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
@@ -474,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)_sourceAssembly != null && variable.Kind == SymbolKind.Field)
                 {
-                    _sourceAssembly.NoteFieldAccess((FieldSymbol)variable.OriginalDefinition,
+                    _sourceAssembly.NoteFieldAccess((FieldSymbol)variable,
                                                     read: true,
                                                     write: false);
                 }
@@ -549,8 +554,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _writtenVariables.Add(variable);
                 if ((object)_sourceAssembly != null && variable.Kind == SymbolKind.Field)
                 {
-                    var field = (FieldSymbol)variable.OriginalDefinition;
-                    _sourceAssembly.NoteFieldAccess(field, read: read && WriteConsideredUse(field.Type, value), write: true);
+                    var field = (FieldSymbol)variable;
+                    _sourceAssembly.NoteFieldAccess(field, read: read && WriteConsideredUse(field.OriginalDefinition.Type, value), write: true);
                 }
 
                 var local = variable as LocalSymbol;
@@ -646,8 +651,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var fieldAccess = (BoundFieldAccess)n;
                             if ((object)_sourceAssembly != null)
                             {
-                                var field = fieldAccess.FieldSymbol.OriginalDefinition;
-                                _sourceAssembly.NoteFieldAccess(field, read: value == null || WriteConsideredUse(fieldAccess.FieldSymbol.Type, value), write: true);
+                                var field = fieldAccess.FieldSymbol;
+                                _sourceAssembly.NoteFieldAccess(field, read: value == null || WriteConsideredUse(field.Type, value), write: true);
                             }
 
                             if (MayRequireTracking(fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol))
@@ -673,8 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 if ((object)_sourceAssembly != null)
                                 {
-                                    var field = associatedField.OriginalDefinition;
-                                    _sourceAssembly.NoteFieldAccess(field, read: value == null || WriteConsideredUse(associatedField.Type, value), write: true);
+                                    _sourceAssembly.NoteFieldAccess(associatedField, read: value == null || WriteConsideredUse(associatedField.Type, value), write: true);
                                 }
 
                                 if (MayRequireTracking(eventAccess.ReceiverOpt, associatedField))
@@ -2211,7 +2215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)_sourceAssembly != null && node.MemberSymbol != null && node.MemberSymbol.Kind == SymbolKind.Field)
             {
-                _sourceAssembly.NoteFieldAccess((FieldSymbol)node.MemberSymbol.OriginalDefinition, read: false, write: true);
+                _sourceAssembly.NoteFieldAccess((FieldSymbol)node.MemberSymbol, read: false, write: true);
             }
 
             return result;

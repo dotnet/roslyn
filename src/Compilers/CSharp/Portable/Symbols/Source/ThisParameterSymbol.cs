@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (Symbol)_containingMethod ?? _containingType; }
         }
 
+        internal override BoundExpression ExplicitDefaultExpression => null;
+
         internal override ConstantValue ExplicitDefaultConstantValue
         {
             get { return null; }
