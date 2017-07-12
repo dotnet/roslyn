@@ -102,14 +102,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Contract.ThrowIfNull(_solutionInfo);
 
-            return GetSolutionAsync(_solutionInfo, cancellationToken);
+            return GetSolutionAsync(RoslynServices, _solutionInfo, cancellationToken);
         }
 
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage);
-            var solutionController = (ISolutionController)localRoslynService.SolutionService;
-            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, cancellationToken);
+            return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -163,6 +162,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 // servicehub\log files. one can still make this to write logs by opting in.
                 Log(TraceEventType.Warning, $"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
             }
+        }
+
+        private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            var solutionController = (ISolutionController)roslynService.SolutionService;
+            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, cancellationToken);
         }
     }
 }
