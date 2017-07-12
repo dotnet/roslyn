@@ -28,7 +28,7 @@
         <_IsAnyUnitTest>true</_IsAnyUnitTest>
         <_IsAnyPortableUnitTest>true</_IsAnyPortableUnitTest>
         <CopyNuGetImplementations>false</CopyNuGetImplementations>
-        <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
+        <OutputPath>$(OutputPath)UnitTests\$(MSBuildProjectName)\</OutputPath>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'Vsix'">
