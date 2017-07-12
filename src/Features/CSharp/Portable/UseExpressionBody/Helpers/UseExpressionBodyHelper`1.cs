@@ -132,8 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return (canOffer, fixesError: false);
             }
 
+            var languageVersion = ((CSharpParseOptions)declaration.SyntaxTree.Options).LanguageVersion;
             if (expressionBodyOpt.Expression.IsKind(SyntaxKind.ThrowExpression) &&
-                ((CSharpParseOptions)declaration.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
+                languageVersion < LanguageVersion.CSharp7)
             {
                 // If they're using a throw expression in a declaration and it's prior to C# 7
                 // then always mark this as something that can be fixed by the analyzer.  This way
@@ -141,12 +142,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return (canOffer, fixesError: true);
             }
 
-            if (declaration is AccessorDeclarationSyntax &&
-                ((CSharpParseOptions)declaration.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
+            var isAccessorOrConstructor = declaration is AccessorDeclarationSyntax ||
+                                          declaration is ConstructorDeclarationSyntax;
+            if (isAccessorOrConstructor &&
+                languageVersion < LanguageVersion.CSharp7)
             {
-                // If they're using expression bodies for accessors and it's prior to C# 7
+                // If they're using expression bodies for accessors/constructors and it's prior to C# 7
                 // then always mark this as something that can be fixed by the analyzer.  This way
                 // we'll also get 'fix all' working to fix all these cases.
+                return (canOffer, fixesError: true);
+            }
+            else if (languageVersion < LanguageVersion.CSharp6)
+            {
+                // If they're using expression bodies prior to C# 6, then always mark this as something
+                // that can be fixed by the analyzer.  This way we'll also get 'fix all' working to fix 
+                // all these cases.
                 return (canOffer, fixesError: true);
             }
 
