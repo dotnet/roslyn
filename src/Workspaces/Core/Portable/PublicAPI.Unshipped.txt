@@ -22,3 +22,4 @@ abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleExpression(System.C
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithAccessorDeclarations(Microsoft.CodeAnalysis.SyntaxNode declaration, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> accessorDeclarations) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Workspace.ApplyDocumentInfoChanged(Microsoft.CodeAnalysis.DocumentId id, Microsoft.CodeAnalysis.DocumentInfo info) -> void
 virtual Microsoft.CodeAnalysis.Workspace.CanApplyParseOptionChange(Microsoft.CodeAnalysis.ParseOptions oldOptions, Microsoft.CodeAnalysis.ParseOptions newOptions, Microsoft.CodeAnalysis.Project project) -> bool
+static Microsoft.CodeAnalysis.Editing.SyntaxEditorExtensions.InsertParameter(this Microsoft.CodeAnalysis.Editing.SyntaxEditor editor, Microsoft.CodeAnalysis.SyntaxNode declaration, int index, Microsoft.CodeAnalysis.SyntaxNode parameter) -> void

@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     NonParamsParameterCount(constructor) < arguments.Count)
                 {
                     var argumentToAdd = DetermineFirstArgumentToAdd(
-                        semanticModel, syntaxFacts, comparer, constructor, 
+                        semanticModel, syntaxFacts, comparer, constructor,
                         arguments, argumentOpt);
 
                     if (argumentToAdd != null)
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
         private async Task<Document> FixAsync(
-            Document invocationDocument, 
+            Document invocationDocument,
             IMethodSymbol method,
             TArgumentSyntax argument,
             SeparatedSyntaxList<TArgumentSyntax> argumentList,
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             AddParameter(
                 syntaxFacts, editor, methodDeclaration, argument,
                 insertionIndex, parameterDeclaration, cancellationToken);
-            
+
             var newRoot = editor.GetChangedRoot();
             var newDocument = methodDocument.WithSyntaxRoot(newRoot);
 
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 // Placing the last parameter on its own line.  Get the indentation of the 
                 // curent last parameter and give the new last parameter the same indentation.
                 var leadingIndentation = GetDesiredLeadingIndentation(
-                    generator, syntaxFacts, existingParameters.Last(), includeLeadingNewLine: true);
+                    generator, syntaxFacts, existingParameters[existingParameters.Count - 1], includeLeadingNewLine: true);
                 parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation)
                                                             .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static List<SyntaxTrivia> GetDesiredLeadingIndentation(
-            SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, 
+            SyntaxGenerator generator, ISyntaxFactsService syntaxFacts,
             SyntaxNode node, bool includeLeadingNewLine)
         {
             var triviaList = new List<SyntaxTrivia>();
@@ -346,8 +346,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 triviaList.Add(generator.ElasticCarriageReturnLineFeed);
             }
 
-            var lastWhitespace = default(SyntaxTrivia); 
-            foreach(var trivia in node.GetLeadingTrivia().Reverse())
+            var lastWhitespace = default(SyntaxTrivia);
+            foreach (var trivia in node.GetLeadingTrivia().Reverse())
             {
                 if (syntaxFacts.IsWhitespaceTrivia(trivia))
                 {
