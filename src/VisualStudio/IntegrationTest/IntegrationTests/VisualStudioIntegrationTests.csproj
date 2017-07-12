@@ -21,6 +21,7 @@
     <Compile Include="AbstractInteractiveWindowTest.cs" />
     <Compile Include="CSharp\CSharpReferenceHighlighting.cs" />
     <Compile Include="CSharp\CSharpEncapsulateField.cs" />
+    <Compile Include="CSharp\CSharpEventHookUp.cs" />
     <Compile Include="CSharp\CSharpF1Help.cs" />
     <Compile Include="CSharp\CSharpInteractiveBoxSelection.cs" />
     <Compile Include="CSharp\CSharpFormatting.cs" />
