@@ -102,8 +102,14 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Contract.ThrowIfNull(_solutionInfo);
 
-            var solutionController = (ISolutionController)RoslynServices.SolutionService;
-            return solutionController.GetSolutionAsync(_solutionInfo.SolutionChecksum, _solutionInfo.FromPrimaryBranch, cancellationToken);
+            return GetSolutionAsync(_solutionInfo, cancellationToken);
+        }
+
+        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage);
+            var solutionController = (ISolutionController)localRoslynService.SolutionService;
+            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, cancellationToken);
         }
 
         protected virtual void Dispose(bool disposing)
