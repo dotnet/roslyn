@@ -191,8 +191,13 @@ of the problem.");
         private static IList<Exception> Flatten(ICollection<Exception> exceptions)
         {
             var aggregate = new AggregateException(exceptions);
-            return aggregate.Flatten().InnerExceptions;
+            return aggregate.Flatten().InnerExceptions
+                .Select(UnwrapException)
+                .ToList();
         }
+
+        private static Exception UnwrapException(Exception ex)
+            => ex is TargetInvocationException targetEx ? (targetEx.InnerException ?? targetEx) : ex;
 
         internal void AddTestSolution(TestHostSolution solution)
         {
