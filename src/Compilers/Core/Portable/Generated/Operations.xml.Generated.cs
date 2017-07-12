@@ -858,6 +858,97 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a sequence of expressions.
+    /// </summary>
+    internal abstract partial class BaseSequenceExpression : Operation, ISequenceExpression
+    {
+        protected BaseSequenceExpression(ImmutableArray<ILocalSymbol> locals, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.BlockStatement, syntax, type, constantValue)
+        {
+            Locals = locals;
+        }
+        /// <summary>
+        /// Expressions contained within the sequence.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> Expressions { get; }
+        /// <summary>
+        /// The value of the whole sequence expression.
+        /// </summary>
+        public abstract IOperation Value { get; }
+        /// <summary>
+        /// Local declarations contained within the sequence.
+        /// </summary>
+        public ImmutableArray<ILocalSymbol> Locals { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var statement in Expressions)
+                {
+                    yield return statement;
+                }
+
+                yield return Value;
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSequenceExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSequenceExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a sequence of expressions.
+    /// </summary>
+    internal sealed partial class SequenceExpression : BaseSequenceExpression, ISequenceExpression
+    {
+        public SequenceExpression(ImmutableArray<IOperation> expressions, IOperation value, ImmutableArray<ILocalSymbol> locals, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(locals, syntax, type, constantValue)
+        {
+            Expressions = expressions;
+            Value = value;
+        }
+        /// <summary>
+        /// Expressions contained within the sequence.
+        /// </summary>
+        public override ImmutableArray<IOperation> Expressions { get; }
+        /// <summary>
+        /// The value of the whole sequence expression.
+        /// </summary>
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents a sequence of expressions.
+    /// </summary>
+    internal sealed partial class LazySequenceExpression : BaseSequenceExpression, ISequenceExpression
+    {
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyExpressions;
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazySequenceExpression(Lazy<ImmutableArray<IOperation>> expressions, Lazy<IOperation> value, ImmutableArray<ILocalSymbol> locals, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(locals, syntax, type, constantValue)
+        {
+            _lazyExpressions = expressions;
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+        /// <summary>
+        /// Expressions contained within the sequence.
+        /// </summary>
+        public override ImmutableArray<IOperation> Expressions => _lazyExpressions.Value;
+        /// <summary>
+        /// The value of the whole sequence expression.
+        /// </summary>
+        public override IOperation Value => _lazyValue.Value;
+    }
+
+    /// <summary>
     /// Represents a conditional goto statement
     /// </summary>
     internal abstract partial class BaseConditionalGotoStatement : Operation, IConditionalGotoStatement

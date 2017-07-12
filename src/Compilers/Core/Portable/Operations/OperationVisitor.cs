@@ -469,6 +469,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
+
+        public virtual void VisitSequenceExpression(ISequenceExpression operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -941,6 +946,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitConditionalGotoStatement(IConditionalGotoStatement operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitSequenceExpression(ISequenceExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
