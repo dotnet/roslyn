@@ -141,6 +141,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return (canOffer, fixesError: true);
             }
 
+            if (declaration is AccessorDeclarationSyntax &&
+                ((CSharpParseOptions)declaration.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
+            {
+                // If they're using expression bodies for accessors and it's prior to C# 7
+                // then always mark this as something that can be fixed by the analyzer.  This way
+                // we'll also get 'fix all' working to fix all these cases.
+                return (canOffer, fixesError: true);
+            }
+
             // If the user likes block bodies, then we offer block bodies from the diagnostic analyzer.
             // If the user does not like block bodies then we offer block bodies from the refactoring provider.
             return (userPrefersBlockBodies == forAnalyzer, fixesError: false);
