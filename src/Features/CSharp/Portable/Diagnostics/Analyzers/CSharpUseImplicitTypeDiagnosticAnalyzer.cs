@@ -197,7 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
 
             // The base analyzer may impose further limitations
-
             return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
         }
     }
