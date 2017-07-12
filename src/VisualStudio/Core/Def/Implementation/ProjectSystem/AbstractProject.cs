@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly List<ProjectReference> _projectReferences = new List<ProjectReference>();
         private readonly List<VisualStudioMetadataReference> _metadataReferences = new List<VisualStudioMetadataReference>();
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _documents = new Dictionary<DocumentId, IVisualStudioHostDocument>();
-        private readonly Dictionary<string, (IVisualStudioHostDocument document, int refCount)> _documentMonikers = new Dictionary<string, (IVisualStudioHostDocument, int)>(StringComparer.OrdinalIgnoreCase);
+        private readonly MultiDictionary<string, IVisualStudioHostDocument> _documentMonikers = new MultiDictionary<string, IVisualStudioHostDocument>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzers = new Dictionary<string, VisualStudioAnalyzer>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _additionalDocuments = new Dictionary<DocumentId, IVisualStudioHostDocument>();
 
@@ -406,14 +406,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public IVisualStudioHostDocument GetCurrentDocumentFromPath(string filePath)
+        public IVisualStudioHostDocument GetCurrentDocumentFromPath(string filePath, bool additionalFile)
         {
             lock (_gate)
             {
-                return _documentMonikers.TryGetValue(filePath, out var value)
-                    ? value.document
-                    : null;
+                foreach (var document in _documentMonikers[filePath])
+                {
+                    if (document.Key.IsAdditionalFile == additionalFile)
+                    {
+                        return document;
+                    }
+                }
+
+                return null;
             }
+        }
+
+        [Obsolete("Call the overload that specifies additionalFile instead.", error: true)]
+        public IVisualStudioHostDocument GetCurrentDocumentFromPath(string filePath)
+        {
+            // Originally this method would return a host document for either, so preserve that until it is removed.
+            return GetCurrentDocumentFromPath(filePath, additionalFile: false) ?? GetCurrentDocumentFromPath(filePath, additionalFile: true);
         }
 
         public bool HasMetadataReference(string filename)
@@ -1008,7 +1021,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            IVisualStudioHostDocument document = this.GetCurrentDocumentFromPath(filename);
+            IVisualStudioHostDocument document = this.GetCurrentDocumentFromPath(filename, additionalFile: false);
             if (document == null)
             {
                 throw new InvalidOperationException("The document is not a part of the finalProject.");
@@ -1118,36 +1131,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void AddMoniker(IVisualStudioHostDocument document)
         {
             var moniker = document.Key.Moniker;
-            if (_documentMonikers.TryGetValue(moniker, out var value))
-            {
-                value.refCount++;
-                _documentMonikers[moniker] = (value.document, value.refCount);
-            }
-            else
-            {
-                _documentMonikers.Add(moniker, (document, 1));
-            }
+            _documentMonikers.Add(moniker, document);
         }
 
         private void RemoveMoniker(IVisualStudioHostDocument document)
         {
             var moniker = document.Key.Moniker;
-            if (_documentMonikers.TryGetValue(moniker, out var value))
+            var values = _documentMonikers[moniker];
+            _documentMonikers.Remove(moniker);
+            foreach (var value in values)
             {
-                Debug.Assert(value.document.Equals(document));
-                value.refCount--;
-                if (value.refCount == 0)
+                if (value != document)
                 {
-                    _documentMonikers.Remove(moniker);
+                    _documentMonikers.Add(moniker, value);
                 }
-                else
-                {
-                    _documentMonikers[moniker] = (value.document, value.refCount);
-                }
-            }
-            else
-            {
-                Debug.Fail($"Couldn't find '{moniker}' in {nameof(_documentMonikers)} to remove it.");
             }
         }
 

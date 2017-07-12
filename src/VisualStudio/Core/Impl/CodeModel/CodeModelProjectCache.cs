@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             // Check that we know about this file!
-            var hostDocument = _project.GetCurrentDocumentFromPath(filePath);
+            var hostDocument = _project.GetCurrentDocumentFromPath(filePath, additionalFile: false);
             if (hostDocument == null)
             {
                 // Matches behavior of native (C#) implementation

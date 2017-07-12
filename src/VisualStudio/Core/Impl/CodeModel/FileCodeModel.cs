@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return false;
             }
 
-            var hostDocument = project.GetCurrentDocumentFromPath(_incomingFilePath);
+            var hostDocument = project.GetCurrentDocumentFromPath(_incomingFilePath, additionalFile: false);
             if (hostDocument == null)
             {
                 return false;

@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RemoveAdditionalFile(string additionalFilePath)
         {
-            IVisualStudioHostDocument document = this.GetCurrentDocumentFromPath(additionalFilePath);
+            IVisualStudioHostDocument document = this.GetCurrentDocumentFromPath(additionalFilePath, additionalFile: true);
             if (document == null)
             {
                 throw new InvalidOperationException("The document is not a part of the finalProject.");

@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                     _vsWorkspace);
             }
 
-            IVisualStudioHostDocument vsDocument = project.GetCurrentDocumentFromPath(filePath);
+            IVisualStudioHostDocument vsDocument = project.GetCurrentDocumentFromPath(filePath, additionalFile: false);
             if (vsDocument == null)
             {
                 if (!TryCreateXamlDocument(project, filePath, out vsDocument))
@@ -182,13 +182,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
             // Managed languages rely on the msbuild host object to add and remove documents during rename.
             // For XAML we have to do that ourselves.
-            IVisualStudioHostDocument oldDocument = project.GetCurrentDocumentFromPath(oldMoniker);
+            IVisualStudioHostDocument oldDocument = project.GetCurrentDocumentFromPath(oldMoniker, additionalFile: false);
             if (oldDocument != null)
             {
                 project.RemoveDocument(oldDocument);
             }
 
-            IVisualStudioHostDocument newDocument = project.GetCurrentDocumentFromPath(newMoniker);
+            IVisualStudioHostDocument newDocument = project.GetCurrentDocumentFromPath(newMoniker, additionalFile: false);
             Debug.Assert(newDocument == null, "Why does the renamed document already exist in the project?");
             if (newDocument == null)
             {
@@ -208,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 return;
             }
 
-            IVisualStudioHostDocument document = project.GetCurrentDocumentFromPath(info.Moniker);
+            IVisualStudioHostDocument document = project.GetCurrentDocumentFromPath(info.Moniker, additionalFile: false);
             if (document == null)
             {
                 return;

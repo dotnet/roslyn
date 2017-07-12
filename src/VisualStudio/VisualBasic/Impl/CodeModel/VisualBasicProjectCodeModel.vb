@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Sub
 
         Friend Overrides Function CanCreateFileCodeModelThroughProject(filePath As String) As Boolean
-            Return _project.GetCurrentDocumentFromPath(filePath) IsNot Nothing
+            Return _project.GetCurrentDocumentFromPath(filePath, additionalFile:=False) IsNot Nothing
         End Function
 
         Friend Overrides Function CreateFileCodeModelThroughProject(filePath As String) As Object
@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             ' with the correct "parent" object.
             '
             ' Because the VB project system lacks these hooks, we simulate the same operations that those hooks perform.
-            Dim document = _project.GetCurrentDocumentFromPath(filePath)
+            Dim document = _project.GetCurrentDocumentFromPath(filePath, additionalFile:=False)
             If document Is Nothing Then
                 Throw New ArgumentException(NameOf(filePath))
             End If
