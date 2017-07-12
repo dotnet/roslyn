@@ -641,8 +641,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 typeSymbol.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
                 typeSymbol.GetBaseTypesAndThis()
                     .Union(typeSymbol.GetOriginalInterfacesAndTheirBaseInterfaces())
-                    .SelectAccessibleMembers<IMethodSymbol>(within ?? typeSymbol)
-                    .Where(s => s.Name == WellKnownMemberNames.CollectionInitializerAddMethodName)
+                    .SelectAccessibleMembers<IMethodSymbol>(WellKnownMemberNames.CollectionInitializerAddMethodName, within ?? typeSymbol)
                     .OfType<IMethodSymbol>()
                     .Any(m => m.Parameters.Any());
         }
@@ -731,6 +730,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));
+        }
+
+        private static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol> types, string memberName, ISymbol within) where T : class, ISymbol
+        {
+            if (types == null)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+
+            return types.SelectMany(x => x.GetMembers(memberName).OfType<T>().Where(m => m.IsAccessibleWithin(within)));
         }
 
         private static bool? IsMoreSpecificThan(this ITypeSymbol t1, ITypeSymbol t2)
