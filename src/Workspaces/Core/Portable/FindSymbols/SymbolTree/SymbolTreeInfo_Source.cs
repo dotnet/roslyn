@@ -55,20 +55,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
             // to be ordered by Guid (which is not consistent across VS sessions).
-            var textChecksumsTasks = project.Documents.OrderBy(d => d.FilePath, StringComparer.Ordinal).Select(async d =>
-            {
-                var documentStateChecksum = await d.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                return documentStateChecksum.Text;
-            });
+            var checksumsTasks = project.Documents.OrderBy(d => d.FilePath, StringComparer.Ordinal)
+                .Select(d => d.State.GetStateChecksumsAsync(cancellationToken));
 
             var compilationOptionsChecksum = projectStateChecksums.CompilationOptions;
             var parseOptionsChecksum = projectStateChecksums.ParseOptions;
-            var textChecksums = await Task.WhenAll(textChecksumsTasks).ConfigureAwait(false);
+            var textChecksums = await Task.WhenAll(checksumsTasks).ConfigureAwait(false);
 
             var allChecksums = ArrayBuilder<Checksum>.GetInstance();
             try
             {
-                allChecksums.AddRange(textChecksums);
+                allChecksums.AddRange(textChecksums, c => c.Text);
                 allChecksums.Add(compilationOptionsChecksum);
                 allChecksums.Add(parseOptionsChecksum);
 

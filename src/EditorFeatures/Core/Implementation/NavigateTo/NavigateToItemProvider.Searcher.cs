@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                                 : service.SearchProjectAsync(project, _searchPattern, _cancellationToken);
 
                             var results = await searchTask.ConfigureAwait(false);
-                            if (results != null)
+                            if (results != null && !_cancellationToken.IsCancellationRequested)
                             {
                                 foreach (var result in results)
                                 {
