@@ -45,9 +45,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal unsafe static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)
         {
+            return runtime.GetMetadataBlocks(appDomain, ImmutableArray<MetadataBlock>.Empty);
+        }
+
+        internal unsafe static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain, ImmutableArray<MetadataBlock> previousMetadataBlocks)
+        {
             var builder = ArrayBuilder<MetadataBlock>.GetInstance();
             IntPtr ptr;
             uint size;
+            int index = 0;
             foreach (DkmClrModuleInstance module in runtime.GetModulesInAppDomain(appDomain))
             {
                 MetadataBlock block;
@@ -55,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     ptr = module.GetMetaDataBytesPtr(out size);
                     Debug.Assert(size > 0);
-                    block = GetMetadataBlock(ptr, size);
+                    block = GetMetadataBlock(previousMetadataBlocks, index, ptr, size);
                 }
                 catch (NotImplementedException e) when (module is DkmClrNcModuleInstance)
                 {
@@ -68,11 +74,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 Debug.Assert(block.ModuleVersionId == module.Mvid);
                 builder.Add(block);
+                index++;
             }
             // Include "intrinsic method" assembly.
             ptr = runtime.GetIntrinsicAssemblyMetaDataBytesPtr(out size);
-            builder.Add(GetMetadataBlock(ptr, size));
+            builder.Add(GetMetadataBlock(previousMetadataBlocks, index, ptr, size));
             return builder.ToImmutableAndFree();
+        }
+
+        private static MetadataBlock GetMetadataBlock(ImmutableArray<MetadataBlock> previousMetadataBlocks, int index, IntPtr ptr, uint size)
+        {
+            if (previousMetadataBlocks != null && !previousMetadataBlocks.IsDefault && previousMetadataBlocks.Length > index)
+            {
+                var previousBlock = previousMetadataBlocks[index];
+                if (previousBlock.Pointer == ptr && previousBlock.Size == size)
+                {
+                    return previousBlock;
+                }
+            }
+
+            return GetMetadataBlock(ptr, size);
         }
 
         internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(GetMetadataBytesPtrFunction getMetaDataBytesPtrFunction, ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
