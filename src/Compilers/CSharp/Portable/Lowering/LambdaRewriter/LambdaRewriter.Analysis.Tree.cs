@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _currentClosure = closure;
 
                     var oldScope = _currentScope;
-                    _currentScope = CreateNestedScope(body);
+                    _currentScope = CreateNestedScope(body, _currentScope, _currentClosure);
 
                     BoundNode result;
                     if (!_inExpressionTree)
@@ -460,6 +460,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                /// <summary>
+                /// Create a new nested scope under the current scope, or reuse the current
+                /// scope if there's no change in the bound node for the nested scope.
+                /// Records the given locals as declared in the aforementioned scope.
+                /// </summary>
                 private Scope CreateOrReuseScope<TSymbol>(BoundNode node, ImmutableArray<TSymbol> locals)
                     where TSymbol : Symbol
                 {
@@ -470,16 +475,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // despite the fact that they should be the same scope.
                     var scope = _currentScope.BoundNode == node
                         ? _currentScope
-                        : CreateNestedScope(node);
+                        : CreateNestedScope(node, _currentScope, _currentClosure);
                     DeclareLocals(scope, locals);
                     return scope;
                 }
 
-                private Scope CreateNestedScope(BoundNode node)
+                private static Scope CreateNestedScope(BoundNode node, Scope parentScope, Closure currentClosure)
                 {
-                    Debug.Assert(_currentScope.BoundNode != node);
-                    var newScope = new Scope(_currentScope, node, _currentClosure);
-                    _currentScope.NestedScopes.Add(newScope);
+                    Debug.Assert(parentScope.BoundNode != node);
+
+                    var newScope = new Scope(parentScope, node, currentClosure);
+                    parentScope.NestedScopes.Add(newScope);
                     return newScope;
                 }
 
