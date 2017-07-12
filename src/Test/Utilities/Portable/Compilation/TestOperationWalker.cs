@@ -435,6 +435,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAnonymousObjectCreationExpression(operation);
         }
 
+        public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
+        {
+            var name = operation.Name;
+            var applicableSymbols = operation.ApplicableSymbols;
+            var names = operation.ArgumentNames;
+            var refKinds = operation.ArgumentRefKinds;
+
+            base.VisitDynamicObjectCreationExpression(operation);
+        }
+
         public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
         {
             base.VisitObjectOrCollectionInitializerExpression(operation);

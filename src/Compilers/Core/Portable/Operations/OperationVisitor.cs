@@ -330,6 +330,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
         {
             DefaultVisit(operation);
@@ -791,6 +796,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
