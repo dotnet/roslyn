@@ -115,7 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Optimizes local functions such that if a local function only references other local functions without closures, it itself doesn't need a closure.
+            /// Optimizes local functions such that if a local function only references other local functions
+            /// that capture no variables, we don't need to create capture environments for any of them.
             /// </summary>
             private void RemoveUnneededReferences()
             {
