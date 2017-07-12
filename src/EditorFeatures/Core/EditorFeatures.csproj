@@ -573,7 +573,7 @@
     <Compile Include="Implementation\Intellisense\QuickInfo\Controller_OnCaretPositionChanged.cs" />
     <Compile Include="Implementation\Intellisense\QuickInfo\Controller_OnTextViewBufferPostChanged.cs" />
     <Compile Include="Implementation\Intellisense\QuickInfo\DeferredContent\ClassifiableDeferredContent.cs" />
-    <Compile Include="Implementation\Intellisense\QuickInfo\DeferredContent\ElisionBufferDeferredContent.cs" />
+    <Compile Include="Implementation\Intellisense\QuickInfo\DeferredContent\ProjectionBufferDeferredContent.cs" />
     <Compile Include="Implementation\Intellisense\QuickInfo\DeferredContent\QuickInfoDisplayDeferredContent.cs" />
     <Compile Include="Implementation\Intellisense\QuickInfo\DeferredContent\SymbolGlyphDeferredContent.cs" />
     <Compile Include="Implementation\Intellisense\IDocumentProvider.cs" />

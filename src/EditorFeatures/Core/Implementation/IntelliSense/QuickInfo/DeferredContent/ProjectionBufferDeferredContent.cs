@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     /// <summary>
     /// Creates quick info content out of the span of an existing snapshot.  The span will be
-    /// used to create an elision buffer out that will then be displayed in the quick info
+    /// used to create an projection buffer out that will then be displayed in the quick info
     /// window.
     /// </summary>
-    internal class ElisionBufferDeferredContent : IDeferredQuickInfoContent
+    internal class ProjectionBufferDeferredContent : IDeferredQuickInfoContent
     {
         private readonly SnapshotSpan _span;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         private readonly IContentType _contentType;
         private readonly ITextViewRoleSet _roleSet;
 
-        public ElisionBufferDeferredContent(
+        public ProjectionBufferDeferredContent(
             SnapshotSpan span,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return view;
         }
 
-        private IElisionBuffer CreateBuffer()
+        private IProjectionBuffer CreateBuffer()
         {
-            return _projectionBufferFactoryService.CreateElisionBufferWithoutIndentation(
+            return _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
                 _editorOptionsFactoryService.GlobalOptions, _contentType, _span);
         }
     }
