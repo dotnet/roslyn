@@ -188,30 +188,10 @@ of the problem.");
             base.Dispose(finalize);
         }
 
-        private static List<Exception> Flatten(ICollection<Exception> exceptions)
+        private static IList<Exception> Flatten(ICollection<Exception> exceptions)
         {
-            var result = new List<Exception>();
-            foreach (var exception in exceptions)
-            {
-                AddException(exception, result);
-            }
-
-            return result;
-        }
-
-        private static void AddException(Exception exception, List<Exception> result)
-        {
-            if (exception is AggregateException aggregate)
-            {
-                foreach (var child in aggregate.InnerExceptions)
-                {
-                    AddException(child, result);
-                }
-            }
-            else
-            {
-                result.Add(exception);
-            }
+            var aggregate = new AggregateException(exceptions);
+            return aggregate.Flatten().InnerExceptions;
         }
 
         internal void AddTestSolution(TestHostSolution solution)
