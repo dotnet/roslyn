@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -19,6 +20,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Addressed reference.
         /// </summary>
         public abstract IOperation Reference { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Reference;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitAddressOfExpression(this);
@@ -73,6 +81,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Argument to name of expression.
         /// </summary>
         public abstract IOperation Argument { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Argument;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNameOfExpression(this);
@@ -128,6 +143,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Expression.
         /// </summary>
         public abstract IOperation Expression { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Expression;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitThrowExpression(this);
@@ -201,6 +223,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.
         /// </summary>
         public abstract IOperation OutConversion { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+                yield return InConversion;
+                yield return OutConversion;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitArgument(this);
@@ -290,6 +321,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Values of elements of the created array instance.
         /// </summary>
         public abstract IArrayInitializer Initializer { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var dimensionSize in DimensionSizes)
+                {
+                    yield return dimensionSize;
+                }
+                yield return Initializer;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitArrayCreationExpression(this);
@@ -362,6 +404,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Indices that specify an individual element.
         /// </summary>
         public abstract ImmutableArray<IOperation> Indices { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return ArrayReference;
+                foreach (var index in Indices)
+                {
+                    yield return index;
+                }
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitArrayElementReferenceExpression(this);
@@ -430,6 +483,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Values to initialize array elements.
         /// </summary>
         public abstract ImmutableArray<IOperation> ElementValues { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var elementValue in ElementValues)
+                {
+                    yield return elementValue;
+                }
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitArrayInitializer(this);
@@ -501,6 +564,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(OperationKind.SimpleAssignmentExpression, syntax, type, constantValue)
         {
         }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Target;
+                yield return Value;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitSimpleAssignmentExpression(this);
@@ -570,6 +641,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be awaited.
         /// </summary>
         public abstract IOperation AwaitedValue { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return AwaitedValue;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitAwaitExpression(this);
@@ -645,6 +723,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return LeftOperand;
+                yield return RightOperand;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitBinaryOperatorExpression(this);
@@ -718,6 +804,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Local declarations contained within the block.
         /// </summary>
         public ImmutableArray<ILocalSymbol> Locals { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var statement in Statements)
+                {
+                    yield return statement;
+                }
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitBlockStatement(this);
@@ -780,6 +876,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Kind of the branch.
         /// </summary>
         public BranchKind BranchKind { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitBranchStatement(this);
@@ -833,6 +936,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Symbol for the local catch variable bound to the caught exception.
         /// </summary>
         public ILocalSymbol ExceptionLocal { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Filter;
+                yield return Handler;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitCatchClause(this);
@@ -912,6 +1023,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Target;
+                yield return Value;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -986,6 +1105,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Expresson that is conditionally accessed.
         /// </summary>
         public abstract IOperation ConditionalInstance { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return ConditionalInstance;
+                yield return ConditionalValue;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConditionalAccessExpression(this);
@@ -1050,6 +1177,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(OperationKind.ConditionalAccessInstanceExpression, syntax, type, constantValue)
         {
         }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConditionalAccessInstanceExpression(this);
@@ -1081,6 +1215,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value evaluated if the Condition is false.
         /// </summary>
         public abstract IOperation IfFalseValue { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Condition;
+                yield return IfTrueValue;
+                yield return IfFalseValue;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConditionalChoiceExpression(this);
@@ -1181,6 +1324,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Operand;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConversionExpression(this);
@@ -1234,6 +1384,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(OperationKind.DefaultValueExpression, syntax, type, constantValue)
         {
         }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitDefaultValueExpression(this);
@@ -1253,6 +1410,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(OperationKind.EmptyStatement, syntax, type, constantValue)
         {
         }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitEmptyStatement(this);
@@ -1271,6 +1435,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         public EndStatement(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.EndStatement, syntax, type, constantValue)
         {
+        }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
         }
         public override void Accept(OperationVisitor visitor)
         {
@@ -1312,6 +1483,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// True for adding a binding, false for removing one.
         /// </summary>
         public bool Adds { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return EventInstance;
+                yield return HandlerValue;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitEventAssignmentExpression(this);
@@ -1384,6 +1563,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Referenced event.
         /// </summary>
         public IEventSymbol Event { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Instance;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1442,6 +1628,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Expression of the statement.
         /// </summary>
         public abstract IOperation Expression { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Expression;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitExpressionStatement(this);
@@ -1499,6 +1692,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Initialized fields. There can be multiple fields for Visual Basic fields declared with As New.
         /// </summary>
         public ImmutableArray<IFieldSymbol> InitializedFields { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1552,6 +1752,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Referenced field.
         /// </summary>
         public IFieldSymbol Field { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Instance;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1614,6 +1821,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Body of the fixed, over which the variables are fixed.
         /// </summary>
         public abstract IOperation Body { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Variables;
+                yield return Body;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFixedStatement(this);
@@ -1687,6 +1902,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Collection value over which the loop iterates.
         /// </summary>
         public abstract IOperation Collection { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Collection;
+                yield return Body;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1765,6 +1988,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Declarations local to the loop.
         /// </summary>
         public ImmutableArray<ILocalSymbol> Locals { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var before in Before)
+                {
+                    yield return before;
+                }
+                yield return Condition;
+                yield return Body;
+                foreach (var atLoopBottom in AtLoopBottom)
+                {
+                    yield return atLoopBottom;
+                }
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1882,6 +2121,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Statement executed if the condition is false.
         /// </summary>
         public abstract IOperation IfFalseStatement { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Condition;
+                yield return IfTrueStatement;
+                yield return IfFalseStatement;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitIfStatement(this);
@@ -1977,6 +2225,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Target;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -2037,6 +2292,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Kind of instance reference.
         /// </summary>
         public InstanceReferenceKind InstanceReferenceKind { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInstanceReferenceExpression(this);
@@ -2060,6 +2322,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Constituent parts of interpolated string, each of which is an <see cref="IInterpolatedStringContent"/>.
         /// </summary>
         public abstract ImmutableArray<IInterpolatedStringContent> Parts { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var part in Parts)
+                {
+                    yield return part;
+                }
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInterpolatedStringExpression(this);
@@ -2116,6 +2388,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Text content.
         /// </summary>
         public abstract IOperation Text { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Text;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInterpolatedStringText(this);
@@ -2180,6 +2459,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Optional format string of the interpolation.
         /// </summary>
         public abstract IOperation FormatString { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Expression;
+                yield return Alignment;
+                yield return FormatString;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInterpolation(this);
@@ -2253,13 +2541,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseInvalidExpression : Operation, IInvalidExpression
     {
         protected BaseInvalidExpression(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.InvalidExpression, syntax, type, constantValue)
+            base(OperationKind.InvalidExpression, syntax, type, constantValue)
         {
         }
-        /// <summary>
-        /// Child operations.
-        /// </summary>
-        public abstract ImmutableArray<IOperation> Children { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvalidExpression(this);
@@ -2284,7 +2568,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Child operations.
         /// </summary>
-        public override ImmutableArray<IOperation> Children { get; }
+        public override IEnumerable<IOperation> Children { get; }
     }
 
     /// <remarks>
@@ -2302,7 +2586,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Child operations.
         /// </summary>
-        public override ImmutableArray<IOperation> Children => _lazyChildren.Value;
+        public override IEnumerable<IOperation> Children => _lazyChildren.Value;
     }
 
     /// <summary>
@@ -2311,13 +2595,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseInvalidStatement : Operation, IInvalidStatement
     {
         protected BaseInvalidStatement(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.InvalidStatement, syntax, type, constantValue)
+            base(OperationKind.InvalidStatement, syntax, type, constantValue)
         {
         }
-        /// <summary>
-        /// Child operations.
-        /// </summary>
-        public abstract ImmutableArray<IOperation> Children { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvalidStatement(this);
@@ -2341,7 +2621,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Child operations.
         /// </summary>
-        public override ImmutableArray<IOperation> Children { get; }
+        public override IEnumerable<IOperation> Children { get; }
     }
 
     /// <summary>
@@ -2358,7 +2638,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Child operations.
         /// </summary>
-        public override ImmutableArray<IOperation> Children => _lazyChildren.Value;
+        public override IEnumerable<IOperation> Children => _lazyChildren.Value;
     }
 
     /// <summary>
@@ -2392,6 +2672,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Instance;
+                foreach (var argumentsInEvaluationOrder in ArgumentsInEvaluationOrder)
+                {
+                    yield return argumentsInEvaluationOrder;
+                }
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvocationExpression(this);
@@ -2473,6 +2764,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Type for which to test.
         /// </summary>
         public ITypeSymbol IsType { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Operand;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitIsTypeExpression(this);
@@ -2534,6 +2832,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Statement that has been labeled.
         /// </summary>
         public abstract IOperation LabeledStatement { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return LabeledStatement;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLabelStatement(this);
@@ -2595,6 +2900,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Body of the lambda.
         /// </summary>
         public abstract IBlockStatement Body { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Body;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLambdaExpression(this);
@@ -2656,6 +2968,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Name of the member.
         /// </summary>
         public string MemberName { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Instance;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLateBoundMemberReferenceExpression(this);
@@ -2713,6 +3032,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Textual representation of the literal.
         /// </summary>
         public string Text { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLiteralExpression(this);
@@ -2737,6 +3063,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Referenced local variable.
         /// </summary>
         public ILocalSymbol Local { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLocalReferenceExpression(this);
@@ -2764,6 +3097,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Body of the lock, to be executed while holding the lock.
         /// </summary>
         public abstract IOperation Body { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return LockedObject;
+                yield return Body;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLockStatement(this);
@@ -2880,6 +3221,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Indicates whether the reference uses virtual semantics.
         /// </summary>
         public bool IsVirtual { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Instance;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -2942,6 +3290,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be evaluated if Primary evaluates to null/Nothing.
         /// </summary>
         public abstract IOperation SecondaryOperand { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return PrimaryOperand;
+                yield return SecondaryOperand;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNullCoalescingExpression(this);
@@ -3023,6 +3379,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var argumentsInEvaluationOrder in ArgumentsInEvaluationOrder)
+                {
+                    yield return argumentsInEvaluationOrder;
+                }
+                yield return Initializer;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitObjectCreationExpression(this);
@@ -3100,6 +3467,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Explicitly-specified member initializers.
         /// </summary>
         public abstract ImmutableArray<IOperation> Initializers { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var initializer in Initializers)
+                {
+                    yield return initializer;
+                }
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitAnonymousObjectCreationExpression(this);
@@ -3153,6 +3530,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(OperationKind.OmittedArgumentExpression, syntax, type, constantValue)
         {
         }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitOmittedArgumentExpression(this);
@@ -3177,6 +3561,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Initialized parameter.
         /// </summary>
         public IParameterSymbol Parameter { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -3230,6 +3621,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Referenced parameter.
         /// </summary>
         public IParameterSymbol Parameter { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitParameterReferenceExpression(this);
@@ -3253,6 +3651,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operand enclosed in parentheses.
         /// </summary>
         public abstract IOperation Operand { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Operand;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitParenthesizedExpression(this);
@@ -3306,6 +3711,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(OperationKind.PlaceholderExpression, syntax, type, constantValue)
         {
         }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPlaceholderExpression(this);
@@ -3329,6 +3741,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Pointer to be dereferenced.
         /// </summary>
         public abstract IOperation Pointer { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Pointer;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPointerIndirectionReferenceExpression(this);
@@ -3386,6 +3805,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Set method used to initialize the property.
         /// </summary>
         public IPropertySymbol InitializedProperty { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -3447,6 +3873,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Instance;
+                foreach (var argumentsInEvaluationOrder in ArgumentsInEvaluationOrder)
+                {
+                    yield return argumentsInEvaluationOrder;
+                }
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -3546,6 +3983,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Maximum value of the case range.
         /// </summary>
         public abstract IOperation MaximumValue { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return MinimumValue;
+                yield return MaximumValue;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -3621,6 +4066,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Relational operator used to compare the switch value with the case value.
         /// </summary>
         public BinaryOperationKind Relation { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -3682,6 +4134,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be returned.
         /// </summary>
         public abstract IOperation ReturnedValue { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return ReturnedValue;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             if (Kind == OperationKind.YieldBreakStatement)
@@ -3757,6 +4216,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Relational operator used to compare the switch value with the case value.
         /// </summary>
         public BinaryOperationKind Equality { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -3811,6 +4277,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(CaseKind.Default, OperationKind.DefaultCaseClause, syntax, type, constantValue)
         {
         }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitDefaultCaseClause(this);
@@ -3830,6 +4303,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(typeOperand, OperationKind.SizeOfExpression, syntax, type, constantValue)
         {
         }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitSizeOfExpression(this);
@@ -3848,6 +4328,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         public StopStatement(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.StopStatement, syntax, type, constantValue)
         {
+        }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
         }
         public override void Accept(OperationVisitor visitor)
         {
@@ -3876,6 +4363,20 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Statements of the case.
         /// </summary>
         public abstract ImmutableArray<IOperation> Body { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var clause in Clauses)
+                {
+                    yield return clause;
+                }
+                foreach (var body in Body)
+                {
+                    yield return body;
+                }
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitSwitchCase(this);
@@ -3948,6 +4449,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Cases of the switch.
         /// </summary>
         public abstract ImmutableArray<ISwitchCase> Cases { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+                foreach (var @case in Cases)
+                {
+                    yield return @case;
+                }
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitSwitchStatement(this);
@@ -4033,6 +4545,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Statement defining the lifetime of the synthetic local.
         /// </summary>
         public abstract IOperation ContainingStatement { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitSyntheticLocalReferenceExpression(this);
@@ -4089,6 +4608,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be thrown.
         /// </summary>
         public abstract IOperation ThrownObject { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return ThrownObject;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitThrowStatement(this);
@@ -4153,6 +4679,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Finally handler of the try.
         /// </summary>
         public abstract IBlockStatement FinallyHandler { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Body;
+                foreach (var catche in Catches)
+                {
+                    yield return catche;
+                }
+                yield return FinallyHandler;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitTryStatement(this);
@@ -4229,6 +4767,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(typeOperand, OperationKind.TypeOfExpression, syntax, type, constantValue)
         {
         }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitTypeOfExpression(this);
@@ -4264,6 +4809,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         public TypeParameterObjectCreationExpression(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.TypeParameterObjectCreationExpression, syntax, type, constantValue)
         {
+        }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
         }
         public override void Accept(OperationVisitor visitor)
         {
@@ -4303,6 +4855,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Operand;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitUnaryOperatorExpression(this);
@@ -4369,6 +4928,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Resource held by the using. Can be null if Declaration is not null.
         /// </summary>
         public abstract IOperation Value { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Declaration;
+                yield return Value;
+                yield return Body;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitUsingStatement(this);
@@ -4458,6 +5026,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Optional initializer of the variable.
         /// </summary>
         public abstract IOperation Initializer { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Initializer;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitVariableDeclaration(this);
@@ -4516,6 +5091,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Variables declared by the statement.
         /// </summary>
         public abstract ImmutableArray<IVariableDeclaration> Declarations { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var declaration in Declarations)
+                {
+                    yield return declaration;
+                }
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitVariableDeclarationStatement(this);
@@ -4578,6 +5163,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// True if the loop is a while loop; false if the loop is an until loop.
         /// </summary>
         public bool IsWhile { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -4651,6 +5243,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to whose members leading-dot-qualified references within the with body bind.
         /// </summary>
         public abstract IOperation Value { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+                yield return Body;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitWithStatement(this);
@@ -4724,6 +5324,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Body of the local function.
         /// </summary>
         public abstract IBlockStatement Body { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Body;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLocalFunctionStatement(this);
@@ -4781,6 +5388,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Constant value of the pattern.
         /// </summary>
         public abstract IOperation Value { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConstantPattern(this);
@@ -4839,6 +5453,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Symbol declared by the pattern.
         /// </summary>
         public ISymbol DeclaredSymbol { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield break;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitDeclarationPattern(this);
@@ -4871,6 +5492,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Guard expression associated with the pattern case clause.
         /// </summary>
         public abstract IOperation GuardExpression { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Pattern;
+                yield return GuardExpression;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPatternCaseClause(this);
@@ -4943,6 +5572,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Pattern.
         /// </summary>
         public abstract IPattern Pattern { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Expression;
+                yield return Pattern;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitIsPatternExpression(this);
@@ -5011,6 +5648,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Object member or collection initializers.
         /// </summary>
         public abstract ImmutableArray<IOperation> Initializers { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var initializer in Initializers)
+                {
+                    yield return initializer;
+                }
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitObjectOrCollectionInitializerExpression(this);
@@ -5073,6 +5720,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Member initializer.
         /// </summary>
         public abstract IObjectOrCollectionInitializerExpression Initializer { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return InitializedMember;
+                yield return Initializer;
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitMemberInitializerExpression(this);
@@ -5153,6 +5808,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Flag indicating if this is a dynamic invocation.
         /// </summary>
         public bool IsDynamic { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var argument in Arguments)
+                {
+                    yield return argument;
+                }
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitCollectionElementInitializerExpression(this);
