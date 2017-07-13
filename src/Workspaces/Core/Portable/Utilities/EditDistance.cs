@@ -518,7 +518,7 @@ namespace Roslyn.Utilities
                 {
                     var targetChar = target[j - 1];
 
-                    var i1 = targetChar < LastSeenIndexLength ? 0 : characterToLastSeenIndex_inSource[targetChar];
+                    var i1 = targetChar < LastSeenIndexLength ? characterToLastSeenIndex_inSource[targetChar] : 0;
                     var j1 = lastMatchIndex_inTarget;
 
                     var matched = sourceChar == targetChar;
