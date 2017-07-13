@@ -58,7 +58,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.SubmitText("using System;");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
         public void SendSingleLineSubmissionToInteractive()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 1");
@@ -163,7 +163,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("3");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
         public void ExecuteMultipleLineBlockSelectedSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
             VisualStudio.InteractiveWindow.SubmitText("int x = 1;");
