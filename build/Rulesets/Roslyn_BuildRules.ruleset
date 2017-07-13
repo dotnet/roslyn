@@ -102,7 +102,7 @@
     <Rule Id="CA1308" Action="None" />
     <Rule Id="CA1810" Action="None" />
     <Rule Id="CA1816" Action="None" />
-    <Rule Id="CA1825" Action="Warning" />
+    <Rule Id="CA1825" Action="None" />
     <Rule Id="CA2002" Action="None" />
     <Rule Id="CA2207" Action="None" />
     <Rule Id="CA2208" Action="None" />
@@ -122,11 +122,5 @@
   </Rules>
   <Rules AnalyzerId="XmlDocumentationComments.Analyzers" RuleNamespace="XmlDocumentationComments.Analyzers">
     <Rule Id="RS0010" Action="Warning" />
-  </Rules>
-  <Rules AnalyzerId="Microsoft.NetCore.CSharp.Analyzers" RuleNamespace="Microsoft.NetCore.CSharp.Analyzers">
-    <Rule Id="CA1825" Action="None" />
-  </Rules>
-  <Rules AnalyzerId="Microsoft.NetCore.VisualBasic.Analyzers" RuleNamespace="Microsoft.NetCore.VisualBasic.Analyzers">
-    <Rule Id="CA1825" Action="None" />
   </Rules>
 </RuleSet>
