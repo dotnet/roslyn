@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     // Lengths were the same, this is either a case insensitive or sensitive exact match.
                     return new PatternMatch(
                         PatternMatchKind.Exact, punctuationStripped, isCaseSensitive: candidate == patternChunk.Text,
-                       matchedSpan: GetMatchedSpan(0, candidateLength));
+                        matchedSpan: GetMatchedSpan(0, candidateLength));
                 }
                 else
                 {
@@ -224,7 +224,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         }
                     }
                 }
-
 
                 // Didn't have an exact/prefix match, or a high enough quality substring match.
                 // See if we can find a camel case match.
