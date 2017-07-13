@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
     {
         protected abstract SyntaxNode GetInterpolatedString(string text);
 
-        protected abstract string GetArgumentName(TArgumentSyntax argument);
-
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
                 if (arguments.Count >= 2)
                 {
-                    var firstArgumentExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments)) as TLiteralExpressionSyntax;
+                    var firstArgumentExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) as TLiteralExpressionSyntax;
                     if (firstArgumentExpression != null && syntaxFactsService.IsStringLiteral(firstArgumentExpression.GetFirstToken()))
                     {
                         invocationSymbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
@@ -109,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             CancellationToken cancellationToken)
         {
             var arguments = nullableArguments.Value;
-            var firstExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments)) as TLiteralExpressionSyntax;
+            var firstExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) as TLiteralExpressionSyntax;
             if (arguments.Count >= 2 &&
                 firstExpression != null &&
                 syntaxFactsService.IsStringLiteral(firstExpression.GetFirstToken()))
@@ -119,7 +117,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 // string[] args;
                 // String.Format("{0}{1}{2}", args);
                 return IsArgumentListNotPassingArrayToParams(
-                    syntaxFactsService.GetExpressionOfArgument(GetParamsArgument(arguments)),
+                    syntaxFactsService.GetExpressionOfArgument(GetParamsArgument(arguments, syntaxFactsService)),
                     invocationSymbol,
                     formatMethods,
                     semanticModel,
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
-            var literalExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments)) as TLiteralExpressionSyntax;
+            var literalExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) as TLiteralExpressionSyntax;
             var text = literalExpression.GetFirstToken().ToString();
             var syntaxGenerator = document.Project.LanguageServices.GetService<SyntaxGenerator>();
             var expandedArguments = GetExpandedArguments(semanticModel, arguments, syntaxGenerator, syntaxFactsService);
@@ -148,26 +146,29 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments)
+        private string GetArgumentName(TArgumentSyntax argument, ISyntaxFactsService syntaxFactsService)
+            => syntaxFactsService.GetNameForArgument(argument);
+
+        private SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
         {
-            var i = arguments.IndexOf(argument => GetArgumentName(argument) == StringFormatArguments.ArgsArgumentName);
+            var i = arguments.IndexOf(argument => GetArgumentName(argument, syntaxFactsService) == StringFormatArguments.ArgsArgumentName);
             return i >= 0 ? arguments[i] : arguments[1];
         }
 
-        private TArgumentSyntax GetFormatArgument(SeparatedSyntaxList<TArgumentSyntax> arguments)
+        private TArgumentSyntax GetFormatArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
         {
-            var index = arguments.IndexOf(argument => GetArgumentName(argument) == StringFormatArguments.FormatArgumentName);
+            var index = arguments.IndexOf(argument => GetArgumentName(argument, syntaxFactsService) == StringFormatArguments.FormatArgumentName);
             return index >= 0 ? arguments[index] : arguments[0];
         }
 
-        private TArgumentSyntax GetArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, int index)
+        private TArgumentSyntax GetArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, int index, ISyntaxFactsService syntaxFactsService)
         {
             if (arguments.Count > 4)
             {
                 return arguments[index];
             }
 
-            return arguments.FirstOrDefault(argument => GetArgumentName(argument) == StringFormatArguments.ParamsArgumentNames[index]) ?? arguments[index];
+            return arguments.FirstOrDefault(argument => GetArgumentName(argument, syntaxFactsService) == StringFormatArguments.ParamsArgumentNames[index]) ?? arguments[index];
         }
 
         private ImmutableArray<TExpressionSyntax> GetExpandedArguments(
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var builder = ArrayBuilder<TExpressionSyntax>.GetInstance();
             for (int i = 1; i < arguments.Count; i++)
             {
-                var argumentExpression = syntaxFactsService.GetExpressionOfArgument(GetArgument(arguments, i));
+                var argumentExpression = syntaxFactsService.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFactsService));
                 var convertedType = semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
                 if (convertedType == null)
                 {
