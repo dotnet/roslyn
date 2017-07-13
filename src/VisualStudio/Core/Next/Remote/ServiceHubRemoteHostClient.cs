@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             string serviceName,
             HostGroup hostGroup,
             TimeSpan timeout,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             const int max_retry = 10;
             const int retry_delayInMS = 50;
@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static async Task<Stream> RequestServiceAsync(HubClient client, ServiceDescriptor descriptor, TimeSpan timeout, CancellationToken cancellationToken = default(CancellationToken))
+        private static async Task<Stream> RequestServiceAsync(HubClient client, ServiceDescriptor descriptor, TimeSpan timeout, CancellationToken cancellationToken = default)
         {
             // we are wrapping HubClient.RequestServiceAsync since we can't control its internal timeout value ourselves.
             // we have bug opened to track the issue.

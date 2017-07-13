@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                operatorToken = default(SyntaxToken);
+                operatorToken = default;
                 left = right = null;
                 return false;
             }
@@ -2081,8 +2081,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out ImmutableArray<ITypeSymbol> elementTypes,
                 out ImmutableArray<string> elementNames)
             {
-                elementTypes = default(ImmutableArray<ITypeSymbol>);
-                elementNames = default(ImmutableArray<string>);
+                elementTypes = default;
+                elementNames = default;
 
                 var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance();
                 var elementNamesBuilder = ArrayBuilder<string>.GetInstance();

@@ -611,7 +611,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     var document = solution.GetDocument(documentId);
                     Debug.Assert(document != null);
 
-                    SourceText source = document.GetTextAsync(default(CancellationToken)).Result;
+                    SourceText source = document.GetTextAsync(default).Result;
                     LinePositionSpan lineSpan = vsActiveStatement.tsPosition.ToLinePositionSpan();
 
                     // If the PDB is out of sync with the source we might get bad spans.
@@ -622,7 +622,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         continue;
                     }
 
-                    SyntaxNode syntaxRoot = document.GetSyntaxRootAsync(default(CancellationToken)).Result;
+                    SyntaxNode syntaxRoot = document.GetSyntaxRootAsync(default).Result;
 
                     var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
 
@@ -741,7 +741,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     }
 
                     Document document = _vsProject.Workspace.CurrentSolution.GetDocument(id.DocumentId);
-                    SourceText text = document.GetTextAsync(default(CancellationToken)).Result;
+                    SourceText text = document.GetTextAsync(default).Result;
                     LinePositionSpan lineSpan;
                     // Try to get spans from the tracking service first.
                     // We might get an imprecise result if the document analysis hasn't been finished yet and 
@@ -753,7 +753,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     }
                     else
                     {
-                        var activeSpans = session.GetDocumentAnalysis(document).GetValue(default(CancellationToken)).ActiveStatements;
+                        var activeSpans = session.GetDocumentAnalysis(document).GetValue(default).ActiveStatements;
                         if (activeSpans.IsDefault)
                         {
                             // The document has syntax errors and the tracking span is gone.
@@ -1092,7 +1092,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
 
-            var emitTask = _encService.EditSession.EmitProjectDeltaAsync(_projectBeingEmitted, _committedBaseline, default(CancellationToken));
+            var emitTask = _encService.EditSession.EmitProjectDeltaAsync(_projectBeingEmitted, _committedBaseline, default);
             return emitTask.Result;
         }
 
@@ -1129,7 +1129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         {
             if (!(symReader is ISymUnmanagedReader5 symReader5))
             {
-                info = default(EditAndContinueMethodDebugInformation);
+                info = default;
                 return false;
             }
 
@@ -1138,14 +1138,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
             if (hr != 0)
             {
-                info = default(EditAndContinueMethodDebugInformation);
+                info = default;
                 return false;
             }
 
             var pdbReader = new System.Reflection.Metadata.MetadataReader(metadata, size);
 
             ImmutableArray<byte> GetCdiBytes(Guid kind) =>
-                TryGetCustomDebugInformation(pdbReader, methodHandle, kind, out var cdi) ? pdbReader.GetBlobContent(cdi.Value) : default(ImmutableArray<byte>);
+                TryGetCustomDebugInformation(pdbReader, methodHandle, kind, out var cdi) ? pdbReader.GetBlobContent(cdi.Value) : default;
 
             info = EditAndContinueMethodDebugInformation.Create(
                 compressedSlotMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLocalSlotMap),
@@ -1158,7 +1158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         private static bool TryGetCustomDebugInformation(System.Reflection.Metadata.MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
         {
             bool foundAny = false;
-            customDebugInfo = default(CustomDebugInformation);
+            customDebugInfo = default;
             foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
             {
                 var info = reader.GetCustomDebugInformation(infoHandle);
@@ -1206,7 +1206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
                 else
                 {
-                    localSlots = lambdaMap = default(ImmutableArray<byte>);
+                    localSlots = lambdaMap = default;
                 }
 
                 return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
@@ -1267,7 +1267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     var asid = _activeStatementIds[exceptionRegion.ActiveStatementId];
 
                     var document = _projectBeingEmitted.GetDocument(asid.DocumentId);
-                    var analysis = session.GetDocumentAnalysis(document).GetValue(default(CancellationToken));
+                    var analysis = session.GetDocumentAnalysis(document).GetValue(default);
                     var regions = analysis.ExceptionRegions;
 
                     // the method shouldn't be called in presence of errors:
