@@ -438,6 +438,7 @@ class C
 {
     void M() {|FixAllInDocument:=>|} throw new NotImplementedException();
     void M(int i) => throw new NotImplementedException();
+    int M(bool b) => 0;
 }",
 @"
 using System;
@@ -452,6 +453,8 @@ class C
     {
         throw new NotImplementedException();
     }
+
+    int M(bool b) => 0;
 }", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
     }
