@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(
             this DkmClrRuntimeInstance runtime, 
             DkmClrAppDomain appDomain, 
-            ImmutableArray<MetadataBlock> previousMetadataBlocks = default(ImmutableArray<MetadataBlock>))
+            ImmutableArray<MetadataBlock> previousMetadataBlocks)
         {
             var builder = ArrayBuilder<MetadataBlock>.GetInstance();
             IntPtr ptr;
