@@ -86,7 +86,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public bool TryResolve(SyntaxNode root, out SyntaxNodeOrToken nodeOrToken)
         {
-            nodeOrToken = default(SyntaxNodeOrToken);
+            nodeOrToken = default;
 
             var current = (SyntaxNodeOrToken)root;
             foreach (var segment in _segments)
@@ -126,7 +126,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            return default(SyntaxNodeOrToken);
+            return default;
         }
 
         public bool TryResolve<TNode>(SyntaxTree syntaxTree, CancellationToken cancellationToken, out TNode node)

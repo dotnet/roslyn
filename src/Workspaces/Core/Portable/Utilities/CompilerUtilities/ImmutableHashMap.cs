@@ -401,7 +401,7 @@ namespace Roslyn.Collections.Immutable
                 }
             }
 
-            value = default(TValue);
+            value = default;
             return false;
         }
 
@@ -493,7 +493,7 @@ namespace Roslyn.Collections.Immutable
             }
             else
             {
-                existingKey = default(TKey);
+                existingKey = default;
                 return false;
             }
         }

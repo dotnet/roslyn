@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             Checksum checksum,
             string concatenatedNames,
-            Node[] sortedNodes,
+            ImmutableArray<Node> sortedNodes,
             Task<SpellChecker> spellCheckerTask,
             OrderPreservingMultiDictionary<string, string> inheritanceMap)
             : this(checksum, concatenatedNames, sortedNodes, spellCheckerTask)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             Checksum checksum,
             string concatenatedNames,
-            Node[] sortedNodes,
+            ImmutableArray<Node> sortedNodes,
             Task<SpellChecker> spellCheckerTask,
             OrderPreservingMultiDictionary<int, int> inheritanceMap)
             : this(checksum, concatenatedNames, sortedNodes, spellCheckerTask)
@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             Checksum checksum,
             string concatenatedNames,
-            Node[] sortedNodes,
+            ImmutableArray<Node> sortedNodes,
             Task<SpellChecker> spellCheckerTask)
         {
             Checksum = checksum;
             _concatenatedNames = concatenatedNames;
-            _nodes = ImmutableArray.Create(sortedNodes);
+            _nodes = sortedNodes;
             _spellCheckerTask = spellCheckerTask;
         }
 
@@ -121,7 +121,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SortNodes(unsortedNodes, out var concatenatedNames, out var sortedNodes);
 
             return new SymbolTreeInfo(checksum, concatenatedNames, sortedNodes,
-                CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes));
+                CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes),
+                new OrderPreservingMultiDictionary<string, string>());
+        }
+
+        public SymbolTreeInfo WithChecksum(Checksum checksum)
+        {
+            return new SymbolTreeInfo(
+                checksum, _concatenatedNames, _nodes, _spellCheckerTask, _inheritanceMap);
         }
 
         public Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
@@ -326,7 +333,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static Task<SpellChecker> GetSpellCheckerTask(
             Solution solution, Checksum checksum, string filePath, 
-            string concatenatedNames, Node[] sortedNodes)
+            string concatenatedNames, ImmutableArray<Node> sortedNodes)
         {
             // Create a new task to attempt to load or create the spell checker for this 
             // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
@@ -336,7 +343,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 solution, checksum, filePath, concatenatedNames, sortedNodes));
         }
 
-        private static Task<SpellChecker> CreateSpellCheckerAsync(Checksum checksum, string concatenatedNames, Node[] sortedNodes)
+        private static Task<SpellChecker> CreateSpellCheckerAsync(
+            Checksum checksum, string concatenatedNames, ImmutableArray<Node> sortedNodes)
         {
             return Task.FromResult(new SpellChecker(
                 checksum, sortedNodes.Select(n => new StringSlice(concatenatedNames, n.NameSpan))));
@@ -345,7 +353,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static void SortNodes(
             ImmutableArray<BuilderNode> unsortedNodes,
             out string concatenatedNames,
-            out Node[] sortedNodes)
+            out ImmutableArray<Node> sortedNodes)
         {
             // Generate index numbers from 0 to Count-1
             var tmp = new int[unsortedNodes.Length];
@@ -369,7 +377,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // No longer need the tmp array
             tmp = null;
 
-            var result = new Node[unsortedNodes.Length];
+            var result = ArrayBuilder<Node>.GetInstance(unsortedNodes.Length);
+            result.Count = unsortedNodes.Length;
+
             var concatenatedNamesBuilder = new StringBuilder();
             string lastName = null;
 
@@ -396,7 +406,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 lastName = currentName;
             }
 
-            sortedNodes = result;
+            sortedNodes = result.ToImmutableAndFree();
             concatenatedNames = concatenatedNamesBuilder.ToString();
         }
 

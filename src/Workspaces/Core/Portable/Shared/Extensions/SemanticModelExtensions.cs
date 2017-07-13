@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return default(TSymbol);
+            return default;
         }
 
         public static ISymbol GetEnclosingNamedTypeOrAssembly(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)

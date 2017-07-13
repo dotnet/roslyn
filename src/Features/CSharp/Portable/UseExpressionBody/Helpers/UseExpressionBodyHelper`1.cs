@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
             => CanOfferUseExpressionBody(optionSet, (TDeclaration)declaration, forAnalyzer);
 
-        public override bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
+        public override (bool canOffer, bool fixesError) CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
             => CanOfferUseBlockBody(optionSet, (TDeclaration)declaration, forAnalyzer);
 
         public override SyntaxNode Update(SyntaxNode declaration, OptionSet options, ParseOptions parseOptions, bool useExpressionBody)
@@ -118,21 +118,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }
 
-        public virtual bool CanOfferUseBlockBody(
+        public (bool canOffer, bool fixesError) CanOfferUseBlockBody(
             OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
         {
             var preference = optionSet.GetOption(this.Option).Value;
             var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
 
-            // If the user likes block bodies, then we offer block bodies from the diagnostic analyzer.
-            // If the user does not like block bodies then we offer block bodies from the refactoring provider.
-            if (userPrefersBlockBodies == forAnalyzer)
-            {
-                return this.GetExpressionBody(declaration)?.TryConvertToBlock(
+            var expressionBodyOpt = this.GetExpressionBody(declaration);
+            var canOffer = expressionBodyOpt?.TryConvertToBlock(
                     SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, out var block) == true;
+            if (!canOffer)
+            {
+                return (canOffer, fixesError: false);
             }
 
-            return false;
+            var languageVersion = ((CSharpParseOptions)declaration.SyntaxTree.Options).LanguageVersion;
+            if (expressionBodyOpt.Expression.IsKind(SyntaxKind.ThrowExpression) &&
+                languageVersion < LanguageVersion.CSharp7)
+            {
+                // If they're using a throw expression in a declaration and it's prior to C# 7
+                // then always mark this as something that can be fixed by the analyzer.  This way
+                // we'll also get 'fix all' working to fix all these cases.
+                return (canOffer, fixesError: true);
+            }
+
+            var isAccessorOrConstructor = declaration is AccessorDeclarationSyntax ||
+                                          declaration is ConstructorDeclarationSyntax;
+            if (isAccessorOrConstructor &&
+                languageVersion < LanguageVersion.CSharp7)
+            {
+                // If they're using expression bodies for accessors/constructors and it's prior to C# 7
+                // then always mark this as something that can be fixed by the analyzer.  This way
+                // we'll also get 'fix all' working to fix all these cases.
+                return (canOffer, fixesError: true);
+            }
+            else if (languageVersion < LanguageVersion.CSharp6)
+            {
+                // If they're using expression bodies prior to C# 6, then always mark this as something
+                // that can be fixed by the analyzer.  This way we'll also get 'fix all' working to fix 
+                // all these cases.
+                return (canOffer, fixesError: true);
+            }
+
+            // If the user likes block bodies, then we offer block bodies from the diagnostic analyzer.
+            // If the user does not like block bodies then we offer block bodies from the refactoring provider.
+            return (userPrefersBlockBodies == forAnalyzer, fixesError: false);
         }
 
         public TDeclaration Update(
