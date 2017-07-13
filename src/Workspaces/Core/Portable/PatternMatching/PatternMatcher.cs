@@ -444,10 +444,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         }
 
         private PatternMatchKind? TryAllLowerCamelCaseMatch(
-             string candidate,
-             ArrayBuilder<TextSpan> candidateHumps,
-             TextChunk patternChunk,
-             out ImmutableArray<TextSpan> matchedSpans)
+            string candidate,
+            ArrayBuilder<TextSpan> candidateHumps,
+            TextChunk patternChunk,
+            out ImmutableArray<TextSpan> matchedSpans)
         {
             var matcher = new AllLowerCamelCaseMatcher(
                 _includeMatchedSpans, candidate, candidateHumps, patternChunk, _textInfo);
