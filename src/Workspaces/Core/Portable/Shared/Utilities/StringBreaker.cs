@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private static bool TryEncodeSpans(string text, bool word, out EncodedSpans encodedSpans)
         {
-            encodedSpans = default(EncodedSpans);
+            encodedSpans = default;
             for (int start = 0, b = 0; start < text.Length;)
             {
                 var span = StringBreaker.GenerateSpan(text, start, word);
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private StringBreaks(ArrayBuilder<TextSpan> spans)
         {
-            _encodedSpans = default(EncodedSpans);
+            _encodedSpans = default;
             _spans = spans;
         }
 

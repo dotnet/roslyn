@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>))
+            ImmutableArray<string> tags = default)
         {
             var props = properties ?? ImmutableDictionary<string, string>.Empty;
 
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>))
+            ImmutableArray<string> tags = default)
         {
             return CreateWorker(
                 displayText, symbols, rules, contextPosition, 
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>))
+            ImmutableArray<string> tags = default)
         {
             return CreateWorker(
                 displayText, symbols, rules, contextPosition, 

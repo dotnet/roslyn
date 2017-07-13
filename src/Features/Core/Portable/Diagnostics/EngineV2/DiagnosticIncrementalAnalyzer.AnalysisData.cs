@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 this.Version = version;
                 this.Items = items;
-                this.OldItems = default(ImmutableArray<DiagnosticData>);
+                this.OldItems = default;
             }
 
             public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems) :

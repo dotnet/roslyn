@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private static T NextOrDefault<T>(IEnumerator<T> enumerator)
             {
-                return enumerator.MoveNext() ? enumerator.Current : default(T);
+                return enumerator.MoveNext() ? enumerator.Current : default;
             }
 
             /// <summary>

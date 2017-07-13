@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         return FirstEntityHandleProvider.Instance.GetTypeFromSpecification(
                             _metadataReader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle);
                     default:
-                        return default(EntityHandle);
+                        return default;
                 }
             }
 
