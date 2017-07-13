@@ -424,7 +424,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return;
             }
 
-            var exprTemps = _expressionTemps ?? (_expressionTemps = ArrayBuilder<LocalDefinition>.GetInstance());
+            ArrayBuilder<LocalDefinition> exprTemps = _expressionTemps;
+            if (exprTemps == null)
+            {
+                exprTemps = ArrayBuilder<LocalDefinition>.GetInstance();
+                _expressionTemps = exprTemps;
+            }
+
             Debug.Assert(!exprTemps.Contains(temp));
             exprTemps.Add(temp);
         }

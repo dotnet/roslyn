@@ -1985,7 +1985,7 @@ readonly struct S
         // and we cannot know whether RefMethod returns a ref to a sequence local
         // so we must assume that it can, and therefore must keep all the sequence the locals in use 
         // for the duration of the most-encompasing expression.
-        Console.WriteLine(RefMethod(arg2: I(5), arg1: I(3)).GreaterThen(
+        Console.WriteLine(RefMethod(arg2: I(5), arg1: I(3)).GreaterThan(
                           RefMethod(arg2: I(0), arg1: I(0))));
     }
 
@@ -1994,7 +1994,7 @@ readonly struct S
         return ref arg2;
     }
 
-    public bool GreaterThen(ref readonly S arg)
+    public bool GreaterThan(ref readonly S arg)
     {
         return this.x > arg.x;
     }
@@ -2042,7 +2042,7 @@ readonly struct S
   IL_002c:  ldloca.s   V_5
   IL_002e:  ldloc.3
   IL_002f:  call       ""ref readonly S S.RefMethod(in S, in S)""
-  IL_0034:  call       ""bool S.GreaterThen(in S)""
+  IL_0034:  call       ""bool S.GreaterThan(in S)""
   IL_0039:  call       ""void System.Console.WriteLine(bool)""
   IL_003e:  ret
 }

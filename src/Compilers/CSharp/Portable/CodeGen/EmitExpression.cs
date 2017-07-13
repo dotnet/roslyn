@@ -596,10 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case RefKind.RefReadOnly:
                     var temp = EmitAddress(argument, AddressKind.ReadOnly);
-                    if (temp != null)
-                    {
-                        AddExpressionTemp(temp);
-                    }
+                    AddExpressionTemp(temp);
                     break;
 
                 default:
@@ -764,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// Defines sequence locals and record them so tht they could be retained for the duration of the encompassing expresson
-        /// Use this when taking a reference of the sequence, which can indirectly refer toany of its locals.
+        /// Use this when taking a reference of the sequence, which can indirectly refer to any of its locals.
         /// </summary>
         private void DefineAndRecordLocals(BoundSequence sequence)
         {
@@ -2323,18 +2320,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                var exprTempsBefore = _expressionTemps?.Count ?? 0;
+                int exprTempsBefore = _expressionTemps?.Count ?? 0;
 
-                var temp = EmitAddress(assignmentOperator.Right, AddressKind.Writeable);
+                LocalDefinition temp = EmitAddress(assignmentOperator.Right, AddressKind.Writeable);
 
                 // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
                 // however, there are very rare cases when we need to get a ref off a temp in synthetic code.
                 // Retain those temps for the extent of the encompassing expression.
                 AddExpressionTemp(temp);
-            
-               // are we, by the way, ref-assigning to something that lives longer than encompassing expression?
-               if (((BoundLocal)assignmentOperator.Left).LocalSymbol.SynthesizedKind.IsLongLived())
-               {
+
+                // are we, by the way, ref-assigning to something that lives longer than encompassing expression?
+                if (((BoundLocal)assignmentOperator.Left).LocalSymbol.SynthesizedKind.IsLongLived())
+                {
                     var exprTempsAfter = _expressionTemps?.Count ?? 0;
 
                     // This situation is extremely rare. We are assigning a ref to a local with unknown lifetime
@@ -2756,7 +2753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     _builder.EmitOpCode(ILOpCode.Conv_i);
                 }
                 else
-                { 
+                {
                     EmitInitObj(type, true, syntaxNode);
                 }
             }
@@ -2793,7 +2790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitInitObj(TypeSymbol type, bool used, SyntaxNode syntaxNode)
         {
             if (used)
-            {                
+            {
                 var temp = this.AllocateTemp(type, syntaxNode);
                 _builder.EmitLocalAddress(temp);                  //  ldloca temp
                 _builder.EmitOpCode(ILOpCode.Initobj);            //  initobj  <MyStruct>
