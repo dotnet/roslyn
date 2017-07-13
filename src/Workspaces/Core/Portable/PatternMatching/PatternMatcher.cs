@@ -455,11 +455,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         }
 
         private PatternMatchKind? TryUpperCaseCamelCaseMatch(
-                  string candidate,
-                  ArrayBuilder<TextSpan> candidateHumps,
-                  TextChunk patternChunk,
-                  CompareOptions compareOption,
-                  out ImmutableArray<TextSpan> matchedSpans)
+            string candidate,
+            ArrayBuilder<TextSpan> candidateHumps,
+            TextChunk patternChunk,
+            CompareOptions compareOption,
+            out ImmutableArray<TextSpan> matchedSpans)
         {
             var patternHumps = patternChunk.PatternHumps;
 
