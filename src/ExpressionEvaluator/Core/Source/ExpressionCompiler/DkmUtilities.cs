@@ -43,12 +43,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 });
         }
 
-        internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)
-        {
-            return runtime.GetMetadataBlocks(appDomain, ImmutableArray<MetadataBlock>.Empty);
-        }
-
-        internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain, ImmutableArray<MetadataBlock> previousMetadataBlocks)
+        internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(
+            this DkmClrRuntimeInstance runtime, 
+            DkmClrAppDomain appDomain, 
+            ImmutableArray<MetadataBlock> previousMetadataBlocks = default(ImmutableArray<MetadataBlock>))
         {
             var builder = ArrayBuilder<MetadataBlock>.GetInstance();
             IntPtr ptr;
@@ -80,20 +78,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ptr = runtime.GetIntrinsicAssemblyMetaDataBytesPtr(out size);
             builder.Add(GetMetadataBlock(previousMetadataBlocks, index, ptr, size));
             return builder.ToImmutableAndFree();
-        }
-
-        private static MetadataBlock GetMetadataBlock(ImmutableArray<MetadataBlock> previousMetadataBlocks, int index, IntPtr ptr, uint size)
-        {
-            if (!previousMetadataBlocks.IsDefault && index < previousMetadataBlocks.Length)
-            {
-                var previousBlock = previousMetadataBlocks[index];
-                if (previousBlock.Pointer == ptr && previousBlock.Size == size)
-                {
-                    return previousBlock;
-                }
-            }
-
-            return GetMetadataBlock(ptr, size);
         }
 
         internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(GetMetadataBytesPtrFunction getMetaDataBytesPtrFunction, ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
@@ -161,6 +145,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var moduleVersionId = reader.GetGuid(moduleDef.Mvid);
             var generationId = reader.GetGuid(moduleDef.GenerationId);
             return new MetadataBlock(moduleVersionId, generationId, ptr, (int)size);
+        }
+
+        private static MetadataBlock GetMetadataBlock(ImmutableArray<MetadataBlock> previousMetadataBlocks, int index, IntPtr ptr, uint size)
+        {
+            if (!previousMetadataBlocks.IsDefault && index < previousMetadataBlocks.Length)
+            {
+                var previousBlock = previousMetadataBlocks[index];
+                if (previousBlock.Pointer == ptr && previousBlock.Size == size)
+                {
+                    return previousBlock;
+                }
+            }
+
+            return GetMetadataBlock(ptr, size);
         }
 
         internal static object GetSymReader(this DkmClrModuleInstance clrModule)
