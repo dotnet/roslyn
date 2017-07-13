@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// in nested scopes. "Declared" refers to the start of the variable lifetime (which,
                 /// at this point in lowering, should be equivalent to lexical scope).
                 /// </summary>
-                public ArrayBuilder<Symbol> DeclaredCapturedVariables { get; } = ArrayBuilder<Symbol>.GetInstance();
+                public ArrayBuilder<Symbol> DeclaredVariables { get; } = ArrayBuilder<Symbol>.GetInstance();
 
                 /// <summary>
                 /// The bound node representing this scope. This roughly corresponds to the bound
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         closure.Free();
                     }
                     Closures.Free();
-                    DeclaredCapturedVariables.Free();
+                    DeclaredVariables.Free();
                 }
 
                 public override string ToString() => BoundNode.Syntax.GetText().ToString();
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (_localToScope.TryGetValue(symbol, out var declScope))
                         {
-                            declScope.DeclaredCapturedVariables.Add(symbol);
+                            declScope.DeclaredVariables.Add(symbol);
                         }
                         else
                         {

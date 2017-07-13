@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          curScope != null && capturedVars.Count > 0;
                          curScope = curScope.Parent)
                     {
-                        if (!(capturedVars.Overlaps(curScope.DeclaredCapturedVariables) ||
+                        if (!(capturedVars.Overlaps(curScope.DeclaredVariables) ||
                               capturedVars.Overlaps(curScope.Closures.Select(c => c.OriginalMethodSymbol))))
                         {
                             continue;
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             innermost = curScope;
                         }
 
-                        capturedVars.RemoveAll(curScope.DeclaredCapturedVariables);
+                        capturedVars.RemoveAll(curScope.DeclaredVariables);
                         capturedVars.RemoveAll(curScope.Closures.Select(c => c.OriginalMethodSymbol));
                     }
 
