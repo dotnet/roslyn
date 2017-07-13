@@ -51,13 +51,13 @@ namespace Microsoft.CodeAnalysis.Host
         public abstract void Initialize(Solution solution);
         public abstract void Close();
 
-        public abstract Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default);
+        public abstract Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default);
+        public abstract Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default);
 
-        public abstract Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default);
+        public abstract Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default);
+        public abstract Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default);
 
         public void Dispose()
         {

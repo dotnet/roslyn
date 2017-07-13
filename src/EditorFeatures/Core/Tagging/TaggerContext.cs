@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             Document document, ITextSnapshot snapshot,
             SnapshotPoint? caretPosition = null,
             TextChangeRange? textChangeRange = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
             : this(null, new[] { new DocumentSnapshotSpan(document, snapshot.GetFullSpan()) },
                   caretPosition, textChangeRange, null, cancellationToken)
         {

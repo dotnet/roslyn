@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (items == null)
             {
-                return default(ImmutableArray<T>);
+                return default;
             }
 
             return ImmutableArray.CreateRange<T>(items);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (items == null)
             {
-                return default(ImmutableArray<T>);
+                return default;
             }
 
             return ImmutableArray.Create<T>(items);
