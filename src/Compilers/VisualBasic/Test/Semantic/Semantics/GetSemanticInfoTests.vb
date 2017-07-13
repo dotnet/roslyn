@@ -6353,5 +6353,54 @@ BC30383: 'End Try' must be preceded by a matching 'Try'.
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
         End Sub
 
+        <Fact()>
+        Public Sub GetSpecialType_ThrowsOnLessThanZero()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            <compilation>
+                <file name="a.vb">
+Class C1
+End Class
+                </file>
+            </compilation>)
+
+            Dim type = CType(SpecialType.None - 1, SpecialType)
+
+            Dim exceptionThrown = False
+
+            Try
+                compilation.GetSpecialType(type)
+            Catch ex As ArgumentOutOfRangeException
+                exceptionThrown = True
+
+                Assert.StartsWith(expectedStartString:=$"Unexpected SpecialType: '{SpecialType.None - 1}'.", actualString:=ex.Message)
+            End Try
+
+            Assert.True(exceptionThrown, $"{NameOf(GetSpecialType)} did not throw when it should have.")
+        End Sub
+
+        <Fact()>
+        Public Sub GetSpecialType_ThrowsOnGreaterThanCount()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            <compilation>
+                <file name="a.vb">
+Class C1
+End Class
+                </file>
+            </compilation>)
+
+            Dim type = CType(SpecialType.Count + 1, SpecialType)
+
+            Dim exceptionThrown = False
+
+            Try
+                compilation.GetSpecialType(type)
+            Catch ex As ArgumentOutOfRangeException
+                exceptionThrown = True
+
+                Assert.StartsWith(expectedStartString:=$"Unexpected SpecialType: '{SpecialType.Count + 1}'.", actualString:=ex.Message)
+            End Try
+
+            Assert.True(exceptionThrown, $"{NameOf(GetSpecialType)} did not throw when it should have.")
+        End Sub
     End Class
 End Namespace

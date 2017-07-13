@@ -157,9 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 // a previous node, we'll handle it accordingly.
                 if (shouldComplexifyNode)
                 {
-                    _skipRenameForComplexification += shouldComplexifyNode ? 1 : 0;
+                    _skipRenameForComplexification++;
                     result = base.Visit(node);
-                    _skipRenameForComplexification -= shouldComplexifyNode ? 1 : 0;
+                    _skipRenameForComplexification--;
                     result = Complexify(node, result);
                 }
                 else

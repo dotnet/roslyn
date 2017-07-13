@@ -53,10 +53,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         case DeclaredSymbolInfoKind.Interface:
                         case DeclaredSymbolInfoKind.Module:
                         case DeclaredSymbolInfoKind.Struct:
-                            return FeaturesResources.project_space + document.Project.Name;
-                        default:
-                            return FeaturesResources.type_space + declaredSymbolInfo.ContainerDisplayName;
+                            if (!declaredSymbolInfo.IsNestedType)
+                            {
+                                return string.Format(FeaturesResources.project_0, document.Project.Name);
+                            }
+                            break;
                     }
+
+                    return string.Format(FeaturesResources.in_0_project_1, declaredSymbolInfo.ContainerDisplayName, document.Project.Name);
                 });
             }
 

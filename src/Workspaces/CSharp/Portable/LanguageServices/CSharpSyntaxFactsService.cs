@@ -811,6 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 names.Push(GetName(parent, options));
                 parent = parent.Parent;
             }
+
             // containing namespace(s) in source (if any)
             if ((options & DisplayNameOptions.IncludeNamespaces) != 0)
             {
@@ -820,6 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     parent = parent.Parent;
                 }
             }
+
             while (!names.IsEmpty())
             {
                 var name = names.Pop();

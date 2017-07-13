@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Get the first attribute from <see cref="DkmClrType.GetEvalAttributes"/> (including inherited attributes)
+        /// Get the first attribute from <see cref="DkmClrType.GetEvalAttributes()"/> (including inherited attributes)
         /// that is of type T, as well as the type that it targeted.
         /// </summary>
         internal static bool TryGetEvalAttribute<T>(this DkmClrType type, out DkmClrType attributeTarget, out T evalAttribute)

@@ -6197,5 +6197,144 @@ Func called
             compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void TestVoidInIsOrAs_01()
+        {
+            // though silly, it is not forbidden to test a void value's type
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        if (Console.Write(""Hello"") is object) {}
+    }
+}
+";
+            var expectedOutput = @"Hello";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,13): warning CS0184: The given expression is never of the provided ('object') type
+                //         if (Console.Write("Hello") is object) {}
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, @"Console.Write(""Hello"") is object").WithArguments("object").WithLocation(6, 13)
+                );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var o = Console.WriteLine(""world!"") as object;
+        if (o != null) throw null;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,17): error CS0039: Cannot convert type 'void' to 'object' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         var o = Console.WriteLine("world!") as object;
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, @"Console.WriteLine(""world!"") as object").WithArguments("void", "object").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        M<object>();
+    }
+    static void M<T>() where T : class
+    {
+        var o = Console.WriteLine(""Hello"") as T;
+        if (o != null) throw null;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (10,17): error CS0039: Cannot convert type 'void' to 'T' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         var o = Console.WriteLine("Hello") as T;
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, @"Console.WriteLine(""Hello"") as T").WithArguments("void", "T").WithLocation(10, 17)
+                );
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        if (Console.WriteLine(""Hello"") is var x) { }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
+                //         if (Console.WriteLine("Hello") is var x) { }
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_05()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        if (Console.WriteLine(""Hello"") is var _) {}
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
+                //         if (Console.WriteLine("Hello") is var _) {}
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void TestVoidInSwitch()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        switch (Console.WriteLine(""Hello""))
+        {
+            default:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,17): error CS8119: The switch expression must be a value; found 'void'.
+                //         switch (Console.WriteLine("Hello"))
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 17)
+                );
+        }
     }
 }

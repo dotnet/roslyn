@@ -88,6 +88,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsRemoveByVal = "CodeActions.RemoveByVal";
             public const string CodeActionsRemoveDocCommentNode = "CodeActions.RemoveDocCommentNode";
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
+            public const string CodeActionsRemoveUnusedLocalFunction = "CodeActions.RemoveUnusedLocalFunction";
             public const string CodeActionsRemoveUnusedVariable = "CodeActions.RemoveUnusedVariable";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
             public const string CodeActionsRemoveUnreachableCode = "CodeActions.RemoveUnreachableCode";
@@ -99,6 +100,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
             public const string CodeActionsUseCollectionInitializer = "CodeActions.UseCollectionInitializer";
             public const string CodeActionsUseDefaultLiteral = "CodeActions.UseDefaultLiteral";
+            public const string CodeActionsUseInferredMemberName = "CodeActions.UseInferredMemberName";
             public const string CodeActionsUseExpressionBody = "CodeActions.UseExpressionBody";
             public const string CodeActionsUseImplicitType = "CodeActions.UseImplicitType";
             public const string CodeActionsUseExplicitType = "CodeActions.UseExplicitType";
