@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -155,8 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return type;
         }
 
-        private async Task<IEnumerable<(string, SymbolKind)>> GetRecommendedNamesAsync(
-            IEnumerable<IEnumerable<string>> baseNames,
+        private async Task<ImmutableArray<(string, SymbolKind)>> GetRecommendedNamesAsync(
+            ImmutableArray<ImmutableArray<string>> baseNames,
             NameDeclarationInfo declarationInfo,
             CSharpSyntaxContext context,
             Document document,
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            return result.Select(kvp => (kvp.Key, kvp.Value));
+            return result.Select(kvp => (kvp.Key, kvp.Value)).ToImmutableArray();
         }
 
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)

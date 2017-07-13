@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Words = System.Collections.Generic.IEnumerable<string>;
+using Microsoft.CodeAnalysis.Text;
+using Words = System.Collections.Immutable.ImmutableArray<string>;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -13,56 +13,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         internal class NameGenerator
         {
-            internal static ImmutableArray<IEnumerable<string>> GetBaseNames(ITypeSymbol type)
+            internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type)
             {
                 var baseName = TryRemoveInterfacePrefix(type);
-                using (var breaks = StringBreaker.BreakIntoWordParts(baseName))
-                {
-                    return GetInterleavedPatterns(breaks, baseName);
-                }
+                var parts = StringBreaker.GetWordParts(baseName);
+                var result = GetInterleavedPatterns(parts, baseName);
+                parts.Free();
+                return result;
             }
 
-            private static ImmutableArray<IEnumerable<string>> GetInterleavedPatterns(StringBreaks breaks, string baseName)
+            private static ImmutableArray<Words> GetInterleavedPatterns(ArrayBuilder<TextSpan> breaks, string baseName)
             {
-                var result = ArrayBuilder<IEnumerable<string>>.GetInstance();
-                var breakCount = breaks.GetCount();
+                var result = ArrayBuilder<Words>.GetInstance();
+                var breakCount = breaks.Count;
                 result.Add(GetWords(0, breakCount, breaks, baseName));
 
-                for (int length = breakCount - 1; length > 0; length--)
+                for (int i = breakCount - 1; i > 0; i--)
                 {
                     // going forward
-                    result.Add(GetLongestForwardSubsequence(length, breaks, baseName));
+                    result.Add(GetLongestForwardSubsequence(i, breaks, baseName));
 
                     // going backward
-                    result.Add(GetLongestBackwardSubsequence(length, breaks, baseName));
+                    result.Add(GetLongestBackwardSubsequence(i, breaks, baseName));
                 }
 
                 return result.ToImmutable();
             }
 
-            private static Words GetLongestBackwardSubsequence(int length, StringBreaks breaks, string baseName)
+            private static Words GetLongestBackwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName)
             {
-                var breakCount = breaks.GetCount();
+                var breakCount = breaks.Count;
                 var start = breakCount - length;
                 return GetWords(start, breakCount, breaks, baseName);
             }
 
-            private static Words GetLongestForwardSubsequence(int length, StringBreaks breaks, string baseName)
+            private static Words GetLongestForwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName)
             {
-                var end = length;
-                return GetWords(0, end, breaks, baseName);
+                return GetWords(0, length, breaks, baseName);
             }
 
-            private static Words GetWords(int start, int end, StringBreaks breaks, string baseName)
+            private static Words GetWords(int start, int end, ArrayBuilder<TextSpan> breaks, string baseName)
             {
-                var result = ImmutableArray.Create<string>();
+                var result = ArrayBuilder<string>.GetInstance();
                 for (; start < end; start++)
                 {
                     var @break = breaks[start];
-                    result = result.Add(baseName.Substring(@break.Start, @break.Length));
+                    result.Add(baseName.Substring(@break.Start, @break.Length));
                 }
 
-                return result;
+                return result.ToImmutableAndFree();
             }
 
             private static string TryRemoveInterfacePrefix(ITypeSymbol type)

@@ -472,23 +472,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private static IList<string> PartListToSubstrings(string identifier, StringBreaks parts)
+        private static ImmutableArray<string> PartListToSubstrings(string identifier, ArrayBuilder<TextSpan> parts)
         {
-            var result = new List<string>();
-            for (int i = 0, n = parts.GetCount(); i < n; i++)
+            var result = ArrayBuilder<string>.GetInstance();
+            foreach (var span in parts)
             {
-                var span = parts[i];
                 result.Add(identifier.Substring(span.Start, span.Length));
             }
 
-            return result;
+            parts.Free();
+            return result.ToImmutableAndFree();
         }
 
-        private static IList<string> BreakIntoCharacterParts(string identifier)
-            => PartListToSubstrings(identifier, StringBreaker.BreakIntoCharacterParts(identifier));
+        private static ImmutableArray<string> BreakIntoCharacterParts(string identifier)
+            => PartListToSubstrings(identifier, StringBreaker.GetCharacterParts(identifier));
 
-        private static IList<string> BreakIntoWordParts(string identifier)
-            => PartListToSubstrings(identifier, StringBreaker.BreakIntoWordParts(identifier));
+        private static ImmutableArray<string> BreakIntoWordParts(string identifier)
+            => PartListToSubstrings(identifier, StringBreaker.GetWordParts(identifier));
 
         private static PatternMatch? TestNonFuzzyMatch(string candidate, string pattern)
         {

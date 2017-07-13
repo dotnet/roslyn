@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                                 matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
                         }
 
-                        candidateHumpsOpt = StringBreaks.CreateFallbackList(candidate, word: true);
+                        candidateHumpsOpt = StringBreaker.GetWordParts(candidate);
                         for (int i = 0, n = candidateHumpsOpt.Count; i < n; i++)
                         {
                             var hump = TextSpan.FromBounds(candidateHumpsOpt[i].Start, candidateLength);
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 // See if we can find a camel case match.
                 if (candidateHumpsOpt == null)
                 {
-                    candidateHumpsOpt = StringBreaks.CreateFallbackList(candidate, word: true);
+                    candidateHumpsOpt = StringBreaker.GetWordParts(candidate);
                 }
 
                 // Didn't have an exact/prefix match, or a high enough quality substring match.
