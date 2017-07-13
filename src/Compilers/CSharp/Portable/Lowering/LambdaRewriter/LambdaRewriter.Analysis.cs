@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// because it modifies <see cref="CapturedVariablesByLambda"/>, which is still used
             /// in other areas of the code. Once those uses are gone, this method should be removed.
             /// </summary>
-            private void Old_RemoveUnneededReferences()
+            private void OldRemoveUnneededReferences()
             {
                 // Note: methodGraph is the inverse of the dependency graph
                 var methodGraph = new MultiDictionary<MethodSymbol, MethodSymbol>();
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal void ComputeLambdaScopesAndFrameCaptures()
             {
                 // We need to keep this around
-                Old_RemoveUnneededReferences();
+                OldRemoveUnneededReferences();
                 RemoveUnneededReferences();
 
                 LambdaScopes = new Dictionary<MethodSymbol, BoundNode>(ReferenceEqualityComparer.Instance);

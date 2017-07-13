@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 /// <summary>
                 /// A list of all locals or parameters that were declared in this scope and captured
-                /// in nested scopes. "Declared" refers to the start of the variable lifetime (which,
-                /// at this point in lowering, should be equivalent to lexical scope).
+                /// in this scope or nested scopes. "Declared" refers to the start of the variable
+                /// lifetime (which, at this point in lowering, should be equivalent to lexical scope).
                 /// </summary>
                 public ArrayBuilder<Symbol> DeclaredVariables { get; } = ArrayBuilder<Symbol>.GetInstance();
 
