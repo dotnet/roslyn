@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SQLite.Interop;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.SQLite
 {
@@ -121,6 +122,8 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
+        private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
+
         // Accessors that allow us to retrieve/store data into specific DB tables.  The
         // core Accessor type has logic that we to share across all reading/writing, while
         // the derived types contain only enough logic to specify how to read/write from
@@ -142,9 +145,11 @@ namespace Microsoft.CodeAnalysis.SQLite
             string workingFolderPath,
             string solutionFilePath,
             string databaseFile,
-            Action<AbstractPersistentStorage> disposer)
+            Action<AbstractPersistentStorage> disposer,
+            IPersistentStorageFaultInjector faultInjectorOpt)
             : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
         {
+            _faultInjectorOpt = faultInjectorOpt;
             _solutionAccessor = new SolutionAccessor(this);
             _projectAccessor = new ProjectAccessor(this);
             _documentAccessor = new DocumentAccessor(this);
@@ -162,7 +167,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // Otherwise create a new connection.
-            return new SqlConnection(this.DatabaseFile);
+            return SqlConnection.Create(_faultInjectorOpt, this.DatabaseFile);
         }
 
         private void ReleaseConnection(SqlConnection connection)
@@ -185,7 +190,15 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             // Flush all pending writes so that all data our features wanted written
             // are definitely persisted to the DB.
-            FlushAllPendingWritesAsync(CancellationToken.None).Wait();
+            try
+            {
+                FlushAllPendingWritesAsync(CancellationToken.None).Wait();
+            }
+            catch (Exception e)
+            {
+                // Flushing may fail.  We still have to close all our connections.
+                StorageDatabaseLogger.LogException(e);
+            }
 
             lock (_connectionGate)
             {
