@@ -128,12 +128,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ShowOutputWindow()
             => _inProc.ShowOutputWindow();
 
-        /// <summary>
-        /// Unloads the project. <paramref name="index"/> is 1 based.
-        /// </summary>
-        /// <param name="index"></param>
-        public void UnloadProject(int index)
-            => _inProc.UnloadProject(index);
+        public void UnloadProject(ProjectUtils.Project project)
+            => _inProc.UnloadProject(project.Name);
 
         public string[] GetProjectReferences(ProjectUtils.Project project)
             => _inProc.GetProjectReferences(project.Name);

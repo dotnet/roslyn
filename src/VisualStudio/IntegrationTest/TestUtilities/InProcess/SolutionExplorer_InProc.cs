@@ -827,9 +827,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void ShowOutputWindow()
             => ExecuteCommand(WellKnownCommandNames.View_Output);
 
-        public void UnloadProject(int index)
+        public void UnloadProject(string projectName)
         {
-            var project = _solution.Projects.Item(index);
+            var projects = _solution.Projects;
+            EnvDTE.Project project = null;
+            for (int i = 1; i <= projects.Count; i++)
+            {
+                project = projects.Item(i);
+                if (string.Compare(project.Name, projectName, StringComparison.Ordinal) == 0)
+                {
+                    break;
+                }
+            }
+
             _solution.Remove(project);
         }
 
