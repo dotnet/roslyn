@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -37,9 +34,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private readonly CompareInfo _compareInfo;
         private readonly TextInfo _textInfo;
 
-        private readonly CompareOptions _ignoreCaseCompareOptions;
-        private readonly CompareOptions _compareOptions;
-
         private bool _invalidPattern;
 
         /// <summary>
@@ -54,16 +48,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             bool allowFuzzyMatching = false)
         {
             culture = culture ?? CultureInfo.CurrentCulture;
-            if (culture.Name == "en-US")
-            {
-                _compareOptions = CompareOptions.Ordinal;
-                _ignoreCaseCompareOptions = CompareOptions.OrdinalIgnoreCase;
-            }
-            else
-            {
-                _compareOptions = CompareOptions.None;
-                _ignoreCaseCompareOptions = CompareOptions.IgnoreCase;
-            }
 
             _compareInfo = culture.CompareInfo;
             _textInfo = culture.TextInfo;
@@ -203,7 +187,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         // user that they expect the same letters to be uppercase in the result.  As 
                         // such, only return this if we can find this pattern exactly in the candidate.
 
-                        var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, _compareOptions);
+                        var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.None);
                         if (caseSensitiveIndex > 0)
                         {
                             return new PatternMatch(
@@ -231,10 +215,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         for (int i = 0, n = candidateHumpsOpt.Count; i < n; i++)
                         {
                             var hump = TextSpan.FromBounds(candidateHumpsOpt[i].Start, candidateLength);
-                            if (PartStartsWith(candidate, hump, patternChunk.Text, _ignoreCaseCompareOptions))
+                            if (PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.IgnoreCase))
                             {
                                 return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
-                                    isCaseSensitive: PartStartsWith(candidate, hump, patternChunk.Text, _compareOptions),
+                                    isCaseSensitive: PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.None),
                                     matchedSpan: GetMatchedSpan(hump.Start, patternChunk.Text.Length));
                             }
                         }
@@ -439,7 +423,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
                 if (patternChunk.PatternHumps.Count > 0)
                 {
-                    var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, _compareOptions, out var matchedSpans);
+                    var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
                     if (camelCaseKind.HasValue)
                     {
                         return new PatternMatch(
@@ -447,7 +431,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                             matchedSpans: matchedSpans);
                     }
 
-                    camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, _ignoreCaseCompareOptions, out matchedSpans);
+                    camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
                     if (camelCaseKind.HasValue)
                     {
                         return new PatternMatch(
