@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -402,6 +403,59 @@ class Program
 #endif
 
 }", options: UseExpressionBody, ignoreTrivia: false);
+        }
+
+        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp6()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M() [|=>|] throw new NotImplementedException();
+}",
+@"
+using System;
+class C
+{
+    void M()
+    {
+        throw new NotImplementedException();
+    }
+}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+        }
+
+        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp6_FixAll()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M() {|FixAllInDocument:=>|} throw new NotImplementedException();
+    void M(int i) => throw new NotImplementedException();
+    int M(bool b) => 0;
+}",
+@"
+using System;
+class C
+{
+    void M()
+    {
+        throw new NotImplementedException();
+    }
+
+    void M(int i)
+    {
+        throw new NotImplementedException();
+    }
+
+    int M(bool b) => 0;
+}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
     }
 }

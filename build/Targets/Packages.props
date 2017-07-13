@@ -213,7 +213,7 @@
     <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>
     <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
-    <MicrosoftVSSDKBuildToolsVersion>15.0.26124-RC3</MicrosoftVSSDKBuildToolsVersion>
+    <MicrosoftVSSDKBuildToolsVersion>15.1.192</MicrosoftVSSDKBuildToolsVersion>
     <VSExternalAPIsCodingConventionsVersion>1.0.60704.2</VSExternalAPIsCodingConventionsVersion>
     <VSLangProjVersion>7.0.3300</VSLangProjVersion>
     <VSLangProj140Version>14.3.25407-alpha</VSLangProj140Version>
