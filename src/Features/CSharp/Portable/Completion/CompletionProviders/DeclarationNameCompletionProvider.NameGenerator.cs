@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var breakCount = breaks.Count;
                 result.Add(GetWords(0, breakCount, breaks, baseName));
 
-                for (int i = breakCount - 1; i > 0; i--)
+                for (var length = breakCount - 1; length > 0; length--)
                 {
                     // going forward
-                    result.Add(GetLongestForwardSubsequence(i, breaks, baseName));
+                    result.Add(GetLongestForwardSubsequence(length, breaks, baseName));
 
                     // going backward
-                    result.Add(GetLongestBackwardSubsequence(i, breaks, baseName));
+                    result.Add(GetLongestBackwardSubsequence(length, breaks, baseName));
                 }
 
                 return result.ToImmutable();
