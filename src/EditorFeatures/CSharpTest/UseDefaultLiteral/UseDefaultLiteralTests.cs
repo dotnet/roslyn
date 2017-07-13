@@ -362,5 +362,25 @@ class C
     }
 }", parseOptions: s_parseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestDoNotOfferIfTypeWouldChange()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+struct S<T>
+{
+    void M()
+    {
+        var s = new S<int>();
+        s.Equals([||]default(S<int>));
+    }
+
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+}", parseOptions: s_parseOptions);
+        }
     }
 }
