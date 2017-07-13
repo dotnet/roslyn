@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     var initializer = (ISymbolInitializer)operationContext.Operation;
+                     var initializer = operationContext.Operation;
                      Report(operationContext, initializer.Syntax, initializer.Kind == OperationKind.FieldReferenceExpression ? DoNotUseFieldInitializerDescriptor : DoNotUsePropertyInitializerDescriptor);
                  },
                  OperationKind.FieldReferenceExpression,
