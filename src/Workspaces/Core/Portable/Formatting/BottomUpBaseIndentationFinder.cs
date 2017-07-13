@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 currentNode = currentNode.Parent;
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         private IndentBlockOperation GetIndentationDataFor(SyntaxNode root, SyntaxToken token, int position)

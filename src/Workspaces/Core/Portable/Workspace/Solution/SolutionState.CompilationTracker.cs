@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
                 ProjectState newProject,
                 CompilationTranslationAction translate = null,
                 bool clone = false,
-                CancellationToken cancellationToken = default(CancellationToken))
+                CancellationToken cancellationToken = default)
             {
                 var state = this.ReadState();
 

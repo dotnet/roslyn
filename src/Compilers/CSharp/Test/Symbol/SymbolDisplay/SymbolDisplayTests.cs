@@ -5620,5 +5620,36 @@ class C
                 SymbolDisplayPartKind.ParameterName, // c
                 SymbolDisplayPartKind.Punctuation); // )
         }
+
+        [Fact]
+        public void RangeVariable()
+        {
+            var srcTree = SyntaxFactory.ParseSyntaxTree(@"
+using System.Linq;
+class C
+{
+    void M()
+    {
+        var q = from x in new[] { 1, 2, 3 } where x < 3 select x;
+    }
+}");
+            var root = srcTree.GetRoot();
+            var comp = CreateStandardCompilation(srcTree, references: new[] { LinqAssemblyRef });
+
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var queryExpression = root.DescendantNodes().OfType<QueryExpressionSyntax>().First();
+            var fromClauseRangeVariableSymbol = Assert.IsType<RangeVariableSymbol>(
+                semanticModel.GetDeclaredSymbol(queryExpression.FromClause));
+
+            Verify(
+                fromClauseRangeVariableSymbol.ToMinimalDisplayParts(
+                    semanticModel,
+                    queryExpression.FromClause.Identifier.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "int x",
+                SymbolDisplayPartKind.Keyword, //int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.RangeVariableName); // x
+        }
     }
 }

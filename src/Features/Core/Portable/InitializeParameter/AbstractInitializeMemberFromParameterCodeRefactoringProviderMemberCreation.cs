@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
                     return CodeGenerationSymbolFactory.CreateFieldSymbol(
-                        default(ImmutableArray<AttributeData>),
+                        default,
                         Accessibility.Private,
                         DeclarationModifiers.ReadOnly,
                         parameter.Type, uniqueName);
@@ -174,19 +174,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
                     var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        default(ImmutableArray<AttributeData>),
+                        default,
                         Accessibility.Public,
-                        default(ImmutableArray<SyntaxNode>));
+                        default);
 
                     return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                        default(ImmutableArray<AttributeData>),
+                        default,
                         Accessibility.Public,
                         new DeclarationModifiers(),
                         parameter.Type,
                         returnsByRef: false,
                         explicitInterfaceImplementations: default,
                         name: uniqueName,
-                        parameters: default(ImmutableArray<IParameterSymbol>),
+                        parameters: default,
                         getMethod: getMethod,
                         setMethod: null);
                 }

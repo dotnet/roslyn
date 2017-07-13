@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // get span and common root
             this.SpanToFormat = GetSpanToFormat();
             _commonRoot = token1.GetCommonRoot(token2);
-            if (token1 == default(SyntaxToken))
+            if (token1 == default)
             {
                 _language = token2.Language;
             }

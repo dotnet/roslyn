@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public bool TryGetEndTokenForRelativeIndentationSpan(SyntaxToken token, int maxChainDepth, out SyntaxToken endToken, CancellationToken cancellationToken)
         {
-            endToken = default(SyntaxToken);
+            endToken = default;
 
             var depth = 0;
             while (true)
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var anchorData = GetAnchorData(token);
             if (anchorData == null)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             return anchorData.AnchorToken;
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var baseAnchorData = FindAnchorSpanOnSameLineAfterToken(tokenData);
             if (baseAnchorData == null)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             // our anchor operation is very flexible so it not only let one anchor to contain others, it also

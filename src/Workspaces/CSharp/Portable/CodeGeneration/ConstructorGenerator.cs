@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 parameterList: ParameterGenerator.GenerateParameterList(constructor.Parameters, isExplicit: false, options: options),
                 initializer: GenerateConstructorInitializer(constructor),
                 body: hasNoBody ? null : GenerateBlock(constructor),
-                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken));
+                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
             declaration = UseExpressionBodyIfDesired(workspace, declaration, parseOptions);
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol constructor)
         {
             var statements = CodeGenerationConstructorInfo.GetStatements(constructor) == null
-                ? default(SyntaxList<StatementSyntax>)
+                ? default
                 : StatementGenerator.GenerateStatements(CodeGenerationConstructorInfo.GetStatements(constructor));
 
             return SyntaxFactory.Block(statements);

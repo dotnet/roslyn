@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public int GetExceptionSpanCount(out uint pcExceptionSpan)
         {
-            pcExceptionSpan = default(uint);
+            pcExceptionSpan = default;
             return EditAndContinueImplOpt?.GetExceptionSpanCount(out pcExceptionSpan) ?? VSConstants.E_FAIL;
         }
 

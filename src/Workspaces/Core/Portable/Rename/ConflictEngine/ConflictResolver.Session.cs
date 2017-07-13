@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                     documentId,
                                     complexifiedTarget != null ? RelatedLocationType.PossiblyResolvableConflict : RelatedLocationType.UnresolvableConflict,
                                     isReference: conflictAnnotation.IsRenameLocation,
-                                    complexifiedTargetSpan: complexifiedTarget != null ? complexifiedTarget.Span : default(TextSpan)));
+                                    complexifiedTargetSpan: complexifiedTarget != null ? complexifiedTarget.Span : default));
                             }
                         }
                     }

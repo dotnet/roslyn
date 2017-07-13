@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            private static async Task<IEnumerable<TextChange>> GetTextChangesFromTextDifferencingServiceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken = default(CancellationToken))
+            private static async Task<IEnumerable<TextChange>> GetTextChangesFromTextDifferencingServiceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken = default)
             {
                 try
                 {
@@ -667,9 +667,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     _openTextBufferManager = openTextBufferManager;
                     _anchor = null;
-                    _anchorSpan = default(TextSpan);
+                    _anchorSpan = default;
                     _active = null;
-                    _activeSpan = default(TextSpan);
+                    _activeSpan = default;
 
                     var textView = openTextBufferManager.ActiveTextview;
                     if (textView == null)
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         // GetSpanInView() can return an empty collection if the tracking span isn't mapped to anything
                         // in the current view, specifically a `@model SomeModelClass` directive in a Razor file.
                         var ss = textView.GetSpanInView(kvp.Value.TrackingSpan.GetSpan(snapshot)).FirstOrDefault();
-                        if (ss != default(SnapshotSpan) && (ss.IntersectsWith(selection.ActivePoint.Position) || ss.IntersectsWith(selection.AnchorPoint.Position)))
+                        if (ss != default && (ss.IntersectsWith(selection.ActivePoint.Position) || ss.IntersectsWith(selection.AnchorPoint.Position)))
                         {
                             return Tuple.Create(kvp.Key, ss);
                         }
