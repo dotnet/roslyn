@@ -280,10 +280,7 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
             p.StartInfo.Arguments = $@"{Path.Combine(ToolsetPath, "NuGet.CommandLine.XPlat.dll")} pack {file} {commonArgs}";
         }
 
-        p.StartInfo.CreateNoWindow = true;
         p.StartInfo.UseShellExecute = false;
-        p.StartInfo.RedirectStandardError = true;
-        p.StartInfo.RedirectStandardOutput = true;
 
         Console.WriteLine($"Packing {file}");
 
@@ -294,24 +291,7 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         if (currentExit != 0)
         {
             Console.WriteLine($"nuget pack {p.StartInfo.Arguments}");
-            Console.WriteLine(p.StandardOutput.ReadToEnd());
-            var stdErr = p.StandardError.ReadToEnd();
-            string message;
-            if (BuildingReleaseNugets && stdErr.Contains("A stable release of a package should not have a prerelease dependency."))
-            {
-                // If we are building release nugets and if any packages have dependencies on prerelease packages
-                // then we want to ignore the error and allow the build to succeed.
-                currentExit = 0;
-                message = $"{file}: {stdErr}";
-                Console.WriteLine(message);
-            }
-            else
-            {
-                message = $"{file}: error: {stdErr}";
-                ReportError(message);
-            }
-
-            File.AppendAllText(ErrorLogFile, Environment.NewLine + message);
+            ReportError($"Pack operation failed with {currentExit}");
         }
 
         // We want to try and generate all nugets and log any errors encountered along the way.
