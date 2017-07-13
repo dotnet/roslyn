@@ -108,6 +108,10 @@ namespace Roslyn.Utilities
         private static readonly ThreadLocal<int[,]> t_matrixPool = 
             new ThreadLocal<int[,]>(() => InitializeMatrix(new int[MaxMatrixPoolDimension, MaxMatrixPoolDimension]));
 
+        // To find swapped characters we make use of a table that keeps track of the last location
+        // we found that character.  For performnace reasons we only do this work for ascii characters
+        // (i.e. with value <= 127).  This allows us to just use a simple array we can index into instead
+        // of needing something more expensive like a dictionary.
         private const int LastSeenIndexLength = 128;
         private static ThreadLocal<int[]> t_lastSeenIndexPool = 
             new ThreadLocal<int[]>(() => new int[LastSeenIndexLength]);
@@ -139,7 +143,6 @@ namespace Roslyn.Utilities
             //
             // So we initialize this once when the matrix is created.  For pooled arrays we only
             // have to do this once, and it will retain this layout for all future computations.
-
 
             var width = matrix.GetLength(0);
             var height = matrix.GetLength(1);
