@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
@@ -124,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //      is undefined.
                     if ((object)optionalParametersMethod == null 
                         || n.HasAnyErrors
+                        || ContainsDuplicateArguments(argumentsToParametersOpt)
                         || parameters.Any(p => p.Type.IsErrorType())
                         || optionalParametersMethod.GetUseSiteDiagnostic()?.DefaultSeverity == DiagnosticSeverity.Error)
                     {
@@ -142,6 +144,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: argumentsToParametersOpt,
                         invokedAsExtensionMethod: invokedAsExtensionMethod); 
                 });
+
+            bool ContainsDuplicateArguments(ImmutableArray<int> argumentsToParameters)
+            {
+                if (argumentsToParameters.IsDefault || argumentsToParameters.Length <= 1)
+                {
+                    return false;
+                }
+
+                PooledHashSet<int> indices = PooledHashSet<int>.GetInstance();
+                bool hasDuplicate = false;
+                foreach(int index in argumentsToParameters)
+                {
+                    if (!indices.Add(index))
+                    {
+                        hasDuplicate = true;
+                        break;
+                    }
+                }
+                indices.Free();
+
+                return hasDuplicate;
+            }
         }
     }
 

@@ -960,6 +960,36 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0])) (OperationKind.Invocati
         }
 
         [Fact]
+        public void MissingArgument()
+        {
+            string source = @"
+class P
+{
+    void M1()
+    {
+        /*<bind>*/M2(1)/*</bind>*/;
+    }
+
+    void M2(int x, int y)
+    { }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression ( void P.M2(System.Int32 x, System.Int32 y)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                      // file.cs(6,19): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'P.M2(int, int)'
+                      //         /*<bind>*/M2(1)/*</bind>*/;
+                      Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("y", "P.M2(int, int)").WithLocation(6, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
         public void WrongArgumentType()
         {
             string source = @"
@@ -1864,6 +1894,71 @@ IInvocationExpression (static void P.M2(System.Int32 x, [G<S>? s = null])) (Oper
                       // file.cs(9,29): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
                       //     static void M2(int x, G<S> s = null)
                       Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        public void SpecifyDuplicateNamedArguments()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(x:1, x:1)/*</bind>*/;
+    }
+
+    static void M2(int x)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(x:1, x:1)')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
+      LiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                      // file.cs(6,27): error CS1740: Named argument 'x' cannot be specified multiple times
+                      //         /*<bind>*/M2(x:1, x:1)/*</bind>*/;
+                      Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(6, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void SpecifyDuplicatePositionalAndNamedArguments()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(1, x:1)/*</bind>*/;
+    }
+
+    static void M2(int x)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1, x:1)')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                      // file.cs(6,25): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+                      //         /*<bind>*/M2(1, x:1)/*</bind>*/;
+                      Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(6, 25)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
