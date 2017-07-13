@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
             public SyntaxAnnotation Annotation { get; }
 
-            public static readonly string AnnotationId = "SpanMarker";
+            public const string AnnotationId = "SpanMarker";
 
             private SpanMarker(SpanMarkerType type, SpanMarkerType oppositeMarkerType, SyntaxAnnotation annotation)
             {

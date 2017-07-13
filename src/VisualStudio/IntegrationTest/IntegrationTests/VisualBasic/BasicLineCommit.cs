@@ -81,7 +81,8 @@ End Module");
             VisualStudio.Editor.SetText(@"Module Module1
     Sub Main()
     End Sub
-End Module");
+End Module
+");
 
             VisualStudio.Editor.PlaceCaret("(", charsOffset: 1);
             VisualStudio.Editor.SendKeys("x   as   integer", VirtualKey.Tab);

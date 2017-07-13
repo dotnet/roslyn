@@ -118,5 +118,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(TestTextEqualsASCII("\ud800", "xx"));
             Assert.False(TestTextEqualsASCII("\uffff", ""));
         }
+
+        [Fact]
+        public void TestAddEqualSubstringsFromDifferentStringsWorks()
+        {
+            // Make neither of the strings equal to the result of the substring call
+            // to test an issue that was surfaced by pooling the wrong string.
+            var str1 = "abcd1";
+            var str2 = "abcd2";
+            var st = new StringTable();
+
+            var s1 = st.Add(str1, 0, 4);
+            var s2 = st.Add(str2, 0, 4);
+
+            Assert.Same(s1, s2);
+            Assert.Equal("abcd", s1);
+        }
     }
 }

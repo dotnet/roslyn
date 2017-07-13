@@ -1594,6 +1594,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to in {0} (project {1}).
+        /// </summary>
+        internal static string in_0_project_1 {
+            get {
+                return ResourceManager.GetString("in_0_project_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to in Source.
         /// </summary>
         internal static string in_Source {
@@ -1909,11 +1918,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make method synchronous..
+        ///   Looks up a localized string similar to Make method synchronous.
         /// </summary>
         internal static string Make_method_synchronous {
             get {
                 return ResourceManager.GetString("Make_method_synchronous", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member name can be simplified.
+        /// </summary>
+        internal static string Member_name_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Member_name_can_be_simplified", resourceCulture);
             }
         }
         
@@ -1941,6 +1959,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Methods {
             get {
                 return ResourceManager.GetString("Methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifiers are not ordered.
+        /// </summary>
+        internal static string Modifiers_are_not_ordered {
+            get {
+                return ResourceManager.GetString("Modifiers_are_not_ordered", resourceCulture);
             }
         }
         
@@ -2220,6 +2247,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Order modifiers.
+        /// </summary>
+        internal static string Order_modifiers {
+            get {
+                return ResourceManager.GetString("Order_modifiers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to overload.
         /// </summary>
         internal static string overload {
@@ -2347,11 +2383,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to project .
+        ///   Looks up a localized string similar to project {0}.
         /// </summary>
-        internal static string project_space {
+        internal static string project_0 {
             get {
-                return ResourceManager.GetString("project_space", resourceCulture);
+                return ResourceManager.GetString("project_0", resourceCulture);
             }
         }
         
@@ -3021,15 +3057,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to type .
-        /// </summary>
-        internal static string type_space {
-            get {
-                return ResourceManager.GetString("type_space", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unable to create hosting process..
         /// </summary>
         internal static string Unable_to_create_hosting_process {
@@ -3423,6 +3450,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_framework_type {
             get {
                 return ResourceManager.GetString("Use_framework_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use inferred member name.
+        /// </summary>
+        internal static string Use_inferred_member_name {
+            get {
+                return ResourceManager.GetString("Use_inferred_member_name", resourceCulture);
             }
         }
         

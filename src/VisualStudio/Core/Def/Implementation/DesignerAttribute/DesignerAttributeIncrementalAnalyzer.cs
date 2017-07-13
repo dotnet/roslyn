@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 }
 
                 var serializedResults = await session.InvokeAsync<ImmutableArray<DesignerAttributeDocumentData>>(
-                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync), project.Id).ConfigureAwait(false);
+                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync), new object[] { project.Id }, cancellationToken).ConfigureAwait(false);
 
                 var data = serializedResults.ToImmutableDictionary(kvp => kvp.FilePath);
                 return data;
@@ -251,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return _dotNotAccessDirectlyDesigner;
         }
 
-#region unused
+        #region unused
 
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             => SpecializedTasks.EmptyTask;
@@ -279,6 +279,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
         }
 
-#endregion
+        #endregion
     }
 }

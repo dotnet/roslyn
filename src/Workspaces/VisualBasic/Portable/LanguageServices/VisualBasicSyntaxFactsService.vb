@@ -5,7 +5,6 @@ Imports System.Composition
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -43,6 +42,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Property StringComparer As StringComparer Implements ISyntaxFactsService.StringComparer
             Get
                 Return CaseInsensitiveComparison.Comparer
+            End Get
+        End Property
+
+        Public ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia Implements ISyntaxFactsService.ElasticCarriageReturnLineFeed
+            Get
+                Return SyntaxFactory.ElasticCarriageReturnLineFeed
             End Get
         End Property
 
@@ -876,6 +881,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 names.Push(GetName(parent, options, containsGlobalKeyword:=False))
                 parent = parent.Parent
             End While
+
             If (options And DisplayNameOptions.IncludeNamespaces) <> 0 Then
                 ' containing namespace(s) in source (if any)
                 Dim containsGlobalKeyword As Boolean = False
@@ -889,6 +895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     builder.Append(s_dotToken)
                 End If
             End If
+
             While Not names.IsEmpty()
                 Dim name = names.Pop()
                 If name IsNot Nothing Then
@@ -1502,6 +1509,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
         End Function
 
+        Public Function IsElastic(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsElastic
+            Return trivia.IsElastic()
+        End Function
+
         Public Function IsOnTypeHeader(root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsOnTypeHeader
             Dim statement = root.FindToken(position).GetAncestor(Of TypeStatementSyntax)
             If statement Is Nothing Then
@@ -1583,6 +1594,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function ISyntaxFactsService_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, cancellationToken As CancellationToken) As String Implements ISyntaxFactsService.GetBannerText
             Return GetBannerText(documentationCommentTriviaSyntax, cancellationToken)
+        End Function
+
+        Public Function GetModifiers(node As SyntaxNode) As SyntaxTokenList Implements ISyntaxFactsService.GetModifiers
+            Return node.GetModifiers()
+        End Function
+
+        Public Function WithModifiers(node As SyntaxNode, modifiers As SyntaxTokenList) As SyntaxNode Implements ISyntaxFactsService.WithModifiers
+            Return node.WithModifiers(modifiers)
         End Function
     End Class
 End Namespace

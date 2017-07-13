@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{FD6BA96C-7905-4876-8BCC-E38E2CA64F31}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
@@ -13,67 +12,16 @@
     <TargetFramework>netstandard1.3</TargetFramework>
     <!-- Package Microsoft.VisualStudio.Debugger.Engine 15.0.26201-gamma is not compatible with netstandard1.3 -->
     <PackageTargetFallback>portable-net46</PackageTargetFallback>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Source\ExpressionCompiler\ExpressionCompiler.csproj">
-      <Project>{b8da3a90-a60c-42e3-9d8e-6c67b800c395}</Project>
-      <Name>ExpressionCompiler</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Core\Source\ExpressionCompiler\ExpressionCompiler.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Compile Include="Binders\EEMethodBinder.cs" />
-    <Compile Include="Binders\WithTypeArgumentsBinder.cs" />
-    <Compile Include="Binders\PlaceholderLocalBinder.cs" />
-    <Compile Include="CSharpCompileResult.cs" />
-    <Compile Include="CSharpEESymbolProvider.cs" />
-    <Compile Include="CSharpLocalAndMethod.cs" />
-    <Compile Include="CompilationContext.cs" />
-    <Compile Include="CompilationExtensions.cs" />
-    <Compile Include="CSharpLanguageInstructionDecoder.cs" />
-    <Compile Include="CSharpMetadataContext.cs" />
-    <Compile Include="CSharpExpressionCompiler.cs" />
-    <Compile Include="CSharpFrameDecoder.cs" />
-    <Compile Include="CSharpInstructionDecoder.cs" />
-    <Compile Include="EEAssemblyBuilder.cs" />
-    <Compile Include="EETypeNameDecoder.cs" />
-    <Compile Include="EvaluationContext.cs" />
-    <Compile Include="Rewriters\CapturedVariableRewriter.cs" />
-    <Compile Include="Rewriters\LocalDeclarationRewriter.cs" />
-    <Compile Include="Rewriters\MayHaveSideEffectsVisitor.cs" />
-    <Compile Include="Rewriters\PlaceholderLocalRewriter.cs" />
-    <Compile Include="SymbolExtensions.cs" />
-    <Compile Include="Symbols\DisplayClassInstance.cs" />
-    <Compile Include="Symbols\DisplayClassVariable.cs" />
-    <Compile Include="Symbols\EEDisplayClassFieldLocalSymbol.cs" />
-    <Compile Include="Symbols\EELocalConstantSymbol.cs" />
-    <Compile Include="Symbols\EELocalSymbol.cs" />
-    <Compile Include="Symbols\EELocalSymbolBase.cs" />
-    <Compile Include="Symbols\EEConstructorSymbol.cs" />
-    <Compile Include="Symbols\EEMethodSymbol.cs" />
-    <Compile Include="Symbols\EENamedTypeSymbol.cs" />
-    <Compile Include="Symbols\EETypeParameterSymbol.cs" />
-    <Compile Include="Symbols\ObjectAddressLocalSymbol.cs" />
-    <Compile Include="Symbols\ObjectIdLocalSymbol.cs" />
-    <Compile Include="Symbols\PlaceholderLocalSymbol.cs" />
-    <Compile Include="Symbols\PlaceholderMethodSymbol.cs" />
-    <Compile Include="Symbols\ExceptionLocalSymbol.cs" />
-    <Compile Include="Symbols\ReturnValueLocalSymbol.cs" />
-    <Compile Include="Symbols\SimpleTypeParameterSymbol.cs" />
-    <Compile Include="Symbols\SynthesizedContextMethodSymbol.cs" />
-    <Compile Include="SyntaxHelpers.cs" />
-    <Compile Include="TypeParameterChecker.cs" />
     <VsdConfigXml Include="CSharpExpressionCompiler.vsdconfigxml" />
   </ItemGroup>
   <ItemGroup>

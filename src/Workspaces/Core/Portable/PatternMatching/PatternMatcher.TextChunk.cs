@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             public readonly WordSimilarityChecker SimilarityChecker;
 
+            public readonly bool IsLowercase;
+
             public TextChunk(string text, bool allowFuzzingMatching)
             {
                 this.Text = text;
@@ -34,6 +36,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 this.SimilarityChecker = allowFuzzingMatching
                     ? WordSimilarityChecker.Allocate(text, substringsAreSimilar: false)
                     : null;
+
+                IsLowercase = !ContainsUpperCaseLetter(text);
             }
 
             public void Dispose()

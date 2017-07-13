@@ -17,9 +17,9 @@ namespace Roslyn.Utilities
         // We consider '/' a directory separator on Unix like systems. 
         // On Windows both / and \ are equally accepted.
         internal static readonly char DirectorySeparatorChar = PlatformInformation.IsUnix ? '/' : '\\';
-        internal static readonly char AltDirectorySeparatorChar = '/';
-        internal static readonly string ParentRelativeDirectory = "..";
-        internal static readonly string ThisDirectory = ".";
+        internal const char AltDirectorySeparatorChar = '/';
+        internal const string ParentRelativeDirectory = "..";
+        internal const string ThisDirectory = ".";
         internal static readonly string DirectorySeparatorStr = new string(DirectorySeparatorChar, 1);
         internal const char VolumeSeparatorChar = ':';
         internal static bool IsUnixLikePlatform => PlatformInformation.IsUnix;

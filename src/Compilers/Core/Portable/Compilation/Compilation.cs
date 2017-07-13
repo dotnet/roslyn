@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Diagnostics
 
-        internal static readonly CompilationStage DefaultDiagnosticsStage = CompilationStage.Compile;
+        internal const CompilationStage DefaultDiagnosticsStage = CompilationStage.Compile;
 
         /// <summary>
         /// Gets the diagnostics produced during the parsing stage.

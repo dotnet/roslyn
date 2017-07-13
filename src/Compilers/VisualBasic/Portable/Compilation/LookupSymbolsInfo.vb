@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits AbstractLookupSymbolsInfo(Of Symbol)
 
         ' TODO: tune pool size
-        Private Shared ReadOnly s_poolSize As Integer = 64
+        Private Const s_poolSize As Integer = 64
         Private Shared ReadOnly s_pool As New ObjectPool(Of LookupSymbolsInfo)(Function() New LookupSymbolsInfo(), s_poolSize)
 
         Private Sub New()

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return textDocument1.Project.Solution;
         }
 
-        internal static async Task VerifyAssetAsync(ISolutionSynchronizationService service, SolutionStateChecksums solutionObject)
+        internal static async Task VerifyAssetAsync(IRemotableDataService service, SolutionStateChecksums solutionObject)
         {
             await VerifyAssetSerializationAsync<SolutionInfo.SolutionAttributes>(
                 service, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes,
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        internal static async Task VerifyAssetAsync(ISolutionSynchronizationService service, ProjectStateChecksums projectObject)
+        internal static async Task VerifyAssetAsync(IRemotableDataService service, ProjectStateChecksums projectObject)
         {
             var info = await VerifyAssetSerializationAsync<ProjectInfo.ProjectAttributes>(
                 service, projectObject.Info, WellKnownSynchronizationKind.ProjectAttributes,
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        internal static async Task VerifyAssetAsync(ISolutionSynchronizationService service, DocumentStateChecksums documentObject)
+        internal static async Task VerifyAssetAsync(IRemotableDataService service, DocumentStateChecksums documentObject)
         {
             var info = await VerifyAssetSerializationAsync<DocumentInfo.DocumentAttributes>(
                 service, documentObject.Info, WellKnownSynchronizationKind.DocumentAttributes,
@@ -109,14 +109,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         internal static async Task<T> VerifyAssetSerializationAsync<T>(
-            ISolutionSynchronizationService service,
+            IRemotableDataService service,
             Checksum checksum,
             WellKnownSynchronizationKind kind,
             Func<T, WellKnownSynchronizationKind, Serializer, RemotableData> assetGetter)
         {
             // re-create asset from object
-            var syncService = (SolutionSynchronizationServiceFactory.Service)service;
-            var syncObject = service.GetRemotableData(checksum, CancellationToken.None);
+            var syncService = (RemotableDataServiceFactory.Service)service;
+            var syncObject = syncService.GetRemotableData_TestOnly(checksum, CancellationToken.None);
 
             var recoveredValue = await service.GetValueAsync<T>(checksum);
             var recreatedSyncObject = assetGetter(recoveredValue, kind, syncService.Serializer_TestOnly);
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return recoveredValue;
         }
 
-        internal static async Task VerifySolutionStateSerializationAsync(ISolutionSynchronizationService service, Solution solution, Checksum solutionChecksum)
+        internal static async Task VerifySolutionStateSerializationAsync(IRemotableDataService service, Solution solution, Checksum solutionChecksum)
         {
             var solutionObjectFromSyncObject = await service.GetValueAsync<SolutionStateChecksums>(solutionChecksum);
             Assert.True(solution.State.TryGetStateChecksums(out var solutionObjectFromSolution));
@@ -135,14 +135,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionStateEqual(service, solutionObjectFromSolution, solutionObjectFromSyncObject);
         }
 
-        internal static void SolutionStateEqual(ISolutionSynchronizationService service, SolutionStateChecksums solutionObject1, SolutionStateChecksums solutionObject2)
+        internal static void SolutionStateEqual(IRemotableDataService service, SolutionStateChecksums solutionObject1, SolutionStateChecksums solutionObject2)
         {
             ChecksumWithChildrenEqual(solutionObject1, solutionObject2);
 
             ProjectStatesEqual(service, solutionObject1.Projects.ToProjectObjects(service), solutionObject2.Projects.ToProjectObjects(service));
         }
 
-        internal static void ProjectStateEqual(ISolutionSynchronizationService service, ProjectStateChecksums projectObjects1, ProjectStateChecksums projectObjects2)
+        internal static void ProjectStateEqual(IRemotableDataService service, ProjectStateChecksums projectObjects1, ProjectStateChecksums projectObjects2)
         {
             ChecksumWithChildrenEqual(projectObjects1, projectObjects2);
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ChecksumWithChildrenEqual(projectObjects1.AdditionalDocuments.ToDocumentObjects(service), projectObjects2.AdditionalDocuments.ToDocumentObjects(service));
         }
 
-        internal static void ProjectStatesEqual(ISolutionSynchronizationService service, ChecksumObjectCollection<ProjectStateChecksums> projectObjects1, ChecksumObjectCollection<ProjectStateChecksums> projectObjects2)
+        internal static void ProjectStatesEqual(IRemotableDataService service, ChecksumObjectCollection<ProjectStateChecksums> projectObjects1, ChecksumObjectCollection<ProjectStateChecksums> projectObjects2)
         {
             SynchronizationObjectEqual(projectObjects1, projectObjects2);
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         internal static void VerifySnapshotInService(
-            ISolutionSynchronizationService snapshotService,
+            IRemotableDataService snapshotService,
             ProjectStateChecksums projectObject,
             int expectedDocumentCount,
             int expectedProjectReferenceCount,
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyCollectionInService(snapshotService, projectObject.AdditionalDocuments.ToDocumentObjects(snapshotService), expectedAdditionalDocumentCount);
         }
 
-        internal static void VerifyCollectionInService(ISolutionSynchronizationService snapshotService, ChecksumCollection checksums, int expectedCount, WellKnownSynchronizationKind expectedItemKind)
+        internal static void VerifyCollectionInService(IRemotableDataService snapshotService, ChecksumCollection checksums, int expectedCount, WellKnownSynchronizationKind expectedItemKind)
         {
             VerifyChecksumInService(snapshotService, checksums.Checksum, checksums.GetWellKnownSynchronizationKind());
             Assert.Equal(checksums.Count, expectedCount);
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        internal static void VerifyCollectionInService(ISolutionSynchronizationService snapshotService, ChecksumObjectCollection<DocumentStateChecksums> documents, int expectedCount)
+        internal static void VerifyCollectionInService(IRemotableDataService snapshotService, ChecksumObjectCollection<DocumentStateChecksums> documents, int expectedCount)
         {
             VerifySynchronizationObjectInService(snapshotService, documents);
             Assert.Equal(documents.Count, expectedCount);
@@ -241,22 +241,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        internal static void VerifySnapshotInService(ISolutionSynchronizationService snapshotService, DocumentStateChecksums documentObject)
+        internal static void VerifySnapshotInService(IRemotableDataService snapshotService, DocumentStateChecksums documentObject)
         {
             VerifyChecksumInService(snapshotService, documentObject.Checksum, documentObject.GetWellKnownSynchronizationKind());
             VerifyChecksumInService(snapshotService, documentObject.Info, WellKnownSynchronizationKind.DocumentAttributes);
             VerifyChecksumInService(snapshotService, documentObject.Text, WellKnownSynchronizationKind.SourceText);
         }
 
-        internal static void VerifySynchronizationObjectInService<T>(ISolutionSynchronizationService snapshotService, T syncObject) where T : RemotableData
+        internal static void VerifySynchronizationObjectInService<T>(IRemotableDataService snapshotService, T syncObject) where T : RemotableData
         {
             VerifyChecksumInService(snapshotService, syncObject.Checksum, syncObject.Kind);
         }
 
-        internal static void VerifyChecksumInService(ISolutionSynchronizationService snapshotService, Checksum checksum, WellKnownSynchronizationKind kind)
+        internal static void VerifyChecksumInService(IRemotableDataService snapshotService, Checksum checksum, WellKnownSynchronizationKind kind)
         {
             Assert.NotNull(checksum);
-            var otherObject = snapshotService.GetRemotableData(checksum, CancellationToken.None);
+            var service = (RemotableDataServiceFactory.Service)snapshotService;
+            var otherObject = service.GetRemotableData_TestOnly(checksum, CancellationToken.None);
 
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);
         }

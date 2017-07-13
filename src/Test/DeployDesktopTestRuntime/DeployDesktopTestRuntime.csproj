@@ -1,15 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{23683607-168A-4189-955E-908F0E80E60D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>DeplyDesktopTestRuntime_DoNotUse</AssemblyName>
     <Nonshipping>true</Nonshipping>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>DeploymentTest</RoslynProjectType>
     <RoslynUnitTestDir>UnitTests\Portable</RoslynUnitTestDir>
@@ -17,122 +16,35 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <ProjectReference Include="..\..\CodeStyle\Core\Analyzers\CodeStyle.csproj">
-      <Project>{275812ee-dedb-4232-9439-91c9757d2ae4}</Project>
-      <Name>CodeStyle</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CodeStyle\Core\CodeFixes\CodeStyleFixes.csproj">
-      <Project>{5ff1e493-69cc-4d0b-83f2-039f469a04e1}</Project>
-      <Name>CodeStyleFixes</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CodeStyle\Core\Tests\CodeStyleTests.csproj">
-      <Project>{9ff1205f-1d7c-4ee4-b038-3456fe6ebeaf}</Project>
-      <Name>CodeStyleTests</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CodeStyle\CSharp\Analyzers\CSharpCodeStyle.csproj">
-      <Project>{aa87bfed-089a-4096-b8d5-690bdc7d5b24}</Project>
-      <Name>CSharpCodeStyle</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CodeStyle\CSharp\CodeFixes\CSharpCodeStyleFixes.csproj">
-      <Project>{a07abcf5-bc43-4ee9-8fd8-b2d77fd54d73}</Project>
-      <Name>CSharpCodeStyleFixes</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CodeStyle\CSharp\Tests\CSharpCodeStyleTests.csproj">
-      <Project>{5018d049-5870-465a-889b-c742ce1e31cb}</Project>
-      <Name>CSharpCodeStyleTests</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CodeStyle\VisualBasic\Analyzers\BasicCodeStyle.vbproj">
-      <Project>{2531a8c4-97dd-47bc-a79c-b7846051e137}</Project>
-      <Name>BasicCodeStyle</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CodeStyle\VisualBasic\CodeFixes\BasicCodeStyleFixes.vbproj">
-      <Project>{0141285d-8f6c-42c7-baf3-3c0ccd61c716}</Project>
-      <Name>BasicCodeStyleFixes</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CodeStyle\VisualBasic\Tests\BasicCodeStyleTests.vbproj">
-      <Project>{e512c6c1-f085-4ad7-b0d9-e8f1a0a2a510}</Project>
-      <Name>BasicCodeStyleTests</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj">
-      <Project>{28026d16-eb0c-40b0-bda7-11caa2b97ccc}</Project>
-      <Name>CSharpCompilerSymbolTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Test\Syntax\CSharpCompilerSyntaxTest.csproj">
-      <Project>{50d26304-0961-4a51-abf6-6cad1a56d202}</Project>
-      <Name>CSharpCompilerSyntaxTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
-      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
-      <Name>CSharpCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CoreTestUtilities\ScriptingTestUtilities.csproj">
-      <Project>{21a01c2d-2501-4619-8144-48977dd22d9c}</Project>
-      <Name>ScriptingTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CoreTest\ScriptingTest.csproj">
-      <Project>{2dae4406-7a89-4b5f-95c3-bc5472ce47ce}</Project>
-      <Name>ScriptingTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
-      <Project>{12a68549-4e8c-42d6-8703-a09335f97997}</Project>
-      <Name>Scripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CSharpTest\CSharpScriptingTest.csproj">
-      <Project>{2dae4406-7a89-4b5f-95c3-bc5422ce47ce}</Project>
-      <Name>CSharpScriptingTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
-      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
-      <Name>CSharpScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\VisualBasicTest\BasicScriptingTest.vbproj">
-      <Project>{abc7262e-1053-49f3-b846-e3091bb92e8c}</Project>
-      <Name>BasicScriptingTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj">
-      <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
-      <Name>BasicScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
-      <Name>Workspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
-      <Project>{21b239d0-d144-430f-a394-c066d58ee267}</Project>
-      <Name>CSharpWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
-      <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
-      <Name>BasicWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\CodeStyle\Core\Analyzers\CodeStyle.csproj" />
+    <ProjectReference Include="..\..\CodeStyle\Core\CodeFixes\CodeStyleFixes.csproj" />
+    <ProjectReference Include="..\..\CodeStyle\Core\Tests\CodeStyleTests.csproj" />
+    <ProjectReference Include="..\..\CodeStyle\CSharp\Analyzers\CSharpCodeStyle.csproj" />
+    <ProjectReference Include="..\..\CodeStyle\CSharp\CodeFixes\CSharpCodeStyleFixes.csproj" />
+    <ProjectReference Include="..\..\CodeStyle\CSharp\Tests\CSharpCodeStyleTests.csproj" />
+    <ProjectReference Include="..\..\CodeStyle\VisualBasic\Analyzers\BasicCodeStyle.vbproj" />
+    <ProjectReference Include="..\..\CodeStyle\VisualBasic\CodeFixes\BasicCodeStyleFixes.vbproj" />
+    <ProjectReference Include="..\..\CodeStyle\VisualBasic\Tests\BasicCodeStyleTests.vbproj" />
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Syntax\CSharpCompilerSyntaxTest.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\Scripting\CoreTestUtilities\ScriptingTestUtilities.csproj" />
+    <ProjectReference Include="..\..\Scripting\CoreTest\ScriptingTest.csproj" />
+    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj" />
+    <ProjectReference Include="..\..\Scripting\CSharpTest\CSharpScriptingTest.csproj" />
+    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj" />
+    <ProjectReference Include="..\..\Scripting\VisualBasicTest\BasicScriptingTest.vbproj" />
+    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
+    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
+    <ProjectReference Include="..\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\Utilities\Portable\TestUtilities.csproj" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

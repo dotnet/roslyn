@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             // Create a simple interval tree for simplification spans.
             var spansTree = new SimpleIntervalTree<TextSpan>(TextSpanIntervalIntrospector.Instance, spans);
 
-            Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans = (nodeOrToken) =>
+            Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans = nodeOrToken =>
                 !spansTree.HasIntervalThatOverlapsWith(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
                                         currentNodeOrToken = replacedParent
                                             .ChildNodesAndTokens()
-                                            .Single((c) => c.HasAnnotation(annotation));
+                                            .Single(c => c.HasAnnotation(annotation));
                                     }
 
                                     if (isNode)
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                                             var newDocument = document.WithSyntaxRoot(newRoot);
                                             semanticModelForReduce = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                                             newRoot = await semanticModelForReduce.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                                            currentNodeOrToken = newRoot.DescendantNodes().Single((c) => c.HasAnnotation(marker));
+                                            currentNodeOrToken = newRoot.DescendantNodes().Single(c => c.HasAnnotation(marker));
                                         }
                                         else
                                         {

@@ -3,6 +3,7 @@ param (
     # Configuration
     [switch]$restore = $false,
     [switch]$release = $false,
+    [switch]$official = $false,
     [switch]$cibuild = $false,
     [switch]$build = $false,
     [switch]$bootstrap = $false,
@@ -29,6 +30,7 @@ function Print-Usage() {
     Write-Host "  -release                  Perform release build (default is debug)"
     Write-Host "  -restore                  Restore packages"
     Write-Host "  -build                    Build the Roslyn source"
+    Write-Host "  -official                 Perform an official build"
     Write-Host "  -bootstrap                Build using a bootstrap Roslyn"
     Write-Host "  -msbuildDir               MSBuild to use for operations"
     Write-Host "" 
@@ -77,7 +79,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "") {
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal";
+    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal;summary";
     
     if ($logFile -ne "") {
         $args += " /filelogger /fileloggerparameters:Verbosity=normal;logFile=$logFile";
@@ -87,8 +89,16 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "") {
         $args += " /p:PathMap=`"$($repoDir)=q:\roslyn`" /p:Feature=pdb-path-determinism" 
     }
 
+    if ($official) {
+        $args += " /p:OfficialBuild=true"
+    }
+
+    if ($bootstrapDir -ne "") {
+        $args += " /p:BootstrapBuildPath=$bootstrapDir"
+    }
+
     $args += " $buildArgs"
-    Exec-Command $msbuild $args
+    Exec-Console $msbuild $args
 }
 
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap buil 
@@ -100,14 +110,14 @@ function Make-BootstrapBuild() {
 
     $bootstrapLog = Join-Path $binariesDir "Bootstrap.log"
     Write-Host "Building Bootstrap compiler"
-    Run-MSBuild "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP build\Toolset\Toolset.csproj /p:Configuration=$buildConfiguration" -logFile $bootstrapLog | Out-Host
+    Run-MSBuild "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP build\Toolset\Toolset.csproj /p:Configuration=$buildConfiguration" -logFile $bootstrapLog 
     $dir = Join-Path $binariesDir "Bootstrap"
     Remove-Item -re $dir -ErrorAction SilentlyContinue
     Create-Directory $dir
     Move-Item "$configDir\Exes\Toolset\*" $dir
 
     Write-Host "Cleaning Bootstrap compiler artifacts"
-    Run-MSBuild "/t:Clean build\Toolset\Toolset.csproj /p:Configuration=$buildConfiguration" | Out-Host 
+    Run-MSBuild "/t:Clean build\Toolset\Toolset.csproj /p:Configuration=$buildConfiguration"
     Stop-BuildProcesses
     return $dir
 }
@@ -156,7 +166,7 @@ function Test-XUnitCoreClr() {
     Create-Directory $logDir 
 
     Write-Host "Publishing CoreClr tests"
-    Run-MSBuild "src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj /m /v:m /t:Publish /p:RuntimeIdentifier=win7-x64 /p:PublishDir=$unitDir" | Out-Host
+    Run-MSBuild "src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj /m /v:m /t:Publish /p:RuntimeIdentifier=win7-x64 /p:PublishDir=$unitDir"
 
     $corerun = Join-Path $unitDir "CoreRun.exe"
     $args = Join-Path $unitDir "xunit.console.netcore.exe"
@@ -168,7 +178,7 @@ function Test-XUnitCoreClr() {
     $args += " -xml $logFile"
 
     Write-Host "Running CoreClr tests"
-    Exec-Command $corerun $args | Out-Host
+    Exec-Console $corerun $args
 }
 
 # Core function for running our unit / integration tests tests
@@ -201,10 +211,12 @@ function Test-XUnit() {
         Deploy-VsixViaTool
     }
 
+    $logFilePath = Join-Path $configDir "runtests.log"
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools"
     $args = "$xunitDir"
+    $args += " -log:$logFilePath"
 
     if ($testDesktop) {
         if ($test32) {
@@ -239,7 +251,7 @@ function Test-XUnit() {
     }
     
     try {
-        Exec-Command $runTests $args | Out-Host 
+        Exec-Console $runTests $args
     }
     finally {
         Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process    
@@ -249,11 +261,14 @@ function Test-XUnit() {
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to 
 # deploying at build time.
 function Deploy-VsixViaTool() { 
-
     $vsixDir = Get-PackageDir "roslyntools.microsoft.vsixexpinstaller"
     $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
-    $vsDir = [IO.Path]::GetFullPath("$msbuildDir\..\..\..\").Trim("\")
-    $baseArgs = "/rootSuffix:RoslynDev /vsInstallDir:`"$vsDir`""
+    $both = Get-VisualStudioDirAndId
+    $vsDir = $both[0].Trim("\")
+    $vsId = $both[1]
+    $hive = "RoslynDev"
+    Write-Host "Using VS Instance $vsId at `"$vsDir`""
+    $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
     $all = @(
         "Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix",
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
@@ -263,13 +278,26 @@ function Deploy-VsixViaTool() {
         "Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
+    Write-Host "Uninstalling old Roslyn VSIX"
+
+    # Actual uninstall is failing at the moment using the uninstall options. Temporarily using 
+    # wildfire to uninstall our VSIX extensions
+    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\15.0_$($vsid)$($hive)"
+    if (Test-Path $extDir) {
+        foreach ($dir in Get-ChildItem -Directory $extDir) {
+            $name = Split-Path -leaf $dir
+            Write-Host "`tUninstalling $name"
+        }
+        Remove-Item -re -fo $extDir
+    }
+
     Write-Host "Installing all Roslyn VSIX"
     foreach ($e in $all) {
         $name = Split-Path -leaf $e
         $filePath = Join-Path $configDir $e
         $fullArg = "$baseArgs $filePath"
         Write-Host "`tInstalling $name"
-        Exec-Command $vsixExe $fullArg | Out-Host
+        Exec-Console $vsixExe $fullArg
     }
 }
 
@@ -309,13 +337,33 @@ function Redirect-Temp() {
     ${env:TMP} = $temp
 }
 
+function List-BuildProcesses() {
+    Write-Host "Listing running build processes..."
+    Get-Process -Name "msbuild" -ErrorAction SilentlyContinue | Out-Host
+    Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Out-Host
+}
+
+function List-VSProcesses() {
+    Write-Host "Listing running vs processes..."
+    Get-Process -Name "devenv" -ErrorAction SilentlyContinue | Out-Host
+}
+
 # Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
 # This prevents future CI runs from failing while trying to delete those files.
 # Kill any instances of msbuild.exe to ensure that we never reuse nodes (e.g. if a non-roslyn CI run
 # left some floating around).
 function Stop-BuildProcesses() {
-    Get-Process msbuild -ErrorAction SilentlyContinue | kill 
-    Get-Process vbcscompiler -ErrorAction SilentlyContinue | kill
+    Write-Host "Killing running build processes..."
+    Get-Process -Name "msbuild" -ErrorAction SilentlyContinue | Stop-Process
+    Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Stop-Process
+}
+
+# Kill any instances of devenv.exe to ensure VSIX install/uninstall works in future runs and to ensure
+# that any locked files don't prevent future CI runs from failing.
+# Also call Stop-BuildProcesses
+function Stop-VSProcesses() {
+    Write-Host "Killing running vs processes..."
+    Get-Process -Name "devenv" -ErrorAction SilentlyContinue | Stop-Process
 }
 
 try {
@@ -344,6 +392,8 @@ try {
     Create-Directory $configDir 
 
     if ($cibuild) { 
+        List-VSProcesses
+        List-BuildProcesses
         Redirect-Temp
     }
 
@@ -396,7 +446,8 @@ catch {
 }
 finally {
     Pop-Location
-    if ($cibuild) { 
+    if ($cibuild) {
+        Stop-VSProcesses
         Stop-BuildProcesses
     }
 }

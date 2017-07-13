@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 // while the chance that we will need their size is diminishingly small.
                 // It makes sense to constrain the size to some "not too small" number. 
                 // Overall perf does not seem to be very sensitive to this number, so I picked 128 as a limit.
-                if (this.Count < 128)
+                if (_builder.Capacity < 128)
                 {
                     if (this.Count != 0)
                     {

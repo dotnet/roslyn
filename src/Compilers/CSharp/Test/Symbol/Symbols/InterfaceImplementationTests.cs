@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -1168,7 +1168,6 @@ partial class Base
             CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
-        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         /// <summary>
         /// I -> M(ref int)
         /// B -> M(out int)
@@ -1177,6 +1176,7 @@ partial class Base
         /// I source, B source, D source
         /// </summary>
         [Fact]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         public void TestSourceMetadataImplicitImplementation1()
         {
             var csharp = @"
@@ -1220,7 +1220,6 @@ class Program
         // I source, B source, D metadata - skip: metadata implementing source
         // public void TestSourceMetadataImplicitImplementation2()
 
-        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         /// <summary>
         /// I -> M(ref int)
         /// B -> M(out int)
@@ -1229,6 +1228,7 @@ class Program
         /// I source, B metadata, D source
         /// </summary>
         [Fact]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         public void TestSourceMetadataImplicitImplementation3()
         {
             var csharp = @"
@@ -1291,7 +1291,6 @@ class Program
         // I source, B metadata, D metadata - skip: metadata implementing source
         // public void TestSourceMetadataImplicitImplementation4()
 
-        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         /// <summary>
         /// I -> M(ref int)
         /// B -> M(out int)
@@ -1300,6 +1299,7 @@ class Program
         /// I metadata, B source, D source
         /// </summary>
         [Fact]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         public void TestSourceMetadataImplicitImplementation5()
         {
             var csharp = @"
@@ -1347,7 +1347,6 @@ class Program
         // I metadata, B source, D metadata - skip: metadata extending source
         // public void TestSourceMetadataImplicitImplementation6()
 
-        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         /// <summary>
         /// I -> M(ref int)
         /// B -> M(out int)
@@ -1356,6 +1355,7 @@ class Program
         /// I metadata, B metadata, D source
         /// </summary>
         [Fact]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         public void TestSourceMetadataImplicitImplementation7()
         {
             var csharp = @"
@@ -1453,7 +1453,6 @@ class C : B { }
             CompileWithCustomILSource(csharp, il);
         }
 
-        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         /// <summary>
         /// I -> M(ref int)
         /// B -> M(out int)
@@ -1462,6 +1461,7 @@ class C : B { }
         /// I source, B source, D source
         /// </summary>
         [Fact]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         public void TestSourceMetadataImplicitImplementation8()
         {
             var csharp = @"
@@ -1595,13 +1595,13 @@ static class Program
             Assert.Equal(fooMethod, typeSymbol.FindImplementationForInterfaceMember(secondInterfaceMethod));
         }
 
-        [WorkItem(540558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540558")]
         /// <summary>
         /// In this case, C# thinks B.M implements I.M for C, but the CLR thinks A.M does.  To make sure that we get the
         /// desired behavior, we have to insert an explicit bridge method.
         /// (See SourceNamedTypeSymbol.IsOverrideOfPossibleImplementationUnderRuntimeRules.)
         /// </summary>
         [Fact]
+        [WorkItem(540558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540558")]
         public void TestCSharpClrDisagreement_NonOverride()
         {
             var text = @"
@@ -1655,13 +1655,13 @@ class C : B, I { }
             Assert.Equal(classBMethod, synthesizedExplicitImpl.ImplementingMethod);
         }
 
-        [WorkItem(540558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540558")]
         /// <summary>
         /// In this case, C# thinks B.M implements I.M for C, but the CLR thinks A.M does.  However,
         /// B.M overrides A.M, so there's no problem (distinguish from TestCSharpClrDisagreement_NonOverride).
         /// (See SourceNamedTypeSymbol.IsOverrideOfPossibleImplementationUnderRuntimeRules.)
         /// </summary>
         [Fact]
+        [WorkItem(540558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540558")]
         public void TestCSharpClrDisagreement_Override()
         {
             var text = @"

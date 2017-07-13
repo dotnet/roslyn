@@ -1,94 +1,41 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks.UnitTests</RootNamespace>
     <AssemblyName>Microsoft.Build.Tasks.CodeAnalysis.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
-      <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
-      <Name>csc</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\VisualBasic\vbc\vbc.csproj">
-      <Project>{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}</Project>
-      <Name>vbc</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\MSBuildTask\MSBuildTask.csproj">
-      <Project>{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}</Project>
-      <Name>MSBuildTask</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
-      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\CSharp\csc\csc.csproj" />
+    <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\VisualBasic\vbc\vbc.csproj" />
+    <ProjectReference Include="..\MSBuildTask\MSBuildTask.csproj" />
+    <ProjectReference Include="..\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
-    <PackageReference Include="xunit">
-      <Version>$(xunitVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.console">
-      <Version>$(xunitrunnerconsoleVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio">
-      <Version>$(xunitrunnervisualstudioVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="System.Collections.Immutable">
-      <Version>$(SystemCollectionsImmutableVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build">
-      <Version>$(MicrosoftBuildFixedVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Moq">
-      <Version>$(MoqVersion)</Version>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="MiscTests.cs" />
-    <Compile Include="CscTests.cs" />
-    <Compile Include="CsiTests.cs" />
-    <Compile Include="IntegrationTests.cs" />
-    <Compile Include="MSBuildUtil.cs" />
-    <Compile Include="VbcTests.cs" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildFixedVersion)" />
+    <PackageReference Include="Moq" Version="$(MoqVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

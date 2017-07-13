@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// a service that lets one to create <see cref="PinnedRemotableDataScope"/> that can be used to pin solution
     /// while working on remote host
     /// </summary>
-    internal interface ISolutionSynchronizationService : IWorkspaceService
+    internal interface IRemotableDataService : IWorkspaceService
     {
         /// <summary>
         /// Add global <see cref="CustomAsset"/> which stays alive while host is alive.
@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// Get <see cref="RemotableData"/> corresponding to given <see cref="Checksum"/>. 
         /// </summary>
-        RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken);
+        RemotableData GetRemotableData(int scopeId, Checksum checksum, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get <see cref="RemotableData"/>s corresponding to given <see cref="Checksum"/>s. 
         /// </summary>
-        IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
+        IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
     }
 }
