@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         public NamingStyle With(
-          Optional<string> name = default(Optional<string>),
-          Optional<string> prefix = default(Optional<string>),
-          Optional<string> suffix = default(Optional<string>),
-          Optional<string> wordSeparator = default(Optional<string>),
-          Optional<Capitalization> capitalizationScheme = default(Optional<Capitalization>))
+          Optional<string> name = default,
+          Optional<string> prefix = default,
+          Optional<string> suffix = default,
+          Optional<string> wordSeparator = default,
+          Optional<Capitalization> capitalizationScheme = default)
         {
             var newName = name.HasValue ? name.Value : this.Name;
             var newPrefix = prefix.HasValue ? prefix.Value : this.Prefix;

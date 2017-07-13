@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             : base(containingType,
                  attributes,
                  Accessibility.NotApplicable,
-                 default(DeclarationModifiers),
+                 default,
                  returnType: null,
                  returnsByRef: false,
                  explicitInterfaceImplementations: default,

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private static bool TryEncodeSpans(string text, Func<string, int, TextSpan> spanGenerator, out EncodedSpans encodedSpans)
         {
-            encodedSpans = default(EncodedSpans);
+            encodedSpans = default;
             for (int start = 0, b = 0; start < text.Length;)
             {
                 var span = spanGenerator(text, start);
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private StringBreaks(ArrayBuilder<TextSpan> spans)
         {
-            _encodedSpans = default(EncodedSpans);
+            _encodedSpans = default;
             _spans = spans;
         }
 
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return new TextSpan(wordStart, identifier.Length - wordStart);
             }
 
-            return default(TextSpan);
+            return default;
         }
 
         private static bool IsAllPunctuation(string identifier, int start, int end)

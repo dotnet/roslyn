@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 (constant, expression) =
                         IsConstant(expression1) ? (expression1, expression2) :
                         IsConstant(expression2) ? (expression2, expression1) :
-                        default((TExpressionSyntax, TExpressionSyntax));
+                        default;
 
                 return constant != null;
             }
