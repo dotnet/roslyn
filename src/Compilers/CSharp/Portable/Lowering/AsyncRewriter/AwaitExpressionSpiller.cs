@@ -797,7 +797,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var receiverBuilder = new BoundSpillSequenceBuilder();
 
                 receiver = node.ReceiverOpt;
-                var refKind = ReceiverSpillRefKind(receiver);
+                var refKind = node.Method.ContainingType.IsReadOnly?
+                                                    RefKind.RefReadOnly:
+                                                    ReceiverSpillRefKind(receiver);
 
                 receiver = Spill(receiverBuilder, VisitExpression(ref receiverBuilder, receiver), refKind: refKind);
                 receiverBuilder.Include(builder);
@@ -809,8 +811,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static RefKind ReceiverSpillRefKind(BoundExpression receiver)
         {
-            return LocalRewriter.WouldBeAssignableIfUsedAsMethodReceiver(receiver) ? 
-                RefKind.Ref : 
+            return LocalRewriter.WouldBeAssignableIfUsedAsMethodReceiver(receiver) ?
+                RefKind.Ref :
                 RefKind.None;
         }
 

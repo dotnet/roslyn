@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.Call:
-                    return ((BoundCall)receiver).Method.RefKind != RefKind.None;
+                    return ((BoundCall)receiver).Method.RefKind == RefKind.Ref;
             }
 
             return false;

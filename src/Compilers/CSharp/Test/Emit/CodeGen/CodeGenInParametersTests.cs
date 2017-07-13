@@ -793,11 +793,11 @@ class Program
 
         local = new S1();
 
-        // prints   1 42 3 3       note no aliasing for the first argument because of spilling of a call
+        // prints   1 42 3 3       note no aliasing for the first two arguments because of spilling of calls
         M1(GetLocal(ref local).f, await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
     }
 
-        private static ref readonly S1 GetLocal(ref S1 local)
+    private static ref readonly S1 GetLocal(ref S1 local)
     {
         local.f++;
         return ref local;
@@ -836,6 +836,75 @@ public struct S1
 3
 3");
         }
+
+        [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
+        [Fact]
+        public void ReadonlyParamAsyncSpillMethodsW()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test().Wait();
+    }
+
+    public static async Task Test()
+    {
+        var local = new S1();
+
+        // BASELINE - without an await
+        // prints   3 42 3 3       note the aliasing, 3 is the last state of the local.f
+        M1(GetLocalWriteable(ref local).f,             42, GetLocalWriteable(ref local).f, GetLocalWriteable(ref local).f);
+
+        local = new S1();
+
+        // prints   1 42 3 3       note no aliasing for the first two arguments because of spilling of calls
+        M1(GetLocalWriteable(ref local).f, await GetT(42), GetLocalWriteable(ref local).f, GetLocalWriteable(ref local).f);
+    }
+
+    private static ref S1 GetLocalWriteable(ref S1 local)
+    {
+        local.f++;
+        return ref local;
+    }
+
+    public static async Task<T> GetT<T>(T val)
+    {
+        await Task.Yield();
+        return val;
+    }
+
+    public static void M1(in int arg1, in int arg2, in int arg3, in int arg4)
+    {
+        System.Console.WriteLine(arg1);
+        System.Console.WriteLine(arg2);
+        System.Console.WriteLine(arg3);
+        System.Console.WriteLine(arg4);
+    }
+}
+
+public struct S1
+{
+    public int f;
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: false, expectedOutput: @"
+3
+42
+3
+3
+1
+42
+3
+3");
+        }
+
 
         [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
         [Fact]
@@ -916,7 +985,7 @@ class Program
         M1(local.f, await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
     }
 
-        private static ref readonly S1 GetLocal(ref S1 local)
+    private static ref readonly S1 GetLocal(ref S1 local)
     {
         local.f++;
         return ref local;
@@ -970,10 +1039,10 @@ class Program
         var local = new S1();
 
         // prints   2 42 2 2       note aliasing for all arguments regardless of spilling
-        local.f.M1(await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
+        local.f.M1(await GetT(42), GetLocalWriteable(ref local).f, GetLocalWriteable(ref local).f);
     }
 
-    private static ref readonly S1 GetLocal(ref S1 local)
+    private static ref S1 GetLocalWriteable(ref S1 local)
     {
         local.f++;
         return ref local;
@@ -1012,6 +1081,228 @@ public struct S1
 2");
         }
 
+        [Fact]
+        public void ReadonlyParamAsyncSpillReadOnlyStructThis()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test().Wait();
+    }
+
+    public static async Task Test()
+    {
+        var local = new S1();
+
+        // BASELINE - without an await
+        // prints   3 42 3 3       note the aliasing, 3 is the last state of the local.f
+        GetLocal(ref local).M1(            42, GetLocal(ref local).f, GetLocal(ref local).f);
+
+        local = new S1();
+
+        // prints   1 42 3 3       note no aliasing for the first argument because of spilling of a call
+        GetLocal(ref local).M1(await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
+
+        local = new S1();
+
+        // prints   1 42 3 3       note no aliasing for the first argument because of spilling of a call
+        GetLocalWriteable(ref local).M1(await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
+    }
+
+    private static ref readonly S1 GetLocal(ref S1 local)
+    {
+        local = new S1(local.f + 1);
+        return ref local;
+    }
+
+    private static ref S1 GetLocalWriteable(ref S1 local)
+    {
+        local = new S1(local.f + 1);
+        return ref local;
+    }
+
+    public static async Task<T> GetT<T>(T val)
+    {
+        await Task.Yield();
+        return val;
+    }
+}
+
+public readonly struct S1
+{
+    public readonly int f;
+
+    public S1(int val)
+    {
+        this.f = val;
+    }
+
+    public void M1(in int arg2, in int arg3, in int arg4)
+    {
+        System.Console.WriteLine(this.f);
+        System.Console.WriteLine(arg2);
+        System.Console.WriteLine(arg3);
+        System.Console.WriteLine(arg4);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: false, expectedOutput: @"
+3
+42
+3
+3
+1
+42
+3
+3
+1
+42
+3
+3");
+        }
+
+        [Fact]
+        public void ReadonlyParamAsyncSpillReadOnlyStructThis_NoValCapture()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test().Wait();
+    }
+
+    public static readonly S1 s1 = new S1(1);
+    public static readonly S1 s2 = new S1(2);
+    public static readonly S1 s3 = new S1(3);
+    public static readonly S1 s4 = new S1(4);
+
+    public static async Task Test()
+    {
+        s1.M1(s2, await GetT(s3), s4);
+    }
+
+    public static async Task<T> GetT<T>(T val)
+    {
+        await Task.Yield();
+        return val;
+    }
+}
+
+public readonly struct S1
+{
+    public readonly int f;
+
+    public S1(int val)
+    {
+        this.f = val;
+    }
+
+    public void M1(in S1 arg2, in S1 arg3, in S1 arg4)
+    {
+        System.Console.WriteLine(this.f);
+        System.Console.WriteLine(arg2.f);
+        System.Console.WriteLine(arg3.f);
+        System.Console.WriteLine(arg4.f);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var v = CompileAndVerify(comp, verify: false, expectedOutput: @"
+1
+2
+3
+4");
+
+            // NOTE: s1, s3 and s4 are all directly loaded via ldsflda and not spilled.
+            v.VerifyIL("Program.<Test>d__5.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      170 (0xaa)
+  .maxstack  4
+  .locals init (int V_0,
+                S1 V_1,
+                System.Runtime.CompilerServices.TaskAwaiter<S1> V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__5.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0043
+    IL_000a:  ldsfld     ""S1 Program.s3""
+    IL_000f:  call       ""System.Threading.Tasks.Task<S1> Program.GetT<S1>(S1)""
+    IL_0014:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<S1> System.Threading.Tasks.Task<S1>.GetAwaiter()""
+    IL_0019:  stloc.2
+    IL_001a:  ldloca.s   V_2
+    IL_001c:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<S1>.IsCompleted.get""
+    IL_0021:  brtrue.s   IL_005f
+    IL_0023:  ldarg.0
+    IL_0024:  ldc.i4.0
+    IL_0025:  dup
+    IL_0026:  stloc.0
+    IL_0027:  stfld      ""int Program.<Test>d__5.<>1__state""
+    IL_002c:  ldarg.0
+    IL_002d:  ldloc.2
+    IL_002e:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<S1> Program.<Test>d__5.<>u__1""
+    IL_0033:  ldarg.0
+    IL_0034:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__5.<>t__builder""
+    IL_0039:  ldloca.s   V_2
+    IL_003b:  ldarg.0
+    IL_003c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<S1>, Program.<Test>d__5>(ref System.Runtime.CompilerServices.TaskAwaiter<S1>, ref Program.<Test>d__5)""
+    IL_0041:  leave.s    IL_00a9
+    IL_0043:  ldarg.0
+    IL_0044:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<S1> Program.<Test>d__5.<>u__1""
+    IL_0049:  stloc.2
+    IL_004a:  ldarg.0
+    IL_004b:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<S1> Program.<Test>d__5.<>u__1""
+    IL_0050:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<S1>""
+    IL_0056:  ldarg.0
+    IL_0057:  ldc.i4.m1
+    IL_0058:  dup
+    IL_0059:  stloc.0
+    IL_005a:  stfld      ""int Program.<Test>d__5.<>1__state""
+    IL_005f:  ldloca.s   V_2
+    IL_0061:  call       ""S1 System.Runtime.CompilerServices.TaskAwaiter<S1>.GetResult()""
+    IL_0066:  stloc.1
+    IL_0067:  ldsflda    ""S1 Program.s1""
+    IL_006c:  ldsflda    ""S1 Program.s2""
+    IL_0071:  ldloca.s   V_1
+    IL_0073:  ldsflda    ""S1 Program.s4""
+    IL_0078:  call       ""void S1.M1(in S1, in S1, in S1)""
+    IL_007d:  leave.s    IL_0096
+  }
+  catch System.Exception
+  {
+    IL_007f:  stloc.3
+    IL_0080:  ldarg.0
+    IL_0081:  ldc.i4.s   -2
+    IL_0083:  stfld      ""int Program.<Test>d__5.<>1__state""
+    IL_0088:  ldarg.0
+    IL_0089:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__5.<>t__builder""
+    IL_008e:  ldloc.3
+    IL_008f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0094:  leave.s    IL_00a9
+  }
+  IL_0096:  ldarg.0
+  IL_0097:  ldc.i4.s   -2
+  IL_0099:  stfld      ""int Program.<Test>d__5.<>1__state""
+  IL_009e:  ldarg.0
+  IL_009f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__5.<>t__builder""
+  IL_00a4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00a9:  ret
+}
+");
+        }
 
     }
 }
