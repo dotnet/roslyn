@@ -116,8 +116,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SaveFile(ProjectUtils.Project project, string fileName)
             => _inProc.SaveFile(project.Name, fileName);
 
-        public void ReloadProject(string projectRelativePath)
-            => _inProc.ReloadProject(projectRelativePath);
+        public void ReloadProject(ProjectUtils.Project project)
+            => _inProc.ReloadProject(project.RelativePath);
 
         public void RestoreNuGetPackages()
             => _inProc.RestoreNuGetPackages();
