@@ -116,8 +116,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SaveFile(ProjectUtils.Project project, string fileName)
             => _inProc.SaveFile(project.Name, fileName);
 
-        public void ReloadProject(ProjectUtils.Project project)
-            => _inProc.ReloadProject(project.Name);
+        public void ReloadProject(string projectRelativePath)
+            => _inProc.ReloadProject(projectRelativePath);
 
         public void RestoreNuGetPackages()
             => _inProc.RestoreNuGetPackages();
@@ -128,8 +128,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ShowOutputWindow()
             => _inProc.ShowOutputWindow();
 
-        public void UnloadProject(ProjectUtils.Project project)
-            => _inProc.UnloadProject(project.Name);
+        /// <summary>
+        /// Unloads the project. <paramref name="index"/> is 1 based.
+        /// </summary>
+        /// <param name="index"></param>
+        public void UnloadProject(int index)
+            => _inProc.UnloadProject(index);
 
         public string[] GetProjectReferences(ProjectUtils.Project project)
             => _inProc.GetProjectReferences(project.Name);

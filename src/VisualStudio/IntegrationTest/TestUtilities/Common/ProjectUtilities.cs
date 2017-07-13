@@ -9,10 +9,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils
 
     public class Project : Identity
     {
-        public Project(string name)
+        public Project(string name, string relativePath = null)
         {
             Name = name;
+            RelativePath = relativePath;
         }
+
+        public string RelativePath { get; }
     }
 
     public class ProjectReference : Identity

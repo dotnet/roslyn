@@ -808,10 +808,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return Path.Combine(projectPath, relativeFilePath);
         }
 
-        public void ReloadProject(string projectName)
+        public void ReloadProject(string projectRelativePath)
         {
             var solutionPath = Path.GetDirectoryName(_solution.FullName);
-            var projectPath = Path.Combine(solutionPath, projectName);
+            var projectPath = Path.Combine(solutionPath, projectRelativePath);
             _solution.AddFromFile(projectPath);
         }
 
@@ -827,9 +827,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void ShowOutputWindow()
             => ExecuteCommand(WellKnownCommandNames.View_Output);
 
-        public void UnloadProject(string projectName)
+        public void UnloadProject(int index)
         {
-            var project = _solution.Projects.Item(projectName);
+            var project = _solution.Projects.Item(index);
             _solution.Remove(project);
         }
 
