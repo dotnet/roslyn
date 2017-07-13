@@ -7479,5 +7479,63 @@ class C
     }
 }", index: 1);
         }
+
+        [WorkItem(20791, "https://github.com/dotnet/roslyn/issues/20791")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestOutWithOverload1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        Foo(out [|foo|]);
+    }
+
+    void Foo(int i) { }
+    void Foo(out bool b) { }
+}",
+@"class Class
+{
+    private bool foo;
+
+    void Method()
+    {
+        Foo(out foo);
+    }
+
+    void Foo(int i) { }
+    void Foo(out bool b) { }
+}");
+        }
+
+        [WorkItem(20791, "https://github.com/dotnet/roslyn/issues/20791")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestRefWithOverload2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        Foo(ref [|foo|]);
+    }
+
+    void Foo(int i) { }
+    void Foo(ref bool b) { }
+}",
+@"class Class
+{
+    private bool foo;
+
+    void Method()
+    {
+        Foo(ref foo);
+    }
+
+    void Foo(int i) { }
+    void Foo(ref bool b) { }
+}");
+        }
     }
 }
