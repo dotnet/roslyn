@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                     case IEventSymbol @event:
                         var accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                            attributes: default(ImmutableArray<AttributeData>),
+                            attributes: default,
                             accessibility: Accessibility.NotApplicable,
                             statements: factory.CreateThrowNotImplementedStatementBlock(compilation));
 
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                         factory.MemberAccessExpression(throughExpression, memberName), factory.IdentifierName("value")));
 
                     return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                           attributes: default(ImmutableArray<AttributeData>),
+                           attributes: default,
                            accessibility: Accessibility.NotApplicable,
                            statements: ImmutableArray.Create(statement));
                 }

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public struct VersionStamp : IEquatable<VersionStamp>, IObjectWritable
     {
-        public static VersionStamp Default => default(VersionStamp);
+        public static VersionStamp Default => default;
 
         private const int GlobalVersionMarker = -1;
         private const int InitialGlobalVersion = 10000;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
 
         private VersionStamp(DateTime utcLastModified, int localIncrement, int globalIncrement)
         {
-            Contract.ThrowIfFalse(utcLastModified == default(DateTime) || utcLastModified.Kind == DateTimeKind.Utc);
+            Contract.ThrowIfFalse(utcLastModified == default || utcLastModified.Kind == DateTimeKind.Utc);
 
             _utcLastModified = utcLastModified;
             _localIncrement = localIncrement;

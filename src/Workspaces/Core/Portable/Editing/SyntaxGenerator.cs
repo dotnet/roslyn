@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public static SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
+        internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string name,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             SyntaxNode initializer = null);
 
         /// <summary>
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<string> typeParameters = null,
             SyntaxNode returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> statements = null);
 
         /// <summary>
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode> parameters = null,
             SyntaxNode returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> statements = null)
         {
             throw new NotImplementedException();
@@ -278,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string name,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> getAccessorStatements = null,
             IEnumerable<SyntaxNode> setAccessorStatements = null);
 
@@ -319,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode> parameters,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> getAccessorStatements = null,
             IEnumerable<SyntaxNode> setAccessorStatements = null);
 
@@ -357,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string name,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers));
+            DeclarationModifiers modifiers = default);
 
         /// <summary>
         /// Creates an event declaration from an existing event symbol
@@ -378,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string name,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> parameters = null,
             IEnumerable<SyntaxNode> addAccessorStatements = null,
             IEnumerable<SyntaxNode> removeAccessorStatements = null);
@@ -411,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string containingTypeName = null,
             IEnumerable<SyntaxNode> parameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> baseConstructorArguments = null,
             IEnumerable<SyntaxNode> statements = null);
 
@@ -469,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string name,
             IEnumerable<string> typeParameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             SyntaxNode baseType = null,
             IEnumerable<SyntaxNode> interfaceTypes = null,
             IEnumerable<SyntaxNode> members = null);
@@ -481,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string name,
             IEnumerable<string> typeParameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> interfaceTypes = null,
             IEnumerable<SyntaxNode> members = null);
 
@@ -501,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode EnumDeclaration(
             string name,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> members = null);
 
         /// <summary>
@@ -518,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<string> typeParameters = null,
             SyntaxNode returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers));
+            DeclarationModifiers modifiers = default);
 
         /// <summary>
         /// Creates a declaration matching an existing symbol.

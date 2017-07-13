@@ -74,13 +74,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return;
             }
 
+            // Create a connection to the host in the BG to avoid taking the hit of loading service 
+            // hub on the UI thread.  We'll initially set its ref count to 1, and we will decrement 
+            // that ref-count at the end of the using block.  During this time though, when the 
+            // projectTracker is sending events, the workspace host can then use that connection 
+            // instead of having to expensively spin up a fresh one.
+            var session = await client.TryCreateKeepAliveSessionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
+            var host = new WorkspaceHost(vsWorkspace, session);
+
             // RegisterWorkspaceHost is required to be called from UI thread so push the code
             // to UI thread to run. 
             await Task.Factory.SafeStartNew(() =>
             {
                 var projectTracker = vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider);
-
-                var host = new WorkspaceHost(vsWorkspace, client);
 
                 projectTracker.RegisterWorkspaceHost(host);
                 projectTracker.StartSendingEventsToWorkspaceHost(host);
@@ -146,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             string serviceName,
             HostGroup hostGroup,
             TimeSpan timeout,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             const int max_retry = 10;
             const int retry_delayInMS = 50;
@@ -189,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static async Task<Stream> RequestServiceAsync(HubClient client, ServiceDescriptor descriptor, TimeSpan timeout, CancellationToken cancellationToken = default(CancellationToken))
+        private static async Task<Stream> RequestServiceAsync(HubClient client, ServiceDescriptor descriptor, TimeSpan timeout, CancellationToken cancellationToken = default)
         {
             // we are wrapping HubClient.RequestServiceAsync since we can't control its internal timeout value ourselves.
             // we have bug opened to track the issue.

@@ -1055,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 Debug.Assert(false, "This method is used only replacing the '<' and '>' to '{' and '}' respectively");
-                return default(SyntaxToken);
+                return default;
             }
 
             private bool IsTypeOfUnboundGenericType(SemanticModel semanticModel, TypeOfExpressionSyntax typeOfExpression)

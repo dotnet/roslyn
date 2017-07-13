@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class UseExpressionBodyDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
+        public const string FixesError = nameof(FixesError);
+
         private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
@@ -98,7 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     location, additionalLocations: additionalLocations, properties: properties);
             }
 
-            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true))
+            var (canOffer, fixesError) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true);
+            if (canOffer)
             {
                 // They have an expression body.  Create a diagnostic to convert it to a block
                 // if they don't want expression bodies for this member.  
@@ -106,10 +109,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     ? declaration.GetLocation()
                     : helper.GetExpressionBody(declaration).GetLocation();
 
+                var properties = ImmutableDictionary<string, string>.Empty;
+                if (fixesError)
+                {
+                    properties = properties.Add(FixesError, "");
+                }
+
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return Diagnostic.Create(
                     CreateDescriptorWithId(helper.DiagnosticId, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle, severity, GetCustomTags(severity)),
-                    location, additionalLocations: additionalLocations);
+                    location, additionalLocations: additionalLocations, properties: properties);
             }
 
             return null;
