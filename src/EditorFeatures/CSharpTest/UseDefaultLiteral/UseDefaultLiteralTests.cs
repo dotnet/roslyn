@@ -362,5 +362,74 @@ class C
     }
 }", parseOptions: s_parseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestDoNotOfferIfTypeWouldChange()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+struct S
+{
+    void M()
+    {
+        var s = new S();
+        s.Equals([||]default(S));
+    }
+
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestDoNotOfferIfTypeWouldChange2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+struct S<T>
+{
+    void M()
+    {
+        var s = new S<int>();
+        s.Equals([||]default(S<int>));
+    }
+
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestOnShadowedMethod()
+        {
+            await TestAsync(
+@"
+struct S
+{
+    void M()
+    {
+        var s = new S();
+        s.Equals([||]default(S));
+    }
+
+    public new bool Equals(S s) => true;
+}",
+
+@"
+struct S
+{
+    void M()
+    {
+        var s = new S();
+        s.Equals(default);
+    }
+
+    public new bool Equals(S s) => true;
+}", parseOptions: s_parseOptions);
+        }
     }
 }

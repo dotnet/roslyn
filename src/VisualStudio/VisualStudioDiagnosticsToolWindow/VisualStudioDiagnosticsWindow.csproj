@@ -108,9 +108,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
-  <ItemGroup>
     <Page Include="VenusMargin\ProjectionBufferMargin.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -57,9 +57,6 @@
     <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Update="SolutionExplorerShim.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
