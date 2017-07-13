@@ -183,7 +183,7 @@ namespace Roslyn.Utilities
             //
             // Also Note: sourceLength and targetLength values will mutate and represent the lengths 
             // of the portions of the arrays we want to compare.  However, even after mutation, hte
-            // invariant htat sourceLength is <= targetLength will remain.
+            // invariant that sourceLength is <= targetLength will remain.
             Debug.Assert(source.Length <= target.Length);
 
             // First:
