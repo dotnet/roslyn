@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (options.MergeAttributes)
             {
-                var attributeNodes = attributes.OrderBy(a => a.AttributeClass.Name).Select((a) => GenerateAttribute(a, options)).WhereNotNull().ToList();
+                var attributeNodes = attributes.OrderBy(a => a.AttributeClass.Name).Select(a => GenerateAttribute(a, options)).WhereNotNull().ToList();
                 return attributeNodes.Count == 0
                     ? default(SyntaxList<AttributeListSyntax>)
                     : SyntaxFactory.SingletonList(SyntaxFactory.AttributeList(

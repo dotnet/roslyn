@@ -405,7 +405,7 @@ End Class
         End Sub
 
         ''' <summary>
-        ''' Verifies that <see cref="CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/> s.
+        ''' Verifies that <see cref="VisualBasicEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/> s.
         ''' </summary>
         <Fact>
         Public Sub ErrorSpansAllKinds()

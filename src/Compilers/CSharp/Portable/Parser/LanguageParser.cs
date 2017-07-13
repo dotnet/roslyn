@@ -3884,22 +3884,11 @@ tryAgain:
             this.ParseAttributeDeclarations(attributes);
             this.ParseParameterModifiers(modifiers);
 
-            var hasArgList = this.CurrentToken.Kind == SyntaxKind.ArgListKeyword;
-
-            TypeSyntax type = null;
-            if (!hasArgList)
+            TypeSyntax type;
+            SyntaxToken name;
+            if (this.CurrentToken.Kind != SyntaxKind.ArgListKeyword)
             {
                 type = this.ParseType(mode: ParseTypeMode.Parameter);
-            }
-            else if (this.IsPossibleType())
-            {
-                type = this.ParseType(mode: ParseTypeMode.Parameter);
-                type = WithAdditionalDiagnostics(type, this.GetExpectedTokenError(SyntaxKind.CloseParenToken, SyntaxKind.IdentifierToken, 0, type.Width));
-            }
-
-            SyntaxToken name = null;
-            if (!hasArgList)
-            {
                 name = this.ParseIdentifierToken();
 
                 // When the user type "int foo[]", give them a useful error
@@ -3911,19 +3900,11 @@ tryAgain:
                     name = AddTrailingSkippedSyntax(name, SyntaxList.List(open, close));
                 }
             }
-            else if (this.IsPossibleName())
-            {
-                // Current token is an identifier token, we expected a CloseParenToken.
-                // Get the expected token error for the missing token with correct diagnostic
-                // span and then parse the identifier token.
-
-                SyntaxDiagnosticInfo diag = this.GetExpectedTokenError(SyntaxKind.CloseParenToken, SyntaxKind.IdentifierToken);
-                name = this.ParseIdentifierToken();
-                name = WithAdditionalDiagnostics(name, diag);
-            }
             else
             {
-                // name is not optional on ParameterSyntax
+                // We store an __arglist parameter as a parameter with null type and whose 
+                // .Identifier has the kind ArgListKeyword.
+                type = null;
                 name = this.EatToken(SyntaxKind.ArgListKeyword);
             }
 

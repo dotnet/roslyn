@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBConstantTests : CSharpTestBase
     {
-        private CultureInfo _testCulture = new CultureInfo("en-US");
-
         [Fact]
         public void StringsWithSurrogateChar()
         {
