@@ -874,7 +874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CorLibrary.GetDeclaredSpecialTypeMember(member);
         }
 
-        protected enum IVTConclusion
+        protected enum FriendAccessConclusion
         {
             // This indicates that friend access should be granted.
 
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ImmutableArray<byte> PublicKey { get; }
 
-        protected IVTConclusion PerformIVTCheck(ImmutableArray<byte> key, AssemblyIdentity otherIdentity)
+        protected FriendAccessConclusion PerformFriendAccessCheck(ImmutableArray<byte> key, AssemblyIdentity otherIdentity)
         {
             // This gets a bit complicated. Let's break it down.
             //
@@ -972,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation = this.DeclaringCompilation;
             if (compilation != null && compilation.Options.OutputKind.IsNetModule())
             {
-                return IVTConclusion.Match;
+                return FriendAccessConclusion.Match;
             }
 
             bool q1 = otherIdentity.IsStrongName;
@@ -983,17 +983,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Cases 2, 3, 7 and 8:
             if (q2 && !q4)
             {
-                return IVTConclusion.PublicKeyDoesntMatch;
+                return FriendAccessConclusion.PublicKeyDoesntMatch;
             }
 
             // Cases 6 and 9:
             if (!q1 && q3)
             {
-                return IVTConclusion.OneSignedOneNot;
+                return FriendAccessConclusion.OneSignedOneNot;
             }
 
             // Cases 1, 4, 5 and 10:
-            return IVTConclusion.Match;
+            return FriendAccessConclusion.Match;
         }
 
         #region IAssemblySymbol Members
@@ -1039,18 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var myKeys = GetInternalsVisibleToPublicKeys(assembly.Identity.Name);
-            foreach (var key in myKeys)
-            {
-                IVTConclusion conclusion = assembly.PerformIVTCheck(key, this.Identity);
-                Debug.Assert(conclusion != IVTConclusion.NoRelationshipClaimed);
-                if (conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return assembly.AreInternalsVisibleToThisAssembly(this);
         }
 
         INamedTypeSymbol IAssemblySymbol.GetTypeByMetadataName(string metadataName)

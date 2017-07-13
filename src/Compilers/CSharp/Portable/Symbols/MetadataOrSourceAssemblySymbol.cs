@@ -184,43 +184,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="potentialGiverOfAccess"></param>
         /// <returns></returns>
         /// <remarks></remarks>
-        protected IVTConclusion MakeFinalIVTDetermination(AssemblySymbol potentialGiverOfAccess)
+        protected FriendAccessConclusion MakeFinalFriendAccessDetermination(AssemblySymbol potentialGiverOfAccess)
         {
-            IVTConclusion result;
-            if (AssembliesToWhichInternalAccessHasBeenDetermined.TryGetValue(potentialGiverOfAccess, out result))
+            if (AssembliesToWhichInternalAccessHasBeenDetermined.TryGetValue(potentialGiverOfAccess, out var result))
                 return result;
 
-            result = IVTConclusion.NoRelationshipClaimed;
-
-            //EDMAURER returns an empty list if there was no IVT attribute at all for the given name
-            //A name w/o a key is represented by a list with an entry that is empty
-            IEnumerable<ImmutableArray<byte>> publicKeys = potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(this.Name);
-
-            //EDMAURER look for one that works, if none work, then return the failure for the last one examined.
-            foreach (var key in publicKeys)
-            {
-                if (result == IVTConclusion.Match || result == IVTConclusion.OneSignedOneNot)
-                {
-                    break;
-                }
-                result = PerformIVTCheck(key, potentialGiverOfAccess.Identity);
-                Debug.Assert(result != IVTConclusion.NoRelationshipClaimed);
-            }
+            result = GetFinalFriendDetermination(potentialGiverOfAccess);
 
             AssembliesToWhichInternalAccessHasBeenDetermined.TryAdd(potentialGiverOfAccess, result);
             return result;
         }
 
+        protected virtual FriendAccessConclusion GetFinalFriendDetermination(AssemblySymbol potentialGiverOfAccess)
+        {
+            FriendAccessConclusion result;
+            //EDMAURER returns an empty list if there was no IVT attribute at all for the given name
+            //A name w/o a key is represented by a list with an entry that is empty
+            IEnumerable<ImmutableArray<byte>> publicKeys = potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(this.Name);
+
+            result = FriendAccessConclusion.NoRelationshipClaimed;
+
+            //EDMAURER look for one that works, if none work, then return the failure for the last one examined.
+            foreach (var key in publicKeys)
+            {
+                if (result == FriendAccessConclusion.Match || result == FriendAccessConclusion.OneSignedOneNot)
+                {
+                    break;
+                }
+
+                result = PerformFriendAccessCheck(key, potentialGiverOfAccess.Identity);
+            }
+
+            return result;
+        }
+
         //EDMAURER This is a cache mapping from assemblies which we have analyzed whether or not they grant
         //internals access to us to the conclusion reached.
-        private ConcurrentDictionary<AssemblySymbol, IVTConclusion> _assembliesToWhichInternalAccessHasBeenAnalyzed;
+        private ConcurrentDictionary<AssemblySymbol, FriendAccessConclusion> _assembliesToWhichInternalAccessHasBeenAnalyzed;
 
-        private ConcurrentDictionary<AssemblySymbol, IVTConclusion> AssembliesToWhichInternalAccessHasBeenDetermined
+        private ConcurrentDictionary<AssemblySymbol, FriendAccessConclusion> AssembliesToWhichInternalAccessHasBeenDetermined
         {
             get
             {
                 if (_assembliesToWhichInternalAccessHasBeenAnalyzed == null)
-                    Interlocked.CompareExchange(ref _assembliesToWhichInternalAccessHasBeenAnalyzed, new ConcurrentDictionary<AssemblySymbol, IVTConclusion>(), null);
+                    Interlocked.CompareExchange(ref _assembliesToWhichInternalAccessHasBeenAnalyzed, new ConcurrentDictionary<AssemblySymbol, FriendAccessConclusion>(), null);
                 return _assembliesToWhichInternalAccessHasBeenAnalyzed;
             }
         }

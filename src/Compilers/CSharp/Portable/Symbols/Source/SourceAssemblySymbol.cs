@@ -1872,18 +1872,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var otherAssembly in haveGrantedAssemblies.Keys)
                 {
-                    IVTConclusion conclusion = MakeFinalIVTDetermination(otherAssembly);
+                    FriendAccessConclusion conclusion = MakeFinalFriendAccessDetermination(otherAssembly);
 
-                    Debug.Assert(conclusion != IVTConclusion.NoRelationshipClaimed);
+                    Debug.Assert(conclusion != FriendAccessConclusion.NoRelationshipClaimed);
 
-                    if (conclusion == IVTConclusion.PublicKeyDoesntMatch)
+                    if (conclusion == FriendAccessConclusion.PublicKeyDoesntMatch)
                         bag.Add(ErrorCode.ERR_FriendRefNotEqualToThis, NoLocation.Singleton,
                                                                       otherAssembly.Identity);
-                    else if (conclusion == IVTConclusion.OneSignedOneNot)
+                    else if (conclusion == FriendAccessConclusion.OneSignedOneNot)
                         bag.Add(ErrorCode.ERR_FriendRefSigningMismatch, NoLocation.Singleton,
                                                                       otherAssembly.Identity);
                 }
             }
+        }
+
+        protected override FriendAccessConclusion GetFinalFriendDetermination(AssemblySymbol potentialGiverOfAccess)
+        {
+            var result = base.GetFinalFriendDetermination(potentialGiverOfAccess);
+
+            if (result == FriendAccessConclusion.NoRelationshipClaimed &&
+                GetIgnoresAccessChecksTo(potentialGiverOfAccess.Name))
+            {
+                result = FriendAccessConclusion.Match;
+            }
+
+            return result;
         }
 
         internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
@@ -1904,11 +1917,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (result != null) ? result.Keys : SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
         }
 
+        private bool GetIgnoresAccessChecksTo(string simpleName)
+        {
+            EnsureAttributesAreBound();
+
+            return _lazyIgnoresAccessChecksToSet?.Contains(simpleName) == true;
+        }
+
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol potentialGiverOfAccess)
         {
-            // Ensure that optimistic IVT access is only granted to requests that originated on the thread
+            // Ensure that optimistic friend access is only granted to requests that originated on the thread
             //that is trying to compute the assembly identity. This gives us deterministic behavior when
-            //two threads are checking IVT access but only one of them is in the process of computing identity.
+            //two threads are checking friend access but only one of them is in the process of computing identity.
 
             //as an optimization confirm that the identity has not yet been computed to avoid testing TLS
             if (_lazyStrongNameKeys == null)
@@ -1916,8 +1936,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var assemblyWhoseKeysAreBeingComputed = t_assemblyForWhichCurrentThreadIsComputingKeys;
                 if ((object)assemblyWhoseKeysAreBeingComputed != null)
                 {
-                    //ThrowIfFalse(assemblyWhoseKeysAreBeingComputed Is Me);
-                    if (!potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(this.Name).IsEmpty())
+                    if (!potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(this.Name).IsEmpty() ||
+                        GetIgnoresAccessChecksTo(potentialGiverOfAccess.Name))
                     {
                         if (_optimisticallyGrantedInternalsAccess == null)
                             Interlocked.CompareExchange(ref _optimisticallyGrantedInternalsAccess, new ConcurrentDictionary<AssemblySymbol, bool>(), null);
@@ -1930,9 +1950,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess);
-
-            return conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot;
+            FriendAccessConclusion conclusion = MakeFinalFriendAccessDetermination(potentialGiverOfAccess);
+            
+            return conclusion == FriendAccessConclusion.Match || conclusion == FriendAccessConclusion.OneSignedOneNot;
         }
 
         private AssemblyIdentity ComputeIdentity()
@@ -1951,6 +1971,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //only used when the key is empty in which case it stores the location and value of the attribute string which
         //may be used to construct a diagnostic if the assembly being compiled is found to be strong named.
         private ConcurrentDictionary<string, ConcurrentDictionary<ImmutableArray<byte>, Tuple<Location, string>>> _lazyInternalsVisibleToMap;
+
+        private ConcurrentSet<string> _lazyIgnoresAccessChecksToSet;
 
         private static Location GetAssemblyAttributeLocationForDiagnostic(AttributeSyntax attributeSyntaxOpt)
         {
@@ -2021,6 +2043,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // we'll have to de-dup again at emit time).
                 arguments.Diagnostics.Add(ErrorCode.ERR_DuplicateTypeForwarder, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt), forwardedType);
             }
+        }
+
+        private void DecodeOneIgnoresAccessChecksToAttribute(
+            AttributeSyntax nodeOpt,
+            CSharpAttributeData attrData,
+            DiagnosticBag diagnostics,
+            int index,
+            ref ConcurrentSet<string> lazyIgnoresAccessChecksToSet)
+        {
+            // this code won't be called unless we bound a well-formed, semantically correct ctor call.
+            Debug.Assert(!attrData.HasErrors);
+
+            string displayName = (string)attrData.CommonConstructorArguments[0].Value;
+
+            if (displayName == null)
+            {
+                diagnostics.Add(ErrorCode.ERR_CannotPassNullForFriendAssembly, GetAssemblyAttributeLocationForDiagnostic(nodeOpt));
+                return;
+            }
+
+            if (!AssemblyIdentity.TryParseDisplayName(displayName, out var identity, out var parts))
+            {
+                diagnostics.Add(ErrorCode.WRN_InvalidAssemblyName, GetAssemblyAttributeLocationForDiagnostic(nodeOpt), displayName);
+                AddOmittedAttributeIndex(index);
+                return;
+            }
+
+            const AssemblyIdentityParts allowedParts = AssemblyIdentityParts.Name;
+
+            if ((parts & ~allowedParts) != 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_FriendAssemblyBadArgs, GetAssemblyAttributeLocationForDiagnostic(nodeOpt), displayName);
+                return;
+            }
+
+            if (lazyIgnoresAccessChecksToSet == null)
+            {
+                Interlocked.CompareExchange(ref lazyIgnoresAccessChecksToSet,
+                                            new ConcurrentSet<string>(StringComparer.OrdinalIgnoreCase), null);
+            }
+
+            lazyIgnoresAccessChecksToSet.Add(identity.Name);
         }
 
         private void DecodeOneInternalsVisibleToAttribute(
@@ -2128,6 +2192,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attribute.IsTargetAttribute(this, AttributeDescription.InternalsVisibleToAttribute))
             {
                 DecodeOneInternalsVisibleToAttribute(arguments.AttributeSyntaxOpt, attribute, arguments.Diagnostics, index, ref _lazyInternalsVisibleToMap);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IgnoresAccessChecksToAttribute))
+            {
+                DecodeOneIgnoresAccessChecksToAttribute(arguments.AttributeSyntaxOpt, attribute, arguments.Diagnostics, index, ref _lazyIgnoresAccessChecksToSet);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblySignatureKeyAttribute))
             {
