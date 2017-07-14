@@ -1885,7 +1885,7 @@ IInvocationExpression (static void P.M2(System.Int32 x, [G<S>? s = null])) (Oper
 
             public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
             {
-                if (operation.IsInvalid(_compilation) || operation.ArgumentsInEvaluationOrder.Length == 0)
+                if (operation.HasDiagnostics(_compilation) || operation.ArgumentsInEvaluationOrder.Length == 0)
                 {
                     return;
                 }
@@ -1894,7 +1894,7 @@ IInvocationExpression (static void P.M2(System.Int32 x, [G<S>? s = null])) (Oper
                 var indexerSymbol = operation.Property;
                 foreach (var argument in operation.ArgumentsInEvaluationOrder)
                 {
-                    if (!argument.IsInvalid(_compilation))
+                    if (!argument.HasDiagnostics(_compilation))
                     {
                         Assert.Same(indexerSymbol, argument.Parameter.ContainingSymbol);
                     }

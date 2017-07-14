@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// This will check whether context around the operation has any error such as syntax or semantic error
         /// </summary>
-        public static bool IsInvalid(this IOperation operation, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
+        public static bool HasDiagnostics(this IOperation operation, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
         {
             // once we made sure every operation has Syntax, we will remove this condition
             if (operation.Syntax == null)
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             // if wrong compilation is given, GetSemanticModel will throw due to tree not belong to the given compilation.
             var model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
-            return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error);
+            return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.DefaultSeverity == DiagnosticSeverity.Error);
         }
 
         public static IEnumerable<IOperation> Descendants(this IOperation operation)
