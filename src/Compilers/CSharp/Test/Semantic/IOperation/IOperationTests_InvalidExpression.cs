@@ -370,7 +370,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 Program.x) (OperationKind.FieldInitializerAtDeclaration, IsInvalid) (Syntax: '= Program')
+IFieldInitializer (Field: System.Int32 Program.x) (OperationKind.FieldInitializer, IsInvalid) (Syntax: '= Program')
   IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
     IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid) (Syntax: 'Program')
       Children(1): IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
@@ -481,7 +481,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IParameterInitializer (Parameter: [System.Int32 p = default(System.Int32)]) (OperationKind.ParameterInitializerAtDeclaration, IsInvalid) (Syntax: '= M()')
+IParameterInitializer (Parameter: [System.Int32 p = default(System.Int32)]) (OperationKind.ParameterInitializer, IsInvalid) (Syntax: '= M()')
   IInvocationExpression (static System.Int32 Program.M()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'M()')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

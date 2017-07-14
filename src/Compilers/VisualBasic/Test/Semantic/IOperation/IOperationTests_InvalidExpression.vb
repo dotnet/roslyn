@@ -293,7 +293,7 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldInitializer (Field: Program.x As System.Int32) (OperationKind.FieldInitializerAtDeclaration, IsInvalid) (Syntax: '= Program')
+IFieldInitializer (Field: Program.x As System.Int32) (OperationKind.FieldInitializer, IsInvalid) (Syntax: '= Program')
   IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
     IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
 ]]>.Value
@@ -387,7 +387,7 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParameterInitializer (Parameter: [p As System.Int32]) (OperationKind.ParameterInitializerAtDeclaration, IsInvalid) (Syntax: '= M()')
+IParameterInitializer (Parameter: [p As System.Int32]) (OperationKind.ParameterInitializer, IsInvalid) (Syntax: '= M()')
   IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'M()')
     Children(1): IInvocationExpression (static Function Program.M() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'M()')
 ]]>.Value

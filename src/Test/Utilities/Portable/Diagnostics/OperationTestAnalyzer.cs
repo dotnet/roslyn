@@ -724,11 +724,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     var initializer = (ISymbolInitializer)operationContext.Operation;
-                     Report(operationContext, initializer.Syntax, initializer.Kind == OperationKind.FieldInitializerInCreation ? DoNotUseFieldInitializerDescriptor : DoNotUsePropertyInitializerDescriptor);
+                     var initializer = operationContext.Operation;
+                     Report(operationContext, initializer.Syntax, initializer.Kind == OperationKind.FieldReferenceExpression ? DoNotUseFieldInitializerDescriptor : DoNotUsePropertyInitializerDescriptor);
                  },
-                 OperationKind.FieldInitializerInCreation,
-                 OperationKind.PropertyInitializerInCreation);
+                 OperationKind.FieldReferenceExpression,
+                 OperationKind.PropertyReferenceExpression);
         }
 
         private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
@@ -1209,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          operationContext.ReportDiagnostic(Diagnostic.Create(EqualsValueDescriptor, equalsValue.Syntax.GetLocation()));
                      }
                  },
-                 OperationKind.FieldInitializerAtDeclaration);
+                 OperationKind.FieldInitializer);
 
             context.RegisterOperationAction(
                  (operationContext) =>
@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          operationContext.ReportDiagnostic(Diagnostic.Create(EqualsValueDescriptor, equalsValue.Syntax.GetLocation()));
                      }
                  },
-                 OperationKind.ParameterInitializerAtDeclaration);
+                 OperationKind.ParameterInitializer);
         }
     }
 

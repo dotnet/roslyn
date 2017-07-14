@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             ImmutableArray<IFieldSymbol> initializedFields = ImmutableArray.Create<IFieldSymbol>(boundFieldEqualsValue.Field);
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundFieldEqualsValue.Value));
-            OperationKind kind = OperationKind.FieldInitializerAtDeclaration;
+            OperationKind kind = OperationKind.FieldInitializer;
             SyntaxNode syntax = boundFieldEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             IPropertySymbol initializedProperty = boundPropertyEqualsValue.Property;
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundPropertyEqualsValue.Value));
-            OperationKind kind = OperationKind.PropertyInitializerAtDeclaration;
+            OperationKind kind = OperationKind.PropertyInitializer;
             SyntaxNode syntax = boundPropertyEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             IParameterSymbol parameter = boundParameterEqualsValue.Parameter;
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundParameterEqualsValue.Value));
-            OperationKind kind = OperationKind.ParameterInitializerAtDeclaration;
+            OperationKind kind = OperationKind.ParameterInitializer;
             SyntaxNode syntax = boundParameterEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
