@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
@@ -224,10 +225,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Append(quote);
             }
 
-            foreach (var c in value)
+            for (int i = 0; i < value.Length; i++)
             {
-                string replaceWith;
-                if (escapeNonPrintable && TryReplaceChar(c, out replaceWith))
+                char c = value[i];
+                if (escapeNonPrintable && (i + 1) < value.Length && IsHighSurrogate(c) && IsLowSurrogate(value[i + 1]))
+                {
+                    var unicode = CombineSurrogates(c, value[++i]);
+                    builder.Append("\\U" + unicode.ToString("x8"));
+                }
+                else if (escapeNonPrintable && TryReplaceChar(c, out var replaceWith))
                 {
                     builder.Append(replaceWith);
                 }
@@ -256,6 +262,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return pooledBuilder.ToStringAndFree();
+        }
+
+        private static bool IsHighSurrogate(char c)
+        {
+            return c >= '\ud800' && c <= '\udbff';
+        }
+
+        private static bool IsLowSurrogate(char c)
+        {
+            return c >= '\udc00' && c <= '\udfff';
+        }
+
+        private static uint CombineSurrogates(char highSurrogate, char lowSurrogate)
+        {
+            Debug.Assert(IsHighSurrogate(highSurrogate));
+            Debug.Assert(IsLowSurrogate(lowSurrogate));
+            return 0x10000U +
+                ((highSurrogate & 0x03ffU) << 10) +
+                (lowSurrogate & 0x03ffU);
         }
 
         private static bool ContainsNewLine(string s)
