@@ -1395,5 +1395,55 @@ class TestClass
                 //         Write(ref Save(await Task.FromResult(0)));
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(0)").WithArguments("TestClass.Save(int)").WithLocation(18, 24));
         }
+
+        public void CannotUseAwaitExpressionToAssignRefReturing()
+        {
+            var code = @"
+using System;
+using System.Threading.Tasks;
+class TestClass
+{
+    int x = 0;
+    ref int Save(int y)
+    {
+        x = y;
+        return ref x;
+    }
+
+    void Write(ref int y)
+    {
+        Console.WriteLine(y);
+    }
+
+    public int this[int arg]
+    {
+        get { return 1; }
+        set { }
+    }
+
+    public ref int this[int arg, int arg2] => ref x;
+
+    async Task TestMethod()
+    {
+        Save(1) = await Task.FromResult(0);
+
+        var inst = new TestClass();
+
+        // valid
+        inst[1] = await Task.FromResult(1);
+
+        // invalid
+        inst[1, 2] = await Task.FromResult(1);
+    }
+}";
+            CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
+                    // (28,19): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
+                    //         Save(1) = await Task.FromResult(0);
+                    Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(0)").WithArguments("TestClass.Save(int)").WithLocation(28, 19),
+                    // (36,22): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.this[int, int].get' because it returns by reference
+                    //         inst[1, 2] = await Task.FromResult(1);
+                    Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(1)").WithArguments("TestClass.this[int, int].get").WithLocation(36, 22)
+            );
+        }
     }
 }
