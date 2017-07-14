@@ -528,7 +528,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt = refKindsBuilder.ToImmutableAndFree();
             }
 
-            Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length == parameters.Length);
+            // NOTE: we may have more arguments than parameters in a case of arglist. That is ok.
+            Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length >= parameters.Length);
             return argumentRefKindsOpt;
         }
 
