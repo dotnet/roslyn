@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
 
-                        _currentProjectProcessing = default(ProjectId);
+                        _currentProjectProcessing = default;
                         _processingSolution = null;
 
                         Start();

@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             out TextSpan span)
         {
             // Set initial value
-            span = default(TextSpan);
+            span = default;
 
             var previousToken = previousTokens.FirstOrDefault();
             var nextToken = nextTokens.FirstOrDefault();
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             if (CleanupWholeNode(annotations))
             {
                 // This will indicate that no annotation is needed.
-                return default((SyntaxNode, List<(SyntaxAnnotation, SyntaxAnnotation)>));
+                return default;
             }
 
             // Inject annotations
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
         private bool TryCreateTextSpan(int start, int end, out TextSpan span)
         {
-            span = default(TextSpan);
+            span = default;
 
             if (start < 0 || end < start)
             {
@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
             public SyntaxAnnotation Annotation { get; }
 
-            public static readonly string AnnotationId = "SpanMarker";
+            public const string AnnotationId = "SpanMarker";
 
             private SpanMarker(SpanMarkerType type, SpanMarkerType oppositeMarkerType, SyntaxAnnotation annotation)
             {

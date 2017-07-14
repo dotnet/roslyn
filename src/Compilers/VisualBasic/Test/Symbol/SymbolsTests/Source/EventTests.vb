@@ -24,6 +24,183 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EventSymbolTests
         Inherits BasicTestBase
 
+        <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
+        <Fact()>
+        Public Sub IlEventVisibility()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit A
+{
+  .method assembly hidebysig newslot specialname virtual instance void 
+          add_E(class [mscorlib]System.Action`1<int32> 'value') cil managed
+  {
+    ret
+  }
+  .method public hidebysig newslot specialname virtual instance void 
+          remove_E(class [mscorlib]System.Action`1<int32> 'value') cil managed
+  {
+    ret
+  }
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .event class [mscorlib]System.Action`1<int32> E
+  {
+    .addon instance void A::add_E(class [mscorlib]System.Action`1<int32>)
+    .removeon instance void A::remove_E(class [mscorlib]System.Action`1<int32>)
+  }
+}]]>
+            Dim vbSource = <compilation name="F">
+                               <file name="F.vb">
+Class B
+    Inherits A
+    Sub M()
+        AddHandler E, Nothing
+        RemoveHandler E, Nothing
+        AddHandler MyBase.E, Nothing
+        RemoveHandler MyBase.E, Nothing
+    End Sub 
+End Class
+                               </file>
+                           </compilation>
+
+            Dim comp1 = CreateCompilationWithCustomILSource(vbSource, ilSource.Value, TestOptions.DebugDll)
+            CompilationUtils.AssertTheseCompileDiagnostics(comp1,
+<Expected>
+BC30390: 'A.Friend Overridable Overloads AddHandler Event E(value As Action(Of Integer))' is not accessible in this context because it is 'Friend'.
+        AddHandler E, Nothing
+                   ~
+BC30390: 'A.Friend Overridable Overloads AddHandler Event E(value As Action(Of Integer))' is not accessible in this context because it is 'Friend'.
+        AddHandler MyBase.E, Nothing
+                   ~~~~~~~~
+</Expected>)
+
+        End Sub
+
+        <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
+        <Fact()>
+        Public Sub CustomEventVisibility()
+            Dim source = <compilation name="F">
+                             <file name="F.vb">
+Imports System
+
+Public Class C
+    Protected Custom Event Click As EventHandler
+        AddHandler(ByVal value As EventHandler)
+            Console.Write("add")
+        End AddHandler
+
+        RemoveHandler(ByVal value As EventHandler)
+			Console.Write("remove")
+        End RemoveHandler
+
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+			Console.Write("raise")
+        End RaiseEvent
+    End Event
+End Class
+
+Public Class D
+	Inherits C
+
+	Public Sub F()
+		AddHandler Click, Nothing
+		RemoveHandler Click, Nothing
+		AddHandler MyBase.Click, Nothing
+		RemoveHandler MyBase.Click, Nothing
+	End Sub
+End Class
+                             </file>
+                         </compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            CompilationUtils.AssertTheseCompileDiagnostics(comp, <Expected></Expected>)
+        End Sub
+
+        <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
+        <Fact()>
+        Public Sub ProtectedHandlerDefinedInCSharp()
+            Dim csharpCompilation = CreateCSharpCompilation("
+public class C {
+	protected delegate void Handle();
+    protected event Handle MyEvent;
+}
+
+public class D: C {
+  public D() {
+    MyEvent += () => {};
+  }
+}
+")
+            Dim source = Parse("
+Public Class E
+    Inherits C
+    Public Sub S()
+        AddHandler MyBase.MyEvent, Nothing
+    End Sub
+End Class
+")
+            Dim vbCompilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
+                sourceTrees:={source},
+                references:={csharpCompilation.EmitToImageReference()},
+                options:=TestOptions.DebugDll.WithOptionStrict(OptionStrict.On))
+            CompilationUtils.AssertTheseCompileDiagnostics(vbCompilation, <Expected></Expected>)
+
+        End Sub
+
+        <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
+        <Fact()>
+        Public Sub EventVisibility()
+            Dim source = <compilation name="F">
+                             <file name="F.vb">
+ Public Class Form1
+    Protected Event EventA As System.Action
+    Private Event EventB As System.Action
+    Friend Event EventC As System.Action
+End Class
+
+Public Class Form2
+    Inherits Form1
+
+    Public Sub New()
+        AddHandler MyBase.EventA, Nothing
+        RemoveHandler MyBase.EventA, Nothing
+        AddHandler EventA, Nothing
+        RemoveHandler EventA, Nothing
+
+        AddHandler MyBase.EventB, Nothing
+        RemoveHandler MyBase.EventB, Nothing
+        AddHandler EventB, Nothing
+        RemoveHandler EventB, Nothing
+
+        AddHandler MyBase.EventC, Nothing
+        RemoveHandler MyBase.EventC, Nothing
+        AddHandler EventC, Nothing
+        RemoveHandler EventC, Nothing
+    End Sub
+End Class
+                             </file>
+                         </compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            CompilationUtils.AssertTheseCompileDiagnostics(comp,
+<Expected>
+BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
+        AddHandler MyBase.EventB, Nothing
+                   ~~~~~~~~~~~~~
+BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
+        RemoveHandler MyBase.EventB, Nothing
+                      ~~~~~~~~~~~~~
+BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
+        AddHandler EventB, Nothing
+                   ~~~~~~
+BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
+        RemoveHandler EventB, Nothing
+                      ~~~~~~
+</Expected>)
+        End Sub
+
         <WorkItem(542806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542806")>
         <Fact()>
         Public Sub EmptyCustomEvent()

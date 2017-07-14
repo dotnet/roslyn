@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         internal class DocCommentFormatter
         {
-            private static readonly int s_indentSize = 2;
-            private static readonly int s_wrapLength = 80;
+            private const int s_indentSize = 2;
+            private const int s_wrapLength = 80;
 
             private static readonly string s_summaryHeader = FeaturesResources.Summary_colon;
             private static readonly string s_paramHeader = FeaturesResources.Parameters_colon;
-            private static readonly string s_labelFormat = "{0}:";
+            private const string s_labelFormat = "{0}:";
             private static readonly string s_typeParameterHeader = FeaturesResources.Type_parameters_colon;
             private static readonly string s_returnsHeader = FeaturesResources.Returns_colon;
             private static readonly string s_exceptionsHeader = FeaturesResources.Exceptions_colon;

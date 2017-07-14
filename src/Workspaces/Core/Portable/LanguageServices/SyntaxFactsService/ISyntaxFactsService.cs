@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsCaseSensitive { get; }
         StringComparer StringComparer { get; }
 
+        SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
+
         bool SupportsIndexingInitializer(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
 
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsRegularComment(SyntaxTrivia trivia);
         bool IsDocumentationComment(SyntaxTrivia trivia);
+        bool IsElastic(SyntaxTrivia trivia);
 
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
@@ -292,6 +295,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
 
         string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken);
+
+        SyntaxTokenList GetModifiers(SyntaxNode node);
+        SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers);
     }
 
     [Flags]

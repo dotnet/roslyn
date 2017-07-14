@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// This mode should always guarantee that analyzer action callbacks are enabled for generated code, i.e. <see cref="GeneratedCodeAnalysisFlags.Analyze"/> is set.
         /// However, the default diagnostic reporting mode is liable to change in future.
         /// </remarks>
-        internal static readonly GeneratedCodeAnalysisFlags DefaultGeneratedCodeAnalysisFlags = GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics;
+        internal const GeneratedCodeAnalysisFlags DefaultGeneratedCodeAnalysisFlags = GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics;
 
         /// <summary>
         /// Map from non-concurrent analyzers to the gate guarding callback into the analyzer. 

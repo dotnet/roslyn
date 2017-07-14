@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Experimentation
     internal static class AnalyzerABTestLogger
     {
         private static bool s_reportErrors = false;
-        private static readonly ConcurrentDictionary<object, object> s_reported = new ConcurrentDictionary<object, object>(concurrencyLevel: 2, capacity: 10);
+        private static readonly ConcurrentDictionary<(object, string), object> s_reported = new ConcurrentDictionary<(object, string), object>(concurrencyLevel: 2, capacity: 10);
 
         private const string Name = "LiveCodeAnalysisVsix";
 
@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.Experimentation
             }
         }
 
-        public static void LogProjectDiagnostics(Project project, DiagnosticAnalysisResult result)
+        public static void LogProjectDiagnostics(Project project, string analyzerName, DiagnosticAnalysisResult result)
         {
-            if (!s_reportErrors || !s_reported.TryAdd(project.Id, null))
+            if (!s_reportErrors || !s_reported.TryAdd((project.Id, analyzerName), null))
             {
                 // doesn't meet the bar to report the issue.
                 return;
@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.Experimentation
             LogErrors(project, "ProjectDignostics", project.Id.Id, map);
         }
 
-        public static void LogDocumentDiagnostics(Document document, ImmutableArray<DiagnosticData> syntax, ImmutableArray<DiagnosticData> semantic)
+        public static void LogDocumentDiagnostics(Document document, string analyzerName, ImmutableArray<DiagnosticData> syntax, ImmutableArray<DiagnosticData> semantic)
         {
-            if (!s_reportErrors || !s_reported.TryAdd(document.Id, null))
+            if (!s_reportErrors || !s_reported.TryAdd((document.Id, analyzerName), null))
             {
                 // doesn't meet the bar to report the issue.
                 return;

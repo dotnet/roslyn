@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -505,10 +505,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;
-            if (this.HostObject != null)
+            if (this.HostObject is IVbcHostObject vbHost)
             {
-                var vbHost = this.HostObject as IVbcHostObject;
                 designTime = vbHost.IsDesignTime();
+            }
+            else if (this.HostObject != null)
+            {
+                throw new InvalidOperationException(string.Format(ErrorString.General_IncorrectHostObject, "Vbc", "IVbcHostObject"));
             }
             if (!designTime)
             {
@@ -1004,12 +1007,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 // NOTE: For compat reasons this must remain IVbcHostObject
                 // we can dynamically test for smarter interfaces later..
-                using (RCWForCurrentContext<IVbcHostObject> hostObject = new RCWForCurrentContext<IVbcHostObject>(this.HostObject as IVbcHostObject))
+                if (HostObject is IVbcHostObject hostObjectCOM)
                 {
-                    IVbcHostObject vbcHostObject = hostObject.RCW;
-
-                    if (vbcHostObject != null)
+                    using (RCWForCurrentContext<IVbcHostObject> hostObject = new RCWForCurrentContext<IVbcHostObject>(hostObjectCOM))
                     {
+                        IVbcHostObject vbcHostObject = hostObject.RCW;
                         bool hostObjectSuccessfullyInitialized = InitializeHostCompiler(vbcHostObject);
 
                         // If we're currently only in design-time (as opposed to build-time),
@@ -1061,10 +1063,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             return HostObjectInitializationStatus.NoActionReturnFailure;
                         }
                     }
-                    else
-                    {
-                        Log.LogErrorWithCodeFromResources("General_IncorrectHostObject", "Vbc", "IVbcHostObject");
-                    }
+                }
+                else
+                {
+                    Log.LogErrorWithCodeFromResources("General_IncorrectHostObject", "Vbc", "IVbcHostObject");
                 }
             }
 

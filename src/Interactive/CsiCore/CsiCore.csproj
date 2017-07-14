@@ -1,18 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <PlatformTarget>x64</PlatformTarget>
     <Platforms>x64</Platforms>
-    <ProjectGuid>{D1B051A4-F2A1-4E97-9747-C41D13E475FD}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>CSharpInteractive</RootNamespace>
     <AssemblyName>csi</AssemblyName>
-    <Prefer32Bit>false</Prefer32Bit>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFramework>netcoreapp1.1</TargetFramework>
     <RuntimeIdentifiers>win7-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;osx.10.12-x64</RuntimeIdentifiers>
     <NoStdLib>true</NoStdLib>
@@ -20,30 +17,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
-      <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
-      <Name>Scripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
-      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
-      <Name>CSharpScripting</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj" />
+    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="csi.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Csi.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />

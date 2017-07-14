@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     _document.Project.Solution,
                     _state.ContainingType,
                     CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: Accessibility.Public,
                         modifiers: new DeclarationModifiers(),
                         typeName: _state.ContainingType.Name,

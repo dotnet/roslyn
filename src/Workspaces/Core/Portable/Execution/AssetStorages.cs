@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// map from solution checksum scope to its associated asset storage
         /// </summary>
-        private readonly ConcurrentDictionary<PinnedRemotableDataScope, Storage> _storages;
+        private readonly ConcurrentDictionary<int, Storage> _storages;
 
         public AssetStorages()
         {
             _globalAssets = new ConcurrentDictionary<object, CustomAsset>(concurrencyLevel: 2, capacity: 10);
-            _storages = new ConcurrentDictionary<PinnedRemotableDataScope, Storage>(concurrencyLevel: 2, capacity: 10);
+            _storages = new ConcurrentDictionary<int, Storage>(concurrencyLevel: 2, capacity: 10);
         }
 
         public void AddGlobalAsset(object value, CustomAsset asset, CancellationToken cancellationToken)
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return new Storage(solutionState);
         }
 
-        public RemotableData GetRemotableData(PinnedRemotableDataScope scope, Checksum checksum, CancellationToken cancellationToken)
+        public RemotableData GetRemotableData(int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
             if (checksum == Checksum.Null)
             {
@@ -68,13 +68,11 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             // search snapshots we have
-            foreach (var storage in GetStorages(scope))
+            var storage = _storages[scopeId];
+            var remotableData = storage.TryGetRemotableData(checksum, cancellationToken);
+            if (remotableData != null)
             {
-                var syncObject = storage.TryGetRemotableData(checksum, cancellationToken);
-                if (syncObject != null)
-                {
-                    return syncObject;
-                }
+                return remotableData;
             }
 
             // search global assets
@@ -99,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return null;
         }
 
-        public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(PinnedRemotableDataScope scope, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
             using (var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums))
             {
@@ -113,15 +111,14 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
 
                 // search checksum trees we have
-                foreach (var storage in GetStorages(scope))
+                var storage = _storages[scopeId];
+
+                storage.AppendRemotableData(searchingChecksumsLeft.Object, result, cancellationToken);
+                if (result.Count == numberOfChecksumsToSearch)
                 {
-                    storage.AppendRemotableData(searchingChecksumsLeft.Object, result, cancellationToken);
-                    if (result.Count == numberOfChecksumsToSearch)
-                    {
-                        // no checksum left to find
-                        Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
-                        return result;
-                    }
+                    // no checksum left to find
+                    Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
+                    return result;
                 }
 
                 // search global assets
@@ -154,46 +151,38 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        public void RegisterSnapshot(PinnedRemotableDataScope snapshot, AssetStorages.Storage storage)
+        public void RegisterSnapshot(PinnedRemotableDataScope scope, AssetStorages.Storage storage)
         {
             // duplicates are not allowed, there can be multiple snapshots to same solution, so no ref counting.
-            if (!_storages.TryAdd(snapshot, storage))
+            if (!_storages.TryAdd(scope.SolutionInfo.ScopeId, storage))
             {
                 // this should make failure more explicit
                 FailFast.OnFatalException(new Exception("who is adding same snapshot?"));
             }
         }
 
-        public void UnregisterSnapshot(PinnedRemotableDataScope snapshot)
+        public void UnregisterSnapshot(PinnedRemotableDataScope scope)
         {
             // calling it multiple times for same snapshot is not allowed.
-            if (!_storages.TryRemove(snapshot, out var dummy))
+            if (!_storages.TryRemove(scope.SolutionInfo.ScopeId, out var dummy))
             {
                 // this should make failure more explicit
                 FailFast.OnFatalException(new Exception("who is removing same snapshot?"));
             }
         }
 
-        private IEnumerable<Storage> GetStorages(PinnedRemotableDataScope scope)
+        public RemotableData GetRemotableData_TestOnly(Checksum checksum, CancellationToken cancellationToken)
         {
-            if (scope != null)
+            foreach (var kv in _storages)
             {
-                yield return _storages[scope];
-                yield break;
-            }
-
-            using (var solutionProcessed = Creator.CreateChecksumSet())
-            {
-                foreach (var kv in _storages)
+                var data = GetRemotableData(kv.Key, checksum, cancellationToken);
+                if (data != null)
                 {
-                    if (!solutionProcessed.Object.Add(kv.Key.SolutionChecksum))
-                    {
-                        continue;
-                    }
-
-                    yield return kv.Value;
+                    return data;
                 }
             }
+
+            return null;
         }
     }
 }

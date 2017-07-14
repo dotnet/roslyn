@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
                 out ImmutableArray<DiagnosticAnalyzer> analyzers)
             {
-                analyzers = default(ImmutableArray<DiagnosticAnalyzer>);
+                analyzers = default;
 
                 // we don't have analyzer driver, nothing to reduce.
                 if (analyzerDriverOpt == null)
@@ -377,13 +377,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 try
                 {
-                    var diagnostics = await analyzer.AnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                    var diagnostics = (await analyzer.AnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false)).NullToEmpty();
 
                     // Apply filtering from compilation options (source suppressions, ruleset, etc.)
                     if (compilationOpt != null)
                     {
                         diagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt).ToImmutableArrayOrEmpty();
                     }
+
+#if DEBUG
+                    // since all ProjectDiagnosticAnalyzers are from internal users, we only do debug check. also this can be expensive at runtime
+                    // since it requires await. if we find any offender through NFW, we should be able to fix those since all those should
+                    // from intern teams.
+                    await VerifyDiagnosticLocationsAsync(diagnostics, project, cancellationToken).ConfigureAwait(false);
+#endif
 
                     return diagnostics;
                 }
@@ -422,6 +429,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
                     }
+
+#if DEBUG
+                    // since all DocumentDiagnosticAnalyzers are from internal users, we only do debug check. also this can be expensive at runtime
+                    // since it requires await. if we find any offender through NFW, we should be able to fix those since all those should
+                    // from intern teams.
+                    await VerifyDiagnosticLocationsAsync(diagnostics, document.Project, cancellationToken).ConfigureAwait(false);
+#endif
 
                     return diagnostics;
                 }
@@ -582,6 +596,86 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     yield return DiagnosticData.Create(document, diagnostic);
                 }
+            }
+
+            private static async Task VerifyDiagnosticLocationsAsync(ImmutableArray<Diagnostic> diagnostics, Project project, CancellationToken cancellationToken)
+            {
+                foreach (var diagnostic in diagnostics)
+                {
+                    await VerifyDiagnosticLocationAsync(diagnostic.Id, diagnostic.Location, project, cancellationToken).ConfigureAwait(false);
+
+                    if (diagnostic.AdditionalLocations != null)
+                    {
+                        foreach (var location in diagnostic.AdditionalLocations)
+                        {
+                            await VerifyDiagnosticLocationAsync(diagnostic.Id, diagnostic.Location, project, cancellationToken).ConfigureAwait(false);
+                        }
+                    }
+                }
+            }
+
+            private static async Task VerifyDiagnosticLocationAsync(string id, Location location, Project project, CancellationToken cancellationToken)
+            {
+                switch (location.Kind)
+                {
+                    case LocationKind.None:
+                    case LocationKind.MetadataFile:
+                    case LocationKind.XmlFile:
+                        // ignore these kinds
+                        break;
+                    case LocationKind.SourceFile:
+                        {
+                            if (project.GetDocument(location.SourceTree) == null)
+                            {
+                                // Disallow diagnostics with source locations outside this project.
+                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceTree.FilePath), "diagnostic");
+                            }
+
+                            if (location.SourceSpan.End > location.SourceTree.Length)
+                            {
+                                // Disallow diagnostics with source locations outside this project.
+                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
+                            }
+                        }
+                        break;
+                    case LocationKind.ExternalFile:
+                        {
+                            var filePath = location.GetLineSpan().Path;
+                            var document = TryGetDocumentWithFilePath(project, filePath);
+                            if (document == null)
+                            {
+                                // this is not a roslyn file. we don't care about this file.
+                                return;
+                            }
+
+                            // this can be potentially expensive since it will load text if it is not already loaded.
+                            // but, this text is most likely already loaded since producer of this diagnostic (Document/ProjectDiagnosticAnalyzers)
+                            // should have loaded it to produce the diagnostic at the first place. once loaded, it should stay in memory until
+                            // project cache goes away. when text is already there, await should return right away.
+                            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            if (location.SourceSpan.End > text.Length)
+                            {
+                                // Disallow diagnostics with locations outside this project.
+                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, filePath), "diagnostic");
+                            }
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.Unreachable;
+                }
+            }
+
+            private static Document TryGetDocumentWithFilePath(Project project, string path)
+            {
+                foreach (var documentId in project.Solution.GetDocumentIdsWithFilePath(path))
+                {
+                    if (documentId.ProjectId == project.Id)
+                    {
+                        return project.GetDocument(documentId);
+                    }
+                }
+
+                return null;
             }
 
             private static void GetLogFunctionIdAndTitle(AnalysisKind kind, out FunctionId functionId, out string title)

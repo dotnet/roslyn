@@ -30,8 +30,6 @@ namespace BuildBoss
         {
             switch (value)
             {
-                case "ExeNonDeployment":
-                    return RoslynProjectKind.ExeNonDeployment;
                 case "UnitTestPortable":
                     return RoslynProjectKind.UnitTestPortable;
                 case "UnitTestDesktop":

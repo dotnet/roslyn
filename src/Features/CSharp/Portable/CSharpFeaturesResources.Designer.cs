@@ -846,6 +846,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove unused function.
+        /// </summary>
+        internal static string Remove_unused_function {
+            get {
+                return ResourceManager.GetString("Remove_unused_function", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Replace return with yield return.
         /// </summary>
         internal static string Replace_return_with_yield_return {

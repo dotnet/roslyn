@@ -139,7 +139,7 @@ End Class";
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
                 // add host analyzer as global assets
-                var snapshotService = workspace.Services.GetService<ISolutionSynchronizationService>();
+                var snapshotService = workspace.Services.GetService<IRemotableDataService>();
                 var assetBuilder = new CustomAssetBuilder(workspace);
 
                 var asset = assetBuilder.Build(analyzerReference, CancellationToken.None);

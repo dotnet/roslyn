@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1471,11 +1471,12 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.UnsafeDebugDll).VerifyIL("Program.Main()", @"
 {
-  // Code size       51 (0x33)
+  // Code size       54 (0x36)
   .maxstack  3
   .locals init (int& V_0, //rl
                 System.TypedReference V_1, //tr
-                pinned int& V_2) //i
+                int* V_2, //i
+                pinned int& V_3)
   IL_0000:  nop
   IL_0001:  ldsflda    ""int Program.field""
   IL_0006:  stloc.0
@@ -1501,16 +1502,19 @@ class Program
   IL_001e:  call       ""void Program.N(out int)""
   IL_0023:  nop
   IL_0024:  ldloc.0
-  IL_0025:  stloc.2
-  IL_0026:  nop
-  IL_0027:  nop
-  IL_0028:  ldc.i4.0
-  IL_0029:  conv.u
-  IL_002a:  stloc.2
-  IL_002b:  ldloc.0
-  IL_002c:  mkrefany   ""int""
-  IL_0031:  stloc.1
-  IL_0032:  ret
+  IL_0025:  stloc.3
+  IL_0026:  ldloc.3
+  IL_0027:  conv.u
+  IL_0028:  stloc.2
+  IL_0029:  nop
+  IL_002a:  nop
+  IL_002b:  ldc.i4.0
+  IL_002c:  conv.u
+  IL_002d:  stloc.3
+  IL_002e:  ldloc.0
+  IL_002f:  mkrefany   ""int""
+  IL_0034:  stloc.1
+  IL_0035:  ret
 }");
         }
 

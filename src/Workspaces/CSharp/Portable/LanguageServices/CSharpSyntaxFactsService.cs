@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public StringComparer StringComparer { get; } = StringComparer.Ordinal;
 
+        public SyntaxTrivia ElasticCarriageReturnLineFeed
+            => SyntaxFactory.ElasticCarriageReturnLineFeed;
+
         protected override IDocumentationCommentService DocumentationCommentService
             => CSharpDocumentationCommentService.Instance;
 
@@ -154,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            info = default(ExternalSourceInfo);
+            info = default;
             return false;
         }
 
@@ -219,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var csharpGenericName = genericName as GenericNameSyntax;
             return csharpGenericName != null
                 ? csharpGenericName.Identifier
-                : default(SyntaxToken);
+                : default;
         }
 
         public bool IsUsingDirectiveName(SyntaxNode node)
@@ -808,6 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 names.Push(GetName(parent, options));
                 parent = parent.Parent;
             }
+
             // containing namespace(s) in source (if any)
             if ((options & DisplayNameOptions.IncludeNamespaces) != 0)
             {
@@ -817,6 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     parent = parent.Parent;
                 }
             }
+
             while (!names.IsEmpty())
             {
                 var name = names.Pop();
@@ -870,7 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var nameToken = memberDeclaration.GetNameToken();
-                    if (nameToken != default(SyntaxToken))
+                    if (nameToken != default)
                     {
                         name = nameToken.IsMissing ? missingTokenPlaceholder : nameToken.Text;
                         if (memberDeclaration.Kind() == SyntaxKind.DestructorDeclaration)
@@ -899,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (fieldDeclarator != null)
                 {
                     var nameToken = fieldDeclarator.Identifier;
-                    if (nameToken != default(SyntaxToken))
+                    if (nameToken != default)
                     {
                         name = nameToken.IsMissing ? missingTokenPlaceholder : nameToken.Text;
                     }
@@ -952,13 +957,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Span.IsEmpty)
             {
-                return default(TextSpan);
+                return default;
             }
 
             var member = GetContainingMemberDeclaration(node, node.SpanStart);
             if (member == null)
             {
-                return default(TextSpan);
+                return default;
             }
 
             // TODO: currently we only support method for now
@@ -967,13 +972,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (method.Body == null)
                 {
-                    return default(TextSpan);
+                    return default;
                 }
 
                 return GetBlockBodySpan(method.Body);
             }
 
-            return default(TextSpan);
+            return default;
         }
 
         public bool ContainsInMemberBody(SyntaxNode node, TextSpan span)
@@ -1211,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return openBrace.Kind() == SyntaxKind.OpenBraceToken;
             }
 
-            openBrace = default(SyntaxToken);
+            openBrace = default;
             return false;
         }
 
@@ -1231,26 +1236,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (triviaTok.Span.Contains(position))
                     {
-                        return default(TextSpan);
+                        return default;
                     }
 
                     if (triviaTok.Span.End < position)
                     {
                         if (!triviaTok.HasStructure)
                         {
-                            return default(TextSpan);
+                            return default;
                         }
 
                         var structure = triviaTok.GetStructure();
                         if (structure is BranchingDirectiveTriviaSyntax branch)
                         {
-                            return !branch.IsActive || !branch.BranchTaken ? TextSpan.FromBounds(branch.FullSpan.Start, position) : default(TextSpan);
+                            return !branch.IsActive || !branch.BranchTaken ? TextSpan.FromBounds(branch.FullSpan.Start, position) : default;
                         }
                     }
                 }
             }
 
-            return default(TextSpan);
+            return default;
         }
 
         public string GetNameForArgument(SyntaxNode argument)
@@ -1349,6 +1354,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsDocumentationComment(SyntaxTrivia trivia)
             => trivia.IsDocComment();
+
+        public bool IsElastic(SyntaxTrivia trivia)
+            => trivia.IsElastic();
 
         public bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia)
             => trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia;
@@ -1726,5 +1734,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
             => token.ContainsInterleavedDirective(span, cancellationToken);
+
+        public SyntaxTokenList GetModifiers(SyntaxNode node)
+            => node.GetModifiers();
+
+        public SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers)
+            => node.WithModifiers(modifiers);
     }
 }

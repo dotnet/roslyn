@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -193,22 +193,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public CodeGenerationOptions With(
-            Optional<Location> contextLocation = default(Optional<Location>),
-            Optional<Location> afterThisLocation = default(Optional<Location>),
-            Optional<Location> beforeThisLocation = default(Optional<Location>),
-            Optional<bool> addImports = default(Optional<bool>),
-            Optional<bool> placeSystemNamespaceFirst = default(Optional<bool>),
-            Optional<IEnumerable<INamespaceSymbol>> additionalImports = default(Optional<IEnumerable<INamespaceSymbol>>),
-            Optional<bool> generateMembers = default(Optional<bool>),
-            Optional<bool> mergeNestedNamespaces = default(Optional<bool>),
-            Optional<bool> mergeAttributes = default(Optional<bool>),
-            Optional<bool> generateDefaultAccessibility = default(Optional<bool>),
-            Optional<bool> generateMethodBodies = default(Optional<bool>),
-            Optional<bool> generateDocumentationComments = default(Optional<bool>),
-            Optional<bool> autoInsertionLocation = default(Optional<bool>),
-            Optional<bool> sortMembers = default(Optional<bool>),
-            Optional<bool> reuseSyntax = default(Optional<bool>),
-            Optional<ParseOptions> parseOptions = default(Optional<ParseOptions>))
+            Optional<Location> contextLocation = default,
+            Optional<Location> afterThisLocation = default,
+            Optional<Location> beforeThisLocation = default,
+            Optional<bool> addImports = default,
+            Optional<bool> placeSystemNamespaceFirst = default,
+            Optional<IEnumerable<INamespaceSymbol>> additionalImports = default,
+            Optional<bool> generateMembers = default,
+            Optional<bool> mergeNestedNamespaces = default,
+            Optional<bool> mergeAttributes = default,
+            Optional<bool> generateDefaultAccessibility = default,
+            Optional<bool> generateMethodBodies = default,
+            Optional<bool> generateDocumentationComments = default,
+            Optional<bool> autoInsertionLocation = default,
+            Optional<bool> sortMembers = default,
+            Optional<bool> reuseSyntax = default,
+            Optional<ParseOptions> parseOptions = default)
         {
             var newContextLocation = contextLocation.HasValue ? contextLocation.Value : this.ContextLocation;
             var newAfterThisLocation = afterThisLocation.HasValue ? afterThisLocation.Value : this.AfterThisLocation;

@@ -2007,9 +2007,9 @@ public class a {
                 // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         for (int i=0; i < 3; i++) void j() { }
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "void j() { }").WithLocation(6, 35),
-                // (6,40): warning CS0168: The variable 'j' is declared but never used
+                // (6,40): warning CS8321: The local function 'j' is declared but never used
                 //         for (int i=0; i < 3; i++) void j() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "j").WithArguments("j").WithLocation(6, 40));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "j").WithArguments("j").WithLocation(6, 40));
         }
 
         // Preprocessor:
@@ -4688,9 +4688,9 @@ class A<out T>
                 // (5,20): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
                 //         void Local<in T>() { }
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(5, 20),
-                // (5,14): warning CS0168: The variable 'Local' is declared but never used
+                // (5,14): warning CS8321: The local function 'Local' is declared but never used
                 //         void Local<in T>() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(5, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(5, 14));
         }
 
         [Fact]
@@ -4715,13 +4715,22 @@ namespace N1
 ";
 
             // Native compiler : CS1003
-            ParseAndValidate(test,
-    // (6,15): error CS7000: Unexpected use of an aliased name
-    //     namespace N1Alias::N2 {}
-    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N1Alias::N2"),
-    // (12,22): error CS7000: Unexpected use of an aliased name
-    //             N1.global::Test.M1();
-    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (12,22): error CS7000: Unexpected use of an aliased name
+                //             N1.global::Test.M1();
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(12, 22),
+                // (6,15): error CS7000: Unexpected use of an aliased name
+                //     namespace N1Alias::N2 {}
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N1Alias::N2").WithLocation(6, 15),
+                // (12,13): error CS0234: The type or namespace name 'global' does not exist in the namespace 'N1' (are you missing an assembly reference?)
+                //             N1.global::Test.M1();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "N1.global").WithArguments("global", "N1").WithLocation(12, 13),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N1Alias = N1;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1Alias = N1;").WithLocation(2, 1),
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
         }
 
         [Fact]

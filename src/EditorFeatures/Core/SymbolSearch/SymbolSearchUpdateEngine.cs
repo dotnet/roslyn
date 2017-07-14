@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// </summary>
     internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
     {
-        private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase = 
+        private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
         public SymbolSearchUpdateEngine(ISymbolSearchLogService logService)
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
 
         public SymbolSearchUpdateEngine(
-            ISymbolSearchLogService logService, 
+            ISymbolSearchLogService logService,
             CancellationToken updateCancellationToken)
             : this(logService,
                    new RemoteControlService(),
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
 
         public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-            string source, string name, int arity)
+            string source, string name, int arity, CancellationToken cancellationToken)
         {
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
@@ -98,6 +98,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                 foreach (var type in types)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     // Ignore any reference assembly results.
                     if (type.PackageName.ToString() != MicrosoftAssemblyReferencesName)
                     {
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
 
         public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
-            string source, string assemblyName)
+            string source, string assemblyName, CancellationToken cancellationToken)
         {
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
@@ -128,6 +130,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             {
                 for (var i = startIndex; i < (startIndex + count); i++)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var symbol = new Symbol(database, matches[i]);
                     if (symbol.Type == SymbolType.Assembly)
                     {
@@ -147,7 +151,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
 
         public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-            string name, int arity)
+            string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
             if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out var databaseWrapper))
@@ -173,13 +177,15 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                 foreach (var type in types)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     // Only look at reference assembly results.
                     if (type.PackageName.ToString() == MicrosoftAssemblyReferencesName)
                     {
                         var nameParts = ArrayBuilder<string>.GetInstance();
                         GetFullName(nameParts, type.FullName.Parent);
                         var result = new ReferenceAssemblyWithTypeResult(
-                            type.AssemblyName.ToString(), type.Name.ToString(), 
+                            type.AssemblyName.ToString(), type.Name.ToString(),
                             containingNamespaceNames: nameParts.ToImmutableAndFree());
                         results.Add(result);
                     }
@@ -210,8 +216,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             var version = database.GetPackageVersion(type.Index).ToString();
 
             return new PackageWithTypeResult(
-                packageName: packageName, 
-                typeName: type.Name.ToString(), 
+                packageName: packageName,
+                typeName: type.Name.ToString(),
                 version: version,
                 rank: GetRank(type),
                 containingNamespaceNames: nameParts.ToImmutableAndFree());
@@ -238,7 +244,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            rankingSymbol = default(Symbol);
+            rankingSymbol = default;
             return false;
         }
 
@@ -253,7 +259,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            rankingSymbol = default(Symbol);
+            rankingSymbol = default;
             return false;
         }
 

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -2656,6 +2656,63 @@ end class",
         Quux = 2
     end sub
 end class")
+        End Function
+
+        <WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function GroupNonReadonlyFieldsTogether() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public isDisposed as boolean
+
+    public readonly x as integer
+    public readonly m as integer
+
+    public sub new()
+        me.[|y|] = 0
+    end sub
+end class",
+"
+class C
+    public isDisposed as boolean
+    Private y As Integer
+
+    public readonly x as integer
+    public readonly m as integer
+
+    public sub new()
+        me.y = 0
+    end sub
+end class")
+        End Function
+
+        <WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function GroupReadonlyFieldsTogether() As Task
+            Await TestInRegularAndScriptAsync("
+class C
+    public readonly x as integer
+    public readonly m as integer
+
+    public isDisposed as boolean
+
+    public sub new()
+        me.[|y|] = 0
+    end sub
+end class",
+"
+class C
+    public readonly x as integer
+    public readonly m as integer
+    Private ReadOnly y As Integer
+
+    public isDisposed as boolean
+
+    public sub new()
+        me.y = 0
+    end sub
+end class", index:=1)
         End Function
     End Class
 End Namespace

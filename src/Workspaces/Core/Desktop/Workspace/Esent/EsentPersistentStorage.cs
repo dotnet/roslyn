@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Esent
             _esentStorage.Initialize();
         }
 
-        public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Esent
             return SpecializedTasks.DefaultOrResult(stream);
         }
 
-        public override Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Esent
             return SpecializedTasks.DefaultOrResult(stream);
         }
 
-        public override Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Esent
             }
         }
 
-        public override Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
             Contract.ThrowIfNull(stream);
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Esent
             return success ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
-        public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
             Contract.ThrowIfNull(stream);
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Esent
             return success ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
-        public override Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
             Contract.ThrowIfNull(stream);
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Esent
 
         private bool TryGetUniqueId(string value, bool fileCheck, out int id)
         {
-            id = default(int);
+            id = default;
 
             if (string.IsNullOrWhiteSpace(value))
             {
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Esent
 
         private bool TryGetProjectAndDocumentKey(Document document, out EsentStorage.Key key)
         {
-            key = default(EsentStorage.Key);
+            key = default;
             if (!TryGetProjectId(document.Project, out var projectId, out var projectNameId) ||
                 !TryGetUniqueFileId(document.FilePath, out var documentId))
             {
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Esent
 
         private bool TryGetProjectKey(Project project, out EsentStorage.Key key)
         {
-            key = default(EsentStorage.Key);
+            key = default;
             if (!TryGetProjectId(project, out var projectId, out var projectNameId))
             {
                 return false;
@@ -334,8 +334,8 @@ namespace Microsoft.CodeAnalysis.Esent
 
         private bool TryGetProjectId(Project project, out int projectId, out int projectNameId)
         {
-            projectId = default(int);
-            projectNameId = default(int);
+            projectId = default;
+            projectNameId = default;
 
             return TryGetUniqueFileId(project.FilePath, out projectId) && TryGetUniqueNameId(project.Name, out projectNameId);
         }
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 Logger.Log(FunctionId.PersistenceService_WriteAsyncFailed, "Failed : " + ex.Message);
             }
 
-            return default(TResult);
+            return default;
         }
     }
 }

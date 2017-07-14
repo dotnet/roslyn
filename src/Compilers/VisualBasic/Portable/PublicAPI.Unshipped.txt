@@ -1,5 +1,5 @@
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_3 = 1503 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_6 = 1506 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_5 = 1505 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> String

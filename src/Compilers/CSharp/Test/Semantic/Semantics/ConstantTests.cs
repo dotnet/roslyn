@@ -2851,9 +2851,9 @@ class Program
                 // (6,36): warning CS0219: The variable 'i' is assigned but its value is never used
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 36),
-                // (6,14): warning CS0168: The variable 'f' is declared but never used
+                // (6,14): warning CS8321: The local function 'f' is declared but never used
                 //         void f() { if () const int i = 0; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(6, 14)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(6, 14)
                 );
         }
 

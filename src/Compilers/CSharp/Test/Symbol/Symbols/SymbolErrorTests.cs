@@ -7841,7 +7841,7 @@ public class cly : clx
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 13, Column = 29 });
         }
 
-        private static readonly string s_typeWithMixedProperty = @"
+        private const string s_typeWithMixedProperty = @"
 .class public auto ansi beforefieldinit Base_VirtGet_Set
        extends [mscorlib]System.Object
 {

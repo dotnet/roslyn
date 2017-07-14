@@ -1,33 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Test.PdbUtilities</RootNamespace>
     <AssemblyName>Roslyn.Test.PdbUtilities</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <ItemGroup Label="Linked Files">
-    <Compile Include="Pdb\CustomDebugInfoUtilities.cs" />
-    <Compile Include="Pdb\MockSymWriter.cs" />
-    <Compile Include="Pdb\PdbTestUtilities.cs" />
-    <Compile Include="Pdb\PdbValidation.cs" />
-    <Compile Include="Pdb\SymReaderFactory.cs" />
-    <Compile Include="Pdb\Token2SourceLineExporter.cs" />
-    <Compile Include="Shared\DateTimeUtilities.cs" />
-    <Compile Include="Shared\DummyMetadataImport.cs" />
-    <Compile Include="Shared\StringUtilities.cs" />
-  </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
@@ -67,14 +54,8 @@
     <PackageReference Include="xunit.assert" Version="$(xunitassertVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\Utilities\Portable\TestUtilities.csproj" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

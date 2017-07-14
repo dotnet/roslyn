@@ -201,7 +201,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("[|AbCd|]xxx[|Ef|]Cd[|Gh|]", "AbCdEfGh", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseSensitive)]
 
         [InlineData("A[|BCD|]EFGH", "bcd", PatternMatchKind.Substring, CaseInsensitive)]
-        [InlineData("Abcdefghij[|EfgHij|]", "efghij", PatternMatchKind.CamelCaseSubstring, CaseInsensitive)]
+        [InlineData("FogBar[|ChangedEventArgs|]", "changedeventargs", PatternMatchKind.Substring, CaseInsensitive)]
+        [InlineData("Abcdefghij[|EfgHij|]", "efghij", PatternMatchKind.Substring, CaseInsensitive)]
 
         [InlineData("[|F|]og[|B|]ar", "FB", PatternMatchKind.CamelCaseExact, CaseSensitive)]
         [InlineData("[|Fo|]g[|B|]ar", "FoB", PatternMatchKind.CamelCaseExact, CaseSensitive)]
@@ -220,7 +221,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("[|F|]og[|_B|]ar", "F_b", PatternMatchKind.CamelCaseExact, CaseInsensitive)]
         [InlineData("[|_F|]og[|B|]ar", "_fB", PatternMatchKind.CamelCaseExact, CaseInsensitive)]
         [InlineData("[|F|]og[|_B|]ar", "f_B", PatternMatchKind.CamelCaseExact, CaseInsensitive)]
-        [InlineData("FogBar[|ChangedEventArgs|]", "changedeventargs", PatternMatchKind.CamelCaseSubstring, CaseInsensitive)]
 
         [InlineData("[|Si|]mple[|UI|]Element", "SiUI", PatternMatchKind.CamelCaseExact, CaseSensitive)]
 

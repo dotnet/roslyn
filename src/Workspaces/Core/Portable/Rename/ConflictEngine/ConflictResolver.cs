@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-        private static readonly string s_metadataNameSeparators = " .,:<`>()\r\n";
+        private const string s_metadataNameSeparators = " .,:<`>()\r\n";
 
         /// <summary>
         /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically resolves them where possible.

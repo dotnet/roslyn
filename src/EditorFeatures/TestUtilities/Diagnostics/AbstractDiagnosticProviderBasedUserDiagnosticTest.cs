@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
+#pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved
         /// <summary>
         /// The internal method <see cref="AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(Diagnostic)"/> does
         /// essentially this, but due to linked files between projects, this project cannot have internals visible
@@ -107,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         /// starts failing on non-analyzer exception diagnostics, it can be appropriately tuned or re-evaluated.
         /// </summary>
         private void AssertNoAnalyzerExceptionDiagnostics(IEnumerable<Diagnostic> diagnostics)
+#pragma warning restore CS1574 // XML comment has cref attribute that could not be resolved
         {
             var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException));
             AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");

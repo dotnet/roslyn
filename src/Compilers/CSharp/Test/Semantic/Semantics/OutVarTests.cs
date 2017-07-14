@@ -19276,9 +19276,9 @@ public class Cls
                 // (10,28): error CS1003: Syntax error, ']' expected
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(10, 28),
-                // (7,13): error CS0501: 'b(out var)' must declare a body because it is not marked abstract, extern, or partial
+                // (7,13): error CS08112: 'b(out var)' is a local function and must therefore always have a body.
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
                 // (7,19): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 19),
@@ -19303,9 +19303,9 @@ public class Cls
                 // (10,16): warning CS0168: The variable 'e' is declared but never used
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(10, 16),
-                // (7,13): warning CS0168: The variable 'b' is declared but never used
+                // (7,13): warning CS8321: The local function 'b' is declared but never used
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(7, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "b").WithArguments("b").WithLocation(7, 13)
                 );
         }
 
@@ -31371,12 +31371,12 @@ class C
                 // (9,22): error CS0103: The name 'z2' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
-                // (6,14): warning CS0168: The variable 'Local2' is declared but never used
+                // (6,14): warning CS8321: The local function 'Local2' is declared but never used
                 //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(6, 14),
-                // (7,14): warning CS0168: The variable 'Local5' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local2").WithArguments("Local2").WithLocation(6, 14),
+                // (7,14): warning CS8321: The local function  'Local5' is declared but never used
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(7, 14)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local5").WithArguments("Local5").WithLocation(7, 14)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -32054,12 +32054,12 @@ class C
                 // (9,22): error CS0103: The name 'z2' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
-                // (6,14): warning CS0168: The variable 'Local2' is declared but never used
+                // (6,14): warning CS8321: The local function 'Local2' is declared but never used
                 //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(6, 14),
-                // (7,14): warning CS0168: The variable 'Local5' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local2").WithArguments("Local2").WithLocation(6, 14),
+                // (7,14): warning CS8321: The local function 'Local5' is declared but never used
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(7, 14)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local5").WithArguments("Local5").WithLocation(7, 14)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

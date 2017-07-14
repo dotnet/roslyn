@@ -1412,6 +1412,16 @@ d.cs
         }
 
         [Fact]
+        public void LanguageVersion_TryParseTurkishDisplayString()
+        {
+            var originalCulture = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR");
+            Assert.True("ISO-1".TryParse(out var version));
+            Assert.Equal(LanguageVersion.CSharp1, version);
+            Thread.CurrentThread.CurrentCulture = originalCulture;
+        }
+
+        [Fact]
         public void LangVersion_ListLangVersions()
         {
             var dir = Temp.CreateDirectory();

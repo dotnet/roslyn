@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -1431,7 +1431,9 @@ systemSpecialCase: true);
         public async Task TestSimpleSystemUnsortedUsings1()
         {
             await TestAsync(
-@"using B;
+@"
+using C;
+using B;
 using System;
 
 class Class
@@ -1451,7 +1453,9 @@ namespace A
         }
     }
 }",
-@"using B;
+@"
+using C;
+using B;
 using System;
 using A;
 
@@ -1636,7 +1640,9 @@ systemSpecialCase: true);
         public async Task TestSimpleSystemUnsortedUsings4()
         {
             await TestAsync(
-@"using System;
+@"
+using C;
+using System;
 using B;
 
 class Class
@@ -1656,7 +1662,9 @@ namespace A
         }
     }
 }",
-@"using System;
+@"
+using C;
+using System;
 using B;
 using A;
 
@@ -4670,6 +4678,111 @@ class C
     {
         IEnumerable < Int32 >
         return ImmutableArray.CreateRange();
+    }
+}");
+        }
+
+        [WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestWhenInRome1()
+        {
+            // System is set to be sorted first, but the actual file shows it at the end.
+            // Keep things sorted, but respect that 'System' is at the end.
+            await TestAsync(
+@"
+using B;
+using System;
+
+class Class
+{
+    void Method()
+    {
+        [|Foo|].Bar();
+    }
+}
+
+namespace A
+{
+    class Foo
+    {
+        public static void Bar()
+        {
+        }
+    }
+}",
+@"
+using A;
+using B;
+using System;
+
+class Class
+{
+    void Method()
+    {
+        Foo.Bar();
+    }
+}
+
+namespace A
+{
+    class Foo
+    {
+        public static void Bar()
+        {
+        }
+    }
+}",
+systemSpecialCase: true);
+        }
+
+        [WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestWhenInRome2()
+        {
+            // System is set to not be sorted first, but the actual file shows it sorted first.
+            // Keep things sorted, but respect that 'System' is at the beginning.
+            await TestAsync(
+@"
+using System;
+using B;
+
+class Class
+{
+    void Method()
+    {
+        [|Foo|].Bar();
+    }
+}
+
+namespace A
+{
+    class Foo
+    {
+        public static void Bar()
+        {
+        }
+    }
+}",
+@"
+using System;
+using A;
+using B;
+
+class Class
+{
+    void Method()
+    {
+        Foo.Bar();
+    }
+}
+
+namespace A
+{
+    class Foo
+    {
+        public static void Bar()
+        {
+        }
     }
 }");
         }

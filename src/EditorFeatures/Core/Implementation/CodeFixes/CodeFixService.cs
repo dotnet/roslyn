@@ -4,9 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Diagnostics;
-using System.Reflection;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             if (document == null || !document.IsOpen())
             {
-                return default(FirstDiagnosticResult);
+                return default;
             }
 
             using (var diagnostics = SharedPools.Default<List<DiagnosticData>>().GetPooledObject())
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     }
                 }
 
-                return new FirstDiagnosticResult(!fullResult, false, default(DiagnosticData));
+                return new FirstDiagnosticResult(!fullResult, false, default);
             }
         }
 
@@ -322,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (fixAllProviderInfo != null)
             {
                 var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((ISuppressionFixProvider)fixer, diagnostics.Select(d => d.Id));
-                fixAllState = FixAllState.Create(
+                fixAllState = CreateFixAllState(
                     fixAllProviderInfo.FixAllProvider,
                     document, fixAllProviderInfo, codeFixProvider, diagnostics,
                     this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync);
@@ -333,6 +332,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 fixer, span, fixes, fixAllState,
                 supportedScopes, diagnostics.First());
             result.Add(codeFix);
+        }
+
+        internal FixAllState CreateFixAllState(
+            FixAllProvider fixAllProvider,
+            Document document,
+            FixAllProviderInfo fixAllProviderInfo,
+            CodeFixProvider originalFixProvider,
+            IEnumerable<Diagnostic> originalFixDiagnostics,
+            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
+            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync)
+        {
+            var diagnosticIds = originalFixDiagnostics.Where(fixAllProviderInfo.CanBeFixed)
+                                                      .Select(d => d.Id)
+                                                      .ToImmutableHashSet();
+            var diagnosticProvider = new FixAllDiagnosticProvider(this, diagnosticIds);
+            return new FixAllState(
+                fixAllProvider: fixAllProvider,
+                document: document,
+                codeFixProvider: originalFixProvider,
+                scope: FixAllScope.Document,
+                codeActionEquivalenceKey: null,
+                diagnosticIds: diagnosticIds,
+                fixAllDiagnosticProvider: diagnosticProvider);
         }
 
         public CodeFixProvider GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds)

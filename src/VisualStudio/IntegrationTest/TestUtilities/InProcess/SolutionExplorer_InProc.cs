@@ -9,6 +9,7 @@ using System.Threading;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -214,6 +215,46 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             ((VSProject)project.Object).References.Add(fullyQualifiedAssemblyName);
         }
 
+        public void AddPackageReference(string projectName, string packageName, string version)
+        {
+            var project = GetProject(projectName);
+
+            if (project is IVsBrowseObjectContext browseObjectContext)
+            {
+                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
+
+                var result = threadingService.ExecuteSynchronously(async () =>
+                {
+                    var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
+                    return await configuredProject.Services.PackageReferences.AddAsync(packageName, version).ConfigureAwait(false);
+                });
+            }
+            else
+            {
+                throw new InvalidOperationException($"'{nameof(AddPackageReference)}' is not supported in project '{projectName}'.");
+            }
+        }
+
+        public void RemovePackageReference(string projectName, string packageName)
+        {
+            var project = GetProject(projectName);
+
+            if (project is IVsBrowseObjectContext browseObjectContext)
+            {
+                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
+
+                threadingService.ExecuteSynchronously(async () =>
+                {
+                    var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
+                    await configuredProject.Services.PackageReferences.RemoveAsync(packageName).ConfigureAwait(false);
+                });
+            }
+            else
+            {
+                throw new InvalidOperationException($"'{nameof(RemovePackageReference)}' is not supported in project '{projectName}'.");
+            }
+        }
+
         public void RemoveProjectReference(string projectName, string projectReferenceName)
         {
             var project = GetProject(projectName);
@@ -286,41 +327,42 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void CleanUpOpenSolution()
-        {
-            var dte = GetDTE();
-            dte.Documents.CloseAll(EnvDTE.vsSaveChanges.vsSaveChangesNo);
-
-            if (dte.Solution != null)
+            => InvokeOnUIThread(() =>
             {
-                var directoriesToDelete = new List<string>();
+                var dte = GetDTE();
+                dte.Documents.CloseAll(EnvDTE.vsSaveChanges.vsSaveChangesNo);
 
-                // Save the full path to each project in the solution. This is so we can
-                // cleanup any folders after the solution is closed.
-                foreach (EnvDTE.Project project in dte.Solution.Projects)
+                if (dte.Solution != null)
                 {
-                    if (!string.IsNullOrEmpty(project.FullName))
+                    var directoriesToDelete = new List<string>();
+
+                    // Save the full path to each project in the solution. This is so we can
+                    // cleanup any folders after the solution is closed.
+                    foreach (EnvDTE.Project project in dte.Solution.Projects)
                     {
-                        directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
+                        if (!string.IsNullOrEmpty(project.FullName))
+                        {
+                            directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
+                        }
+                    }
+
+                    // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
+                    // The solution might be zero-impact and thus has no name, so deal with that
+                    var solutionFullName = dte.Solution.FullName;
+
+                    if (!string.IsNullOrEmpty(solutionFullName))
+                    {
+                        directoriesToDelete.Add(Path.GetDirectoryName(solutionFullName));
+                    }
+
+                    dte.Solution.Close(SaveFirst: false);
+
+                    foreach (var directoryToDelete in directoriesToDelete)
+                    {
+                        IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
                     }
                 }
-
-                // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
-                // The solution might be zero-impact and thus has no name, so deal with that
-                var solutionFullName = dte.Solution.FullName;
-
-                if (!string.IsNullOrEmpty(solutionFullName))
-                {
-                    directoriesToDelete.Add(Path.GetDirectoryName(solutionFullName));
-                }
-
-                dte.Solution.Close(SaveFirst: false);
-
-                foreach (var directoryToDelete in directoriesToDelete)
-                {
-                    IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
-                }
-            }
-        }
+            });
 
         private EnvDTE.Project GetProject(string nameOrFileName)
             => _solution.Projects.OfType<EnvDTE.Project>().First(p
@@ -799,6 +841,62 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
             item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             solutionExplorer.Parent.Activate();
+        }
+
+        public void SelectItemAtPath(params string[] path)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
+            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            solutionExplorer.Parent.Activate();
+        }
+
+        public string[] GetChildrenOfItem(string itemName)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
+
+            return item.UIHierarchyItems
+                .Cast<EnvDTE.UIHierarchyItem>()
+                .Select(i => i.Name)
+                .ToArray();
+        }
+
+        public string[] GetChildrenOfItemAtPath(params string[] path)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
+
+            return item.UIHierarchyItems
+                .Cast<EnvDTE.UIHierarchyItem>()
+                .Select(i => i.Name)
+                .ToArray();
+        }
+
+        private static EnvDTE.UIHierarchyItem FindItemAtPath(
+            EnvDTE.UIHierarchyItems currentItems,
+            string[] path)
+        {
+            EnvDTE.UIHierarchyItem item = null;
+            foreach (var name in path)
+            {
+                item = currentItems.Cast<EnvDTE.UIHierarchyItem>().FirstOrDefault(i => i.Name == name);
+
+                if (item == null)
+                {
+                    return null;
+                }
+
+                currentItems = item.UIHierarchyItems;
+            }
+
+            return item;
         }
 
         private static EnvDTE.UIHierarchyItem FindFirstItemRecursively(

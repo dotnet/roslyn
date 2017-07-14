@@ -2335,7 +2335,7 @@ CL3.Test");
         public void ConcatModifiersAndByRef_05()
         {
             var ilSource = @"
-.class interface public abstract auto ansi beforefieldinit X.I
+.class interface public abstract auto ansi beforefieldinit I
 {
   .method public newslot abstract virtual 
           instance void  A(uint32& modopt([mscorlib]System.Runtime.CompilerServices.IsImplicitlyDereferenced) x) cil managed
@@ -2347,42 +2347,79 @@ CL3.Test");
   {
   } // end of method I::B
 
-} // end of class X.I
+} // end of class I
 ";
 
             var source = @"
-using X;
-
-namespace ConsoleApplication21
+class CI : I 
 {
-    class CI : I 
+    public void A(ref uint x)
     {
-        public void A(ref uint x)
-        {
-            System.Console.WriteLine(""Implemented A"");
-        }
-
-        public void B(ref uint x)
-        {
-            System.Console.WriteLine(""Implemented B"");
-        }
+        System.Console.WriteLine(""Implemented A"");
     }
 
-    internal class Program
+    public void B(ref uint x)
     {
-        private static void Main()
-        {
-            I x = new CI();
-            uint y = 0;
-            x.A(ref y);
-            x.B(ref y);
-        }
+        System.Console.WriteLine(""Implemented B"");
+    }
+}
+
+internal class Program
+{
+    private static void Main()
+    {
+        I x = new CI();
+        uint y = 0;
+        x.A(ref y);
+        x.B(ref y);
     }
 }";
             var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"Implemented A
-Implemented B");
+Implemented B",
+                assemblyValidator: assembly =>
+                {
+                    var reader = assembly.GetMetadataReader();
+                    // Verify synthesized forwarding method I.A was generated.
+                    AssertEx.SetEqual(new[] { "A", "B", ".ctor", "I.A", "Main", ".ctor" }, new[] { reader }.GetStrings(reader.GetMethodDefNames()));
+                });
+        }
+
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        public void ConcatModifiersAndByRef_06()
+        {
+            var ilSource =
+@".class interface public abstract I
+{
+  .method public abstract virtual instance int32& modopt([mscorlib]System.Runtime.CompilerServices.IsImplicitlyDereferenced) F()
+  {
+  }
+}";
+            var source =
+@"class C : I 
+{
+    private int _f;
+    public ref int F()
+    {
+        return ref _f;
+    }
+    static void Main()
+    {
+        I x = new C();
+        x.F() = 2;
+        System.Console.WriteLine(x.F());
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "2",
+                assemblyValidator: assembly =>
+                {
+                    var reader = assembly.GetMetadataReader();
+                    // Verify synthesized forwarding method I.F was generated.
+                    AssertEx.SetEqual(new[] { ".ctor", "F", "I.F", "Main" }, new[] { reader }.GetStrings(reader.GetMethodDefNames()));
+                });
         }
 
         [Fact, WorkItem(6372, "https://github.com/dotnet/roslyn/issues/6372")]

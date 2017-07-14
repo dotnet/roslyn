@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
                 _symbolToId.Clear();
                 _stringBuilder.Clear();
                 _methodSymbolStack.Clear();
-                CancellationToken = default(CancellationToken);
+                CancellationToken = default;
                 _nestingCount = 0;
                 _nextId = 0;
 

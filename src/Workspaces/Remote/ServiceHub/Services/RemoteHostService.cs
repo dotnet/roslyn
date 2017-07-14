@@ -75,71 +75,39 @@ namespace Microsoft.CodeAnalysis.Remote
             return _host;
         }
 
-        public async Task SynchronizePrimaryWorkspaceAsync(Checksum checksum)
+        public async Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, CancellationToken))
+            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
             {
-                try
+                var solutionController = (ISolutionController)RoslynServices.SolutionService;
+                await solutionController.UpdatePrimaryWorkspaceAsync(checksum, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
+        {
+            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
+            {
+                var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
+
+                foreach (var asset in assets)
                 {
-                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, CancellationToken).ConfigureAwait(false);
-                }
-                catch (IOException)
-                {
-                    // stream to send over assets has closed before we
-                    // had chance to check cancellation
-                }
-                catch (OperationCanceledException)
-                {
-                    // rpc connection has closed.
-                    // this can happen if client side cancelled the
-                    // operation
+                    AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
                 }
             }
         }
 
-        public async Task SynchronizeGlobalAssetsAsync(Checksum[] checksums)
-        {
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, CancellationToken))
-            {
-                try
-                {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, CancellationToken).ConfigureAwait(false);
-
-                    foreach (var asset in assets)
-                    {
-                        AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
-                    }
-                }
-                catch (IOException)
-                {
-                    // stream to send over assets has closed before we
-                    // had chance to check cancellation
-                }
-                catch (OperationCanceledException)
-                {
-                    // rpc connection has closed.
-                    // this can happen if client side cancelled the
-                    // operation
-                }
-            }
-        }
-
-        public void RegisterPrimarySolutionId(SolutionId solutionId)
+        public void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
         {
             var persistentStorageService = GetPersistentStorageService();
             persistentStorageService?.RegisterPrimarySolution(solutionId);
+            RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
         }
 
-        public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown)
+        public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken)
         {
             var persistentStorageService = GetPersistentStorageService();
             persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
-        }
-
-        public void UpdateSolutionIdStorageLocation(SolutionId solutionId, string storageLocation)
-        {
-            RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
         }
 
         private static Func<FunctionId, bool> GetLoggingChecker()

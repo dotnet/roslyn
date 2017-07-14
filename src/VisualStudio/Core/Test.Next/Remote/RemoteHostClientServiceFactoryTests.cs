@@ -63,7 +63,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // make sure client is ready
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            var checksumService = workspace.Services.GetService<ISolutionSynchronizationService>();
+            var checksumService = workspace.Services.GetService<IRemotableDataService>();
             var asset = checksumService.GetGlobalAsset(analyzerReference, CancellationToken.None);
             Assert.NotNull(asset);
 
@@ -137,11 +137,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None);
-            var result = await session.TryInvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), "emptySource", Path.GetTempPath());
+            var result = await session.TryInvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), new object[] { "emptySource", Path.GetTempPath() }, CancellationToken.None);
 
             Assert.True(result);
 
-            session.Shutdown();
+            session.Shutdown(CancellationToken.None);
 
             service.Disable();
         }

@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else
                             {
-                                var sourceMethod = method as SourceMethodSymbol;
+                                var sourceMethod = method as SourceMemberMethodSymbol;
                                 if ((object)sourceMethod != null) // skip submission initializer
                                 {
                                     var isNew = sourceMethod.IsNew;
@@ -1064,7 +1064,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ReferenceEquals(this.ContainingModule, implementingMethodOriginalDefinition.ContainingModule))
                 {
-                    SourceMethodSymbol sourceImplementMethodOriginalDefinition = implementingMethodOriginalDefinition as SourceMethodSymbol;
+                    SourceMemberMethodSymbol sourceImplementMethodOriginalDefinition = implementingMethodOriginalDefinition as SourceMemberMethodSymbol;
                     if ((object)sourceImplementMethodOriginalDefinition != null)
                     {
                         sourceImplementMethodOriginalDefinition.EnsureMetadataVirtual();

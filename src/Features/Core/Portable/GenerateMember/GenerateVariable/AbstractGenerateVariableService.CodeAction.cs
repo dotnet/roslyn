@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         : CreateAccessor(DetermineMinimalAccessibility(_state), cancellationToken);
 
                     var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: DetermineMaximalAccessibility(_state),
                         modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
                         type: _state.TypeMemberType,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 else
                 {
                     var fieldSymbol = CodeGenerationSymbolFactory.CreateFieldSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: DetermineMinimalAccessibility(_state),
                         modifiers: _isConstant
                             ? new DeclarationModifiers(isConst: true, isUnsafe: generateUnsafe)
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 Accessibility accessibility, CancellationToken cancellationToken)
             {
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: accessibility,
                     statements: GenerateStatements(cancellationToken));
             }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _returnsByRef
                     ? ImmutableArray.Create(throwStatement)
-                    : default(ImmutableArray<SyntaxNode>);
+                    : default;
             }
 
             private Accessibility DetermineMaximalAccessibility(State state)

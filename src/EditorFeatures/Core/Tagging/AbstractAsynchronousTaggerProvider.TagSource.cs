@@ -135,21 +135,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void ComputeInitialTags()
             {
-                // Kick off a task to immediately compute the initial set of tags. This work should
-                // not be cancellable (except if we get completely released), even if more events come 
-                // in.  That way we can get the initial set of results for the buffer as quickly as 
-                // possible, without kicking the work  down the road.
-                if (_workQueue.IsForeground())
-                {
-                    RecomputeTagsForeground(initialTags: true);
-                }
-                else
-                {
-                    RegisterNotification(
-                        () => RecomputeTagsForeground(initialTags: true),
-                        delay: 0,
-                        cancellationToken: GetCancellationToken(initialTags: true));
-                }
+                // Note: we always kick this off to the new UI pump instead of computing tags right
+                // on this thread.  The reason for that is that we may be getting created at a time
+                // when the view itself is initializing.  As such the view is not in a state where
+                // we want code touching it.
+                RegisterNotification(
+                    () => RecomputeTagsForeground(initialTags: true),
+                    delay: 0,
+                    cancellationToken: GetCancellationToken(initialTags: true));
             }
 
             private ITaggerEventSource CreateEventSource()
@@ -318,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private static T NextOrDefault<T>(IEnumerator<T> enumerator)
             {
-                return enumerator.MoveNext() ? enumerator.Current : default(T);
+                return enumerator.MoveNext() ? enumerator.Current : default;
             }
 
             /// <summary>
