@@ -4753,7 +4753,7 @@ class D : C
         }
 
         [Fact]
-        public void OverrideTupleMethodWithDifferentNamesInReturnType()
+        public void OverrideTupleMethodWithDifferentNamesInParameterType()
         {
             string source = @"
 class C
@@ -4780,7 +4780,7 @@ class D : C
         }
 
         [Fact]
-        public void OverrideTupleMethodWithDifferentNamesInParameterType()
+        public void OverrideTupleMethodWithDifferentNamesInReturnType()
         {
             string source = @"
 class C
@@ -4861,21 +4861,25 @@ class C
 class D : C
 {
     public override (int, int) P { get; set; } 
-}
-class E
-{
     void M(D d)
     {
         var result = d.P;
+        var result2 = this.P;
+        var result3 = base.P;
         System.Console.Write(result.a);
+        System.Console.Write(result2.a);
+        System.Console.Write(result3.a);
     }
 }
 ";
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (15,37): error CS1061: '(int, int)' does not contain a definition for 'a' and no extension method 'a' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+                // (14,37): error CS1061: '(int, int)' does not contain a definition for 'a' and no extension method 'a' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(result.a);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a").WithArguments("(int, int)", "a").WithLocation(15, 37)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a").WithArguments("(int, int)", "a").WithLocation(14, 37),
+                // (15,38): error CS1061: '(int, int)' does not contain a definition for 'a' and no extension method 'a' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(result2.a);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a").WithArguments("(int, int)", "a").WithLocation(15, 38)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -4883,6 +4887,14 @@ class E
             var memberAccess = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().ElementAt(0);
             Assert.Equal("d.P", memberAccess.ToString());
             Assert.Equal("(System.Int32, System.Int32) D.P { get; set; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+            var memberAccess2 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().ElementAt(1);
+            Assert.Equal("this.P", memberAccess2.ToString());
+            Assert.Equal("(System.Int32, System.Int32) D.P { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+
+            var memberAccess3 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().ElementAt(2);
+            Assert.Equal("base.P", memberAccess3.ToString());
+            Assert.Equal("(System.Int32 a, System.Int32 b) C.P { get; set; }", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -18743,6 +18755,7 @@ public interface I0
     void M2((int a, int b) x);
     (int, int b) MR1();
     (int a, int b) MR2();
+    (int a, int b) P { get; set; }
 }
 public class C : I0
 {
@@ -18750,6 +18763,7 @@ public class C : I0
     void I0.M2((int, int) z) { }
     (int, int) I0.MR1() { return (1, 2); }
     (int, int) I0.MR2() { return (1, 2); }
+    (int, int) I0.P { get; set; }
 }
 ";
 
@@ -22803,6 +22817,32 @@ interface I<T>
     T M();
 }
 class Base : I<(int a, int b)>
+{
+    public (int a, int b) M() { return (1, 2); }
+}
+class Derived : Base, I<(int notA, int notB)>
+{
+    // error
+}
+";
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (8,27): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int notA, int notB)>.M()' (including on the return type).
+                //     public (int a, int b) M() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("Base.M()", "I<(int notA, int notB)>.M()").WithLocation(8, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void ImplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames2()
+        {
+            var source = @"
+interface I<T>
+{
+    T M();
+}
+class Base
 {
     public (int a, int b) M() { return (1, 2); }
 }
