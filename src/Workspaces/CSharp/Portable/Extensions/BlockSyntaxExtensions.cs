@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     var firstStatement = block.Statements[0];
 
-                    if (TryGetExpression(firstStatement, out var expression, out semicolonToken) &&
+                    if (TryGetExpression(version, firstStatement, out var expression, out semicolonToken) &&
                         MatchesPreference(expression, preference))
                     {
                         arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
@@ -79,7 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool TryGetExpression(
-            StatementSyntax firstStatement, out ExpressionSyntax expression, out SyntaxToken semicolonToken)
+            LanguageVersion version, StatementSyntax firstStatement,
+            out ExpressionSyntax expression, out SyntaxToken semicolonToken)
         {
             if (firstStatement is ExpressionStatementSyntax exprStatement)
             {
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
             else if (firstStatement is ThrowStatementSyntax throwStatement)
             {
-                if (throwStatement.Expression != null)
+                if (version >= LanguageVersion.CSharp7 && throwStatement.Expression != null)
                 {
                     expression = SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
                     semicolonToken = throwStatement.SemicolonToken;

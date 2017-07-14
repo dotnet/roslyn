@@ -459,6 +459,20 @@ class C
 }", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
+        [WorkItem(20352, "https://github.com/dotnet/roslyn/issues/20352")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestDoNotOfferToConvertToExpressionInCSharp6IfThrowExpression()
+        {
+            await TestMissingAsync(
+@"
+using System;
+class C
+{
+    // throw expressions not supported in C# 6.
+    void M() { [|throw|] new Exception(); }
+}", new TestParameters(options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
+        }
+
         [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp6_FixAll()
