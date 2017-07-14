@@ -73,11 +73,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var solution = workspace.CurrentSolution;
 
-                var comments = await client.TryRunCodeAnalysisRemoteAsync<IList<TodoComment>>(
-                    solution, nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
-                    new object[] { solution.Projects.First().DocumentIds.First(), ImmutableArray.Create(new TodoCommentDescriptor("TODO", 0)) }, CancellationToken.None);
+                var keepAliveSession = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(CancellationToken.None);
+                var comments = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
+                    nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
+                    solution,
+                    new object[] { solution.Projects.First().DocumentIds.First(), ImmutableArray.Create(new TodoCommentDescriptor("TODO", 0)) },
+                    CancellationToken.None);
 
                 Assert.Equal(comments.Count, 1);
+
+                keepAliveSession.Shutdown(CancellationToken.None);
             }
         }
 

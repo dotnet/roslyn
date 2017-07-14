@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19059"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Highlighting()
         {
             var markup = @"
@@ -50,9 +50,9 @@ End Class";
                FeatureAttribute.Classification,
                FeatureAttribute.ReferenceHighlighting));
 
-            AssertEx.SetEqual(spans["reference"], VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId));
-            AssertEx.SetEqual(spans["writtenReference"], VisualStudio.Editor.GetTagSpans(WrittenReferenceHighlightTag.TagId));
-            AssertEx.SetEqual(spans["definition"], VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId));
+            AssertEx.SetEqual(spans["reference"], VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId), message: "Testing 'reference'\r\n");
+            AssertEx.SetEqual(spans["writtenReference"], VisualStudio.Editor.GetTagSpans(WrittenReferenceHighlightTag.TagId), message: "Testing 'writtenReference'\r\n");
+            AssertEx.SetEqual(spans["definition"], VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId), message: "Testing 'definition'\r\n");
         }
 
         private void VerifyNone(string marker)

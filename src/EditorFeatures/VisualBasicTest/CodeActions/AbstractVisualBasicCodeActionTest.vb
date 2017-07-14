@@ -9,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
     Public MustInherit Class AbstractVisualBasicCodeActionTest
         Inherits AbstractCodeActionTest
 
-        Private ReadOnly _compilationOptions As CompilationOptions =
-            New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True)
+        Private ReadOnly _compilationOptions As VisualBasicCompilationOptions =
+            New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithParseOptions(New VisualBasicParseOptions(LanguageVersion.Latest))
 
         Protected Overrides Function GetScriptOptions() As ParseOptions
             Return TestOptions.Script
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
             Dim expectedStr = expected.ConvertTestSourceTag()
 
-            Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=Nothing, compilationOptions:=_compilationOptions, index:=index, ignoreTrivia:=ignoreTrivia)
+            Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions, index:=index, ignoreTrivia:=ignoreTrivia)
         End Function
 
         Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Threading.Tasks.Task

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class EsentPersistentStorageTests : AbstractPersistentStorageTests
     {
-        protected override IPersistentStorageService GetStorageService()
+        internal override IPersistentStorageService GetStorageService(IPersistentStorageFaultInjector faultInjector)
             => new EsentPersistentStorageService(_persistentEnabledOptionService, testing: true);
     }
 }

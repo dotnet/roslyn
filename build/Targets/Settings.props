@@ -43,7 +43,7 @@
     <TargetFrameworkRootPath>$(NuGetPackageRoot)\RoslynTools.ReferenceAssemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\Framework</TargetFrameworkRootPath>
 
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
-    <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring(0, $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
+    <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring($([System.Convert]::ToInt32(0)), $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
     <VisualStudioCodename>Dev$(VisualStudioReferenceMajorVersion)</VisualStudioCodename>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
@@ -75,6 +75,10 @@
 
     <RoslynNetSdkRootPath>$(MSBuildSDKsPath)\Microsoft.NET.Sdk\Sdk\</RoslynNetSdkRootPath> 
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+
+    <!-- Live Unit Testing does not currently support PackageReference style restore unless the Sdk="Microsoft.NET.Sdk" attribute is used on projects.
+         Removal of this work-around tracked by:  https://github.com/dotnet/roslyn/issues/20427 -->
+    <ProjectAssetsFile Condition="'$(BuildingForLiveUnitTesting)' == 'true'">$(LiveUnitTestingOriginalBaseIntermediateOutputPath)project.assets.json</ProjectAssetsFile>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
@@ -209,12 +213,15 @@
         <ErrorReport>prompt</ErrorReport>
 
         <!-- Suppress the following warnings by default for C# projects
+                1573: Suppressed in order to allow documentation for some but not all parameters.
+                      A warning will still be reported if the documentation defines/references a
+                      parameter which does not exist.
                 1591: So far we've chosen to implicitly implement interfaces and as a consequence
                       the methods are public.  We don't want to duplicate documentation for them
                       and hence suppress this warning until we get closer to release and a more
                       thorough documentation story
         -->
-        <NoWarn>$(NoWarn);1591;1701</NoWarn>
+        <NoWarn>$(NoWarn);1573;1591;1701</NoWarn>
         <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
         <MSBuildTargetsLanguageName>CSharp</MSBuildTargetsLanguageName>
       </PropertyGroup>

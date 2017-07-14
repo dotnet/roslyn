@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
             }
 
-            return default((SyntaxToken, SyntaxToken));
+            return default;
         }
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetParentheses(this SyntaxNode node)
@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case AttributeArgumentListSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case ConstructorConstraintSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case ParameterListSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                default: return default((SyntaxToken, SyntaxToken));
+                default: return default;
             }
         }
 
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case ImplicitArrayCreationExpressionSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
                 case AttributeListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
                 case BracketedParameterListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                default: return default((SyntaxToken, SyntaxToken));
+                default: return default;
             }
         }
 
@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            return default(SyntaxTokenList);
+            return default;
         }
 
         public static SyntaxNode WithModifiers(this SyntaxNode member, SyntaxTokenList modifiers)

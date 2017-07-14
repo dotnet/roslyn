@@ -132,7 +132,7 @@ namespace Roslyn.Test.Utilities
         }
 
         /// <remarks>
-        /// Invoked via Reflection from <see cref="ILBuilder.GetDebuggerDisplay()"/>
+        /// Invoked via Reflection from <see cref="ILBuilder"/><c>.GetDebuggerDisplay()</c>.
         /// </remarks>
         internal static string ILBuilderToString(
             ILBuilder builder,

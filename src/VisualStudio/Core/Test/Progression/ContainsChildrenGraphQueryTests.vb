@@ -82,14 +82,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
 
-                ''' To simulate the situation where a solution is not yet loaded and project info is not available,
-                ''' remove a project from the solution.
+                ' To simulate the situation where a solution is not yet loaded and project info is not available,
+                ' remove a project from the solution.
 
                 Dim oldSolution = testState.GetSolution()
                 Dim newSolution = oldSolution.RemoveProject(oldSolution.ProjectIds.FirstOrDefault())
                 Dim outputContext = Await testState.GetGraphContextAfterQueryWithSolution(inputGraph, newSolution, New ContainsChildrenGraphQuery(), GraphContextDirection.Self)
 
-                ''' ContainsChildren should be set to false, so following updates will be tractable.
+                ' ContainsChildren should be set to false, so following updates will be tractable.
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,

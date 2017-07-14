@@ -20396,6 +20396,134 @@ BC30311: Value of type '(e As Integer?, String)' cannot be converted to '(Intege
             Assert.Equal(ConversionKind.DelegateRelaxationLevelNone, model.GetConversion(node).Kind)
         End Sub
 
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        Public Sub MoreGenericTieBreaker_01()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Module Module1
+    Public Sub Main()
+        Dim a As A(Of A(Of Integer)) = Nothing
+        M1(a) ' ok, selects M1(Of T)(A(Of A(Of T)) a)
+
+        Dim b = New ValueTuple(Of ValueTuple(Of Integer, Integer), Integer)()
+        M2(b) ' ok, should select M2(Of T)(ValueTuple(Of ValueTuple(Of T, Integer), Integer) a)
+    End Sub
+
+    Public Sub M1(Of T)(a As A(Of T))
+        Console.Write(1)
+    End Sub
+    Public Sub M1(Of T)(a As A(Of A(Of T)))
+        Console.Write(2)
+    End Sub
+
+    Public Sub M2(Of T)(a As ValueTuple(Of T, Integer))
+        Console.Write(3)
+    End Sub
+    Public Sub M2(Of T)(a As ValueTuple(Of ValueTuple(Of T, Integer), Integer))
+        Console.Write(4)
+    End Sub
+End Module
+
+Public Class A(Of T)
+End Class
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+24
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        Public Sub MoreGenericTieBreaker_01b()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Module Module1
+    Public Sub Main()
+        Dim b = ((0, 0), 0)
+        M2(b) ' ok, should select M2(Of T)(ValueTuple(Of ValueTuple(Of T, Integer), Integer) a)
+    End Sub
+
+    Public Sub M2(Of T)(a As (T, Integer))
+        Console.Write(3)
+    End Sub
+    Public Sub M2(Of T)(a As ((T, Integer), Integer))
+        Console.Write(4)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+4
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        Public Sub MoreGenericTieBreaker_03()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Module Module1
+    Public Sub Main()
+        Dim b = ((1, 1), 2, 3, 4, 5, 6, 7, 8, 9, (10, 10), (11, 11))
+        M1(b) ' ok, should select M1(Of T, U, V)(a As ((T, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (U, Integer), V))
+    End Sub
+
+    Sub M1(Of T, U, V)(a As ((T, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (U, Integer), V))
+        Console.Write(3)
+    End Sub
+    Sub M1(Of T, U, V)(a As (T, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, U, (V, Integer)))
+        Console.Write(4)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+3
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        Public Sub MoreGenericTieBreaker_04()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Module Module1
+    Public Sub Main()
+        Dim b = ((1, 1), 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, (20, 20))
+        M1(b) ' error: ambiguous
+    End Sub
+
+    Sub M1(Of T, U)(a As (T, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (U, Integer)))
+        Console.Write(3)
+    End Sub
+    Sub M1(Of T, U)(a As ((T, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, U))
+        Console.Write(4)
+    End Sub
+End Module
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=s_valueTupleRefs)
+            comp.VerifyDiagnostics(
+    Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "M1").WithArguments("M1", "
+    'Public Sub M1(Of (Integer, Integer), Integer)(a As ((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer)))': Not most specific.
+    'Public Sub M1(Of Integer, (Integer, Integer))(a As ((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer)))': Not most specific.").WithLocation(7, 9)
+                )
+        End Sub
     End Class
 
 End Namespace

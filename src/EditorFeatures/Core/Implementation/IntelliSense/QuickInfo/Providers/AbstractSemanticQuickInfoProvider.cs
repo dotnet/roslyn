@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var linkedDocument = document.Project.Solution.GetDocument(link);
                 var linkedToken = await FindTokenInLinkedDocument(token, document, linkedDocument, cancellationToken).ConfigureAwait(false);
 
-                if (linkedToken != default(SyntaxToken))
+                if (linkedToken != default)
                 {
                     // Not in an inactive region, so this file is a candidate.
                     candidateProjects.Add(link.ProjectId);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         {
             if (!linkedDocument.SupportsSyntaxTree)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             var root = await linkedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 FatalError.Report(linkedFileException);
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         protected async Task<IDeferredQuickInfoContent> CreateContentAsync(

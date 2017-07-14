@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Organizing
         /// 
         /// Optionally you can provide your own organizers. otherwise, default will be used.
         /// </summary>
-        public static Task<Document> OrganizeAsync(Document document, IEnumerable<ISyntaxOrganizer> organizers = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<Document> OrganizeAsync(Document document, IEnumerable<ISyntaxOrganizer> organizers = null, CancellationToken cancellationToken = default)
         {
             var service = document.Project.LanguageServices.GetService<IOrganizingService>();
             return service.OrganizeAsync(document, organizers, cancellationToken);
