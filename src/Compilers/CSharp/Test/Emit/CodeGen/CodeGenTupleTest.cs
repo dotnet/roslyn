@@ -4851,6 +4851,50 @@ class E
 
         [Fact]
         [WorkItem(20528, "https://github.com/dotnet/roslyn/issues/20528")]
+        public void OverrideTupleMethodWithNoNamesWithValueTuple()
+        {
+            string source = @"
+using System;
+class C
+{
+    public virtual (int a, int b) M((int c, int d) x)
+    {
+        throw null;
+    }
+}
+class D : C
+{
+    public override ValueTuple<int, int> M(ValueTuple<int, int> y)
+    {
+        return y;
+    }
+}
+class E
+{
+    void M(D d)
+    {
+        var result = d.M((1, 2));
+        System.Console.Write(result.a);
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (22,37): error CS1061: '(int, int)' does not contain a definition for 'a' and no extension method 'a' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(result.a);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a").WithArguments("(int, int)", "a").WithLocation(22, 37)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ElementAt(0);
+            Assert.Equal("d.M((1, 2))", invocation.ToString());
+            Assert.Equal("(System.Int32, System.Int32) D.M((System.Int32, System.Int32) y)",
+                model.GetSymbolInfo(invocation.Expression).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(20528, "https://github.com/dotnet/roslyn/issues/20528")]
         public void OverrideTuplePropertyWithNoNames()
         {
             string source = @"
