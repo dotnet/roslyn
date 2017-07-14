@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            if (preference != ExpressionBodyPreference.Never)
+            if (preference != ExpressionBodyPreference.Never &&
+                block != null && block.Statements.Count == 1)
             {
                 var csharpOptions = (CSharpParseOptions)options;
                 var acceptableVersion =
@@ -27,22 +28,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 if (acceptableVersion)
                 {
-                    if (block != null && block.Statements.Count == 1)
+                    var firstStatement = block.Statements[0];
+
+                    if (TryGetExpression(firstStatement, out var expression, out semicolonToken) &&
+                        MatchesPreference(expression, preference))
                     {
-                        var firstStatement = block.Statements[0];
+                        arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
 
-                        if (TryGetExpression(firstStatement, out var expression, out semicolonToken) &&
-                            MatchesPreference(expression, preference))
-                        {
-                            arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
-
-                            // The close brace of the block may have important trivia on it (like 
-                            // comments or directives).  Preserve them on the semicolon when we
-                            // convert to an expression body.
-                            semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
-                                block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
-                            return true;
-                        }
+                        // The close brace of the block may have important trivia on it (like 
+                        // comments or directives).  Preserve them on the semicolon when we
+                        // convert to an expression body.
+                        semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
+                            block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
+                        return true;
                     }
                 }
             }
