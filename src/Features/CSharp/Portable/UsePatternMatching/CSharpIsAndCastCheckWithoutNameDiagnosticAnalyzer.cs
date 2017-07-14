@@ -4,13 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -19,7 +23,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     /// <summary>
-    /// Refactoring that looks for is-tests and cast-expressions, and offers to convert them
+    /// DiagnosticAnalyzer that looks for is-tests and cast-expressions, and offers to convert them
     /// to use patterns.  i.e. if the user has <code>obj is TestFile &amp;&amp; ((TestFile)obj).Name == "Test"</code>
     /// it will offer to convert that <code>obj is TestFile file &amp;&amp; file.Name == "Test"</code>.
     /// 
@@ -28,26 +32,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     /// code that can be used).
     /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpIsAndCastCheckCodeRefactoringProvider : CodeRefactoringProvider
+    internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
         private static readonly SyntaxAnnotation s_referenceAnnotation = new SyntaxAnnotation();
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public static readonly CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer();
+
+        public override bool OpenFileOnly(Workspace workspace) => false;
+
+        public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckId,
+                   new LocalizableResourceString(
+                       nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
-            if (!context.Span.IsEmpty)
-            {
-                return;
-            }
+        }
 
-            var document = context.Document;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression);
+
+        private void SyntaxNodeAction(SyntaxNodeAnalysisContext context)
+        {
             var cancellationToken = context.CancellationToken;
+            var semanticModel = context.SemanticModel;
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(context.Span);
-            var isExpression = node.FirstAncestorOrSelf<BinaryExpressionSyntax>(b => b.IsKind(SyntaxKind.IsExpression));
-            if (isExpression == null)
+            var isExpression = (BinaryExpressionSyntax)context.Node;
+
+            var workspace = (context.Options as WorkspaceAnalyzerOptions)?.Services.Workspace;
+            if (workspace == null)
             {
                 return;
             }
@@ -60,10 +76,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            var (matches, _) = AnalyzeExpression(workspace, semanticModel, isExpression, cancellationToken);
+            if (matches == null || matches.Count == 0)
+            {
+                return;
+            }
+
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    this.HiddenDescriptor, isExpression.GetLocation()));
+            //context.RegisterRefactoring(new MyCodeAction(
+            //    c => ReplaceMatchesAsync(
+            //        document, root, isExpression, localName, matches, c)));
+        }
+
+        public (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
+            Workspace workspace,
+            SemanticModel semanticModel,
+            BinaryExpressionSyntax isExpression,
+            CancellationToken cancellationToken)
+        {
             var container = GetContainer(isExpression);
             if (container == null)
             {
-                return;
+                return default;
             }
 
             var expr = isExpression.Left.WalkDownParentheses();
@@ -73,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             if (typeSymbol == null || typeSymbol.IsNullable())
             {
                 // not legal to write "(x is int? y)"
-                return;
+                return default;
             }
 
             // First, find all the potential cast locations we can replace with a reference to
@@ -83,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             if (matches.Count == 0)
             {
-                return;
+                return default;
             }
 
             // Find a reasonable name for the local we're going to make.  It should ideally 
@@ -104,25 +140,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             foreach (var castExpression in matches.ToArray())
             {
                 tempMatches.Add(castExpression);
-                var updatedDocument = await ReplaceMatchesAsync(
-                    document, root, isExpression, localName, tempMatches, cancellationToken).ConfigureAwait(false);
+                var updatedSemanticModel = ReplaceMatches(
+                    workspace, semanticModel, isExpression, localName, tempMatches, cancellationToken);
                 tempMatches.Clear();
 
-                var causesError = await ReplacementCausesErrorAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
+                var causesError = ReplacementCausesError(updatedSemanticModel, cancellationToken);
                 if (causesError)
                 {
                     matches.Remove(castExpression);
                 }
             }
 
-            if (matches.Count == 0)
-            {
-                return;
-            }
-
-            context.RegisterRefactoring(new MyCodeAction(
-                c => ReplaceMatchesAsync(
-                    document, root, isExpression, localName, matches, c)));
+            return (matches, localName);
         }
 
         private static IEnumerable<ISymbol> GetExistingSymbols(
@@ -134,24 +163,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                                 .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
         }
 
-        private async Task<bool> ReplacementCausesErrorAsync(
-            Document updatedDocument, CancellationToken cancellationToken)
+        private bool ReplacementCausesError(
+            SemanticModel updatedSemanticModel, CancellationToken cancellationToken)
         {
-            var semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = updatedSemanticModel.SyntaxTree.GetRoot(cancellationToken);
 
             var currentNode = root.GetAnnotatedNodes(s_referenceAnnotation).Single();
-            var diagnostics = semanticModel.GetDiagnostics(currentNode.Span, cancellationToken);
+            var diagnostics = updatedSemanticModel.GetDiagnostics(currentNode.Span, cancellationToken);
 
             return diagnostics.Any(d => d.Id == CS0165);
         }
 
-        private Task<Document> ReplaceMatchesAsync(
-            Document document, SyntaxNode root, BinaryExpressionSyntax isExpression,
+        public SemanticModel ReplaceMatches(
+            Workspace workspace, SemanticModel semanticModel, BinaryExpressionSyntax isExpression,
             string localName, HashSet<CastExpressionSyntax> matches,
             CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            var editor = new SyntaxEditor(root, workspace);
 
             // now, replace "x is Y" with "x is Y y" and put a rename-annotation on 'y' so that
             // the user can actually name the variable whatever they want.
@@ -177,8 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             var changedRoot = editor.GetChangedRoot();
-            var newDocument = document.WithSyntaxRoot(changedRoot);
-            return Task.FromResult(newDocument);
+            var updatedSyntaxTree = semanticModel.SyntaxTree.WithRootAndOptions(
+                changedRoot, semanticModel.SyntaxTree.Options);
+
+            var updatedCompilation = semanticModel.Compilation.ReplaceSyntaxTree(
+                semanticModel.SyntaxTree, updatedSyntaxTree);
+            return updatedCompilation.GetSemanticModel(updatedSyntaxTree);
         }
 
         private SyntaxNode GetContainer(BinaryExpressionSyntax isExpression)
@@ -226,10 +259,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 }
             }
         }
+    }
+
+    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    internal partial class CSharpIsAndCastCheckWithoutNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    {
+        public CSharpIsAndCastCheckWithoutNameCodeFixProvider() 
+            : base(supportsFixAll: false)
+        {
+        }
+
+        public override ImmutableArray<string> FixableDiagnosticIds
+            => ImmutableArray.Create(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckId);
+
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        {
+            context.RegisterCodeFix(
+                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                context.Diagnostics);
+            return SpecializedTasks.EmptyTask;
+        }
+
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
+        {
+            Debug.Assert(diagnostics.Length == 1);
+            var location = diagnostics[0].Location;
+            var isExpression = (BinaryExpressionSyntax)location.FindNode(
+                getInnermostNodeForTie: true, cancellationToken: cancellationToken);
+
+            var workspace = document.Project.Solution.Workspace;
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var (matches, localName) = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.Instance.AnalyzeExpression(
+                workspace, semanticModel, isExpression, cancellationToken);
+
+            var updatedSemanticModel = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.Instance.ReplaceMatches(
+                workspace, semanticModel, isExpression, localName, matches, cancellationToken);
+
+            var updatedRoot = updatedSemanticModel.SyntaxTree.GetRoot(cancellationToken);
+            editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
+        }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Use_pattern_matching, createChangedDocument)
             {
             }
