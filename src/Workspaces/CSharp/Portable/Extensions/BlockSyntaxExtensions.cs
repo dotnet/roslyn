@@ -13,35 +13,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static class BlockSyntaxExtensions
     {
         public static bool TryConvertToExpressionBody(
-            this BlockSyntax block, ParseOptions options,
-            ExpressionBodyPreference preference,
+            this BlockSyntax block, SyntaxKind declarationKind,
+            ParseOptions options, ExpressionBodyPreference preference,
             out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            if (preference != ExpressionBodyPreference.Never &&
-                (options as CSharpParseOptions)?.LanguageVersion >= LanguageVersion.CSharp7)
+            if (preference != ExpressionBodyPreference.Never)
             {
-                if (block != null && block.Statements.Count == 1)
+                var csharpOptions = (CSharpParseOptions)options;
+                var acceptableVersion =
+                    csharpOptions.LanguageVersion >= LanguageVersion.CSharp7 ||
+                    (csharpOptions.LanguageVersion >= LanguageVersion.CSharp6 && !RequiresCSharp7(declarationKind));
+
+                if (acceptableVersion)
                 {
-                    var firstStatement = block.Statements[0];
-
-                    if (TryGetExpression(firstStatement, out var expression, out semicolonToken) &&
-                        MatchesPreference(expression, preference))
+                    if (block != null && block.Statements.Count == 1)
                     {
-                        arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
+                        var firstStatement = block.Statements[0];
 
-                        // The close brace of the block may have important trivia on it (like 
-                        // comments or directives).  Preserve them on the semicolon when we
-                        // convert to an expression body.
-                        semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
-                            block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
-                        return true;
+                        if (TryGetExpression(firstStatement, out var expression, out semicolonToken) &&
+                            MatchesPreference(expression, preference))
+                        {
+                            arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
+
+                            // The close brace of the block may have important trivia on it (like 
+                            // comments or directives).  Preserve them on the semicolon when we
+                            // convert to an expression body.
+                            semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
+                                block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
+                            return true;
+                        }
                     }
                 }
             }
 
             arrowExpression = null;
             semicolonToken = default;
+            return false;
+        }
+
+        private static bool RequiresCSharp7(SyntaxKind declarationKind)
+        {
+            switch (declarationKind)
+            {
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                    return true;
+            }
+
             return false;
         }
 
