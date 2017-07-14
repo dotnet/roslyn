@@ -366,6 +366,7 @@ Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression
 Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression.BinaryOperationKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression.LeftOperand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression.RightOperand.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Semantics.IBlockStatement
 Microsoft.CodeAnalysis.Semantics.IBlockStatement.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Semantics.IBlockStatement.Statements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
@@ -567,6 +568,7 @@ Microsoft.CodeAnalysis.Semantics.ITypeParameterObjectCreationExpression
 Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression
 Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression.Operand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression.UnaryOperationKind.get -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Semantics.IUsingStatement
 Microsoft.CodeAnalysis.Semantics.IUsingStatement.Body.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IUsingStatement.Declaration.get -> Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement
