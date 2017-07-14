@@ -157,6 +157,7 @@
     <Compile Include="PDB\PDBUsingTests.vb" />
     <Compile Include="PDB\PDBWinMdExpTests.vb" />
     <Compile Include="Perf.vb" />
+    <Compile Include="PrivateProtected.vb" />
     <Compile Include="Resource.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

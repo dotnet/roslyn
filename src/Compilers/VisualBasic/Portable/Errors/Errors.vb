@@ -2009,5 +2009,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_BinaryLiterals
         FEATURE_Tuples
         FEATURE_IOperation
+        FEATURE_PrivateProtected
     End Enum
 End Namespace
