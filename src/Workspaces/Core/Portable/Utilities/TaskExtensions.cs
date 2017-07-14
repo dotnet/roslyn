@@ -60,8 +60,10 @@ namespace Roslyn.Utilities
         // thread.  In the future we are going ot be removing this and disallowing its use.
         public static T WaitAndGetResult_CanCallOnBackground<T>(this Task<T> task, CancellationToken cancellationToken)
         {
-            task.Wait(cancellationToken);
-            return task.Result;
+            // WaitAny waits for the task to complete with cancellation and without throwing;
+            // GetAwaiter().GetResult() is then used so that if the task failed, the exception is not wrapped in AggregateException
+            Task.WaitAny(new Task[] { task }, cancellationToken);
+            return task.GetAwaiter().GetResult();
         }
 
         // NOTE(cyrusn): Once we switch over to .Net 4.5 we can make our SafeContinueWith overloads
