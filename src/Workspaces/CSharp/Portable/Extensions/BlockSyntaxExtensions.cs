@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (preference != ExpressionBodyPreference.Never &&
                 block != null && block.Statements.Count == 1)
             {
-                var csharpOptions = (CSharpParseOptions)options;
+                var version = ((CSharpParseOptions)options).LanguageVersion;
                 var acceptableVersion =
-                    csharpOptions.LanguageVersion >= LanguageVersion.CSharp7 ||
-                    (csharpOptions.LanguageVersion >= LanguageVersion.CSharp6 && !RequiresCSharp7(declarationKind));
+                    version >= LanguageVersion.CSharp7 ||
+                    (version >= LanguageVersion.CSharp6 && IsSupportedInCSharp6(declarationKind));
 
                 if (acceptableVersion)
                 {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool RequiresCSharp7(SyntaxKind declarationKind)
+        private static bool IsSupportedInCSharp6(SyntaxKind declarationKind)
         {
             switch (declarationKind)
             {
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
-                    return true;
+                    return false;
             }
 
-            return false;
+            return true;
         }
 
         public static bool MatchesPreference(
