@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                 V value;
                 if (!TryGetValue(key, out value))
                 {
-                    throw new InvalidOperationException("key not found");
+                    throw new KeyNotFoundException($"Could not find key {key}");
                 }
 
                 return value;

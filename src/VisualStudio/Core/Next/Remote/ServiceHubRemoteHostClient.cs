@@ -119,11 +119,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public override async Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
+            var dataRpc = _remotableDataRpc.TryAddReference();
+            if (dataRpc == null)
+            {
+                // dataRpc is disposed. this can happen if someone killed remote host process while there is
+                // no other one holding the data connection.
+                // in those error case, don't crash but return null. this method is TryCreate since caller expects it to return null
+                // on such error situation.
+                return null;
+            }
+
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information
             var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
-            return new JsonRpcConnection(callbackTarget, serviceStream, _remotableDataRpc.TryAddReference());
+            return new JsonRpcConnection(callbackTarget, serviceStream, dataRpc);
         }
 
         protected override void OnStarted()

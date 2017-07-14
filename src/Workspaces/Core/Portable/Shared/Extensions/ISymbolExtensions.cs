@@ -218,6 +218,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).IsExtensionMethod;
         }
 
+        public static bool IsLocalFunction(this ISymbol symbol)
+        {
+            return symbol != null && symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.LocalFunction;
+        }
+
         public static bool IsModuleMember(this ISymbol symbol)
         {
             return symbol != null && symbol.ContainingSymbol is INamedTypeSymbol && symbol.ContainingType.TypeKind == TypeKind.Module;

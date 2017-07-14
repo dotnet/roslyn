@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static RefKind GetRefKind(this ArgumentSyntax argument)
         {
-            var refSyntaxKind = argument.RefOrOutKeyword.Kind();
+            var refSyntaxKind = argument?.RefOrOutKeyword.Kind();
             return
                 refSyntaxKind == SyntaxKind.RefKeyword ? RefKind.Ref :
                 refSyntaxKind == SyntaxKind.OutKeyword ? RefKind.Out : RefKind.None;

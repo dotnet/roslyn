@@ -289,8 +289,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var name = containingType.Name;
             if (name.Length > 0)
             {
-                var parts = StringBreaker.BreakIntoWordParts(name);
-                for (var i = parts.GetCount() - 1; i >= 0; i--)
+                var parts = StringBreaker.GetWordParts(name);
+                for (var i = parts.Count - 1; i >= 0; i--)
                 {
                     var p = parts[i];
                     if (p.Length > 0 && char.IsLetter(name[p.Start]))

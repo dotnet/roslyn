@@ -119,7 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
                 if (methodDeclaration.Body.TryConvertToExpressionBody(
-                        options, expressionBodyPreference, out var expressionBody, out var semicolonToken))
+                        methodDeclaration.Kind(), options, expressionBodyPreference,
+                        out var expressionBody, out var semicolonToken))
                 {
                     return methodDeclaration.WithBody(null)
                                             .WithExpressionBody(expressionBody)
