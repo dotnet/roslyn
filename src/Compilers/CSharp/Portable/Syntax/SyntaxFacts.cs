@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Accessibility.Protected:
                     return SyntaxFacts.GetText(ProtectedKeyword);
                 case Accessibility.ProtectedOrInternal:
-                    return SyntaxFacts.GetText(ProtectedKeyword) + "  " + SyntaxFacts.GetText(InternalKeyword);
+                    return SyntaxFacts.GetText(ProtectedKeyword) + " " + SyntaxFacts.GetText(InternalKeyword);
                 case Accessibility.Public:
                     return SyntaxFacts.GetText(PublicKeyword);
                 default:
