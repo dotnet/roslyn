@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (captured is LocalFunctionSymbol localFunc)
                         {
-                            var (found, _) = FindClosureInScope(closureScope, localFunc);
+                            var (found, _) = GetVisibleClosure(closureScope, localFunc);
                             capturedVars.AddAll(found.CapturedVariables);
                         }
                     }
@@ -294,15 +294,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <returns>
             /// A tuple of the found <see cref="Closure"/> and the <see cref="Scope"/> it was found in.
             /// </returns>
-            public static (Closure, Scope) FindClosureInScope(Scope startingScope, MethodSymbol closureSymbol)
+            public static (Closure, Scope) GetVisibleClosure(Scope startingScope, MethodSymbol closureSymbol)
             {
                 var currentScope = startingScope;
                 while (currentScope != null)
                 {
-                    var found = currentScope.Closures.SingleOrDefault(c => c.OriginalMethodSymbol == closureSymbol);
-                    if (found != null)
+                    foreach (var closure in currentScope.Closures)
                     {
-                        return (found, currentScope);
+                        if (closure.OriginalMethodSymbol == closureSymbol)
+                        {
+                            return (closure, currentScope);
+                        }
                     }
                     currentScope = currentScope.Parent;
                 }
@@ -312,14 +314,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Finds a <see cref="Closure"/> with a matching original symbol somewhere in the given scope or nested scopes.
             /// </summary>
-            public static Closure FindClosureInTree(Scope rootScope, MethodSymbol closureSymbol)
+            public static Closure GetClosureInTree(Scope treeRoot, MethodSymbol closureSymbol)
             {
-                var result = Helper(rootScope);
-                if (result != null)
-                {
-                    return result;
-                }
-                throw ExceptionUtilities.Unreachable;
+                return Helper(treeRoot) ?? throw ExceptionUtilities.Unreachable;
 
                 Closure Helper(Scope scope)
                 {

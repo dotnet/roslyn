@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     localFuncsInProgress.Add(localFunc);
-                    var (found, foundScope) = Analysis.FindClosureInScope(scope, localFunc);
+                    var (found, foundScope) = Analysis.GetVisibleClosure(scope, localFunc);
                     bool transitivelyTrue = OnlyCapturesThis(found, foundScope, localFuncsInProgress);
 
                     if (freePool)
@@ -1332,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureOrdinal = containerAsFrame.ClosureOrdinal;
                 }
             }
-            else if (Analysis.FindClosureInTree(_analysis.ScopeTree, node.Symbol).CapturedVariables.Count == 0)
+            else if (Analysis.GetClosureInTree(_analysis.ScopeTree, node.Symbol).CapturedVariables.Count == 0)
             {
                 if (_analysis.MethodsConvertedToDelegates.Contains(node.Symbol))
                 {
