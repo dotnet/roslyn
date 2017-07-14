@@ -839,7 +839,7 @@ public struct S1
 
         [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
         [Fact]
-        public void ReadonlyParamAsyncSpillMethodsW()
+        public void ReadonlyParamAsyncSpillMethodsWriteable()
         {
             var text = @"
 using System.Threading.Tasks;

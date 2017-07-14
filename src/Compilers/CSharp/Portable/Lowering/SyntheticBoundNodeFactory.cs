@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.ParameterCount == args.Length);
             return new BoundCall(
                 Syntax, receiver, method, args,
-                ImmutableArray<String>.Empty, ImmutableArray<RefKind>.Empty, false, false, false,
+                ImmutableArray<String>.Empty, default(ImmutableArray<RefKind>), false, false, false,
                 default(ImmutableArray<int>), LookupResultKind.Viable, null, method.ReturnType,
                 hasErrors:method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };

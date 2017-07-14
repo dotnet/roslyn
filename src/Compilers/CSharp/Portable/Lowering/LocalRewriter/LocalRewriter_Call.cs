@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenReceiver: rewrittenReceiver,
                 method: method,
                 rewrittenArguments: rewrittenArguments,
-                argumentRefKinds: ImmutableArray<RefKind>.Empty,
+                argumentRefKinds: default(ImmutableArray<RefKind>),
                 invokedAsExtensionMethod: false,
                 resultKind: LookupResultKind.Viable,
                 type: type);
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// patch refKinds for "redonly ref" to have effective RefReadOnly kind.
+        /// patch refKinds for "readonly ref" to have effective RefReadOnly kind.
         /// </summary>
         private static ImmutableArray<RefKind> GetEffectiveArgumentRefKinds(ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<ParameterSymbol> parameters)
         {
@@ -528,6 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt = refKindsBuilder.ToImmutableAndFree();
             }
 
+            Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length == parameters.Length);
             return argumentRefKindsOpt;
         }
 

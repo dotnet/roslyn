@@ -372,11 +372,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.FieldAccess:
                         var field = (BoundFieldAccess)expression;
-                        var fiedlSymbol = field.FieldSymbol;
-                        if (fiedlSymbol.IsStatic)
+                        var fieldSymbol = field.FieldSymbol;
+                        if (fieldSymbol.IsStatic)
                         {
                             // no need to spill static fields if used as locations or if readonly
-                            if (refKind != RefKind.None || fiedlSymbol.IsReadOnly)
+                            if (refKind != RefKind.None || fieldSymbol.IsReadOnly)
                             {
                                 return field;
                             }
@@ -385,8 +385,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (refKind == RefKind.None) goto default;
 
-                        var receiver = Spill(builder, field.ReceiverOpt, field.FieldSymbol.ContainingType.IsValueType ? refKind : RefKind.None);
-                        return field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
+                        var receiver = Spill(builder, field.ReceiverOpt, fieldSymbol.ContainingType.IsValueType ? refKind : RefKind.None);
+                        return field.Update(receiver, fieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
 
                     case BoundKind.Call:
                         var call = (BoundCall)expression;
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool forceSpill = false,
             bool sideEffectsOnly = false)
         {
-            Debug.Assert(refKinds.IsDefaultOrEmpty || refKinds.Length == args.Length);
+            Debug.Assert(refKinds.IsDefault || refKinds.Length == args.Length);
 
             var newList = VisitList(args);
             Debug.Assert(newList.Length == args.Length);
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = ArrayBuilder<BoundExpression>.GetInstance();
             for (int i = 0; i <= lastSpill; i++)
             {
-                var refKind = refKinds.IsDefaultOrEmpty ? RefKind.None : refKinds[i];
+                var refKind = refKinds.IsDefault ? RefKind.None : refKinds[i];
                 var replacement = Spill(builder, newList[i], refKind, sideEffectsOnly);
 
                 Debug.Assert(sideEffectsOnly || replacement != null);

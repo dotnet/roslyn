@@ -3085,8 +3085,6 @@ class C
             CompileAndVerify(source, expected);
         }
 
-
-
         [Fact]
         [WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")]
         public void MethodGroupConversionNoSpill()
