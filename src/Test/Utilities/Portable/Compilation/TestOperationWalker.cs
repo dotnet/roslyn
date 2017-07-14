@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var syntax = operation.Syntax;
                 var type = operation.Type;
                 var constantValue = operation.ConstantValue;
-                var isInvlid = operation.IsInvalid;
             }
             base.Visit(operation);
         }
@@ -434,6 +433,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
         {
             base.VisitAnonymousObjectCreationExpression(operation);
+        }
+
+        public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
+        {
+            base.VisitObjectOrCollectionInitializerExpression(operation);
+        }
+
+        public override void VisitMemberInitializerExpression(IMemberInitializerExpression operation)
+        {
+            base.VisitMemberInitializerExpression(operation);
+        }
+
+        public override void VisitCollectionElementInitializerExpression(ICollectionElementInitializerExpression operation)
+        {
+            var addMethod = operation.AddMethod;
+            var isDynamic = operation.IsDynamic;
+
+            base.VisitCollectionElementInitializerExpression(operation);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)

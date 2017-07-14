@@ -44,8 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             _componentModel = (IComponentModel)GetService(typeof(SComponentModel));
             _interactiveWindowProvider = _componentModel.DefaultExportProvider.GetExportedValue<TVsInteractiveWindowProvider>();
-            KnownUIContexts.ShellInitializedContext.WhenActivated(() =>
-                _componentModel.GetService<HACK_ThemeColorFixer>());
 
             var menuCommandService = (OleMenuCommandService)GetService(typeof(IMenuCommandService));
             InitializeMenuCommands(menuCommandService);

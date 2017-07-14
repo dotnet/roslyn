@@ -469,11 +469,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private SourcePropertySymbol GetPropertySymbol(BasePropertyDeclarationSyntax basePropertyDeclarationSyntax, Binder outerBinder)
             {
-                if (basePropertyDeclarationSyntax == _memberDeclarationOpt)
-                {
-                    return (SourcePropertySymbol)_memberOpt;
-                }
-
                 Debug.Assert(basePropertyDeclarationSyntax.Kind() == SyntaxKind.PropertyDeclaration || basePropertyDeclarationSyntax.Kind() == SyntaxKind.IndexerDeclaration);
 
                 if (basePropertyDeclarationSyntax == _memberDeclarationOpt)

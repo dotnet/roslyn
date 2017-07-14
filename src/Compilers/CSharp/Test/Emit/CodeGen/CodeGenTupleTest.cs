@@ -23412,5 +23412,148 @@ class C
             Assert.Equal("(System.Int32, System.String, System.Int32)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
         }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        public void MoreGenericTieBreaker_01()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        A<A<int>> a = null;
+        M1(a); // ok, selects M1<T>(A<A<T>> a)
+
+        var b = default(ValueTuple<ValueTuple<int, int>, int>);
+        M2(b); // ok, should select M2<T>(ValueTuple<ValueTuple<T, int>, int> a)
+    }
+    public static void M1<T>(A<T> a) { Console.Write(1); }
+    public static void M1<T>(A<A<T>> a) { Console.Write(2); }
+
+    public static void M2<T>(ValueTuple<T, int> a) { Console.Write(3); }
+    public static void M2<T>(ValueTuple<ValueTuple<T, int>, int> a) { Console.Write(4); }
+}
+
+public class A<T> {}";
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "24");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        public void MoreGenericTieBreaker_01b()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        var b = ((0, 0), 0);
+        M2(b); // ok, should select M2<T>(((T, int), int) a)
+    }
+    public static void M2<T>((T, int) a) { Console.Write(3); }
+    public static void M2<T>(((T, int), int) a) { Console.Write(4); }
+}";
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "4");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20583")]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        // var b = (1, 2, 3, 4, 5, 6, 7, 8);
+        var b = new ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>(1, 2, 3, 4, 5, 6, 7, new ValueTuple<int>(8));
+        M1(b);
+        M2(b); // ok, should select M2<T1, T2, T3, T4, T5, T6, T7, T8>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>> a)
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(1); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>> a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
+}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"12");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20583")]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02b()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        var b = (1, 2, 3, 4, 5, 6, 7, 8);
+        M1(b);
+        M2(b); // ok, should select M2<T1, T2, T3, T4, T5, T6, T7, T8>((T1, T2, T3, T4, T5, T6, T7, T8) a)
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(1); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>((T1, T2, T3, T4, T5, T6, T7, T8) a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
+}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"12");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        public void MoreGenericTieBreaker_03()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        var b = ((1, 1), 2, 3, 4, 5, 6, 7, 8, 9, (10, 10), (11, 11));
+        M1(b); // ok, should select M2<T, U, V>(((T, int), int, int, int, int, int, int, int, int, (U, int), V) a)
+    }
+    public static void M1<T, U, V>(((T, int), int, int, int, int, int, int, int, int, (U, int), V) a)
+        { Console.Write(3); }
+    public static void M1<T, U, V>((T, int, int, int, int, int, int, int, int, U, (V, int)) a)
+        { Console.Write(4); }
+}";
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "3");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        public void MoreGenericTieBreaker_04()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        var b = ((1, 1), 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, (20, 20));
+        M1(b); // error: ambiguous
+    }
+    public static void M1<T, U>((T, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (U, int)) a)
+        { Console.Write(3); }
+    public static void M1<T, U>(((T, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, U) a)
+        { Console.Write(4); }
+}";
+            CreateStandardCompilation(source, references: s_valueTupleRefs).VerifyDiagnostics(
+                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1<T, U>((T, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (U, int)))' and 'C.M1<T, U>(((T, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, U))'
+                //         M1(b); // error: ambiguous
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1<T, U>((T, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (U, int)))", "C.M1<T, U>(((T, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, U))").WithLocation(7, 9)
+                );
+        }
     }
 }

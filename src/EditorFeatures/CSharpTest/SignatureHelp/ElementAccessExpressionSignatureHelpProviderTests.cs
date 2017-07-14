@@ -898,6 +898,48 @@ class TestClass
 ";
                 await TestAsync(markup, new[] { new SignatureHelpTestItem("int WithIndexer[int index]") }, usePreviousCharAsTrigger: true);
             }
+
+            [WorkItem(20507, "https://github.com/dotnet/roslyn/issues/20507")]
+            [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+            public async Task InConditionalIndexingFollowedByMemberAccess()
+            {
+                var markup = @"
+class Indexable
+{
+    public Indexable this[int x] { get => null; }
+
+    Indexable Count;
+
+    static void Main(string[] args)
+    {
+        Indexable x;
+        x?[$$].Count;
+    }
+}
+";
+                await TestAsync(markup, new[] { new SignatureHelpTestItem("Indexable Indexable[int x]") }, usePreviousCharAsTrigger: false);
+            }
+
+            [WorkItem(20507, "https://github.com/dotnet/roslyn/issues/20507")]
+            [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+            public async Task InConditionalIndexingFollowedByConditionalAcesss()
+            {
+                var markup = @"
+class Indexable
+{
+    public Indexable this[int x] { get => null; }
+
+    Indexable Count;
+
+    static void Main(string[] args)
+    {
+        Indexable x;
+        x?[$$].Count?.Count;
+    }
+}
+";
+                await TestAsync(markup, new[] { new SignatureHelpTestItem("Indexable Indexable[int x]") }, usePreviousCharAsTrigger: false);
+            }
         }
     }
 }

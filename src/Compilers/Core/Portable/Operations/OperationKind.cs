@@ -128,6 +128,12 @@ namespace Microsoft.CodeAnalysis
         InterpolatedStringExpression = 0x11e,
         /// <summary>Indicates an <see cref="IAnonymousObjectCreationExpression"/>.</summary>
         AnonymousObjectCreationExpression = 0x11f,
+        /// <summary>Indicates an <see cref="IObjectOrCollectionInitializerExpression"/>.</summary>
+        ObjectOrCollectionInitializerExpression = 0x120,
+        /// <summary>Indicates an <see cref="IMemberInitializerExpression"/>.</summary>
+        MemberInitializerExpression = 0x121,
+        /// <summary>Indicates an <see cref="ICollectionElementInitializerExpression"/>.</summary>
+        CollectionElementInitializerExpression = 0x122,
         /// <summary>Indicates an <see cref="INameOfExpression"/>.</summary>
         NameOfExpression = 0x123,
         /// <summary>Indicates an <see cref="ITupleExpression"/>.</summary>
@@ -163,16 +169,15 @@ namespace Microsoft.CodeAnalysis
 
         // Operations that are constituents of statements, expressions, or declarations.
 
+
+        // Unused 0x400 and 0x402
+
         /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
-        FieldInitializerInCreation = 0x400,
-        /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
-        FieldInitializerAtDeclaration = 0x401,
+        FieldInitializer = 0x401,
         /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
-        PropertyInitializerInCreation = 0x402,
-        /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
-        PropertyInitializerAtDeclaration = 0x403,
+        PropertyInitializer = 0x403,
         /// <summary>Indicates an <see cref="IParameterInitializer"/>.</summary>
-        ParameterInitializerAtDeclaration = 0x404,
+        ParameterInitializer = 0x404,
         /// <summary>Indicates an <see cref="IArrayInitializer"/>.</summary>
         ArrayInitializer = 0x405,
 

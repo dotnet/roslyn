@@ -62,11 +62,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                        else if (operationContext.Operation is IIncrementExpression increment)
                                        {
                                            string text = increment.Syntax.ToString();
-                                           bool isInvalid = false;
                                            SyntaxNode syntax = increment.Syntax;
                                            ITypeSymbol type = increment.Type;
                                            Optional<object> constantValue = new Optional<object>(1);
-                                           var value = new LiteralExpression(text, isInvalid, syntax, type, constantValue);
+                                           var value = new LiteralExpression(text, syntax, type, constantValue);
 
                                            AssignTo(increment.Target, localsSourceTypes, fieldsSourceTypes, value);
                                        }
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 AssignTo(initializedField, initializedField.Type, fieldsSourceTypes, initializer.Value);
                             }
                         },
-                        OperationKind.FieldInitializerAtDeclaration);
+                        OperationKind.FieldInitializer);
 
                     // Report fields that could have more specific types.
                     compilationContext.RegisterCompilationEndAction(

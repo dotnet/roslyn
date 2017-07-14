@@ -300,6 +300,7 @@ namespace My
                 0f,
                 1.1f
             };
+            var (tuple, _) = (named: 1, 2);
             int[, ,] cube = { { { 111, 112, }, { 121, 122 } }, { { 211, 212 }, { 221, 222 } } };
             int[][] jagged = { { 111 }, { 121, 122 } };
             int[][,] arr = new int[5][,]; // as opposed to new int[][5,5]
@@ -360,6 +361,9 @@ namespace My
                     return;
                 else
                     continue;
+            }
+            foreach (var (_, _) in new (int, int)[]{ (1, 2) })
+            {
             }
             checked
             {
@@ -957,6 +961,7 @@ L:
             Dim o4 = New MyObject(dynamic) With {.A = 0, .B = 0, .C = 0}
             Dim o5 = New With {Key .A = 0}
             Dim a() As Integer = {0, 1, 2, 3, 4, 5}
+            Dim a As(named As Integer, Integer) =(named:=1, 2)
             Select Case i
                 Case 1
                     GoTo CaseLabel1
@@ -1987,6 +1992,7 @@ L:
             Dim o4 = New MyObject(dynamic) With {.A = 0, .B = 0, .C = 0}
             Dim o5 = New With {Key .A = 0}
             Dim a() As Integer = {0, 1, 2, 3, 4, 5}
+            Dim a As(named As Integer, Integer) =(named:=1, 2)
             Select Case i
                 Case 1
                     GoTo CaseLabel1

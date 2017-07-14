@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis
@@ -18,6 +18,6 @@ namespace Microsoft.CodeAnalysis
         /// An array of child operations for this operation.
         /// </summary>
         /// <remarks>Note that any of the child operation nodes may be null.</remarks>
-        ImmutableArray<IOperation> Children { get; }
+        IEnumerable<IOperation> Children { get; }
     }
 }
