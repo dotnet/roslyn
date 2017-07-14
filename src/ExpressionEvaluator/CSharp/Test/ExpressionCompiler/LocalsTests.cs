@@ -1385,7 +1385,7 @@ class P
             var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
-                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass1_1.<M>b__0");
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass1_0.<M>b__0");
                 var testData = new CompilationTestData();
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
@@ -1395,17 +1395,17 @@ class P
 @"{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
+  .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
                 object V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C C.<>c__DisplayClass1_1.<>4__this""
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass1_0.<>4__this""
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "_1", expectedILOpt:
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
+  .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
                 object V_1)
   IL_0000:  ldarg.1
   IL_0001:  ret
@@ -1414,20 +1414,20 @@ class P
 @"{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
+  .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
   object V_1)
   IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""object C.<>c__DisplayClass1_0.y""
+  IL_0001:  ldfld      ""object C.<>c__DisplayClass1_1.y""
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "x", expectedILOpt:
 @"{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
+  .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
   object V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""object C.<>c__DisplayClass1_1.x""
+  IL_0001:  ldfld      ""object C.<>c__DisplayClass1_0.x""
   IL_0006:  ret
 }");
                 Assert.Equal(locals.Count, 4);
