@@ -41,6 +41,7 @@
     <Reference Include="WindowsBase" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
     <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" />
     <PackageReference Include="Microsoft.Build.Runtime" Version="$(MicrosoftBuildRuntimeVersion)" />
   </ItemGroup>
