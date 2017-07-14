@@ -1852,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void AddUnwrappingErrorTypes(ArrayBuilder<Symbol> builder, Symbol s)
         {
             var originalErrorSymbol = s.OriginalDefinition as ErrorTypeSymbol;
-            if ((object)originalErrorSymbol != null)
+            if ((object)originalErrorSymbol != null && originalErrorSymbol.CandidateSymbols != null)
             {
                 builder.AddRange(originalErrorSymbol.CandidateSymbols);
             }
