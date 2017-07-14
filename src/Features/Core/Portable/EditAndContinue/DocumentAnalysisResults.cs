@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             return new DocumentAnalysisResults(
                 activeStatements,
-                default(ImmutableArray<RudeEditDiagnostic>),
+                default,
                 ImmutableArray<SemanticEdit>.Empty,
                 exceptionRegionsOpt,
                 ImmutableArray<LineChange>.Empty,
@@ -167,9 +167,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new DocumentAnalysisResults(
                 activeStatements,
                 rudeEdits,
-                default(ImmutableArray<SemanticEdit>),
-                default(ImmutableArray<ImmutableArray<LinePositionSpan>>),
-                default(ImmutableArray<LineChange>),
+                default,
+                default,
+                default,
                 hasSemanticErrors);
         }
 

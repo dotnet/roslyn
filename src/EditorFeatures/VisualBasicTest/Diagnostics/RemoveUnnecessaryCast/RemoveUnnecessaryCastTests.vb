@@ -2577,7 +2577,7 @@ End Module
 
 #End Region
 
-        <WorkItem(739, "#739")>
+        <WorkItem(739, "https://github.com/dotnet/roslyn/issues/739")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Async Function TestRemoveAroundArrayLiteralInInterpolation1() As Task
             Dim markup =
@@ -2597,7 +2597,7 @@ End Module
             Await TestAsync(markup, expected, ignoreTrivia:=False)
         End Function
 
-        <WorkItem(739, "#739")>
+        <WorkItem(739, "https://github.com/dotnet/roslyn/issues/739")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Async Function TestRemoveAroundArrayLiteralInInterpolation2() As Task
             Dim markup =
@@ -2617,7 +2617,7 @@ End Module
             Await TestAsync(markup, expected, ignoreTrivia:=False)
         End Function
 
-        <WorkItem(739, "#739")>
+        <WorkItem(739, "https://github.com/dotnet/roslyn/issues/739")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Async Function TestRemoveAroundArrayLiteralInInterpolation3() As Task
             Dim markup =

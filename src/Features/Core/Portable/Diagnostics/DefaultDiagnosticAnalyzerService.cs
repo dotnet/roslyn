@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // this only support push model, pull model will be provided by DiagnosticService by caching everything this one pushed
                 false;
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
+        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             // pull model not supported
             return ImmutableArray<DiagnosticData>.Empty;

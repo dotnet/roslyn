@@ -230,5 +230,233 @@ class D
     }
 }");
         }
+
+        [WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestMultiLineParameters1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public C(int i,
+             /* foo */ int j)
+    {
+
+    }
+
+    private void Foo()
+    {
+        new [|C|](true, 0, 0);
+    }
+}",
+@"
+class C
+{
+    public C(bool v,
+             int i,
+             /* foo */ int j)
+    {
+
+    }
+
+    private void Foo()
+    {
+        new C(true, 0, 0);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestMultiLineParameters2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public C(int i,
+             /* foo */ int j)
+    {
+
+    }
+
+    private void Foo()
+    {
+        new [|C|](0, true, 0);
+    }
+}",
+@"
+class C
+{
+    public C(int i,
+             bool v,
+             /* foo */ int j)
+    {
+
+    }
+
+    private void Foo()
+    {
+        new C(0, true, 0);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestMultiLineParameters3()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public C(int i,
+             /* foo */ int j)
+    {
+
+    }
+
+    private void Foo()
+    {
+        new [|C|](0, 0, true);
+    }
+}",
+@"
+class C
+{
+    public C(int i,
+             /* foo */ int j,
+             bool v)
+    {
+
+    }
+
+    private void Foo()
+    {
+        new C(0, 0, true);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestMultiLineParameters4()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public C(
+        int i,
+        /* foo */ int j)
+    {
+
+    }
+
+    private void Foo()
+    {
+        new [|C|](true, 0, 0);
+    }
+}",
+@"
+class C
+{
+    public C(
+        bool v,
+        int i,
+        /* foo */ int j)
+    {
+
+    }
+
+    private void Foo()
+    {
+        new C(true, 0, 0);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestMultiLineParameters5()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public C(
+        int i,
+        /* foo */ int j)
+    {
+
+    }
+
+    private void Foo()
+    {
+        new [|C|](0, true, 0);
+    }
+}",
+@"
+class C
+{
+    public C(
+        int i,
+        bool v,
+        /* foo */ int j)
+    {
+
+    }
+
+    private void Foo()
+    {
+        new C(0, true, 0);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestMultiLineParameters6()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public C(
+        int i,
+        /* foo */ int j)
+    {
+
+    }
+
+    private void Foo()
+    {
+        new [|C|](0, 0, true);
+    }
+}",
+@"
+class C
+{
+    public C(
+        int i,
+        /* foo */ int j,
+        bool v)
+    {
+
+    }
+
+    private void Foo()
+    {
+        new C(0, 0, true);
+    }
+}",
+ignoreTrivia: false);
+        }
     }
 }

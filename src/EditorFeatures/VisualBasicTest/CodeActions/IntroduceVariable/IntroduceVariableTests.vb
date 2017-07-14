@@ -2766,7 +2766,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -2790,7 +2790,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -2816,7 +2816,8 @@ Class C
     End Sub
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, index:=1, ignoreTrivia:=False)
+            Await TestAsync(code, expected, index:=1, ignoreTrivia:=False,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -2862,7 +2863,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>

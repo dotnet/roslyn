@@ -49,6 +49,14 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "Deterministic");
                 allGood &= CheckForProperty(textWriter, "HighEntropyVA");
                 allGood &= CheckForProperty(textWriter, "DocumentationFile");
+
+                // Items which are not necessary anymore in the new SDK
+                if (_projectUtil.IsNewSdk)
+                {
+                    allGood &= CheckForProperty(textWriter, "ProjectGuid");
+                    allGood &= CheckForProperty(textWriter, "ProjectTypeGuids");
+                    allGood &= CheckForProperty(textWriter, "TargetFrameworkProfile");
+                }
                 
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
@@ -146,6 +154,7 @@ namespace BuildBoss
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
             allGood &= CheckTransitiveReferences(textWriter, declaredList);
             allGood &= CheckProjectReferencesHaveCorrectGuid(textWriter, declaredEntryList);
+            allGood &= CheckNewSdkSimplified(textWriter, declaredEntryList);
 
             return allGood;
         }
@@ -156,6 +165,11 @@ namespace BuildBoss
         /// </summary>
         private bool CheckProjectReferencesHaveCorrectGuid(TextWriter textWriter, List<ProjectReferenceEntry> entryList)
         {
+            if (_projectUtil.IsNewSdk)
+            {
+                return true;
+            }
+
             var allGood = true;
             foreach (var entry in entryList)
             {
@@ -172,6 +186,26 @@ namespace BuildBoss
                     textWriter.WriteLine($"Project Reference GUID for {entry.ProjectKey.FileName} doesn't match ProjectGuid");
                     textWriter.WriteLine($"\tProject Guid {dataGuid}");
                     textWriter.WriteLine($"\tReference Guid {entry.Project}");
+                    allGood = false;
+                }
+            }
+
+            return allGood;
+        }
+
+        private bool CheckNewSdkSimplified(TextWriter textWriter, List<ProjectReferenceEntry> entryList)
+        {
+            if (!_projectUtil.IsNewSdk)
+            {
+                return true;
+            }
+
+            var allGood = true;
+            foreach (var entry in entryList)
+            {
+                if (entry.Project != null)
+                {
+                    textWriter.WriteLine($"Project reference for {entry.ProjectKey.FileName} should not have a GUID");
                     allGood = false;
                 }
             }
@@ -333,6 +367,11 @@ namespace BuildBoss
             return list;
         }
 
+        /// <summary>
+        /// Our infrastructure depends on test assembly names having a very specific set of 
+        /// suffixes: UnitTest and IntegrationTests. This check will verify that both test assemblies
+        /// are properly named and non-test assemblies are not incorrectly named.
+        /// </summary>
         private bool IsUnitTestCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
         {
             if (ProjectType != ProjectFileType.CSharp && ProjectType != ProjectFileType.Basic)
@@ -345,14 +384,22 @@ namespace BuildBoss
                 return true;
             }
 
+            string name = null;
             var element = _projectUtil.FindSingleProperty("AssemblyName");
-            if (element == null)
+            if (element != null)
+            {
+                name = element.Value.Trim();
+            }
+            else if (_projectUtil.IsNewSdk)
+            {
+                name = Path.GetFileNameWithoutExtension(_data.FileName);
+            }
+            else
             {
                 textWriter.WriteLine($"Need to specify AssemblyName");
                 return false;
             }
 
-            var name = element.Value.Trim();
             if (Regex.IsMatch(name, @"(UnitTests|IntegrationTests)$", RegexOptions.IgnoreCase) && !data.IsAnyUnitTest)
             {
                 textWriter.WriteLine($"Assembly named {name} is not marked as a unit test");

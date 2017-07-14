@@ -30,14 +30,14 @@ public partial class C
             {
                 var fooDef = m.GlobalNamespace
                     .GetMember<NamedTypeSymbol>("C")
-                    .GetMember<SourceMemberMethodSymbol>("foo");
+                    .GetMember<SourceOrdinaryMethodSymbol>("foo");
                 Assert.True(fooDef.IsPartial);
                 Assert.True(fooDef.IsPartialDefinition);
                 Assert.False(fooDef.IsPartialImplementation);
                 Assert.Null(fooDef.PartialDefinitionPart);
 
                 var fooImpl = fooDef.PartialImplementationPart
-                    as SourceMemberMethodSymbol;
+                    as SourceOrdinaryMethodSymbol;
                 Assert.NotNull(fooImpl);
                 Assert.True(fooImpl.IsPartial);
                 Assert.True(fooImpl.IsPartialImplementation);
@@ -195,7 +195,7 @@ class C
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMember("C");
 
-            var m = c.GetMember<SourceMethodSymbol>("M");
+            var m = c.GetMember<SourceMemberMethodSymbol>("M");
             Assert.False(m.IsImplicitlyDeclared);
             Assert.True(m.IsExpressionBodied);
 
@@ -276,25 +276,25 @@ class C : I, J, K
             var k = global.GetTypeMember("K");
             var c = global.GetTypeMember("C");
 
-            var iM = i.GetMember<SourceMethodSymbol>("M");
-            var iN = i.GetMember<SourceMethodSymbol>("N");
-            var jN = j.GetMember<SourceMethodSymbol>("N");
+            var iM = i.GetMember<SourceMemberMethodSymbol>("M");
+            var iN = i.GetMember<SourceMemberMethodSymbol>("N");
+            var jN = j.GetMember<SourceMemberMethodSymbol>("N");
 
-            var method = c.GetMember<SourceMethodSymbol>("M");
+            var method = c.GetMember<SourceMemberMethodSymbol>("M");
             var implements = method.ContainingType.FindImplementationForInterfaceMember(iM);
             Assert.Equal(implements, method);
 
-            method = (SourceMethodSymbol)c.GetMethod("I.N");
+            method = (SourceMemberMethodSymbol)c.GetMethod("I.N");
             implements = c.FindImplementationForInterfaceMember(iN);
             Assert.True(method.IsExplicitInterfaceImplementation);
             Assert.Equal(implements, method);
 
-            method = (SourceMethodSymbol)c.GetMethod("J.N");
+            method = (SourceMemberMethodSymbol)c.GetMethod("J.N");
             implements = c.FindImplementationForInterfaceMember(jN);
             Assert.True(method.IsExplicitInterfaceImplementation);
             Assert.Equal(implements, method);
 
-            method = c.GetMember<SourceMethodSymbol>("O");
+            method = c.GetMember<SourceMemberMethodSymbol>("O");
             Assert.False(method.IsExplicitInterfaceImplementation);
         }
 

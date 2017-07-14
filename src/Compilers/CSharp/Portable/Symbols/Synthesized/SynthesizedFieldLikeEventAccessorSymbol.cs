@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        protected override SourceMethodSymbol BoundAttributesSource
+        protected override SourceMemberMethodSymbol BoundAttributesSource
         {
             get
             {
                 return this.MethodKind == MethodKind.EventAdd
-                    ? (SourceMethodSymbol)this.AssociatedEvent.RemoveMethod
+                    ? (SourceMemberMethodSymbol)this.AssociatedEvent.RemoveMethod
                     : null;
             }
         }

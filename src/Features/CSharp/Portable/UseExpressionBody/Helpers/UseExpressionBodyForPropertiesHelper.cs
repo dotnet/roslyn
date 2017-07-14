@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected override PropertyDeclarationSyntax WithGenerateBody(
-            PropertyDeclarationSyntax declaration, OptionSet options)
+            PropertyDeclarationSyntax declaration, OptionSet options, ParseOptions parseOptions)
         {
-            return WithAccessorList(declaration, options);
+            return WithAccessorList(declaration, options, parseOptions);
         }
 
         protected override bool CreateReturnStatementForExpression(PropertyDeclarationSyntax declaration) => true;
@@ -67,21 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             out ArrowExpressionClauseSyntax arrowExpression, 
             out SyntaxToken semicolonToken)
         {
-            if (base.TryConvertToExpressionBody(declaration, options, conversionPreference, out arrowExpression, out semicolonToken))
-            {
-                return true;
-            }
-
-            var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
-            if (getAccessor?.ExpressionBody != null &&
-                BlockSyntaxExtensions.MatchesPreference(getAccessor.ExpressionBody.Expression, conversionPreference))
-            {
-                arrowExpression = SyntaxFactory.ArrowExpressionClause(getAccessor.ExpressionBody.Expression);
-                semicolonToken = getAccessor.SemicolonToken;
-                return true;
-            }
-
-            return false;
+            return this.TryConvertToExpressionBodyForBaseProperty(
+                declaration, options, conversionPreference,
+                out arrowExpression, out semicolonToken);
         }
 
         protected override Location GetDiagnosticLocation(PropertyDeclarationSyntax declaration)

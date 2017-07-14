@@ -11,7 +11,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceUserDefinedOperatorSymbolBase : SourceMethodSymbol
+    internal abstract class SourceUserDefinedOperatorSymbolBase : SourceMemberMethodSymbol
     {
         private readonly string _name;
         private readonly bool _isExpressionBodied;
@@ -610,6 +610,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
+
+        public sealed override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override RefKind RefKind
         {

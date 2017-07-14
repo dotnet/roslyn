@@ -122,9 +122,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers modifiers,
             string typeName,
             ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>),
-            ImmutableArray<SyntaxNode> baseConstructorArguments = default(ImmutableArray<SyntaxNode>),
-            ImmutableArray<SyntaxNode> thisConstructorArguments = default(ImmutableArray<SyntaxNode>))
+            ImmutableArray<SyntaxNode> statements = default,
+            ImmutableArray<SyntaxNode> baseConstructorArguments = default,
+            ImmutableArray<SyntaxNode> thisConstructorArguments = default)
         {
             var result = new CodeGenerationConstructorSymbol(null, attributes, accessibility, modifiers, parameters);
             CodeGenerationConstructorInfo.Attach(result, typeName, statements, baseConstructorArguments, thisConstructorArguments);
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public static IMethodSymbol CreateDestructorSymbol(
             ImmutableArray<AttributeData> attributes, string typeName,
-            ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>))
+            ImmutableArray<SyntaxNode> statements = default)
         {
             var result = new CodeGenerationDestructorSymbol(null, attributes);
             CodeGenerationDestructorInfo.Attach(result, typeName, statements);
@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations, string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters,
             ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>),
-            ImmutableArray<SyntaxNode> handlesExpressions = default(ImmutableArray<SyntaxNode>),
-            ImmutableArray<AttributeData> returnTypeAttributes = default(ImmutableArray<AttributeData>),
+            ImmutableArray<SyntaxNode> statements = default,
+            ImmutableArray<SyntaxNode> handlesExpressions = default,
+            ImmutableArray<AttributeData> returnTypeAttributes = default,
             MethodKind methodKind = MethodKind.Ordinary)
         {
             var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, returnsByRef, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, methodKind);
@@ -170,9 +170,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations, string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters, 
             ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>),
-            ImmutableArray<SyntaxNode> handlesExpressions = default(ImmutableArray<SyntaxNode>),
-            ImmutableArray<AttributeData> returnTypeAttributes = default(ImmutableArray<AttributeData>),
+            ImmutableArray<SyntaxNode> statements = default,
+            ImmutableArray<SyntaxNode> handlesExpressions = default,
+            ImmutableArray<AttributeData> returnTypeAttributes = default,
             MethodKind methodKind = MethodKind.Ordinary)
         {
             return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, returnsByRef, explicitInterfaceImplementations, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind);
@@ -188,8 +188,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ITypeSymbol returnType,
             CodeGenerationOperatorKind operatorKind,
             ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>),
-            ImmutableArray<AttributeData> returnTypeAttributes = default(ImmutableArray<AttributeData>))
+            ImmutableArray<SyntaxNode> statements = default,
+            ImmutableArray<AttributeData> returnTypeAttributes = default)
         {
             int expectedParameterCount = CodeGenerationOperatorSymbol.GetParameterCount(operatorKind);
             if (parameters.Length != expectedParameterCount)
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             var result = new CodeGenerationOperatorSymbol(null, attributes, accessibility, modifiers, returnType, operatorKind, parameters, returnTypeAttributes);
-            CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions: default(ImmutableArray<SyntaxNode>));
+            CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions: default);
             return result;
         }
 
@@ -215,11 +215,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ITypeSymbol toType,
             IParameterSymbol fromType,
             bool isImplicit = false,
-            ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>),
-            ImmutableArray<AttributeData> toTypeAttributes = default(ImmutableArray<AttributeData>))
+            ImmutableArray<SyntaxNode> statements = default,
+            ImmutableArray<AttributeData> toTypeAttributes = default)
         {
             var result = new CodeGenerationConversionSymbol(null, attributes, accessibility, modifiers, toType, fromType, isImplicit, toTypeAttributes);
-            CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions: default(ImmutableArray<SyntaxNode>));
+            CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions: default);
             return result;
         }
 
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static IParameterSymbol CreateParameterSymbol(ITypeSymbol type, string name)
         {
             return CreateParameterSymbol(
-                attributes: default(ImmutableArray<AttributeData>), refKind: RefKind.None, isParams: false, type: type, name: name, isOptional: false);
+                attributes: default, refKind: RefKind.None, isParams: false, type: type, name: name, isOptional: false);
         }
 
         /// <summary>
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static ITypeParameterSymbol CreateTypeParameterSymbol(string name, int ordinal = 0)
         {
             return CreateTypeParameter(
-                attributes: default(ImmutableArray<AttributeData>), varianceKind: VarianceKind.None,
+                attributes: default, varianceKind: VarianceKind.None,
                 name: name, constraintTypes: ImmutableArray.Create<ITypeSymbol>(),
                 hasConstructorConstraint: false, hasReferenceConstraint: false, hasValueConstraint: false,
                 ordinal: ordinal);
@@ -285,10 +285,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         internal static IMethodSymbol CreateAccessorSymbol(
             IMethodSymbol accessor,
-            ImmutableArray<AttributeData> attributes = default(ImmutableArray<AttributeData>),
+            ImmutableArray<AttributeData> attributes = default,
             Accessibility? accessibility = null,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
-            ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>))
+            ImmutableArray<SyntaxNode> statements = default)
         {
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes,
@@ -320,8 +320,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 returnsByRef: false,
                 explicitInterfaceImplementations: default,
                 name: string.Empty,
-                typeParameters: default(ImmutableArray<ITypeParameterSymbol>), 
-                parameters: default(ImmutableArray<IParameterSymbol>),
+                typeParameters: default, 
+                parameters: default,
                 statements: statements);
         }
 
@@ -330,8 +330,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public static AttributeData CreateAttributeData(
             INamedTypeSymbol attributeClass,
-            ImmutableArray<TypedConstant> constructorArguments = default(ImmutableArray<TypedConstant>),
-            ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments = default(ImmutableArray<KeyValuePair<string, TypedConstant>>))
+            ImmutableArray<TypedConstant> constructorArguments = default,
+            ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments = default)
         {
             return new CodeGenerationAttributeData(attributeClass, constructorArguments, namedArguments);
         }
@@ -344,11 +344,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility accessibility,
             DeclarationModifiers modifiers,
             TypeKind typeKind, string name,
-            ImmutableArray<ITypeParameterSymbol> typeParameters = default(ImmutableArray<ITypeParameterSymbol>),
+            ImmutableArray<ITypeParameterSymbol> typeParameters = default,
             INamedTypeSymbol baseType = null,
-            ImmutableArray<INamedTypeSymbol> interfaces = default(ImmutableArray<INamedTypeSymbol>),
+            ImmutableArray<INamedTypeSymbol> interfaces = default,
             SpecialType specialType = SpecialType.None,
-            ImmutableArray<ISymbol> members = default(ImmutableArray<ISymbol>))
+            ImmutableArray<ISymbol> members = default)
         {
             members = members.NullToEmpty();
 
@@ -370,18 +370,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ITypeSymbol returnType, 
             bool returnsByRef,
             string name,
-            ImmutableArray<ITypeParameterSymbol> typeParameters = default(ImmutableArray<ITypeParameterSymbol>),
-            ImmutableArray<IParameterSymbol> parameters = default(ImmutableArray<IParameterSymbol>))
+            ImmutableArray<ITypeParameterSymbol> typeParameters = default,
+            ImmutableArray<IParameterSymbol> parameters = default)
         {
             var invokeMethod = CreateMethodSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 returnType: returnType,
                 returnsByRef: returnsByRef,
                 explicitInterfaceImplementations: default,
                 name: "Invoke",
-                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                typeParameters: default,
                 parameters: parameters);
 
             return new CodeGenerationNamedTypeSymbol(
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 name: name,
                 typeParameters: typeParameters,
                 baseType: null,
-                interfaces: default(ImmutableArray<INamedTypeSymbol>),
+                interfaces: default,
                 specialType: SpecialType.None,
                 members: ImmutableArray.Create<ISymbol>(invokeMethod),
                 typeMembers: ImmutableArray<CodeGenerationAbstractNamedTypeSymbol>.Empty,
@@ -412,12 +412,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         internal static IMethodSymbol CreateMethodSymbol(
             IMethodSymbol method,
-            ImmutableArray<AttributeData> attributes = default(ImmutableArray<AttributeData>),
+            ImmutableArray<AttributeData> attributes = default,
             Accessibility? accessibility = null,
             DeclarationModifiers? modifiers = null,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
             string name = null,
-            ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>),
+            ImmutableArray<SyntaxNode> statements = default,
             INamedTypeSymbol containingType = null)
         {
             return CreateMethodSymbol(
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         internal static IPropertySymbol CreatePropertySymbol(
             IPropertySymbol property,
-            ImmutableArray<AttributeData> attributes = default(ImmutableArray<AttributeData>),
+            ImmutableArray<AttributeData> attributes = default,
             Accessibility? accessibility = null,
             DeclarationModifiers? modifiers = null,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         internal static IEventSymbol CreateEventSymbol(
             IEventSymbol @event,
-            ImmutableArray<AttributeData> attributes = default(ImmutableArray<AttributeData>),
+            ImmutableArray<AttributeData> attributes = default,
             Accessibility? accessibility = null,
             DeclarationModifiers? modifiers = null,
             ImmutableArray<IEventSymbol> explicitInterfaceImplementations = default,

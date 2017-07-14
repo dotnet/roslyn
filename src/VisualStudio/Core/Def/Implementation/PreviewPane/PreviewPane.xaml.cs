@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             IReadOnlyList<object> previewContent,
             bool logIdVerbatimInTelemetry,
             DTE dte,
-            Guid optionPageGuid = default(Guid))
+            Guid optionPageGuid = default)
         {
             InitializeComponent();
 
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
             _optionPageGuid = optionPageGuid;
 
-            if (optionPageGuid == default(Guid))
+            if (optionPageGuid == default)
             {
                 OptionsButton.Visibility = Visibility.Collapsed;
             }
@@ -356,7 +356,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private void OptionsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_optionPageGuid != default(Guid))
+            if (_optionPageGuid != default)
             {
                 _dte.ExecuteCommand("Tools.Options", _optionPageGuid.ToString());
             }

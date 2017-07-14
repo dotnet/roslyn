@@ -14,7 +14,7 @@ namespace Roslyn.Utilities
                 return value;
             }
 
-            return default(TValue);
+            return default;
         }
 
         public static IEnumerable<T> GetEnumerableMetadata<T>(this IReadOnlyDictionary<string, object> metadata, string name)
