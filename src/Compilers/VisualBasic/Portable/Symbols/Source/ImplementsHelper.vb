@@ -474,7 +474,9 @@ DoneWithErrorReporting:
                 End If
             End If
 
-            If implementedSym IsNot Nothing AndAlso Not MembersHaveMatchingTupleNames(implementingSym, implementedSym) Then
+            If implementedSym IsNot Nothing AndAlso implementingSym.ContainsTupleNames() AndAlso
+                Not MembersHaveMatchingTupleNames(implementingSym, implementedSym) Then
+
                 Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_ImplementingInterfaceWithDifferentTupleNames5,
                                         CustomSymbolDisplayFormatter.ShortErrorName(implementingSym),
                                         implementingSym.GetKindText(),
