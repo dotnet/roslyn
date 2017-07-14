@@ -117,6 +117,8 @@ class Program
     {
         System.Console.WriteLine(M(42));
         System.Console.WriteLine(new Program()[5, 6]);
+        System.Console.WriteLine(M(42));
+        System.Console.WriteLine(M(42));
     }
 
     static ref readonly int M(in int x)
@@ -129,15 +131,16 @@ class Program
 ";
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"42
-11");
+11
+42
+42");
 
             comp.VerifyIL("Program.Main()", @"
 {
-  // Code size       40 (0x28)
+  // Code size       72 (0x48)
   .maxstack  3
   .locals init (int V_0,
-                int V_1,
-                int V_2)
+                int V_1)
   IL_0000:  ldc.i4.s   42
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_0
@@ -146,14 +149,26 @@ class Program
   IL_000b:  call       ""void System.Console.WriteLine(int)""
   IL_0010:  newobj     ""Program..ctor()""
   IL_0015:  ldc.i4.5
-  IL_0016:  stloc.1
-  IL_0017:  ldloca.s   V_1
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
   IL_0019:  ldc.i4.6
-  IL_001a:  stloc.2
-  IL_001b:  ldloca.s   V_2
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
   IL_001d:  call       ""int Program.this[in int, in int].get""
   IL_0022:  call       ""void System.Console.WriteLine(int)""
-  IL_0027:  ret
+  IL_0027:  ldc.i4.s   42
+  IL_0029:  stloc.0
+  IL_002a:  ldloca.s   V_0
+  IL_002c:  call       ""ref readonly int Program.M(in int)""
+  IL_0031:  ldind.i4
+  IL_0032:  call       ""void System.Console.WriteLine(int)""
+  IL_0037:  ldc.i4.s   42
+  IL_0039:  stloc.0
+  IL_003a:  ldloca.s   V_0
+  IL_003c:  call       ""ref readonly int Program.M(in int)""
+  IL_0041:  ldind.i4
+  IL_0042:  call       ""void System.Console.WriteLine(int)""
+  IL_0047:  ret
 }");
         }
 
@@ -680,6 +695,155 @@ class Program
   IL_000b:  call       ""void System.Console.WriteLine(double)""
   IL_0010:  ret
 }");
+        }
+
+        [Fact]
+        public void ReadonlyParamAsyncSpill1()
+        {
+            var text = @"
+    using System.Threading.Tasks;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Test().Wait();
+        }
+
+        public static async Task Test()
+        {
+            M1(1, await GetT(2), 3);
+        }
+
+        public static async Task<T> GetT<T>(T val)
+        {
+            await Task.Yield();
+            return val;
+        }
+
+        public static void M1(in int arg1, in int arg2, in int arg3)
+        {
+            System.Console.WriteLine(arg1 + arg2 + arg3);
+        }
+    }
+
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: false, expectedOutput: @"6");
+        }
+
+        [Fact]
+        public void ReadonlyParamAsyncSpill2()
+        {
+            var text = @"
+    using System.Threading.Tasks;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Test().Wait();
+        }
+
+        public static async Task Test()
+        {
+            M1(await GetT(1), await GetT(2), 3);
+        }
+
+        public static async Task<T> GetT<T>(T val)
+        {
+            await Task.Yield();
+            return val;
+        }
+
+        public static void M1(in int arg1, in int arg2, in int arg3)
+        {
+            System.Console.WriteLine(arg1 + arg2 + arg3);
+        }
+    }
+
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: false, expectedOutput: @"6");
+        }
+
+        [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
+        [Fact]
+        public void ReadonlyParamAsyncSpill3()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test().Wait();
+    }
+
+    public static async Task Test()
+    {
+        var local = new S1();
+
+        // prints   3 42 3 3       note the aliasing, 3 is the last state of the local.f
+        M1(GetLocal(ref local).f,             42, GetLocal(ref local).f, GetLocal(ref local).f);
+
+        local = new S1();
+
+        // prints   1 42 3 3       note no aliasing for the first argument because of spilling
+        M1(GetLocal(ref local).f, await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
+
+        local = new S1();
+
+        // prints   0 42 2 2       note no aliasing for the first argument because of spilling
+        // NOTE!!! in this case we _could_ actually arrange aliasing and we would, if it was an ordinary 'ref'
+        M1(local.f, await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
+        }
+
+        private static ref readonly S1 GetLocal(ref S1 local)
+    {
+        local.f++;
+        return ref local;
+    }
+
+    public static async Task<T> GetT<T>(T val)
+    {
+        await Task.Yield();
+        return val;
+    }
+
+    public static void M1(in int arg1, in int arg2, in int arg3, in int arg4)
+    {
+        System.Console.WriteLine(arg1);
+        System.Console.WriteLine(arg2);
+        System.Console.WriteLine(arg3);
+        System.Console.WriteLine(arg4);
+    }
+}
+
+public struct S1
+{
+    public int f;
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: false, expectedOutput: @"
+3
+42
+3
+3
+1
+42
+3
+3
+0
+42
+2
+2");
         }
     }
 }

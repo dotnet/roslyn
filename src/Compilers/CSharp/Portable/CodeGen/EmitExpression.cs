@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
@@ -423,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    //PROTOTYPE(readonlyRefs): this does not need to be writeable
+                    //PROTOTYPE(verifier): this does not need to be writeable
                     //                         we may call "HasValue" on this, but it is not mutating
                     receiverTemp = EmitReceiverRef(receiver, AddressKind.Writeable);
                     _builder.EmitOpCode(ILOpCode.Dup);
@@ -432,9 +433,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                //PROTOTYPE(readonlyRefs): this does not need to be writeable
-                //                         we may call "HasValue" on this, but it is not mutating
-                receiverTemp = EmitReceiverRef(receiver, AddressKind.Writeable);
+                // this does not need to be writeable.
+                // we may call "HasValue" on this, but it is not mutating
+                // besides, since we are not making a copy, the receiver is not a field, 
+                // so it cannot be readonly, in verifier sense, anyways.
+                receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly);
                 // here we have loaded just { O } or  {&nub}
                 // we have the most trivial case where we can just reload receiver when needed again
             }
@@ -585,20 +588,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitArgument(BoundExpression argument, RefKind refKind)
         {
-            switch(refKind)
+            switch (refKind)
             {
                 case RefKind.None:
                     EmitExpression(argument, true);
                     break;
 
                 case RefKind.RefReadOnly:
-                    //PROTOTYPE(reaadonlyRefs): leaking a temp here
                     var temp = EmitAddress(argument, AddressKind.ReadOnly);
+                    AddExpressionTemp(temp);
                     break;
 
                 default:
                     var unexpectedTemp = EmitAddress(argument, AddressKind.Writeable);
-                    Debug.Assert(unexpectedTemp == null, "passing args byref should not clone them into temps");
+                    if (unexpectedTemp != null)
+                    {
+                        // interestingly enough "ref dynamic" sometimes is passed via a clone
+                        Debug.Assert(argument.Type.IsDynamic(), "passing args byref should not clone them into temps");
+                        AddExpressionTemp(unexpectedTemp);
+                    }
+
                     break;
             }
         }
@@ -717,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // sequence is used as a value, can release all locals
-            FreeLocals(sequence, doNotRelease: null);
+            FreeLocals(sequence);
         }
 
         private void DefineLocals(BoundSequence sequence)
@@ -735,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void FreeLocals(BoundSequence sequence, LocalSymbol doNotRelease)
+        private void FreeLocals(BoundSequence sequence)
         {
             if (sequence.Locals.IsEmpty)
             {
@@ -746,11 +755,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             foreach (var local in sequence.Locals)
             {
-                if ((object)local != doNotRelease)
-                {
-                    FreeLocal(local);
-                }
+                FreeLocal(local);
             }
+        }
+
+        /// <summary>
+        /// Defines sequence locals and record them so tht they could be retained for the duration of the encompassing expresson
+        /// Use this when taking a reference of the sequence, which can indirectly refer to any of its locals.
+        /// </summary>
+        private void DefineAndRecordLocals(BoundSequence sequence)
+        {
+            if (sequence.Locals.IsEmpty)
+            {
+                return;
+            }
+
+            _builder.OpenLocalScope();
+
+            foreach (var local in sequence.Locals)
+            {
+                var seqLocal = DefineLocal(local, sequence.Syntax);
+                AddExpressionTemp(seqLocal);
+            }
+        }
+
+        /// <summary>
+        /// Closes the visibility/debug scopes for the sequence locals, but keep the local slots from reuse
+        /// for the duration of the encompassing expresson.
+        /// Use this paired with DefineAndRecordLocals when taking a reference of the sequence, which can indirectly refer to any of its locals.
+        /// </summary>
+        private void CloseScopeAndKeepLocals(BoundSequence sequence)
+        {
+            if (sequence.Locals.IsEmpty)
+            {
+                return;
+            }
+
+            _builder.CloseLocalScope();
         }
 
         private void EmitSideEffects(BoundSequence sequence)
@@ -2228,14 +2269,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         var sequence = (BoundSequence)assignmentTarget;
 
-                        DefineLocals(sequence);
+                        // NOTE: not releasing sequence locals right away. 
+                        // Since sequence is used as a variable, we will keep the locals for the extent of the containing expression
+                        DefineAndRecordLocals(sequence);
                         EmitSideEffects(sequence);
-
                         lhsUsesStack = EmitAssignmentPreamble(assignmentOperator.Update(sequence.Value, assignmentOperator.Right, assignmentOperator.RefKind, assignmentOperator.Type));
-
-                        // doNotRelease will be released in EmitStore after we are done with the whole assignment.
-                        var doNotRelease = DigForValueLocal(sequence);
-                        FreeLocals(sequence, doNotRelease);
+                        CloseScopeAndKeepLocals(sequence);
                     }
                     break;
 
@@ -2281,14 +2320,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                // LEAKING A TEMP IS OK HERE 
-                // generally taking a ref for the purpose of ref assignment should not be done on homeless values
-                // however, there are very rare cases when we need to get a ref off a copy in synthetic code and we have to leak those.
-                // fortunately these are very short-lived temps that should not cause value sharing.
-                var temp = EmitAddress(assignmentOperator.Right, AddressKind.Writeable);
-#if DEBUG
-                Debug.Assert(temp == null || ((SynthesizedLocal)assignmentOperator.Left.ExpressionSymbol).SynthesizedKind == SynthesizedLocalKind.LoweringTemp);
-#endif
+                int exprTempsBefore = _expressionTemps?.Count ?? 0;
+
+                LocalDefinition temp = EmitAddress(assignmentOperator.Right, AddressKind.Writeable);
+
+                // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
+                // however, there are very rare cases when we need to get a ref off a temp in synthetic code.
+                // Retain those temps for the extent of the encompassing expression.
+                AddExpressionTemp(temp);
+
+                // are we, by the way, ref-assigning to something that lives longer than encompassing expression?
+                if (((BoundLocal)assignmentOperator.Left).LocalSymbol.SynthesizedKind.IsLongLived())
+                {
+                    var exprTempsAfter = _expressionTemps?.Count ?? 0;
+
+                    // This situation is extremely rare. We are assigning a ref to a local with unknown lifetime
+                    // while computing that ref required expression temps.
+                    //
+                    // We cannot reuse any of those temps and must leak them from the retained set.
+                    // Any of them could be directly or indirectly referred by the LHS after the assignment.
+                    // and we do not know the scope of the LHS - could be the whole method.
+                    if (exprTempsAfter > exprTempsBefore)
+                    {
+                        _expressionTemps.Count = exprTempsBefore;
+                    }
+                }
             }
         }
 
@@ -2404,12 +2460,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         var sequence = (BoundSequence)expression;
                         EmitStore(assignment.Update(sequence.Value, assignment.Right, assignment.RefKind, assignment.Type));
-
-                        var notReleased = DigForValueLocal(sequence);
-                        if (notReleased != null)
-                        {
-                            FreeLocal(notReleased);
-                        }
                     }
                     break;
 
@@ -2703,7 +2753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     _builder.EmitOpCode(ILOpCode.Conv_i);
                 }
                 else
-                { 
+                {
                     EmitInitObj(type, true, syntaxNode);
                 }
             }
@@ -2740,7 +2790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitInitObj(TypeSymbol type, bool used, SyntaxNode syntaxNode)
         {
             if (used)
-            {                
+            {
                 var temp = this.AllocateTemp(type, syntaxNode);
                 _builder.EmitLocalAddress(temp);                  //  ldloca temp
                 _builder.EmitOpCode(ILOpCode.Initobj);            //  initobj  <MyStruct>

@@ -272,42 +272,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private LocalDefinition EmitSequenceAddress(BoundSequence sequence, AddressKind addressKind)
         {
-            var hasLocals = !sequence.Locals.IsEmpty;
-
-            if (hasLocals)
-            {
-                _builder.OpenLocalScope();
-
-                foreach (var local in sequence.Locals)
-                {
-                    DefineLocal(local, sequence.Syntax);
-                }
-            }
-
+            DefineAndRecordLocals(sequence);
             EmitSideEffects(sequence);
-            var tempOpt = EmitAddress(sequence.Value, addressKind);
+            var result =  EmitAddress(sequence.Value, addressKind);
+            CloseScopeAndKeepLocals(sequence);
 
-            // when a sequence is happened to be a byref receiver
-            // we may need to extend the life time of the target until we are done accessing it
-            // {.v ; v = Foo(); v}.Bar()     // v should be released only after Bar() is done.
-            LocalSymbol doNotRelease = null;
-            if (tempOpt == null)
-            {
-                doNotRelease = DigForValueLocal(sequence);
-                if (doNotRelease != null)
-                {
-                    tempOpt = GetLocal(doNotRelease);
-                }
-            }
-
-            FreeLocals(sequence, doNotRelease);
-            return tempOpt;
-        }
-
-        // if sequence value is a local scoped to the sequence, return that local
-        private LocalSymbol DigForValueLocal(BoundSequence topSequence)
-        {
-            return DigForValueLocal(topSequence, topSequence.Value);
+            return result;
         }
 
         private LocalSymbol DigForValueLocal(BoundSequence topSequence, BoundExpression value)
@@ -431,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (!field.IsReadOnly)
             {
-                //PROTOTYPE(readonlyRefs): should we dig through struct receivers? 
+                //PROTOTYPE(verifier): should we dig through struct receivers? 
                 //   roField.a.b.c.d.Method() // roField is readonly, all structs
                 //   is it cheaper to copy "d" than "roField", but getting rw ref of roField could upset verifier
                 return true;
