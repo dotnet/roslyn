@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     /// but only for code cases where the user has provided an appropriate variable name in
     /// code that can be used).
     /// </summary>
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
