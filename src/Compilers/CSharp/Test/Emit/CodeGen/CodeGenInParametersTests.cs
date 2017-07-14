@@ -793,7 +793,7 @@ class Program
 
         local = new S1();
 
-        // prints   1 42 3 3       note no aliasing for the first two arguments because of spilling of calls
+        // prints   1 42 3 3       note no aliasing for the first argument because of spilling of calls
         M1(GetLocal(ref local).f, await GetT(42), GetLocal(ref local).f, GetLocal(ref local).f);
     }
 
@@ -861,7 +861,7 @@ class Program
 
         local = new S1();
 
-        // prints   1 42 3 3       note no aliasing for the first two arguments because of spilling of calls
+        // prints   1 42 3 3       note no aliasing for the first argument because of spilling of calls
         M1(GetLocalWriteable(ref local).f, await GetT(42), GetLocalWriteable(ref local).f, GetLocalWriteable(ref local).f);
     }
 

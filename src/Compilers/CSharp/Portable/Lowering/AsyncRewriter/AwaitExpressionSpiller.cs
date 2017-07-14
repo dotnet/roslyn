@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = ArrayBuilder<BoundExpression>.GetInstance();
             for (int i = 0; i <= lastSpill; i++)
             {
-                var refKind = refKinds.IsDefaultOrEmpty? RefKind.None: refKinds[i];
+                var refKind = refKinds.IsDefaultOrEmpty ? RefKind.None : refKinds[i];
                 var replacement = Spill(builder, newList[i], refKind, sideEffectsOnly);
 
                 Debug.Assert(sideEffectsOnly || replacement != null);
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.FieldAccess:
                         var field = (BoundFieldAccess)left;
-                        // static fields are directly assignable, LHS is not on th estack, nothing to spill
+                        // static fields are directly assignable, LHS is not on the stack, nothing to spill
                         if (field.FieldSymbol.IsStatic) break;
 
                         // instance fields are directly assignable, but receiver is pushed, so need to spill that.
@@ -722,7 +722,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        // must be indirectly assignable, just visit and spill
+                        // must be something indirectly assignable, just visit and spill as an ordinary Ref  (not a RefReadOnly!!)
+                        //
+                        // NOTE: in some cases this will result in spiller producing an error.
+                        //       For example if the LHS is a ref-returning method like
+                        //
+                        //       obj.RefReturning(a, b, c) = await Something();
+                        //
+                        //       the spiller would eventually have to spill the evaluation result of "refReturning" call as an ordinary Ref, 
+                        //       which it can't.
                         left = Spill(leftBuilder, VisitExpression(ref leftBuilder, left), RefKind.Ref);
                         break;
                 }
