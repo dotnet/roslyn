@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var names = new HashSet<string>(new[] { SummaryTagName, RemarksTagName, ExampleTagName, CompletionListTagName });
 
-            RemoveExistingTags(parentTrivia, names, (x) => x.StartTag.Name.LocalName.ValueText);
+            RemoveExistingTags(parentTrivia, names, x => x.StartTag.Name.LocalName.ValueText);
 
             return names.Select(GetItem);
         }

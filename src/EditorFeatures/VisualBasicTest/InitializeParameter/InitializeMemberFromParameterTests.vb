@@ -202,9 +202,8 @@ class C
 end class",
 "
 class C
-
-    private s As Integer
     Private ReadOnly s1 As String
+    private s As Integer
 
     public sub new(s As String)
         s1 = s

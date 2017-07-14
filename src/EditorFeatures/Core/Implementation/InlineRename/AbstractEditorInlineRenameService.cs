@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private IInlineRenameInfo GetRenameInfo(Document document, int position, CancellationToken cancellationToken)
         {
             var triggerToken = GetTriggerToken(document, position, cancellationToken);
-            if (triggerToken == default(SyntaxToken))
+            if (triggerToken == default)
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }

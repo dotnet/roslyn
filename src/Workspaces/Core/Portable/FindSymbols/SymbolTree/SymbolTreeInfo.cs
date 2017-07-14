@@ -115,6 +115,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 new OrderPreservingMultiDictionary<string, string>());
         }
 
+        public SymbolTreeInfo WithChecksum(Checksum checksum)
+        {
+            return new SymbolTreeInfo(
+                checksum, _concatenatedNames, _nodes, _spellCheckerTask, _inheritanceMap);
+        }
+
         public Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
             SearchQuery query, IAssemblySymbol assembly, ProjectId assemblyProjectId, SymbolFilter filter, CancellationToken cancellationToken)
         {

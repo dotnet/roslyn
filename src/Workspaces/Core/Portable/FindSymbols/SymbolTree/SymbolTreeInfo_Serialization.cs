@@ -187,9 +187,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         }
                     }
 
-                    var sortedNodes = nodes.ToImmutableAndFree();
-                    var spellCheckerTask = createSpellCheckerTask(concatenatedNames, sortedNodes);
-                    return new SymbolTreeInfo(checksum, concatenatedNames, sortedNodes, spellCheckerTask, inheritanceMap);
+                    var nodeArray = nodes.ToImmutableAndFree();
+                    var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodeArray);
+                    return new SymbolTreeInfo(checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap);
                 }
             }
             catch

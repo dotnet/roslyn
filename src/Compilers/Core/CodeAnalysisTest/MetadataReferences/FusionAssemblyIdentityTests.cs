@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
     public class FusionAssemblyIdentityTests
     {
         /// <summary>
-        /// Converts <see cref="IAssemblyName"/> to <see cref="AssemblyName"/> with possibly missing name components.
+        /// Converts <see cref="FusionAssemblyIdentity.IAssemblyName"/> to <see cref="AssemblyName"/> with possibly
+        /// missing name components.
         /// </summary>
         /// <returns>
         /// An <see cref="AssemblyName"/> whose fields are be null if not present in <paramref name="nameObject"/>.

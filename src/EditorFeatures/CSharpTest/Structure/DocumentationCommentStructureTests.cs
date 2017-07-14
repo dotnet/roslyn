@@ -256,5 +256,25 @@ class C
             await VerifyBlockSpansAsync(code,
                 Region("span", "/// <summary> The main entrypoint for Program.", autoCollapse: true));
         }
+
+        [WorkItem(20679, "https://github.com/dotnet/roslyn/issues/20679")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestSummaryWithAdditionalTags()
+        {
+            const string code = @"
+public class Class1
+{
+    {|span:/// $$<summary>
+    /// Initializes a <c>new</c> instance of the <see cref=""Class1"" /> class.
+    /// </summary>|}
+    public Class1()
+    {
+
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("span", "/// <summary> Initializes a new instance of the Class1 class.", autoCollapse: true));
+        }
     }
 }

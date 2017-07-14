@@ -7413,5 +7413,71 @@ class C
     }
 }");
         }
+
+        [WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task GroupNonReadonlyFieldsTogether()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    public bool isDisposed;
+
+    public readonly int x;
+    public readonly int m;
+
+    public C()
+    {
+        this.[|y|] = 0;
+    }
+}",
+@"
+class C
+{
+    public bool isDisposed;
+    private int y;
+
+    public readonly int x;
+    public readonly int m;
+
+    public C()
+    {
+        this.y = 0;
+    }
+}");
+        }
+
+        [WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task GroupReadonlyFieldsTogether()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    public readonly int x;
+    public readonly int m;
+
+    public bool isDisposed;
+
+    public C()
+    {
+        this.[|y|] = 0;
+    }
+}",
+@"
+class C
+{
+    public readonly int x;
+    public readonly int m;
+    private readonly int y;
+
+    public bool isDisposed;
+
+    public C()
+    {
+        this.y = 0;
+    }
+}", index: 1);
+        }
     }
 }

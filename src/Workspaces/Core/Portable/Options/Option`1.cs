@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Options
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         public Option(string feature, string name)
-            : this(feature, name, default(T))
+            : this(feature, name, default)
         {
             // This constructor forwards to the next one; it exists to maintain source-level compatibility with older callers.
         }
