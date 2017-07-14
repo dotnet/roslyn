@@ -49,9 +49,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="CodeCleanup\Providers\" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Update="CSharpWorkspaceResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CSharpWorkspaceResources.Designer.cs</LastGenOutput>

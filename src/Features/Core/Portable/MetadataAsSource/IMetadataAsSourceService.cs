@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// <param name="symbol">The symbol whose interface to generate source for</param>
         /// <param name="cancellationToken">To cancel document operations</param>
         /// <returns>The updated document</returns>
-        Task<Document> AddSourceToAsync(Document document, ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken));
+        Task<Document> AddSourceToAsync(Document document, ISymbol symbol, CancellationToken cancellationToken = default);
     }
 }

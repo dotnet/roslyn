@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 }
             }
 
-            classifiedSpan = default(ClassifiedSpan);
+            classifiedSpan = default;
             return false;
         }
 

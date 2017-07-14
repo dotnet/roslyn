@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     if (toggle)
                     {
                         var triviaToToggle = triviaList.ElementAt(indexOfTriviaToRemoveOrToggle);
-                        Contract.ThrowIfFalse(triviaToToggle != default(SyntaxTrivia));
+                        Contract.ThrowIfFalse(triviaToToggle != default);
                         var toggledTrivia = fixer.TogglePragmaDirective(triviaToToggle);
                         triviaList = triviaList.Replace(triviaToToggle, toggledTrivia);
                     }

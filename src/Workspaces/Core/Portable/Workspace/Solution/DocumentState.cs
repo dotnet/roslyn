@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis
         {
             // ** currently, it doesn't do any text based quick check. we can add them later if current logic is not performant enough for typing case.
             var change = newText.GetEncompassingTextChangeRange(oldText);
-            if (change == default(TextChangeRange))
+            if (change == default)
             {
                 // nothing has changed
                 return false;
@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool TryGetSyntaxTree(out SyntaxTree syntaxTree)
         {
-            syntaxTree = default(SyntaxTree);
+            syntaxTree = default;
             if (_treeSource.TryGetValue(out var treeAndVersion) && treeAndVersion != null)
             {
                 syntaxTree = treeAndVersion.Tree;
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                version = default(VersionStamp);
+                version = default;
                 return false;
             }
         }

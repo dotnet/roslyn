@@ -149,8 +149,5 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Extensibility\Navigation\" />
-  </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
