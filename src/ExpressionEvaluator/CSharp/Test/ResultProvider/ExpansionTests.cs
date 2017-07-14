@@ -665,8 +665,8 @@ class C
         /// This tests the managed address-of functionality.  When you take the address
         /// of a managed object, what you get back is an IntPtr*.  As in dev12, this
         /// exposes two pointers, the one to the IntPtr and the one to the actual data
-        /// (in the IntPtr).  For example, if you have a string "str", then "&str" yields
-        /// an IntPtr*.  The pointer is to the "string&" (typed as IntPtr, since Roslyn
+        /// (in the IntPtr).  For example, if you have a string "str", then "&amp;str" yields
+        /// an IntPtr*.  The pointer is to the "string&amp;" (typed as IntPtr, since Roslyn
         /// doesn't have a representation for reference types) and the IntPtr is a pointer
         /// to the actual string object on the heap.
         /// </summary>

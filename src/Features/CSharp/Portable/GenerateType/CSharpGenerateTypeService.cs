@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                         outerMostMemberAccessExpression = (ExpressionSyntax)nameOrMemberAccessExpression.Parent;
                     }
 
-                    outerMostMemberAccessExpression = outerMostMemberAccessExpression.GetAncestorsOrThis<ExpressionSyntax>().SkipWhile((n) => n != null && n.IsKind(SyntaxKind.SimpleMemberAccessExpression)).FirstOrDefault();
+                    outerMostMemberAccessExpression = outerMostMemberAccessExpression.GetAncestorsOrThis<ExpressionSyntax>().SkipWhile(n => n != null && n.IsKind(SyntaxKind.SimpleMemberAccessExpression)).FirstOrDefault();
                     if (outerMostMemberAccessExpression != null && outerMostMemberAccessExpression is InvocationExpressionSyntax)
                     {
                         generateTypeServiceStateOptions.IsEnumNotAllowed = true;

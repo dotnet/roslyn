@@ -797,7 +797,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundTryStatementOperation(boundTryStatement As BoundTryStatement) As ITryStatement
             Dim body As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundTryStatement.TryBlock), IBlockStatement))
-            Dim catches As Lazy(Of ImmutableArray(Of ICatchClause)) = New Lazy(Of ImmutableArray(Of ICatchClause))(Function() boundTryStatement.CatchBlocks.As(Of ICatchClause)())
+            Dim catches As Lazy(Of ImmutableArray(Of ICatchClause)) = New Lazy(Of ImmutableArray(Of ICatchClause))(Function() boundTryStatement.CatchBlocks.SelectAsArray(Function(n) DirectCast(Create(n), ICatchClause)))
             Dim finallyHandler As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundTryStatement.FinallyBlockOpt), IBlockStatement))
             Dim syntax As SyntaxNode = boundTryStatement.Syntax
             Dim type As ITypeSymbol = Nothing
