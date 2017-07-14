@@ -2,17 +2,17 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearReference;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDeclarationNearReference
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearReference
 {
     public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new MoveDeclarationNearReferenceCodeRefactoringProvider();
+            => new CSharpMoveDeclarationNearReferenceCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMove1()
@@ -544,7 +544,7 @@ class X
     {
         unchecked
         {
-            var a = Foo(X => (byte)X.Value, (object)null);
+            {|Warning:var a = Foo(X => (byte)X.Value, (object)null);|}
             Console.WriteLine(a);
         }
     }
@@ -629,6 +629,594 @@ class Program
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestComments01()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        Console.Write(i);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine();
+
+        // leading trivia
+        int i = 5;
+        Console.Write(i);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestComments02()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        {
+            Console.Write(i);
+        }
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine();
+
+        {
+            // leading trivia
+            int i = 5;
+            Console.Write(i);
+        }
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestComments03()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        // Existing trivia
+        Console.Write(i);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine();
+
+        // leading trivia
+        int i = 5;
+        // Existing trivia
+        Console.Write(i);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestComments04()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        {
+            // Existing trivia
+            Console.Write(i);
+        }
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine();
+
+        {
+            // leading trivia
+            int i = 5;
+            // Existing trivia
+            Console.Write(i);
+        }
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestComments05()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (false)
+        {
+        }
+
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        i = 0;
+        Console.Write(i);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (false)
+        {
+        }
+
+        Console.WriteLine();
+
+        // leading trivia
+        int i = 0;
+        Console.Write(i);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestComments06()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (false)
+        {
+        }
+
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        {
+            i = 0;
+            Console.Write(i);
+        }
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (false)
+        {
+        }
+
+        Console.WriteLine();
+
+        {
+            // leading trivia
+            int i = 0;
+            Console.Write(i);
+        }
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestComments07()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (false)
+        {
+        }
+
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        // Existing trivia
+        i = 0;
+        Console.Write(i);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (false)
+        {
+        }
+
+        Console.WriteLine();
+
+        // leading trivia
+        // Existing trivia
+        int i = 0;
+        Console.Write(i);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestComments08()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (false)
+        {
+        }
+
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        {
+            // Existing trivia
+            i = 0;
+            Console.Write(i);
+        }
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (false)
+        {
+        }
+
+        Console.WriteLine();
+
+        {
+            // leading trivia
+            // Existing trivia
+            int i = 0;
+            Console.Write(i);
+        }
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMergeComments01()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        i = 0;
+        Console.Write(i);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine();
+
+        // leading trivia
+        int i = 0;
+        Console.Write(i);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMergeComments02()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        {
+            i = 0;
+            Console.Write(i);
+        }
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine();
+
+        {
+            // leading trivia
+            int i = 0;
+            Console.Write(i);
+        }
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMergeComments03()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        // Existing trivia
+        i = 0;
+        Console.Write(i);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine();
+
+        // leading trivia
+        // Existing trivia
+        int i = 0;
+        Console.Write(i);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMergeComments04()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        {
+            // Existing trivia
+            i = 0;
+            Console.Write(i);
+        }
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine();
+
+        {
+            // leading trivia
+            // Existing trivia
+            int i = 0;
+            Console.Write(i);
+        }
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMergeComments05()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+        }
+
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        i = 0;
+        Console.Write(i);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+        }
+
+        Console.WriteLine();
+
+        // leading trivia
+        int i = 0;
+        Console.Write(i);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMergeComments06()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+        }
+
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        {
+            i = 0;
+            Console.Write(i);
+        }
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+        }
+
+        Console.WriteLine();
+
+        {
+            // leading trivia
+            int i = 0;
+            Console.Write(i);
+        }
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMergeComments07()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+        }
+
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        // Existing trivia
+        i = 0;
+        Console.Write(i);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+        }
+
+        Console.WriteLine();
+
+        // leading trivia
+        // Existing trivia
+        int i = 0;
+        Console.Write(i);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMergeComments08()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+        }
+
+        // leading trivia
+        int [||]i = 5;
+        Console.WriteLine();
+
+        {
+            // Existing trivia
+            i = 0;
+            Console.Write(i);
+        }
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+        }
+
+        Console.WriteLine();
+
+        {
+            // leading trivia
+            // Existing trivia
+            int i = 0;
+            Console.Write(i);
+        }
+    }
+}",
+ignoreTrivia: false);
         }
     }
 }
