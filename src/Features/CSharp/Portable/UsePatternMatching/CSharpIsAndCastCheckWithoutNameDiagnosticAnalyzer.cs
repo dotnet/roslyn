@@ -53,8 +53,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         {
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
-            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            var syntaxTree = semanticModel.SyntaxTree;
 
+            // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
+            // in projects targetting a lesser version.
+            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
+            {
+                return;
+            }
+
+            var root = syntaxTree.GetRoot(cancellationToken);
             var isExpression = (BinaryExpressionSyntax)context.Node;
 
             var workspace = (context.Options as WorkspaceAnalyzerOptions)?.Services.Workspace;
