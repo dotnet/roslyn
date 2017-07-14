@@ -685,7 +685,7 @@ index: 1);
 
         [Theory]
         [InlineData(0, "Task")]
-        [InlineData(1, "void", Skip = "https://github.com/dotnet/roslyn/issues/18396")]
+        [InlineData(1, "void")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
         public async Task AddAsyncInLocalFunctionKeepsTrivia(int codeFixIndex, string expectedReturn)
