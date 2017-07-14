@@ -94,6 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                     // in Task<>.
                     newReturnType = taskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax();
                 }
+                else
+                {
+                    newReturnType = newReturnType.WithAdditionalAnnotations(Formatter.Annotation);
+                }
             }
 
             return newReturnType.WithTriviaFrom(returnType);
