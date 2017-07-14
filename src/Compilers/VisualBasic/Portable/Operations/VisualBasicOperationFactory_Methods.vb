@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Semantics
@@ -346,8 +347,16 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 If boundFor.StepValue Is Nothing OrElse (boundFor.StepValue.IsConstant AndAlso boundFor.StepValue.ConstantValueOpt IsNot Nothing) Then
                     ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
 
+                    ' We are comparing the control variable against the limit value.  Using
+                    ' either the default stepping constant, or a user supplied constant.
+                    ' This will be a lifted comparison if either the control variable or
+                    ' limit value is nullable itself.
+                    Dim isLifted = controlVariable.Type.IsNullableType() OrElse
+                                   limitValue.Type.IsNullableType()
+
                     Dim relationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(If(boundFor.StepValue IsNot Nothing AndAlso boundFor.StepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
-                    Return OperationFactory.CreateBinaryOperatorExpression(relationalCode, Create(controlVariable), limitValue, booleanType, limitValue.Syntax)
+                    Return OperationFactory.CreateBinaryOperatorExpression(
+                        relationalCode, Create(controlVariable), limitValue, booleanType, limitValue.Syntax, isLifted)
                 Else
                     ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
 
@@ -360,17 +369,23 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                 constantValue:=Nothing)
 
                     Dim stepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, boundFor.StepValue)
+                    Dim stepConditionIsLifted = stepValue.Type.IsNullableType()
                     Dim stepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(stepRelationalCode,
                                  stepValue,
                                  OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), boundFor.StepValue.Type, boundFor.StepValue.Syntax),
                                  booleanType,
-                                 boundFor.StepValue.Syntax)
+                                 boundFor.StepValue.Syntax,
+                                 stepConditionIsLifted)
+
+                    Dim ifTrueIfFalseIsLifted =
+                        controlVariable.Type.IsNullableType() OrElse
+                        limitValue.Type.IsNullableType()
 
                     Dim positiveStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
-                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, Create(controlVariable), limitValue, booleanType, limitValue.Syntax)
+                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, Create(controlVariable), limitValue, booleanType, limitValue.Syntax, ifTrueIfFalseIsLifted)
 
                     Dim negativeStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
-                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, Create(controlVariable), limitValue, booleanType, limitValue.Syntax)
+                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, Create(controlVariable), limitValue, booleanType, limitValue.Syntax, ifTrueIfFalseIsLifted)
 
                     Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, limitValue.Syntax)
                 End If

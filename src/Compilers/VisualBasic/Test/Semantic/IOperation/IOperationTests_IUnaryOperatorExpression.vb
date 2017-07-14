@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -1822,6 +1822,636 @@ IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.Conversi
 ]]>.Value
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyLiftedUnaryOperators1()
+            Dim source = <![CDATA[
+Class C
+    Sub Foo(x as Integer?)
+        dim y = -x 'BIND:"-x"
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IUnaryOperatorExpression (UnaryOperationKind.Invalid-IsLifted) (OperationKind.UnaryOperatorExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '-x')
+  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyNonLiftedUnaryOperators1()
+            Dim source = <![CDATA[
+Class C
+    Sub Foo(x as Integer)
+        dim y = -x 'BIND:"-x"
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-x')
+  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyLiftedUserDefinedUnaryOperators1()
+            Dim source = <![CDATA[
+Structure C
+    Public Shared Operator -(c as C) as C
+    End Operator
+
+    Sub Foo(x as C?)
+        dim y = -x 'BIND:"-x"
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus-IsLifted) (OperatorMethod: Function C.op_UnaryNegation(c As C) As C) (OperationKind.UnaryOperatorExpression, Type: System.Nullable(Of C)) (Syntax: '-x')
+  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'x')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyNonLiftedUserDefinedUnaryOperators1()
+            Dim source = <![CDATA[
+Structure C
+    Public Shared Operator -(c as C) as C
+    End Operator
+
+    Sub Foo(x as C)
+        dim y = -x 'BIND:"-x"
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperatorMethod: Function C.op_UnaryNegation(c As C) As C) (OperationKind.UnaryOperatorExpression, Type: C) (Syntax: '-x')
+  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyLiftedBinaryOperators1()
+            Dim source = <![CDATA[
+Class C
+    Sub Foo(x as Integer?, y as Integer?)
+        dim z = x + y 'BIND:"x + y"
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x + y')
+  Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+  Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')]]>.Value
+
+            VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyNonLiftedBinaryOperators1()
+            Dim source = <![CDATA[
+Class C
+    Sub Foo(x as Integer, y as Integer)
+        dim z = x + y 'BIND:"x + y"
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
+  Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyLiftedUserDefinedShortCircuitBinaryOperators1()
+            Dim source = <![CDATA[
+Structure C
+    Public Shared Operator And(c1 as C, cs as C) as C
+    End Operator
+
+    Public Shared Operator IsFalse(c1 as C) as Boolean
+    End Operator
+
+    Sub Foo(x as C?, y as C?)
+        dim z = x And y 'BIND:"x And y"
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAnd-IsLifted) (OperatorMethod: Function C.op_BitwiseAnd(c1 As C, cs As C) As C) (OperationKind.BinaryOperatorExpression, Type: System.Nullable(Of C)) (Syntax: 'x And y')
+  Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'x')
+  Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'y')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyLiftedUserDefinedShortCircuitBinaryOperators2()
+            Dim source = <![CDATA[
+Structure C
+    Public Shared Operator And(c1 as C, cs as C) as C
+    End Operator
+
+    Public Shared Operator IsFalse(c1 as C) as Boolean
+    End Operator
+
+    Sub Foo(x as C?, y as C?)
+        dim z = x AndAlso y 'BIND:"x AndAlso y"
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodConditionalAnd-IsLifted) (OperatorMethod: Function C.op_BitwiseAnd(c1 As C, cs As C) As C) (OperationKind.BinaryOperatorExpression, Type: System.Nullable(Of C)) (Syntax: 'x AndAlso y')
+  Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'x')
+  Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'y')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyNonLiftedUserDefinedShortCircuitBinaryOperators1()
+            Dim source = <![CDATA[
+Structure C
+    Public Shared Operator And(c1 as C, cs as C) as C
+    End Operator
+
+    Public Shared Operator IsFalse(c1 as C) as Boolean
+    End Operator
+
+    Sub Foo(x as C, y as C)
+        dim z = x And y 'BIND:"x And y"
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAnd) (OperatorMethod: Function C.op_BitwiseAnd(c1 As C, cs As C) As C) (OperationKind.BinaryOperatorExpression, Type: C) (Syntax: 'x And y')
+  Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')
+  Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyNonLiftedUserDefinedShortCircuitBinaryOperators2()
+            Dim source = <![CDATA[
+Structure C
+    Public Shared Operator And(c1 as C, cs as C) as C
+    End Operator
+
+    Public Shared Operator IsFalse(c1 as C) as Boolean
+    End Operator
+
+    Sub Foo(x as C, y as C)
+        dim z = x AndAlso y 'BIND:"x AndAlso y"
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(c1 As C, cs As C) As C) (OperationKind.BinaryOperatorExpression, Type: C) (Syntax: 'x AndAlso y')
+  Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')
+  Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')]]>.Value
+
+            VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyLiftedUserDefinedBinaryOperators1()
+            Dim source = <![CDATA[
+Structure C
+    Public Shared Operator + (c1 as C, c2 as C) as C
+    End Operator
+
+    Sub Foo(x as C?, y as C?)
+        dim z = x + y 'BIND:"x + y"
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd-IsLifted) (OperatorMethod: Function C.op_Addition(c1 As C, c2 As C) As C) (OperationKind.BinaryOperatorExpression, Type: System.Nullable(Of C)) (Syntax: 'x + y')
+  Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'x')
+  Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'y')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyNonLiftedUserDefinedBinaryOperators1()
+            Dim source = <![CDATA[
+Structure C
+    Public Shared Operator + (c1 as C, c2 as C) as C
+    End Operator
+
+    Sub Foo(x as C, y as C)
+        dim z = x + y 'BIND:"x + y"
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd) (OperatorMethod: Function C.op_Addition(c1 As C, c2 As C) As C) (OperationKind.BinaryOperatorExpression, Type: C) (Syntax: 'x + y')
+  Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')
+  Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyForToLoop1()
+            Dim source = <![CDATA[
+Structure C
+    Sub Foo()
+        Dim x As Integer
+        Dim y As Integer = 16
+        For x = 12 To y 'BIND:"For x = 12 To y"
+        Next
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x = 12  ... Next')
+  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+      Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '12')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '12')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        Right: ILiteralExpression (Text: 12) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+        Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x = 12  ... Next')
+      ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For x = 12  ... Next')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyForToLoop2()
+            Dim source = <![CDATA[
+Structure C
+    Sub Foo()
+        Dim x As Integer?
+        Dim y As Integer = 16
+        For x = 12 To y 'BIND:"For x = 12 To y"
+        Next
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x = 12  ... Next')
+  Condition: IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: System.Boolean) (Syntax: 'y')
+      Condition: IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'For x = 12  ... Next')
+          Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Nullable(Of System.Int32), Constant: null) (Syntax: 'For x = 12  ... Next')
+      IfTrue: IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+          Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+      IfFalse: IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+          Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+  Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '12')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+        Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+            ILiteralExpression (Text: 12) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+        Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+            ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x = 12  ... Next')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+        Right: IConversionExpression (ConversionKind.Basic, Explicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
+  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x = 12  ... Next')
+      ICompoundAssignmentExpression (BinaryOperationKind.Invalid) (OperationKind.CompoundAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+        Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyForToLoop3()
+            Dim source = <![CDATA[
+Structure C
+    Sub Foo()
+        Dim x As Integer
+        Dim y As Integer? = 16
+        For x = 12 To y 'BIND:"For x = 12 To y"
+        Next
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x = 12  ... Next')
+  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+      Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '12')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '12')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        Right: ILiteralExpression (Text: 12) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+        Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'y')
+            ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x = 12  ... Next')
+      ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For x = 12  ... Next')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyForToLoop4()
+            Dim source = <![CDATA[
+Structure C
+    Sub Foo()
+        Dim x As Integer?
+        Dim y As Integer? = 16
+        For x = 12 To y 'BIND:"For x = 12 To y"
+        Next
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x = 12  ... Next')
+  Condition: IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: System.Boolean) (Syntax: 'y')
+      Condition: IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'For x = 12  ... Next')
+          Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Nullable(Of System.Int32), Constant: null) (Syntax: 'For x = 12  ... Next')
+      IfTrue: IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+          Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+      IfFalse: IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+          Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+  Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '12')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+        Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+            ILiteralExpression (Text: 12) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+        Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x = 12  ... Next')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+        Right: IConversionExpression (ConversionKind.Basic, Explicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
+  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x = 12  ... Next')
+      ICompoundAssignmentExpression (BinaryOperationKind.Invalid) (OperationKind.CompoundAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+        Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyForToLoop5()
+            Dim source = <![CDATA[
+Structure C
+    Sub Foo()
+        Dim x As Integer
+        Dim y As Integer = 16
+        Dim s As Integer? = nothing
+        For x = 12 To y Step s 'BIND:"For x = 12 To y Step s"
+        Next
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x = 12  ... Next')
+  Condition: IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: System.Boolean) (Syntax: 'y')
+      Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's')
+          Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 's')
+          Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 's')
+      IfTrue: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+      IfFalse: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '12')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '12')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        Right: ILiteralExpression (Text: 12) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+        Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 's')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 's')
+        Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 's')
+            ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
+      ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 's')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 's')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyForToLoop6()
+            Dim source = <![CDATA[
+Structure C
+    Sub Foo()
+        Dim x As Integer?
+        Dim y As Integer = 16
+        Dim s As Integer? = nothing
+        For x = 12 To y Step s 'BIND:"For x = 12 To y Step s"
+        Next
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x = 12  ... Next')
+  Condition: IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: System.Boolean) (Syntax: 'y')
+      Condition: IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's')
+          Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Nullable(Of System.Int32), Constant: null) (Syntax: 's')
+      IfTrue: IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+          Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+      IfFalse: IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+          Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+  Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '12')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+        Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+            ILiteralExpression (Text: 12) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+        Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+            ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+        Right: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
+      ICompoundAssignmentExpression (BinaryOperationKind.Invalid) (OperationKind.CompoundAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+        Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyForToLoop7()
+            Dim source = <![CDATA[
+Structure C
+    Sub Foo()
+        Dim x As Integer
+        Dim y As Integer? = 16
+        Dim s As Integer? = nothing
+        For x = 12 To y Step s 'BIND:"For x = 12 To y Step s"
+        Next
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x = 12  ... Next')
+  Condition: IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: System.Boolean) (Syntax: 'y')
+      Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's')
+          Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 's')
+          Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 's')
+      IfTrue: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+      IfFalse: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '12')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '12')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        Right: ILiteralExpression (Text: 12) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+        Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'y')
+            ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 's')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 's')
+        Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 's')
+            ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
+      ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 's')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 's')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyForToLoop8()
+            Dim source = <![CDATA[
+Structure C
+    Sub Foo()
+        Dim x As Integer?
+        Dim y As Integer? = 16
+        Dim s As Integer? = nothing
+        For x = 12 To y Step s 'BIND:"For x = 12 To y Step s"
+        Next
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x = 12  ... Next')
+  Condition: IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: System.Boolean) (Syntax: 'y')
+      Condition: IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's')
+          Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Nullable(Of System.Int32), Constant: null) (Syntax: 's')
+      IfTrue: IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+          Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+      IfFalse: IBinaryOperatorExpression (BinaryOperationKind.Invalid-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+          Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+  Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '12')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+        Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+            ILiteralExpression (Text: 12) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+        Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+        Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+        Right: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
+      ICompoundAssignmentExpression (BinaryOperationKind.Invalid) (OperationKind.CompoundAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
+        Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
     End Class
 End Namespace

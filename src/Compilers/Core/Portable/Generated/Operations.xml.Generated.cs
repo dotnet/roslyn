@@ -696,12 +696,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseBinaryOperatorExpression : Operation, IHasOperatorMethodExpression, IBinaryOperatorExpression
     {
-        protected BaseBinaryOperatorExpression(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.BinaryOperatorExpression, syntax, type, constantValue)
+        protected BaseBinaryOperatorExpression(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isLifted)
+            : base(OperationKind.BinaryOperatorExpression, syntax, type, constantValue)
         {
             BinaryOperationKind = binaryOperationKind;
             UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
+            IsLifted = isLifted;
         }
         /// <summary>
         /// Kind of binary operation.
@@ -723,6 +724,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
+
+        public bool IsLifted { get; }
+
         public override IEnumerable<IOperation> Children
         {
             get
@@ -746,8 +750,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class BinaryOperatorExpression : BaseBinaryOperatorExpression, IHasOperatorMethodExpression, IBinaryOperatorExpression
     {
-        public BinaryOperatorExpression(BinaryOperationKind binaryOperationKind, IOperation leftOperand, IOperation rightOperand, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(binaryOperationKind, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
+        public BinaryOperatorExpression(BinaryOperationKind binaryOperationKind, IOperation leftOperand, IOperation rightOperand, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isLifted)
+            : base(binaryOperationKind, usesOperatorMethod, operatorMethod, syntax, type, constantValue, isLifted)
         {
             LeftOperand = leftOperand;
             RightOperand = rightOperand;
@@ -770,7 +774,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyLeftOperand;
         private readonly Lazy<IOperation> _lazyRightOperand;
 
-        public LazyBinaryOperatorExpression(BinaryOperationKind binaryOperationKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(binaryOperationKind, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
+        public LazyBinaryOperatorExpression(BinaryOperationKind binaryOperationKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isLifted)
+            : base(binaryOperationKind, usesOperatorMethod, operatorMethod, syntax, type, constantValue, isLifted)
         {
             _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException(nameof(leftOperand));
             _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException(nameof(rightOperand));
@@ -4832,12 +4837,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseUnaryOperatorExpression : Operation, IHasOperatorMethodExpression, IUnaryOperatorExpression
     {
-        protected BaseUnaryOperatorExpression(UnaryOperationKind unaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.UnaryOperatorExpression, syntax, type, constantValue)
+        protected BaseUnaryOperatorExpression(UnaryOperationKind unaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isLifted)
+            : base(OperationKind.UnaryOperatorExpression, syntax, type, constantValue)
         {
             UnaryOperationKind = unaryOperationKind;
             UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
+            IsLifted = isLifted;
         }
         /// <summary>
         /// Kind of unary operation.
@@ -4855,6 +4861,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
+
+        public bool IsLifted { get; }
+
         public override IEnumerable<IOperation> Children
         {
             get
@@ -4877,8 +4886,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class UnaryOperatorExpression : BaseUnaryOperatorExpression, IHasOperatorMethodExpression, IUnaryOperatorExpression
     {
-        public UnaryOperatorExpression(UnaryOperationKind unaryOperationKind, IOperation operand, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(unaryOperationKind, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
+        public UnaryOperatorExpression(UnaryOperationKind unaryOperationKind, IOperation operand, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isLifted)
+            : base(unaryOperationKind, usesOperatorMethod, operatorMethod, syntax, type, constantValue, isLifted)
         {
             Operand = operand;
         }
@@ -4895,7 +4904,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyOperand;
 
-        public LazyUnaryOperatorExpression(UnaryOperationKind unaryOperationKind, Lazy<IOperation> operand, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(unaryOperationKind, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
+        public LazyUnaryOperatorExpression(UnaryOperationKind unaryOperationKind, Lazy<IOperation> operand, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isLifted) 
+            : base(unaryOperationKind, usesOperatorMethod, operatorMethod, syntax, type, constantValue, isLifted)
         {
             _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }

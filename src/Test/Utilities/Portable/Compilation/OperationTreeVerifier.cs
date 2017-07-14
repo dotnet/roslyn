@@ -726,7 +726,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IUnaryOperatorExpression));
 
             var kindStr = $"{nameof(UnaryOperationKind)}.{operation.UnaryOperationKind}";
-            LogString($" ({kindStr})");
+            if (operation.IsLifted)
+            {
+                LogString($" ({kindStr}-IsLifted)");
+            }
+            else
+            {
+                LogString($" ({kindStr})");
+            }
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -738,7 +745,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IBinaryOperatorExpression));
 
             var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
-            LogString($" ({kindStr})");
+            if (operation.IsLifted)
+            {
+                LogString($" ({kindStr}-IsLifted)");
+            }
+            else
+            {
+                LogString($" ({kindStr})");
+            }
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 

@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public static IBinaryOperatorExpression CreateBinaryOperatorExpression(
-            BinaryOperationKind binaryOperationKind, IOperation left, IOperation right, ITypeSymbol resultType, SyntaxNode syntax)
+            BinaryOperationKind binaryOperationKind, IOperation left, IOperation right, ITypeSymbol resultType, SyntaxNode syntax, bool isLifted)
         {
             return new BinaryOperatorExpression(
                 binaryOperationKind, left, right,
                 usesOperatorMethod: false, operatorMethod: null,
-                syntax: syntax, type: resultType, constantValue: default(Optional<object>));
+                syntax: syntax, type: resultType, constantValue: default, isLifted: isLifted);
         }
 
         public static IArrayCreationExpression CreateArrayCreationExpression(
