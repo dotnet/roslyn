@@ -1082,6 +1082,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax originalNode)
             {
+                if (this._semanticModel.GetSymbolInfo(originalNode).Symbol.IsLocalFunction())
+                {
+                    return originalNode;
+                }
+
                 var rewrittenNode = (InvocationExpressionSyntax)base.VisitInvocationExpression(originalNode);
                 if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                 {

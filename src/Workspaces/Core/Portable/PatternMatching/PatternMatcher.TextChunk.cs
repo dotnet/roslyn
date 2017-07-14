@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             public TextChunk(string text, bool allowFuzzingMatching)
             {
                 this.Text = text;
-                this.PatternHumps = StringBreaks.CreateFallbackList(text, word: false);
+                this.PatternHumps = StringBreaker.GetCharacterParts(text);
                 this.SimilarityChecker = allowFuzzingMatching
                     ? WordSimilarityChecker.Allocate(text, substringsAreSimilar: false)
                     : null;

@@ -108,5 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             appDomain.RemoveMetadataContext<CSharpMetadataContext>();
         }
+
+        internal override ImmutableArray<MetadataBlock> GetMetadataBlocks(DkmClrAppDomain appDomain, DkmClrRuntimeInstance runtimeInstance)
+        {
+            var previous = appDomain.GetMetadataContext<CSharpMetadataContext>();
+            return runtimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
+        }
     }
 }
