@@ -180,8 +180,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return method.RemoveAttributesCore(
                 shouldRemoveAttribute,
-                statements: default(ImmutableArray<SyntaxNode>),
-                handlesExpressions: default(ImmutableArray<SyntaxNode>));
+                statements: default,
+                handlesExpressions: default);
         }
 
         private static IMethodSymbol RemoveAttributesCore(

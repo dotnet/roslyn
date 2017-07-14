@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var initializer = initializerNode != null
                 ? SyntaxFactory.EqualsValueClause(initializerNode)
-                : default(EqualsValueClauseSyntax);
+                : default;
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: property.Name.ToIdentifierToken(),
                 accessorList: accessorList,
-                expressionBody: default(ArrowExpressionClauseSyntax),
+                expressionBody: default,
                 initializer: initializer);
 
             propertyDeclaration = UseExpressionBodyIfDesired(
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             arrowExpression = null;
-            semicolonToken = default(SyntaxToken);
+            semicolonToken = default;
             return false;
         }
 
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = SyntaxFactory.AccessorDeclaration(kind)
                                            .WithModifiers(GenerateAccessorModifiers(property, accessor, options))
                                            .WithBody(hasBody ? GenerateBlock(accessor) : null)
-                                           .WithSemicolonToken(hasBody ? default(SyntaxToken) : SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                                           .WithSemicolonToken(hasBody ? default : SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
             declaration = UseExpressionBodyIfDesired(workspace, declaration, parseOptions);
 

@@ -3,12 +3,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -18,17 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Perform a first analysis pass in preparation for removing all lambdas from a method body.  The entry point is Analyze.
         /// The results of analysis are placed in the fields seenLambda, blockParent, variableBlock, captured, and captures.
         /// </summary>
-        internal sealed class Analysis : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        internal sealed partial class Analysis : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             private readonly MethodSymbol _topLevelMethod;
 
             private MethodSymbol _currentParent;
             private BoundNode _currentScope;
-
-            // Some syntactic forms have an "implicit" receiver.  When we encounter them, we set this to the
-            // syntax.  That way, in case we need to report an error about the receiver, we can use this
-            // syntax for the location when the receiver was implicit.
-            private SyntaxNode _syntaxWithReceiver;
 
             /// <summary>
             /// Set to true while we are analyzing the interior of an expression lambda.
@@ -112,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public Dictionary<MethodSymbol, BoundNode> LambdaScopes;
 
+            private Scope _scopeTree;
+
             private Analysis(MethodSymbol method)
             {
                 Debug.Assert((object)method != null);
@@ -128,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void Analyze(BoundNode node)
             {
+                _scopeTree = ScopeTreeBuilder.Build(node, this);
                 _currentScope = FindNodeToAnalyze(node);
 
                 Debug.Assert(!_inExpressionLambda);
@@ -185,9 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Optimizes local functions such that if a local function only references other local functions without closures, it itself doesn't need a closure.
+            /// The old version of <see cref="RemoveUnneededReferences"/> This is still necesary
+            /// because it modifies <see cref="CapturedVariablesByLambda"/>, which is still used
+            /// in other areas of the code. Once those uses are gone, this method should be removed.
             /// </summary>
-            private void RemoveUnneededReferences()
+            private void OldRemoveUnneededReferences()
             {
                 // Note: methodGraph is the inverse of the dependency graph
                 var methodGraph = new MultiDictionary<MethodSymbol, MethodSymbol>();
@@ -196,14 +194,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var visitStack = new Stack<MethodSymbol>();
                 foreach (var methodKvp in CapturedVariablesByLambda)
                 {
-                    foreach (var value in methodKvp.Value)
+                    foreach (var capture in methodKvp.Value)
                     {
-                        var method = value as MethodSymbol;
+                        var method = capture as MethodSymbol;
                         if (method != null)
                         {
                             methodGraph.Add(method, methodKvp.Key);
                         }
-                        else if (value == _topLevelMethod.ThisParameter)
+                        else if (capture == _topLevelMethod.ThisParameter)
                         {
                             if (capturesThis.Add(methodKvp.Key))
                             {
@@ -253,18 +251,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             ///  </summary>
             internal void ComputeLambdaScopesAndFrameCaptures()
             {
+                // We need to keep this around
+                OldRemoveUnneededReferences();
+                RemoveUnneededReferences();
+
                 LambdaScopes = new Dictionary<MethodSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
                 NeedsParentFrame = new HashSet<BoundNode>();
 
-                RemoveUnneededReferences();
-
-                foreach (var kvp in CapturedVariablesByLambda)
+                VisitClosures(_scopeTree, (scope, closure) =>
                 {
-                    var lambda = kvp.Key;
-                    var capturedVars = kvp.Value;
+                    if (closure.CapturedVariables.Count > 0)
+                    {
+                        (Scope innermost, Scope outermost) = FindLambdaScopeRange(closure, scope);
+                        RecordClosureScope(innermost, outermost, closure);
+                    }
+                });
 
-                    var allCapturedVars = ArrayBuilder<Symbol>.GetInstance(capturedVars.Count);
-                    allCapturedVars.AddRange(capturedVars);
+                (Scope innermost, Scope outermost) FindLambdaScopeRange(Closure closure, Scope closureScope)
+                {
+                    Scope innermost = null;
+                    Scope outermost = null;
+
+                    var capturedVars = PooledHashSet<Symbol>.GetInstance();
+                    capturedVars.AddAll(closure.CapturedVariables);
 
                     // If any of the captured variables are local functions we'll need
                     // to add the captured variables of that local function to the current
@@ -272,54 +281,63 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // captures anything "above" the current scope then parent frame
                     // is itself captured (so that the current lambda can call that
                     // local function).
-                    foreach (var captured in capturedVars)
+                    foreach (var captured in closure.CapturedVariables)
                     {
-                        var capturedLocalFunction = captured as LocalFunctionSymbol;
-                        if (capturedLocalFunction != null)
+                        if (captured is LocalFunctionSymbol localFunc)
                         {
-                            allCapturedVars.AddRange(
-                                CapturedVariablesByLambda[capturedLocalFunction]);
+                            capturedVars.AddAll(FindClosureInScope(closureScope, localFunc).CapturedVariables);
                         }
                     }
 
-                    // get innermost and outermost scopes from which a lambda captures
-                    int innermostScopeDepth = -1;
-                    BoundNode innermostScope = null;
-
-                    int outermostScopeDepth = int.MaxValue;
-                    BoundNode outermostScope = null;
-
-                    foreach (var captured in allCapturedVars)
+                    for (var curScope = closureScope;
+                         curScope != null && capturedVars.Count > 0;
+                         curScope = curScope.Parent)
                     {
-                        BoundNode curBlock = null;
-                        int curBlockDepth;
-
-                        if (!VariableScope.TryGetValue(captured, out curBlock))
+                        if (!(capturedVars.Overlaps(curScope.DeclaredVariables) ||
+                              capturedVars.Overlaps(curScope.Closures.Select(c => c.OriginalMethodSymbol))))
                         {
-                            // this is something that is not defined in a block, like "this"
-                            // Since it is defined outside of the method, the depth is -1
-                            curBlockDepth = -1;
-                        }
-                        else
-                        {
-                            curBlockDepth = BlockDepth(curBlock);
+                            continue;
                         }
 
-                        if (curBlockDepth > innermostScopeDepth)
+                        outermost = curScope;
+                        if (innermost == null)
                         {
-                            innermostScopeDepth = curBlockDepth;
-                            innermostScope = curBlock;
+                            innermost = curScope;
                         }
 
-                        if (curBlockDepth < outermostScopeDepth)
-                        {
-                            outermostScopeDepth = curBlockDepth;
-                            outermostScope = curBlock;
-                        }
+                        capturedVars.RemoveAll(curScope.DeclaredVariables);
+                        capturedVars.RemoveAll(curScope.Closures.Select(c => c.OriginalMethodSymbol));
                     }
 
-                    allCapturedVars.Free();
+                    // If any captured variables are left, they're captured above method scope
+                    if (capturedVars.Count > 0)
+                    {
+                        outermost = null;
+                    }
 
+                    capturedVars.Free();
+
+                    return (innermost, outermost);
+                }
+
+                // Walk up the scope tree looking for a closure
+                Closure FindClosureInScope(Scope startingScope, MethodSymbol closureSymbol)
+                {
+                    var currentScope = startingScope;
+                    while (currentScope != null)
+                    {
+                        var found = currentScope.Closures.SingleOrDefault(c => c.OriginalMethodSymbol == closureSymbol);
+                        if (found != null)
+                        {
+                            return found;
+                        }
+                        currentScope = currentScope.Parent;
+                    }
+                    return null;
+                }
+
+                void RecordClosureScope(Scope innermost, Scope outermost, Closure closure)
+                {
                     // 1) if there is innermost scope, lambda goes there as we cannot go any higher.
                     // 2) scopes in [innermostScope, outermostScope) chain need to have access to the parent scope.
                     //
@@ -330,27 +348,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   Such lambda will be placed in a closure frame that corresponds to the method's outer block
                     //   and this frame will also lift original `this` as a field when created by its parent.
                     //   Note that it is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
-                    if (innermostScope != null)
+                    if (innermost != null)
                     {
-                        LambdaScopes.Add(lambda, innermostScope);
+                        LambdaScopes.Add(closure.OriginalMethodSymbol, innermost.BoundNode);
 
                         // Disable struct closures on methods converted to delegates, as well as on async and iterator methods.
-                        var markAsNoStruct = !CanTakeRefParameters(lambda);
+                        var markAsNoStruct = !CanTakeRefParameters(closure.OriginalMethodSymbol);
                         if (markAsNoStruct)
                         {
-                            ScopesThatCantBeStructs.Add(innermostScope);
+                            ScopesThatCantBeStructs.Add(innermost.BoundNode);
                         }
 
-                        while (innermostScope != outermostScope)
+                        while (innermost != outermost)
                         {
-                            NeedsParentFrame.Add(innermostScope);
-                            ScopeParent.TryGetValue(innermostScope, out innermostScope);
-                            if (markAsNoStruct)
+                            NeedsParentFrame.Add(innermost.BoundNode);
+                            innermost = innermost.Parent;
+                            if (markAsNoStruct && innermost != null)
                             {
-                                ScopesThatCantBeStructs.Add(innermostScope);
+                                ScopesThatCantBeStructs.Add(innermost.BoundNode);
                             }
                         }
                     }
+
                 }
             }
 
@@ -571,36 +590,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private BoundNode VisitSyntaxWithReceiver(SyntaxNode syntax, BoundNode receiver)
-            {
-                var previousSyntax = _syntaxWithReceiver;
-                _syntaxWithReceiver = syntax;
-                var result = Visit(receiver);
-                _syntaxWithReceiver = previousSyntax;
-                return result;
-            }
-
             public override BoundNode VisitMethodGroup(BoundMethodGroup node)
             {
                 throw ExceptionUtilities.Unreachable;
-            }
-
-            public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
-            {
-                _syntaxWithReceiver = node.Syntax;
-                return base.VisitPropertyAccess(node);
-            }
-
-            public override BoundNode VisitFieldAccess(BoundFieldAccess node)
-            {
-                _syntaxWithReceiver = node.Syntax;
-                return base.VisitFieldAccess(node);
-            }
-
-            public override BoundNode VisitEventAccess(BoundEventAccess node)
-            {
-                _syntaxWithReceiver = node.Syntax;
-                return base.VisitEventAccess(node);
             }
 
             public override BoundNode VisitThisReference(BoundThisReference node)

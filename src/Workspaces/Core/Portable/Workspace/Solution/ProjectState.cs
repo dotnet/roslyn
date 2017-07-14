@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis
             return _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken);
         }
 
-        public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
         {
             var docVersion = await this.GetLatestDocumentTopLevelChangeVersionAsync(cancellationToken).ConfigureAwait(false);
             return docVersion.GetNewerVersion(this.Version);
@@ -341,8 +341,8 @@ namespace Microsoft.CodeAnalysis
 
         private ProjectState With(
             ProjectInfo projectInfo = null,
-            ImmutableArray<DocumentId> documentIds = default(ImmutableArray<DocumentId>),
-            ImmutableArray<DocumentId> additionalDocumentIds = default(ImmutableArray<DocumentId>),
+            ImmutableArray<DocumentId> documentIds = default,
+            ImmutableArray<DocumentId> additionalDocumentIds = default,
             ImmutableDictionary<DocumentId, DocumentState> documentStates = null,
             ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates = null,
             AsyncLazy<VersionStamp> latestDocumentVersion = null,

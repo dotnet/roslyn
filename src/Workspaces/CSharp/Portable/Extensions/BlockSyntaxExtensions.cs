@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             arrowExpression = null;
-            semicolonToken = default(SyntaxToken);
+            semicolonToken = default;
             return false;
         }
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             expression = null;
-            semicolonToken = default(SyntaxToken);
+            semicolonToken = default;
             return false;
         }
     }

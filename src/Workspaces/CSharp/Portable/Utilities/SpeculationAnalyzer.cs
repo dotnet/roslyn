@@ -444,6 +444,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var replacedAnonymousObjectMemberDeclarator = (AnonymousObjectMemberDeclaratorSyntax)currentReplacedNode;
                 return ReplacementBreaksAnonymousObjectMemberDeclarator(originalAnonymousObjectMemberDeclarator, replacedAnonymousObjectMemberDeclarator);
             }
+            else if (currentOriginalNode.Kind() == SyntaxKind.DefaultExpression)
+            {
+                return !TypesAreCompatible((ExpressionSyntax)currentOriginalNode, (ExpressionSyntax)currentReplacedNode);
+            }
 
             return false;
         }

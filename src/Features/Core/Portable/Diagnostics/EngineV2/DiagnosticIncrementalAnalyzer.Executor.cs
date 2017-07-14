@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
                 out ImmutableArray<DiagnosticAnalyzer> analyzers)
             {
-                analyzers = default(ImmutableArray<DiagnosticAnalyzer>);
+                analyzers = default;
 
                 // we don't have analyzer driver, nothing to reduce.
                 if (analyzerDriverOpt == null)

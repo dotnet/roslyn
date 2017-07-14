@@ -146,13 +146,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (isExplicit)
             {
-                return default(SyntaxList<AttributeListSyntax>);
+                return default;
             }
 
             var attributes = parameter.GetAttributes();
             if (attributes.Length == 0)
             {
-                return default(SyntaxList<AttributeListSyntax>);
+                return default;
             }
 
             return AttributeGenerator.GenerateAttributeLists(attributes, options);

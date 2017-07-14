@@ -37,8 +37,5 @@
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
     <ProjectReference Include="..\Utilities\Perf.Utilities.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="CPC-Consumption\" />
-  </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
