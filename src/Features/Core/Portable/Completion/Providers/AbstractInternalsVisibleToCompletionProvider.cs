@@ -130,6 +130,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var assemblyScopedAttributes = GetAssemblyScopedAttributeSyntaxNodesOfDocument(syntaxRoot);
                 foreach (var attribute in assemblyScopedAttributes)
                 {
+                    // Skip attributes with errors. This skips the attribute that is currently edited, until it is complete:
+                    // [assembly: InternalsVisibleTo("$$
+                    // CS1003: Syntax error, ']' expected; CS1010: A string was not properly delimited; CS1026: An incomplete statement was found
+                    // see also SyntaxNode.HasErrors
+                    if (attribute.ContainsDiagnostics)
+                    {
+                        foreach (var diagnostic in attribute.GetDiagnostics())
+                        {
+                            if (diagnostic.Severity == DiagnosticSeverity.Error)
+                            {
+                                continue;
+                            }
+                        }
+                    }
+
                     if (await CheckTypeInfoOfAttributeAsync(document, attribute, completionContext.CancellationToken).ConfigureAwait(false))
                     {
                         // See Microsoft.CodeAnalysis.PEAssembly.BuildInternalsVisibleToMap for reference on how
