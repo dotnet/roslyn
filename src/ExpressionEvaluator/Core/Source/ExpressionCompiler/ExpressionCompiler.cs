@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     : GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
                 string error;
                 var r = this.CompileWithRetry(
-                    moduleInstance,
-                    runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
+                    moduleInstance.AppDomain,
+                    runtimeInstance,
                     (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var runtimeInstance = instructionAddress.RuntimeInstance;
                 var aliases = GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
                 var r = this.CompileWithRetry(
-                    moduleInstance,
-                    runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
+                    moduleInstance.AppDomain,
+                    runtimeInstance,
                     (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var runtimeInstance = instructionAddress.RuntimeInstance;
                 var aliases = GetAliases(runtimeInstance, lValue.InspectionContext); // NB: Not affected by retrying.
                 var r = this.CompileWithRetry(
-                    moduleInstance,
-                    runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
+                    moduleInstance.AppDomain,
+                    runtimeInstance,
                     (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
@@ -179,8 +179,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var runtimeInstance = moduleInstance.RuntimeInstance;
                 var appDomain = moduleInstance.AppDomain;
                 var compileResult = this.CompileWithRetry(
-                    moduleInstance,
-                    runtimeInstance.GetMetadataBlocks(appDomain),
+                    appDomain,
+                    runtimeInstance,
                     (blocks, useReferencedModulesOnly) => CreateTypeContext(appDomain, blocks, moduleInstance.Mvid, token, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
@@ -265,6 +265,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract void RemoveDataItem(DkmClrAppDomain appDomain);
 
+        internal abstract ImmutableArray<MetadataBlock> GetMetadataBlocks(
+            DkmClrAppDomain appDomain,
+            DkmClrRuntimeInstance runtimeInstance);
+
         private EvaluationContextBase CreateMethodContext(
             DkmClrInstructionAddress instructionAddress,
             ImmutableArray<MetadataBlock> metadataBlocks,
@@ -304,18 +308,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal delegate TResult CompileDelegate<TResult>(EvaluationContextBase context, DiagnosticBag diagnostics);
 
         private TResult CompileWithRetry<TResult>(
-            DkmClrModuleInstance moduleInstance,
-            ImmutableArray<MetadataBlock> metadataBlocks,
+            DkmClrAppDomain appDomain,
+            DkmClrRuntimeInstance runtimeInstance,
             CreateContextDelegate createContext,
             CompileDelegate<TResult> compile,
             out string errorMessage)
         {
+            var metadataBlocks = GetMetadataBlocks(appDomain, runtimeInstance);
             return CompileWithRetry(
                 metadataBlocks,
                 this.DiagnosticFormatter,
                 createContext,
                 compile,
-                (AssemblyIdentity assemblyIdentity, out uint size) => moduleInstance.AppDomain.GetMetaDataBytesPtr(assemblyIdentity.GetDisplayName(), out size),
+                (AssemblyIdentity assemblyIdentity, out uint size) => appDomain.GetMetaDataBytesPtr(assemblyIdentity.GetDisplayName(), out size),
                 out errorMessage);
         }
 
