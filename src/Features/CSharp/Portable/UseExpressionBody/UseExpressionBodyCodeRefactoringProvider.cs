@@ -88,7 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 succeeded = true;
             }
 
-            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false))
+            var (canOffer, _) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false);
+            if (canOffer)
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseBlockBodyTitle.ToString(),
