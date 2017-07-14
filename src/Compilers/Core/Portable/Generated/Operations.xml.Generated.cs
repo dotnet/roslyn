@@ -4256,7 +4256,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# try or a VB Try statement.
+    /// Represents a tuple expression.
     /// </summary>
     internal sealed partial class LazyTupleExpression : BaseTupleExpression, ITupleExpression
     {

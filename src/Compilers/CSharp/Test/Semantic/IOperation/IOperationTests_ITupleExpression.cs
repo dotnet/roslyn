@@ -122,6 +122,68 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_ImplicitConversionsWithTypedExpression()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        int a = 1;
+        int b = 2;
+        (long, long) t = /*<bind>*/(a, b)/*</bind>*/;
+        Console.WriteLine(t);
+    }
+}
+";
+            string expectedOperationTree = @"
+ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 a, System.Int64 b)) (Syntax: '(a, b)')
+  Elements(2): IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: 'a')
+      ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+    IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: 'b')
+      ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_ImplicitConversionsWithTypedExpression_WithParentDeclaration()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        int a = 1;
+        int b = 2;
+        /*<bind>*/(long, long) t = (a, b)/*</bind>*/;
+        Console.WriteLine(t);
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(long, long ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(long, long ... *</bind>*/;')
+    Variables: Local_1: (System.Int64, System.Int64) t
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: (System.Int64, System.Int64)) (Syntax: '(a, b)')
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 a, System.Int64 b)) (Syntax: '(a, b)')
+          Elements(2): IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: 'a')
+              ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+            IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: 'b')
+              ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversionFromNull()
         {
             string source = @"
@@ -789,6 +851,56 @@ IOperation:  (OperationKind.None) (Syntax: 'var (x, y)  ... Point(0, 1)')
         }
 
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
+        public void TupleExpression_Deconstruction_ForEach()
+        {
+            string source = @"
+class Point
+{
+    public int X { get; }
+    public int Y { get; }
+
+    public Point(int x, int y)
+    {
+        X = x;
+        Y = y;
+    }
+
+    public void Deconstruct(out uint x, out uint y)
+    {
+        x = 0;
+        y = 0;
+    }
+}
+
+class Class1
+{
+    public void M()
+    {
+        /*<bind>*/foreach (var (x, y) in new Point[]{ new Point(0, 1) })
+        {
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... }')
+  Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'new Point[] ... int(0, 1) }')
+      IArrayCreationExpression (Element Type: Point) (OperationKind.ArrayCreationExpression, Type: Point[]) (Syntax: 'new Point[] ... int(0, 1) }')
+        Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'new Point[] ... int(0, 1) }')
+        Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ new Point(0, 1) }')
+            Element Values(1): IObjectCreationExpression (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreationExpression, Type: Point) (Syntax: 'new Point(0, 1)')
+                Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
+                    ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '1')
+                    ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachVariableStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_DeconstructionWithConversion()
         {
             string source = @"
@@ -805,8 +917,8 @@ class Point
 
     public void Deconstruct(out uint x, out uint y)
     {
-        x = X;
-        y = Y;
+        x = 0;
+        y = 0;
     }
 }
 
@@ -830,14 +942,7 @@ IOperation:  (OperationKind.None) (Syntax: '(uint x, ui ... Point(0, 1)')
           IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '1')
             ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0266: Cannot implicitly convert type 'int' to 'uint'. An explicit conversion exists (are you missing a cast?)
-                //         x = X;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "X").WithArguments("int", "uint").WithLocation(15, 13),
-                // CS0266: Cannot implicitly convert type 'int' to 'uint'. An explicit conversion exists (are you missing a cast?)
-                //         y = Y;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "Y").WithArguments("int", "uint").WithLocation(16, 13)
-            };
+            var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

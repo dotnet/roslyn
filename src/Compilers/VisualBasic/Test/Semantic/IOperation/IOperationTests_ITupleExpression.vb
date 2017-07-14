@@ -134,7 +134,7 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
         End Sub
 
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
-        Public Sub TupleExpression_ImplicitConversionFromNull_ParentVaraibleDeclaration()
+        Public Sub TupleExpression_ImplicitConversionFromNull_ParentVariableDeclaration()
             Dim source = <![CDATA[
 Imports System
 
