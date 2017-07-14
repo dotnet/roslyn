@@ -87,8 +87,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 project.Disconnect()
             Next
 
+            _projectTracker.OnAfterCloseSolution()
             _workspace.Dispose()
-            _projectTracker.Dispose()
 
             For Each filePath In _projectFilePaths
                 File.Delete(filePath)

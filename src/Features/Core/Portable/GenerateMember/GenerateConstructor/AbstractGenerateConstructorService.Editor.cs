@@ -118,13 +118,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var isThis = namedType.Equals(delegatedConstructor.ContainingType);
                 var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
-                var baseConstructorArguments = isThis ? default(ImmutableArray<SyntaxNode>) : delegatingArguments;
-                var thisConstructorArguments = isThis ? delegatingArguments : default(ImmutableArray<SyntaxNode>);
+                var baseConstructorArguments = isThis ? default : delegatingArguments;
+                var thisConstructorArguments = isThis ? delegatingArguments : default;
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: Accessibility.Public,
-                    modifiers: default(DeclarationModifiers),
+                    modifiers: default,
                     typeName: _state.TypeToGenerateIn.Name,
                     parameters: delegatedConstructor.Parameters,
                     baseConstructorArguments: baseConstructorArguments,
@@ -214,13 +214,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var isThis = namedType.Equals(_state.TypeToGenerateIn);
                 var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
-                var baseConstructorArguments = isThis ? default(ImmutableArray<SyntaxNode>) : delegatingArguments;
-                var thisConstructorArguments = isThis ? delegatingArguments : default(ImmutableArray<SyntaxNode>);
+                var baseConstructorArguments = isThis ? default : delegatingArguments;
+                var thisConstructorArguments = isThis ? delegatingArguments : default;
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: Accessibility.Public,
-                    modifiers: default(DeclarationModifiers),
+                    modifiers: default,
                     typeName: _state.TypeToGenerateIn.Name,
                     parameters: allParameters,
                     statements: assignStatements,
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     }
 
                     result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         refKind: _service.GetRefKind(arguments[i]),
                         isParams: false,
                         type: parameterTypes[i],

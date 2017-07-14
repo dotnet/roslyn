@@ -230,11 +230,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     catch (OperationCanceledException)
                     {
-                        return default(TResult);
+                        return default;
                     }
                     catch (AggregateException e) when (CrashUnlessCanceled(e))
                     {
-                        return default(TResult);
+                        return default;
                     }
                     catch (Exception e) when (FatalError.Report(e))
                     {

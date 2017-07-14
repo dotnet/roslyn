@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                 }
 
-                public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
+                public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
                 {
                     // See commentary in ReadTextAsync for why this is implemented this way.
                     return Task.Factory.StartNew(() => WriteText(text, cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
@@ -336,20 +336,20 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                 }
 
-                public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default(CancellationToken))
+                public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
                 {
                     // See commentary in ReadTextAsync for why this is implemented this way.
                     return Task.Factory.StartNew(() => ReadStream(cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
                 }
 
-                public void WriteStream(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+                public void WriteStream(Stream stream, CancellationToken cancellationToken = default)
                 {
                     // The Wait() here will not actually block, since with useAsync: false, the
                     // entire operation will already be done when WaitStreamMaybeAsync completes.
                     WriteStreamMaybeAsync(stream, useAsync: false, cancellationToken: cancellationToken).GetAwaiter().GetResult();
                 }
 
-                public Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+                public Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
                 {
                     return WriteStreamMaybeAsync(stream, useAsync: true, cancellationToken: cancellationToken);
                 }

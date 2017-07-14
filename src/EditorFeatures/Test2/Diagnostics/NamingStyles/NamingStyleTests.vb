@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Function
 
         Private Sub TestNameCreation(namingStyle As MutableNamingStyle, expectedName As String, ParamArray words As String())
-            Assert.Equal(expectedName, namingStyle.NamingStyle.CreateName(words))
+            Assert.Equal(expectedName, namingStyle.NamingStyle.CreateName(words.ToImmutableArray()))
         End Sub
 
         Private Sub TestNameCompliance(namingStyle As MutableNamingStyle, candidateName As String)

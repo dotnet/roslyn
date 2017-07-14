@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 }
             }
 
-            return default(ImmutableArray<byte>);
+            return default;
         }
 
         /// <remarks>
@@ -349,16 +349,16 @@ namespace Microsoft.CodeAnalysis.Debugging
             Func<int, TArg, ImmutableArray<string>> getMethodImportStrings,
             out ImmutableArray<string> externAliasStrings)
         {
-            externAliasStrings = default(ImmutableArray<string>);
+            externAliasStrings = default;
 
-            ImmutableArray<short> groupSizes = default(ImmutableArray<short>);
+            ImmutableArray<short> groupSizes = default;
             bool seenForward = false;
 
         RETRY:
             byte[] bytes = getMethodCustomDebugInfo(methodToken, arg);
             if (bytes == null)
             {
-                return default(ImmutableArray<ImmutableArray<string>>);
+                return default;
             }
 
             foreach (var record in GetCustomDebugInfoRecords(bytes))
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             if (groupSizes.IsDefault)
             {
                 // This can happen in malformed PDBs (e.g. chains of forwards).
-                return default(ImmutableArray<ImmutableArray<string>>);
+                return default;
             }
 
             ImmutableArray<string> importStrings = getMethodImportStrings(methodToken, arg);
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             alias = null;
             externAlias = null;
             target = null;
-            kind = default(ImportTargetKind);
+            kind = default;
 
             if (string.IsNullOrEmpty(import))
             {
@@ -693,8 +693,8 @@ namespace Microsoft.CodeAnalysis.Debugging
         {
             alias = null;
             target = null;
-            kind = default(ImportTargetKind);
-            scope = default(VBImportScopeKind);
+            kind = default;
+            scope = default;
 
             if (import == null)
             {

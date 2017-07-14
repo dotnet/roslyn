@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Host
                 || _source.TryGetValue(out value);
         }
 
-        public override T GetValue(CancellationToken cancellationToken = default(CancellationToken))
+        public override T GetValue(CancellationToken cancellationToken = default)
         {
             if (!_reference.TryGetTarget(out var value))
             {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Host
             return value;
         }
 
-        public override async Task<T> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<T> GetValueAsync(CancellationToken cancellationToken = default)
         {
             if (!_reference.TryGetTarget(out var value))
             {

@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
+                return default;
             }
         }
 
