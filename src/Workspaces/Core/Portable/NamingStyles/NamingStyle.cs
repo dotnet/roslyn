@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 newName, newPrefix, newSuffix, newWordSeparator, newCapitalizationScheme);
         }
 
-        public string CreateName(IEnumerable<string> words)
+        public string CreateName(ImmutableArray<string> words)
         {
             var wordsWithCasing = ApplyCapitalization(words);
             var combinedWordsWithCasing = string.Join(WordSeparator, wordsWithCasing);

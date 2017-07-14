@@ -286,8 +286,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static string GetLocalName(this INamedTypeSymbol containingType)
         {
-            var parts = StringBreaker.BreakIntoWordParts(containingType.Name);
-            for (var i = parts.GetCount() - 1; i >= 0; i--)
+            var parts = StringBreaker.GetWordParts(containingType.Name);
+            for (var i = parts.Count - 1; i >= 0; i--)
             {
                 var p = parts[i];
                 if (char.IsLetter(containingType.Name[p.Start]))

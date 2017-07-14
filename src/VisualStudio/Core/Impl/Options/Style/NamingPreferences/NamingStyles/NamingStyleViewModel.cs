@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Notification;
@@ -69,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             get
             {
-                return _style.NamingStyle.CreateName(new[] { ServicesVSResources.example, ServicesVSResources.identifier });
+                return _style.NamingStyle.CreateName(ImmutableArray.Create(ServicesVSResources.example, ServicesVSResources.identifier));
             }
             set
             {
