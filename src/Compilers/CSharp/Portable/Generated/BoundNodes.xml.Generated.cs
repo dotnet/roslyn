@@ -4364,8 +4364,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            Debug.Assert(argumentRefKindsOpt.IsDefault || arguments.Length == argumentRefKindsOpt.Length);
-
             this.ReceiverOpt = receiverOpt;
             this.Method = method;
             this.Arguments = arguments;
