@@ -6,13 +6,10 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -197,23 +194,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            //if (!_streamingPresenters.Any())
-            //{
-            //    return false;
-            //}
-
-            //if (!TryResolveSymbol(symbol, project, cancellationToken, 
-            //        out var searchSymbol, out var searchProject))
-            //{
-            //    return false;
-            //}
-
-            //var context = _streamingPresenters.First().Value.StartSearch(
-            //    EditorFeaturesResources.Find_References, supportsReferences: true);
-            //var task = AbstractFindUsagesService.FindReferencesAsync(
-            //    context, searchSymbol, searchProject, CancellationToken.None);
-
-            //return true;
             // Legacy API.  Previously used by ObjectBrowser to support 'FindRefs' off of an
             // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
             return false;
