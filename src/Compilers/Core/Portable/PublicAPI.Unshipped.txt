@@ -452,9 +452,7 @@ Microsoft.CodeAnalysis.Semantics.IInterpolation.Alignment.get -> Microsoft.CodeA
 Microsoft.CodeAnalysis.Semantics.IInterpolation.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IInterpolation.FormatString.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IInvalidExpression
-Microsoft.CodeAnalysis.Semantics.IInvalidExpression.Children.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IInvalidStatement
-Microsoft.CodeAnalysis.Semantics.IInvalidStatement.Children.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression.Instance.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression.IsVirtual.get -> bool
