@@ -5,25 +5,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Emit
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    /// <summary>
-    /// Error type symbols should be replaced with an object of this class 
-    /// in the translation layer for emit.
-    /// </summary>
-    internal class ErrorType : Cci.INamespaceTypeReference
+    internal abstract partial class ErrorTypeSymbol : Cci.INamespaceTypeReference
     {
-        public static readonly ErrorType Singleton = new ErrorType();
-
-        /// <summary>
-        /// For the name we will use a word "Error" followed by a guid, generated on the spot.
-        /// </summary>
-        private static readonly string s_name = "Error" + Guid.NewGuid().ToString("B");
-
         Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(EmitContext context)
         {
+            // error types, when emitted, belong to a recognizable error assembly
             return ErrorAssembly.Singleton;
         }
 
@@ -31,120 +22,52 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             get
             {
-                return "";
+                if (ContainingType is null)
+                {
+                    return "";
+                }
+                return ContainingType.ToDisplayString();
             }
         }
 
-        ushort Cci.INamedTypeReference.GenericParameterCount
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        ushort Cci.INamedTypeReference.GenericParameterCount => (ushort)Arity;
 
-        bool Cci.INamedTypeReference.MangleName
-        {
-            get
-            {
-                return false;
-            }
-        }
+        bool Cci.INamedTypeReference.MangleName => Arity != 0;
 
-        bool Cci.ITypeReference.IsEnum
-        {
-            get
-            {
-                return false;
-            }
-        }
+        bool Cci.ITypeReference.IsEnum => false;
 
-        bool Cci.ITypeReference.IsValueType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        bool Cci.ITypeReference.IsValueType => false;
 
         Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
         {
             return null;
         }
 
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode
-        {
-            get
-            {
-                return Cci.PrimitiveTypeCode.NotPrimitive;
-            }
-        }
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode => Cci.PrimitiveTypeCode.NotPrimitive;
 
-        TypeDefinitionHandle Cci.ITypeReference.TypeDef
-        {
-            get
-            {
-                return default(TypeDefinitionHandle);
-            }
-        }
+        TypeDefinitionHandle Cci.ITypeReference.TypeDef => default(TypeDefinitionHandle);
 
-        Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference
-        {
-            get
-            {
-                return null;
-            }
-        }
+        Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference => null;
 
-        Cci.IGenericTypeInstanceReference Cci.ITypeReference.AsGenericTypeInstanceReference
-        {
-            get
-            {
-                return null;
-            }
-        }
+        Cci.IGenericTypeInstanceReference Cci.ITypeReference.AsGenericTypeInstanceReference => null;
 
-        Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference
-        {
-            get
-            {
-                return null;
-            }
-        }
+        Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference => null;
 
         Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
         {
             return null;
         }
 
-        Cci.INamespaceTypeReference Cci.ITypeReference.AsNamespaceTypeReference
-        {
-            get
-            {
-                return this;
-            }
-        }
+        Cci.INamespaceTypeReference Cci.ITypeReference.AsNamespaceTypeReference => this;
 
         Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             return null;
         }
 
-        Cci.INestedTypeReference Cci.ITypeReference.AsNestedTypeReference
-        {
-            get
-            {
-                return null;
-            }
-        }
+        Cci.INestedTypeReference Cci.ITypeReference.AsNestedTypeReference => null;
 
-        Cci.ISpecializedNestedTypeReference Cci.ITypeReference.AsSpecializedNestedTypeReference
-        {
-            get
-            {
-                return null;
-            }
-        }
+        Cci.ISpecializedNestedTypeReference Cci.ITypeReference.AsSpecializedNestedTypeReference => null;
 
         Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
         {
@@ -166,26 +89,26 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
-        string Cci.INamedEntity.Name
-        {
-            get
-            {
-                return s_name;
-            }
-        }
+        string Cci.INamedEntity.Name => Name;
 
         /// <summary>
-        /// A fake containing assembly for an ErrorType object.
+        /// A fake containing assembly for an ErrorTypeSymbol object.
         /// </summary>
-        private sealed class ErrorAssembly : Cci.IAssemblyReference
+        internal sealed class ErrorAssembly : Cci.IAssemblyReference
         {
+            private const string errorAssemblyName = "CodeAnalysisError";
             public static readonly ErrorAssembly Singleton = new ErrorAssembly();
-            
+           
+            public static bool IsErrorAssembly(AssemblySymbol symbol)
+            {
+                return symbol.Name == errorAssemblyName && symbol.Identity.Version == AssemblyIdentity.NullVersion;
+            }
+
             /// <summary>
             /// For the name we will use a word "Error" followed by a guid, generated on the spot.
             /// </summary>
             private static readonly AssemblyIdentity s_identity = new AssemblyIdentity(
-                name: "Error" + Guid.NewGuid().ToString("B"),
+                name: errorAssemblyName,
                 version: AssemblyIdentity.NullVersion,
                 cultureName: "",
                 publicKeyOrToken: ImmutableArray<byte>.Empty,

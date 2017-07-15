@@ -3966,6 +3966,14 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_EscapeCall2", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; cannot be found. It was referenced by a compilation that had errors.
+        /// </summary>
+        internal static string ERR_ErrorType {
+            get {
+                return ResourceManager.GetString("ERR_ErrorType", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to A &apos;{0}&apos; character may only be escaped by doubling &apos;{0}{0}&apos; in an interpolated string..

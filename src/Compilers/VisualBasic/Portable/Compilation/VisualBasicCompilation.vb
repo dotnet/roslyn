@@ -2215,6 +2215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             moduleBuilder As CommonPEModuleBuilder,
             emittingPdb As Boolean,
             emitMetadataOnly As Boolean,
+            tolerateErrors As Boolean, ' PROTOTYPE(tolerate-errors)
             emitTestCoverageData As Boolean,
             diagnostics As DiagnosticBag,
             filterOpt As Predicate(Of ISymbol),

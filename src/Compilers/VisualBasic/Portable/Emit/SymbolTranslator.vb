@@ -124,7 +124,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 CheckTupleUnderlyingType(namedTypeSymbol, syntaxNodeOpt, diagnostics)
             End If
 
-            ' Substitute error types with a special singleton object.
             ' Unreported bad types can come through NoPia embedding, for example.
             If namedTypeSymbol.OriginalDefinition.Kind = SymbolKind.ErrorType Then
                 Dim errorType = DirectCast(namedTypeSymbol.OriginalDefinition, ErrorTypeSymbol)
@@ -141,8 +140,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                     If(diagInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty)),
                                     If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation())))
                 End If
-
-                Return Microsoft.CodeAnalysis.Emit.ErrorType.Singleton
             End If
 
             Me.ProcessReferencedSymbol(namedTypeSymbol)

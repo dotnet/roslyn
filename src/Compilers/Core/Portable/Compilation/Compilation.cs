@@ -1746,6 +1746,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBuilder,
             bool emittingPdb,
             bool emitMetadataOnly,
+            bool tolerateErrors,
             bool emitTestCoverageData,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
@@ -1874,6 +1875,7 @@ namespace Microsoft.CodeAnalysis
                     moduleBuilder,
                     emittingPdb,
                     emitMetadataOnly: false,
+                    tolerateErrors: false, // PROTOTYPE(tolerate-errors)
                     emitTestCoverageData: false,
                     diagnostics: diagnostics,
                     filterOpt: filterOpt,
@@ -2192,6 +2194,7 @@ namespace Microsoft.CodeAnalysis
                         moduleBeingBuilt,
                         emittingPdb: pdbStream != null || embedPdb,
                         emitMetadataOnly: options.EmitMetadataOnly,
+                        tolerateErrors: options.TolerateErrors,
                         emitTestCoverageData: options.EmitTestCoverageData,
                         diagnostics: diagnostics,
                         filterOpt: null,
@@ -2231,6 +2234,7 @@ namespace Microsoft.CodeAnalysis
                         testData?.SymWriterFactory,
                         diagnostics,
                         metadataOnly: options.EmitMetadataOnly,
+                        tolerateErrors: options.TolerateErrors,
                         includePrivateMembers: options.IncludePrivateMembers,
                         emitTestCoverageData: options.EmitTestCoverageData,
                         pePdbFilePath: options.PdbFilePath,
@@ -2395,6 +2399,7 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics,
             bool metadataOnly,
             bool includePrivateMembers,
+            bool tolerateErrors,
             bool emitTestCoverageData,
             string pePdbFilePath,
             CancellationToken cancellationToken)
@@ -2462,7 +2467,8 @@ namespace Microsoft.CodeAnalysis
 
                 Func<Stream> getPeStream = () =>
                 {
-                    if (metadataDiagnostics.HasAnyErrors())
+                    if (metadataDiagnostics.HasAnyErrors() &&
+                        !(metadataOnly && tolerateErrors))
                     {
                         return null;
                     }
@@ -2536,6 +2542,7 @@ namespace Microsoft.CodeAnalysis
                         pePdbFilePath,
                         metadataOnly,
                         includePrivateMembers,
+                        tolerateErrors,
                         deterministic,
                         emitTestCoverageData,
                         cancellationToken))
@@ -2574,7 +2581,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // translate metadata errors.
-                if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref metadataDiagnostics))
+                if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref metadataDiagnostics) && !(metadataOnly && tolerateErrors))
                 {
                     return false;
                 }
@@ -2622,6 +2629,7 @@ namespace Microsoft.CodeAnalysis
             string pdbPathOpt,
             bool metadataOnly,
             bool includePrivateMembers,
+            bool tolerateErrors,
             bool isDeterministic,
             bool emitTestCoverageData,
             CancellationToken cancellationToken)
@@ -2638,6 +2646,7 @@ namespace Microsoft.CodeAnalysis
                 nativePdbWriterOpt,
                 pdbPathOpt,
                 metadataOnly,
+                tolerateErrors,
                 deterministicPrimaryOutput,
                 emitTestCoverageData,
                 cancellationToken))
@@ -2659,6 +2668,7 @@ namespace Microsoft.CodeAnalysis
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     metadataOnly: true,
+                    tolerateErrors: false,
                     isDeterministic: true,
                     emitTestCoverageData: false,
                     cancellationToken: cancellationToken))

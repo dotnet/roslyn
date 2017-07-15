@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private ImmutableArray<Cci.ExportedType> _lazyExportedTypes;
 
+        private readonly bool _tolerateErrors;
+
         /// <summary>
         /// The compiler-generated implementation type for each fixed-size buffer.
         /// </summary>
@@ -96,6 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 _embeddedTypesManagerOpt = new NoPia.EmbeddedTypesManager(this);
             }
+
+            _tolerateErrors = emitOptions.TolerateErrors;
         }
 
         public override string Name
@@ -838,7 +842,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 CheckTupleUnderlyingType(namedTypeSymbol, syntaxNodeOpt, diagnostics);
             }
 
-            // Substitute error types with a special singleton object.
             // Unreported bad types can come through NoPia embedding, for example.
             if (namedTypeSymbol.OriginalDefinition.Kind == SymbolKind.ErrorType)
             {
@@ -856,8 +859,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     diagnostics.Add(new CSDiagnostic(diagInfo ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty), syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location));
                 }
-
-                return CodeAnalysis.Emit.ErrorType.Singleton;
             }
 
             if (!namedTypeSymbol.IsDefinition)

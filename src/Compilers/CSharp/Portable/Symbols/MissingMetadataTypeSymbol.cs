@@ -2,9 +2,6 @@
 
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
 
@@ -71,8 +68,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (containingAssembly.IsMissing)
                 {
-                    // error CS0012: The type 'Blah' is defined in an assembly that is not referenced. You must add a reference to assembly 'Goo'.
-                    return new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, this, containingAssembly.Identity);
+                    if (ErrorAssembly.IsErrorAssembly(containingAssembly))
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        // error CS0012: The type 'Blah' is defined in an assembly that is not referenced. You must add a reference to assembly 'Goo'.
+                        return new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, this, containingAssembly.Identity);
+                    }
                 }
                 else
                 {
