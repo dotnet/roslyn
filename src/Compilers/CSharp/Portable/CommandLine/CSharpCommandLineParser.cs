@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpCommandLineParser Default { get; } = new CSharpCommandLineParser();
 
         internal static CSharpCommandLineParser ScriptRunner { get; } = new CSharpCommandLineParser(isScriptRunner: true);
+        private readonly static char[] s_quoteOrEquals = new[] { '"', '=' };
 
         internal CSharpCommandLineParser(bool isScriptRunner = false)
             : base(CSharp.MessageProvider.Instance, isScriptRunner)
@@ -1656,7 +1657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // /r:alias=reference;reference      ... error 2034
             // /r:nonidf=reference               ... error 1679
 
-            int eqlOrQuote = value.IndexOfAny(new[] { '"', '=' });
+            int eqlOrQuote = value.IndexOfAny(s_quoteOrEquals);
 
             string alias;
             if (eqlOrQuote >= 0 && value[eqlOrQuote] == '=')

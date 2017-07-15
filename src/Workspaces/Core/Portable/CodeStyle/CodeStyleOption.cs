@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
-        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default(T), NotificationOption.None);
+        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.None);
 
         private const int SerializationVersion = 1;
 

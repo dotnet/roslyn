@@ -1585,6 +1585,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to in {0} (project {1}).
+        /// </summary>
+        internal static string in_0_project_1 {
+            get {
+                return ResourceManager.GetString("in_0_project_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to in Source.
         /// </summary>
         internal static string in_Source {
@@ -1900,6 +1909,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Member name can be simplified.
+        /// </summary>
+        internal static string Member_name_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Member_name_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to method.
         /// </summary>
         internal static string method {
@@ -2080,6 +2098,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Modules {
             get {
                 return ResourceManager.GetString("Modules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move declaration near reference.
+        /// </summary>
+        internal static string Move_declaration_near_reference {
+            get {
+                return ResourceManager.GetString("Move_declaration_near_reference", resourceCulture);
             }
         }
         
@@ -2347,11 +2374,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to project .
+        ///   Looks up a localized string similar to project {0}.
         /// </summary>
-        internal static string project_space {
+        internal static string project_0 {
             get {
-                return ResourceManager.GetString("project_space", resourceCulture);
+                return ResourceManager.GetString("project_0", resourceCulture);
             }
         }
         
@@ -3021,15 +3048,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to type .
-        /// </summary>
-        internal static string type_space {
-            get {
-                return ResourceManager.GetString("type_space", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unable to create hosting process..
         /// </summary>
         internal static string Unable_to_create_hosting_process {
@@ -3427,6 +3445,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use inferred member name.
+        /// </summary>
+        internal static string Use_inferred_member_name {
+            get {
+                return ResourceManager.GetString("Use_inferred_member_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use local version &apos;{0}&apos;.
         /// </summary>
         internal static string Use_local_version_0 {
@@ -3496,6 +3523,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Variadic_SignatureHelpItem_must_have_at_least_one_parameter {
             get {
                 return ResourceManager.GetString("Variadic_SignatureHelpItem_must_have_at_least_one_parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Declaration changes scope and may change meaning..
+        /// </summary>
+        internal static string Warning_colon_Declaration_changes_scope_and_may_change_meaning {
+            get {
+                return ResourceManager.GetString("Warning_colon_Declaration_changes_scope_and_may_change_meaning", resourceCulture);
             }
         }
         

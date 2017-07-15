@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         internal bool TryGetContainingEditableSpan(SnapshotPoint point, out SnapshotSpan editableSpan)
         {
-            editableSpan = default(SnapshotSpan);
+            editableSpan = default;
             if (!_openTextBuffers.TryGetValue(point.Snapshot.TextBuffer, out var bufferManager))
             {
                 return false;

@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
                 }
 
-                return default(ImageMoniker);
+                return default;
             }
         }
 
