@@ -29,11 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             private bool _inExpressionLambda;
 
             /// <summary>
-            /// Set to true of any lambda expressions were seen in the analyzed method body.
-            /// </summary>
-            public bool SeenLambda { get; private set; }
-
-            /// <summary>
             /// For each scope that defines variables, identifies the nearest enclosing scope that defines variables.
             /// </summary>
             public readonly Dictionary<BoundNode, BoundNode> ScopeParent = new Dictionary<BoundNode, BoundNode>();
@@ -116,12 +111,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var analysis = new Analysis(method);
                 analysis.Analyze(node);
-                return analysis;
+                return analysis.ScopeTree == null ? null : analysis;
             }
 
             private void Analyze(BoundNode node)
             {
-                ScopeTree = ScopeTreeBuilder.Build(node, this);
+                ScopeTree = ScopeTreeBuilder.Build(
+                    node,
+                    _topLevelMethod,
+                    MethodsConvertedToDelegates);
                 _currentScope = FindNodeToAnalyze(node);
 
                 Debug.Assert(!_inExpressionLambda);
@@ -181,9 +179,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Create the optimized plan for the location of lambda methods and whether scopes need access to parent scopes
             ///  </summary>
-            internal void ComputeLambdaScopesAndFrameCaptures()
+            internal void ComputeLambdaScopesAndFrameCaptures(ParameterSymbol thisParam)
             {
-                RemoveUnneededReferences();
+                RemoveUnneededReferences(thisParam);
 
                 LambdaScopes = new Dictionary<MethodSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
                 NeedsParentFrame = new HashSet<BoundNode>();
@@ -284,7 +282,76 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
+                }
+            }
 
+            /// <summary>
+            /// Walk up the scope tree looking for a variable declaration.
+            /// </summary>
+            public static Scope GetVariableDeclarationScope(Scope startingScope, Symbol variable)
+            {
+                if (variable is ParameterSymbol p && p.IsThis)
+                {
+                    return null;
+                }
+
+                var currentScope = startingScope;
+                while (currentScope != null)
+                {
+                    if (variable.Kind == SymbolKind.Parameter || variable.Kind == SymbolKind.Local)
+                    {
+                        if (currentScope.DeclaredVariables.Contains(variable))
+                        {
+                            return currentScope;
+                        }
+                    }
+                    else
+                    {
+                        if (currentScope.Closures.Contains(c => variable == c.OriginalMethodSymbol))
+                        {
+                            return currentScope;
+                        }
+                    }
+                    currentScope = currentScope.Parent;
+                }
+                return null;
+            }
+
+            /// <summary>
+            /// Find the parent <see cref="Scope"/> of the <see cref="Scope"/> corresponding to
+            /// the given <see cref="BoundNode"/>.
+            /// </summary>
+            public static Scope GetScopeParent(Scope treeRoot, BoundNode scopeNode)
+            {
+                var correspondingScope = GetScopeWithMatchingBoundNode(treeRoot, scopeNode);
+                return correspondingScope.Parent;
+            }
+
+            /// <summary>
+            /// Finds a <see cref="Scope" /> with a matching <see cref="BoundNode"/>
+            /// as the one given.
+            /// </summary>
+            public static Scope GetScopeWithMatchingBoundNode(Scope treeRoot, BoundNode node)
+            {
+                return Helper(treeRoot) ?? throw ExceptionUtilities.Unreachable;
+
+                Scope Helper(Scope currentScope)
+                {
+                    if (currentScope.BoundNode == node)
+                    {
+                        return currentScope;
+                    }
+
+                    foreach (var nestedScope in currentScope.NestedScopes)
+                    {
+                        var found = Helper(nestedScope);
+                        if (found != null)
+                        {
+                            return found;
+                        }
+                    }
+
+                    return null;
                 }
             }
 
@@ -488,7 +555,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             private BoundNode VisitLambdaOrFunction(IBoundLambdaOrFunction node)
             {
                 Debug.Assert((object)node.Symbol != null);
-                SeenLambda = true;
                 var oldParent = _currentParent;
                 var oldBlock = _currentScope;
                 _currentParent = node.Symbol;

@@ -228,13 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
 
             var analysis = Analysis.Analyze(loweredBody, method);
-            if (!analysis.SeenLambda)
+            if (analysis == null)
             {
-                // Unreachable anonymous functions are ignored by the analyzer.
-                // No closures or lambda methods are generated.
-                // E.g. 
-                //   int y = 0;
-                //   var b = false && (from z in new X(y) select f(z + y))
                 return loweredBody;
             }
 
@@ -252,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 assignLocals);
 
-            analysis.ComputeLambdaScopesAndFrameCaptures();
+            analysis.ComputeLambdaScopesAndFrameCaptures(thisParameter);
             rewriter.MakeFrames(closureDebugInfoBuilder);
 
             // First, lower everything but references (calls, delegate conversions)
@@ -341,8 +336,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var captured in capturedVars)
                 {
-                    if (!_analysis.VariableScope.TryGetValue(captured, out BoundNode captureScope))
+                    var declarationScope = Analysis.GetVariableDeclarationScope(scope, captured);
+                    if (_analysis.VariableScope.TryGetValue(captured, out BoundNode captureScope))
                     {
+                        Debug.Assert(declarationScope.BoundNode == captureScope);
+                    }
+                    else
+                    {
+                        Debug.Assert(declarationScope == null);
                         continue;
                     }
 
@@ -357,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    LambdaFrame frame = GetFrameForScope(captureScope, closureDebugInfo);
+                    LambdaFrame frame = GetFrameForScope(declarationScope, closureDebugInfo);
 
                     if (captured.Kind != SymbolKind.Method && !proxies.ContainsKey(captured))
                     {
@@ -450,26 +451,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private LambdaFrame GetFrameForScope(BoundNode scope, ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
+        private LambdaFrame GetFrameForScope(Analysis.Scope scope, ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
         {
+            var scopeBoundNode = scope.BoundNode;
             LambdaFrame frame;
-            if (!_frames.TryGetValue(scope, out frame))
+            if (!_frames.TryGetValue(scopeBoundNode, out frame))
             {
-                var syntax = scope.Syntax;
+                var syntax = scopeBoundNode.Syntax;
                 Debug.Assert(syntax != null);
 
                 DebugId methodId = GetTopLevelMethodId();
                 DebugId closureId = GetClosureId(syntax, closureDebugInfo);
 
-                var canBeStruct = !_analysis.ScopesThatCantBeStructs.Contains(scope);
+                var canBeStruct = !_analysis.ScopesThatCantBeStructs.Contains(scopeBoundNode);
 
-                var containingMethod = _analysis.ScopeOwner[scope];
+                var containingMethod = scope.ContainingClosureOpt?.OriginalMethodSymbol ?? _topLevelMethod;
+                Debug.Assert(containingMethod == _analysis.ScopeOwner[scopeBoundNode]);
                 if (_substitutedSourceMethod != null && containingMethod == _topLevelMethod)
                 {
                     containingMethod = _substitutedSourceMethod;
                 }
                 frame = new LambdaFrame(_topLevelMethod, containingMethod, canBeStruct, syntax, methodId, closureId);
-                _frames.Add(scope, frame);
+                _frames.Add(scopeBoundNode, frame);
 
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(ContainingType, frame);
                 if (frame.Constructor != null)
@@ -701,14 +704,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Capture any parameters of this block.  This would typically occur
             // at the top level of a method or lambda with captured parameters.
             // TODO: speed up the following by computing it in analysis.
+            var scope = Analysis.GetScopeWithMatchingBoundNode(_analysis.ScopeTree, node);
+            var variablesInThisScope = ArrayBuilder<Symbol>.GetInstance();
             foreach (var variable in _analysis.CapturedVariables.Keys)
             {
-                BoundNode varNode;
-                if (!_analysis.VariableScope.TryGetValue(variable, out varNode) || varNode != node)
+                if (variable.Kind != SymbolKind.Method &&
+                    _analysis.VariableScope.TryGetValue(variable, out var varNode) &&
+                    varNode == node)
                 {
-                    continue;
+                    variablesInThisScope.Add(variable);
                 }
-
+            }
+            Debug.Assert(variablesInThisScope.SequenceEqual(scope.DeclaredVariables));
+            foreach (var variable in variablesInThisScope)
+            {
                 InitVariableProxy(syntax, variable, framePointer, prologue);
             }
 
@@ -1360,7 +1369,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // strictly need `this`.
                 if (_analysis.CanTakeRefParameters(node.Symbol))
                 {
-                    lambdaScope = _analysis.ScopeParent[node.Body];
+                    lambdaScope = Analysis.GetScopeParent(_analysis.ScopeTree, node.Body)?.BoundNode;
+                    Debug.Assert(lambdaScope == _analysis.ScopeParent[node.Body]);
                     _ = _frames.TryGetValue(lambdaScope, out containerAsFrame);
                     structClosures = GetStructClosures(containerAsFrame, lambdaScope);
                 }
@@ -1468,12 +1478,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool FindParentFrame(ref LambdaFrame container, ref BoundNode scope)
             {
-                while (_analysis.ScopeParent.TryGetValue(scope, out scope))
+                var temp = Analysis.GetScopeParent(_analysis.ScopeTree, scope)?.BoundNode;
+                Debug.Assert(temp == null || _analysis.ScopeParent.TryGetValue(scope, out var tempScope) && tempScope == temp);
+                scope = temp;
+                while (scope != null)
                 {
                     if (_frames.TryGetValue(scope, out container))
                     {
                         return true;
                     }
+                    temp = Analysis.GetScopeParent(_analysis.ScopeTree, scope)?.BoundNode;
+                    Debug.Assert(temp == null || _analysis.ScopeParent.TryGetValue(scope, out tempScope) && tempScope == temp);
+                    scope = temp;
                 }
                 return false;
             }
@@ -1552,8 +1568,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: We require "lambdaScope != null". 
             //       We do not want to introduce a field into an actual user's class (not a synthetic frame).
+            Debug.Assert(Analysis.GetScopeParent(_analysis.ScopeTree, node.Body).BoundNode == _analysis.ScopeParent[node.Body]);
             var shouldCacheInLoop = lambdaScope != null &&
-                lambdaScope != _analysis.ScopeParent[node.Body] &&
+                lambdaScope != Analysis.GetScopeParent(_analysis.ScopeTree, node.Body).BoundNode &&
                 InLoopOrLambda(node.Syntax, lambdaScope.Syntax);
 
             if (shouldCacheForStaticMethod || shouldCacheInLoop)

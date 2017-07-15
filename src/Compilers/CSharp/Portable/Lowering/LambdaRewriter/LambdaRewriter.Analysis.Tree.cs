@@ -7,7 +7,6 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -40,7 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// in this scope or nested scopes. "Declared" refers to the start of the variable
                 /// lifetime (which, at this point in lowering, should be equivalent to lexical scope).
                 /// </summary>
-                public ArrayBuilder<Symbol> DeclaredVariables { get; } = ArrayBuilder<Symbol>.GetInstance();
+                /// <remarks>
+                /// It's important that this is a set and that enumeration order is deterministic. We loop
+                /// over this list to generate proxies and if we loop out of order this will cause
+                /// non-deterministic compilation, and if we generate duplicate proxies we'll generate
+                /// wasteful code in the best case and incorrect code in the worst.
+                /// </remarks>
+                public SetWithInsertionOrder<Symbol> DeclaredVariables { get; } = new SetWithInsertionOrder<Symbol>();
 
                 /// <summary>
                 /// The bound node representing this scope. This roughly corresponds to the bound
@@ -54,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// The closure that this scope is nested inside. Null if this scope is not nested
                 /// inside a closure.
                 /// </summary>
-                public Closure ContainingClosure { get; }
+                public Closure ContainingClosureOpt { get; }
 
                 public Scope(Scope parent, BoundNode boundNode, Closure containingClosure)
                 {
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Parent = parent;
                     BoundNode = boundNode;
-                    ContainingClosure = containingClosure;
+                    ContainingClosureOpt = containingClosure;
                 }
 
                 public void Free()
@@ -78,7 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         closure.Free();
                     }
                     Closures.Free();
-                    DeclaredVariables.Free();
                 }
 
                 public override string ToString() => BoundNode.Syntax.GetText().ToString();
@@ -118,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Optimizes local functions such that if a local function only references other local functions
             /// that capture no variables, we don't need to create capture environments for any of them.
             /// </summary>
-            private void RemoveUnneededReferences()
+            private void RemoveUnneededReferences(ParameterSymbol thisParam)
             {
                 var methodGraph = new MultiDictionary<MethodSymbol, MethodSymbol>();
                 var capturesThis = new HashSet<MethodSymbol>();
@@ -132,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             methodGraph.Add(localFunc, closure.OriginalMethodSymbol);
                         }
-                        else if (capture == _topLevelMethod.ThisParameter)
+                        else if (capture == thisParam)
                         {
                             if (capturesThis.Add(closure.OriginalMethodSymbol))
                             {
@@ -168,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     if (capturesThis.Contains(closure.OriginalMethodSymbol))
                     {
-                        closure.CapturedVariables.Add(_topLevelMethod.ThisParameter);
+                        closure.CapturedVariables.Add(thisParam);
                     }
                 });
             }
@@ -191,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Builds a tree of <see cref="Scope"/> nodes corresponding to a given method.
-            /// <see cref="Build(BoundNode, Analysis)"/> visits the bound tree and translates
+            /// <see cref="Build(BoundNode, MethodSymbol, HashSet{MethodSymbol})"/> visits the bound tree and translates
             /// information from the bound tree about variable scope, declared variables, and
             /// variable captures into the resulting <see cref="Scope"/> tree.
             /// </summary>
@@ -211,32 +215,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// </summary>
                 private readonly SmallDictionary<Symbol, Scope> _localToScope = new SmallDictionary<Symbol, Scope>();
 
-                private readonly Analysis _analysis;
+                private readonly MethodSymbol _topLevelMethod;
 
-                private ScopeTreeBuilder(Scope rootScope, Analysis analysis)
+                private bool _sawClosure = false;
+
+                /// <summary>
+                /// If a local function is in the set, at some point in the code it is converted
+                /// to a delegate and should then not be optimized to a struct closure.
+                /// Also contains all lambdas (as they are converted to delegates implicitly).
+                /// </summary>
+                private readonly HashSet<MethodSymbol> _methodsConvertedToDelegates;
+
+                private ScopeTreeBuilder(
+                    Scope rootScope,
+                    MethodSymbol topLevelMethod,
+                    HashSet<MethodSymbol> methodsConvertedToDelegates)
                 {
                     Debug.Assert(rootScope != null);
-                    Debug.Assert(analysis != null);
+                    Debug.Assert(topLevelMethod != null);
+                    Debug.Assert(methodsConvertedToDelegates != null);
 
                     _currentScope = rootScope;
-                    _analysis = analysis;
+                    _topLevelMethod = topLevelMethod;
+                    _methodsConvertedToDelegates = methodsConvertedToDelegates;
                 }
 
-                public static Scope Build(BoundNode node, Analysis analysis)
+                public static Scope Build(
+                    BoundNode node,
+                    MethodSymbol topLevelMethod,
+                    HashSet<MethodSymbol> methodsConvertedToDelegates)
                 {
                     // This should be the top-level node
                     Debug.Assert(node == FindNodeToAnalyze(node));
+                    Debug.Assert(topLevelMethod != null);
 
                     var rootScope = new Scope(parent: null, boundNode: node, containingClosure: null);
-                    var builder = new ScopeTreeBuilder(rootScope, analysis);
+                    var builder = new ScopeTreeBuilder(
+                        rootScope,
+                        topLevelMethod,
+                        methodsConvertedToDelegates);
                     builder.Build();
-                    return rootScope;
+                    return builder._sawClosure ? rootScope : null;
                 }
 
                 private void Build()
                 {
                     // Set up the current method locals
-                    DeclareLocals(_currentScope, _analysis._topLevelMethod.Parameters);
+                    DeclareLocals(_currentScope, _topLevelMethod.Parameters);
                     Visit(_currentScope.BoundNode);
                 }
 
@@ -260,6 +285,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override BoundNode VisitCatchBlock(BoundCatchBlock node)
                 {
+                    if (node.Locals.IsDefaultOrEmpty)
+                    {
+                        return base.VisitCatchBlock(node);
+                    }
+
                     var oldScope = _currentScope;
                     _currentScope = CreateOrReuseScope(node, node.Locals);
                     var result = base.VisitCatchBlock(node);
@@ -269,6 +299,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override BoundNode VisitSequence(BoundSequence node)
                 {
+                    if (node.Locals.IsDefaultOrEmpty)
+                    {
+                        return base.VisitSequence(node);
+                    }
+
                     var oldScope = _currentScope;
                     _currentScope = CreateOrReuseScope(node, node.Locals);
                     var result = base.VisitSequence(node);
@@ -296,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var oldInExpressionTree = _inExpressionTree;
                     _inExpressionTree |= node.Type.IsExpressionTree();
 
-                    _analysis.MethodsConvertedToDelegates.Add(node.Symbol.OriginalDefinition);
+                    _methodsConvertedToDelegates.Add(node.Symbol.OriginalDefinition);
                     var result = VisitClosure(node.Symbol, node.Body);
 
                     _inExpressionTree = oldInExpressionTree;
@@ -323,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Use OriginalDefinition to strip generic type parameters
                         var method = node.MethodOpt.OriginalDefinition;
                         AddIfCaptured(method);
-                        _analysis.MethodsConvertedToDelegates.Add(method);
+                        _methodsConvertedToDelegates.Add(method);
                     }
                     return base.VisitDelegateCreationExpression(node);
                 }
@@ -342,13 +377,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override BoundNode VisitBaseReference(BoundBaseReference node)
                 {
-                    AddIfCaptured(_analysis._topLevelMethod.ThisParameter);
+                    AddIfCaptured(_topLevelMethod.ThisParameter);
                     return base.VisitBaseReference(node);
                 }
 
                 public override BoundNode VisitThisReference(BoundThisReference node)
                 {
-                    var thisParam = _analysis._topLevelMethod.ThisParameter;
+                    var thisParam = _topLevelMethod.ThisParameter;
                     if (thisParam != null)
                     {
                         AddIfCaptured(thisParam);
@@ -372,6 +407,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private BoundNode VisitClosure(MethodSymbol closureSymbol, BoundBlock body)
                 {
                     Debug.Assert((object)closureSymbol != null);
+
+                    _sawClosure |= true;
 
                     // Closure is declared (lives) in the parent scope, but its
                     // variables are in a nested scope
@@ -426,11 +463,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             closure.CapturedVariables.Add(symbol);
 
                             // Also mark captured in enclosing scopes
-                            while (scope.ContainingClosure == closure)
+                            while (scope.ContainingClosureOpt == closure)
                             {
                                 scope = scope.Parent;
                             }
-                            closure = scope.ContainingClosure;
+                            closure = scope.ContainingClosureOpt;
                         }
 
                         // Also record where the captured variable lives
