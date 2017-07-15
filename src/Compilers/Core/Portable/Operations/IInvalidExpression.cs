@@ -10,10 +10,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </remarks>
     public interface IInvalidExpression : IOperation
     {
-        /// <summary>
-        /// Child operations.
-        /// </summary>
-        IEnumerable<IOperation> Children { get; }
     }
 }
 
