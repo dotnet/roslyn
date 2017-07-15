@@ -2450,7 +2450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 ((InvocationExpressionSyntax)token.Parent.Parent).Expression.ToString() == "var";
         }
 
-        public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt = null, CancellationToken cancellationToken = default)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);

@@ -1570,11 +1570,11 @@ S[0]");
 }");
         }
 
-        [WorkItem(542277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542277")]
         /// <summary>
         /// Access fields on constrained generic types.
         /// </summary>
         [ClrOnlyFact]
+        [WorkItem(542277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542277")]
         public void Fields()
         {
             var source =

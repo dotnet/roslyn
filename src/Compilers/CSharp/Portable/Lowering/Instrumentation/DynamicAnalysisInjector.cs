@@ -105,17 +105,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             _spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
             TypeSymbol payloadElementType = methodBodyFactory.SpecialType(SpecialType.System_Boolean);
             _payloadType = ArrayTypeSymbol.CreateCSharpArray(methodBodyFactory.Compilation.Assembly, payloadElementType);
-            _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             _diagnostics = diagnostics;
             _debugDocumentProvider = debugDocumentProvider;
             _methodBodyFactory = methodBodyFactory;
 
+            // Set the factory context to generate nodes for the current method
+            var oldMethod = methodBodyFactory.CurrentMethod;
+            methodBodyFactory.CurrentMethod = method;
+
+            _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             // The first point indicates entry into the method and has the span of the method definition.
             SyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
             if (!method.IsImplicitlyDeclared)
             {
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
             }
+
+            // Restore context
+            methodBodyFactory.CurrentMethod = oldMethod;
         }
 
         private static bool IsExcludedFromCodeCoverage(MethodSymbol method)

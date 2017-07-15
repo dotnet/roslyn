@@ -502,8 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 block = null;
                 hasErrors = true;
-                // TODO(https://github.com/dotnet/roslyn/issues/14900): Better error message
-                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, localSymbol.Locations[0], localSymbol);
+                diagnostics.Add(ErrorCode.ERR_LocalFunctionMissingBody, localSymbol.Locations[0], localSymbol);
             }
 
             if (block != null)
@@ -1050,44 +1049,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
                 }
             }
-            else if (initializerType.SpecialType == SpecialType.System_String)
-            {
-                // See ExpressionBinder::bindPtrToString
-
-                TypeSymbol elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
-                Debug.Assert(!elementType.IsManagedType);
-
-                initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, false, diagnostics);
-
-                // The string case is special - we'll pin a synthesized string temp, rather than the pointer local.
-                localSymbol.SetSpecificallyNotPinned();
-
-                // UNDONE: ExpressionBinder::CheckFieldUse (something about MarshalByRef)
-            }
-            else if (initializerType.IsArray())
-            {
-                // See ExpressionBinder::BindPtrToArray (though most of that functionality is now in LocalRewriter).
-
-                var arrayType = (ArrayTypeSymbol)initializerType;
-                TypeSymbol elementType = arrayType.ElementType;
-
-                bool hasErrors = false;
-                if (elementType.IsManagedType)
-                {
-                    Error(diagnostics, ErrorCode.ERR_ManagedAddr, initializerSyntax, elementType);
-                    hasErrors = true;
-                }
-
-                initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, hasErrors, diagnostics);
-            }
             else
             {
-                if (!initializerOpt.HasAnyErrors)
+                TypeSymbol elementType;
+                bool hasErrors = false;
+
+                if (initializerType.SpecialType == SpecialType.System_String)
                 {
+                    elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
+                    Debug.Assert(!elementType.IsManagedType);
+                }
+                else if (initializerType.IsArray())
+                {
+                    // See ExpressionBinder::BindPtrToArray (though most of that functionality is now in LocalRewriter).
+                    var arrayType = (ArrayTypeSymbol)initializerType;
+                    elementType = arrayType.ElementType;
+
+                    if (elementType.IsManagedType)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_ManagedAddr, initializerSyntax, elementType);
+                        hasErrors = true;
+                    }
+                }
+                else if (!initializerOpt.HasAnyErrors)
+                {
+                    elementType = initializerOpt.Type;
                     switch (initializerOpt.Kind)
                     {
                         case BoundKind.AddressOfOperator:
-                            // OK
+                            elementType = ((BoundAddressOfOperator)initializerOpt).Operand.Type;
+                            break;
+                        case BoundKind.FieldAccess:
+                            var fa = (BoundFieldAccess)initializerOpt;
+                            if (!fa.FieldSymbol.IsFixed)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
+                                return true;
+                            }
+                            else
+                            {
+                                elementType = ((PointerTypeSymbol)fa.Type).PointedAtType;
+                            }
                             break;
                         case BoundKind.Conversion:
                             // The following assertion would not be correct because there might be an implicit conversion after (above) the explicit one.
@@ -1095,22 +1097,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // NOTE: Dev10 specifically doesn't report this error for the array or string cases.
                             Error(diagnostics, ErrorCode.ERR_BadCastInFixed, initializerSyntax);
-                            break;
-                        case BoundKind.FieldAccess:
-                            var fa = (BoundFieldAccess)initializerOpt;
-                            if (!fa.FieldSymbol.IsFixed)
-                            {
-                                Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
-                            }
-                            break;
+                            return true;
                         default:
                             // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.
                             Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
-                            break;
+                            return true;
                     }
                 }
+                else
+                {
+                    // convert to generate any additional conversion errors
+                    initializerOpt = GenerateConversionForAssignment(declType, initializerOpt, diagnostics);
+                    return true;
+                }
 
-                initializerOpt = GenerateConversionForAssignment(declType, initializerOpt, diagnostics);
+                initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, hasErrors, diagnostics);
             }
 
             return true;
@@ -1142,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 pointerType,
                 elementConversion,
                 initializer,
-                initializer.Type,
+                declType,
                 hasErrors);
         }
 
@@ -2133,7 +2134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return false;
                             }
                             else if (RequiresVariableReceiver(receiver, eventSymbol.AssociatedField) && // NOTE: using field, not event
-                                !CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignment, diagnostics))
+                                !CheckIsValidReceiverForVariable(eventSyntax, receiver, valueKind, diagnostics))
                             {
                                 return false;
                             }

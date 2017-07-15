@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
+        [WorkItem(20363, "https://github.com/dotnet/roslyn/issues/20363")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
         {
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int this[int i] { get => Bar(); }
+    int this[int i] { get { return Bar(); } }
 }", parameters: new TestParameters(options: UseExpressionBody));
         }
     }

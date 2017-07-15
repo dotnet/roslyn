@@ -3,17 +3,6 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <Choose>
-    <When Condition="'$(RoslynProjectType)' == 'ExeNonDeployment'">
-      <!-- Some Exes are not designed to be directly runnable.  Typically for size savings in
-           our build output.  They are made runnable by deployment projects that reference
-           them.  -->
-      <PropertyGroup>
-        <_CopyReferences>false</_CopyReferences>
-        <_CopyProjectReferences>false</_CopyProjectReferences>
-        <CopyNuGetImplementations>false</CopyNuGetImplementations>
-        <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
-      </PropertyGroup>
-    </When>
     <When Condition="'$(RoslynProjectType)' == 'UnitTest'">
       <PropertyGroup>
         <_IsAnyUnitTest>true</_IsAnyUnitTest>
@@ -40,18 +29,6 @@
         <_IsAnyPortableUnitTest>true</_IsAnyPortableUnitTest>
         <CopyNuGetImplementations>false</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
-      </PropertyGroup>
-
-      <!-- Add the UnitTestContainer project capability -->
-      <ItemGroup>
-        <ProjectCapability Include="UnitTestContainer" />
-      </ItemGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'CompilerGeneratorTool'">
-      <PropertyGroup>
-        <_CopyReferences>false</_CopyReferences>
-        <CopyNuGetImplementations>false</CopyNuGetImplementations>
-        <OutputPath>$(OutputPath)Exes\</OutputPath>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'Vsix'">
@@ -95,24 +72,11 @@
     </When>
   </Choose>
 
-  <Choose>
-    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
-      <PropertyGroup>
-        <MSBuildTargetsFilePath>$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
-
   <!-- 
     DocumentationFile needs to be set before importing common targets. 
     C# common targets (unlike VB) prefix DocumentationFile path with IntermediateOutputPath.
   -->
-  <PropertyGroup Condition="'$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(Nonshipping)' != 'true' AND '$(AssemblyName)' != ''">
+  <PropertyGroup Condition="'$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(AssemblyName)' != ''">
     <DocumentationFile Condition="'$(ProjectLanguage)' == 'VB'">$(AssemblyName).xml</DocumentationFile>
     <DocumentationFile Condition="'$(ProjectLanguage)' == 'CSharp'">$(IntermediateOutputPath)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
@@ -144,6 +108,7 @@
     <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.0'">false</GenerateRuntimeConfigurationFiles>
 
     <IbcMergePath>$(NuGetPackageRoot)\Microsoft.DotNet.IBCMerge\$(MicrosoftDotNetIBCMerge)\lib\net45\ibcmerge.exe</IbcMergePath>
+    <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
   </PropertyGroup>
 
   <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
@@ -208,6 +173,11 @@
     <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
   </ItemGroup>
 
+  <!-- Add the UnitTestContainer project capability -->
+  <ItemGroup Condition="'$(_IsAnyUnitTest)' == 'true'">
+    <ProjectCapability Include="UnitTestContainer" />
+  </ItemGroup>
+
   <ItemDefinitionGroup Condition="'$(_CopyReferences)' == 'false'">
     <Reference>
       <Private>False</Private>
@@ -249,38 +219,8 @@
     </SuggestedBindingRedirects>
   </ItemGroup>
 
-  <!-- 
-       Work around some UI delays in the new project system
-
-       https://github.com/dotnet/project-system/issues/2297
-
-  --> 
-  <ItemGroup>
-    <ProjectCapability Remove="DependenciesTree"/>
-  </ItemGroup>
-
   <Import Project="$(MSBuildTargetsFilePath)" Condition="'$(RoslynSdkProject)' != 'true'" />
   <Import Project="$(RoslynNetSdkRootPath)Sdk.targets" Condition="'$(RoslynSdkProject)' == 'true'" />
-
-  <!-- The portable v5.0 framework is delivered over NuGet, so std resolution should be disabled -->
-  <Import Project="DisableStandardFrameworkResolution.targets"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND '$(TargetFrameworkVersion)' == 'v5.0'" />
-
-  <Choose>
-    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND '$(TargetFrameworkVersion)' == 'v5.0'">
-
-      <!-- Treat portable exes as CoreClr-targeting-exes -->
-      <PropertyGroup Condition="'$(OutputType)' == 'Exe'">
-        <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
-        <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
-      </PropertyGroup>
-
-      <!-- Upgrade portable projects to .NETStandard 1.3 -->
-      <PropertyGroup Condition="'$(OutputType)' == 'Library'">
-        <NuGetTargetMoniker>.NETStandard,Version=v1.3</NuGetTargetMoniker>
-      </PropertyGroup>
-    </When>
-  </Choose>
 
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
        directory separators from '\'to '/', even when the '\'
@@ -371,6 +311,16 @@
   <Import Project="GenerateInternalsVisibleTo.targets" />
   <Import Project="DisableTransitiveReferences.targets" Condition="'$(RoslynProjectType)' == 'Vsix' AND '$(RoslynSdkProject)' == 'true'" />
 
+  <!-- 
+       Work around some UI delays in the new project system
+
+       https://github.com/dotnet/project-system/issues/2297
+
+  --> 
+  <ItemGroup>
+    <ProjectCapability Remove="DependenciesTree"/>
+  </ItemGroup>
+
   <ItemDefinitionGroup>
     <VSIXSourceItem>
       <Visible>false</Visible>
@@ -380,6 +330,10 @@
   <ImportGroup Condition="'$(ImportVSSDKTargets)' == 'true'">
     <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.targets" />
     <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" />
+  </ImportGroup>
+
+  <ImportGroup Condition="'$(ImportVSSDKTargets)' == 'true' AND '$(CreateVsixContainer)' == 'false'">
+    <Import Project="DisableVsixManifestTargets.targets" />
   </ImportGroup>
 
   <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(_IsAnyUnitTest)' == 'true'" />
@@ -544,4 +498,13 @@
     <AdditionalFiles Include="@(PublicAPI)" />
   </ItemGroup>
 
+  <!-- CPS doesn't show these items by default, but we want to show them. -->
+  <ItemGroup>
+    <!-- XAML pages and resources -->
+    <None Include="@(Page)" />
+    <None Include="@(Resource)" />
+
+    <!-- Special items in VSSDK projects -->
+    <None Include="@(VSCTCompile)" />
+  </ItemGroup>
 </Project>

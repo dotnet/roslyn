@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             _builder = builder;
         }
 
-        internal static ImmutableArray<SyntaxNode> GetDeclarators(SourceMethodSymbol method)
+        internal static ImmutableArray<SyntaxNode> GetDeclarators(SourceMemberMethodSymbol method)
         {
             var builder = ArrayBuilder<SyntaxNode>.GetInstance();
             var visitor = new LocalVariableDeclaratorsCollector(builder);
