@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString("IOperation: ");
             LogCommonPropertiesAndNewLine(operation);
 
-            var children = operation.Children;
+            var children = operation.Children.WhereNotNull();
             if (children.Count() > 0)
             {
                 VisitArray(children, "Children", logElementCount: true);
