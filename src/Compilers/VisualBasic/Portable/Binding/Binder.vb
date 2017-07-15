@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -892,43 +893,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Shared Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, context As Symbol, symbol As Symbol, node As SyntaxNode)
-            Debug.Assert(context IsNot Nothing)
-            Debug.Assert(symbol IsNot Nothing)
+            Dim kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(context, symbol)
 
-            If symbol.ObsoleteState = ThreeState.False Then
-                Return
-            End If
+            Dim info As DiagnosticInfo = Nothing
+            Select Case kind
+                Case ObsoleteDiagnosticKind.Diagnostic
+                    info = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol)
+                Case ObsoleteDiagnosticKind.Lazy, ObsoleteDiagnosticKind.LazyPotentiallySuppressed
+                    info = New LazyObsoleteDiagnosticInfo(symbol, context)
+            End Select
 
-            Dim data = symbol.ObsoleteAttributeData
-            If data Is Nothing Then
-                ' Obsolete attribute has errors.
-                Return
-            End If
-
-            ' If we haven't cracked attributes on the symbol at all or we haven't
-            ' cracked attribute arguments enough to be able to report diagnostics for
-            ' ObsoleteAttribute, store the symbol so that we can report diagnostics at a 
-            ' later stage.
-            If symbol.ObsoleteState = ThreeState.Unknown OrElse data.IsUninitialized Then
-                diagnostics.Add(New LazyObsoleteDiagnosticInfo(symbol, context), node.GetLocation())
-                Return
-            End If
-
-            Dim inObsoleteContext = ObsoleteAttributeHelpers.GetObsoleteContextState(context)
-
-            ' If we are in a context that is already obsolete, there is no point reporting
-            ' more obsolete diagnostics.
-            If inObsoleteContext = ThreeState.True Then
-                Return
-            ElseIf inObsoleteContext = ThreeState.Unknown Then
-                ' If the context is unknown, then store the symbol so that we can do this check at a
-                ' later stage
-                diagnostics.Add(New LazyObsoleteDiagnosticInfo(symbol, context), node.GetLocation())
-                Return
-            End If
-
-            ' We have all the information we need to report diagnostics right now. So do it.
-            Dim info = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol)
             If info IsNot Nothing Then
                 diagnostics.Add(info, node.GetLocation())
             End If

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             if (symbolSearchService != null &&
                 installerService != null &&
                 searchNugetPackages &&
-                installerService.IsEnabled)
+                installerService.IsEnabled(document.Project.Id))
             {
                 foreach (var packageSource in installerService.PackageSources)
                 {

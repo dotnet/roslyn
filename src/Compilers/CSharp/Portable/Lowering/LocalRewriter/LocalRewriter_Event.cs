@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Microsoft.CodeAnalysis.Text;
 
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    clearCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(removeDelegate), ErrorTypeSymbol.UnknownResultType);
+                    clearCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(removeDelegate), ErrorTypeSymbol.UnknownResultType);
                 }
             }
 
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                marshalCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, StaticCast<BoundNode>.From(marshalArguments), ErrorTypeSymbol.UnknownResultType);
+                marshalCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, marshalArguments, ErrorTypeSymbol.UnknownResultType);
             }
 
             // In this case, we don't need a sequence.
@@ -247,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                getOrCreateCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(fieldAccess), ErrorTypeSymbol.UnknownResultType);
+                getOrCreateCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(fieldAccess), ErrorTypeSymbol.UnknownResultType);
             }
 
             PropertySymbol invocationListProperty;
@@ -269,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(getOrCreateCall), ErrorTypeSymbol.UnknownResultType);
+            return new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(getOrCreateCall), ErrorTypeSymbol.UnknownResultType);
         }
 
         private BoundExpression RewriteNoPiaEventAssignmentOperator(BoundEventAssignmentOperator node, BoundExpression rewrittenReceiver, BoundExpression rewrittenArgument)
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(node.Event),
-                                          ImmutableArray.Create<BoundNode>(rewrittenReceiver, rewrittenArgument), ErrorTypeSymbol.UnknownResultType);
+                                          ImmutableArray.Create(rewrittenReceiver, rewrittenArgument), ErrorTypeSymbol.UnknownResultType);
         }
     }
 }

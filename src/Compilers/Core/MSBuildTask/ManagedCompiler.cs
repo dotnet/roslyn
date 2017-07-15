@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -227,6 +227,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (ITaskItem)_store[nameof(OutputAssembly)]; }
         }
 
+        [Output]
+        public ITaskItem OutputRefAssembly
+        {
+            set { _store[nameof(OutputRefAssembly)] = value; }
+            get { return (ITaskItem)_store[nameof(OutputRefAssembly)]; }
+        }
+
         public string Platform
         {
             set { _store[nameof(Platform)] = value; }
@@ -249,6 +256,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(References)] = value; }
             get { return (ITaskItem[])_store[nameof(References)]; }
+        }
+
+        public bool RefOnly
+        {
+            set { _store[nameof(RefOnly)] = value; }
+            get { return _store.GetOrDefault(nameof(RefOnly), false); }
         }
 
         public bool ReportAnalyzer
@@ -380,6 +393,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 return (Utf8Output) ? Encoding.UTF8 : base.StandardOutputEncoding;
             }
+        }
+
+        public string LangVersion
+        {
+            set { _store[nameof(LangVersion)] = value; }
+            get { return (string)_store[nameof(LangVersion)]; }
         }
 
         #endregion
@@ -579,13 +598,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private void LogErrorOutput(string output)
         {
+            LogErrorOutput(output, Log);
+        }
+
+        internal static void LogErrorOutput(string output, TaskLoggingHelper log)
+        {
             string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
             {
                 string trimmedMessage = line.Trim();
                 if (trimmedMessage != "")
                 {
-                    Log.LogError(trimmedMessage);
+                    log.LogError(trimmedMessage);
                 }
             }
         }
@@ -705,6 +729,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/optimize", _store, nameof(Optimize));
             commandLine.AppendSwitchIfNotNull("/pathmap:", PathMap);
             commandLine.AppendSwitchIfNotNull("/out:", OutputAssembly);
+            commandLine.AppendSwitchIfNotNull("/refout:", OutputRefAssembly);
+            commandLine.AppendWhenTrue("/refonly", _store, nameof(RefOnly));
             commandLine.AppendSwitchIfNotNull("/ruleset:", CodeAnalysisRuleSet);
             commandLine.AppendSwitchIfNotNull("/errorlog:", ErrorLog);
             commandLine.AppendSwitchIfNotNull("/subsystemversion:", SubsystemVersion);
@@ -733,6 +759,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/checksumalgorithm:", ChecksumAlgorithm);
             commandLine.AppendSwitchWithSplitting("/instrument:", Instrument, ",", ';', ',');
             commandLine.AppendSwitchIfNotNull("/sourcelink:", SourceLink);
+            commandLine.AppendSwitchIfNotNull("/langversion:", LangVersion);
 
             AddFeatures(commandLine, Features);
             AddEmbeddedFilesToCommandLine(commandLine);

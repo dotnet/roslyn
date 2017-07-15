@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -20,16 +20,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementAbstractClassCodeFixProvider());
 
-        private static readonly Dictionary<OptionKey, object> AllOptionsOff =
-             new Dictionary<OptionKey, object>
-             {
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.FalseWithNoneEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.FalseWithNoneEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.FalseWithNoneEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.FalseWithNoneEnforcement },
-             };
+        private IDictionary<OptionKey, object> AllOptionsOff =>
+            OptionsSet(
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
         internal Task TestAllOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
@@ -1179,7 +1177,7 @@ class [|T|] : A
 class T : A
 {
     public override void M(int x) => throw new System.NotImplementedException();
-}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1203,7 +1201,7 @@ class [|T|] : A
 class T : A
 {
     public override int M => throw new System.NotImplementedException();
-}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.TrueWithNoneEnforcement));
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1234,8 +1232,8 @@ class T : A
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1271,8 +1269,8 @@ class T : A
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1296,7 +1294,7 @@ class [|T|] : A
 class T : A
 {
     public override int this[int i] => throw new System.NotImplementedException();
-}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.TrueWithNoneEnforcement));
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1327,8 +1325,8 @@ class T : A
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1364,8 +1362,8 @@ class T : A
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1393,8 +1391,8 @@ class T : A
         get => throw new System.NotImplementedException();
         }
     }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, false, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, true, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1421,7 +1419,7 @@ class T : A
     {
         set => throw new System.NotImplementedException();
         }
-    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
+    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1449,7 +1447,7 @@ class T : A
         get => throw new System.NotImplementedException();
         set => throw new System.NotImplementedException();
         }
-    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
+    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
@@ -1553,6 +1551,39 @@ sealed class D : B
         throw new System.NotImplementedException();
     }
 }");
+        }
+
+        [WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")]
+        [WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestAutoProperties()
+        {
+            await TestInRegularAndScript1Async(
+@"abstract class AbstractClass
+{
+    public abstract int ReadOnlyProp { get; }
+    public abstract int ReadWriteProp { get; set; }
+    public abstract int WriteOnlyProp { set; }
+}
+
+class [|C|] : AbstractClass
+{
+}",
+@"abstract class AbstractClass
+{
+    public abstract int ReadOnlyProp { get; }
+    public abstract int ReadWriteProp { get; set; }
+    public abstract int WriteOnlyProp { set; }
+}
+
+class C : AbstractClass
+{
+    public override int ReadOnlyProp { get; }
+    public override int ReadWriteProp { get; set; }
+    public override int WriteOnlyProp { set => throw new System.NotImplementedException(); }
+}", parameters: new TestParameters(options: Option(
+    ImplementTypeOptions.PropertyGenerationBehavior,
+    ImplementTypePropertyGenerationBehavior.PreferAutoProperties)));
         }
     }
 }

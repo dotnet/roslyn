@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -473,11 +474,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal NamedTypeSymbol GetSpecialType(SpecialType type)
         {
             return CorLibrary.GetDeclaredSpecialType(type);
-        }
-
-        internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
-        {
-            return this.GetTypeByMetadataName(WellKnownTypes.GetMetadataName(type));
         }
 
         internal static TypeSymbol DynamicType

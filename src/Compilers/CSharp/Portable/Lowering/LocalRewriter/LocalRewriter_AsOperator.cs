@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (constantValue != null)
                 {
                     Debug.Assert(constantValue.IsNull);
-                    BoundExpression result = rewrittenType.IsNullableType() ? new BoundDefaultOperator(syntax, rewrittenType) : MakeLiteral(syntax, constantValue, rewrittenType);
+                    BoundExpression result = rewrittenType.IsNullableType() ? new BoundDefaultExpression(syntax, rewrittenType) : MakeLiteral(syntax, constantValue, rewrittenType);
 
                     if (rewrittenOperand.ConstantValue != null)
                     {

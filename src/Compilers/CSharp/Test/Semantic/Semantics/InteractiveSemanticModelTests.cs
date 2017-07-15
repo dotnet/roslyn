@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void NamespaceBindingInInteractiveCode()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 using Z = Foo.Bar.Script.C;
 
 class C { }
@@ -403,7 +403,7 @@ var x = from c in ""foo"" select /*<bind>*/c/*</bind>*/";
 
         private CompilationUtils.SemanticInfoSummary GetBindInfoForTest(string testSrc)
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
                 testSrc, parseOptions: TestOptions.Script, references: new[] { SystemCoreRef });
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

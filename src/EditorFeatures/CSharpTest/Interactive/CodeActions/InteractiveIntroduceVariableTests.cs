@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -168,8 +168,8 @@ class C
     {
         for (int i = 0; i < 10; i++)
         {
-            int {|Rename:v|} = i + 1;
-            Console.WriteLine(v);
+            int {|Rename:value|} = i + 1;
+            Console.WriteLine(value);
         }
     }
 }

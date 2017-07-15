@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -17,6 +17,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Replac
             Await TestInRegularAndScriptAsync(
 "class C
     function [||]GetFoo() as integer
+    End function
+End class",
+"class C
+    ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+End class")
+        End Function
+
+        <WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestMissingParameterList() As Task
+            Await TestInRegularAndScript1Async(
+"class C
+    function [||]GetFoo as integer
     End function
 End class",
 "class C
@@ -629,6 +645,39 @@ end class",
         End Get
     End Property
 end class", ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestInterfaceImplementation() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface IFoo
+    Function [||]GetFoo() As Integer
+End Interface
+
+Class C
+    Implements IFoo
+
+    Private _Foo As Integer
+
+    Public Function GetFoo() As Integer Implements IFoo.GetFoo
+        Return _Foo
+    End Function
+End Class",
+"Interface IFoo
+    ReadOnly Property Foo As Integer
+End Interface
+
+Class C
+    Implements IFoo
+
+    Private _Foo As Integer
+
+    Public ReadOnly Property Foo As Integer Implements IFoo.Foo
+        Get
+            Return _Foo
+        End Get
+    End Property
+End Class")
         End Function
     End Class
 End Namespace

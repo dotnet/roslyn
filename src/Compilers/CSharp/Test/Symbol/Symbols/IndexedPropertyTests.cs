@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -581,7 +581,7 @@ F()
         b.set_P(ref y, b.get_P(ref x));
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (7,9): error CS1545: Property, indexer, or event 'IB.this[ref int]' is not supported by the language; try directly calling accessor methods 'IB.get_P(ref int)' or 'IB.set_P(ref int, int)'
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "b[y]").WithArguments("IB.this[ref int]", "IB.get_P(ref int)", "IB.set_P(ref int, int)").WithLocation(7, 9),
@@ -854,7 +854,7 @@ End Class";
         a.set_P(10, a.get_P(9));
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (6,11): error CS1061: 'A' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A", "P").WithLocation(6, 11),
@@ -1140,7 +1140,7 @@ class B
         o = a.R[3];
     }
 }";
-            CreateCompilationWithMscorlib(source, new[] { MscorlibRef, SystemRef }).VerifyDiagnostics(
+            CreateStandardCompilation(source, new[] { SystemRef }).VerifyDiagnostics(
                 // (14,13): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "a.P[1]").WithArguments("object").WithLocation(14, 13),
                 // (16,15): error CS1061: 'A' does not contain a definition for 'R' and no extension method 'R' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
@@ -1179,7 +1179,7 @@ End Class";
         base.P[4] = o;
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
         }
 
@@ -1215,7 +1215,7 @@ End Class";
         A.P[3] = o;
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (6,13): error CS1545: Property, indexer, or event 'A.P[int]' is not supported by the language; try directly calling accessor methods 'A.get_P(int)' or 'A.set_P(int, object)'
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A.P[int]", "A.get_P(int)", "A.set_P(int, object)").WithLocation(6, 13),
@@ -1258,7 +1258,7 @@ End Interface";
         b.P[null] = b.Q[null];
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (5,11): error CS1545: Property, indexer, or event 'IA.P[object]' is not supported by the language; try directly calling accessor methods 'IA.get_P(object)' or 'IA.set_P(object, object)'
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("IA.P[object]", "IA.get_P(object)", "IA.set_P(object, object)").WithLocation(5, 11),
@@ -1322,7 +1322,7 @@ End Interface";
         c = c.C.C[0];
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (17,13): error CS0029: Cannot implicitly convert type 'int[]' to 'int'
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.D[0]").WithArguments("int[]", "int").WithLocation(17, 13),
@@ -1356,7 +1356,7 @@ End Interface";
         i.P = o;
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
         }
 
@@ -1398,7 +1398,7 @@ End Interface";
         c.Q[1, 2] = o; // Dev11: CS1501: No overload for method 'Q' takes 2 arguments
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
         }
 
@@ -1484,7 +1484,7 @@ End Class";
         c.Q[2] = o;
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
         }
 
@@ -1541,7 +1541,7 @@ End Class";
         var o = b.Q[0];
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (5,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'B.Q[object, object]'
                 //         var o = b.Q[0];
@@ -1747,7 +1747,7 @@ B2.set_P(6, ...)
         b.P[4] = b.P[3];
     }
 }";
-            var compilation4 = CreateCompilationWithMscorlib(source4, new[] { reference1, reference2 });
+            var compilation4 = CreateStandardCompilation(source4, new[] { reference1, reference2 });
             compilation4.VerifyDiagnostics(
                 // (6,11): error CS1061: 'A2' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'A2' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A2", "P").WithLocation(6, 11),
@@ -1864,7 +1864,7 @@ class C
         b1.P[1] = b1.P[0];
     }
 }";
-            var compilation3 = CreateCompilationWithMscorlib(source3, new[] { reference1 });
+            var compilation3 = CreateStandardCompilation(source3, new[] { reference1 });
             compilation3.VerifyDiagnostics(
                 // (13,21): warning CS0108: 'B2.get_P(int)' hides inherited member 'A1.get_P(int)'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "get_P").WithArguments("B2.get_P(int)", "A1.get_P(int)").WithLocation(13, 21),
@@ -1899,7 +1899,7 @@ End Interface";
         a.Q[null] = a.Q[null];
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (5,9): error CS0200: Property or indexer 'IA.P[object]' cannot be assigned to -- it is read only
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "a.P[null]").WithArguments("IA.P[object]").WithLocation(5, 9),
@@ -2048,7 +2048,7 @@ End Class";
         a = new A() { P3 = 5 };
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (6,23): error CS0200: Property or indexer 'A.P1[int, int]' cannot be assigned to -- it is read only
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P1").WithArguments("A.P1[int, int]").WithLocation(6, 23),
@@ -2101,7 +2101,7 @@ End Class";
 class B
 {
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (1,5): error CS1545: Property, indexer, or event 'A1.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, int)'
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, int)").WithLocation(1, 5));
@@ -2140,7 +2140,7 @@ class C
         return from o in arg select o.P;
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (6,30): error CS1955: Non-invocable member 'IEnumerableOfA.Select[System.Func<IA, object>]' cannot be used like a method.
                 Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "select o.P").WithArguments("IEnumerableOfA.Select[System.Func<IA, object>]"));
@@ -2179,7 +2179,7 @@ End Interface";
         return c.P[null];
     }
 }";
-            var compilation3 = CreateCompilationWithMscorlib(source3, new[] { reference1, reference2 });
+            var compilation3 = CreateStandardCompilation(source3, new[] { reference1, reference2 });
             compilation3.VerifyDiagnostics(
                 // (5,18): error CS0229: Ambiguity between 'IA.P' and 'IB.P[object]'
                 Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("IA.P", "IB.P[object]").WithLocation(5, 18));
@@ -2644,7 +2644,7 @@ P[2] = 2
         }
 
         [WorkItem(853401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853401")]
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void IndexedPropertyDynamicInvocation()
         {
             var source1 =
@@ -2703,7 +2703,7 @@ End Class";
 
         [WorkItem(846234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846234")]
         [WorkItem(853401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853401")]
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         public void IndexedPropertyDynamicColorColorInvocation()
         {
             var source1 =

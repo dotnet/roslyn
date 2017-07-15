@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string name,
             Location location,
             MetadataConstant compileTimeValue,
-            ImmutableArray<TypedConstant> dynamicTransformFlags,
-            ImmutableArray<TypedConstant> tupleElementNames)
+            ImmutableArray<bool> dynamicTransformFlags,
+            ImmutableArray<string> tupleElementNames)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
             Debug.Assert(compileTimeValue != null);
@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public LocalVariableAttributes PdbAttributes => LocalVariableAttributes.None;
 
-        public ImmutableArray<TypedConstant> DynamicTransformFlags { get; }
+        public ImmutableArray<bool> DynamicTransformFlags { get; }
 
-        public ImmutableArray<TypedConstant> TupleElementNames { get; }
+        public ImmutableArray<string> TupleElementNames { get; }
 
         public int SlotIndex => -1;
 

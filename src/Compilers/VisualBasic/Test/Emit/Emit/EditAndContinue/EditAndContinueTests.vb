@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -17,6 +17,107 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class EditAndContinueTests
         Inherits EditAndContinueTestBase
+
+        <Fact>
+        Public Sub SemanticErrors_MethodBody()
+            Dim source0 = MarkedSource("
+Class C
+    Shared Sub E()
+        Dim x As Integer = 1
+        System.Console.WriteLine(x)
+    End Sub
+
+    Shared Sub G()
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Class C
+    Shared Sub E()
+        Dim x = Unknown(2)
+        System.Console.WriteLine(x)
+    End Sub
+
+    Shared Sub G()
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim e0 = compilation0.GetMember(Of MethodSymbol)("C.E")
+            Dim e1 = compilation1.GetMember(Of MethodSymbol)("C.E")
+            Dim g0 = compilation0.GetMember(Of MethodSymbol)("C.G")
+            Dim g1 = compilation1.GetMember(Of MethodSymbol)("C.G")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            ' Semantic errors are reported only for the bodies of members being emitted.
+            Dim diffError = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diffError.EmitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_NameNotDeclared1, "Unknown").WithArguments("Unknown").WithLocation(4, 17))
+
+            Dim diffGood = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diffGood.EmitResult.Diagnostics.Verify()
+            diffGood.VerifyIL("C.G", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0007:  nop
+  IL_0008:  ret
+}")
+        End Sub
+
+        <Fact>
+        Public Sub SemanticErrors_Declaration()
+            Dim source0 = MarkedSource("
+Class C
+    Sub G() 
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Class C
+    Sub G() 
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+Class Bad 
+  Inherits Bad
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim g0 = compilation0.GetMember(Of MethodSymbol)("C.G")
+            Dim g1 = compilation1.GetMember(Of MethodSymbol)("C.G")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim diff = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff.EmitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_TypeInItsInheritsClause1, "Bad").WithArguments("Bad").WithLocation(9, 12))
+        End Sub
 
         <Fact>
         Public Sub ModifyMethod_WithTuples()
@@ -4495,7 +4596,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim metadata0 = DirectCast(CompileIL(ilSource, appendDefaultHeader:=False), MetadataImageReference)
+            Dim metadata0 = DirectCast(CompileIL(ilSource, prependDefaultHeader:=False), MetadataImageReference)
             ' Still need a compilation with source for the initial
             ' generation - to get a MethodSymbol and syntax map.
             Dim compilation0 = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)
@@ -5183,5 +5284,8 @@ End Class")
 }
 ")
         End Sub
+
+
+
     End Class
 End Namespace

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +10,9 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 {
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestExceptionInDisplayText()
         {
             using (var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters()))
@@ -83,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         }
 
         private static void RefactoringSetup(
-            TestWorkspace workspace, CodeRefactoringProvider provider, List<CodeAction> codeActions, 
-            out EditorLayerExtensionManager.ExtensionManager extensionManager, 
+            TestWorkspace workspace, CodeRefactoringProvider provider, List<CodeAction> codeActions,
+            out EditorLayerExtensionManager.ExtensionManager extensionManager,
             out VisualStudio.Text.ITextBuffer textBuffer)
         {
             var document = GetDocument(workspace);

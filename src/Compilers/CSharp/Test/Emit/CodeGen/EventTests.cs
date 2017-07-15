@@ -613,7 +613,7 @@ class D : C
 ";
 
             var ilAssemblyReference = TestReferences.SymbolsTests.Events;
-            var compilation = CreateCompilationWithMscorlib(csharpSource, new MetadataReference[] { ilAssemblyReference }, TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(csharpSource, new MetadataReference[] { ilAssemblyReference }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 VirtualEventWithRaise Raise
 D Raise
@@ -699,7 +699,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
 
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
 
@@ -771,7 +771,7 @@ struct C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
 
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
 
@@ -834,7 +834,7 @@ class C
         remove => x = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("C.E.add", @"
 {

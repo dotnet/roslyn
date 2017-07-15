@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Semantics;
 using Xunit;
 
@@ -58,7 +59,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitVariableDeclaration(IVariableDeclaration operation)
         {
-            var variable = operation.Variable;
+            foreach (var symbol in operation.Variables)
+            {
+                // empty loop body, just want to make sure it won't crash.
+            }
 
             base.VisitVariableDeclaration(operation);
         }
@@ -129,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var target = operation.Target;
             var branchKind = operation.BranchKind;
 
-            base. VisitBranchStatement(operation);
+            base.VisitBranchStatement(operation);
         }
 
         public override void VisitYieldBreakStatement(IReturnStatement operation)
@@ -162,12 +166,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitTryStatement(operation);
         }
 
-        public override void VisitCatch(ICatchClause operation)
+        public override void VisitCatchClause(ICatchClause operation)
         {
             var caughtType = operation.CaughtType;
             var exceptionLocal = operation.ExceptionLocal;
 
-            base.VisitCatch(operation);
+            base.VisitCatchClause(operation);
         }
 
         public override void VisitUsingStatement(IUsingStatement operation)
@@ -204,19 +208,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var targetMethod = operation.TargetMethod;
             var isVirtual = operation.IsVirtual;
-            // base.VisitInvocationExpression only visit operations in ArgumentsInSourceOrder
-            foreach (var argument in operation.ArgumentsInParameterOrder)
-            {
-                Visit(argument);
-            }
-            if (targetMethod != null)
-            {
-                foreach (var parameter in targetMethod.Parameters)
-                {
-                    var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
-                    Visit(matchingArgument);
-                }
-            }
 
             base.VisitInvocationExpression(operation);
         }
@@ -332,14 +323,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var member = operation.Member;
             var property = operation.Property;
-            if (property != null)
-            {
-                foreach (var parameter in property.Parameters)
-                {
-                    var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
-                    Visit(matchingArgument);
-                }
-            }
 
             base.VisitIndexedPropertyReferenceExpression(operation);
         }
@@ -430,14 +413,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
             var ctor = operation.Constructor;
-            if (ctor != null)
-            {
-                foreach (var parameter in ctor.Parameters)
-                {
-                    var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
-                    Visit(matchingArgument);
-                }
-            }
 
             base.VisitObjectCreationExpression(operation);
         }
@@ -468,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitArrayCreationExpression(IArrayCreationExpression operation)
         {
             var elementType = operation.ElementType;
-            
+
             base.VisitArrayCreationExpression(operation);
         }
 
@@ -534,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public override void VisitInvalidExpression(IInvalidExpression operation)
-        { 
+        {
             base.VisitInvalidExpression(operation);
         }
     }

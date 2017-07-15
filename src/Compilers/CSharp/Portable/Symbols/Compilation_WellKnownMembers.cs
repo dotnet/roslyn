@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
 
@@ -505,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 NamedTypeSymbol booleanType = GetSpecialType(SpecialType.System_Boolean);
                 Debug.Assert((object)booleanType != null);
-                var transformFlags = DynamicTransformsEncoder.Encode(type, booleanType, customModifiersCount, refKindOpt);
+                var transformFlags = DynamicTransformsEncoder.Encode(type, refKindOpt, customModifiersCount, booleanType);
                 var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, booleanType, customModifiers: ImmutableArray<CustomModifier>.Empty);
                 var arguments = ImmutableArray.Create<TypedConstant>(new TypedConstant(boolArray, transformFlags));
                 return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, arguments);
@@ -594,28 +595,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static class DynamicTransformsEncoder
         {
-            internal static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol booleanType, int customModifiersCount, RefKind refKind)
+            internal static ImmutableArray<TypedConstant> Encode(TypeSymbol type, RefKind refKind, int customModifiersCount, TypeSymbol booleanType)
             {
                 var flagsBuilder = ArrayBuilder<bool>.GetInstance();
                 Encode(type, customModifiersCount, refKind, flagsBuilder, addCustomModifierFlags: true);
                 Debug.Assert(flagsBuilder.Any());
                 Debug.Assert(flagsBuilder.Contains(true));
 
-                var constantsBuilder = ArrayBuilder<TypedConstant>.GetInstance(flagsBuilder.Count);
-                foreach (bool flag in flagsBuilder)
-                {
-                    constantsBuilder.Add(new TypedConstant(booleanType, TypedConstantKind.Primitive, flag));
-                }
-
+                var result = flagsBuilder.SelectAsArray((flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), booleanType);
                 flagsBuilder.Free();
-                return constantsBuilder.ToImmutableAndFree();
+                return result;
+            }
+
+            internal static ImmutableArray<bool> Encode(TypeSymbol type, RefKind refKind, int customModifiersCount)
+            {
+                var builder = ArrayBuilder<bool>.GetInstance();
+                Encode(type, customModifiersCount, refKind, builder, addCustomModifierFlags: true);
+                return builder.ToImmutableAndFree();
             }
 
             internal static ImmutableArray<bool> EncodeWithoutCustomModifierFlags(TypeSymbol type, RefKind refKind)
             {
-                var transformFlagsBuilder = ArrayBuilder<bool>.GetInstance();
-                Encode(type, -1, refKind, transformFlagsBuilder, addCustomModifierFlags: false);
-                return transformFlagsBuilder.ToImmutableAndFree();
+                var builder = ArrayBuilder<bool>.GetInstance();
+                Encode(type, -1, refKind, builder, addCustomModifierFlags: false);
+                return builder.ToImmutableAndFree();
             }
 
             internal static void Encode(TypeSymbol type, int customModifiersCount, RefKind refKind, ArrayBuilder<bool> transformFlagsBuilder, bool addCustomModifierFlags)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -133,12 +133,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            var semanticModel = syntaxContext.SemanticModel;
             var asExpression = (BinaryExpressionSyntax)initializerValue;
             var typeNode = (TypeSyntax)asExpression.Right;
-            var type = syntaxContext.SemanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
-            if (type.IsNullable())
+            var asType = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
+            if (asType.IsNullable())
             {
                 // not legal to write "if (x is int? y)"
+                return;
+            }
+
+            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclaration.Variables[0]);
+            if (!localSymbol.Type.Equals(asType))
+            {
+                // we have something like:
+                //
+                //      BaseType b = x as DerivedType;
+                //      if (b != null) { ... }
+                //
+                // It's not necessarily safe to convert this to:
+                //
+                //      if (x is DerivedType b) { ... }
+                //
+                // That's because there may be later code that wants to do something like assign a 
+                // 'BaseType' into 'b'.  As we've now claimed that it must be DerivedType, that 
+                // won't work.  This might also cause unintended changes like changing overload
+                // resolution.  So, we conservatively do not offer the change in a situation like this.
                 return;
             }
 

@@ -13,6 +13,346 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenOperatorTests : CSharpTestBase
     {
+
+        [Fact]
+        public void TestIsNullPattern()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var c = new C();
+        Console.Write(c is null);
+    }
+}
+";
+
+            // Release
+            var compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.Main", @"{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldnull
+  IL_0006:  ceq
+  IL_0008:  call       ""void System.Console.Write(bool)""
+  IL_000d:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.Main", @"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (C V_0) //c
+  IL_0000:  nop
+  IL_0001:  newobj     ""C..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldnull
+  IL_0009:  ceq
+  IL_000b:  call       ""void System.Console.Write(bool)""
+  IL_0010:  nop
+  IL_0011:  ret
+}");
+        }
+
+        [Fact]
+        public void TestIsNullPatternGenericParam()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void M<T>(T o)
+    {
+        Console.Write(o is null);
+        if (o is null)
+        {
+            Console.Write(""Branch taken"");
+        }
+    }
+
+    public static void Main()
+    {
+        M(new object());
+    }
+}
+";
+
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (7,28): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
+                //         Console.Write(o is null);
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(7, 28),
+                // (8,18): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
+                //         if (o is null)
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(8, 18));
+        }
+
+        [Fact]
+        public void TestIsNullPatternGenericParamClass()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void M<T>(T o) where T: class
+    {
+        Console.Write(o is null);
+        if (o is null) {
+            Console.Write("" Branch taken"");
+        }
+    }
+
+    public static void Main()
+    {
+        M(new object());
+    }
+}
+";
+
+            // Release
+            var compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.M<T>(T)", @"{
+    // Code size       33 (0x21)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  box        ""T""
+    IL_0006:  ldnull
+    IL_0007:  ceq
+    IL_0009:  call       ""void System.Console.Write(bool)""
+    IL_000e:  ldarg.0
+    IL_000f:  box        ""T""
+    IL_0014:  brtrue.s   IL_0020
+    IL_0016:  ldstr      "" Branch taken""
+    IL_001b:  call       ""void System.Console.Write(string)""
+    IL_0020:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.M<T>(T)", @"{
+    // Code size       43 (0x2b)
+    .maxstack  2
+    .locals init (bool V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  box        ""T""
+    IL_0007:  ldnull
+    IL_0008:  ceq
+    IL_000a:  call       ""void System.Console.Write(bool)""
+    IL_000f:  nop
+    IL_0010:  ldarg.0
+    IL_0011:  box        ""T""
+    IL_0016:  ldnull
+    IL_0017:  ceq
+    IL_0019:  stloc.0
+    IL_001a:  ldloc.0
+    IL_001b:  brfalse.s  IL_002a
+    IL_001d:  nop
+    IL_001e:  ldstr      "" Branch taken""
+    IL_0023:  call       ""void System.Console.Write(string)""
+    IL_0028:  nop
+    IL_0029:  nop
+    IL_002a:  ret
+}");
+        }
+
+        [Fact]
+        public void TestIsNullPatternNullable()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void M(Nullable<int> obj)
+    {
+        Console.Write(obj is null);
+        if (obj is null) {
+            Console.Write("" Branch taken"");
+        } else {
+            Console.Write("" Branch not taken"");
+        }
+    }
+    public static void Main()
+    {
+        M(5);
+        Console.Write(""-"");
+        M(null);
+    }
+}
+";
+
+            // Release
+            var compilation = CompileAndVerify(source, expectedOutput: "False Branch not taken-True Branch taken", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.M", @"{
+    // Code size       46 (0x2e)
+    .maxstack  2
+    IL_0000:  ldarga.s   V_0
+    IL_0002:  call       ""bool int?.HasValue.get""
+    IL_0007:  ldc.i4.0
+    IL_0008:  ceq
+    IL_000a:  call       ""void System.Console.Write(bool)""
+    IL_000f:  ldarga.s   V_0
+    IL_0011:  call       ""bool int?.HasValue.get""
+    IL_0016:  brtrue.s   IL_0023
+    IL_0018:  ldstr      "" Branch taken""
+    IL_001d:  call       ""void System.Console.Write(string)""
+    IL_0022:  ret
+    IL_0023:  ldstr      "" Branch not taken""
+    IL_0028:  call       ""void System.Console.Write(string)""
+    IL_002d:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, expectedOutput: "False Branch not taken-True Branch taken", options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.M", @"{
+    // Code size       60 (0x3c)
+    .maxstack  2
+    .locals init (bool V_0)
+    IL_0000:  nop
+    IL_0001:  ldarga.s   V_0
+    IL_0003:  call       ""bool int?.HasValue.get""
+    IL_0008:  ldc.i4.0
+    IL_0009:  ceq
+    IL_000b:  call       ""void System.Console.Write(bool)""
+    IL_0010:  nop
+    IL_0011:  ldarga.s   V_0
+    IL_0013:  call       ""bool int?.HasValue.get""
+    IL_0018:  ldc.i4.0
+    IL_0019:  ceq
+    IL_001b:  stloc.0
+    IL_001c:  ldloc.0
+    IL_001d:  brfalse.s  IL_002e
+    IL_001f:  nop
+    IL_0020:  ldstr      "" Branch taken""
+    IL_0025:  call       ""void System.Console.Write(string)""
+    IL_002a:  nop
+    IL_002b:  nop
+    IL_002c:  br.s       IL_003b
+    IL_002e:  nop
+    IL_002f:  ldstr      "" Branch not taken""
+    IL_0034:  call       ""void System.Console.Write(string)""
+    IL_0039:  nop
+    IL_003a:  nop
+    IL_003b:  ret
+}");
+        }
+
+        [Fact]
+        public void TestIsNullPatternObjectLiteral()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        Console.Write(((object)null) is null);
+        if (((object) null) is null) {
+            Console.Write("" Branch taken"");
+        }
+    }
+}
+";
+
+            // Release
+            var compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.Main", @"{
+    // Code size       20 (0x14)
+    .maxstack  2
+    IL_0000:  ldnull
+    IL_0001:  ldnull
+    IL_0002:  ceq
+    IL_0004:  call       ""void System.Console.Write(bool)""
+    IL_0009:  ldstr      "" Branch taken""
+    IL_000e:  call       ""void System.Console.Write(string)""
+    IL_0013:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.Main", @"{
+    // Code size       33 (0x21)
+    .maxstack  2
+    .locals init (bool V_0)
+    IL_0000:  nop
+    IL_0001:  ldnull
+    IL_0002:  ldnull
+    IL_0003:  ceq
+    IL_0005:  call       ""void System.Console.Write(bool)""
+    IL_000a:  nop
+    IL_000b:  ldnull
+    IL_000c:  ldnull
+    IL_000d:  ceq
+    IL_000f:  stloc.0
+    IL_0010:  ldloc.0
+    IL_0011:  brfalse.s  IL_0020
+    IL_0013:  nop
+    IL_0014:  ldstr      "" Branch taken""
+    IL_0019:  call       ""void System.Console.Write(string)""
+    IL_001e:  nop
+    IL_001f:  nop
+    IL_0020:  ret
+}");
+        }
+
+        [Fact]
+        public void TestIsNullPatternStringConstant()
+        {
+            var source = @"
+using System;
+class C
+{
+    const String nullString = null;
+    public static void Main()
+    {
+        Console.Write(((string)null) is nullString);
+        if (((string) null) is nullString) {
+            Console.Write("" Branch taken"");
+        }
+    }
+}
+";
+
+            // Release
+            var compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.Main", @"{
+    // Code size       20 (0x14)
+    .maxstack  2
+    IL_0000:  ldnull
+    IL_0001:  ldnull
+    IL_0002:  ceq
+    IL_0004:  call       ""void System.Console.Write(bool)""
+    IL_0009:  ldstr      "" Branch taken""
+    IL_000e:  call       ""void System.Console.Write(string)""
+    IL_0013:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.Main", @"{
+    // Code size       33 (0x21)
+    .maxstack  2
+    .locals init (bool V_0)
+    IL_0000:  nop
+    IL_0001:  ldnull
+    IL_0002:  ldnull
+    IL_0003:  ceq
+    IL_0005:  call       ""void System.Console.Write(bool)""
+    IL_000a:  nop
+    IL_000b:  ldnull
+    IL_000c:  ldnull
+    IL_000d:  ceq
+    IL_000f:  stloc.0
+    IL_0010:  ldloc.0
+    IL_0011:  brfalse.s  IL_0020
+    IL_0013:  nop
+    IL_0014:  ldstr      "" Branch taken""
+    IL_0019:  call       ""void System.Console.Write(string)""
+    IL_001e:  nop
+    IL_001f:  nop
+    IL_0020:  ret
+}");
+        }
+
         [Fact]
         public void TestDelegateAndStringOperators()
         {
@@ -1040,7 +1380,7 @@ static class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,17): error CS0019: Operator '??' cannot be applied to operands of type 'T' and 'T'
                 //         var y = default(T) ?? x;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) ?? x").WithArguments("??", "T", "T").WithLocation(10, 17)); ;
@@ -1100,7 +1440,7 @@ public class Test
         a = M ?? a;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,13): error CS0019: Operator '??' cannot be applied to operands of type 'method group' and 'System.Action'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "M ?? a").WithArguments("??", "method group", "System.Action").WithLocation(7, 13));
         }
@@ -4783,7 +5123,7 @@ class Test
 }
 ";
 
-                var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+                var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
                 diagnostics = compilation.GetEmitDiagnostics();
             }
 
@@ -4841,7 +5181,7 @@ class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics(
     // (17,16): error CS8078: An expression is too long or complex to compile
     //         return 1 * f[0] + 2 * f[1] + 3 * f[2] + 4 * f[3] + ...
@@ -4947,7 +5287,7 @@ struct S1
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics(
     // (10,16): error CS8078: An expression is too long or complex to compile
     //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
@@ -4979,6 +5319,33 @@ class Test
 4242691
 4242691";
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void TestCoalesceNotLvalue()
+        {
+            var source = @"
+class Program
+{
+    struct S1
+    {
+        public int field;
+        public int Increment() => field++;
+    }
+
+    static void Main()
+    {
+        S1 v = default(S1);
+        v.Increment(); 
+
+        ((S1?)null ?? v).Increment();
+
+        System.Console.WriteLine(v.field);
+    }
+}
+";
+            string expectedOutput = @"1";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
     }
 }

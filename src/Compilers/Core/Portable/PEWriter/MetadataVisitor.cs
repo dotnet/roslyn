@@ -76,7 +76,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IEventDefinition eventDefinition)
         {
-            this.Visit(eventDefinition.Accessors);
+            this.Visit(eventDefinition.GetAccessors(Context));
             this.Visit(eventDefinition.GetType(Context));
         }
 
@@ -464,7 +464,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IPropertyDefinition propertyDefinition)
         {
-            this.Visit(propertyDefinition.Accessors);
+            this.Visit(propertyDefinition.GetAccessors(Context));
             this.Visit(propertyDefinition.Parameters);
         }
 

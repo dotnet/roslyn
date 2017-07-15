@@ -1,6 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,6 +14,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
+    using static GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
+
     public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -540,7 +542,7 @@ class Program
     public override int GetHashCode() => 165851236 + i.GetHashCode();
 }",
 index: 1,
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -962,6 +964,311 @@ class Program
 }",
 chosenSymbols: null,
 ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators1()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               s == program.s;
+    }
+
+    public static bool operator ==(Program program1, Program program2)
+    {
+        return EqualityComparer<Program>.Default.Equals(program1, program2);
+    }
+
+    public static bool operator !=(Program program1, Program program2)
+    {
+        return !(program1 == program2);
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators2()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               s == program.s;
+    }
+
+    public static bool operator ==(Program program1, Program program2)
+        => EqualityComparer<Program>.Default.Equals(program1, program2);
+
+    public static bool operator !=(Program program1, Program program2)
+        => !(program1 == program2);
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+parameters: new TestParameters(
+    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators3()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+
+    public static bool operator ==(Program program1, Program program2) => true;
+}",
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               s == program.s;
+    }
+
+    public static bool operator ==(Program program1, Program program2) => true;
+}",
+chosenSymbols: null,
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators4()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+struct Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System.Collections.Generic;
+
+struct Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is Program))
+        {
+            return false;
+        }
+
+        var program = (Program)obj;
+        return s == program.s;
+    }
+
+    public static bool operator ==(Program program1, Program program2)
+    {
+        return program1.Equals(program2);
+    }
+
+    public static bool operator !=(Program program1, Program program2)
+    {
+        return !(program1 == program2);
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnStruct()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+struct Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+struct Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Program && Equals((Program)obj);
+    }
+
+    public bool Equals(Program other)
+    {
+        return s == other.s;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClass()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return other != null &&
+               s == other.s;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestDoNotOfferIEquatableIfTypeAlreadyImplementsIt()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program : System.IEquatable<Program>
+{
+    public string s;
+    [||]
+}",
+@"
+using System.Collections.Generic;
+
+class Program : System.IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               s == program.s;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestMissingReferences()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+<Workspace>
+    <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='false'>
+        <Document FilePath='Test1.cs'>
+public class Class1
+{
+    int i;
+    [||]
+
+    public void Foo()
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+public class Class1
+{
+    int i;
+
+    public override global::System.Boolean Equals(global::System.Object obj)
+    {
+        var @class = obj as Class1;
+        return @class != null;
+    }
+
+    public void Foo()
+    {
+    }
+
+    public override global::System.Int32 GetHashCode()
+    {
+        return 0;
+    }
+}",
+chosenSymbols: new string[] { },
+index: 1);
         }
     }
 }

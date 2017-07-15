@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const string DefaultParameterName = "p";
         private const string DefaultBuiltInParameterName = "v";
 
+        public static bool CanAddNullCheck(this ITypeSymbol type)
+            => type != null && (type.IsReferenceType || type.IsNullable());
+
         public static IList<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
         {
             var allInterfaces = type.AllInterfaces;

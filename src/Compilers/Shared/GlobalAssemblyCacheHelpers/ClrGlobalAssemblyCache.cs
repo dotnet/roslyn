@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
             else if (hr != S_OK)
             {
                 Exception e = Marshal.GetExceptionForHR(hr);
-                if (e is FileNotFoundException)
+                if (e is FileNotFoundException || e is DirectoryNotFoundException)
                 {
                     // invalid assembly name:
                     yield break;

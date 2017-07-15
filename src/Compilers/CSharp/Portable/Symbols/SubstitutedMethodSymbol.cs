@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -38,9 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private int _hashCode; // computed on demand
 
-        internal SubstitutedMethodSymbol(SubstitutedNamedTypeSymbol containingSymbol, MethodSymbol originalDefinition)
+        internal SubstitutedMethodSymbol(NamedTypeSymbol containingSymbol, MethodSymbol originalDefinition)
             : this(containingSymbol, containingSymbol.TypeSubstitution, originalDefinition, constructedFrom: null)
         {
+            Debug.Assert(containingSymbol is SubstitutedNamedTypeSymbol || containingSymbol is SubstitutedErrorTypeSymbol);
+            Debug.Assert(originalDefinition.ContainingType == containingSymbol.OriginalDefinition);
         }
 
         protected SubstitutedMethodSymbol(NamedTypeSymbol containingSymbol, TypeMap map, MethodSymbol originalDefinition, MethodSymbol constructedFrom)

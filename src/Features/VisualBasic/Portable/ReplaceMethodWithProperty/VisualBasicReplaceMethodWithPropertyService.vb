@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -39,8 +39,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 Return Nothing
             End If
 
-            If position > containingMethod.ParameterList.Span.End Then
-                Return Nothing
+            ' Parameter lists in VB are optional and may not be provided.
+            If containingMethod.ParameterList Is Nothing Then
+                If position > containingMethod.Span.End Then
+                    Return Nothing
+                End If
+            Else
+                If position > containingMethod.ParameterList.Span.End Then
+                    Return Nothing
+                End If
             End If
 
             Return containingMethod

@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -317,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             callerInfoOpt:=node,
                             representCandidateInDiagnosticsOpt:=targetType)
                     Else
-                        Dim badExpressionChildren = ArrayBuilder(Of BoundNode).GetInstance()
+                        Dim badExpressionChildren = ArrayBuilder(Of BoundExpression).GetInstance()
                         badExpressionChildren.Add(target)
                         badExpressionChildren.AddRange(boundArguments)
                         Return BadExpression(node, badExpressionChildren.ToImmutableAndFree(), ErrorTypeSymbol.UnknownResultType)
@@ -764,7 +765,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If haveAnExtensionMethod Then
                             ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, group), ERRID.ERR_ExtensionMethodCannotBeLateBound)
 
-                            Dim builder = ArrayBuilder(Of BoundNode).GetInstance()
+                            Dim builder = ArrayBuilder(Of BoundExpression).GetInstance()
 
                             builder.Add(group)
 
@@ -1603,16 +1604,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
 ProduceBoundNode:
-            Dim childBoundNodes As ImmutableArray(Of BoundNode)
+            Dim childBoundNodes As ImmutableArray(Of BoundExpression)
 
             If boundArguments.IsEmpty AndAlso boundTypeExpression Is Nothing Then
                 If groupOpt Is Nothing Then
-                    childBoundNodes = ImmutableArray(Of BoundNode).Empty
+                    childBoundNodes = ImmutableArray(Of BoundExpression).Empty
                 Else
-                    childBoundNodes = ImmutableArray.Create(Of BoundNode)(groupOpt)
+                    childBoundNodes = ImmutableArray.Create(Of BoundExpression)(groupOpt)
                 End If
             Else
-                Dim builder = ArrayBuilder(Of BoundNode).GetInstance()
+                Dim builder = ArrayBuilder(Of BoundExpression).GetInstance()
 
                 If groupOpt IsNot Nothing Then
                     builder.Add(groupOpt)

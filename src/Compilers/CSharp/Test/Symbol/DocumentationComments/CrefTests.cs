@@ -239,7 +239,7 @@ class Program { }
 class Program { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments);
             compilation.VerifyDiagnostics(
                 // (3,20): warning CS1574: XML comment has cref attribute 'Gibberish' that could not be resolved
                 // /// See <see cref="Gibberish"/>.
@@ -269,7 +269,7 @@ class Program { }
 class Program { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments);
             compilation.VerifyDiagnostics(
                 // (4,20): warning CS1584: XML comment has syntactically incorrect cref attribute ':'
                 // /// See <see cref=":"/> - first character is colon.
@@ -1803,7 +1803,7 @@ class C
             Assert.Equal(
                 compilation.GlobalNamespace
                            .GetMember<NamedTypeSymbol>("C")
-                           .GetMember<SourceMemberMethodSymbol>("M"),
+                           .GetMember<SourceOrdinaryMethodSymbol>("M"),
                 actualSymbol);
             Assert.Equal(SymbolKind.Method, actualSymbol.Kind);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
@@ -1836,7 +1836,7 @@ class Outer
             var expectedSymbol = compilation.GlobalNamespace
                                             .GetMember<NamedTypeSymbol>("Outer")
                                             .GetMember<NamedTypeSymbol>("Inner")
-                                            .GetMember<SourceMemberMethodSymbol>("M");
+                                            .GetMember<SourceOrdinaryMethodSymbol>("M");
 
             // Consider inaccessible symbols, as in Dev11
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
@@ -1857,8 +1857,8 @@ class Outer
 class Test { }
 ";
 
-            var lib1Ref = CreateCompilationWithMscorlib(lib1Source, assemblyName: "A").EmitToImageReference();
-            var lib2Ref = CreateCompilationWithMscorlib(lib2Source, assemblyName: "B").EmitToImageReference();
+            var lib1Ref = CreateStandardCompilation(lib1Source, assemblyName: "A").EmitToImageReference();
+            var lib2Ref = CreateStandardCompilation(lib2Source, assemblyName: "B").EmitToImageReference();
 
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source, new[] { lib1Ref, lib2Ref });
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
@@ -4373,7 +4373,7 @@ public partial class E { }
             var tree2 = Parse(source2, options: TestOptions.Regular);
 
             // This scenario does not exist in dev11, but the diagnostics seem reasonable.
-            CreateCompilationWithMscorlib(new[] { tree1, tree2 }).VerifyDiagnostics(
+            CreateStandardCompilation(new[] { tree1, tree2 }).VerifyDiagnostics(
                 // (5,22): warning CS1591: Missing XML comment for publicly visible type or member 'D'
                 // public partial class D { }
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "D").WithArguments("D"),
@@ -5824,8 +5824,11 @@ enum E { }
 ";
 
             // Restore compat: include inaccessible members in cref lookup
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
-            compilation.VerifyDiagnostics();
+            var comp = CreateCompilation(
+                new[] { Parse(source, options: TestOptions.RegularWithDocumentationComments) },
+                new[] { MscorlibRef },
+                TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default));
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(554086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554086")]

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
-            return new InvisibleEditor(DeferredState.ServiceProvider, hostDocument.FilePath, needsSave, needsUndoDisabled);
+            return new InvisibleEditor(DeferredState.ServiceProvider, hostDocument.FilePath, hostDocument.Project, needsSave, needsUndoDisabled);
         }
 
         private static bool TryResolveSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, out ISymbol resolvedSymbol, out Project resolvedProject)
@@ -197,27 +197,32 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_streamingPresenters.Any())
-            {
-                return false;
-            }
+            //if (!_streamingPresenters.Any())
+            //{
+            //    return false;
+            //}
 
-            if (!TryResolveSymbol(symbol, project, cancellationToken, 
-                    out var searchSymbol, out var searchProject))
-            {
-                return false;
-            }
+            //if (!TryResolveSymbol(symbol, project, cancellationToken, 
+            //        out var searchSymbol, out var searchProject))
+            //{
+            //    return false;
+            //}
 
-            var context = _streamingPresenters.First().Value.StartSearch(
-                EditorFeaturesResources.Find_References, supportsReferences: true);
-            var task = AbstractFindUsagesService.FindReferencesAsync(
-                context, searchSymbol, searchProject, CancellationToken.None);
+            //var context = _streamingPresenters.First().Value.StartSearch(
+            //    EditorFeaturesResources.Find_References, supportsReferences: true);
+            //var task = AbstractFindUsagesService.FindReferencesAsync(
+            //    context, searchSymbol, searchProject, CancellationToken.None);
 
-            return true;
+            //return true;
+            // Legacy API.  Previously used by ObjectBrowser to support 'FindRefs' off of an
+            // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
+            return false;
         }
 
         public override void DisplayReferencedSymbols(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
+            // Legacy API.  Previously used by ObjectBrowser to support 'FindRefs' off of an
+            // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
         }
 
         internal override object GetBrowseObject(SymbolListItem symbolListItem)

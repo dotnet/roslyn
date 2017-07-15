@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -3818,6 +3818,81 @@ class Program
     }
 }",
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")]
+        public async Task TestMemberOfBuiltInType1()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    void Main()
+    {
+        [|UInt32|] value = UInt32.MaxValue;
+    }
+}",
+@"using System;
+class C
+{
+    void Main()
+    {
+        uint value = UInt32.MaxValue;
+    }
+}",
+                parseOptions: CSharpParseOptions.Default,
+                options: PreferIntrinsicTypeInDeclaration);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")]
+        public async Task TestMemberOfBuiltInType2()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    void Main()
+    {
+        UInt32 value = [|UInt32|].MaxValue;
+    }
+}",
+@"using System;
+class C
+{
+    void Main()
+    {
+        UInt32 value = uint.MaxValue;
+    }
+}",
+                parseOptions: CSharpParseOptions.Default,
+                options: PreferIntrinsicTypeInMemberAccess);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")]
+        public async Task TestMemberOfBuiltInType3()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    void Main()
+    {
+        [|UInt32|].Parse(""foo"");
+    }
+}",
+@"using System;
+class C
+{
+    void Main()
+    {
+        uint.Parse(""foo"");
+    }
+}",
+                parseOptions: CSharpParseOptions.Default,
+                options: PreferIntrinsicTypeInMemberAccess);
         }
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)

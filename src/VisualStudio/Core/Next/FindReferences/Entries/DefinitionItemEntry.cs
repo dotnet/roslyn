@@ -22,9 +22,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
+                string documentName,
                 Guid projectGuid,
                 SourceText sourceText)
-                : base(context, definitionBucket, documentSpan, projectGuid, sourceText)
+                : base(context, definitionBucket, documentSpan, documentName, projectGuid, sourceText)
             {
             }
 

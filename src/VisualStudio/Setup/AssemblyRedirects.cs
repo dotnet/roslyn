@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.Shell;
 using Roslyn.VisualStudio.Setup;
@@ -25,6 +25,11 @@ using Roslyn.VisualStudio.Setup;
 
 [assembly: ProvideRoslynBindingRedirection("Esent.Interop.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Elfie.dll")]
+
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\SQLitePCLRaw.batteries_green.DLL")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\SQLitePCLRaw.batteries_v2.DLL")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\SQLitePCLRaw.core.DLL")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\SQLitePCLRaw.provider.e_sqlite3.DLL")]
 
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Convention.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Hosting.dll")]

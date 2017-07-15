@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             yield return _compilerAnalyzer;
                         }
 
-                        foreach (var analyzer in _map.Keys)
+                        foreach (var (analyzer, _) in _map)
                         {
                             yield return analyzer;
                         }
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
 
                         // TODO: for now, this is static, but in future, we might consider making this a dynamic so that we process cheaper analyzer first.
-                        foreach (var set in _map.Values)
+                        foreach (var (_, set) in _map)
                         {
                             yield return set;
                         }

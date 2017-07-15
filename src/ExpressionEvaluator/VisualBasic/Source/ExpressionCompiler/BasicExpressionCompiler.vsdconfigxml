@@ -24,6 +24,7 @@
           CallOnlyWhenLoaded="true">
           <NoFilter/>
           <Interface Name="IDkmModuleModifiedNotification"/>
+          <Interface Name="IDkmModuleInstanceUnloadNotification"/>
         </InterfaceGroup>
       </Implements>
     </Class>

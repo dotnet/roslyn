@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -540,9 +541,9 @@ IL_0005:  ret
         var o = (System.Collections.ObjectModel.ReadOnlyDictionary<object, object>)null;
     }
 }";
-            var systemConsoleComp = CreateCompilationWithMscorlib(sourceConsole, options: TestOptions.DebugDll, assemblyName: "System.Console");
+            var systemConsoleComp = CreateStandardCompilation(sourceConsole, options: TestOptions.DebugDll, assemblyName: "System.Console");
             var systemConsoleRef = systemConsoleComp.EmitToImageReference();
-            var systemObjectModelComp = CreateCompilationWithMscorlib(sourceObjectModel, options: TestOptions.DebugDll, assemblyName: "System.ObjectModel");
+            var systemObjectModelComp = CreateStandardCompilation(sourceObjectModel, options: TestOptions.DebugDll, assemblyName: "System.ObjectModel");
             var systemObjectModelRef = systemObjectModelComp.EmitToImageReference();
             var identityObjectModel = systemObjectModelRef.GetAssemblyIdentity();
 
@@ -726,7 +727,7 @@ IL_0030:  ret
 public class Private2
 {
 }";
-            var compLib = CreateCompilationWithMscorlib(sourceLib, assemblyName: "System.Private.Library");
+            var compLib = CreateStandardCompilation(sourceLib, assemblyName: "System.Private.Library");
             compLib.VerifyDiagnostics();
             var refLib = compLib.EmitToImageReference();
 
@@ -755,7 +756,7 @@ namespace System
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 null,
-                moduleBuilder => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, objectType),
+                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
                 out peBytes,
                 out pdbBytes);
 
@@ -841,7 +842,7 @@ namespace System
 {
     public class Private { }
 }";
-            var compLib = CreateCompilationWithMscorlib(sourceLib, assemblyName: "System.Private.Library");
+            var compLib = CreateStandardCompilation(sourceLib, assemblyName: "System.Private.Library");
             compLib.VerifyDiagnostics();
             var refLib = compLib.EmitToImageReference(aliases: ImmutableArray.Create("A"));
 
@@ -874,7 +875,7 @@ namespace System
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 pdbPath,
-                moduleBuilder => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, objectType),
+                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
                 out peBytes,
                 out pdbBytes);
             var symReader = SymReaderFactory.CreateReader(pdbBytes);
@@ -919,7 +920,7 @@ namespace System
 @"class Private
 {
 }";
-            var compLib = CreateCompilationWithMscorlib(sourceLib, assemblyName: CorLibAssemblyName);
+            var compLib = CreateStandardCompilation(sourceLib, assemblyName: CorLibAssemblyName);
             compLib.VerifyDiagnostics();
             var refLib = compLib.EmitToImageReference();
 
@@ -930,7 +931,7 @@ namespace System
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
 
             using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), refLib.ToModuleInstance(), MscorlibRef.ToModuleInstance() }))
@@ -994,8 +995,8 @@ namespace System
             private readonly CommonPEModuleBuilder _builder;
             private readonly NamespaceTypeDefinitionNoBase _objectType;
 
-            internal PEAssemblyBuilderWithAdditionalReferences(CommonPEModuleBuilder builder, INamespaceTypeDefinition objectType) :
-                base((SourceModuleSymbol)builder.CommonSourceModule, builder.EmitOptions, builder.OutputKind, builder.SerializationProperties, builder.ManifestResources)
+            internal PEAssemblyBuilderWithAdditionalReferences(CommonPEModuleBuilder builder, EmitOptions emitOptions, INamespaceTypeDefinition objectType) :
+                base((SourceModuleSymbol)builder.CommonSourceModule, emitOptions, builder.OutputKind, builder.SerializationProperties, builder.ManifestResources)
             {
                 _builder = builder;
                 _objectType = new NamespaceTypeDefinitionNoBase(objectType);

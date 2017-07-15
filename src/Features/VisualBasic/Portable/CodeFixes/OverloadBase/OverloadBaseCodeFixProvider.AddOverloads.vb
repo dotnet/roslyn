@@ -1,5 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
@@ -60,12 +61,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
                 Dim cleanupService = document.GetLanguageService(Of ICodeCleanerService)
 
                 If cleanupService IsNot Nothing AndAlso newNode IsNot Nothing Then
-                    newNode = Await cleanupService.CleanupAsync(newNode, {newNode.Span}, document.Project.Solution.Workspace, cleanupService.GetDefaultProviders(), cancellationToken).ConfigureAwait(False)
+                    newNode = Await cleanupService.CleanupAsync(newNode, ImmutableArray.Create(newNode.Span), document.Project.Solution.Workspace, cleanupService.GetDefaultProviders(), cancellationToken).ConfigureAwait(False)
                 End If
 
                 Return newNode.WithAdditionalAnnotations(Formatter.Annotation)
             End Function
-
         End Class
     End Class
 End Namespace

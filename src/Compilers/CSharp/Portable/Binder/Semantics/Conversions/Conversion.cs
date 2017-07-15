@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitThrow:
                 case ConversionKind.AnonymousFunction: 
                 case ConversionKind.Boxing: 
-                case ConversionKind.NullLiteral: 
+                case ConversionKind.DefaultOrNullLiteral: 
                 case ConversionKind.NullToPointer: 
                 case ConversionKind.PointerToVoid: 
                 case ConversionKind.PointerToPointer: 
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitThrow => new Conversion(ConversionKind.ImplicitThrow);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
-        internal static Conversion NullLiteral => new Conversion(ConversionKind.NullLiteral);
+        internal static Conversion DefaultOrNullLiteral => new Conversion(ConversionKind.DefaultOrNullLiteral);
         internal static Conversion NullToPointer => new Conversion(ConversionKind.NullToPointer);
         internal static Conversion PointerToVoid => new Conversion(ConversionKind.PointerToVoid);
         internal static Conversion PointerToPointer => new Conversion(ConversionKind.PointerToPointer);
@@ -234,6 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ExplicitDynamic => new Conversion(ConversionKind.ExplicitDynamic);
         internal static Conversion InterpolatedString => new Conversion(ConversionKind.InterpolatedString);
         internal static Conversion Deconstruction => new Conversion(ConversionKind.Deconstruction);
+        internal static Conversion IdentityValue => new Conversion(ConversionKind.IdentityValue);
+        internal static Conversion PinnedObjectToPointer => new Conversion(ConversionKind.PinnedObjectToPointer);
 
         // trivial conversions that could be underlying in nullable conversion
         // NOTE: tuple conversions can be underlying as well, but they are not trivial 
@@ -592,16 +595,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if the conversion is an implicit null literal conversion.
+        /// Returns true if the conversion is an implicit null or default literal conversion.
         /// </summary>
         /// <remarks>
-        /// Null literal conversions are described in section 6.1.5 of the C# language specification.
+        /// Null or default literal conversions are described in section 6.1.5 of the C# language specification.
         /// </remarks>
         public bool IsNullLiteral
         {
             get
             {
-                return Kind == ConversionKind.NullLiteral;
+                return Kind == ConversionKind.DefaultOrNullLiteral;
             }
         }
 

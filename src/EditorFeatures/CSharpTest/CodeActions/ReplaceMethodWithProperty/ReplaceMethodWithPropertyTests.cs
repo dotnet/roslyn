@@ -1,11 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
@@ -1680,6 +1678,77 @@ options: PreferExpressionBodiedAccessorsAndProperties);
 }", options: PreferExpressionBodiedProperties);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]GetFoo() { throw e; }
+}",
+@"class C
+{
+    int Foo => throw e;
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsNotSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]GetFoo() { throw e +
+        e; }
+}",
+@"class C
+{
+    int Foo
+    {
+        get
+        {
+            throw e + 
+                e;
+        }
+    }
+}", options: OptionsSet(
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestExplicitInterfaceImplementation()
+        {
+            await TestWithAllCodeStyleOff(
+@"interface IFoo
+{
+    int [||]GetFoo();
+}
+
+class C : IFoo
+{
+    int IFoo.GetFoo()
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+@"interface IFoo
+{
+    int Foo { get; }
+}
+
+class C : IFoo
+{
+    int IFoo.Foo
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}");
+        }
+
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup, 
             ParseOptions parseOptions = null, int index = 0, 
@@ -1693,19 +1762,19 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         }
 
         private IDictionary<OptionKey, object> AllCodeStyleOff =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement));
+            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
         private IDictionary<OptionKey, object> PreferExpressionBodiedAccessors =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithSuggestionEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement));
+            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
+                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
         private IDictionary<OptionKey, object> PreferExpressionBodiedProperties =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.TrueWithSuggestionEnforcement));
+            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
 
         private IDictionary<OptionKey, object> PreferExpressionBodiedAccessorsAndProperties =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithSuggestionEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.TrueWithSuggestionEnforcement));
+            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
+                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }
 }

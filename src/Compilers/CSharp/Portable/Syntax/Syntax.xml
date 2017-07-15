@@ -726,6 +726,7 @@
     <Kind Name="TrueLiteralExpression"/>
     <Kind Name="FalseLiteralExpression"/>
     <Kind Name="NullLiteralExpression"/>
+    <Kind Name="DefaultLiteralExpression"/>
     <Field Name="Token" Type="SyntaxToken">
       <Kind Name="ArgListKeyword"/>
       <Kind Name="NumericLiteralToken"/>
@@ -734,6 +735,7 @@
       <Kind Name="TrueKeyword"/>
       <Kind Name="FalseKeyword"/>
       <Kind Name="NullKeyword"/>
+      <Kind Name="DefaultKeyword"/>
       <PropertyComment>
         <summary>SyntaxToken representing the keyword corresponding to the kind of the literal expression.</summary>
       </PropertyComment>

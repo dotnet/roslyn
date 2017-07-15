@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </summary>
     internal class WrappingViewModel : AbstractOptionPreviewViewModel
     {
-        private static readonly string s_blockPreview = @"
+        private const string s_blockPreview = @"
 class C
 {
 //[
@@ -21,7 +21,7 @@ class C
 //]    
 }";
 
-        private static readonly string s_declarationPreview = @"
+        private const string s_declarationPreview = @"
 class C{
     void foo()
     {

@@ -223,28 +223,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
-        public async Task TestSingleCase()
+        public async Task TestMissingOnSingleCase()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"class C
 {
     void M(int i)
     {
         [||]if (i == 5) {}
     }
-}",
-@"class C
-{
-    void M(int i)
-    {
-        switch (i)
-        {
-            case 5:
-                break;
-        }
-    }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -283,7 +271,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     void M(object o)
     {
         [||]if (o is int i)
-            return;
+                return;
+            else if (o is string s)
+                return;
     }
 }",
 @"class C
@@ -293,6 +283,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         switch (o)
         {
             case int i:
+                return;
+            case string s:
                 return;
         }
     }
@@ -308,7 +300,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     void M(object o)
     {
         [||]if (o is string s && s.Length == 5)
-            return;
+                return;
+            else if (o is int i)
+                return;
     }
 }",
 @"class C
@@ -318,6 +312,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         switch (o)
         {
             case string s when s.Length == 5:
+                return;
+            case int i:
                 return;
         }
     }
@@ -333,7 +329,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     void M(object o)
     {
         [||]if (o is string s && (s.Length > 5 && s.Length < 10))
-            return;
+                return;
+            else if (o is int i)
+                return;
     }
 }",
 @"class C
@@ -343,6 +341,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         switch (o)
         {
             case string s when s.Length > 5 && s.Length < 10:
+                return;
+            case int i:
                 return;
         }
     }
@@ -358,7 +358,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     void M(object o)
     {
         [||]if (o is string s && s.Length > 5 && s.Length < 10)
-            return;
+                return;
+            else if (o is int i)
+                return;
     }
 }",
 @"class C
@@ -368,6 +370,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         switch (o)
         {
             case string s when s.Length > 5 && s.Length < 10:
+                return;
+            case int i:
                 return;
         }
     }
@@ -388,6 +392,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 M(o:   0);
 
             }
+            else if (o is int i)
+            {
+                M(o:   0);
+            }
     }
 }",
 @"class C
@@ -397,13 +405,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         switch (o)
         {
             case string s when s.Length > 5 &&
-                               s.Length < 10:
+                                 s.Length < 10:
                 M(o:   0);
-
+                break;
+            case int i:
+                M(o:   0);
                 break;
         }
     }
-}");
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -431,6 +441,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             var x = i;
         }
+        else if (i == 4)
+        {
+        }
     }
 }",
 @"class C
@@ -444,6 +457,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                     var x = i;
                     break;
                 }
+            case 4:
+                break;
         }
     }
 }");
@@ -497,6 +512,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 break;
             }
         }
+        else if (i == 2)
+        {
+        }
     }
 }",
 @"class C
@@ -510,6 +528,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 {
                     break;
                 }
+                break;
+            case 2:
                 break;
         }
     }
@@ -586,7 +606,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         while (true)
         {
-            [||]if (i == null) return 5;
+            [||]if (i == null) return 5; else if (i == 1) return 1;
             if (i == 0) break;
             if (i == 1) return 6;
             return 7;
@@ -603,6 +623,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             {
                 case null:
                     return 5;
+                case 1:
+                    return 1;
             }
             if (i == 0) break;
             if (i == 1) return 6;
@@ -729,6 +751,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             return 4;
         }
+        else if (i == 1)
+        {
+            return 1;
+        }
+
         if (i == 10)
         {
             return 5;
@@ -752,6 +779,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             case 5:
                 return 4;
+            case 1:
+                return 1;
         }
         if (i == 10)
         {

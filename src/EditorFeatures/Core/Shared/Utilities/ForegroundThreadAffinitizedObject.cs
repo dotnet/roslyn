@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -70,6 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         internal TaskScheduler ForegroundTaskScheduler => _foregroundThreadDataWhenCreated.TaskScheduler;
 
+        internal ForegroundThreadDataKind ForegroundKind => _foregroundThreadDataWhenCreated.Kind;
+
         // HACK: This is a dangerous way of establishing the 'foreground' thread affinity of an 
         // AppDomain.  This method should be deleted in favor of forcing derivations of this type
         // to either explicitly inherit WPF Dispatcher thread or provide an explicit thread 
@@ -105,7 +108,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public void AssertIsForeground()
         {
-            Contract.ThrowIfFalse(IsForeground());
+            var whenCreatedThread = _foregroundThreadDataWhenCreated.Thread;
+            var currentThread = Thread.CurrentThread;
+
+            // In debug, provide a lot more information so that we can track down unit test flakeyness.
+            // This is too expensive to do in retail as it creates way too many allocations.
+            Debug.Assert(currentThread == whenCreatedThread,
+                "When created kind       : " + _foregroundThreadDataWhenCreated.Kind + "\r\n" +
+                "When created thread id  : " + whenCreatedThread?.ManagedThreadId + "\r\n" +
+                "When created thread name: " + whenCreatedThread?.Name + "\r\n" +
+                "Current thread id       : " + currentThread?.ManagedThreadId + "\r\n" +
+                "Current thread name     : " + currentThread?.Name);
+
+            // But, in retail, do the check as well, so that we can catch problems that happen in the wild.
+            Contract.ThrowIfFalse(currentThread == whenCreatedThread);
         }
 
         public void AssertIsBackground()
@@ -124,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             // Does nothing.
         }
 
-        public Task InvokeBelowInputPriority(Action action, CancellationToken cancellationToken = default(CancellationToken))
+        public Task InvokeBelowInputPriority(Action action, CancellationToken cancellationToken = default)
         {
             if (IsForeground() && !IsInputPending())
             {

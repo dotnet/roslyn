@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // Make the type chain above this new type partial.  Also, remove any 
                 // attributes from the containing partial types.  We don't want to create
                 // duplicate attributes on things.
-                AddPartialModifiersToTypeChain(documentEditor, removeAttributesAndComments: true);
+                AddPartialModifiersToTypeChain(
+                    documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true);
 
                 // remove things that are not being moved, from the forked document.
                 var membersToRemove = GetMembersToRemove(root);
@@ -154,14 +155,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // Make the type chain above the type we're moving 'partial'.  
                 // However, keep all the attributes on these types as theses are the 
                 // original attributes and we don't want to mess with them. 
-                AddPartialModifiersToTypeChain(documentEditor, removeAttributesAndComments: false);
-                documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepNoTrivia);
+                AddPartialModifiersToTypeChain(documentEditor, 
+                    removeAttributesAndComments: false, removeTypeInheritance: false);
+                documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
                 var updatedDocument = documentEditor.GetChangedDocument();
 
                 // Now, remove any imports that we no longer need *if* they were used in the new
                 // file with the moved type.  Essentially, those imports were here just to serve
-                // that new type and we shoudl remove them.  If we have *other* imports that that
+                // that new type and we should remove them.  If we have *other* imports that
                 // other file does not use *and* we do not use, we'll still keep those around.
                 // Those may be important to the user for code they're about to write, and we 
                 // don't want to interfere with them by removing them.
@@ -236,7 +238,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// if a nested type is being moved, this ensures its containing type is partial.
             /// </summary>
             private void AddPartialModifiersToTypeChain(
-                DocumentEditor documentEditor, bool removeAttributesAndComments)
+                DocumentEditor documentEditor,
+                bool removeAttributesAndComments,
+                bool removeTypeInheritance)
             {
                 var semanticFacts = State.SemanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 var typeChain = State.TypeNode.Ancestors().OfType<TTypeDeclarationSyntax>();
@@ -254,6 +258,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     {
                         documentEditor.RemoveAllAttributes(node);
                         documentEditor.RemoveAllComments(node);
+                    }
+
+                    if (removeTypeInheritance)
+                    {
+                        documentEditor.RemoveAllTypeInheritance(node);
                     }
                 }
 

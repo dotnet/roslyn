@@ -10,29 +10,67 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
+    /// Information related to pinned solution
+    /// </summary>
+    internal class PinnedSolutionInfo
+    {
+        /// <summary>
+        /// Unique ID for this pinned solution
+        /// 
+        /// This later used to find matching solution between VS and remote host
+        /// </summary>
+        public readonly int ScopeId;
+
+        /// <summary>
+        /// This indicates whether this scope is for primary branch or not (not forked solution)
+        /// 
+        /// Features like OOP will use this flag to see whether caching information related to this solution
+        /// can benefit other requests or not
+        /// </summary>
+        public readonly bool FromPrimaryBranch;
+        public readonly Checksum SolutionChecksum;
+
+        public PinnedSolutionInfo(int scopeId, bool fromPrimaryBranch, Checksum solutionChecksum)
+        {
+            ScopeId = scopeId;
+            FromPrimaryBranch = fromPrimaryBranch;
+            SolutionChecksum = solutionChecksum;
+        }
+    }
+
+    /// <summary>
     /// checksum scope that one can use to pin assets in memory while working on remote host
     /// </summary>
-    internal class PinnedRemotableDataScope : IDisposable
+    internal sealed class PinnedRemotableDataScope : IDisposable
     {
+        private static int s_scopeId = 1;
+
         private readonly AssetStorages _storages;
         private readonly AssetStorages.Storage _storage;
+        private bool _disposed;
 
-        public readonly Checksum SolutionChecksum;
+        public readonly PinnedSolutionInfo SolutionInfo;
 
         public PinnedRemotableDataScope(
             AssetStorages storages,
             AssetStorages.Storage storage,
             Checksum solutionChecksum)
         {
+            Contract.ThrowIfNull(solutionChecksum);
+
             _storages = storages;
             _storage = storage;
 
-            SolutionChecksum = solutionChecksum;
+            SolutionInfo = new PinnedSolutionInfo(
+                Interlocked.Increment(ref s_scopeId),
+                _storage.SolutionState.BranchId == Workspace.PrimaryBranchId,
+                solutionChecksum);
 
             _storages.RegisterSnapshot(this, storage);
         }
 
         public Workspace Workspace => _storage.SolutionState.Workspace;
+        public Checksum SolutionChecksum => SolutionInfo.SolutionChecksum;
 
         /// <summary>
         /// Add asset that is not part of solution to be part of this snapshot.
@@ -40,16 +78,16 @@ namespace Microsoft.CodeAnalysis.Execution
         /// TODO: currently, this asset must be something <see cref="Serializer"/> can understand
         ///       this should be changed so that custom serializer can be discoverable by <see cref="RemotableData.Kind"/> 
         /// </summary>
-        public void AddAdditionalAsset(CustomAsset asset, CancellationToken cancellationToken)
+        public void AddAdditionalAsset(CustomAsset asset)
         {
-            _storage.AddAdditionalAsset(asset, cancellationToken);
+            _storage.AddAdditionalAsset(asset);
         }
 
         public RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
             {
-                return _storages.GetRemotableData(this, checksum, cancellationToken);
+                return _storages.GetRemotableData(SolutionInfo.ScopeId, checksum, cancellationToken);
             }
         }
 
@@ -57,13 +95,18 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
-                return _storages.GetRemotableData(this, checksums, cancellationToken);
+                return _storages.GetRemotableData(SolutionInfo.ScopeId, checksums, cancellationToken);
             }
         }
 
         public void Dispose()
         {
-            _storages.UnregisterSnapshot(this);
+            if (!_disposed)
+            {
+                _disposed = true;
+                _storages.UnregisterSnapshot(this);
+            }
+
             GC.SuppressFinalize(this);
         }
 

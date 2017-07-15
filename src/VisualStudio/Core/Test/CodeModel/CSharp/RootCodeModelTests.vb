@@ -1,6 +1,5 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
@@ -12,6 +11,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "CodeElements tests"
 
+        ' This test depends On the version Of mscorlib used by the TestWorkspace And may 
+        ' change in the future
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements1()
             Dim code =
@@ -22,7 +23,8 @@ class Foo { }
             TestChildren(code,
                              "Foo",
                              "System",
-                             "Microsoft")
+                             "Microsoft",
+                             "Windows")
         End Sub
 
 #End Region

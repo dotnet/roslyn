@@ -13,6 +13,20 @@ namespace BuildBoss
     {
         internal static int Main(string[] args)
         {
+            try
+            {
+                return MainCore(args);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unhandled exception: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return 1;
+            }
+        }
+
+        private static int MainCore(string[] args)
+        { 
             if (args.Length == 0)
             { 
                 Usage();
@@ -26,7 +40,7 @@ namespace BuildBoss
                 {
                     allGood &= ProcessSolution(arg);
                 }
-                else if (Path.GetExtension(arg) == ".xml")
+                else if (string.Equals(Path.GetExtension(arg), ".buildlog", StringComparison.OrdinalIgnoreCase))
                 {
                     allGood &= ProcessStructuredLog(arg);
                 }
@@ -34,6 +48,11 @@ namespace BuildBoss
                 {
                     allGood &= ProcessTargets(arg);
                 }
+            }
+
+            if (!allGood)
+            {
+                Console.WriteLine("Failed");
             }
 
             return allGood ? 0 : 1;
@@ -70,7 +89,7 @@ namespace BuildBoss
 
         private static bool ProcessStructuredLog(string logFilePath)
         {
-            var util = new StructuredLoggerCheckerUtil(XDocument.Load(logFilePath));
+            var util = new StructuredLoggerCheckerUtil(logFilePath);
             return CheckCore(util, $"Structured log {logFilePath}");
         }
 

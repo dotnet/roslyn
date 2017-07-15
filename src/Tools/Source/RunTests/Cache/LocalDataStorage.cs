@@ -80,7 +80,7 @@ namespace RunTests.Cache
             catch (Exception e)
             {
                 // Okay for exception to occur here on I/O
-                Logger.Log($"Failed to read cache {checksum} {e.Message}");
+                Logger.Log($"Failed to read cache {checksum}", e);
             }
 
             return false;
@@ -107,7 +107,7 @@ namespace RunTests.Cache
             catch (Exception e)
             {
                 // I/O errors are expected and okay here.
-                Logger.Log($"Failed to log {checksum} {e.Message}");
+                Logger.Log($"Failed to log {checksum}", e);
                 FileUtil.DeleteDirectory(storagePath);
             }
 
@@ -159,7 +159,7 @@ namespace RunTests.Cache
             }
             catch (Exception ex)
             {
-                Logger.Log($"Unable to cleanup storage {ex.Message}");
+                Logger.Log("Unable to cleanup storage", ex);
             }
         }
     }

@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Execution
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
     <ExportLanguageService(GetType(IOptionsSerializationService), LanguageNames.VisualBasic), [Shared]>
@@ -48,8 +49,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
         End Sub
 
         Public Overrides Sub WriteTo(options As OptionSet, writer As ObjectWriter, cancellationToken As CancellationToken)
-            ' no vb specific options
             WriteOptionSetTo(options, LanguageNames.VisualBasic, writer, cancellationToken)
+            WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken)
+            WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferInferredTupleNames, writer, cancellationToken)
+            WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames, writer, cancellationToken)
         End Sub
 
         Public Overrides Function ReadCompilationOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As CompilationOptions
@@ -126,8 +129,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
         Public Overrides Function ReadOptionSetFrom(reader As ObjectReader, cancellationToken As CancellationToken) As OptionSet
             Dim options As OptionSet = New SerializedPartialOptionSet()
 
-            ' no vb specific options
-            Return ReadOptionSetFrom(options, LanguageNames.VisualBasic, reader, cancellationToken)
+            options = ReadOptionSetFrom(options, LanguageNames.VisualBasic, reader, cancellationToken)
+            options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken)
+            options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferInferredTupleNames, reader, cancellationToken)
+            options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames, reader, cancellationToken)
+
+            Return options
         End Function
     End Class
 End Namespace

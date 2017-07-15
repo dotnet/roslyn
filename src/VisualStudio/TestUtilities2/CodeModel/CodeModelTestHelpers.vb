@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
@@ -54,8 +54,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                                 project.LanguageServices,
                                 mockVisualStudioWorkspace)
 
-                Dim editorOptionsFactoryService = workspace.GetService(Of IEditorOptionsFactoryService)()
-                Dim mockTextManagerAdapter = New MockTextManagerAdapter(editorOptionsFactoryService)
+                Dim mockTextManagerAdapter = New MockTextManagerAdapter()
 
                 For Each documentId In project.DocumentIds
                     ' Note that a parent is not specified below. In Visual Studio, this would normally be an EnvDTE.Project instance.

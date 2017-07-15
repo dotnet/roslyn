@@ -7,6 +7,7 @@ Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -327,6 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             checker.AddName("ExtensionAttribute", QuickAttributes.Extension)
             checker.AddName("ObsoleteAttribute", QuickAttributes.Obsolete)
             checker.AddName("DeprecatedAttribute", QuickAttributes.Obsolete)
+            checker.AddName("ExperimentalAttribute", QuickAttributes.Obsolete)
             checker.AddName("MyGroupCollectionAttribute", QuickAttributes.MyGroupCollection)
 
             ' Now process alias imports

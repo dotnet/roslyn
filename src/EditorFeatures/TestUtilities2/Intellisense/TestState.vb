@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -235,6 +235,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return displayText.Any(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
                                        Function(i) i.DisplayText = v))
         End Function
+
+        Public Sub AssertItemsInOrder(expectedOrder As String())
+            AssertNoAsynchronousOperationsRunning()
+            Dim items = CurrentCompletionPresenterSession.CompletionItems
+            Assert.Equal(expectedOrder.Count, items.Count)
+            For i = 0 To expectedOrder.Count - 1
+                Assert.Equal(expectedOrder(i), items(i).DisplayText)
+            Next
+        End Sub
 
         Public Async Function AssertSelectedCompletionItem(
                                Optional displayText As String = Nothing,

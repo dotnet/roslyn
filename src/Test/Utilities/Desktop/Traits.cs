@@ -12,10 +12,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string AsyncLazy = nameof(AsyncLazy);
             public const string Classification = nameof(Classification);
             public const string Diagnostics = nameof(Diagnostics);
+            public const string ErrorList = nameof(ErrorList);
+            public const string ErrorSquiggles = nameof(ErrorSquiggles);
             public const string FindReferences = nameof(FindReferences);
             public const string FixIncorrectTokens = nameof(FixIncorrectTokens);
             public const string Formatting = nameof(Formatting);
             public const string LinkedFileDiffMerging = nameof(LinkedFileDiffMerging);
+            public const string NetCore = nameof(NetCore);
             public const string NormalizeModifiersOrOperators = nameof(NormalizeModifiersOrOperators);
             public const string ReduceTokens = nameof(ReduceTokens);
             public const string RemoveUnnecessaryLineContinuation = nameof(RemoveUnnecessaryLineContinuation);

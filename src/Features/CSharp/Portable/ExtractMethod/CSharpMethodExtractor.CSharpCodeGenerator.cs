@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     modifiers: CreateMethodModifiers(),
                     returnType: this.AnalyzerResult.ReturnType,
                     returnsByRef: false,
-                    explicitInterfaceSymbol: null,
+                    explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(cancellationToken),
                     parameters: CreateMethodParameters(),
@@ -136,7 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 // field initializer, constructor initializer, expression bodied member case
                 if (selectedNode is ConstructorInitializerSyntax ||
                     selectedNode is FieldDeclarationSyntax ||
-                    IsExpressionBodiedMember(selectedNode))
+                    IsExpressionBodiedMember(selectedNode) || 
+                    IsExpressionBodiedAccessor(selectedNode))
                 {
                     var statement = await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(this.CallSiteAnnotation, cancellationToken).ConfigureAwait(false);
                     return SpecializedCollections.SingletonEnumerable(statement);
@@ -158,9 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             private bool IsExpressionBodiedMember(SyntaxNode node)
-            {
-                return node is MemberDeclarationSyntax && ((MemberDeclarationSyntax)node).GetExpressionBody() != null;
-            }
+                => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
+
+            private bool IsExpressionBodiedAccessor(SyntaxNode node)
+                => node is AccessorDeclarationSyntax accessor && accessor.ExpressionBody != null;
 
             private SimpleNameSyntax CreateMethodNameForInvocation()
             {

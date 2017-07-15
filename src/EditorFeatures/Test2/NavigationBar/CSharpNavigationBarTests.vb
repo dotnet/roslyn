@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     </Project>
                 </Workspace>,
                 Item("E", Glyph.EnumInternal), False,
-                Item("A", Glyph.EnumMember), False)
+                Item("A", Glyph.EnumMemberPublic), False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545114")>
@@ -167,9 +167,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     </Project>
                 </Workspace>,
                 Item("Foo", Glyph.EnumInternal, children:={
-                    Item("A", Glyph.EnumMember),
-                    Item("B", Glyph.EnumMember),
-                    Item("C", Glyph.EnumMember)}))
+                    Item("A", Glyph.EnumMemberPublic),
+                    Item("B", Glyph.EnumMemberPublic),
+                    Item("C", Glyph.EnumMemberPublic)}))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545220")>

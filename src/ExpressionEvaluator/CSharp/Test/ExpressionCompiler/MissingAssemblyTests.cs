@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -81,8 +81,8 @@ public class C
     }
 }
 ";
-            var libRef = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib").EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.DebugDll);
+            var libRef = CreateStandardCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
+            var comp = CreateStandardCompilation(source, new[] { libRef }, TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
@@ -121,7 +121,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
@@ -163,7 +163,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -229,7 +229,7 @@ namespace System.Linq
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -308,8 +308,8 @@ class C
     }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilationWithMscorlib(csharp, new[] { ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateStandardCompilation(csharp, new[] { ilRef });
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -370,7 +370,7 @@ class C
         [Fact]
         public unsafe void ShouldTryAgain_Success()
         {
-            var comp = CreateCompilationWithMscorlib("public class C { }");
+            var comp = CreateStandardCompilation("public class C { }");
             using (var pinned = new PinnedMetadata(GetMetadataBytes(comp)))
             {
                 DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
@@ -393,8 +393,8 @@ class C
         [Fact]
         public unsafe void ShouldTryAgain_Mixed()
         {
-            var comp1 = CreateCompilationWithMscorlib("public class C { }", assemblyName: GetUniqueName());
-            var comp2 = CreateCompilationWithMscorlib("public class D { }", assemblyName: GetUniqueName());
+            var comp1 = CreateStandardCompilation("public class C { }", assemblyName: GetUniqueName());
+            var comp2 = CreateStandardCompilation("public class D { }", assemblyName: GetUniqueName());
             using (PinnedMetadata pinned1 = new PinnedMetadata(GetMetadataBytes(comp1)),
                 pinned2 = new PinnedMetadata(GetMetadataBytes(comp2)))
             {
@@ -440,44 +440,70 @@ class C
         [Fact]
         public void ShouldTryAgain_CORDBG_E_MISSING_METADATA()
         {
-            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-            {
-                Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.CORDBG_E_MISSING_METADATA));
-                throw ExceptionUtilities.Unreachable;
-            };
-
-            var references = ImmutableArray<MetadataBlock>.Empty;
-            var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
-            Assert.False(ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
-            Assert.Empty(references);
+            ShouldTryAgain_False(
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.CORDBG_E_MISSING_METADATA));
+                    throw ExceptionUtilities.Unreachable;
+                });
         }
 
         [Fact]
         public void ShouldTryAgain_COR_E_BADIMAGEFORMAT()
         {
-            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-            {
-                Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.COR_E_BADIMAGEFORMAT));
-                throw ExceptionUtilities.Unreachable;
-            };
-
-            var references = ImmutableArray<MetadataBlock>.Empty;
-            var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
-            Assert.False(ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
-            Assert.Empty(references);
+            ShouldTryAgain_False(
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.COR_E_BADIMAGEFORMAT));
+                    throw ExceptionUtilities.Unreachable;
+                });
         }
 
         [Fact]
-        public void ShouldTryAgain_OtherException()
+        public void ShouldTryAgain_ObjectDisposedException()
         {
-            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-            {
-                throw new Exception();
-            };
+            ShouldTryAgain_False(
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    throw new ObjectDisposedException("obj");
+                });
+        }
+
+        [Fact]
+        public void ShouldTryAgain_RPC_E_DISCONNECTED()
+        {
+            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf =
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    Marshal.ThrowExceptionForHR(unchecked((int)0x80010108));
+                    throw ExceptionUtilities.Unreachable;
+                };
+
+            var references = ImmutableArray<MetadataBlock>.Empty;
+            var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
+            Assert.Throws<COMException>(() => ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
+        }
+
+        [Fact]
+        public void ShouldTryAgain_Exception()
+        {
+            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf =
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    throw new Exception();
+                };
 
             var references = ImmutableArray<MetadataBlock>.Empty;
             var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
             Assert.Throws<Exception>(() => ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
+        }
+
+        private static void ShouldTryAgain_False(DkmUtilities.GetMetadataBytesPtrFunction gmdbpf)
+        {
+            var references = ImmutableArray<MetadataBlock>.Empty;
+            var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
+            Assert.False(ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
+            Assert.Empty(references);
         }
 
         [WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")]
@@ -492,7 +518,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { CSharpRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -529,7 +555,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage");
             Assert.True(runtimeAssemblies.Any());
 
@@ -572,7 +598,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI");
             Assert.True(runtimeAssemblies.Any());
 
@@ -612,7 +638,7 @@ class C
     { 
     } 
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -655,7 +681,7 @@ class C
     { 
     } 
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -775,11 +801,40 @@ class UseLinq
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (int V_0, //x
-                (int, int) V_1, //y
+                (int x, int) V_1, //y
                 (int, int, (int, int)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }");
+        }
+
+        [Fact]
+        public void TupleNoSystemRuntimeWithCSharp7_1()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        var x = 1;
+        var y = (x, 2);
+        var z = (3, 4, (5, 6));
+    }
+}";
+            TupleContextNoSystemRuntime(
+                source,
+                "C.M",
+                "y",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                (int x, int) V_1, //y
+                (int, int, (int, int)) V_2) //z
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}",
+LanguageVersion.CSharp7_1);
         }
 
         [WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")]
@@ -804,16 +859,47 @@ class UseLinq
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (int V_0, //x
-                (int, int) V_1, //y
+                (int x, int) V_1, //y
                 (int, int, (int, int)) V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }");
         }
 
-        private static void TupleContextNoSystemRuntime(string source, string methodName, string expression, string expectedIL)
+        [Fact]
+        public void NonTupleNoSystemRuntimeWithCSharp7_1()
         {
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
+            var source =
+@"class C
+{
+    static void M()
+    {
+        var x = 1;
+        var y = (x, 2);
+        var z = (3, 4, (5, 6));
+    }
+}";
+            TupleContextNoSystemRuntime(
+                source,
+                "C.M",
+                "x",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                (int x, int) V_1, //y
+                (int, int, (int, int)) V_2) //z
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}",
+LanguageVersion.CSharp7_1);
+        }
+
+        private static void TupleContextNoSystemRuntime(string source, string methodName, string expression, string expectedIL,
+            LanguageVersion languageVersion = LanguageVersion.CSharp7)
+        {
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
             using (var systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance())
             {
                 WithRuntimeInstance(comp, new[] { MscorlibRef, ValueTupleRef }, runtime =>

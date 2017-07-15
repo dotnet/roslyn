@@ -1,90 +1,61 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <PlatformTarget>x64</PlatformTarget>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
-    <ProjectGuid>{59BABFC3-C19B-4472-A93D-3DD3835BC219}</ProjectGuid>
+    <Platforms>x64</Platforms>
     <OutputType>Exe</OutputType>
     <AssemblyName>DeployCoreClrTestRuntime_DoNotUse</AssemblyName>
-    <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
-    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <NoStdLib>true</NoStdLib>
-    <RoslynProjectType>DeploymentTest</RoslynProjectType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <!--
+       xunit.console.netcore 1.0.2-prerelease-00104 is not compatible with netcoreapp2.0
+       Microsoft.TestPlatform.ObjectModel 11.0.0 is not compatible with netcoreapp2.0
+     -->
+    <PackageTargetFallback>portable-net452;dotnet;netstandard1.6</PackageTargetFallback>
+    <RuntimeIdentifiers>win7-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;osx.10.12-x64</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(RoslynRuntimeIdentifier)</RuntimeIdentifier>
+    <SelfContained Condition="'$(RoslynRuntimeIdentifier)' != ''">true</SelfContained>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <ProjectReference Include="..\..\CodeStyle\Core\Analyzers\CodeStyle.csproj" />
+    <ProjectReference Include="..\..\CodeStyle\Core\CodeFixes\CodeStyleFixes.csproj" />
+    <ProjectReference Include="..\..\CodeStyle\Core\Tests\CodeStyleTests.csproj" />
+    <ProjectReference Include="..\..\CodeStyle\CSharp\Analyzers\CSharpCodeStyle.csproj" />
+    <ProjectReference Include="..\..\CodeStyle\CSharp\CodeFixes\CSharpCodeStyleFixes.csproj" />
+    <ProjectReference Include="..\..\CodeStyle\CSharp\Tests\CSharpCodeStyleTests.csproj" />
+    <ProjectReference Include="..\..\CodeStyle\VisualBasic\Analyzers\BasicCodeStyle.vbproj" />
+    <ProjectReference Include="..\..\CodeStyle\VisualBasic\CodeFixes\BasicCodeStyleFixes.vbproj" />
+    <ProjectReference Include="..\..\CodeStyle\VisualBasic\Tests\BasicCodeStyleTests.vbproj" />
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Syntax\CSharpCompilerSyntaxTest.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\Scripting\CoreTestUtilities\ScriptingTestUtilities.csproj" />
+    <ProjectReference Include="..\..\Scripting\CoreTest\ScriptingTest.csproj" />
+    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj" />
+    <ProjectReference Include="..\..\Scripting\CSharpTest\CSharpScriptingTest.csproj" />
+    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj" />
+    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
+    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
+    <ProjectReference Include="..\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\Utilities\CoreClr\TestUtilities.CoreClr.csproj" />
+    <ProjectReference Include="..\Utilities\Portable\TestUtilities.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Test\Syntax\CSharpCompilerSyntaxTest.csproj">
-      <Project>{50d26304-0961-4a51-abf6-6cad1a56d202}</Project>
-      <Name>CSharpCompilerSyntaxTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
-      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
-      <Name>CSharpCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CoreTestUtilities\ScriptingTestUtilities.csproj">
-      <Project>{21a01c2d-2501-4619-8144-48977dd22d9c}</Project>
-      <Name>ScriptingTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CoreTest\ScriptingTest.csproj">
-      <Project>{2dae4406-7a89-4b5f-95c3-bc5472ce47ce}</Project>
-      <Name>ScriptingTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
-      <Project>{12a68549-4e8c-42d6-8703-a09335f97997}</Project>
-      <Name>Scripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CSharpTest\CSharpScriptingTest.csproj">
-      <Project>{2dae4406-7a89-4b5f-95c3-bc5422ce47ce}</Project>
-      <Name>CSharpScriptingTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
-      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
-      <Name>CSharpScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj">
-      <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
-      <Name>BasicScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
+    <PackageReference Include="xunit.console.netcore" Version="$(xunitconsolenetcoreVersion)" />
+    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppFixedVersion)" />
+    <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(MicrosoftNETCoreILAsmVersion)" />
+    <PackageReference Include="Microsoft.NETCore.TestHost" Version="$(MicrosoftNETCoreTestHostVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

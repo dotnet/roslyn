@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -124,20 +124,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var projectionBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
             if (projectionBuffer != null)
             {
-                // For TypeScript hosted in HTML the source buffers will have type names
-                // HTMLX and TypeScript. RazorCSharp has an HTMLX base type but should 
-                // not be associated with the HTML host type. Use ContentType.TypeName 
-                // instead of ContentType.IsOfType for HTMLX to ensure the Razor host 
-                // type is identified correctly.
-                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML) ||
-                    string.Compare(HTMLX, b.ContentType.TypeName, StringComparison.OrdinalIgnoreCase) == 0))
-                {
-                    return HostType.HTML;
-                }
-
+                // RazorCSharp has an HTMLX base type but should not be associated with
+                // the HTML host type, so we check for it first.
                 if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(Razor)))
                 {
                     return HostType.Razor;
+                }
+
+                // For TypeScript hosted in HTML the source buffers will have type names
+                // HTMLX and TypeScript.
+                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML) ||
+                    b.ContentType.IsOfType(HTMLX)))
+                {
+                    return HostType.HTML;
                 }
             }
             else
@@ -528,7 +527,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             SourceText originalText, TextSpan visibleSpanInOriginalText,
             string rightText, TextSpan spanInOriginalText, TextSpan spanInRightText, out TextChange textChange)
         {
-            textChange = default(TextChange);
+            textChange = default;
 
             var visibleFirstLineInOriginalText = originalText.Lines.GetLineFromPosition(visibleSpanInOriginalText.Start);
             var visibleLastLineInOriginalText = originalText.Lines.GetLineFromPosition(visibleSpanInOriginalText.End);
@@ -776,7 +775,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     affectedSpans.Add(currentVisibleSpanIndex);
                 }
 
-                edit.Apply();
+                edit.ApplyAndLogExceptions();
             }
         }
 
@@ -983,7 +982,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
             }
 
-            return (start <= end) ? TextSpan.FromBounds(start, end + 1) : default(TextSpan);
+            return (start <= end) ? TextSpan.FromBounds(start, end + 1) : default;
         }
 
         private int GetAdditionalIndentation(SyntaxNode root, SourceText text, TextSpan span)

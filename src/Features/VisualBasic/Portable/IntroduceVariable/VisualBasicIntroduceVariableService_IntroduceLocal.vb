@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -112,38 +112,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return Nothing
         End Function
 
-        Private Async Function ComplexifyNextStatementAsync(
-                document As Document,
-                localAnnotation As SyntaxAnnotation,
-                cancellationToken As CancellationToken) As Task(Of Document)
-
-            ' Retrieve the declarationStatement we just inserted and complexify the next statement.
-            Dim oldRoot = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim declarationStatement = oldRoot.GetAnnotatedNodes(Of LocalDeclarationStatementSyntax)(localAnnotation).Single()
-
-            Dim nextStatement = declarationStatement.GetNextStatement()
-            If nextStatement IsNot Nothing Then
-                Dim complexifiedNextStatement = Await Simplifier.ExpandAsync(nextStatement, document, cancellationToken:=cancellationToken).ConfigureAwait(False)
-                complexifiedNextStatement = complexifiedNextStatement.WithAdditionalAnnotations(Formatter.Annotation)
-
-                Dim newRoot = oldRoot.ReplaceNode(nextStatement, complexifiedNextStatement)
-                Return document.WithSyntaxRoot(newRoot)
-            End If
-
-            Return document
-        End Function
-
         Private Async Function IntroduceLocalDeclarationIntoBlockAsync(
                 document As SemanticDocument,
                 container As SyntaxNode,
                 expression As ExpressionSyntax,
                 newLocalName As NameSyntax,
-                localDeclaration As LocalDeclarationStatementSyntax,
+                declarationStatement As LocalDeclarationStatementSyntax,
                 allOccurrences As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim localAnnotation = New SyntaxAnnotation()
-            localDeclaration = localDeclaration.WithAdditionalAnnotations(Formatter.Annotation, localAnnotation)
+            declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation, localAnnotation)
 
             Dim oldOutermostBlock = container
             If oldOutermostBlock.IsSingleLineExecutableBlock() Then
@@ -151,10 +130,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             End If
 
             Dim matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, cancellationToken)
+
+            Dim complexified = Await ComplexifyParentingStatements(document, matches, cancellationToken).ConfigureAwait(False)
+            document = complexified.newSemanticDocument
+            matches = complexified.newMatches
+
+            ' Our original expression should have been one of the matches, which were tracked as part
+            ' of complexification, so we can retrieve the latest version of the expression here.
+            expression = document.Root.GetCurrentNodes(expression).First()
+
             Dim innermostStatements = New HashSet(Of StatementSyntax)(matches.Select(Function(expr) expr.GetAncestorOrThis(Of StatementSyntax)()))
             If innermostStatements.Count = 1 Then
-                Return Await IntroduceLocalForSingleOccurrenceIntoBlockAsync(
-                    document, expression, newLocalName, localDeclaration, localAnnotation, allOccurrences, cancellationToken).ConfigureAwait(False)
+                Return IntroduceLocalForSingleOccurrenceIntoBlock(
+                    document, expression, newLocalName, declarationStatement, localAnnotation, allOccurrences, cancellationToken)
             End If
 
             Dim oldInnerMostCommonBlock = matches.FindInnermostCommonExecutableBlock()
@@ -163,24 +151,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Dim firstStatementAffectedIndex = oldInnerMostCommonBlock.GetExecutableBlockStatements().IndexOf(firstStatementAffectedInBlock)
             Dim newInnerMostBlock = Rewrite(document, expression, newLocalName, document, oldInnerMostCommonBlock, allOccurrences, cancellationToken)
 
-            Dim statements = newInnerMostBlock.GetExecutableBlockStatements().Insert(firstStatementAffectedIndex, localDeclaration)
+            Dim statements = newInnerMostBlock.GetExecutableBlockStatements().Insert(firstStatementAffectedIndex, declarationStatement)
             Dim finalInnerMostBlock = oldInnerMostCommonBlock.ReplaceStatements(statements, Formatter.Annotation)
 
-            Dim oldRoot = document.Root
-            Dim newRoot = oldRoot.ReplaceNode(oldInnerMostCommonBlock, finalInnerMostBlock)
-            Dim newDocument = document.Document.WithSyntaxRoot(newRoot)
-
-            Return Await ComplexifyNextStatementAsync(newDocument, localAnnotation, cancellationToken).ConfigureAwait(False)
+            Dim newRoot = document.Root.ReplaceNode(oldInnerMostCommonBlock, finalInnerMostBlock)
+            Return document.Document.WithSyntaxRoot(newRoot)
         End Function
 
-        Private Async Function IntroduceLocalForSingleOccurrenceIntoBlockAsync(
+        Private Function IntroduceLocalForSingleOccurrenceIntoBlock(
                 semanticDocument As SemanticDocument,
                 expression As ExpressionSyntax,
                 localName As NameSyntax,
                 localDeclaration As LocalDeclarationStatementSyntax,
                 localAnnotation As SyntaxAnnotation,
                 allOccurrences As Boolean,
-                cancellationToken As CancellationToken) As Task(Of Document)
+                cancellationToken As CancellationToken) As Document
 
             Dim oldStatement = expression.GetAncestorsOrThis(Of StatementSyntax)().Where(
                 Function(s) s.Parent.IsExecutableBlock() AndAlso s.Parent.GetExecutableBlockStatements().Contains(s)).First()
@@ -190,14 +175,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             newStatement = newStatement.WithLeadingTrivia(newStatement.GetLeadingTrivia().Where(Function(trivia) trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
 
             Dim oldBlock = oldStatement.Parent
-            Dim newDocument As Document
 
             If oldBlock.IsSingleLineExecutableBlock() Then
                 Dim tree = semanticDocument.SyntaxTree
                 Dim statements = SyntaxFactory.List({localDeclaration, newStatement})
                 Dim newRoot = tree.ConvertSingleLineToMultiLineExecutableBlock(oldBlock, statements, Formatter.Annotation)
 
-                newDocument = semanticDocument.Document.WithSyntaxRoot(newRoot)
+                Return semanticDocument.Document.WithSyntaxRoot(newRoot)
             Else
                 Dim statementIndex = oldBlock.GetExecutableBlockStatements().IndexOf(oldStatement)
                 Dim newStatements =
@@ -207,10 +191,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 Dim oldRoot = semanticDocument.Root
                 Dim newRoot = oldRoot.ReplaceNode(oldBlock, newBlock)
 
-                newDocument = semanticDocument.Document.WithSyntaxRoot(newRoot)
+                Return semanticDocument.Document.WithSyntaxRoot(newRoot)
             End If
-
-            Return Await ComplexifyNextStatementAsync(newDocument, localAnnotation, cancellationToken).ConfigureAwait(False)
         End Function
+
     End Class
 End Namespace

@@ -1,6 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
+Option Strict On
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -43,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Simpli
                 SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithNone, language))
         End Function
 
-        Private ReadOnly onWithError = New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)
-        Private ReadOnly offWithNone = New CodeStyleOption(Of Boolean)(False, NotificationOption.None)
+        Private ReadOnly onWithError As New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)
+        Private ReadOnly offWithNone As New CodeStyleOption(Of Boolean)(False, NotificationOption.None)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestGenericNames() As Task
@@ -1315,7 +1315,7 @@ End Class")
 
         <WorkItem(2196, "https://github.com/dotnet/roslyn/issues/2196")>
         <WorkItem(2197, "https://github.com/dotnet/roslyn/issues/2197")>
-        <WorkItem(29, "https: //github.com/dotnet/roslyn/issues/29")>
+        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestNullableSimplificationInsideCref() As Task
             ' NOTE: This will probably stop working if issues 2196 / 2197 related to VB compiler and semantic model are fixed.
@@ -2313,7 +2313,7 @@ End Module
 </Code>
 
             Dim parameters As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source, parameters)
+            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
@@ -2329,7 +2329,7 @@ End Module
 </Code>
 
             Dim parameters2 As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source, parameters2)
+            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters2)
                 workspace.ApplyOptions(PreferIntrinsicPredefinedTypeEverywhere())
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters2)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
@@ -2347,7 +2347,7 @@ End Module
 </Code>
 
             Dim parameters3 As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source, parameters3)
+            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters3)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters3)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
@@ -2429,6 +2429,63 @@ End Class")
                 diagnosticCount:=1,
                 diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Error)
+        End Function
+
+        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestMemberOfBuiltInType1() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Module Module1
+    Sub Main()
+        Dim var As [|UInt32|] = UInt32.MinValue
+    End Sub
+End Module",
+"Imports System
+Module Module1
+    Sub Main()
+        Dim var As UInteger = UInt32.MinValue
+    End Sub
+End Module",
+                options:=PreferIntrinsicPredefinedTypeInDeclaration())
+        End Function
+
+        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestMemberOfBuiltInType2() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Module Module1
+    Sub Main()
+        Dim var As UInt32 = [|UInt32|].MinValue
+    End Sub
+End Module",
+"Imports System
+Module Module1
+    Sub Main()
+        Dim var As UInt32 = UInteger.MinValue
+    End Sub
+End Module",
+                options:=PreferIntrinsicTypeInMemberAccess())
+        End Function
+
+        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestMemberOfBuiltInType3() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Module Module1
+    Sub Main()
+        [|UInt32|].Parse(""Foo"")
+    End Sub
+End Module",
+"Imports System
+Module Module1
+    Sub Main()
+        UInteger.Parse(""Foo"")
+    End Sub
+End Module",
+                options:=PreferIntrinsicTypeInMemberAccess())
         End Function
     End Class
 End Namespace

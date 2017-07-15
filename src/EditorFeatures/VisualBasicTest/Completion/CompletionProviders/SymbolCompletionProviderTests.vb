@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -1346,7 +1346,7 @@ Class C
                 text, position, usePreviousCharAsTrigger:=True,
                 expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
                 sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
-                glyph:=Nothing, matchPriority:=Nothing)
+                glyph:=Nothing, matchPriority:=Nothing, hasSuggestionItem:=Nothing)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
@@ -7666,9 +7666,9 @@ End Namespace
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing)
                 Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing)
             End Using
 
         End Function

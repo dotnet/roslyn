@@ -91,12 +91,27 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 var block = (BlockSyntax)localDeclarationStatement.Parent;
                 var declarationIndex = block.Statements.IndexOf(localDeclarationStatement);
 
-                // Trivia on the local declaration will move to the next statement.
-                // use the callback form as the next statement may be the place where we're 
-                // inlining the declaration, and thus need to see the effects of that change.
-                editor.ReplaceNode(
-                    block.Statements[declarationIndex + 1],
-                    (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement));
+                if (declarationIndex > 0 &&
+                    sourceText.AreOnSameLine(block.Statements[declarationIndex - 1].GetLastToken(), localDeclarationStatement.GetFirstToken()))
+                {
+                    // There's another statement on the same line as this declaration statement.
+                    // i.e.   int a; int b;
+                    //
+                    // Just move all trivia from our statement to be trailing trivia of the previous
+                    // statement
+                    editor.ReplaceNode(
+                        block.Statements[declarationIndex - 1],
+                        (s, g) => s.WithAppendedTrailingTrivia(localDeclarationStatement.GetTrailingTrivia()));
+                }
+                else
+                {
+                    // Trivia on the local declaration will move to the next statement.
+                    // use the callback form as the next statement may be the place where we're 
+                    // inlining the declaration, and thus need to see the effects of that change.
+                    editor.ReplaceNode(
+                        block.Statements[declarationIndex + 1],
+                        (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement));
+                }
 
                 editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             }

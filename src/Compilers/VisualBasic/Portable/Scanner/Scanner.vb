@@ -11,6 +11,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -2650,7 +2651,11 @@ baddate:
             If CheckFeatureAvailability(feature) Then
                 Return token
             End If
-            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion, _options.LanguageVersion.GetErrorName(), ErrorFactory.ErrorInfo(feature.GetResourceId()))
+            Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
+            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion,
+                                                   _options.LanguageVersion.GetErrorName(),
+                                                   ErrorFactory.ErrorInfo(feature.GetResourceId()),
+                                                   requiredVersion)
             Return DirectCast(token.AddError(errorInfo), SyntaxToken)
         End Function
 

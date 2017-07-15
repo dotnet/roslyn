@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -29,6 +30,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         {
         }
 
+        protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (variableDeclaration.Type.IsVar)
+            {
+                // If the type is already 'var', this analyze has no work to do
+                return false;
+            }
+
+            // The base analyzer may impose further limitations
+            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken);
+        }
+
+        protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (forEachStatement.Type.IsVar)
+            {
+                // If the type is already 'var', this analyze has no work to do
+                return false;
+            }
+
+            // The base analyzer may impose further limitations
+            return base.ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken);
+        }
+
         protected override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
         {
             var stylePreferences = state.TypeStylePreference;
@@ -56,12 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
         {
-            // If it is already var, return.
-            if (typeName.IsTypeInferred(semanticModel))
-            {
-                issueSpan = default(TextSpan);
-                return false;
-            }
+            Debug.Assert(!typeName.IsVar, "'var' special case should have prevented analysis of this variable.");
 
             var candidateReplacementNode = SyntaxFactory.IdentifierName("var");
             var candidateIssueSpan = typeName.Span;

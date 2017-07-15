@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -1562,7 +1562,8 @@ namespace System
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/11154"), Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(11154, "https://github.com/dotnet/roslyn/issues/11154")]
         public async Task ValueTupleCreate()
         {
             await TestInRegularAndScriptAsync(
@@ -1573,6 +1574,32 @@ class C
     static void M()
     {
         [|ValueTuple<int, int>|] s = ValueTuple.Create(1, 1);
+    }
+}" + trivial2uple,
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        var s = ValueTuple.Create(1, 1);
+    }
+}" + trivial2uple,
+options: ImplicitTypeWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(11095, "https://github.com/dotnet/roslyn/issues/11095")]
+        public async Task ValueTupleCreate_2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        [|(int, int)|] s = ValueTuple.Create(1, 1);
     }
 }" + trivial2uple,
 @"using System;

@@ -131,13 +131,34 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
-        /// Use in an exception filter to report a non fatal error.
+        /// Report a non-fatal error.
         /// Calls <see cref="NonFatalHandler"/> and doesn't pass the exception through (the method returns true).
+        /// This is generally expected to be used within an exception filter as that allows us to
+        /// capture data at the point the exception is thrown rather than when it is handled.
+        /// However, it can also be used outside of an exception filter. If the exception has not
+        /// already been thrown the method will throw and catch it itself to ensure we get a useful
+        /// stack trace.
         /// </summary>
         /// <returns>True to catch the exception.</returns>
         [DebuggerHidden]
         public static bool ReportWithoutCrash(Exception exception)
         {
+            // There have been cases where a new, unthrown exception has been passed to this method.
+            // In these cases the exception won't have a stack trace, which isn't very helpful. We
+            // throw and catch the exception here as that will result in a stack trace that is
+            // better than nothing.
+            if (exception.StackTrace == null)
+            {
+                try
+                {
+                    throw exception;
+                }
+                catch
+                {
+                    // Empty; we just need the exception to have a stack trace.
+                }
+            }
+
             Report(exception, s_nonFatalHandler);
             return true;
         }

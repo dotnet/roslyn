@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.ObjectModel;
@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrValue value,
             ExpansionFlags flags,
             Predicate<MemberInfo> predicate,
-            ResultProvider resultProvider)
+            ResultProvider resultProvider,
+            bool isProxyType)
         {
             // For members of type DynamicProperty (part of Dynamic View expansion), we want
             // to expand the underlying value (not the members of the DynamicProperty type).
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Debug.Assert(!value.IsNull);
                 value = value.GetFieldValue("value", inspectionContext);
             }
-
+            
             var runtimeType = type.GetLmrType();
             // Primitives, enums, function pointers, and null values with a declared type that is an interface have no visible members.
             Debug.Assert(!runtimeType.IsInterface || value.IsNull);
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var allMembers = ArrayBuilder<MemberAndDeclarationInfo>.GetInstance();
             var includeInherited = (flags & ExpansionFlags.IncludeBaseMembers) == ExpansionFlags.IncludeBaseMembers;
             var hideNonPublic = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.HideNonPublicMembers) == DkmEvaluationFlags.HideNonPublicMembers;
-            runtimeType.AppendTypeMembers(allMembers, predicate, declaredTypeAndInfo.Type, appDomain, includeInherited, hideNonPublic);
+            runtimeType.AppendTypeMembers(allMembers, predicate, declaredTypeAndInfo.Type, appDomain, includeInherited, hideNonPublic, isProxyType);
 
             foreach (var member in allMembers)
             {
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             GetPublicAndNonPublicMembers(
                 instanceMembers,
                 customTypeInfoMap,
+                isProxyType,
                 out publicInstanceExpansion,
                 out nonPublicInstanceExpansion);
 
@@ -103,6 +105,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             GetPublicAndNonPublicMembers(
                 staticMembers,
                 customTypeInfoMap,
+                isProxyType,
                 out publicStaticExpansion,
                 out nonPublicStaticExpansion);
 
@@ -166,6 +169,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static void GetPublicAndNonPublicMembers(
             ArrayBuilder<MemberAndDeclarationInfo> allMembers,
             CustomTypeInfoTypeArgumentMap customTypeInfoMap,
+            bool isProxyType,
             out Expansion publicExpansion,
             out Expansion nonPublicExpansion)
         {
@@ -192,7 +196,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
                 }
 
-                if (member.HideNonPublic && !member.IsPublic)
+                // The native EE shows proxy type members as public members if they have a
+                // DebuggerBrowsable attribute of any value. Match that behaviour here.
+                if (member.HideNonPublic && !member.IsPublic && (!isProxyType || !member.BrowsableState.HasValue))
                 {
                     nonPublicMembers.Add(member);
                 }

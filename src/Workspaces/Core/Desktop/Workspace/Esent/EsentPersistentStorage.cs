@@ -1,14 +1,14 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.Isam.Esent;
 using Microsoft.Isam.Esent.Interop;
 using Roslyn.Utilities;
@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.Esent
 {
     internal partial class EsentPersistentStorage : AbstractPersistentStorage
     {
-        private const string StorageExtension = "vbcs.cache";
-        private const string PersistentStorageFileName = "storage.ide";
-
         // cache delegates so that we don't re-create it every times
         private readonly Func<int, object, object, object, CancellationToken, Stream> _readStreamSolution;
         private readonly Func<EsentStorage.Key, int, object, object, CancellationToken, Stream> _readStream;
@@ -30,8 +27,12 @@ namespace Microsoft.CodeAnalysis.Esent
         private readonly EsentStorage _esentStorage;
 
         public EsentPersistentStorage(
-            IOptionService optionService, string workingFolderPath, string solutionFilePath, Action<AbstractPersistentStorage> disposer) :
-            base(optionService, workingFolderPath, solutionFilePath, disposer)
+            IOptionService optionService,
+            string workingFolderPath,
+            string solutionFilePath, 
+            string databaseFile,
+            Action<AbstractPersistentStorage> disposer) 
+            : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
         {
             // cache delegates
             _readStreamSolution = ReadStreamSolution;
@@ -42,36 +43,18 @@ namespace Microsoft.CodeAnalysis.Esent
             // solution must exist in disk. otherwise, we shouldn't be here at all.
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(solutionFilePath));
 
-            var databaseFile = GetDatabaseFile(workingFolderPath);
-
-            this.EsentDirectory = Path.GetDirectoryName(databaseFile);
-
-            if (!Directory.Exists(this.EsentDirectory))
-            {
-                Directory.CreateDirectory(this.EsentDirectory);
-            }
-
             _nameTableCache = new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             var enablePerformanceMonitor = optionService.GetOption(PersistentStorageOptions.EsentPerformanceMonitor);
-            _esentStorage = new EsentStorage(databaseFile, enablePerformanceMonitor);
+            _esentStorage = new EsentStorage(DatabaseFile, enablePerformanceMonitor);
         }
 
-        public static string GetDatabaseFile(string workingFolderPath)
-        {
-            Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(workingFolderPath));
-
-            return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
-        }
-
-        public void Initialize()
+        public override void Initialize(Solution solution)
         {
             _esentStorage.Initialize();
         }
 
-        public string EsentDirectory { get; }
-
-        public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
 
@@ -90,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Esent
             return SpecializedTasks.DefaultOrResult(stream);
         }
 
-        public override Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
 
@@ -109,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Esent
             return SpecializedTasks.DefaultOrResult(stream);
         }
 
-        public override Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
 
@@ -157,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Esent
             }
         }
 
-        public override Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
             Contract.ThrowIfNull(stream);
@@ -177,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Esent
             return success ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
-        public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
             Contract.ThrowIfNull(stream);
@@ -197,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Esent
             return success ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
-        public override Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
             Contract.ThrowIfNull(stream);
@@ -254,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Esent
 
         private bool TryGetUniqueId(string value, bool fileCheck, out int id)
         {
-            id = default(int);
+            id = default;
 
             if (string.IsNullOrWhiteSpace(value))
             {
@@ -284,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Esent
             {
                 // if we get fatal errors from esent such as disk out of space or log file corrupted by other process and etc
                 // don't crash VS, but let VS know it can't use esent. we will gracefully recover issue by using memory.
-                EsentLogger.LogException(ex);
+                StorageDatabaseLogger.LogException(ex);
 
                 return false;
             }
@@ -326,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Esent
 
         private bool TryGetProjectAndDocumentKey(Document document, out EsentStorage.Key key)
         {
-            key = default(EsentStorage.Key);
+            key = default;
             if (!TryGetProjectId(document.Project, out var projectId, out var projectNameId) ||
                 !TryGetUniqueFileId(document.FilePath, out var documentId))
             {
@@ -339,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Esent
 
         private bool TryGetProjectKey(Project project, out EsentStorage.Key key)
         {
-            key = default(EsentStorage.Key);
+            key = default;
             if (!TryGetProjectId(project, out var projectId, out var projectNameId))
             {
                 return false;
@@ -351,8 +334,8 @@ namespace Microsoft.CodeAnalysis.Esent
 
         private bool TryGetProjectId(Project project, out int projectId, out int projectNameId)
         {
-            projectId = default(int);
-            projectNameId = default(int);
+            projectId = default;
+            projectNameId = default;
 
             return TryGetUniqueFileId(project.FilePath, out projectId) && TryGetUniqueNameId(project.Name, out projectNameId);
         }
@@ -408,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 Logger.Log(FunctionId.PersistenceService_WriteAsyncFailed, "Failed : " + ex.Message);
             }
 
-            return default(TResult);
+            return default;
         }
     }
 }

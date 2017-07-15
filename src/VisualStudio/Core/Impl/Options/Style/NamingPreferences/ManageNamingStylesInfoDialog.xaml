@@ -121,7 +121,7 @@
                     Width="3*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding ItemName}" Margin="5" />
+                            <TextBlock Text="{Binding ItemName}" Margin="5" Focusable="True"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -131,6 +131,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Click="EditButton_Click" Height="Auto" Width="Auto" Margin="5, 0, 0, 0"
+                                    AutomationProperties.Name="{Binding ElementName=dialog, Path=EditButtonAutomationText}"
                                     VerticalContentAlignment="Center"
                                     HorizontalContentAlignment="Center"
                                     HorizontalAlignment="Center"
@@ -149,6 +150,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Click="RemoveButton_Click"  Height="Auto" Width="Auto" Margin="5, 0, 0, 0"
+                                    AutomationProperties.Name="{Binding ElementName=dialog, Path=RemoveButtonAutomationText}"
                                     VerticalContentAlignment="Center"
                                     HorizontalContentAlignment="Center"
                                     HorizontalAlignment="Center"
@@ -173,7 +175,7 @@
                        Grid.Row="1"
                         DockPanel.Dock="Left"
                         Click="AddButton_Click" 
-                        AutomationProperties.Name="{Binding AddItemAutomationText}"
+                        AutomationProperties.Name="{Binding ElementName=dialog, Path=AddItemAutomationText}"
                         AutomationProperties.AutomationId="Add"
                         Height="24" Width="24" 
                         Margin="0 7 0 0">

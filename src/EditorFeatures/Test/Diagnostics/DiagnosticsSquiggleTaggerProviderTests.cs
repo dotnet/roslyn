@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             };
 
             using (var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, CSharpParseOptions.Default))
-            using (var wrapper = new DiagnosticTaggerWrapper<IErrorTag>(workspace, analyzerMap))
+            using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace, analyzerMap))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task MultipleTaggersAndDispose()
         {
             using (var workspace = TestWorkspace.CreateCSharp(new string[] { "class A {" }, CSharpParseOptions.Default))
-            using (var wrapper = new DiagnosticTaggerWrapper<IErrorTag>(workspace))
+            using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
                 // Make two taggers.
                 var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported()
         {
             using (var workspace = TestWorkspace.CreateCSharp(new string[] { "class C {" }, CSharpParseOptions.Default))
-            using (var wrapper = new DiagnosticTaggerWrapper<IErrorTag>(workspace, analyzerMap: null, createTaggerProvider: false))
+            using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace, analyzerMap: null, createTaggerProvider: false))
             {
                 // First, make sure all diagnostics have been reported.
                 await wrapper.WaitForTags();
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // diagnostics engine not actually reporting all diagnostics properly.
 
             using (var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }" }, CSharpParseOptions.Default))
-            using (var wrapper = new DiagnosticTaggerWrapper<IErrorTag>(workspace))
+            using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
                 var asyncListener = new AsynchronousOperationListener();
                 var listeners = AsynchronousOperationListener.CreateListeners(
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // diagnostics engine not actually reporting all diagnostics properly.
 
             using (var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }" }, CSharpParseOptions.Default))
-            using (var wrapper = new DiagnosticTaggerWrapper<IErrorTag>(workspace))
+            using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
                 var asyncListener = new AsynchronousOperationListener();
                 var listeners = AsynchronousOperationListener.CreateListeners(

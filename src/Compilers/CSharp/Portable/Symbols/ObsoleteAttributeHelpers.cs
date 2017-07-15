@@ -7,6 +7,15 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    internal enum ObsoleteDiagnosticKind
+    {
+        NotObsolete,
+        Suppressed,
+        Diagnostic,
+        Lazy,
+        LazyPotentiallySuppressed,
+    }
+
     internal static class ObsoleteAttributeHelpers
     {
         /// <summary>
@@ -29,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static ObsoleteAttributeData GetObsoleteDataFromMetadata(EntityHandle token, PEModuleSymbol containingModule)
         {
             ObsoleteAttributeData obsoleteAttributeData;
-            bool isObsolete = containingModule.Module.HasDeprecatedOrObsoleteAttribute(token, out obsoleteAttributeData);
+            bool isObsolete = containingModule.Module.HasDeprecatedOrExperimentalOrObsoleteAttribute(token, out obsoleteAttributeData);
             Debug.Assert(isObsolete == (obsoleteAttributeData != null));
             Debug.Assert(obsoleteAttributeData == null || !obsoleteAttributeData.IsUninitialized);
             return obsoleteAttributeData;
@@ -43,33 +52,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// symbol's Obsoleteness is Unknown. False, if we are certain that no symbol in the parent
         /// hierarchy is Obsolete.
         /// </returns>
-        internal static ThreeState GetObsoleteContextState(Symbol symbol, bool forceComplete = false)
+        private static ThreeState GetObsoleteContextState(Symbol symbol, bool forceComplete)
         {
-            if ((object)symbol == null)
-                return ThreeState.False;
-
-            // For Property or Event accessors, check the associated property or event instead.
-            if (symbol.IsAccessor())
+            while ((object)symbol != null)
             {
-                symbol = ((MethodSymbol)symbol).AssociatedSymbol;
-            }
-            // If this is the backing field of an event, look at the event instead.
-            else if (symbol.Kind == SymbolKind.Field && (object)((FieldSymbol)symbol).AssociatedSymbol != null)
-            {
-                symbol = ((FieldSymbol)symbol).AssociatedSymbol;
+                // For property or event accessors, check the associated property or event instead.
+                if (symbol.IsAccessor())
+                {
+                    symbol = ((MethodSymbol)symbol).AssociatedSymbol;
+                }
+                else if (symbol.Kind == SymbolKind.Field)
+                {
+                    // If this is the backing field of an event, look at the event instead.
+                    var associatedSymbol = ((FieldSymbol)symbol).AssociatedSymbol;
+                    if ((object)associatedSymbol != null)
+                    {
+                        symbol = associatedSymbol;
+                    }
+                }
+
+                if (forceComplete)
+                {
+                    symbol.ForceCompleteObsoleteAttribute();
+                }
+
+                var state = symbol.ObsoleteState;
+                if (state != ThreeState.False)
+                {
+                    return state;
+                }
+
+                symbol = symbol.ContainingSymbol;
             }
 
-            if (forceComplete)
+            return ThreeState.False;
+        }
+
+        internal static ObsoleteDiagnosticKind GetObsoleteDiagnosticKind(Symbol symbol, Symbol containingMember, bool forceComplete = false)
+        {
+            switch (symbol.ObsoleteKind)
             {
-                symbol.ForceCompleteObsoleteAttribute();
+                case ObsoleteAttributeKind.None:
+                    return ObsoleteDiagnosticKind.NotObsolete;
+                case ObsoleteAttributeKind.Experimental:
+                    return ObsoleteDiagnosticKind.Diagnostic;
+                case ObsoleteAttributeKind.Uninitialized:
+                    // If we haven't cracked attributes on the symbol at all or we haven't
+                    // cracked attribute arguments enough to be able to report diagnostics for
+                    // ObsoleteAttribute, store the symbol so that we can report diagnostics at a 
+                    // later stage.
+                    return ObsoleteDiagnosticKind.Lazy;
             }
 
-            if (symbol.ObsoleteState != ThreeState.False)
+            switch (GetObsoleteContextState(containingMember, forceComplete))
             {
-                return symbol.ObsoleteState;
+                case ThreeState.False:
+                    return ObsoleteDiagnosticKind.Diagnostic;
+                case ThreeState.True:
+                    // If we are in a context that is already obsolete, there is no point reporting
+                    // more obsolete diagnostics.
+                    return ObsoleteDiagnosticKind.Suppressed;
+                default:
+                    // If the context is unknown, then store the symbol so that we can do this check at a
+                    // later stage
+                    return ObsoleteDiagnosticKind.LazyPotentiallySuppressed;
             }
-
-            return GetObsoleteContextState(symbol.ContainingSymbol, forceComplete);
         }
 
         /// <summary>
@@ -79,10 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static DiagnosticInfo CreateObsoleteDiagnostic(Symbol symbol, BinderFlags location)
         {
             var data = symbol.ObsoleteAttributeData;
+            Debug.Assert(data != null);
 
             if (data == null)
             {
-                // ObsoleteAttribute had errors.
                 return null;
             }
 
@@ -94,6 +141,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (location.Includes(BinderFlags.SuppressObsoleteChecks))
             {
                 return null;
+            }
+
+            if (data.Kind == ObsoleteAttributeKind.Experimental)
+            {
+                Debug.Assert(data.Message == null);
+                Debug.Assert(!data.IsError);
+                // Provide an explicit format for fully-qualified type names.
+                return new CSDiagnosticInfo(ErrorCode.WRN_Experimental, new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
             }
 
             // Issue a specialized diagnostic for add methods of collection initializers

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         private bool TryExecuteCommand(int caretPosition, Document document)
         {
             var streamingService = document.GetLanguageService<IFindUsagesService>();
-
             var streamingPresenter = GetStreamingPresenter();
 
             // See if we're running on a host that can provide streaming results.

@@ -17,15 +17,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation)
         {
             var assemblyIds = compilation.GetUnreferencedAssemblyIdentities(diagnostic);
-            if (assemblyIds.IsDefaultOrEmpty)
+            var requiredVersion = Compilation.GetRequiredLanguageVersion(diagnostic);
+            if (assemblyIds.IsDefaultOrEmpty && requiredVersion == null)
             {
                 return null;
             }
 
-            var result = ImmutableDictionary<string, string>.Empty;
-            return result.Add(
-                DiagnosticPropertyConstants.UnreferencedAssemblyIdentity,
-                assemblyIds[0].GetDisplayName());
+            var result = ImmutableDictionary.CreateBuilder<string, string>();
+            if (!assemblyIds.IsDefaultOrEmpty)
+            {
+                result.Add(
+                    DiagnosticPropertyConstants.UnreferencedAssemblyIdentity,
+                    assemblyIds[0].GetDisplayName());
+            }
+
+            if (requiredVersion != null)
+            {
+                result.Add(
+                    DiagnosticPropertyConstants.RequiredLanguageVersion,
+                    requiredVersion);
+            }
+
+            return result.ToImmutable();
         }
     }
 }

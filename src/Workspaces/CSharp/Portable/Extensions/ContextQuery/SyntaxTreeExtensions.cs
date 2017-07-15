@@ -1042,6 +1042,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsParamsModifierContext(
+            this SyntaxTree syntaxTree,
+            int position,
+            SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken)
+        {
+            if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, cancellationToken))
+            {
+                return true;
+            }
+
+            var token = tokenOnLeftOfPosition;
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsKind(SyntaxKind.OpenBracketToken) || token.IsKind(SyntaxKind.CommaToken))
+            {
+                return token.Parent.IsKind(SyntaxKind.BracketedParameterList);
+            }
+
+            return false;
+        }
+
         public static bool IsDelegateReturnTypeContext(
             this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
@@ -1233,6 +1255,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        public static bool IsPatternContext(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
+        {
+            leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            // case $$
+            // is $$
+            if (leftToken.IsKind(SyntaxKind.CaseKeyword, SyntaxKind.IsKeyword))
+            {
+                return true;
             }
 
             return false;
@@ -2414,7 +2450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 ((InvocationExpressionSyntax)token.Parent.Parent).Expression.ToString() == "var";
         }
 
-        public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt = null, CancellationToken cancellationToken = default)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);

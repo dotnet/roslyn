@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new EnumAndCompletionListTagCompletionProvider();
-        }
+            => new EnumAndCompletionListTagCompletionProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NullableEnum()
@@ -490,6 +488,133 @@ enum Colors
 }
 ";
             await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(18359, "https://github.com/dotnet/roslyn/issues/18359")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotAfterDotWithTextTyped()
+        {
+            var markup =
+@"namespace ConsoleApplication253
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            M(E.a$$)
+        }
+
+        static void M(E e) { }
+    }
+
+    enum E
+    {
+        A,
+        B,
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInEnumInitializer1()
+        {
+            var markup =
+@"using System;
+
+[Flags]
+internal enum ProjectTreeWriterOptions
+{
+    None,
+    Tags,
+    FilePath,
+    Capabilities,
+    Visibility,
+    AllProperties = FilePath | Visibility | $$
+}";
+            await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
+        }
+
+        [WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInEnumInitializer2()
+        {
+            var markup =
+@"using System;
+
+[Flags]
+internal enum ProjectTreeWriterOptions
+{
+    None,
+    Tags,
+    FilePath,
+    Capabilities,
+    Visibility,
+    AllProperties = FilePath | $$ Visibility
+}";
+            await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
+        }
+
+        [WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInEnumInitializer3()
+        {
+            var markup =
+@"using System;
+
+[Flags]
+internal enum ProjectTreeWriterOptions
+{
+    None,
+    Tags,
+    FilePath,
+    Capabilities,
+    Visibility,
+    AllProperties = FilePath | $$ | Visibility
+}";
+            await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
+        }
+
+        [WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInEnumInitializer4()
+        {
+            var markup =
+@"using System;
+
+[Flags]
+internal enum ProjectTreeWriterOptions
+{
+    None,
+    Tags,
+    FilePath,
+    Capabilities,
+    Visibility,
+    AllProperties = FilePath ^ $$
+}";
+            await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
+        }
+
+        [WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInEnumInitializer5()
+        {
+            var markup =
+@"using System;
+
+[Flags]
+internal enum ProjectTreeWriterOptions
+{
+    None,
+    Tags,
+    FilePath,
+    Capabilities,
+    Visibility,
+    AllProperties = FilePath & $$
+}";
+            await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
     }
 }

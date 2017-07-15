@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.ImplicitThrow:
                 case ConversionKind.ImplicitNullable:
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitDynamic:

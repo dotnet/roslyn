@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -766,11 +767,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        private static ImmutableArray<ParameterSymbol> MakeParameters(Binder binder, SourcePropertySymbol owner, BaseParameterListSyntax parameterSyntaxOpt, DiagnosticBag diagnostics)
+        private static ImmutableArray<ParameterSymbol> MakeParameters(
+            Binder binder, SourcePropertySymbol owner, BaseParameterListSyntax parameterSyntaxOpt, DiagnosticBag diagnostics)
         {
             if (parameterSyntaxOpt == null)
             {
                 return ImmutableArray<ParameterSymbol>.Empty;
+            }
+
+            if (parameterSyntaxOpt.Parameters.Count < 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_IndexerNeedsParam, parameterSyntaxOpt.GetLastToken().GetLocation());
             }
 
             SyntaxToken arglistToken;
@@ -841,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsAbstract && IsVirtual)
             {
-                diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this);
+                diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this.Kind.Localize(), this);
             }
             else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
             {
@@ -1107,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpAttributeData boundAttribute;
             ObsoleteAttributeData obsoleteData;
 
-            if (EarlyDecodeDeprecatedOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+            if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
             {
                 if (obsoleteData != null)
                 {

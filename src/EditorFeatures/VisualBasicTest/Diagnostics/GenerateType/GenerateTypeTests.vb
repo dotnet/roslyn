@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -463,6 +463,75 @@ End Class",
 End Namespace",
 expectedContainers:=ImmutableArray.Create("Foo"),
 expectedDocumentName:="Bar.vb")
+        End Function
+
+        <WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestPreserveBanner1() As Task
+            Await TestAddDocumentInRegularAndScriptAsync(
+"' I am a banner!
+
+Class Program
+    Sub Main()
+        Call New [|Bar|]()
+    End Sub
+End Class",
+"' I am a banner!
+
+Friend Class Bar
+    Public Sub New()
+    End Sub
+End Class
+",
+expectedContainers:=ImmutableArray(Of String).Empty,
+expectedDocumentName:="Bar.vb", ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestPreserveBanner2() As Task
+            Await TestAddDocumentInRegularAndScriptAsync(
+"''' I am a doc comment!
+
+Class Program
+    Sub Main()
+        Call New [|Bar|]()
+    End Sub
+End Class",
+"Friend Class Bar
+    Public Sub New()
+    End Sub
+End Class
+",
+expectedContainers:=ImmutableArray(Of String).Empty,
+expectedDocumentName:="Bar.vb", ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestPreserveBanner3() As Task
+            Await TestAddDocumentInRegularAndScriptAsync(
+"' I am a banner!
+Imports System
+
+Class Program
+    Sub Main(e As StackOverflowException)
+        Call New [|Bar|](e)
+    End Sub
+End Class",
+"' I am a banner!
+Imports System
+
+Friend Class Bar
+    Private e As StackOverflowException
+
+    Public Sub New(e As StackOverflowException)
+        Me.e = e
+    End Sub
+End Class
+",
+expectedContainers:=ImmutableArray(Of String).Empty,
+expectedDocumentName:="Bar.vb", ignoreTrivia:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>

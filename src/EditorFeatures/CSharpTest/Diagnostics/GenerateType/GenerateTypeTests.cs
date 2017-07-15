@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -4781,6 +4781,83 @@ index: 1);
     }
 }",
 index: 2);
+        }
+
+        [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestPreserveFileBanner1()
+        {
+            await TestAddDocumentInRegularAndScriptAsync(
+@"// I am a banner
+
+class Program
+{
+    void Main ( )
+    {
+        [|Foo|] f ;
+    }
+} ",
+@"// I am a banner
+
+internal class Foo
+{
+}",
+expectedContainers: ImmutableArray<string>.Empty,
+expectedDocumentName: "Foo.cs",
+ignoreTrivia: false);
+        }
+
+        [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestPreserveFileBanner2()
+        {
+            await TestAddDocumentInRegularAndScriptAsync(
+@"/// I am a doc comment
+class Program
+{
+    void Main ( )
+    {
+        [|Foo|] f ;
+    }
+} ",
+@"internal class Foo
+{
+}",
+expectedContainers: ImmutableArray<string>.Empty,
+expectedDocumentName: "Foo.cs",
+ignoreTrivia: false);
+        }
+
+        [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestPreserveFileBanner3()
+        {
+            await TestAddDocumentInRegularAndScriptAsync(
+    @"// I am a banner
+using System;
+
+class Program
+{
+    void Main (StackOverflowException e)
+    {
+        var f = new [|Foo|](e);
+    }
+}",
+    @"// I am a banner
+using System;
+
+internal class Foo
+{
+    private StackOverflowException e;
+
+    public Foo(StackOverflowException e)
+    {
+        this.e = e;
+    }
+}",
+    expectedContainers: ImmutableArray<string>.Empty,
+    expectedDocumentName: "Foo.cs",
+    ignoreTrivia: false);
         }
     }
 

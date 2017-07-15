@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -79,6 +79,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
 
             var semanticModel = context.SemanticModel;
             var language = semanticModel.Language;

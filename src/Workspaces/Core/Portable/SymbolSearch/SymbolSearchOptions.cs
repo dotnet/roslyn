@@ -12,10 +12,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             nameof(SymbolSearchOptions), nameof(Enabled), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Enabled)));
 
-        public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(
-            nameof(SymbolSearchOptions), nameof(OutOfProcessAllowed), defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
-
         public static PerLanguageOption<bool> SuggestForTypesInReferenceAssemblies =
             new PerLanguageOption<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInReferenceAssemblies), defaultValue: false,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));

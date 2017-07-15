@@ -1,46 +1,38 @@
-param (
-    [string]$nugetVersion = $(throw "Need a nuget version"),
-    [string]$destDir = $(throw "Need a path to download too"),
-    [string]$binariesDir = $(throw "Need path to Binaries directory"))
-set-strictmode -version 2.0
+param ([string]$nugetVersion = "4.1.0")
+
+Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
-try
-{
-    $scratchDir = join-path $binariesDir "NuGet"
-    if (-not (test-path $scratchDir)) {
-        mkdir $scratchDir | out-null
-    }
+try {
+    . (Join-Path $PSScriptRoot "build-utils.ps1")
 
-    if (-not (test-path $destDir)) {
-        mkdir $destDir | out-null
-    }
+    $scratchDir = Join-Path $binariesDir "NuGet"
+    Create-Directory $scratchDir
 
-    $destFile = join-path $destDir "NuGet.exe"
-    $scratchFile = join-path $scratchDir "NuGet.exe"
-    $versionFile = join-path $scratchDir "version.txt"
+    $destFile = Join-Path $repoDir "NuGet.exe"
+    $scratchFile = Join-Path $scratchDir "NuGet.exe"
+    $versionFile = Join-Path $scratchDir "version.txt"
 
     # Check and see if we already have a NuGet.exe which exists and is the correct
     # version.
-    if ((test-path $destFile) -and (test-path $scratchFile) -and (test-path $versionFile)) {
-        $destHash = (get-filehash $destFile -algorithm MD5).Hash
-        $scratchHash = (get-filehash $scratchFile -algorithm MD5).Hash
-        $scratchVersion = gc $versionFile
+    if ((Test-Path $destFile) -and (Test-Path $scratchFile) -and (Test-Path $versionFile)) {
+        $destHash = (Get-FileHash $destFile -algorithm MD5).Hash
+        $scratchHash = (Get-FileHash $scratchFile -algorithm MD5).Hash
+        $scratchVersion = Get-Content $versionFile
         if (($destHash -eq $scratchHash) -and ($scratchVersion -eq $nugetVersion)) {
-            write-host "Using existing NuGet.exe at version $nuGetVersion"
+            Write-Host "Using existing NuGet.exe at version $nuGetVersion"
             exit 0
         }
     }
 
-    write-host "Downloading NuGet.exe"
+    Write-Host "Downloading NuGet.exe"
     $webClient = New-Object -TypeName "System.Net.WebClient"
     $webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/v$nugetVersion/NuGet.exe", $scratchFile)
-    $nugetVersion | out-file $versionFile
-    cp $scratchFile $destFile
+    $nugetVersion | Out-File $versionFile
+    Copy-Item $scratchFile $destFile
     exit 0
 }
-catch [exception]
-{
-    write-host $_.Exception
-    exit -1
+catch [exception] {
+    Write-Host $_.Exception
+    exit 1
 }

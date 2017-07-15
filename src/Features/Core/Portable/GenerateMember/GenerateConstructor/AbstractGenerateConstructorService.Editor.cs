@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
@@ -117,13 +118,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var isThis = namedType.Equals(delegatedConstructor.ContainingType);
                 var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
-                var baseConstructorArguments = isThis ? default(ImmutableArray<SyntaxNode>) : delegatingArguments;
-                var thisConstructorArguments = isThis ? delegatingArguments : default(ImmutableArray<SyntaxNode>);
+                var baseConstructorArguments = isThis ? default : delegatingArguments;
+                var thisConstructorArguments = isThis ? delegatingArguments : default;
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: Accessibility.Public,
-                    modifiers: default(DeclarationModifiers),
+                    modifiers: default,
                     typeName: _state.TypeToGenerateIn.Name,
                     parameters: delegatedConstructor.Parameters,
                     baseConstructorArguments: baseConstructorArguments,
@@ -188,7 +189,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 // delegating.
                 var remainingParameterNames = _service.GenerateParameterNames(
                     _document.SemanticModel, remainingArguments,
-                    delegatedConstructor.Parameters.Select(p => p.Name).ToList());
+                    delegatedConstructor.Parameters.Select(p => p.Name).ToList(),
+                    _cancellationToken);
 
                 // Can't generate the constructor if the parameter names we're copying over forcibly
                 // conflict with any names we generated.
@@ -203,22 +205,25 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var remainingParameters);
 
                 var fields = syntaxFactory.CreateFieldsForParameters(remainingParameters, parameterToNewFieldMap);
-                var assignStatements = syntaxFactory.CreateAssignmentStatements(remainingParameters, parameterToExistingFieldMap, parameterToNewFieldMap);
+                var assignStatements = syntaxFactory.CreateAssignmentStatements(
+                    _document.SemanticModel.Compilation, remainingParameters, 
+                    parameterToExistingFieldMap, parameterToNewFieldMap,
+                    addNullChecks: false, preferThrowExpression: false);
 
                 var allParameters = delegatedConstructor.Parameters.Concat(remainingParameters);
 
                 var isThis = namedType.Equals(_state.TypeToGenerateIn);
                 var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
-                var baseConstructorArguments = isThis ? default(ImmutableArray<SyntaxNode>) : delegatingArguments;
-                var thisConstructorArguments = isThis ? delegatingArguments : default(ImmutableArray<SyntaxNode>);
+                var baseConstructorArguments = isThis ? default : delegatingArguments;
+                var thisConstructorArguments = isThis ? delegatingArguments : default;
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: Accessibility.Public,
-                    modifiers: default(DeclarationModifiers),
+                    modifiers: default,
                     typeName: _state.TypeToGenerateIn.Name,
                     parameters: allParameters,
-                    statements: assignStatements.ToImmutableArray(),
+                    statements: assignStatements,
                     baseConstructorArguments: baseConstructorArguments,
                     thisConstructorArguments: thisConstructorArguments);
 
@@ -250,8 +255,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var syntaxTree = _document.SyntaxTree;
                 var members = syntaxFactory.CreateFieldDelegatingConstructor(
-                    _state.TypeToGenerateIn.Name, _state.TypeToGenerateIn, parameters,
-                    parameterToExistingFieldMap, parameterToNewFieldMap, _cancellationToken);
+                    _document.SemanticModel.Compilation, 
+                    _state.TypeToGenerateIn.Name, 
+                    _state.TypeToGenerateIn, parameters,
+                    parameterToExistingFieldMap, parameterToNewFieldMap, 
+                    addNullChecks: false, preferThrowExpression: false, 
+                    cancellationToken: _cancellationToken);
 
                 var result = await codeGenerationService.AddMembersAsync(
                     _document.Project.Solution,
@@ -268,8 +277,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 ImmutableArray<TArgumentSyntax> arguments, ImmutableArray<string> typeParametersNames)
             {
                 return _state.AttributeArguments != null
-                    ? _service.GenerateParameterNames(_document.SemanticModel, _state.AttributeArguments, typeParametersNames)
-                    : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames);
+                    ? _service.GenerateParameterNames(_document.SemanticModel, _state.AttributeArguments, typeParametersNames, _cancellationToken)
+                    : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames, _cancellationToken);
             }
 
             private void GetParameters(
@@ -302,7 +311,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     }
 
                     result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         refKind: _service.GetRefKind(arguments[i]),
                         isParams: false,
                         type: parameterTypes[i],
@@ -357,8 +366,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 // use so we can assign to that.  
                                 var newFieldName = NameGenerator.EnsureUniqueness(
                                     attributeArguments != null
-                                        ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments.Value[index])
-                                        : _service.GenerateNameForArgument(_document.SemanticModel, arguments[index]),
+                                        ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments.Value[index], _cancellationToken)
+                                        : _service.GenerateNameForArgument(_document.SemanticModel, arguments[index], _cancellationToken),
                                     GetUnavailableMemberNames().Concat(parameterToNewFieldMap.Values));
 
                                 if (isFixed)

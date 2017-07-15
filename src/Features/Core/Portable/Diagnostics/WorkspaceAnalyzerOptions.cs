@@ -1,5 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -10,13 +14,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class WorkspaceAnalyzerOptions : AnalyzerOptions
     {
-        public WorkspaceAnalyzerOptions(AnalyzerOptions options, Workspace workspace)
+        private readonly Solution _solution;
+        private readonly OptionSet _optionSet;
+
+        public WorkspaceAnalyzerOptions(AnalyzerOptions options, OptionSet optionSet, Solution solution)
             : base(options.AdditionalFiles)
         {
-            this.Workspace = workspace;
+            _solution = solution;
+            _optionSet = optionSet;
         }
 
-        public Workspace Workspace { get; }
+        public HostWorkspaceServices Services => _solution.Workspace.Services;
+
+        public async Task<OptionSet> GetDocumentOptionSetAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            var documentId = _solution.GetDocumentId(syntaxTree);
+            if (documentId == null)
+            {
+                return _optionSet;
+            }
+
+            var document = _solution.GetDocument(documentId);
+            if (document == null)
+            {
+                return _optionSet;
+            }
+
+            return await document.GetOptionsAsync(_optionSet, cancellationToken).ConfigureAwait(false);
+        }
 
         public override bool Equals(object obj)
         {
@@ -27,13 +52,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var other = obj as WorkspaceAnalyzerOptions;
             return other != null &&
-                this.Workspace == other.Workspace &&
+                _solution.WorkspaceVersion == other._solution.WorkspaceVersion &&
+                _solution.Workspace == other._solution.Workspace &&
                 base.Equals(other);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Workspace, base.GetHashCode());
+            return Hash.Combine(_solution.Workspace,
+                Hash.Combine(_solution.WorkspaceVersion, base.GetHashCode()));
         }
     }
 }

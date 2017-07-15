@@ -3533,5 +3533,139 @@ class C
             EOF();
         }
 
+        [Fact]
+        public void TestTargetTypedDefaultWithCSharp7_1()
+        {
+            var text = "default";
+            var expr = this.ParseExpression(text, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.DefaultLiteralExpression, expr.Kind());
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+        }
+
+        [Fact, WorkItem(17683, "https://github.com/dotnet/roslyn/issues/17683")]
+        public void Bug17683a()
+        {
+            var source =
+@"from t in e
+where
+t == Int32.
+MinValue
+select t";
+            UsingExpression(source);
+            N(SyntaxKind.QueryExpression);
+            {
+                N(SyntaxKind.FromClause);
+                {
+                    N(SyntaxKind.FromKeyword);
+                    N(SyntaxKind.IdentifierToken, "t");
+                    N(SyntaxKind.InKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.QueryBody);
+                {
+                    N(SyntaxKind.WhereClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.EqualsExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "t");
+                            }
+                            N(SyntaxKind.EqualsEqualsToken);
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Int32");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "MinValue");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SelectClause);
+                    {
+                        N(SyntaxKind.SelectKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "t");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Bug17683b()
+        {
+            var source =
+@"switch (e)
+{
+    case Int32.
+               MaxValue when true:
+            break;
+}";
+            UsingStatement(source);
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Int32");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "MaxValue");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.WhenClause);
+                        {
+                            N(SyntaxKind.WhenKeyword);
+                            N(SyntaxKind.TrueLiteralExpression);
+                            {
+                                N(SyntaxKind.TrueKeyword);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
     }
 }

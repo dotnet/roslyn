@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -14,6 +14,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
                                                           If(compilerHost, MockCompilerHost.FullFrameworkCompilerHost),
                                                           projectName,
                                                           environment.CreateHierarchy(projectName, projectBinPath, "VB"),
+                                                          environment.ServiceProvider,
+                                                          New VisualBasicCommandLineParserService())
+        End Function
+
+        Public Function CreateVisualBasicProjectWithNullBinPath(environment As TestEnvironment, projectName As String) As VisualBasicProjectShimWithServices
+            Return New VisualBasicProjectShimWithServices(environment.ProjectTracker,
+                                                          MockCompilerHost.FullFrameworkCompilerHost,
+                                                          projectName,
+                                                          environment.CreateHierarchy(projectName, projectBinPath:=Nothing, projectCapabilities:="VB"),
                                                           environment.ServiceProvider,
                                                           New VisualBasicCommandLineParserService())
         End Function

@@ -172,14 +172,6 @@ System.Console.WriteLine(1)
             Return node5
         End Function
 
-        <Fact>
-        <WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")>
-        Public Sub NoNeedToTestSourceCodeKindInteractive()
-#Disable Warning BC40000
-            Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive))
-#Enable Warning BC40000
-        End Sub
-
     End Class
 End Namespace
 

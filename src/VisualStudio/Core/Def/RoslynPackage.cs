@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Design;
@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -18,7 +19,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -54,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             var componentModel = (IComponentModel)this.GetService(typeof(SComponentModel));
             _workspace = componentModel.GetService<VisualStudioWorkspace>();
+            _workspace.Services.GetService<IExperimentationService>();
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             componentModel.GetExtensions<IOptionPersister>();
@@ -77,8 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.SystemCaptionTextColorKey = EnvironmentColors.SystemWindowTextColorKey;
             CodeAnalysisColors.SystemCaptionTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
             CodeAnalysisColors.CheckBoxTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            CodeAnalysisColors.RenameErrorTextBrushKey = VSCodeAnalysisColors.RenameErrorTextBrushKey;
-            CodeAnalysisColors.RenameResolvableConflictTextBrushKey = VSCodeAnalysisColors.RenameResolvableConflictTextBrushKey;
             CodeAnalysisColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
             CodeAnalysisColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
@@ -92,7 +91,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<VisualStudioTodoListTable>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
 
-            this.ComponentModel.GetService<HACK_ThemeColorFixer>();
             this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
             this.ComponentModel.GetService<VirtualMemoryNotificationListener>();
 

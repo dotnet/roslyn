@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -522,6 +522,39 @@ namespace N
             [|var|] i = o as int?;
             if (i != null)
                 Console.WriteLine(i);
+        }
+    }
+}");
+        }
+
+        [WorkItem(18053, "https://github.com/dotnet/roslyn/issues/18053")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingWhenTypesDoNotMatch()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class SyntaxNode
+{
+    public SyntaxNode Parent;
+}
+
+class BaseParameterListSyntax : SyntaxNode
+{
+}
+
+class ParameterSyntax : SyntaxNode
+{
+
+}
+
+public static class C
+{
+    static void M(ParameterSyntax parameter)
+    {
+        [|SyntaxNode|] parent = parameter.Parent as BaseParameterListSyntax;
+
+        if (parent != null)
+        {
+            parent = parent.Parent;
         }
     }
 }");

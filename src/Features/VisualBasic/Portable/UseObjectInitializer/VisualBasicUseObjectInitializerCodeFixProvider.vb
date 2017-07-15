@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.UseObjectInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -45,12 +46,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                 objectCreation As ObjectCreationExpressionSyntax,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As ObjectCreationExpressionSyntax
 
-            Dim initializer = SyntaxFactory.ObjectMemberInitializer(
-                CreateFieldInitializers(matches))
-
-            Return objectCreation.WithoutTrailingTrivia().
-                                  WithInitializer(initializer).
-                                  WithTrailingTrivia(objectCreation.GetTrailingTrivia())
+            Return UseInitializerHelpers.GetNewObjectCreation(
+                objectCreation,
+                SyntaxFactory.ObjectMemberInitializer(
+                    CreateFieldInitializers(matches)))
         End Function
 
         Private Function CreateFieldInitializers(

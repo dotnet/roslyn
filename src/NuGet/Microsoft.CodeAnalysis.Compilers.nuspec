@@ -6,10 +6,9 @@
     <description>
       .NET Compiler Platform ("Roslyn"). Install this package to get both C# and Visual Basic support. Install either of the dependencies directly to get one of the languages separately.
 
-Supported Platforms:
-- .NET Framework 4.5
-- Windows 8
-- Portable Class Libraries
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.CSharp" version="[$version$]" />

@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpVSResources {
@@ -178,15 +178,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable full solution _analysis.
-        /// </summary>
-        internal static string Enable_full_solution_analysis {
-            get {
-                return ResourceManager.GetString("Enable_full_solution_analysis", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enter key behavior:.
         /// </summary>
         internal static string Enter_key_behavior_colon {
@@ -210,6 +201,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Extract_Method {
             get {
                 return ResourceManager.GetString("Extract_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fade out unused usings.
+        /// </summary>
+        internal static string Fade_out_unused_usings {
+            get {
+                return ResourceManager.GetString("Fade_out_unused_usings", resourceCulture);
             }
         }
         
@@ -309,6 +309,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Indent_case_contents {
             get {
                 return ResourceManager.GetString("Indent_case_contents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent case contents (when block).
+        /// </summary>
+        internal static string Indent_case_contents_when_block {
+            get {
+                return ResourceManager.GetString("Indent_case_contents_when_block", resourceCulture);
             }
         }
         
@@ -606,6 +615,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere {
             get {
                 return ResourceManager.GetString("Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Never.
+        /// </summary>
+        internal static string Never {
+            get {
+                return ResourceManager.GetString("Never", resourceCulture);
             }
         }
         
@@ -1218,6 +1236,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string var_preferences_colon {
             get {
                 return ResourceManager.GetString("var_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When on single line.
+        /// </summary>
+        internal static string When_on_single_line {
+            get {
+                return ResourceManager.GetString("When_on_single_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When possible.
+        /// </summary>
+        internal static string When_possible {
+            get {
+                return ResourceManager.GetString("When_possible", resourceCulture);
             }
         }
         

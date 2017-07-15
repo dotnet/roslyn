@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -3418,7 +3418,7 @@ End Class
             Dim src1 = "
 Imports System
 Class C
-    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+    Readonly Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
         Get
             Return New Func(Of Integer, Integer)(Function(a3) a1 + a2)
         End Get
@@ -3428,7 +3428,7 @@ End Class
             Dim src2 = "
 Imports System
 Class C
-    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+    Readonly Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
         Get
             Return New Func(Of Integer, Integer)(Function(a3) a2)
         End Get
@@ -3714,7 +3714,7 @@ End Class
             Dim src1 = "
 Imports System
 Class C
-    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+    Readonly Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
         Get
             Return New Func(Of Integer, Integer)(Function(a3) a2)
         End Get
@@ -3724,7 +3724,7 @@ End Class
             Dim src2 = "
 Imports System
 Class C
-    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+    Readonly Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
         Get
             Return New Func(Of Integer, Integer)(Function(a3) a1 + a2)
         End Get
@@ -4041,12 +4041,12 @@ Imports System
 
 Partial Class C
     Dim x As Integer = 1
-    Partial Sub F() ' def
+    Private Partial Sub F() ' def
     End Sub
 End Class
 
 Partial Class C
-    Partial Sub F() ' impl
+    Private Sub F() ' impl
         Dim f = New Func(Of Integer, Integer)(Function(a) a)
     End Sub
 End Class
@@ -4056,19 +4056,19 @@ Imports System
 
 Partial Class C
     Dim x As Integer = 1
-    Partial Sub F() ' def
+    Private Partial Sub F() ' def
     End Sub
 End Class
 
 Partial Class C
-    Partial Sub F() ' impl
+    Private Sub F() ' impl
         Dim f = New Func(Of Integer, Integer)(Function(a) a + x)
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me").WithFirstLine("Partial Sub F() ' impl"))
+                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me").WithFirstLine("Private Sub F() ' impl"))
         End Sub
 
         <Fact>
@@ -4497,6 +4497,40 @@ End Class
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.RenamingCapturedVariable, "y", "x", "y"))
         End Sub
+
+        <Fact>
+        Public Sub Lambdas_Signature_SemanticErrors()
+            Dim src1 = "
+Imports System
+
+Class C
+
+    Sub G(f As Func(Of Unknown, Unknown))
+    End Sub
+
+    Sub F()
+        G(Function(a) 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+
+    Sub G(f As Func(Of Unknown, Unknown))
+    End Sub
+
+    Sub F()
+        G(Function(a) 2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(ERRID.ERR_UndefinedType1, "Unknown").WithArguments("Unknown").WithLocation(6, 24))
+        End Sub
+
 #End Region
 
 #Region "Queries"
@@ -5976,12 +6010,13 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                Nothing,
-                Nothing,
-                Nothing,
-                {Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")})
+                editScript:=edits,
+                activeStatements:=ActiveStatementsDescription.Empty,
+                additionalOldSources:=Nothing,
+                additionalNewSources:=Nothing,
+                expectedSemanticEdits:=Nothing,
+                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")},
+                expectedDeclarationError:=Nothing)
         End Sub
 
         <Fact>
@@ -6006,12 +6041,13 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                Nothing,
-                Nothing,
-                Nothing,
-                Nothing)
+                editScript:=edits,
+                activeStatements:=ActiveStatementsDescription.Empty,
+                additionalOldSources:=Nothing,
+                additionalNewSources:=Nothing,
+                expectedSemanticEdits:=Nothing,
+                expectedDiagnostics:=Nothing,
+                expectedDeclarationError:=Nothing)
         End Sub
 
 #End Region
@@ -6092,12 +6128,13 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             VisualBasicEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                Nothing,
-                Nothing,
-                Nothing,
-                {Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")})
+                editScript:=edits,
+                activeStatements:=ActiveStatementsDescription.Empty,
+                additionalOldSources:=Nothing,
+                additionalNewSources:=Nothing,
+                expectedSemanticEdits:=Nothing,
+                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")},
+                expectedDeclarationError:=Nothing)
         End Sub
 
         <Fact>

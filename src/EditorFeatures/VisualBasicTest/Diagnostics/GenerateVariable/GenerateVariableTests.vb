@@ -1,17 +1,17 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateVariable
+Imports Microsoft.CodeAnalysis.VisualBasic.GenerateVariable
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateVariable
     Public Class GenerateVariableTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (Nothing, New GenerateVariableCodeFixProvider())
+            Return (Nothing, New VisualBasicGenerateVariableCodeFixProvider())
         End Function
 
         Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
@@ -106,6 +106,29 @@ End Interface",
 End Module
 Interface IFoo
     ReadOnly Property Blah As String()
+End Interface")
+        End Function
+
+        <WorkItem(539694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539694")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateReadWriteProperty() As Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        Dim i As IFoo
+        Main(i.[|Blah|])
+    End Sub
+End Module
+Interface IFoo
+End Interface",
+"Module Program
+    Sub Main(args As String())
+        Dim i As IFoo
+        Main(i.Blah)
+    End Sub
+End Module
+Interface IFoo
+    Property Blah As String()
 End Interface",
 index:=1)
         End Function
@@ -168,7 +191,29 @@ index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
-        Public Async Function TestGeneratePropertyOnInterface() As Threading.Tasks.Task
+        Public Async Function TestGeneratePropertyOnInterface1() As Threading.Tasks.Task
+            Await TestInRegularAndScriptAsync(
+"Interface IFoo
+End Interface
+Class C
+    Sub Main
+        Dim foo As IFoo
+        Dim b = foo.[|Bar|]
+    End Sub
+End Class",
+"Interface IFoo
+    ReadOnly Property Bar As Object
+End Interface
+Class C
+    Sub Main
+        Dim foo As IFoo
+        Dim b = foo.Bar
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGeneratePropertyOnInterface2() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Interface IFoo
 End Interface
@@ -186,7 +231,7 @@ Class C
         Dim foo As IFoo
         Dim b = foo.Bar
     End Sub
-End Class")
+End Class", index:=1)
         End Function
 
         <WorkItem(539796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
@@ -2515,6 +2560,159 @@ End Class",
         tuple = (a:=1, ""hello"") 
  End Sub
 End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestPreferReadOnlyIfAfterReadOnlyAssignment() As Task 
+            await TestInRegularAndScriptAsync(
+"class C
+    private readonly _foo as integer
+
+    public sub new()
+        _foo = 0
+        [|_bar|] = 1
+    end sub
+end class",
+"class C
+    private readonly _foo as integer
+    Private ReadOnly _bar As Integer
+
+    public sub new()
+        _foo = 0
+        _bar = 1
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestPreferReadOnlyIfBeforeReadOnlyAssignment() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    private readonly _foo as integer
+
+    public sub new()
+        [|_bar|] = 1
+        _foo = 0
+    end sub
+end class",
+"class C
+    Private ReadOnly _bar As Integer
+    private readonly _foo as integer
+
+    public sub new()
+        _bar = 1
+        _foo = 0
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestPlaceFieldBasedOnSurroundingStatements() As Task
+            await TestInRegularAndScriptAsync(
+"class Class
+    private _foo as integer
+    private _quux as integer
+
+    public sub new()
+        _foo = 0
+        [|_bar|] = 1
+        _quux = 2
+    end sub
+end class",
+"class Class
+    private _foo as integer
+    Private _bar As Integer
+    private _quux as integer
+
+    public sub new()
+        _foo = 0
+        _bar = 1
+        _quux = 2
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestPlacePropertyBasedOnSurroundingStatements() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class
+    public readonly property Foo as integer
+    public readonly property Quux as integer
+
+    public sub new()
+        Foo = 0
+        [|Bar|] = 1
+        Quux = 2
+    end sub
+end class",
+"class Class
+    public readonly property Foo as integer
+    Public ReadOnly Property Bar As Integer
+    public readonly property Quux as integer
+
+    public sub new()
+        Foo = 0
+        Bar = 1
+        Quux = 2
+    end sub
+end class")
+        End Function
+
+        <WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function GroupNonReadonlyFieldsTogether() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public isDisposed as boolean
+
+    public readonly x as integer
+    public readonly m as integer
+
+    public sub new()
+        me.[|y|] = 0
+    end sub
+end class",
+"
+class C
+    public isDisposed as boolean
+    Private y As Integer
+
+    public readonly x as integer
+    public readonly m as integer
+
+    public sub new()
+        me.y = 0
+    end sub
+end class")
+        End Function
+
+        <WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function GroupReadonlyFieldsTogether() As Task
+            Await TestInRegularAndScriptAsync("
+class C
+    public readonly x as integer
+    public readonly m as integer
+
+    public isDisposed as boolean
+
+    public sub new()
+        me.[|y|] = 0
+    end sub
+end class",
+"
+class C
+    public readonly x as integer
+    public readonly m as integer
+    Private ReadOnly y As Integer
+
+    public isDisposed as boolean
+
+    public sub new()
+        me.y = 0
+    end sub
+end class", index:=1)
         End Function
     End Class
 End Namespace

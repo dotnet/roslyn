@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -83,15 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Nested types are never unified.
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.False;
-            }
-
-            if (declaration.Arity == 0 && declaration.HasConstraints)
-            {
-                foreach (var syntaxRef in this.SyntaxReferences)
-                {
-                    var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax());
-                    ReportErrorIfHasConstraints(constraintClauses, diagnostics);
-                }
             }
         }
 
@@ -557,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ObsoleteAttributeData obsoleteData;
-            if (EarlyDecodeDeprecatedOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+            if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
             {
                 if (obsoleteData != null)
                 {

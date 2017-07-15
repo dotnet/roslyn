@@ -1,11 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
@@ -58,8 +56,57 @@ class Z
 {
     int a;
 
-    public Z(int a) => this . a = a ; }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.TrueWithNoneEnforcement));
+    public Z(int a) => this . a = a ;
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+
+    public Z(int a) => this . a = a ;
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsNotSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;
+    int b;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    int b;
+
+    public Z(int a, int b)
+    {
+        this . a = a ;
+        this . b = b ;
+    }
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -727,6 +774,79 @@ class Z
     }
 }",
 chosenSymbols: new string[] { "b", "a" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecks1()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a, string b)
+    {
+        this.a = a;
+        this.b = b ?? throw new ArgumentNullException(nameof(b));
+    }
+}",
+chosenSymbols: new string[] { "a", "b" }, 
+optionsCallback: options => options[0].Value = true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecks2()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a, string b)
+    {
+        if (b == null)
+        {
+            throw new ArgumentNullException(nameof(b));
+        }
+
+        this.a = a;
+        this.b = b;
+    }
+}",
+chosenSymbols: new string[] { "a", "b" },
+optionsCallback: options => options[0].Value = true,
+parameters: new TestParameters(options:
+    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithNoneEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]

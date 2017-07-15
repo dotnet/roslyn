@@ -7,7 +7,6 @@ using System.IO;
 using Roslyn.Test.Performance.Utilities;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 using static Roslyn.Test.Performance.Runner.Tools;
-using static Roslyn.Test.Performance.Runner.Benchview;
 using static Roslyn.Test.Performance.Runner.TraceBackup;
 using Mono.Options;
 
@@ -17,6 +16,8 @@ namespace Runner
     {
         public static int Main(string[] args)
         {
+            Console.WriteLine("args: \n" + String.Join("\n  ", args));
+
             bool shouldReportBenchview = false;
             bool shouldUploadTrace = true;
             bool isCiTest = false;
@@ -29,7 +30,7 @@ namespace Runner
             var parameterOptions = new OptionSet()
             {
                 {"report-benchview", "report the performance results to benchview.", _ => shouldReportBenchview = true},
-                {"benchview-submission-type=", $"submission type to use when uploading to benchview ({String.Join(",", ValidSubmissionTypes)})", type => { submissionType = type; } },
+                {"benchview-submission-type=", $"submission type to use when uploading to benchview ({String.Join(",", Benchview.ValidSubmissionTypes)})", type => { submissionType = type; } },
                 {"benchview-submission-name=", "submission name to use when uploading to benchview (required for private and local submissions)", name => { submissionName = name; } },
                 {"branch=", "name of the branch you are measuring on", name => { branch = name; } },
                 {"ci-test", "mention that we are running in the continuous integration lab", _ => isCiTest = true},
@@ -38,16 +39,22 @@ namespace Runner
                 {"search-directory=", "the directory to recursively search for tests", dir => { searchDirectory = dir; } }
             };
 
+
             parameterOptions.Parse(args);
+
+            Log($"shouldReportBenchview: {shouldReportBenchview}");
+            Log($"submissionType: {submissionType}");
 
             if (shouldReportBenchview)
             {
                 if (!CheckBenchViewOptions(submissionType, submissionName) ||
-                    !CheckEnvironment() ||
+                    !Benchview.CheckEnvironment() ||
                     !DetermineBranch(ref branch))
                 {
                     return -1;
                 }
+
+                Benchview.SetConfiguration(submissionType, branch);
             }
 
             Cleanup();
@@ -61,7 +68,7 @@ namespace Runner
             if (shouldReportBenchview)
             {
                 Log("Uploading results to benchview");
-                UploadBenchviewReport(submissionType, submissionName, branch);
+                Benchview.UploadBenchviewReport(submissionName);
             }
 
             if (shouldUploadTrace)
@@ -81,9 +88,9 @@ namespace Runner
                 return false;
             }
 
-            if (!IsValidSubmissionType(submissionType))
+            if (!Benchview.IsValidSubmissionType(submissionType))
             {
-                Log($"Parameter --benchview-submission-type must be one of ({String.Join(",", ValidSubmissionTypes)})");
+                Log($"Parameter --benchview-submission-type must be one of ({String.Join(",", Benchview.ValidSubmissionTypes)})");
                 return false;
             }
 

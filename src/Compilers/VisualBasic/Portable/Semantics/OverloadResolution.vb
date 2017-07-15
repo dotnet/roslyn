@@ -5,6 +5,7 @@ Imports System.Diagnostics
 Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -4531,8 +4532,8 @@ ContinueCandidatesLoop:
 
             ' Both are generics
             If leftType.Kind = SymbolKind.NamedType AndAlso rightType.Kind = SymbolKind.NamedType Then
-                Dim leftNamedType = DirectCast(leftType, NamedTypeSymbol)
-                Dim rightNamedType = DirectCast(rightType, NamedTypeSymbol)
+                Dim leftNamedType = DirectCast(leftType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
+                Dim rightNamedType = DirectCast(rightType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
                 ' If their arities are equal
                 If leftNamedType.Arity = rightNamedType.Arity Then

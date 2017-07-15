@@ -41,6 +41,9 @@ namespace RunTests.Cache
                 case "System.Runtime.Loader":
                     // This light up probing is done by the scripting layer. 
                     return true;
+                case "Microsoft.Diagnostics.Tracing.EventSource":
+                    // Part of ETW tracing and not used by suites at this time.
+                    return true;
                 case "Microsoft.VisualStudio.CodeAnalysis":
                 case "Microsoft.VisualStudio.CodeAnalysis.Sdk":
                 case "Microsoft.VisualStudio.TeamSystem.Common":

@@ -1,18 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{9C0660D9-48CA-40E1-BABA-8F6A1F11FE10}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BuildBoss</RootNamespace>
-    <AssemblyName>BuildBoss</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <UseVSHostingProcess>false</UseVSHostingProcess>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -22,30 +18,13 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ICheckerUtil.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="ProjectData.cs" />
-    <Compile Include="ProjectUtil.cs" />
-    <Compile Include="ProjectKey.cs" />
-    <Compile Include="ProjectType.cs" />
-    <Compile Include="ProjectCheckerUtil.cs" />
-    <Compile Include="RoslynProjectData.cs" />
-    <Compile Include="SharedUtil.cs" />
-    <Compile Include="ProjectEntry.cs" />
-    <Compile Include="SolutionCheckerUtil.cs" />
-    <Compile Include="SolutionUtil.cs" />
-    <Compile Include="StructuredLoggerCheckerUtil.cs" />
-    <Compile Include="TargetsCheckerUtil.cs" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Microsoft.Build.Logging.StructuredLogger" Version="$(MicrosoftBuildLoggingStructuredLoggerVersion)" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="project.json" />
     <None Include="README.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

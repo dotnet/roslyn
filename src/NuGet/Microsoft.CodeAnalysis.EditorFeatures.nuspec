@@ -2,14 +2,18 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.CodeAnalysis.EditorFeatures</id>
-    <description>
+    <summary>
       .NET Compiler Platform ("Roslyn") support for editor features inside the Visual Studio editor..
+    </summary>
+    <description>
+      Supported Platforms:
+      - .NET Framework 4.6
       
-Supported Platforms:
-- .NET Framework 4.6
+      $commitPathMessage$
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Features" version="[$version$]" />
+      <dependency id="Microsoft.CodeAnalysis.Elfie" version="$MicrosoftCodeAnalysisElfieVersion$" />
     </dependencies>
 
     <language>en-US</language>

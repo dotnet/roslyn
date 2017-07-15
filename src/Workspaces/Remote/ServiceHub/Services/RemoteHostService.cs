@@ -2,8 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -14,6 +17,7 @@ using Microsoft.CodeAnalysis.Remote.Telemetry;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
+using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -41,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // this should let us to freely try to use all resources possible without worrying about affecting
             // host's work such as responsiveness or build.
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+
+            SetNativeDllSearchDirectories();
         }
 
         public RemoteHostService(Stream stream, IServiceProvider serviceProvider) :
@@ -69,70 +75,39 @@ namespace Microsoft.CodeAnalysis.Remote
             return _host;
         }
 
-        public async Task SynchronizePrimaryWorkspaceAsync(Checksum checksum)
+        public async Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, CancellationToken))
+            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
             {
-                try
+                var solutionController = (ISolutionController)RoslynServices.SolutionService;
+                await solutionController.UpdatePrimaryWorkspaceAsync(checksum, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
+        {
+            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
+            {
+                var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
+
+                foreach (var asset in assets)
                 {
-                    await RoslynServices.SolutionService.UpdatePrimaryWorkspaceAsync(checksum, CancellationToken).ConfigureAwait(false);
-                }
-                catch (IOException)
-                {
-                    // stream to send over assets has closed before we
-                    // had chance to check cancellation
-                }
-                catch (OperationCanceledException)
-                {
-                    // rpc connection has closed.
-                    // this can happen if client side cancelled the
-                    // operation
+                    AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
                 }
             }
         }
 
-        public async Task SynchronizeGlobalAssetsAsync(Checksum[] checksums)
-        {
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, CancellationToken))
-            {
-                try
-                {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, CancellationToken).ConfigureAwait(false);
-
-                    foreach (var asset in assets)
-                    {
-                        AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
-                    }
-                }
-                catch (IOException)
-                {
-                    // stream to send over assets has closed before we
-                    // had chance to check cancellation
-                }
-                catch (OperationCanceledException)
-                {
-                    // rpc connection has closed.
-                    // this can happen if client side cancelled the
-                    // operation
-                }
-            }
-        }
-
-        public void RegisterPrimarySolutionId(SolutionId solutionId)
+        public void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
         {
             var persistentStorageService = GetPersistentStorageService();
             persistentStorageService?.RegisterPrimarySolution(solutionId);
+            RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
         }
 
-        public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown)
+        public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken)
         {
             var persistentStorageService = GetPersistentStorageService();
             persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
-        }
-
-        public void UpdateSolutionIdStorageLocation(SolutionId solutionId, string storageLocation)
-        {
-            RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
         }
 
         private static Func<FunctionId, bool> GetLoggingChecker()
@@ -210,14 +185,38 @@ namespace Microsoft.CodeAnalysis.Remote
             return session;
         }
 
-        private static PersistentStorageService GetPersistentStorageService()
+        private static AbstractPersistentStorageService GetPersistentStorageService()
         {
             // A bit slimy.  We just create an adhoc workspace so it will create the singleton
             // PersistentStorageService.  This service will be shared among all Workspaces we 
             // create in this process.  So updating it will be seen by all.
             var workspace = new AdhocWorkspace(RoslynServices.HostServices);
-            var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
+            var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
             return persistentStorageService;
+        }
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr AddDllDirectory(string directory);
+
+        private static void SetNativeDllSearchDirectories()
+        {
+            if (PlatformInformation.IsWindows)
+            {
+                // Set LoadLibrary search directory to %VSINSTALLDIR%\Common7\IDE so that the compiler
+                // can P/Invoke to Microsoft.DiaSymReader.Native when emitting Windows PDBs.
+                //
+                // The AppDomain base directory is specified in VisualStudio\Setup.Next\codeAnalysisService.servicehub.service.json
+                // to be the directory where devenv.exe is -- which is exactly the directory we need to add to the search paths:
+                //
+                //   "appBasePath": "%VSAPPIDDIR%"
+                //
+
+                var cookie = AddDllDirectory(AppDomain.CurrentDomain.BaseDirectory);
+                if (cookie == IntPtr.Zero)
+                {
+                    throw new Win32Exception();
+                }
+            }
         }
     }
 }

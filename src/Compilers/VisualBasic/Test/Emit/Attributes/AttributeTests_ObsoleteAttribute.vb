@@ -714,6 +714,134 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestObsoleteAndPropertyAccessors()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+Namespace Windows.Foundation.Metadata
+    Public NotInheritable Class DeprecatedAttribute
+        Inherits Attribute
+        Public Sub New(message As String, type As DeprecationType, version As UInteger)
+        End Sub
+    End Class
+    Public Enum DeprecationType
+        Deprecate
+        Remove
+    End Enum
+End Namespace
+]]>
+    </file>
+    <file><![CDATA[
+Imports Windows.Foundation.Metadata
+<Deprecated(Nothing, DeprecationType.Deprecate, 0)>Class A
+End Class
+<Deprecated(Nothing, DeprecationType.Deprecate, 0)>Class B
+End Class
+<Deprecated(Nothing, DeprecationType.Deprecate, 0)>Class C
+End Class
+Class D
+    ReadOnly Property P As Object
+        Get
+            Return New A()
+        End Get
+    End Property
+    <Deprecated(Nothing, DeprecationType.Deprecate, 0)>ReadOnly Property Q As Object
+        Get
+            Return New B()
+        End Get
+    End Property
+    ReadOnly Property R As Object
+        <Deprecated(Nothing, DeprecationType.Deprecate, 0)>Get
+            Return New C()
+        End Get
+    End Property
+End Class
+]]>
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlib(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC40008: 'A' is obsolete.
+            Return New A()
+                       ~
+]]></errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TestObsoleteAndEventAccessors()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+Namespace Windows.Foundation.Metadata
+    Public NotInheritable Class DeprecatedAttribute
+        Inherits Attribute
+        Public Sub New(message As String, type As DeprecationType, version As UInteger)
+        End Sub
+    End Class
+    Public Enum DeprecationType
+        Deprecate
+        Remove
+    End Enum
+End Namespace
+]]>
+    </file>
+    <file><![CDATA[
+Imports System
+Imports Windows.Foundation.Metadata
+<Deprecated(Nothing, DeprecationType.Deprecate, 0)>Class A
+End Class
+<Deprecated(Nothing, DeprecationType.Deprecate, 0)>Class B
+End Class
+<Deprecated(Nothing, DeprecationType.Deprecate, 0)>Class C
+End Class
+Class D
+    Custom Event E As EventHandler
+        AddHandler(value As EventHandler)
+        End AddHandler
+        RemoveHandler(value As EventHandler)
+            M(New A())
+        End RemoveHandler
+        RaiseEvent
+        End RaiseEvent
+    End Event
+    <Deprecated(Nothing, DeprecationType.Deprecate, 0)>Custom Event F As EventHandler
+        AddHandler(value As EventHandler)
+        End AddHandler
+        RemoveHandler(value As EventHandler)
+            M(New B())
+        End RemoveHandler
+        RaiseEvent
+        End RaiseEvent
+    End Event
+    Custom Event G As EventHandler
+        AddHandler(value As EventHandler)
+        End AddHandler
+        <Deprecated(Nothing, DeprecationType.Deprecate, 0)>RemoveHandler(value As EventHandler)
+            M(New C())
+        End RemoveHandler
+        RaiseEvent
+        End RaiseEvent
+    End Event
+    Shared Sub M(o As Object)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlib(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC40008: 'A' is obsolete.
+            M(New A())
+                  ~
+BC31142: 'Windows.Foundation.Metadata.DeprecatedAttribute' cannot be applied to the 'AddHandler', 'RemoveHandler', or 'RaiseEvent' definitions. If required, apply the attribute directly to the event.
+        <Deprecated(Nothing, DeprecationType.Deprecate, 0)>RemoveHandler(value As EventHandler)
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></errors>)
+        End Sub
+
+        <Fact>
         Public Sub TestObsoleteAttributeCycles_02()
             Dim source =
 <compilation>

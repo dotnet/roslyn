@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -11,16 +11,31 @@ using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PickMembers;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
+    /// <summary>
+    /// This <see cref="CodeRefactoringProvider"/> is responsible for allowing a user to pick a 
+    /// set of members from a class or struct, and then generate a constructor for that takes in
+    /// matching parameters and assigns them to those members.  The members can be picked using 
+    /// a actual selection in the editor, or they can be picked using a picker control that will
+    /// then display all the viable members and allow the user to pick which ones they want to
+    /// use.
+    /// 
+    /// Importantly, this type is not responsible for generating constructors when the user types
+    /// something like "new MyType(x, y, z)", nor is it responsible for generating constructors
+    /// in a derived type that delegate to a base type. Both of those are handled by other services.
+    /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), Shared]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)]
     internal partial class GenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
+        private const string AddNullChecksId = nameof(AddNullChecksId);
+
         private readonly IPickMembersService _pickMembersService_forTesting;
 
         public GenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
@@ -46,7 +61,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return;
             }
 
-            var actions = await this.GenerateConstructorFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var actions = await this.GenerateConstructorFromMembersAsync(
+                document, textSpan, addNullChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
 
             if (actions.IsDefaultOrEmpty && textSpan.IsEmpty)
@@ -90,35 +106,36 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             // Find all the possible writable instance fields/properties.  If there are any, then
             // show a dialog to the user to select the ones they want.  Otherwise, if there are none
-            // just offer to generate the no-param constructor if they don't already have one.
+            // don't offer to generate anything.
             var viableMembers = containingType.GetMembers().WhereAsArray(IsWritableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
-                var noParamConstructor = containingType.InstanceConstructors.FirstOrDefault(c => c.Parameters.Length == 0);
-                if (noParamConstructor == null ||
-                    noParamConstructor.IsImplicitlyDeclared)
-                {
-                    // Offer to just make the no-param-constructor directly.
-                    var state = State.TryGenerate(this, document, textSpan, containingType,
-                        ImmutableArray<ISymbol>.Empty, cancellationToken);
-
-                    if (state != null)
-                    {
-                        context.RegisterRefactoring(new FieldDelegatingCodeAction(this, document, state));
-                    }
-                }
-
-                // already had an explicit, no-param constructor.  No need to offer anything.
                 return;
+            }
+
+            var pickMemberOptions = ArrayBuilder<PickMembersOption>.GetInstance();
+            var canAddNullCheck = viableMembers.Any(
+                m => m.GetSymbolType().CanAddNullCheck());
+
+            if (canAddNullCheck)
+            {
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var optionValue = options.GetOption(GenerateConstructorFromMembersOptions.AddNullChecks);
+
+                pickMemberOptions.Add(new PickMembersOption(
+                    AddNullChecksId,
+                    FeaturesResources.Add_null_checks,
+                    optionValue));
             }
 
             context.RegisterRefactoring(
                 new GenerateConstructorWithDialogCodeAction(
-                    this, document, textSpan, containingType, viableMembers));
+                    this, document, textSpan, containingType, viableMembers,
+                    pickMemberOptions.ToImmutableAndFree()));
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
-            Document document, TextSpan textSpan, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, bool addNullChecks, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructorFromMembers, cancellationToken))
             {
@@ -128,22 +145,22 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     var state = State.TryGenerate(this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken);
                     if (state != null && state.MatchingConstructor == null)
                     {
-                        return GetCodeActions(document, state);
+                        return GetCodeActions(document, state, addNullChecks);
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
+                return default;
             }
         }
 
-        private ImmutableArray<CodeAction> GetCodeActions(Document document, State state)
+        private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks)
         {
             var result = ArrayBuilder<CodeAction>.GetInstance();
 
-            result.Add(new FieldDelegatingCodeAction(this, document, state));
+            result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks));
             if (state.DelegatedConstructor != null)
             {
-                result.Add(new ConstructorDelegatingCodeAction(this, document, state));
+                result.Add(new ConstructorDelegatingCodeAction(this, document, state, addNullChecks));
             }
 
             return result.ToImmutableAndFree();

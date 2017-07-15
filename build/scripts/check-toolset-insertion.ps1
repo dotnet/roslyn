@@ -21,6 +21,11 @@ try
         "Microsoft.Build.Utilities.Core.dll",
         "Microsoft.DiaSymReader.Native.arm.dll"
     )
+
+    $exludedFromVsix = @(    
+        "Microsoft.DiaSymReader.Native.x86.dll", # installed by msbuild setup component
+        "Microsoft.DiaSymReader.Native.amd64.dll"  # installed by msbuild setup component
+    )
     
     $deploymentPath = join-path $binariesPath "Exes\Toolset"
     $deployedFiles = 
@@ -92,7 +97,7 @@ try
     foreach ($file in $deployedFiles)
     {
         write-host "`t$file"
-        if ($msbuildroslynfiles.Contains($file))
+        if ($msbuildroslynfiles.Contains($file) -or $exludedFromVsix.Contains($file))
         {
             continue;
         }

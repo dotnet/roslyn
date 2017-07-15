@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Return parent.TypeSwitch(
                     Function(addRemoveHandlerStatement As AddRemoveHandlerStatementSyntax) InferTypeInAddRemoveHandlerStatementSyntax(addRemoveHandlerStatement, expression),
-                    Function(argument As ArgumentSyntax) InferTypeInArgumentList(TryCast(argument.Parent, ArgumentListSyntax), argument),
+                    Function(argument As ArgumentSyntax) InferTypeInArgument(argument),
                     Function(arrayCreationExpression As ArrayCreationExpressionSyntax) InferTypeInArrayCreationExpression(arrayCreationExpression),
                     Function(arrayRank As ArrayRankSpecifierSyntax) InferTypeInArrayRankSpecifier(),
                     Function(arrayType As ArrayTypeSyntax) InferTypeInArrayType(arrayType),
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim parent = token.Parent
 
                 Return parent.TypeSwitch(
-                    Function(argument As ArgumentSyntax) InferTypeInArgumentList(TryCast(argument.Parent, ArgumentListSyntax), previousToken:=token),
+                    Function(argument As ArgumentSyntax) InferTypeInArgument(argument, previousToken:=token),
                     Function(argumentList As ArgumentListSyntax) InferTypeInArgumentList(argumentList, previousToken:=token),
                     Function(arrayCreationExpression As ArrayCreationExpressionSyntax) InferTypeInArrayCreationExpression(arrayCreationExpression),
                     Function(arrayRank As ArrayRankSpecifierSyntax) InferTypeInArrayRankSpecifier(),
@@ -171,13 +171,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)())
             End Function
 
+            Private Function InferTypeInArgument(argument As ArgumentSyntax,
+                                                 Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
+                If TypeOf argument.Parent Is ArgumentListSyntax Then
+                    Return InferTypeInArgumentList(
+                        DirectCast(argument.Parent, ArgumentListSyntax), argument, previousToken)
+                End If
+
+                If TypeOf argument.Parent Is TupleExpressionSyntax Then
+                    Return InferTypeInTupleExpression(
+                        DirectCast(argument.Parent, TupleExpressionSyntax),
+                        DirectCast(argument, SimpleArgumentSyntax))
+                End If
+
+                Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)
+            End Function
+
+            Private Function InferTypeInTupleExpression(tupleExpression As TupleExpressionSyntax,
+                                                        argument As SimpleArgumentSyntax) As IEnumerable(Of TypeInferenceInfo)
+                Dim index = tupleExpression.Arguments.IndexOf(argument)
+                Dim parentTypes = InferTypes(tupleExpression)
+
+                Return parentTypes.Select(Function(TypeInfo) TypeInfo.InferredType).
+                                   OfType(Of INamedTypeSymbol)().
+                                   Where(Function(namedType) namedType.IsTupleType AndAlso index < namedType.TupleElements.Length).
+                                   Select(Function(tupleType) New TypeInferenceInfo(tupleType.TupleElements(index).Type))
+            End Function
+
             Private Function InferTypeInArgumentList(argumentList As ArgumentListSyntax,
-                                                 Optional argumentOpt As ArgumentSyntax = Nothing, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
+                                                     Optional argumentOpt As ArgumentSyntax = Nothing,
+                                                     Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
                 If argumentList Is Nothing Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
                 If argumentList.Parent IsNot Nothing Then
+
                     If argumentList.IsParentKind(SyntaxKind.ArrayCreationExpression) Then
                         Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Compilation.GetSpecialType(SpecialType.System_Int32)))
                     ElseIf argumentList.IsParentKind(SyntaxKind.InvocationExpression) Then
@@ -406,8 +435,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim types = InferTypes(awaitExpression, filterUnusable:=False)
 
-                Dim task = Me.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task")
-                Dim taskOfT = Me.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1")
+                Dim task = Me.Compilation.GetTypeByMetadataName(GetType(Task).FullName)
+                Dim taskOfT = Me.Compilation.GetTypeByMetadataName(GetType(Task(Of)).FullName)
 
                 If task Is Nothing OrElse taskOfT Is Nothing Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
@@ -866,7 +895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' T if we get a delegate as the first argument to Select/Where.
                     If ienumerableType IsNot Nothing AndAlso memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) Then
                         Dim invocation = DirectCast(memberAccessExpression.Parent, InvocationExpressionSyntax)
-                        If invocation.ArgumentList.Arguments.Count > 0 AndAlso
+                        If invocation.ArgumentList IsNot Nothing AndAlso invocation.ArgumentList.Arguments.Count > 0 AndAlso
                            TypeOf invocation.ArgumentList.Arguments(0) Is SimpleArgumentSyntax Then
                             Dim argumentExpression = DirectCast(invocation.ArgumentList.Arguments(0), SimpleArgumentSyntax).Expression
                             Dim argumentTypes = GetTypes(argumentExpression)

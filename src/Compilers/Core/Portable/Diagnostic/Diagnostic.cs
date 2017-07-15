@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis
         /// if there is no entry. This can be used to put diagnostic specific information you want 
         /// to pass around. for example, to corresponding fixer.
         /// </summary>
-        public virtual ImmutableDictionary<string, string> Properties 
+        public virtual ImmutableDictionary<string, string> Properties
             => ImmutableDictionary<string, string>.Empty;
 
         string IFormattable.ToString(string ignored, IFormatProvider formatProvider)
@@ -506,5 +506,14 @@ namespace Microsoft.CodeAnalysis
         {
             return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
         }
+    }
+
+    /// <summary>
+    /// This type is attached to diagnostics for required language version and should only be used
+    /// on such diagnostics, as they are recognized by <see cref="Compilation.GetRequiredLanguageVersion"/>.
+    /// </summary>
+    internal abstract class RequiredLanguageVersion : IMessageSerializable
+    {
+        public abstract override string ToString();
     }
 }

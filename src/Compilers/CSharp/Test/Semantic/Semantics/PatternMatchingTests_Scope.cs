@@ -272,7 +272,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics();
 
@@ -318,7 +318,7 @@ public class Cls
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "12").VerifyDiagnostics();
 
@@ -3707,15 +3707,9 @@ public class X
     // (11,25): error CS0841: Cannot use local variable 'x4' before it is declared
     //     void Test4(bool p = x4 && 4 is int x4)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(11, 25),
-    // (11,21): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'bool'
-    //     void Test4(bool p = x4 && 4 is int x4)
-    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "bool").WithLocation(11, 21),
-    // (15,35): error CS0128: A local variable named 'x5' is already defined in this scope
+    // (15,35): error CS0128: A local variable or function named 'x5' is already defined in this scope
     //                         52 is int x5 && 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(15, 35),
-    // (14,21): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'bool'
-    //     void Test5(bool p = 51 is int x5 && 
-    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "bool").WithLocation(14, 21),
     // (19,27): error CS1736: Default parameter value for 'p1' must be a compile-time constant
     //     void Test61(bool p1 = 6 is int x6 && x6 > 0, bool p2 = 6 is int x6 && x6 > 0)
     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "6 is int x6 && x6 > 0").WithArguments("p1").WithLocation(19, 27),
@@ -5178,7 +5172,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (27,26): error CS0128: A local variable named 'x4' is already defined in this scope
+                // (27,26): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //         switch (4 is var x4 ? x4 : 0)
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(27, 26),
                 // (37,26): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -5208,7 +5202,10 @@ public class X
                 // (89,18): error CS0150: A constant value is expected
                 //             case y10:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "y10").WithLocation(89, 18),
-                // (112,28): error CS0128: A local variable named 'x14' is already defined in this scope
+                // (90,17): warning CS0162: Unreachable code detected
+                //                 var y10 = 12;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(90, 17),
+                // (112,28): error CS0128: A local variable or function named 'x14' is already defined in this scope
                 //                   2 is var x14, 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(112, 28),
                 // (125,25): error CS0841: Cannot use local variable 'y15' before it is declared
@@ -5216,7 +5213,10 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(125, 25),
                 // (127,18): error CS0841: Cannot use local variable 'y15' before it is declared
                 //             case y15: 
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18),
+                // (128,17): warning CS0162: Unreachable code detected
+                //                 var y15 = 15;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(128, 17)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -13782,7 +13782,7 @@ class Program
     static void M(bool b, int i) {}
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): error CS8081: Expression does not have a name.
                 //         string s = nameof(M(i is var x1, x1)).ToString();

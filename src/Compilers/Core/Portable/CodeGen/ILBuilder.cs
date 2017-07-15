@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1156,23 +1157,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _scopeManager.CloseScope(this);
         }
 
-        internal void OpenStateMachineScope()
-        {
-            OpenLocalScope(ScopeType.StateMachineVariable);
-        }
-
         internal void DefineUserDefinedStateMachineHoistedLocal(int slotIndex)
         {
             // Add user-defined local into the current scope.
             // We emit custom debug information for these locals that is used by the EE to reconstruct their scopes.
             _scopeManager.AddUserHoistedLocal(slotIndex);
-        }
-
-        internal void CloseStateMachineScope()
-        {
-            _scopeManager.ClosingScope(this);
-            EndBlock(); // blocks should not cross scope boundaries.
-            _scopeManager.CloseScope(this);
         }
 
         /// <summary>

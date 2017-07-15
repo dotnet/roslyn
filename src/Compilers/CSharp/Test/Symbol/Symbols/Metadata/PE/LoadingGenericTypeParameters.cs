@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             // .class nested public D<S1>
             var mdRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidGenericType.AsImmutableOrNull());
             string source = "class X : C<int, int>.D { }";
-            CreateCompilationWithMscorlib(source, new[] { mdRef }).VerifyDiagnostics(
+            CreateStandardCompilation(source, new[] { mdRef }).VerifyDiagnostics(
                 // (2,11): error CS0648: 'C<T1, T2>.D' is a type not supported by the language
                 // class X : C<int, int>.D { }
                 Diagnostic(ErrorCode.ERR_BogusType, "C<int, int>.D").WithArguments("C<T1, T2>.D")

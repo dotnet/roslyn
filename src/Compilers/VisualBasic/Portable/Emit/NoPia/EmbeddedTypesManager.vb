@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             ' We do not expect this method to be called on a different thread once GetTypes is called.
             VerifyNotFrozen()
 
-            Dim noPiaIndexer = New Cci.NoPiaReferenceIndexer(New EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics))
+            Dim noPiaIndexer = New Cci.NoPiaReferenceIndexer(New EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics, metadataOnly:=False, includePrivateMembers:=True))
 
             ' Make sure we embed all types referenced by the type declaration: implemented interfaces, etc.
             noPiaIndexer.VisitTypeDefinitionNoMembers(embedded)

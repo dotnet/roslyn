@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -472,7 +473,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (!(expression is ObjectCreationExpressionSyntax) && !(expression is AnonymousObjectCreationExpressionSyntax))
+            if (!(expression is ObjectCreationExpressionSyntax) && 
+                !(expression is AnonymousObjectCreationExpressionSyntax) &&
+                !expression.IsLeftSideOfAssignExpression())
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
                 if (!symbolInfo.GetBestOrAllSymbols().All(CanReplace))
@@ -517,12 +520,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 // If the parent is a conditional access expression, we could introduce an LValue
                 // for the given expression, unless it is itself a MemberBindingExpression or starts with one.
-                // Case (1) : The WhenNotNull clause always starts with a memberbindingexpression.
+                // Case (1) : The WhenNotNull clause always starts with a MemberBindingExpression.
                 //              expression '.Method()' in a?.Method()
-                // Case (2) : The Expression clause always starts with a memberbindingexpression if 
+                // Case (2) : The Expression clause always starts with a MemberBindingExpression if 
                 // the grandparent is a conditional access expression.
                 //              expression '.Method' in a?.Method()?.Length
-                // Case (3) : The child Conditional access expression always starts with a memberbindingexpression if
+                // Case (3) : The child Conditional access expression always starts with a MemberBindingExpression if
                 // the parent is a conditional access expression. This case is already covered before the parent kind switch
                 case SyntaxKind.ConditionalAccessExpression:
                     var parentConditionalAccessExpression = (ConditionalAccessExpressionSyntax)expression.Parent;
@@ -675,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (expression.ContainsInterleavedDirective(cancellationToken))
             {
@@ -708,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (memberAccess.Name == null || memberAccess.Expression == null)
             {
@@ -721,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            // if this node is annotated as being a specialtype, let's use this information.
+            // if this node is annotated as being a SpecialType, let's use this information.
             if (memberAccess.HasAnnotations(SpecialTypeAnnotation.Kind))
             {
                 replacementNode = SyntaxFactory.PredefinedType(
@@ -797,6 +800,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            // Try to eliminate cases without actually calling CanReplaceWithReducedName. For expressions of the form
+            // 'this.Name' or 'base.Name', no additional check here is required.
+            if (!memberAccess.Expression.IsKind(SyntaxKind.ThisExpression, SyntaxKind.BaseExpression))
+            {
+                var actualSymbol = semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken);
+                if (!TryGetReplacementCandidates(
+                    semanticModel,
+                    memberAccess,
+                    actualSymbol,
+                    out var speculativeSymbols,
+                    out var speculativeNamespacesAndTypes))
+                {
+                    return false;
+                }
+
+                if (!IsReplacementCandidate(actualSymbol, speculativeSymbols, speculativeNamespacesAndTypes))
+                {
+                    return false;
+                }
+            }
+
             replacementNode = memberAccess.Name
                 .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
                 .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
@@ -808,6 +832,97 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+        }
+
+        private static bool TryGetReplacementCandidates(
+            SemanticModel semanticModel,
+            MemberAccessExpressionSyntax memberAccess,
+            SymbolInfo actualSymbol,
+            out ImmutableArray<ISymbol> speculativeSymbols,
+            out ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
+        {
+            bool containsNamespaceOrTypeSymbol;
+            bool containsOtherSymbol;
+            if (!(actualSymbol.Symbol is null))
+            {
+                containsNamespaceOrTypeSymbol = actualSymbol.Symbol is INamespaceOrTypeSymbol;
+                containsOtherSymbol = !containsNamespaceOrTypeSymbol;
+            }
+            else if (!actualSymbol.CandidateSymbols.IsDefaultOrEmpty)
+            {
+                containsNamespaceOrTypeSymbol = actualSymbol.CandidateSymbols.Any(symbol => symbol is INamespaceOrTypeSymbol);
+                containsOtherSymbol = actualSymbol.CandidateSymbols.Any(symbol => !(symbol is INamespaceOrTypeSymbol));
+            }
+            else
+            {
+                speculativeSymbols = ImmutableArray<ISymbol>.Empty;
+                speculativeNamespacesAndTypes = ImmutableArray<ISymbol>.Empty;
+                return false;
+            }
+
+            speculativeSymbols = containsOtherSymbol
+                ? semanticModel.LookupSymbols(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
+                : ImmutableArray<ISymbol>.Empty;
+            speculativeNamespacesAndTypes = containsNamespaceOrTypeSymbol
+                ? semanticModel.LookupNamespacesAndTypes(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
+                : ImmutableArray<ISymbol>.Empty;
+            return true;
+        }
+
+        /// <summary>
+        /// Determines if <paramref name="speculativeSymbols"/> and <paramref name="speculativeNamespacesAndTypes"/>
+        /// together contain a superset of the symbols in <paramref name="actualSymbol"/>.
+        /// </summary>
+        private static bool IsReplacementCandidate(SymbolInfo actualSymbol, ImmutableArray<ISymbol> speculativeSymbols, ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
+        {
+            if (speculativeSymbols.IsEmpty && speculativeNamespacesAndTypes.IsEmpty)
+            {
+                return false;
+            }
+
+            if (!(actualSymbol.Symbol is null))
+            {
+                return speculativeSymbols.Contains(actualSymbol.Symbol, CandidateSymbolEqualityComparer.Instance)
+                    || speculativeNamespacesAndTypes.Contains(actualSymbol.Symbol, CandidateSymbolEqualityComparer.Instance);
+            }
+
+            foreach (var symbol in actualSymbol.CandidateSymbols)
+            {
+                if (!speculativeSymbols.Contains(symbol, CandidateSymbolEqualityComparer.Instance)
+                    && !speculativeNamespacesAndTypes.Contains(symbol, CandidateSymbolEqualityComparer.Instance))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Compares symbols by their original definition.
+        /// </summary>
+        private sealed class CandidateSymbolEqualityComparer : IEqualityComparer<ISymbol>
+        {
+            public static CandidateSymbolEqualityComparer Instance { get; } = new CandidateSymbolEqualityComparer();
+
+            private CandidateSymbolEqualityComparer()
+            {
+            }
+
+            public bool Equals(ISymbol x, ISymbol y)
+            {
+                if (x is null || y is null)
+                {
+                    return x == y;
+                }
+
+                return x.OriginalDefinition.Equals(y.OriginalDefinition);
+            }
+
+            public int GetHashCode(ISymbol obj)
+            {
+                return obj?.OriginalDefinition.GetHashCode() ?? 0;
+            }
         }
 
         private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(this MemberAccessExpressionSyntax memberAccess)
@@ -1141,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (name.IsVar)
             {
@@ -1224,7 +1339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     if (name.TryReplaceWithAlias(semanticModel, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), cancellationToken, out var aliasReplacement))
                     {
-                        // get the token text as it appears in source code to preserve e.g. unicode character escaping
+                        // get the token text as it appears in source code to preserve e.g. Unicode character escaping
                         var text = aliasReplacement.Name;
                         var syntaxRef = aliasReplacement.DeclaringSyntaxReferences.FirstOrDefault();
 
@@ -1384,7 +1499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         }
                     }
 
-                    // nullable rewrite: Nullable<int> -> int?
+                    // Nullable rewrite: Nullable<int> -> int?
                     // Don't rewrite in the case where Nullable<int> is part of some qualified name like Nullable<int>.Something
                     if (!name.IsVar && (symbol.Kind == SymbolKind.NamedType) && !name.IsLeftSideOfQualifiedName())
                     {
@@ -1554,8 +1669,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
         {
-            issueSpan = default(TextSpan);
-            replacementNode = default(TypeSyntax);
+            issueSpan = default;
+            replacementNode = default;
 
             // we can try to remove the Attribute suffix if this is the attribute name
             if (SyntaxFacts.IsAttributeName(name))
@@ -1575,10 +1690,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             return false;
                         }
 
-                        // if this attribute name in source contained unicode escaping, we will loose it now
+                        // if this attribute name in source contained Unicode escaping, we will loose it now
                         // because there is no easy way to determine the substring from identifier->ToString() 
                         // which would be needed to pass to SyntaxFactory.Identifier
-                        // The result is an unescaped unicode character in source.
+                        // The result is an unescaped Unicode character in source.
 
                         // once we remove the Attribute suffix, we can't use an escaped identifier
                         var newIdentifierToken = identifierToken.CopyAnnotationsTo(
@@ -1640,7 +1755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out TextSpan issueSpan)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             switch (expression.Kind())
             {
@@ -1701,7 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out TextSpan issueSpan)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (left != null && right != null)
             {
@@ -2070,7 +2185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
             {
@@ -2306,9 +2421,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         /// <summary>
-        /// Returns the predefined keyword kind for a given specialtype.
+        /// Returns the predefined keyword kind for a given <see cref="SpecialType"/>.
         /// </summary>
-        /// <param name="specialType">The specialtype of this type.</param>
+        /// <param name="specialType">The <see cref="SpecialType"/> of this type.</param>
         /// <returns>The keyword kind for a given special type, or SyntaxKind.None if the type name is not a predefined type.</returns>
         public static SyntaxKind GetPredefinedKeywordKind(SpecialType specialType)
         {

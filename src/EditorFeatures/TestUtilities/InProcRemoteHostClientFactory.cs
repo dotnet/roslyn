@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
     internal static class RemoteHostOptions
     {
         [ExportOption]
-        public static readonly Option<bool> RemoteHostTest = new Option<bool>(nameof(RemoteHostOptions), nameof(RemoteHostTest), defaultValue: false);
+        public static readonly Option<bool> RemoteHostTest = new Option<bool>(
+            nameof(RemoteHostOptions), nameof(RemoteHostTest), defaultValue: false);
     }
 
     [ExportWorkspaceService(typeof(IRemoteHostClientFactory)), Shared]

@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var bodyOpt = syntax.Body;
-                if (bodyOpt != null)
+                if (syntax.Body != null || syntax.ExpressionBody != null)
                 {
                     if (IsExtern && !IsAbstract)
                     {

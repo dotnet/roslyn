@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
@@ -28,8 +28,8 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Const {|Rename:V|} As Integer = 1 + 1
-        Console.WriteLine(V)
+        Const {|Rename:Value|} As Integer = 1 + 1
+        Console.WriteLine(Value)
     End Sub
 End Module",
 index:=2)
@@ -51,8 +51,8 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Const {|Rename:V|} As Integer = 1 + 1
-        Console.WriteLine(V)
+        Const {|Rename:Value|} As Integer = 1 + 1
+        Console.WriteLine(Value)
     End Sub
 End Module",
 index:=3)
@@ -826,9 +826,9 @@ End Class")
     End Sub
 End Class",
 "Class Foo
-    Private Const {|Rename:V|} As Integer = 42
+    Private Const {|Rename:X|} As Integer = 42
     Sub New()
-        MyClass.New(V)
+        MyClass.New(X)
     End Sub
     Sub New(x As Integer)
     End Sub
@@ -1158,8 +1158,8 @@ Module Program
         If True Then
 
             If True Then
-                Const {|Rename:V|} As Integer = 1
-                Console.WriteLine(V)
+                Const {|Rename:Value|} As Integer = 1
+                Console.WriteLine(Value)
             Else
                 Console.WriteLine(2)
             End If
@@ -1198,8 +1198,8 @@ Module Program
             If True Then
                 Console.WriteLine(1)
             Else
-                Const {|Rename:V|} As Integer = 2
-                Console.WriteLine(V)
+                Const {|Rename:Value|} As Integer = 2
+                Console.WriteLine(Value)
             End If
         Else
             Console.WriteLine(3)
@@ -1234,8 +1234,8 @@ Module Program
         If True Then
             If True Then Console.WriteLine(1) Else Console.WriteLine(2)
         Else
-            Const {|Rename:V|} As Integer = 3
-            Console.WriteLine(V)
+            Const {|Rename:Value|} As Integer = 3
+            Console.WriteLine(Value)
         End If
     End Sub
 End Module
@@ -1258,8 +1258,8 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer)
-                    Dim {|Rename:v|} As Integer = x + 1
-                    Console.WriteLine(v) ' Introduce local 
+                    Dim {|Rename:value|} As Integer = x + 1
+                    Console.WriteLine(value) ' Introduce local 
                 End Sub
     End Sub
 End Module")
@@ -1280,8 +1280,8 @@ Module Program
     Sub Main
         Dim a = Sub(x As Integer)
                     If True Then
-                        Dim {|Rename:v|} As Integer = x + 1
-                        Console.WriteLine(v)
+                        Dim {|Rename:value|} As Integer = x + 1
+                        Console.WriteLine(value)
                     Else
                         Console.WriteLine()
                     End If
@@ -1307,8 +1307,8 @@ Module Program
                     If True Then
                         Console.WriteLine()
                     Else
-                        Dim {|Rename:v|} As Integer = x + 1
-                        Console.WriteLine(v)
+                        Dim {|Rename:value|} As Integer = x + 1
+                        Console.WriteLine(value)
                     End If
                 End Sub
     End Sub
@@ -1329,8 +1329,8 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer)
-                    Dim {|Rename:v|} As Integer = x + 1
-                    If True Then Console.WriteLine(v) Else Console.WriteLine(v)
+                    Dim {|Rename:value|} As Integer = x + 1
+                    If True Then Console.WriteLine(value) Else Console.WriteLine(value)
                 End Sub
     End Sub
 End Module",
@@ -1351,10 +1351,10 @@ End Module",
 "Module Program
     Sub Main(args As String())
         Dim query = Sub(a)
-                        Dim {|Rename:v|} As Object = a Or a
+                        Dim {|Rename:arg1|} As Object = a Or a
                         a = New With {Key .Key = Function(ByVal arg As Integer) As Integer
                                                      Return arg
-                                                 End Function}.Key.Invoke(v)
+                                                 End Function}.Key.Invoke(arg1)
                     End Sub
     End Sub
 End Module")
@@ -1827,7 +1827,7 @@ Class C
         Const {|Rename:V|} As Integer = 5
         Console.WriteLine(V)
 #End ExternalSource
-    End Sub
+   End Sub
 End Class
 "
 
@@ -2093,8 +2093,8 @@ End Class",
 Class C
     Private Shared Sub Main(args As String())
         Dim hSet = New HashSet(Of String)()
-        Dim {|Rename:v|} As String = hSet.ToString()
-        hSet.Add(v)
+        Dim {|Rename:item|} As String = hSet.ToString()
+        hSet.Add(item)
     End Sub
 End Class")
         End Function
@@ -2175,8 +2175,8 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main()
-        Dim {|Rename:enumerable1|} As IEnumerable(Of Char) = From x In """"
-        [Take](enumerable1)
+        Dim {|Rename:x1|} As IEnumerable(Of Char) = From x In """"
+        [Take](x1)
     End Sub
     Sub Take(x)
     End Sub
@@ -2621,8 +2621,8 @@ Imports System
 Namespace N
     Class C
         Public Sub M()
-            Dim {|Rename:v|} As FormattableString = $""""
-            Dim f = FormattableString.Invariant(v)
+            Dim {|Rename:formattable|} As FormattableString = $""""
+            Dim f = FormattableString.Invariant(formattable)
         End Sub
     End Class
 End Namespace"
@@ -2743,6 +2743,205 @@ end class",
         end while
     end sub
 end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TupleWithInferredName_LeaveExplicitName() As Task
+            Dim code = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a, x:=[|C.y|])
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim {|Rename:y1|} As Integer = C.y
+        Dim t = (a, x:=y1)
+    End Sub
+End Class
+"
+            Await TestAsync(code, expected, ignoreTrivia:=False, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TupleWithInferredName_InferredNameBecomesExplicit() As Task
+            Dim code = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a, [|C.y|])
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim {|Rename:y1|} As Integer = C.y
+        Dim t = (a, y:=y1)
+    End Sub
+End Class
+"
+            Await TestAsync(code, expected, ignoreTrivia:=False, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TupleWithInferredName_AllOccurrences() As Task
+            Dim code = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a, [|C.y|])
+        Dim t2 = (C.y, a)
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim {|Rename:y1|} As Integer = C.y
+        Dim t = (a, y:=y1)
+        Dim t2 = (y:=y1, a)
+    End Sub
+End Class
+"
+            Await TestAsync(code, expected, index:=1, ignoreTrivia:=False,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TupleWithInferredName_NoDuplicateNames() As Task
+            Dim code = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim t = (C.y, [|C.y|])
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim {|Rename:y1|} As Integer = C.y
+        Dim t = (y1, y1)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, index:=1, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TupleWithInferredName_NoReservedNames() As Task
+            Dim code = "
+Class C
+    Shared Dim rest As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a, [|C.rest|])
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Shared Dim rest As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim {|Rename:rest1|} As Integer = C.rest
+        Dim t = (a, rest1)
+    End Sub
+End Class
+"
+            Await TestAsync(code, expected, ignoreTrivia:=False, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function AnonymousTypeWithInferredName_LeaveExplicitName() As Task
+            Dim code = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = New With {a, [|C.y|]}
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim {|Rename:y1|} As Integer = C.y
+        Dim t = New With {a, .y = y1}
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestPickNameBasedOnArgument1() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    public sub new(a as string, b as string)
+        dim c = new TextSpan([|integer.Parse(a)|], integer.Parse(b))
+    end sub
+end class
+
+structure TextSpan
+    public sub new(start as integer, length as integer)
+    end sub
+end structure",
+"class C
+    public sub new(a as string, b as string)
+        Dim {|Rename:start|} As Integer = integer.Parse(a)
+        dim c = new TextSpan(start, integer.Parse(b))
+    end sub
+end class
+
+structure TextSpan
+    public sub new(start as integer, length as integer)
+    end sub
+end structure")
+        End Function
+
+        <WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestPickNameBasedOnArgument2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    public sub new(a as string, b as string)
+        dim c = new TextSpan(integer.Parse(a), [|integer.Parse(b)|])
+    end sub
+end class
+
+structure TextSpan
+    public sub new(start as integer, length as integer)
+    end sub
+end structure",
+"class C
+    public sub new(a as string, b as string)
+        Dim {|Rename:length|} As Integer = integer.Parse(b)
+        dim c = new TextSpan(integer.Parse(a), length)
+    end sub
+end class
+
+structure TextSpan
+    public sub new(start as integer, length as integer)
+    end sub
+end structure")
         End Function
     End Class
 End Namespace

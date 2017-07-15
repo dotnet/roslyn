@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             return typeNames;
         }
 
-        public int Execute(string moduleName, int expectedOutputLength, out string output)
+        public int Execute(string moduleName, string[] mainArgs, int? expectedOutputLength, out string output)
         {
             ImmutableArray<byte> bytes = GetModuleBytesByName(moduleName);
             Assembly assembly = DesktopRuntimeUtil.LoadAsAssembly(moduleName, bytes);
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
 
             object result = null;
             string stdOut, stdErr;
-            ConsoleOutput.Capture(() =>
+            DesktopRuntimeEnvironment.Capture(() =>
             {
                 var count = entryPoint.GetParameters().Length;
                 object[] args;
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 }
                 else if (count == 1)
                 {
-                    args = new object[] { new string[0] };
+                    args = new object[] { mainArgs ?? new string[0] };
                 }
                 else
                 {
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 }
 
                 result = entryPoint.Invoke(null, args);
-            }, expectedOutputLength, out stdOut, out stdErr);
+            }, expectedOutputLength ?? 0, out stdOut, out stdErr);
 
             output = stdOut + stdErr;
             return result is int ? (int)result : 0;

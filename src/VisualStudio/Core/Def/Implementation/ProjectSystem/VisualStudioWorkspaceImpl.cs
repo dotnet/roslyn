@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -33,6 +33,7 @@ using VSLangProj;
 using VSLangProj140;
 using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.CodeAnalysis.Esent;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -126,6 +127,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Microsoft.CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
+            if (_foregroundObject.IsValueCreated && !_foregroundObject.Value.IsForeground())
+            {
+                throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
+            }
+
             var projectChanges = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().ToList();
             var projectsToLoad = new HashSet<Guid>();
             foreach (var pc in projectChanges)
@@ -181,7 +187,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         internal override bool CanRenameFilesDuringCodeActions(CodeAnalysis.Project project)
+            => !IsCPSProject(project);
+
+        internal bool IsCPSProject(CodeAnalysis.Project project)
         {
+            _foregroundObject.Value.AssertIsForeground();
+
             if (this.TryGetHierarchy(project.Id, out var hierarchy))
             {
                 // Currently renaming files in CPS projects (i.e. .Net Core) doesn't work proprey.
@@ -189,10 +200,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // (despite the DTE interfaces being synchronous).  So Roslyn calls the methods
                 // expecting the changes to happen immediately.  Because they are deferred in CPS
                 // this causes problems. 
-                return !hierarchy.IsCapabilityMatch("CPS");
+                return hierarchy.IsCapabilityMatch("CPS");
             }
 
-            return true;
+            return false;
+        }
+
+        protected override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
+        {
+            var parseOptionsService = project.LanguageServices.GetService<IParseOptionsService>();
+            if (parseOptionsService == null)
+            {
+                return false;
+            }
+
+            // Currently, only changes to the LanguageVersion of parse options are supported.
+            var newLanguageVersion = parseOptionsService.GetLanguageVersion(newOptions);
+            var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
+
+            return newOptions == updated;
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
@@ -211,6 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.AddAdditionalDocument:
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.ChangeAdditionalDocument:
+                case ApplyChangesKind.ChangeParseOptions:
                     return true;
 
                 default:
@@ -269,6 +296,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string GetAnalyzerPath(AnalyzerReference analyzerReference)
         {
             return analyzerReference.FullPath;
+        }
+
+        protected override void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<IParseOptionsService>();
+            Contract.ThrowIfNull(parseOptionsService, nameof(parseOptionsService));
+
+            string newVersion = parseOptionsService.GetLanguageVersion(options);
+
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
+            foreach (string configurationName in (object[])project.ConfigurationManager.ConfigurationRowNames)
+            {
+                switch (hostProject.Language)
+                {
+                    case LanguageNames.CSharp:
+                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)project.ConfigurationManager
+                            .ConfigurationRow(configurationName).Item(1).Object;
+
+                        if (newVersion != csharpProperties.LanguageVersion)
+                        {
+                            csharpProperties.LanguageVersion = newVersion;
+                        }
+                        break;
+
+                    case LanguageNames.VisualBasic:
+                        throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
+                }
+            }
         }
 
         protected override void ApplyAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
@@ -1251,7 +1316,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private void RegisterPrimarySolutionForPersistentStorage(
                 SolutionId solutionId)
             {
-                var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
+                var service = _workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
                 if (service == null)
                 {
                     return;
@@ -1263,7 +1328,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private void UnregisterPrimarySolutionForPersistentStorage(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
+                var service = _workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
                 if (service == null)
                 {
                     return;

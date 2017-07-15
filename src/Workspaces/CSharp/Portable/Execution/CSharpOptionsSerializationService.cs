@@ -42,6 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
             {
                 WriteOptionTo(options, option, writer, cancellationToken);
             }
+
+            foreach (var option in CSharpCodeStyleOptions.GetExpressionBodyOptions())
+            {
+                WriteOptionTo(options, option, writer, cancellationToken);
+            }
+
+            WriteOptionTo(options, CSharpCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken);
         }
 
         public override OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -54,6 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
             {
                 options = ReadOptionFrom(options, option, reader, cancellationToken);
             }
+
+            foreach (var option in CSharpCodeStyleOptions.GetExpressionBodyOptions())
+            {
+                options = ReadOptionFrom(options, option, reader, cancellationToken);
+            }
+
+            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken);
 
             return options;
         }
@@ -84,12 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
             var languageVersion = (LanguageVersion)reader.ReadInt32();
             var preprocessorSymbolNames = reader.ReadArray<string>();
 
-            var options = new CSharpParseOptions(languageVersion, documentationMode, kind);
-
-            // use WithPreprocessorSymbols instead of constructor to bypass preprocessor validation.
-            // https://github.com/dotnet/roslyn/issues/15797
-            return options.WithPreprocessorSymbols(preprocessorSymbolNames)
-                          .WithFeatures(features);
+            var options = new CSharpParseOptions(languageVersion, documentationMode, kind, preprocessorSymbolNames);
+            return options.WithFeatures(features);
         }
     }
 }

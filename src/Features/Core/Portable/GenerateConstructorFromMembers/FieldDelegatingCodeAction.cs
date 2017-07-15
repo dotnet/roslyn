@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,15 +20,18 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             private readonly GenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
+            private readonly bool _addNullChecks;
 
             public FieldDelegatingCodeAction(
                 GenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
-                State state)
+                State state,
+                bool addNullChecks)
             {
                 _service = service;
                 _document = document;
                 _state = state;
+                _addNullChecks = addNullChecks;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -47,12 +51,19 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var factory = _document.GetLanguageService<SyntaxGenerator>();
 
                 var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var preferThrowExpression = options.GetOption(CodeStyleOptions.PreferThrowExpression).Value;
+
+                var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var members = factory.CreateFieldDelegatingConstructor(
+                    compilation,
                     _state.ContainingType.Name,
                     _state.ContainingType,
                     _state.Parameters,
                     parameterToExistingFieldMap,
                     parameterToNewFieldMap: null,
+                    addNullChecks: _addNullChecks,
+                    preferThrowExpression: preferThrowExpression,
                     cancellationToken: cancellationToken);
 
                 // If the user has selected a set of members (i.e. TextSpan is not empty), then we will

@@ -4,6 +4,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal interface ISupportsNavigation
     {
-        bool TryNavigateTo();
+        bool TryNavigateTo(bool isPreview);
     }
 }

@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -514,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundInitValue = New BoundBadExpression(boundInitValue.Syntax,
                                                         LookupResultKind.Empty,
                                                         ImmutableArray(Of Symbol).Empty,
-                                                        ImmutableArray.Create(Of BoundNode)(boundInitValue),
+                                                        ImmutableArray.Create(boundInitValue),
                                                         fieldType,
                                                         hasErrors:=True)
                 ignoredDiagnostics.Free()

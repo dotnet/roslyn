@@ -191,7 +191,7 @@ class Program {
         int?[ , ] ar1 = { null  };
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
 // (5,27): error CS0846: A nested array initializer is expected
 //         int?[ , ] ar1 = { null  };
 Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
