@@ -93,13 +93,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-
             if (!(localDeclaration.Parent is BlockSyntax block))
             {
                 return;
             }
 
-            var local = semanticModel.GetDeclaredSymbol(anonymousFunction.Parent.Parent, cancellationToken);
+            var local = semanticModel.GetDeclaredSymbol(localDeclaration.Declaration.Variables[0], cancellationToken);
             if (local == null)
             {
                 return;

@@ -76,6 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     ReplaceSimpleLocalDeclaration(semanticModel, editor, localDeclaration, anonymousFunction, cancellationToken);
                     return;
 
+                case CSharpUseLocalFunctionDiagnosticAnalyzer.CastedLocalDeclarationForm:
+                    ReplaceCastedLocalDeclaration(semanticModel, editor, localDeclaration, anonymousFunction, cancellationToken);
+                    return;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(form);
             }
@@ -88,6 +92,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             CancellationToken cancellationToken)
         {
             // Type t = <anonymous function>
+            var localFunctionStatement = CreateLocalFunctionStatement(
+                semanticModel, localDeclaration, anonymousFunction, cancellationToken);
+
+            localFunctionStatement = localFunctionStatement.WithTriviaFrom(localDeclaration)
+                                                           .WithAdditionalAnnotations(Formatter.Annotation);
+            editor.ReplaceNode(localDeclaration, localFunctionStatement);
+        }
+
+        private void ReplaceCastedLocalDeclaration(
+            SemanticModel semanticModel, SyntaxEditor editor,
+            LocalDeclarationStatementSyntax localDeclaration,
+            LambdaExpressionSyntax anonymousFunction,
+            CancellationToken cancellationToken)
+        {
+            // var t = (Type)(<anonymous function>);
             var localFunctionStatement = CreateLocalFunctionStatement(
                 semanticModel, localDeclaration, anonymousFunction, cancellationToken);
 
