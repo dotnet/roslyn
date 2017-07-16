@@ -4771,6 +4771,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Elements for tuple expression.
         /// </summary>
         public abstract ImmutableArray<IOperation> Elements { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var element in Elements)
+                {
+                    yield return element;
+                }
+            }
+        }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitTupleExpression(this);
