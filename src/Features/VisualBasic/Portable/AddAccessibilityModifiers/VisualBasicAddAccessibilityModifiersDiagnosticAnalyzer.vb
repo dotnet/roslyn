@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -11,20 +12,69 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
     Friend Class VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer
         Inherits AbstractAddAccessibilityModifiersDiagnosticAnalyzer(Of CompilationUnitSyntax)
 
-        'Protected Overrides Function IsFirstFieldDeclarator(node As SyntaxNode) As Boolean
-        '    Dim modifiedIdentifier = DirectCast(node, ModifiedIdentifierSyntax)
-        '    Dim declarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
-        '    Dim fieldDeclaration = DirectCast(declarator.Parent, FieldDeclarationSyntax)
+        Protected Overrides Sub ProcessCompilationUnit(
+                context As SyntaxTreeAnalysisContext, generator As SyntaxGenerator,
+                [option] As CodeStyleOption(Of AccessibilityModifiersRequired), compilationUnit As CompilationUnitSyntax)
 
-        '    Return fieldDeclaration.Declarators(0) Is declarator AndAlso
-        '           declarator.Names(0) Is modifiedIdentifier
-        'End Function
+            ProcessMembers(context, generator, [option], compilationUnit.Members)
+        End Sub
 
-        'Protected Overrides Function CanHaveModifiersWorker(symbol As ISymbol) As Boolean
-        '    Return True
-        'End Function
+        Private Sub ProcessMembers(context As SyntaxTreeAnalysisContext, generator As SyntaxGenerator,
+                                   [option] As CodeStyleOption(Of AccessibilityModifiersRequired), members As SyntaxList(Of StatementSyntax))
+            For Each member In members
+                ProcessMember(context, generator, [option], member)
+            Next
+        End Sub
 
-        Protected Overrides Sub ProcessCompilationUnit(context As SyntaxTreeAnalysisContext, generator As SyntaxGenerator, [option] As CodeStyleOption(Of AccessibilityModifiersRequired), compilationUnitSyntax As CompilationUnitSyntax)
+        Private Sub ProcessMember(context As SyntaxTreeAnalysisContext, generator As SyntaxGenerator,
+                                  [option] As CodeStyleOption(Of AccessibilityModifiersRequired), member As StatementSyntax)
+
+
+            If member.Kind() = SyntaxKind.NamespaceBlock Then
+                Dim namespaceBlock = DirectCast(member, NamespaceBlockSyntax)
+                ProcessMembers(context, generator, [option], namespaceBlock.Members)
+            End If
+
+            ' If we have a class or struct or module, recurse inwards.
+            If member.IsKind(SyntaxKind.ClassBlock) OrElse
+               member.IsKind(SyntaxKind.StructureBlock) OrElse
+               member.IsKind(SyntaxKind.ModuleBlock) Then
+
+                Dim typeBlock = DirectCast(member, TypeBlockSyntax)
+                ProcessMembers(context, generator, [option], typeBlock.Members)
+            End If
+
+            Dim declarationStatement = TryCast(member, DeclarationStatementSyntax)
+            If declarationStatement IsNot Nothing Then
+                Return
+            End If
+
+            ' Have to have a name to report the issue on.
+            Dim name = declarationStatement.GetNameToken()
+            If name.Kind() = SyntaxKind.None Then
+                Return
+            End If
+
+            ' If they already have accessibility, no need to report anything.
+            Dim Accessibility = generator.GetAccessibility(member)
+            If Accessibility <> Accessibility.NotApplicable Then
+                Return
+            End If
+
+            ' Certain members never have accessibility. Don't bother reporting on them.
+
+            If member.IsKind(SyntaxKind.ConstructorBlock) AndAlso
+               member.GetModifiers().Any(SyntaxKind.SharedKeyword) Then
+
+                Return
+            End If
+
+            ' Missing accessibility.  Report issue to user.
+            Dim additionalLocations = ImmutableArray.Create(member.GetLocation())
+            context.ReportDiagnostic(Diagnostic.Create(
+                CreateDescriptorWithSeverity([option].Notification.Value),
+                name.GetLocation(),
+                additionalLocations:=additionalLocations))
         End Sub
     End Class
 End Namespace

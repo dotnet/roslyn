@@ -22,7 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             SyntaxTreeAnalysisContext context, SyntaxGenerator generator, 
             CodeStyleOption<AccessibilityModifiersRequired> option, CompilationUnitSyntax compilationUnit)
         {
-            foreach (var memberDeclaration in compilationUnit.Members)
+            ProcessMembers(context, generator, option, compilationUnit.Members);
+        }
+
+        private void ProcessMembers(
+            SyntaxTreeAnalysisContext context, SyntaxGenerator generator, 
+            CodeStyleOption<AccessibilityModifiersRequired> option, 
+            SyntaxList<MemberDeclarationSyntax> members)
+        {
+            foreach (var memberDeclaration in members)
             {
                 ProcessMemberDeclaration(context, generator, option, memberDeclaration);
             }
@@ -34,17 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
         {
             if (member.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax namespaceDeclaration))
             {
-                foreach (var childMember in namespaceDeclaration.Members)
-                {
-                    ProcessMemberDeclaration(context, generator, option, childMember);
-                }
+                ProcessMembers(context, generator, option, namespaceDeclaration.Members);
             }
 
             // If we have a class or struct, recurse inwards.
             if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration) ||
                 member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration))
             {
-                ProcessTypeDeclaration(context, generator, option, typeDeclaration);
+                ProcessMembers(context, generator, option, typeDeclaration.Members);
             }
 
 #if false
@@ -115,14 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                 CreateDescriptorWithSeverity(option.Notification.Value),
                 name.GetLocation(),
                 additionalLocations: additionalLocations));
-        }
-
-        private void ProcessTypeDeclaration(SyntaxTreeAnalysisContext context, SyntaxGenerator generator, CodeStyleOption<AccessibilityModifiersRequired> option, TypeDeclarationSyntax typeDeclaration)
-        {
-            foreach (var childMember in typeDeclaration.Members)
-            {
-                ProcessMemberDeclaration(context, generator, option, childMember);
-            }
         }
     }
 }
