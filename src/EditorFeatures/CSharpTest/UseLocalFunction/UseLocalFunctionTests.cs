@@ -1067,5 +1067,82 @@ class C
     }
 }", ignoreTrivia: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestFixAll3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> fibonacci = null;
+        fibonacci = v =>
+        {
+            Func<bool, bool> {|FixAllInDocument:isTrue|} = null;
+            isTrue = b => b;
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            bool isTrue(bool b) => b;
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}");
+        }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        // Leading trivia
+        Func<int, int> [||]fibonacci = v =>
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }; // Trailing trivia
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        // Leading trivia
+        int fibonacci(int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        } // Trailing trivia
+    }
+}", ignoreTrivia: false);
+        }
     }
 }
