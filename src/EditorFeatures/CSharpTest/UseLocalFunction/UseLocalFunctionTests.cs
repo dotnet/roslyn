@@ -614,6 +614,54 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_WrongName()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fib = null;
+        fibonacci = v =>
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_InitializedToOtherValue()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fibonacci = GetCallback();
+        fibonacci = v =>
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SimpleLambda_Block()
         {
             await TestInRegularAndScriptAsync(
@@ -948,6 +996,74 @@ class C
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
+    }
+}", ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestFixAll1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> {|FixAllInDocument:fibonacci|} = v =>
+        {
+            Func<bool, bool> isTrue = b => b;
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            bool isTrue(bool b) => b;
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}", ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestFixAll2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> fibonacci = v =>
+        {
+            Func<bool, bool> {|FixAllInDocument:isTrue|} = b => b;
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            bool isTrue(bool b) => b;
+
+            return fibonacci(v - 1, v - 2);
+        }
     }
 }", ignoreTrivia: false);
         }
