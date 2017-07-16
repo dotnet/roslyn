@@ -1244,7 +1244,7 @@ This version used in: {2}</value>
   <data name="default_expression_can_be_simplified" xml:space="preserve">
     <value>'default' expression can be simplified</value>
   </data>
-    <data name="Use_inferred_member_name" xml:space="preserve">
+  <data name="Use_inferred_member_name" xml:space="preserve">
     <value>Use inferred member name</value>
   </data>
   <data name="Member_name_can_be_simplified" xml:space="preserve">
@@ -1270,5 +1270,8 @@ This version used in: {2}</value>
   </data>
   <data name="in_0_project_1" xml:space="preserve">
     <value>in {0} (project {1})</value>
+  </data>
+  <data name="Use_local_function" xml:space="preserve">
+    <value>Use local function</value>
   </data>
 </root>

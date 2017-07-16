@@ -3445,6 +3445,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use local function.
+        /// </summary>
+        internal static string Use_local_function {
+            get {
+                return ResourceManager.GetString("Use_local_function", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use local version &apos;{0}&apos;.
         /// </summary>
         internal static string Use_local_version_0 {
