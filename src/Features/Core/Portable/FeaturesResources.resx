@@ -1277,4 +1277,10 @@ This version used in: {2}</value>
   <data name="Add_accessibility_modifiers" xml:space="preserve">
     <value>Add accessibility modifiers</value>
   </data>
+  <data name="Warning_colon_Declaration_changes_scope_and_may_change_meaning" xml:space="preserve">
+    <value>Warning: Declaration changes scope and may change meaning.</value>
+  </data>
+  <data name="Move_declaration_near_reference" xml:space="preserve">
+    <value>Move declaration near reference</value>
+  </data>
 </root>

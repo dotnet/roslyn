@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseInferredMemberNameDiagnosticId = "IDE0037";
 
+        public const string InlineIsTypeWithoutNameCheckId = "IDE0038";
+
         public const string AddAccessibilityModifiersDiagnosticId = "IDE0040";
 
         // Analyzer error Ids

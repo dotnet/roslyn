@@ -124,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                     return true;
                 }
             }
+            else if (typeName.Parent is DeclarationExpressionSyntax declarationExpressionSyntax)
+            {
+                issueSpan = candidateIssueSpan;
+                return true;
+            }
 
             issueSpan = default(TextSpan);
             return false;
@@ -181,6 +186,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             // final check to compare type information on both sides of assignment.
             var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
             return declaredType.Equals(initializerType);
+        }
+
+        protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (declaration.Type.IsVar)
+            {
+                // If the type is already 'var', this analyze has no work to do
+                return false;
+            }
+
+            // The base analyzer may impose further limitations
+            return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
         }
     }
 }

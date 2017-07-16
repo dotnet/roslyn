@@ -3982,6 +3982,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 VariableDeclaration(type, name, initializer));
         }
 
+        internal override SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer)
+            => ((VariableDeclaratorSyntax)variableDeclarator).WithInitializer((EqualsValueClauseSyntax)initializer);
+
+        internal override SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value)
+            => SyntaxFactory.EqualsValueClause(operatorToken, (ExpressionSyntax)value);
+
         private static VariableDeclarationSyntax VariableDeclaration(SyntaxNode type, string name, SyntaxNode expression = null)
         {
             return SyntaxFactory.VariableDeclaration(
