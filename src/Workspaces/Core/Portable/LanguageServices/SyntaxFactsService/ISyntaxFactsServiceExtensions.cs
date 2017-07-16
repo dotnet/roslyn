@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal static class ISyntaxFactsServiceExtensions
     {
@@ -22,5 +24,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsRegularOrDocumentationComment(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
             => syntaxFacts.IsRegularComment(trivia) || syntaxFacts.IsDocumentationComment(trivia);
+
+        public static ImmutableArray<SyntaxTrivia> GetTriviaAfterLeadingBlankLines(
+            this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            var leadingBlankLines = syntaxFacts.GetLeadingBlankLines(node);
+            return node.GetLeadingTrivia().Skip(leadingBlankLines.Length).ToImmutableArray();
+        }
+
+        public static void GetPartsOfAssignmentStatement( 
+            this ISyntaxFactsService syntaxFacts, SyntaxNode statement, 
+            out SyntaxNode left, out SyntaxNode right)
+        {
+            syntaxFacts.GetPartsOfAssignmentStatement(statement, out left, out _, out right);
+        }
     }
 }
