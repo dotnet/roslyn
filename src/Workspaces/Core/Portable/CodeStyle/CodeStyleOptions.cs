@@ -172,16 +172,4 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return s_requireAccessibilityModifiersDefault;
         }
     }
-
-    internal enum AccessibilityModifiersRequired
-    {
-        Never = 0,
-        Always = 1,
-
-        // Future proofing for when C# adds default interface methods.  At that point
-        // accessibility modifiers will be allowed in interfaces, and some people may
-        // want to require them, while some may want to keep the traditional C# style
-        // that public interface members do not need accessibility modifiers.
-        ForNonInterfaceMembers = 2,
-    }
 }
