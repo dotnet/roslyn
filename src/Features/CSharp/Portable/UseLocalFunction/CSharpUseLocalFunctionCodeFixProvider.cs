@@ -59,16 +59,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
 
             var root = editor.OriginalRoot;
-
             var currentRoot = root.TrackNodes(nodesToTrack);
 
             // Process declarations in reverse order so that we see the effects of nested 
             // declarations befor processing the outer decls.
             foreach (var (originalLocalDeclaration, originalLambda) in localDeclarationToLambda.OrderByDescending(kvp => kvp.Value.SpanStart))
             {
+                var delegateType = (INamedTypeSymbol)semanticModel.GetTypeInfo(originalLambda, cancellationToken).ConvertedType;
+                var parameterList = GenerateParameterList(semanticModel, originalLambda, cancellationToken);
+
+                var currentLocalDeclaration = currentRoot.GetCurrentNode(originalLocalDeclaration);
+                var currentLambda = currentRoot.GetCurrentNode(originalLambda);
+
                 currentRoot = ReplaceAnonymousWithLocalFunction(
-                    document.Project.Solution.Workspace, semanticModel, 
-                    currentRoot, originalLocalDeclaration, originalLambda,
+                    document.Project.Solution.Workspace, currentRoot,
+                    currentLocalDeclaration, currentLambda,
+                    delegateType, parameterList,
                     cancellationToken);
             }
 
@@ -76,68 +82,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private SyntaxNode ReplaceAnonymousWithLocalFunction(
-            Workspace workspace, SemanticModel semanticModel, SyntaxNode currentRoot,
-            LocalDeclarationStatementSyntax originalLocalDeclaration, LambdaExpressionSyntax originalLambda,
+            Workspace workspace, SyntaxNode currentRoot,
+            LocalDeclarationStatementSyntax localDeclaration, LambdaExpressionSyntax lambda,
+            INamedTypeSymbol delegateType, ParameterListSyntax parameterList,
             CancellationToken cancellationToken)
         {
-            var currentLocalDeclaration = currentRoot.GetCurrentNode(originalLocalDeclaration);
-            var currentLambda = currentRoot.GetCurrentNode(originalLambda);
-
             var newLocalFunctionStatement = CreateLocalFunctionStatement(
-                semanticModel, originalLambda, currentLocalDeclaration, currentLambda, cancellationToken);
+                localDeclaration, lambda, delegateType, parameterList, cancellationToken);
 
-            newLocalFunctionStatement = newLocalFunctionStatement.WithTriviaFrom(currentLocalDeclaration)
+            newLocalFunctionStatement = newLocalFunctionStatement.WithTriviaFrom(localDeclaration)
                                                                  .WithAdditionalAnnotations(Formatter.Annotation);
 
             var editor = new SyntaxEditor(currentRoot, workspace);
-            editor.ReplaceNode(currentLocalDeclaration, newLocalFunctionStatement);
+            editor.ReplaceNode(localDeclaration, newLocalFunctionStatement);
 
-            var currentLambdaStatement = currentLambda.GetAncestor<StatementSyntax>();
-
-            if (currentLambdaStatement != currentLocalDeclaration)
+            var lambdaStatement = lambda.GetAncestor<StatementSyntax>();
+            if (lambdaStatement != localDeclaration)
             {
                 // This is the split decl+init form.  Remove the second statement as we're
                 // merging into the first one.
-                editor.RemoveNode(currentLambdaStatement);
+                editor.RemoveNode(lambdaStatement);
             }
 
             return editor.GetChangedRoot();
         }
 
         private LocalFunctionStatementSyntax CreateLocalFunctionStatement(
-            SemanticModel semanticModel,
-            LambdaExpressionSyntax originalLambda,
-            LocalDeclarationStatementSyntax currentLocalDeclaration,
-            LambdaExpressionSyntax currentLambda,
+            LocalDeclarationStatementSyntax localDeclaration,
+            LambdaExpressionSyntax lambda,
+            INamedTypeSymbol delegateType,
+            ParameterListSyntax parameterList,
             CancellationToken cancellationToken)
         {
-            var modifiers = currentLambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword)
-                ? new SyntaxTokenList(currentLambda.AsyncKeyword)
+            var modifiers = lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword)
+                ? new SyntaxTokenList(lambda.AsyncKeyword)
                 : default;
 
-            var delegateType = (INamedTypeSymbol)semanticModel.GetTypeInfo(originalLambda, cancellationToken).ConvertedType;
             var invokeMethod = delegateType.DelegateInvokeMethod;
 
             var returnType = invokeMethod.ReturnsVoid
                 ? s_voidType
                 : invokeMethod.ReturnType.GenerateTypeSyntax();
 
-            var identifier = currentLocalDeclaration.Declaration.Variables[0].Identifier;
+            var identifier = localDeclaration.Declaration.Variables[0].Identifier;
             var typeParameterList = default(TypeParameterListSyntax);
 
-            var parameterList = GenerateParameterList(semanticModel, originalLambda, cancellationToken);
             var constraintClauses = default(SyntaxList<TypeParameterConstraintClauseSyntax>);
 
-            var body = currentLambda.Body.IsKind(SyntaxKind.Block)
-                ? (BlockSyntax)currentLambda.Body
+            var body = lambda.Body.IsKind(SyntaxKind.Block)
+                ? (BlockSyntax)lambda.Body
                 : null;
 
-            var expressionBody = currentLambda.Body is ExpressionSyntax expression
-                ? SyntaxFactory.ArrowExpressionClause(currentLambda.ArrowToken, expression)
+            var expressionBody = lambda.Body is ExpressionSyntax expression
+                ? SyntaxFactory.ArrowExpressionClause(lambda.ArrowToken, expression)
                 : null;
 
-            var semicolonToken = currentLambda.Body is ExpressionSyntax
-                ? currentLocalDeclaration.SemicolonToken
+            var semicolonToken = lambda.Body is ExpressionSyntax
+                ? localDeclaration.SemicolonToken
                 : default;
 
             return SyntaxFactory.LocalFunctionStatement(
