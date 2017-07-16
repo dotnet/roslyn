@@ -1,42 +1,128 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer : AbstractAddAccessibilityModifiersDiagnosticAnalyzer
+    internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer 
+        : AbstractAddAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
     {
         public CSharpAddAccessibilityModifiersDiagnosticAnalyzer()
         {
         }
 
-        protected override bool IsFirstFieldDeclarator(SyntaxNode node)
+        protected override void ProcessCompilationUnit(
+            SyntaxTreeAnalysisContext context, SyntaxGenerator generator, 
+            CodeStyleOption<AccessibilityModifiersRequired> option, CompilationUnitSyntax compilationUnit)
         {
-            var declarator = (VariableDeclaratorSyntax)node;
-            var declaration = (VariableDeclarationSyntax)declarator.Parent;
-
-#if DEBUG
-            var field = (FieldDeclarationSyntax)declaration.Parent;
-#endif
-
-            return declaration.Variables[0] == declarator;
+            foreach (var memberDeclaration in compilationUnit.Members)
+            {
+                ProcessMemberDeclaration(context, generator, option, memberDeclaration);
+            }
         }
 
-        protected override bool CanHaveModifiersWorker(ISymbol symbol)
+        private void ProcessMemberDeclaration(
+            SyntaxTreeAnalysisContext context, SyntaxGenerator generator,
+            CodeStyleOption<AccessibilityModifiersRequired> option, MemberDeclarationSyntax member)
         {
-            if (symbol is IMethodSymbol method)
+            if (member.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax namespaceDeclaration))
             {
-                if (method.MethodKind == MethodKind.Destructor ||
-                    method.MethodKind == MethodKind.ExplicitInterfaceImplementation)
+                foreach (var childMember in namespaceDeclaration.Members)
                 {
-                    return false;
+                    ProcessMemberDeclaration(context, generator, option, childMember);
                 }
             }
 
-            return true;
+            // If we have a class or struct, recurse inwards.
+            if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration) ||
+                member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration))
+            {
+                ProcessTypeDeclaration(context, generator, option, typeDeclaration);
+            }
+
+#if false
+            // Add this once we have the language version for C# that supports accessibility
+            // modifiers on interface methods.
+            if (option.Value == AccessibilityModifiersRequired.Always &&
+                member.IsKind(SyntaxKind.InterfaceDeclaration, out typeDeclaration))
+            {
+                // Only recurse into an interface if the user wants accessibility modifiers on 
+                ProcessTypeDeclaration(context, generator, option, typeDeclaration);
+            }
+#endif
+
+            // Have to have a name to report the issue on.
+            var name = member.GetNameToken();
+            if (name.Kind() == SyntaxKind.None)
+            {
+                return;
+            }
+
+            // If they already have accessibility, no need to report anything.
+            var accessibility = generator.GetAccessibility(member);
+            if (accessibility != Accessibility.NotApplicable)
+            {
+                return;
+            }
+
+            // Certain members never have accessibility. Don't bother reporting on them.
+
+            if (member.IsKind(SyntaxKind.DestructorDeclaration))
+            {
+                return;
+            }
+
+            if (member.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax constructor) &&
+                constructor.Modifiers.Any(SyntaxKind.StaticKeyword))
+            {
+                return;
+            }
+
+            if (member.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax method) && 
+                method.ExplicitInterfaceSpecifier != null)
+            {
+                return;
+            }
+
+            if (member.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax property) &&
+                property.ExplicitInterfaceSpecifier != null)
+            {
+                return;
+            }
+
+            if (member.IsKind(SyntaxKind.EventDeclaration, out EventDeclarationSyntax ev) &&
+                ev.ExplicitInterfaceSpecifier != null)
+            {
+                return;
+            }
+
+            if (member.IsKind(SyntaxKind.IndexerDeclaration, out IndexerDeclarationSyntax indexer) &&
+                indexer.ExplicitInterfaceSpecifier != null)
+            {
+                return;
+            }
+
+            // Missing accessibility.  Report issue to user.
+            var additionalLocations = ImmutableArray.Create(member.GetLocation());
+            context.ReportDiagnostic(Diagnostic.Create(
+                CreateDescriptorWithSeverity(option.Notification.Value),
+                name.GetLocation(),
+                additionalLocations: additionalLocations));
+        }
+
+        private void ProcessTypeDeclaration(SyntaxTreeAnalysisContext context, SyntaxGenerator generator, CodeStyleOption<AccessibilityModifiersRequired> option, TypeDeclarationSyntax typeDeclaration)
+        {
+            foreach (var childMember in typeDeclaration.Members)
+            {
+                ProcessMemberDeclaration(context, generator, option, childMember);
+            }
         }
     }
 }

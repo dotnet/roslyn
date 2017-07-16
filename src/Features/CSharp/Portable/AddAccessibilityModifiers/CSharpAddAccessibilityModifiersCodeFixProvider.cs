@@ -11,13 +11,19 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpAddAccessibilityModifiersCodeFixProvider : AbstractAddAccessibilityModifiersCodeFixProvider
     {
-        protected override SyntaxNode MapFieldDeclaration(SyntaxNode node)
+        protected override SyntaxNode MapToDeclarator(SyntaxNode node)
         {
-            var declarator = (VariableDeclaratorSyntax)node;
-            var declaration = (VariableDeclarationSyntax)declarator.Parent;
-            var field = (FieldDeclarationSyntax)declaration.Parent;
+            switch (node)
+            {
+                case FieldDeclarationSyntax field:
+                    return field.Declaration.Variables[0];
 
-            return field;
+                case EventFieldDeclarationSyntax eventField:
+                    return eventField.Declaration.Variables[0];
+
+                default:
+                    return node;
+            }
         }
     }
 }

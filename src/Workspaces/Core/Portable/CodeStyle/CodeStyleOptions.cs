@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Options;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
@@ -133,11 +134,54 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_explicit_tuple_names"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames") });
 
-        public static readonly PerLanguageOption<CodeStyleOption<bool>> RequireAccessibilityModifiers = 
-            new PerLanguageOption<CodeStyleOption<bool>>(
-                nameof(CodeStyleOptions), nameof(RequireAccessibilityModifiers), defaultValue: TrueWithNoneEnforcement,
+        private static readonly CodeStyleOption<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
+            new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption.None);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>> RequireAccessibilityModifiers = 
+            new PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>>(
+                nameof(CodeStyleOptions), nameof(RequireAccessibilityModifiers), defaultValue: s_requireAccessibilityModifiersDefault,
                 storageLocations: new OptionStorageLocation[]{
-                    EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_require_accessibility_modifiers"),
+                    new EditorConfigStorageLocation<CodeStyleOption<AccessibilityModifiersRequired>>("dotnet_style_require_accessibility_modifiers", s => ParseAccessibilityModifiersRequired(s)),
                     new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RequireAccessibilityModifiers")});
+
+        private static CodeStyleOption<AccessibilityModifiersRequired> ParseAccessibilityModifiersRequired(string optionString)
+        {
+            if (TryGetCodeStyleValueAndOptionalNotification(optionString,
+                    out var value, out var notificationOpt))
+            {
+                if (value == "never")
+                {
+                    // If they provide 'never', they don't need a notification level.
+                    notificationOpt = notificationOpt ?? NotificationOption.None;
+                }
+
+                if (notificationOpt != null)
+                {
+                    switch (value)
+                    {
+                        case "never":
+                            return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Never, notificationOpt);
+                        case "always":
+                            return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, notificationOpt);
+                        case "for_non_interface_members":
+                            return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, notificationOpt);
+                    }
+                }
+            }
+
+            return s_requireAccessibilityModifiersDefault;
+        }
+    }
+
+    internal enum AccessibilityModifiersRequired
+    {
+        Never = 0,
+        Always = 1,
+
+        // Future proofing for when C# adds default interface methods.  At that point
+        // accessibility modifiers will be allowed in interfaces, and some people may
+        // want to require them, while some may want to keep the traditional C# style
+        // that public interface members do not need accessibility modifiers.
+        ForNonInterfaceMembers = 2,
     }
 }

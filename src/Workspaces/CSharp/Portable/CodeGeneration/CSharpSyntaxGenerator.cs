@@ -3352,7 +3352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.FieldDeclaration:
                     return ((FieldDeclarationSyntax)declaration).Declaration.Variables;
                 case SyntaxKind.EventFieldDeclaration:
-                    return ((FieldDeclarationSyntax)declaration).Declaration.Variables;
+                    return ((EventFieldDeclarationSyntax)declaration).Declaration.Variables;
                 case SyntaxKind.LocalDeclarationStatement:
                     return ((LocalDeclarationStatementSyntax)declaration).Declaration.Variables;
                 case SyntaxKind.VariableDeclaration:

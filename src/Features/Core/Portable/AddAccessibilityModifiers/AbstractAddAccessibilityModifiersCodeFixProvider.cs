@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
 {
     internal abstract class AbstractAddAccessibilityModifiersCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        protected abstract SyntaxNode MapFieldDeclaration(SyntaxNode declaration);
+        protected abstract SyntaxNode MapToDeclarator(SyntaxNode declaration);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId);
@@ -43,8 +43,9 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             foreach (var diagnostic in diagnostics)
             {
                 var declaration = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-                var symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
-                declaration = symbol.Kind == SymbolKind.Field ? MapFieldDeclaration(declaration) : declaration;
+                var declarator = MapToDeclarator(declaration);
+
+                var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
 
                 editor.ReplaceNode(
                     declaration,

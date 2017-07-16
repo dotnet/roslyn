@@ -10,12 +10,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
     Friend Class VisualBasicAddAccessibilityModifiersCodeFixProvider
         Inherits AbstractAddAccessibilityModifiersCodeFixProvider
 
-        Protected Overrides Function MapFieldDeclaration(node As SyntaxNode) As SyntaxNode
-            Dim modifiedIdentifier = DirectCast(node, ModifiedIdentifierSyntax)
-            Dim declarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
-            Dim fieldDeclaration = DirectCast(declarator.Parent, FieldDeclarationSyntax)
+        Protected Overrides Function MapToDeclarator(declaration As SyntaxNode) As SyntaxNode
+            If TypeOf declaration Is FieldDeclarationSyntax Then
+                Return DirectCast(declaration, FieldDeclarationSyntax).Declarators(0).Names(0)
+            End If
 
-            Return fieldDeclaration
+            Return declaration
         End Function
     End Class
 End Namespace
