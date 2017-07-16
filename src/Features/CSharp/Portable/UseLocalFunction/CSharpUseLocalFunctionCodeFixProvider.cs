@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         private ParameterListSyntax GenerateParenthesizedLambdaParameterList(
             SemanticModel semanticModel, ParenthesizedLambdaExpressionSyntax lambdaExpression, CancellationToken cancellationToken)
         {
-            var newParameterList = lambdaExpression.ParameterList.ReplaceNodes(
+            return lambdaExpression.ParameterList.ReplaceNodes(
                 lambdaExpression.ParameterList.Parameters,
                 (parameterNode, _) =>
                 {
@@ -186,14 +186,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     var parameter = semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
                     return parameterNode.WithType(parameter?.Type.GenerateTypeSyntax() ?? s_objectType);
                 });
-
-            //var sourceText = semanticModel.SyntaxTree.GetText(cancellationToken);
-            //if (sourceText.AreOnSameLine(lambdaExpression.ParameterList.CloseParenToken, lambdaExpression.ArrowToken))
-            //{
-            //    newParameterList = newParameterList.WithAppendedTrailingTrivia(lambdaExpression.ArrowToken.TrailingTrivia);
-            //}
-
-            return newParameterList;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
