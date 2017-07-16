@@ -82,7 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-
             if (localDeclaration.Declaration.Variables.Count != 1)
             {
                 return;
