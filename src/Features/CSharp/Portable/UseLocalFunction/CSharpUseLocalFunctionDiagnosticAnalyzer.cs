@@ -277,27 +277,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 var assignment = (AssignmentExpressionSyntax)anonymousFunction.Parent;
                 if (assignment.Left.IsKind(SyntaxKind.IdentifierName))
                 {
-                    if (assignment.Right.IsKind(SyntaxKind.NullLiteralExpression) ||
-                        assignment.Right.IsKind(SyntaxKind.DefaultLiteralExpression) ||
-                        assignment.Right.IsKind(SyntaxKind.DefaultExpression))
+                    var expressionStatement = (ExpressionStatementSyntax)assignment.Parent;
+                    var block = (BlockSyntax)expressionStatement.Parent;
+                    var expressionStatementIndex = block.Statements.IndexOf(expressionStatement);
+                    if (expressionStatementIndex >= 1)
                     {
-                        var expressionStatement = (ExpressionStatementSyntax)assignment.Parent;
-                        var block = (BlockSyntax)expressionStatement.Parent;
-                        var expressionStatementIndex = block.Statements.IndexOf(expressionStatement);
-                        if (expressionStatementIndex >= 1)
+                        var previousStatement = block.Statements[expressionStatementIndex - 1];
+                        if (previousStatement.IsKind(SyntaxKind.LocalDeclarationStatement))
                         {
-                            var previousStatement = block.Statements[expressionStatementIndex - 1];
-                            if (previousStatement.IsKind(SyntaxKind.LocalDeclarationStatement))
+                            localDeclaration = (LocalDeclarationStatementSyntax)previousStatement;
+                            if (localDeclaration.Declaration.Variables.Count == 1)
                             {
-                                localDeclaration = (LocalDeclarationStatementSyntax)previousStatement;
-                                if (localDeclaration.Declaration.Variables.Count == 1)
+                                var variableDeclarator = localDeclaration.Declaration.Variables[0];
+                                if (variableDeclarator.Initializer != null)
                                 {
-                                    var variableDeclarator = localDeclaration.Declaration.Variables[0];
-                                    var identifierName = (IdentifierNameSyntax)assignment.Left;
-                                    if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
+                                    var value = variableDeclarator.Initializer.Value;
+                                    if (value.IsKind(SyntaxKind.NullLiteralExpression) ||
+                                        value.IsKind(SyntaxKind.DefaultLiteralExpression) ||
+                                        value.IsKind(SyntaxKind.DefaultExpression))
                                     {
-                                        form = LocalDeclarationAndAssignmentForm;
-                                        return true;
+                                        var identifierName = (IdentifierNameSyntax)assignment.Left;
+                                        if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
+                                        {
+                                            form = LocalDeclarationAndAssignmentForm;
+                                            return true;
+                                        }
                                     }
                                 }
                             }
