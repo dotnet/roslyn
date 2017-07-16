@@ -213,11 +213,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             Assert.Equal("\"\\uffff\"", FormatValue(s));
             Assert.Equal("\"\\uffff\"", FormatValue(s, useHexadecimal: true));
 
-            string multiByte = "\ud83c\udfc8"; // unicode surrogates properly paired
-            Assert.Equal(string.Format(format, "\\U0001f3c8"), FormatValue(multiByte));
-            Assert.Equal(string.Format(format, "\\U0001f3c8"), FormatValue(multiByte, useHexadecimal: true));
+            string multiByte = "\ud83c\udfc8"; // unicode surrogates properly paired representing a printable Unicode codepoint
+            Assert.Equal(string.Format(format, "🏈"), FormatValue(multiByte));
+            Assert.Equal(string.Format(format, "🏈"), FormatValue(multiByte, useHexadecimal: true));
+            Assert.Equal(multiByte, "🏈");
 
-            multiByte = "\udfc8\ud83c"; // unicode surrogates in the wrong order
+            multiByte = "\udbff\udfff"; // unicode surrogates representing an unprintable Unicode codepoint
+            Assert.Equal(string.Format(format, "\\U0010ffff"), FormatValue(multiByte));
+            Assert.Equal(string.Format(format, "\\U0010ffff"), FormatValue(multiByte, useHexadecimal: true));
+
+            multiByte = "\udfc8\ud83c"; // unicode surrogates not properly paired (in the wrong order in this case)
             Assert.Equal(string.Format(format, "\\udfc8\\ud83c"), FormatValue(multiByte));
             Assert.Equal(string.Format(format, "\\udfc8\\ud83c"), FormatValue(multiByte, useHexadecimal: true));
         }

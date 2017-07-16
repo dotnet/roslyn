@@ -176,14 +176,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            switch (CharUnicodeInfo.GetUnicodeCategory(c))
+            if (NeedsEscaping(CharUnicodeInfo.GetUnicodeCategory(c)))
+            {
+                replaceWith = "\\u" + ((int)c).ToString("x4");
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool NeedsEscaping(UnicodeCategory category)
+        {
+            switch (category)
             {
                 case UnicodeCategory.Control:
                 case UnicodeCategory.OtherNotAssigned:
                 case UnicodeCategory.ParagraphSeparator:
                 case UnicodeCategory.LineSeparator:
                 case UnicodeCategory.Surrogate:
-                    replaceWith = "\\u" + ((int)c).ToString("x4");
                     return true;
                 default:
                     return false;
@@ -228,10 +238,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < value.Length; i++)
             {
                 char c = value[i];
-                if (escapeNonPrintable && (i + 1) < value.Length && IsHighSurrogate(c) && IsLowSurrogate(value[i + 1]))
+                if (escapeNonPrintable && CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Surrogate)
                 {
-                    var unicode = CombineSurrogates(c, value[++i]);
-                    builder.Append("\\U" + unicode.ToString("x8"));
+                    var category = CharUnicodeInfo.GetUnicodeCategory(value, i);
+                    if (category == UnicodeCategory.Surrogate)
+                    {
+                        // an unpaired surrogate
+                        builder.Append("\\u" + ((int)c).ToString("x4"));
+                    }
+                    else if (NeedsEscaping(category))
+                    {
+                        var unicode = CombineSurrogates(c, value[++i]);
+                        builder.Append("\\U" + unicode.ToString("x8"));
+                    }
+                    else
+                    {
+                        // copy a printable surrogate pair directly
+                        builder.Append(c);
+                        builder.Append(value[++i]);
+                    }
                 }
                 else if (escapeNonPrintable && TryReplaceChar(c, out var replaceWith))
                 {
