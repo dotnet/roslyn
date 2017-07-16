@@ -1,71 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpAddAccessibilityModifiersCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal class CSharpAddAccessibilityModifiersCodeFixProvider : AbstractAddAccessibilityModifiersCodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId);
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        protected override SyntaxNode MapFieldDeclaration(SyntaxNode node)
         {
-            var diagnostic = context.Diagnostics.First();
-            var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
-                ? CodeActionPriority.Low
-                : CodeActionPriority.Medium;
-            context.RegisterCodeFix(
-                new MyCodeAction(priority, c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
-        }
+            var declarator = (VariableDeclaratorSyntax)node;
+            var declaration = (VariableDeclarationSyntax)declarator.Parent;
+            var field = (FieldDeclarationSyntax)declaration.Parent;
 
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var diagnostic in diagnostics)
-            {
-                var declaration = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-                var symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
-                declaration = symbol.Kind == SymbolKind.Field ? MapFieldDeclaration(declaration) : declaration;
-
-                editor.ReplaceNode(
-                    declaration,
-                    (currentDeclaration, generator) =>
-                    {
-                        return generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility);
-                    });
-            }
-        }
-
-        private SyntaxNode MapFieldDeclaration(SyntaxNode declaration)
-            => declaration.Parent.Parent;
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument) 
-                : base(FeaturesResources.Add_accessibility_modifiers, createChangedDocument, FeaturesResources.Add_accessibility_modifiers)
-            {
-                this.Priority = priority;
-            }
-
-            internal override CodeActionPriority Priority { get; }
+            return field;
         }
     }
 }
