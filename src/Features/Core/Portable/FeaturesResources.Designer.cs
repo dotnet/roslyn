@@ -80,6 +80,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Accessibility modifiers required.
+        /// </summary>
+        internal static string Accessibility_modifiers_required {
+            get {
+                return ResourceManager.GetString("Accessibility_modifiers_required", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Accessing captured variable &apos;{0}&apos; that hasn&apos;t been accessed before in {1} will prevent the debug session from continuing..
         /// </summary>
         internal static string Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing {
@@ -95,6 +104,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Actions_can_not_be_empty {
             get {
                 return ResourceManager.GetString("Actions_can_not_be_empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add accessibility modifiers.
+        /// </summary>
+        internal static string Add_accessibility_modifiers {
+            get {
+                return ResourceManager.GetString("Add_accessibility_modifiers", resourceCulture);
             }
         }
         

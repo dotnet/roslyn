@@ -132,5 +132,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_explicit_tuple_names"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames") });
+
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> RequireAccessibilityModifiers = 
+            new PerLanguageOption<CodeStyleOption<bool>>(
+                nameof(CodeStyleOptions), nameof(RequireAccessibilityModifiers), defaultValue: TrueWithNoneEnforcement,
+                storageLocations: new OptionStorageLocation[]{
+                    EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_require_accessibility_modifiers"),
+                    new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RequireAccessibilityModifiers")});
     }
 }
