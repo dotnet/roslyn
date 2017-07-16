@@ -35,11 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
-        internal const string Form = nameof(Form);
-        internal const string SimpleLocalDeclarationForm = nameof(SimpleLocalDeclarationForm);
-        internal const string CastedLocalDeclarationForm = nameof(CastedLocalDeclarationForm);
-        internal const string LocalDeclarationAndAssignmentForm = nameof(LocalDeclarationAndAssignmentForm);
-
         public override bool OpenFileOnly(Workspace workspace) => false;
 
         public CSharpUseLocalFunctionDiagnosticAnalyzer()
@@ -82,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var semanticModel = syntaxContext.SemanticModel;
             if (!CheckForPattern(semanticModel, anonymousFunction, cancellationToken,
-                    out var localDeclaration, out var form))
+                    out var localDeclaration))
             {
                 return;
             }
@@ -121,8 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 localDeclaration.GetLocation(),
                 anonymousFunction.GetLocation());
 
-            var properties = ImmutableDictionary<string, string>.Empty.Add(Form, form);
-
             if (severity != DiagnosticSeverity.Hidden)
             {
                 // If the diagnostic is not hidden, then just place the user visible part
@@ -130,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 syntaxContext.ReportDiagnostic(Diagnostic.Create(
                     GetDescriptorWithSeverity(severity),
                     localDeclaration.Declaration.Variables[0].Identifier.GetLocation(),
-                    additionalLocations, properties));
+                    additionalLocations));
             }
             else
             {
@@ -138,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 syntaxContext.ReportDiagnostic(Diagnostic.Create(
                     GetDescriptorWithSeverity(severity),
                     localDeclaration.GetLocation(),
-                    additionalLocations, properties));
+                    additionalLocations));
 
                 var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();
                 if (localDeclaration != anonymousFunctionStatement)
@@ -146,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     syntaxContext.ReportDiagnostic(Diagnostic.Create(
                         GetDescriptorWithSeverity(severity),
                         anonymousFunctionStatement.GetLocation(),
-                        additionalLocations, properties));
+                        additionalLocations));
                 }
             }
         }
@@ -155,8 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             SemanticModel semanticModel,
             AnonymousFunctionExpressionSyntax anonymousFunction,
             CancellationToken cancellationToken,
-            out LocalDeclarationStatementSyntax localDeclaration,
-            out string form)
+            out LocalDeclarationStatementSyntax localDeclaration)
         {
             // Look for:
             //
@@ -165,17 +157,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             //
             // Type t = null;
             // t = <anonymous function>
-            return CheckForSimpleLocalDeclarationPattern(semanticModel, anonymousFunction, cancellationToken, out localDeclaration, out form) ||
-                   CheckForCastedLocalDeclarationPattern(semanticModel, anonymousFunction, cancellationToken, out localDeclaration, out form) ||
-                   CheckForLocalDeclarationAndAssignment(semanticModel, anonymousFunction, cancellationToken, out localDeclaration, out form);
+            return CheckForSimpleLocalDeclarationPattern(semanticModel, anonymousFunction, cancellationToken, out localDeclaration) ||
+                   CheckForCastedLocalDeclarationPattern(semanticModel, anonymousFunction, cancellationToken, out localDeclaration) ||
+                   CheckForLocalDeclarationAndAssignment(semanticModel, anonymousFunction, cancellationToken, out localDeclaration);
         }
 
         private bool CheckForSimpleLocalDeclarationPattern(
             SemanticModel semanticModel, 
             AnonymousFunctionExpressionSyntax anonymousFunction,
             CancellationToken cancellationToken,
-            out LocalDeclarationStatementSyntax localDeclaration,
-            out string form)
+            out LocalDeclarationStatementSyntax localDeclaration)
         {
             // Type t = <anonymous function>
             if (anonymousFunction.IsParentKind(SyntaxKind.EqualsValueClause) &&
@@ -186,13 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 localDeclaration = (LocalDeclarationStatementSyntax)anonymousFunction.Parent.Parent.Parent.Parent;
                 if (!localDeclaration.Declaration.Type.IsVar)
                 {
-                    form = SimpleLocalDeclarationForm;
                     return true;
                 }
             }
 
             localDeclaration = null;
-            form = null;
             return false;
         }
 
@@ -230,8 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             SemanticModel semanticModel,
             AnonymousFunctionExpressionSyntax anonymousFunction,
             CancellationToken cancellationToken,
-            out LocalDeclarationStatementSyntax localDeclaration,
-            out string form)
+            out LocalDeclarationStatementSyntax localDeclaration)
         {
             // var t = (Type)(<anonymous function>)
             var containingStatement = anonymousFunction.GetAncestor<StatementSyntax>();
@@ -248,7 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                         {
                             if (castExpression.Expression.WalkDownParentheses() == anonymousFunction)
                             {
-                                form = CastedLocalDeclarationForm;
                                 return true;
                             }
                         }
@@ -257,7 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
 
             localDeclaration = null;
-            form = null;
             return false;
         }
 
@@ -265,8 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             SemanticModel semanticModel,
             AnonymousFunctionExpressionSyntax anonymousFunction,
             CancellationToken cancellationToken,
-            out LocalDeclarationStatementSyntax localDeclaration,
-            out string form)
+            out LocalDeclarationStatementSyntax localDeclaration)
         {
             // Type t = null;
             // t = <anonymous function>
@@ -299,7 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                                         var identifierName = (IdentifierNameSyntax)assignment.Left;
                                         if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
                                         {
-                                            form = LocalDeclarationAndAssignmentForm;
                                             return true;
                                         }
                                     }
@@ -311,7 +295,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
 
             localDeclaration = null;
-            form = null;
             return false;
         }
 

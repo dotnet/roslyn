@@ -45,51 +45,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var localDeclarationToInfo = new Dictionary<LocalDeclarationStatementSyntax, (LambdaExpressionSyntax, string form)>();
+            var localDeclarationToLambda = new Dictionary<LocalDeclarationStatementSyntax, LambdaExpressionSyntax>();
             foreach (var diagnostic in diagnostics)
             {
                 var localDeclaration = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-                var anonymousFunction = (LambdaExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
-                var form = diagnostic.Properties[CSharpUseLocalFunctionDiagnosticAnalyzer.Form];
+                var lambda = (LambdaExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
 
-                localDeclarationToInfo[localDeclaration] = (anonymousFunction, form);
+                localDeclarationToLambda[localDeclaration] = lambda;
             }
 
             // Process declarations backwards, that way we see the effects of any nested changes
             // when we process the outer change.
-            foreach (var (localDeclaration, (anonymousFunction, form)) in localDeclarationToInfo.OrderByDescending(kvp => kvp.Key.SpanStart))
+            foreach (var (localDeclaration, lambda) in localDeclarationToLambda.OrderByDescending(kvp => kvp.Key.SpanStart))
             {
                 ReplaceAnonymousWithLocalFunction(
-                    semanticModel, editor, localDeclaration, anonymousFunction, form, cancellationToken);
+                    semanticModel, editor, localDeclaration, lambda, cancellationToken);
             }
         }
 
         private void ReplaceAnonymousWithLocalFunction(
-            SemanticModel semanticModel, SyntaxEditor editor,
-            LocalDeclarationStatementSyntax localDeclaration,
-            LambdaExpressionSyntax anonymousFunction,
-            string form, CancellationToken cancellationToken)
-        {
-            switch (form)
-            {
-                case CSharpUseLocalFunctionDiagnosticAnalyzer.SimpleLocalDeclarationForm:
-                    ReplaceSimpleLocalDeclaration(semanticModel, editor, localDeclaration, anonymousFunction, cancellationToken);
-                    return;
-
-                case CSharpUseLocalFunctionDiagnosticAnalyzer.CastedLocalDeclarationForm:
-                    ReplaceCastedLocalDeclaration(semanticModel, editor, localDeclaration, anonymousFunction, cancellationToken);
-                    return;
-
-                case CSharpUseLocalFunctionDiagnosticAnalyzer.LocalDeclarationAndAssignmentForm:
-                    ReplaceLocalDeclarationAndAssignment(semanticModel, editor, localDeclaration, anonymousFunction, cancellationToken);
-                    return;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(form);
-            }
-        }
-
-        private void ReplaceSimpleLocalDeclaration(
             SemanticModel semanticModel, SyntaxEditor editor,
             LocalDeclarationStatementSyntax localDeclaration,
             LambdaExpressionSyntax anonymousFunction,
@@ -102,38 +76,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             localFunctionStatement = localFunctionStatement.WithTriviaFrom(localDeclaration)
                                                            .WithAdditionalAnnotations(Formatter.Annotation);
             editor.ReplaceNode(localDeclaration, localFunctionStatement);
-        }
-
-        private void ReplaceCastedLocalDeclaration(
-            SemanticModel semanticModel, SyntaxEditor editor,
-            LocalDeclarationStatementSyntax localDeclaration,
-            LambdaExpressionSyntax anonymousFunction,
-            CancellationToken cancellationToken)
-        {
-            // var t = (Type)(<anonymous function>);
-            var localFunctionStatement = CreateLocalFunctionStatement(
-                semanticModel, localDeclaration, anonymousFunction, cancellationToken);
-
-            localFunctionStatement = localFunctionStatement.WithTriviaFrom(localDeclaration)
-                                                           .WithAdditionalAnnotations(Formatter.Annotation);
-            editor.ReplaceNode(localDeclaration, localFunctionStatement);
-        }
-
-        private void ReplaceLocalDeclarationAndAssignment(
-            SemanticModel semanticModel, SyntaxEditor editor,
-            LocalDeclarationStatementSyntax localDeclaration,
-            LambdaExpressionSyntax anonymousFunction,
-            CancellationToken cancellationToken)
-        {
-            var localFunctionStatement = CreateLocalFunctionStatement(
-                semanticModel, localDeclaration, anonymousFunction, cancellationToken);
-
-            localFunctionStatement = localFunctionStatement.WithTriviaFrom(localDeclaration)
-                                                           .WithAdditionalAnnotations(Formatter.Annotation);
-            editor.ReplaceNode(localDeclaration, localFunctionStatement);
 
             var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();
-            editor.RemoveNode(anonymousFunctionStatement);
+
+            if (anonymousFunctionStatement != localDeclaration)
+            {
+                // This is the split decl+init form.  Remove the second statement as we're
+                // merging into the first one.
+                editor.RemoveNode(anonymousFunctionStatement);
+            }
         }
 
         private LocalFunctionStatementSyntax CreateLocalFunctionStatement(
