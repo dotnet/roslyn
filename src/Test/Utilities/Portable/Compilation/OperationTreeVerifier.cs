@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             var children = operation.Children.WhereNotNull();
-            if (children.Count() > 0)
+            if (children.Any())
             {
                 VisitArray(children, "Children", logElementCount: true);
             }
