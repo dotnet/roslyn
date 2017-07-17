@@ -1197,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Lazy<ImmutableArray<IOperation>> elements = new Lazy<ImmutableArray<IOperation>>(() => boundTupleExpression.Arguments.SelectAsArray(element => Create(element)));
             SyntaxNode syntax = boundTupleExpression.Syntax;
             ITypeSymbol type = boundTupleExpression.Type;
-            Optional<object> constantValue = ConvertToOptional(boundTupleExpression.ConstantValue);
+            Optional<object> constantValue = default(Optional<object>);
             return new LazyTupleExpression(elements, syntax, type, constantValue);
         }
 

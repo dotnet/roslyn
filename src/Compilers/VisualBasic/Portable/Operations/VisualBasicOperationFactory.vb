@@ -1015,7 +1015,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim elements As New Lazy(Of ImmutableArray(Of IOperation))(Function() boundTupleExpression.Arguments.SelectAsArray(Function(element) Create(element)))
             Dim syntax As SyntaxNode = boundTupleExpression.Syntax
             Dim type As ITypeSymbol = boundTupleExpression.Type
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTupleExpression.ConstantValueOpt)
+            Dim constantValue As [Optional](Of Object) = Nothing
             Return New LazyTupleExpression(elements, syntax, type, constantValue)
         End Function
 
