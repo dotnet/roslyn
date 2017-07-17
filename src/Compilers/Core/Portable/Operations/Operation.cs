@@ -12,13 +12,20 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
-        public Operation(OperationKind kind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+        public Operation(SemanticModel semanticModel, OperationKind kind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
         {
+            SemanticModel = semanticModel;
+
             Kind = kind;
             Syntax = syntax;
             Type = type;
             ConstantValue = constantValue;
         }
+
+        /// <summary>
+        /// IOperation that has this operation as a child
+        /// </summary>
+        public IOperation Parent => SemanticModel.GetParentOperation(this);
 
         /// <summary>
         /// Identifies the kind of the operation.
@@ -40,47 +47,40 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Optional<object> ConstantValue { get; }
 
+        protected SemanticModel SemanticModel { get; }
+
         public abstract IEnumerable<IOperation> Children { get; }
 
         public abstract void Accept(OperationVisitor visitor);
 
         public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
 
-        public static IOperation CreateOperationNone(SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
+        public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
         {
-            return new NoneOperation(node, constantValue, getChildren);
+            return new NoneOperation(semanticModel, node, constantValue, getChildren);
         }
 
-        private class NoneOperation : IOperation
+        private class NoneOperation : Operation
         {
             private readonly Func<ImmutableArray<IOperation>> _getChildren;
 
-            public NoneOperation(SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
+            public NoneOperation(SemanticModel semanticMode, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren) :
+                base(semanticMode, OperationKind.None, node, type: null, constantValue: constantValue)
             {
-                Syntax = node;
-                ConstantValue = constantValue;
                 _getChildren = getChildren;
             }
 
-            public OperationKind Kind => OperationKind.None;
-
-            public SyntaxNode Syntax { get; }
-
-            public ITypeSymbol Type => null;
-
-            public Optional<object> ConstantValue { get; }
-
-            public void Accept(OperationVisitor visitor)
+            public override void Accept(OperationVisitor visitor)
             {
                 visitor.VisitNoneOperation(this);
             }
 
-            public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
                 return visitor.VisitNoneOperation(this, argument);
             }
 
-            public IEnumerable<IOperation> Children => _getChildren().NullToEmpty();
+            public override IEnumerable<IOperation> Children => _getChildren().NullToEmpty();
         }
     }
 }

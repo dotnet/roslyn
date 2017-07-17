@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -875,6 +876,16 @@ namespace Microsoft.CodeAnalysis
         protected internal virtual SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
         {
             return declaringSyntax;
+        }
+
+        internal void SetParentOperation(IOperation operation, BaseAddressOfExpression baseAddressOfExpression)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal IOperation GetParentOperation(Operation operation)
+        {
+            throw new NotImplementedException();
         }
     }
 }

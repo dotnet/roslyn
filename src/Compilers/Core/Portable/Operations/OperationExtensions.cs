@@ -98,32 +98,25 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         private static IOperation WalkDownOperationToFindParent(
-            HashSet<IOperation> operationAlreadyProcessed, IOperation operation, TextSpan span, CancellationToken cancellationToken)
+            HashSet<IOperation> operationAlreadyProcessed, IOperation operation, TextSpan span)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            void EnqueueChildOperations(Queue<(IOperation, IOperation)> queue, IOperation parent)
+            void EnqueueChildOperations(Queue<IOperation> queue, IOperation parent)
             {
                 foreach (var o in parent.Children)
                 {
-                    queue.Enqueue((parent, o));
+                    queue.Enqueue(o);
                 }
             }
 
             // do we have a pool for queue?
-            var parentChildQueue = new Queue<(IOperation, IOperation)>();
+            var parentChildQueue = new Queue<IOperation>();
             EnqueueChildOperations(parentChildQueue, operation);
 
             // walk down the child operation to find parent operation
-            while (true)
+            // every child returned by the queue should already have Parent operation set
+            IOperation child;
+            while ((child = parentChildQueue.Dequeue()) != null)
             {
-                var (parent, child) = parentChildQueue.Dequeue();
-                if (parent == null)
-                {
-                    // no more item
-                    break;
-                }
-
                 if (!operationAlreadyProcessed.Add(child))
                 {
                     // don't process IOperation we already processed otherwise,
@@ -134,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 if (child == operation)
                 {
                     // parent found
-                    return parent;
+                    return child.Parent;
                 }
 
                 if (!child.Syntax.FullSpan.IntersectsWith(span))
@@ -150,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return null;
         }
 
-        internal static IOperation FindParentOperation(this SemanticModel semanticModel, IOperation operation, CancellationToken cancellationToken)
+        internal static IOperation FindParentOperation(this SemanticModel semanticModel, IOperation operation)
         {
             Debug.Assert(operation != null);
 
@@ -173,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                     }
 
                     // get child operation
-                    var childOperation = semanticModel.GetOperationInternal(childNode, cancellationToken);
+                    var childOperation = semanticModel.GetOperationInternal(childNode);
                     if (childOperation != null)
                     {
                         // there is no operation for this node
@@ -195,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                     }
 
                     // walk down child operation tree to see whether sub tree contains the given operation
-                    var parent = WalkDownOperationToFindParent(operationAlreadyProcessed, childOperation, targetNode.FullSpan, cancellationToken);
+                    var parent = WalkDownOperationToFindParent(operationAlreadyProcessed, childOperation, targetNode.FullSpan);
                     if (parent != null)
                     {
                         return parent;
