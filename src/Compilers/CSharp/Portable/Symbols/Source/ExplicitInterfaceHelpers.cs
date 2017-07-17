@@ -261,8 +261,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
             }
 
-            if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implementingMember, implementedMember))
+            if (implementingMember.ContainsTupleNames() && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implementingMember, implementedMember))
             {
+                // it is ok to explicitly implement with no tuple names, for compatibility with C# 6, but otherwise names should match
                 diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, memberLocation, implementingMember, implementedMember);
             }
 
