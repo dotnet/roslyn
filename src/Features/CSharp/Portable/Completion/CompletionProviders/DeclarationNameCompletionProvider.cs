@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     {
                         foreach (var baseName in baseNames)
                         {
-                            var name = rule.NamingStyle.CreateName(baseName);
+                            var name = EscapeIdentifier(rule.NamingStyle.CreateName(baseName));
                             if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
                             {
                                 result.Add(name, symbolKind);
@@ -188,6 +188,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return result.Select(kvp => (kvp.Key, kvp.Value)).ToImmutableArray();
+        }
+
+        private static string EscapeIdentifier(string identifier)
+        {
+            var kind = SyntaxFacts.GetKeywordKind(identifier);
+            return kind == SyntaxKind.None
+                ? identifier
+                : $"@{identifier}";
         }
 
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)

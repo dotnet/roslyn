@@ -197,6 +197,68 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void EscapeKeywords1()
+        {
+            var markup = @"
+using System.Text;
+public class C
+{
+    void Foo(StringBuilder $$) {}
+}
+";
+            await VerifyItemExistsAsync(markup, "stringBuilder", glyph: (int) Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "@string", glyph: (int) Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "builder", glyph: (int) Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void EscapeKeywords2()
+        {
+            var markup = @"
+class For { }
+public class C
+{
+    void Foo(For $$) {}
+}
+";
+            await VerifyItemExistsAsync(markup, "@for", glyph: (int) Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void EscapeKeywords3()
+        {
+            var markup = @"
+class For { }
+public class C
+{
+    void foo()
+    {
+        For $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "@for");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void EscapeKeywords4()
+        {
+            var markup = @"
+using System.Text;
+public class C
+{
+    void foo()
+    {
+        StringBuilder $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "stringBuilder");
+            await VerifyItemExistsAsync(markup, "@string");
+            await VerifyItemExistsAsync(markup, "builder");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void NoSuggestionsForInt()
         {
             var markup = @"
