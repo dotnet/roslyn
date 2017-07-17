@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            info = default(ExternalSourceInfo);
+            info = default;
             return false;
         }
 
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var csharpGenericName = genericName as GenericNameSyntax;
             return csharpGenericName != null
                 ? csharpGenericName.Identifier
-                : default(SyntaxToken);
+                : default;
         }
 
         public bool IsUsingDirectiveName(SyntaxNode node)
@@ -875,7 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var nameToken = memberDeclaration.GetNameToken();
-                    if (nameToken != default(SyntaxToken))
+                    if (nameToken != default)
                     {
                         name = nameToken.IsMissing ? missingTokenPlaceholder : nameToken.Text;
                         if (memberDeclaration.Kind() == SyntaxKind.DestructorDeclaration)
@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (fieldDeclarator != null)
                 {
                     var nameToken = fieldDeclarator.Identifier;
-                    if (nameToken != default(SyntaxToken))
+                    if (nameToken != default)
                     {
                         name = nameToken.IsMissing ? missingTokenPlaceholder : nameToken.Text;
                     }
@@ -957,13 +957,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Span.IsEmpty)
             {
-                return default(TextSpan);
+                return default;
             }
 
             var member = GetContainingMemberDeclaration(node, node.SpanStart);
             if (member == null)
             {
-                return default(TextSpan);
+                return default;
             }
 
             // TODO: currently we only support method for now
@@ -972,13 +972,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (method.Body == null)
                 {
-                    return default(TextSpan);
+                    return default;
                 }
 
                 return GetBlockBodySpan(method.Body);
             }
 
-            return default(TextSpan);
+            return default;
         }
 
         public bool ContainsInMemberBody(SyntaxNode node, TextSpan span)
@@ -1216,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return openBrace.Kind() == SyntaxKind.OpenBraceToken;
             }
 
-            openBrace = default(SyntaxToken);
+            openBrace = default;
             return false;
         }
 
@@ -1236,26 +1236,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (triviaTok.Span.Contains(position))
                     {
-                        return default(TextSpan);
+                        return default;
                     }
 
                     if (triviaTok.Span.End < position)
                     {
                         if (!triviaTok.HasStructure)
                         {
-                            return default(TextSpan);
+                            return default;
                         }
 
                         var structure = triviaTok.GetStructure();
                         if (structure is BranchingDirectiveTriviaSyntax branch)
                         {
-                            return !branch.IsActive || !branch.BranchTaken ? TextSpan.FromBounds(branch.FullSpan.Start, position) : default(TextSpan);
+                            return !branch.IsActive || !branch.BranchTaken ? TextSpan.FromBounds(branch.FullSpan.Start, position) : default;
                         }
                     }
                 }
             }
 
-            return default(TextSpan);
+            return default;
         }
 
         public string GetNameForArgument(SyntaxNode argument)
@@ -1450,10 +1450,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((ExpressionStatementSyntax)statement).Expression.IsKind(SyntaxKind.SimpleAssignmentExpression);
         }
 
-        public void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxNode right)
+        public void GetPartsOfAssignmentStatement(
+            SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
             var assignment = (AssignmentExpressionSyntax)((ExpressionStatementSyntax)statement).Expression;
             left = assignment.Left;
+            operatorToken = assignment.OperatorToken;
             right = assignment.Right;
         }
 
@@ -1740,5 +1742,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers)
             => node.WithModifiers(modifiers);
+
+        public bool IsLiteralExpression(SyntaxNode node)
+            => node is LiteralExpressionSyntax;
+
+        public SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node)
+            => ((LocalDeclarationStatementSyntax)node).Declaration.Variables;
+
+        public SyntaxNode GetInitializerOfVariableDeclarator(SyntaxNode node)
+            => ((VariableDeclaratorSyntax)node).Initializer;
+
+        public SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node)
+            => ((EqualsValueClauseSyntax)node).Value;
+
+        public bool IsExecutableBlock(SyntaxNode node)
+            => node.IsKind(SyntaxKind.Block);
+
+        public SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node)
+            => ((BlockSyntax)node).Statements;
+
+        public SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
+            => nodes.FindInnermostCommonBlock();
     }
 }

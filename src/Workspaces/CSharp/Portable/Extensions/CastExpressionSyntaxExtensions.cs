@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, speculationAnalyzer.SpeculativeSemanticModel, out var discarded) ?? typeInfo.ConvertedType;
             if (speculatedExpressionOuterType == null)
             {
-                return default(Conversion);
+                return default;
             }
 
             return speculationAnalyzer.SpeculativeSemanticModel.ClassifyConversion(speculatedExpression, speculatedExpressionOuterType);

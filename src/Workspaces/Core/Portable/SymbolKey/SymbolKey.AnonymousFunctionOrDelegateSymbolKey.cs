@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                 var syntaxTree = location.SourceTree;
                 if (syntaxTree == null)
                 {
-                    return default(SymbolKeyResolution);
+                    return default;
                 }
 
                 var semanticModel = reader.Compilation.GetSemanticModel(syntaxTree);

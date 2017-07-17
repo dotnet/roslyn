@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
                 var elementLocations = reader.ReadLocationArray();
                 if (elementLocations.All(loc => loc == null))
                 {
-                    elementLocations = default(ImmutableArray<Location>);
+                    elementLocations = default;
                 }
 
                 return elementLocations;

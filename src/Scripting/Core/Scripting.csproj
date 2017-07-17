@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{12A68549-4E8C-42D6-8703-A09335F97997}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Scripting</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Scripting</AssemblyName>
@@ -14,10 +13,7 @@
     <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -71,61 +67,11 @@
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\MonoGlobalAssemblyCache.cs">
       <Link>Hosting\Resolvers\MonoGlobalAssemblyCache.cs</Link>
     </Compile>
-    <Compile Include="Hosting\AssemblyLoader\AssemblyAndLocation.cs" />
-    <Compile Include="Hosting\AssemblyLoader\AssemblyLoadResult.cs" />
-    <Compile Include="Hosting\AssemblyLoader\CoreAssemblyLoaderImpl.cs" />
-    <Compile Include="Hosting\AssemblyLoader\DesktopAssemblyLoaderImpl.cs" />
-    <Compile Include="Hosting\AssemblyLoader\AssemblyLoaderImpl.cs" />
-    <Compile Include="Hosting\AssemblyLoader\InteractiveAssemblyLoaderException.cs" />
-    <Compile Include="Hosting\CommandLine\CommandLineHelpers.cs" />
-    <Compile Include="Hosting\CommandLine\CommandLineScriptGlobals.cs" />
-    <Compile Include="Hosting\CommandLine\CommandLineRunner.cs" />
-    <Compile Include="Hosting\CommandLine\ConsoleIO.cs" />
-    <Compile Include="Hosting\CommandLine\NotImplementedAnalyzerLoader.cs" />
-    <Compile Include="Hosting\InteractiveScriptGlobals.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.BuilderOptions.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CommonPrimitiveFormatterOptions.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CommonPrimitiveFormatter.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatterOptions.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatter.cs" />
-    <Compile Include="Hosting\CommonMemberFilter.cs" />
-    <Compile Include="Hosting\MemberFilter.cs" />
-    <Compile Include="Hosting\PrintOptions.cs" />
-    <Compile Include="Hosting\ObjectFormatter\ObjectFormatter.cs" />
-    <Compile Include="Hosting\ObjectFormatter\ObjectFormatterHelpers.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.Builder.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.Visitor.FormattedMember.cs" />
-    <Compile Include="Hosting\Resolvers\RuntimeMetadataReferenceResolver.cs" />
-    <Compile Include="Hosting\AssemblyLoader\InteractiveAssemblyLoader.cs" />
-    <Compile Include="Hosting\AssemblyLoader\MetadataShadowCopy.cs" />
-    <Compile Include="Hosting\AssemblyLoader\MetadataShadowCopyProvider.cs" />
-    <Compile Include="Hosting\AssemblyLoader\ShadowCopy.cs" />
-    <Compile Include="Hosting\Resolvers\NuGetPackageResolver.cs" />
-    <Compile Include="Hosting\SearchPaths.cs" />
-    <Compile Include="Hosting\SynchronizedList.cs" />
-    <Compile Include="ScriptMetadataResolver.cs" />
-    <Compile Include="ScriptCompiler.cs" />
-    <Compile Include="ScriptingResources.Designer.cs">
+    <Compile Update="ScriptingResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ScriptingResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ScriptRunner.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.Visitor.cs" />
-    <Compile Include="Script.cs" />
-    <Compile Include="ScriptBuilder.cs" />
-    <Compile Include="CompilationErrorException.cs" />
-    <Compile Include="Hosting\ObjectFormatter\MemberDisplayFormat.cs" />
-    <Compile Include="ScriptExecutionState.cs" />
-    <Compile Include="ScriptOptions.cs" />
-    <Compile Include="ScriptSourceResolver.cs" />
-    <Compile Include="ScriptState.cs" />
-    <Compile Include="ScriptVariable.cs" />
-    <Compile Include="Utilities\IListExtensions.cs" />
-    <Compile Include="Utilities\ParameterValidationHelpers.cs" />
-    <Compile Include="Utilities\PdbHelpers.cs" />
-    <Compile Include="Utilities\TaskExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop" />
@@ -151,7 +97,7 @@
     <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ScriptingResources.resx">
+    <EmbeddedResource Update="ScriptingResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>ScriptingResources.Designer.cs</LastGenOutput>

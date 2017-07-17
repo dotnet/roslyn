@@ -1,28 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{2531A8C4-97DD-47BC-A79C-B7846051E137}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.CodeStyle</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Core\Analyzers\CodeStyle.csproj">
-      <Project>{275812ee-dedb-4232-9439-91c9757d2ae4}</Project>
-      <Name>CodeStyle</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\Core\Analyzers\CodeStyle.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -31,14 +21,14 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Tests" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="VBCodeStyleResources.Designer.vb">
+    <Compile Update="VBCodeStyleResources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>VBCodeStyleResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="VBCodeStyleResources.resx">
+    <EmbeddedResource Update="VBCodeStyleResources.resx">
       <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.VBCodeStyleResources</CustomToolNamespace>
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <LastGenOutput>VBCodeStyleResources.Designer.vb</LastGenOutput>

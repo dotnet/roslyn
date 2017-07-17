@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            rankingSymbol = default(Symbol);
+            rankingSymbol = default;
             return false;
         }
 
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            rankingSymbol = default(Symbol);
+            rankingSymbol = default;
             return false;
         }
 

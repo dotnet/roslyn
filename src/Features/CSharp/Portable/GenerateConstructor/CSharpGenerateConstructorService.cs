@@ -142,10 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             => semanticModel.GenerateNameForArgument(argument, cancellationToken);
 
         protected override RefKind GetRefKind(ArgumentSyntax argument)
-        {
-            return argument.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword ? RefKind.Ref :
-                   argument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword ? RefKind.Out : RefKind.None;
-        }
+            => argument.GetRefKind();
 
         protected override bool IsNamedArgument(ArgumentSyntax argument)
         {

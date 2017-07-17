@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
 
+        Friend Overrides ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
         Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
 
         Friend Overrides ReadOnly Property RequiresExplicitImplementationForInterfaceMembers As Boolean = True
@@ -436,6 +437,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.TokenList(SyntaxFactory.Token(If(isConst, SyntaxKind.ConstKeyword, SyntaxKind.DimKeyword))),
                 SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, identifier, initializer)))
+        End Function
+
+        Friend Overrides Function WithInitializer(variableDeclarator As SyntaxNode, initializer As SyntaxNode) As SyntaxNode
+            Return DirectCast(variableDeclarator, VariableDeclaratorSyntax).WithInitializer(DirectCast(initializer, EqualsValueSyntax))
+        End Function
+
+        Friend Overrides Function EqualsValueClause(operatorToken As SyntaxToken, value As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.EqualsValue(operatorToken, DirectCast(value, ExpressionSyntax))
         End Function
 
         Private Function VariableDeclarator(type As SyntaxNode, name As String, Optional expression As SyntaxNode = Nothing) As VariableDeclaratorSyntax

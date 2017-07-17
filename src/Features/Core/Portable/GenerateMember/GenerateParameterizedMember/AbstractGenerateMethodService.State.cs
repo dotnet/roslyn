@@ -218,8 +218,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes: ImmutableArray<AttributeData>.Empty,
-                    accessibility: default(Accessibility),
-                    modifiers: default(DeclarationModifiers),
+                    accessibility: default,
+                    modifiers: default,
                     returnType: expressionType,
                     returnsByRef: false,
                     explicitInterfaceImplementations: default,

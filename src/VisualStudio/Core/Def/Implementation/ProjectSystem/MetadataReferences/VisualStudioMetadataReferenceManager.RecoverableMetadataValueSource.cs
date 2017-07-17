@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return true;
                 }
 
-                value = default(AssemblyMetadata);
+                value = default;
                 return false;
             }
 

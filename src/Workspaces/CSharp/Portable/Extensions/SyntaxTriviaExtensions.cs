@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var span = trivia.FullSpan;
             if (span.Start == 0)
             {
-                return default(SyntaxTrivia);
+                return default;
             }
 
             return syntaxTree.GetRoot(cancellationToken).FindTrivia(span.Start - 1, findInsideTrivia);
