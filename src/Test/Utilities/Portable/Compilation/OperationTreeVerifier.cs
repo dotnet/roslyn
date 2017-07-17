@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             // IsInvalid
-            if (operation.IsInvalid(_compilation))
+            if (operation.HasErrors(_compilation))
             {
                 LogString(", IsInvalid");
             }
@@ -263,13 +263,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString("IOperation: ");
             LogCommonPropertiesAndNewLine(operation);
 
-            if (operation is IOperationWithChildren operationWithChildren)
+            var children = operation.Children.WhereNotNull();
+            if (children.Any())
             {
-                var children = operationWithChildren.Children.WhereNotNull().ToImmutableArray();
-                if (children.Length > 0)
-                {
-                    VisitArray(children, "Children", logElementCount: true);
-                }
+                VisitArray(children, "Children", logElementCount: true);
             }
         }
 
