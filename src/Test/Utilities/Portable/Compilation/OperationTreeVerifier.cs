@@ -201,6 +201,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (operation == null)
             {
+                LogString("null");
+                LogNewLine();
                 return;
             }
 
@@ -221,11 +223,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Debug.Assert(!string.IsNullOrEmpty(header));
 
-            if (operation == null)
-            {
-                return;
-            }
-
             Indent();
             LogString($"{header}: ");
             Visit(operation);
@@ -237,16 +234,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Debug.Assert(!string.IsNullOrEmpty(header));
 
-            var count = list.Count();
-            if (count == 0)
+            Indent();
+            if (!list.IsEmpty())
             {
-                return;
+                var elementCount = logElementCount ? $"({list.Count()})" : string.Empty;
+                LogString($"{header}{elementCount}:");
+                LogNewLine();
+                Indent();
+                VisitArray(list);
+                Unindent();
+            }
+            else
+            {
+                LogString($"{header}(0)");
+                LogNewLine();
             }
 
-            var elementCount = logElementCount ? $"({count})" : string.Empty;
-            Indent();
-            LogString($"{header}{elementCount}: ");
-            VisitArray(list);
             Unindent();
         }
 
@@ -539,9 +542,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInvocationExpression));
 
             var isVirtualStr = operation.IsVirtual ? "virtual " : string.Empty;
-            var isStaticStr = operation.Instance == null ? "static " : string.Empty;
             var spacing = !operation.IsVirtual && operation.Instance != null ? " " : string.Empty;
-            LogString($" ({isVirtualStr}{isStaticStr}{spacing}");
+            LogString($" ({isVirtualStr}{spacing}");
             LogSymbol(operation.TargetMethod, header: string.Empty);
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);

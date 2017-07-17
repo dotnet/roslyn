@@ -60,8 +60,5 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

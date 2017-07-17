@@ -1195,11 +1195,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         private ITupleExpression CreateBoundTupleExpressionOperation(BoundTupleExpression boundTupleExpression)
         {
             Lazy<ImmutableArray<IOperation>> elements = new Lazy<ImmutableArray<IOperation>>(() => boundTupleExpression.Arguments.SelectAsArray(element => Create(element)));
-            bool isInvalid = boundTupleExpression.HasErrors;
             SyntaxNode syntax = boundTupleExpression.Syntax;
             ITypeSymbol type = boundTupleExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundTupleExpression.ConstantValue);
-            return new LazyTupleExpression(elements, isInvalid, syntax, type, constantValue);
+            return new LazyTupleExpression(elements, syntax, type, constantValue);
         }
 
         private IInterpolatedStringExpression CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString)

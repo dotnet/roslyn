@@ -1013,11 +1013,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundTupleExpressionOperation(boundTupleExpression As BoundTupleExpression) As ITupleExpression
             Dim elements As New Lazy(Of ImmutableArray(Of IOperation))(Function() boundTupleExpression.Arguments.SelectAsArray(Function(element) Create(element)))
-            Dim isInvalid As Boolean = boundTupleExpression.HasErrors
             Dim syntax As SyntaxNode = boundTupleExpression.Syntax
             Dim type As ITypeSymbol = boundTupleExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTupleExpression.ConstantValueOpt)
-            Return New LazyTupleExpression(elements, isInvalid, syntax, type, constantValue)
+            Return New LazyTupleExpression(elements, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundInterpolatedStringExpressionOperation(boundInterpolatedString As BoundInterpolatedStringExpression) As IInterpolatedStringExpression

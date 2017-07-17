@@ -201,7 +201,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("[|AbCd|]xxx[|Ef|]Cd[|Gh|]", "AbCdEfGh", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseSensitive)]
 
         [InlineData("A[|BCD|]EFGH", "bcd", PatternMatchKind.Substring, CaseInsensitive)]
-        [InlineData("Abcdefghij[|EfgHij|]", "efghij", PatternMatchKind.CamelCaseSubstring, CaseInsensitive)]
+        [InlineData("FogBar[|ChangedEventArgs|]", "changedeventargs", PatternMatchKind.Substring, CaseInsensitive)]
+        [InlineData("Abcdefghij[|EfgHij|]", "efghij", PatternMatchKind.Substring, CaseInsensitive)]
 
         [InlineData("[|F|]og[|B|]ar", "FB", PatternMatchKind.CamelCaseExact, CaseSensitive)]
         [InlineData("[|Fo|]g[|B|]ar", "FoB", PatternMatchKind.CamelCaseExact, CaseSensitive)]
@@ -220,7 +221,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("[|F|]og[|_B|]ar", "F_b", PatternMatchKind.CamelCaseExact, CaseInsensitive)]
         [InlineData("[|_F|]og[|B|]ar", "_fB", PatternMatchKind.CamelCaseExact, CaseInsensitive)]
         [InlineData("[|F|]og[|_B|]ar", "f_B", PatternMatchKind.CamelCaseExact, CaseInsensitive)]
-        [InlineData("FogBar[|ChangedEventArgs|]", "changedeventargs", PatternMatchKind.CamelCaseSubstring, CaseInsensitive)]
 
         [InlineData("[|Si|]mple[|UI|]Element", "SiUI", PatternMatchKind.CamelCaseExact, CaseSensitive)]
 
@@ -472,23 +472,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private static IList<string> PartListToSubstrings(string identifier, StringBreaks parts)
+        private static ImmutableArray<string> PartListToSubstrings(string identifier, ArrayBuilder<TextSpan> parts)
         {
-            var result = new List<string>();
-            for (int i = 0, n = parts.GetCount(); i < n; i++)
+            var result = ArrayBuilder<string>.GetInstance();
+            foreach (var span in parts)
             {
-                var span = parts[i];
                 result.Add(identifier.Substring(span.Start, span.Length));
             }
 
-            return result;
+            parts.Free();
+            return result.ToImmutableAndFree();
         }
 
-        private static IList<string> BreakIntoCharacterParts(string identifier)
-            => PartListToSubstrings(identifier, StringBreaker.BreakIntoCharacterParts(identifier));
+        private static ImmutableArray<string> BreakIntoCharacterParts(string identifier)
+            => PartListToSubstrings(identifier, StringBreaker.GetCharacterParts(identifier));
 
-        private static IList<string> BreakIntoWordParts(string identifier)
-            => PartListToSubstrings(identifier, StringBreaker.BreakIntoWordParts(identifier));
+        private static ImmutableArray<string> BreakIntoWordParts(string identifier)
+            => PartListToSubstrings(identifier, StringBreaker.GetWordParts(identifier));
 
         private static PatternMatch? TestNonFuzzyMatch(string candidate, string pattern)
         {

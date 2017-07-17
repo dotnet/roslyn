@@ -4763,8 +4763,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseTupleExpression : Operation, ITupleExpression
     {
-        protected BaseTupleExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.TupleExpression, isInvalid, syntax, type, constantValue)
+        protected BaseTupleExpression(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.TupleExpression, syntax, type, constantValue)
         {
         }
         /// <summary>
@@ -4796,8 +4796,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class TupleExpression : BaseTupleExpression, ITupleExpression
     {
-        public TupleExpression(ImmutableArray<IOperation> elements, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(isInvalid, syntax, type, constantValue)
+        public TupleExpression(ImmutableArray<IOperation> elements, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
         {
             Elements = elements;
         }
@@ -4814,8 +4814,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<ImmutableArray<IOperation>> _lazyElements;
 
-        public LazyTupleExpression(Lazy<ImmutableArray<IOperation>> elements, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(isInvalid, syntax, type, constantValue)
+        public LazyTupleExpression(Lazy<ImmutableArray<IOperation>> elements, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
         {
             _lazyElements = elements;
         }

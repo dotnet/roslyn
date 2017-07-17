@@ -216,8 +216,10 @@ Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp4 = 4 -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp5 = 5 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp6 = 6 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7 = 7 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_1 = 701 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.Default = 0 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts
 Microsoft.CodeAnalysis.CSharp.QueryClauseInfo
 Microsoft.CodeAnalysis.CSharp.QueryClauseInfo.CastInfo.get -> Microsoft.CodeAnalysis.SymbolInfo
 Microsoft.CodeAnalysis.CSharp.QueryClauseInfo.Equals(Microsoft.CodeAnalysis.CSharp.QueryClauseInfo other) -> bool
@@ -2251,6 +2253,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.CompilationUnit = 8840 -> Microsoft.Cod
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ComplexElementInitializerExpression = 8648 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConditionalAccessExpression = 8691 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConditionalExpression = 8633 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConflictMarkerTrivia = 8564 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConstantPattern = 9002 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConstKeyword = 8350 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConstructorConstraint = 8867 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
@@ -2267,6 +2270,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeclarationExpression = 9040 -> Microso
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeclarationPattern = 9000 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultExpression = 8764 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultKeyword = 8333 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultLiteralExpression = 8755 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultSwitchLabel = 8824 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefineDirectiveTrivia = 8554 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefineKeyword = 8471 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
@@ -3610,6 +3614,9 @@ static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.DeserializeFrom(System.IO.
 static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.Create(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode root, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, string path = "", System.Text.Encoding encoding = null) -> Microsoft.CodeAnalysis.SyntaxTree
 static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, string path = "", System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
 static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(string text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, string path = "", System.Text.Encoding encoding = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
+static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(this Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.ToDisplayString(this Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> string
+static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(this string version, out Microsoft.CodeAnalysis.CSharp.LanguageVersion result) -> bool
 static Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(char c, bool quote) -> string
 static Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(string value, bool quote) -> string
 static Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatPrimitive(object obj, bool quoteStrings, bool useHexadecimalNumbers) -> string
@@ -4363,6 +4370,7 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsPunctuation(Microsoft.CodeAna
 static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsPunctuationOrKeyword(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
 static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsQueryContextualKeyword(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
 static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsReservedKeyword(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
+static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsReservedTupleElementName(string elementName) -> bool
 static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsTrivia(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
 static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsTypeDeclaration(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
 static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsTypeParameterVarianceKeyword(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
@@ -4370,6 +4378,7 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsTypeSyntax(Microsoft.CodeAnal
 static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsUnaryOperatorDeclarationToken(Microsoft.CodeAnalysis.CSharp.SyntaxKind token) -> bool
 static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsValidIdentifier(string name) -> bool
 static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsWhitespace(char ch) -> bool
+static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.TryGetInferredMemberName(this Microsoft.CodeAnalysis.SyntaxNode syntax) -> string
 static Microsoft.CodeAnalysis.CSharp.TypedConstantExtensions.ToCSharpString(this Microsoft.CodeAnalysis.TypedConstant constant) -> string
 static Microsoft.CodeAnalysis.CSharpExtensions.Any(this Microsoft.CodeAnalysis.SyntaxTokenList list, Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
 static Microsoft.CodeAnalysis.CSharpExtensions.Any(this Microsoft.CodeAnalysis.SyntaxTriviaList list, Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool

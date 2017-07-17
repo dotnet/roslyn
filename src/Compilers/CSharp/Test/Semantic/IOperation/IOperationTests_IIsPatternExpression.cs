@@ -414,12 +414,13 @@ class X
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is /*</bind>*/')
   Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: '')
       Value: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+            Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term 'const'
@@ -463,9 +464,10 @@ class X
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'string.Empty is string y')
   Expression: IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+      Instance Receiver: null
   Pattern: IDeclarationPattern (Declared Symbol: System.String y) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'string y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -487,9 +489,10 @@ class C
     private readonly bool b = /*<bind>*/o is int x/*</bind>*/ && x >= 5;
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'o is int x')
   Expression: IFieldReferenceExpression: System.Object C.o (Static) (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
+      Instance Receiver: null
   Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -548,9 +551,10 @@ class C
     private const object o = 1;
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'o is int x')
   Expression: IFieldReferenceExpression: System.Object C.o (Static) (OperationKind.FieldReferenceExpression, Type: System.Object, Constant: 1, IsInvalid) (Syntax: 'o')
+      Instance Receiver: null
   Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

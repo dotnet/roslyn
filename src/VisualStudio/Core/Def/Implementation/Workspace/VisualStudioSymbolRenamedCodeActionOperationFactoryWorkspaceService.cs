@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _updatedSolution = updatedSolution;
             }
 
-            public override void Apply(Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
+            public override void Apply(Workspace workspace, CancellationToken cancellationToken = default)
             {
                 var updatedDocumentIds = _updatedSolution.GetChanges(_startingSolution).GetProjectChanges().SelectMany(p => p.GetChangedDocuments());
 
