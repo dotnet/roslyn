@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             // IsInvalid
-            if (operation.HasDiagnostics(_compilation))
+            if (operation.HasErrors(_compilation))
             {
                 LogString(", IsInvalid");
             }
