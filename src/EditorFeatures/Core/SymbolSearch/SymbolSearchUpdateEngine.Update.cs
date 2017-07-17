@@ -252,10 +252,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         WorkspaceDesktopResources.Downloading_index_failed_0,
                         "\r\n" + e.ToString());
                     await _service._progressService.OnDownloadFullDatabaseFailedAsync(message).ConfigureAwait(false);
-
-                    var failureDelay = _service._delayService.CatastrophicFailureDelay;
-                    await _service.LogInfoAsync($"Unable to download full. Update again in {failureDelay}").ConfigureAwait(false);
-                    return failureDelay;
+                    throw;
                 }
             }
 
@@ -302,9 +299,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
                     // We retrieved bytes from the server, but we couldn't make a DB
-                    // out of it.  That's very bad.  We'll have to try again later.
-                    await _service.LogInfoAsync($"Unable to create database from full database element.").ConfigureAwait(false);
-                    throw;
+                   // out of it.  That's very bad.  Just trying again one minute later
+                    // isn't going to help.  We need to wait until there is good data
+                    // on the server for us to download.
+                    var failureDelay = _service._delayService.CatastrophicFailureDelay;
+                    await _service.LogInfoAsync($"Unable to create database from full database element. Update again in {failureDelay}").ConfigureAwait(false);
+                    return (succeeded: false, failureDelay);
                 }
 
                 // Write the file out to disk so we'll have it the next time we launch VS.  Do this
