@@ -1203,11 +1203,13 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IInterpolatedStringExpression CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString)
         {
-            Lazy<ImmutableArray<IInterpolatedStringContent>> parts = new Lazy<ImmutableArray<IInterpolatedStringContent>>(() =>
-                boundInterpolatedString.Parts.SelectAsArray(interpolatedStringContent => CreateBoundInterpolatedStringContentOperation(interpolatedStringContent)));
             SyntaxNode syntax = boundInterpolatedString.Syntax;
             ITypeSymbol type = boundInterpolatedString.Type;
             Optional<object> constantValue = ConvertToOptional(boundInterpolatedString.ConstantValue);
+            Lazy<ImmutableArray<IInterpolatedStringContent>> parts = new Lazy<ImmutableArray<IInterpolatedStringContent>>(() =>
+                boundInterpolatedString.Parts.IsDefaultOrEmpty ?
+                ImmutableArray.Create<IInterpolatedStringContent>(new InterpolatedStringText(new LiteralExpression(string.Empty, syntax, type, constantValue), syntax, type, constantValue)) :
+                boundInterpolatedString.Parts.SelectAsArray(interpolatedStringContent => CreateBoundInterpolatedStringContentOperation(interpolatedStringContent)));
             return new LazyInterpolatedStringExpression(parts, syntax, type, constantValue);
         }
 

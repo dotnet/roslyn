@@ -1020,15 +1020,17 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundInterpolatedStringExpressionOperation(boundInterpolatedString As BoundInterpolatedStringExpression) As IInterpolatedStringExpression
-            Dim parts As New Lazy(Of ImmutableArray(Of IInterpolatedStringContent))(
-                Function()
-                    Return boundInterpolatedString.Contents.SelectAsArray(Function(interpolatedStringContent) CreateBoundInterpolatedStringContentOperation(interpolatedStringContent))
-                End Function)
-
             Dim syntax As SyntaxNode = boundInterpolatedString.Syntax
             Dim type As ITypeSymbol = boundInterpolatedString.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundInterpolatedString.ConstantValueOpt)
-            Return New LazyInterpolatedStringExpression(parts, syntax, type, constantValue)
+
+            Dim parts As New Lazy(Of ImmutableArray(Of IInterpolatedStringContent))(
+                Function()
+                    Return If(boundInterpolatedString.Contents.IsDefaultOrEmpty,
+                        ImmutableArray.Create(Of IInterpolatedStringContent)(New InterpolatedStringText(New LiteralExpression(String.Empty, syntax, type, constantValue), syntax, type, constantValue)),
+                        boundInterpolatedString.Contents.SelectAsArray(Function(interpolatedStringContent) CreateBoundInterpolatedStringContentOperation(interpolatedStringContent)))
+                End Function)
+            Return New LazyInterpolatedStringExpression(parts, Syntax, Type, ConstantValue)
         End Function
 
         Private Function CreateBoundInterpolatedStringContentOperation(boundNode As BoundNode) As IInterpolatedStringContent

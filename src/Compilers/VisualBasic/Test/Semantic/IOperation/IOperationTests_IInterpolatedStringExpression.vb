@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -19,9 +19,11 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""')
-  Parts(0)
+  Parts(1):
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: '$""')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String) (Syntax: '$""')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
