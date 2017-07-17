@@ -333,7 +333,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result |= mods;
             }
 
-            result = ModifierUtils.CheckModifiers(result, allowedModifiers, self.Locations[0], diagnostics, out modifierErrors);
+            result = ModifierUtils.CheckModifiers(
+                result, allowedModifiers, self.Locations[0], diagnostics, 
+                modifierTokensOpt: null, modifierErrors: out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
             {

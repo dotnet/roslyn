@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool modifierErrors)
         {
             var result = modifiers.ToDeclarationModifiers(diagnostics);
-            result = CheckModifiers(result, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
+            result = CheckModifiers(result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
             {
@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
             DiagnosticBag diagnostics,
+            SyntaxTokenList? modifierTokensOpt,
             out bool modifierErrors)
         {
             modifierErrors = false;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case DeclarationModifiers.Partial:
                         // Provide a specialized error message in the case of partial.
-                        diagnostics.Add(ErrorCode.ERR_PartialMisplaced, errorLocation);
+                        ReportPartialError(errorLocation, diagnostics, modifierTokensOpt);
                         break;
 
                     default:
@@ -63,6 +64,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, errorLocation);
             }
             return result;
+        }
+
+        private static void ReportPartialError(Location errorLocation, DiagnosticBag diagnostics, SyntaxTokenList? modifierTokensOpt)
+        {
+            if (modifierTokensOpt != null)
+            {
+                // If we can find the 'partial' token, report it on that.
+                var partialToken = modifierTokensOpt.Value.FirstOrNullable(t => t.Kind() == SyntaxKind.PartialKeyword);
+                if (partialToken != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.Value.GetLocation());
+                    return;
+                }
+            }
+
+            diagnostics.Add(ErrorCode.ERR_PartialMisplaced, errorLocation);
         }
 
         private static string ConvertSingleModifierToSyntaxText(DeclarationModifiers modifier)
