@@ -71,32 +71,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var options = new TaskHandlerOptions
             {
-                Title = title
+                Title = title,
+                RetentionAfterCompletion = CompletionRetention.Faulted
             };
 
-            try
-            {
-                // A breaking change was made to the Options struct.  So safely try to set the 
-                // retention mode in a try/catch so that if we can't even load that code on VS
-                // we won't crash.
-                //
-                // Note: not setting the retention mode is fine.  It just means the VSTask will be
-                // removed once it completes in any way.  The desired behavior is for it to stay
-                // around if there was a failure.  And that's the behavior you get if your VS
-                // has the same version of this API that roslyn is targetting.
-                options = SetRetentionMode(options);
-            }
-            catch
-            {
-            }
-
-            return options;
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static TaskHandlerOptions SetRetentionMode(TaskHandlerOptions options)
-        {
-            options.ActionsAfterCompletion = CompletionActions.RetainOnFaulted;
             return options;
         }
 
