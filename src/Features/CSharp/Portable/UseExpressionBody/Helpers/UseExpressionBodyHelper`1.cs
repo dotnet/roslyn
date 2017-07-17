@@ -112,10 +112,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             out ArrowExpressionClauseSyntax expressionWhenOnSingleLine, 
             out SyntaxToken semicolonWhenOnSingleLine)
         {
+            return TryConvertToExpressionBodyWorker(
+                declaration, options, conversionPreference,
+                out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
+        }
+
+        private bool TryConvertToExpressionBodyWorker(
+            SyntaxNode declaration, ParseOptions options, ExpressionBodyPreference conversionPreference,
+            out ArrowExpressionClauseSyntax expressionWhenOnSingleLine, out SyntaxToken semicolonWhenOnSingleLine)
+        {
             var body = this.GetBody(declaration);
 
-            return body.TryConvertToExpressionBody(options, conversionPreference,
+            return body.TryConvertToExpressionBody(
+                declaration.Kind(), options, conversionPreference,
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
+        }
+
+        protected bool TryConvertToExpressionBodyForBaseProperty(
+            BasePropertyDeclarationSyntax declaration, ParseOptions options,
+            ExpressionBodyPreference conversionPreference,
+            out ArrowExpressionClauseSyntax arrowExpression,
+            out SyntaxToken semicolonToken)
+        {
+            if (this.TryConvertToExpressionBodyWorker(
+                    declaration, options, conversionPreference,
+                    out arrowExpression, out semicolonToken))
+            {
+                return true;
+            }
+
+            var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
+            if (getAccessor?.ExpressionBody != null &&
+                BlockSyntaxExtensions.MatchesPreference(getAccessor.ExpressionBody.Expression, conversionPreference))
+            {
+                arrowExpression = SyntaxFactory.ArrowExpressionClause(getAccessor.ExpressionBody.Expression);
+                semicolonToken = getAccessor.SemicolonToken;
+                return true;
+            }
+
+            return false;
         }
 
         public (bool canOffer, bool fixesError) CanOfferUseBlockBody(
@@ -171,8 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             if (useExpressionBody)
             {
-                TryConvertToExpressionBody(declaration, declaration.SyntaxTree.Options,
-                    ExpressionBodyPreference.WhenPossible, out var expressionBody, out var semicolonToken);
+                TryConvertToExpressionBody(
+                    declaration, declaration.SyntaxTree.Options, ExpressionBodyPreference.WhenPossible,
+                    out var expressionBody, out var semicolonToken);
 
                 var trailingTrivia = semicolonToken.TrailingTrivia
                                                    .Where(t => t.Kind() != SyntaxKind.EndOfLineTrivia)

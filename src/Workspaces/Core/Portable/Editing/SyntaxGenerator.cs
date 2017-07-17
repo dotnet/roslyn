@@ -1395,6 +1395,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode LocalDeclarationStatement(SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);
 
+        internal abstract SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer);
+        internal abstract SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value);
+
         /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>

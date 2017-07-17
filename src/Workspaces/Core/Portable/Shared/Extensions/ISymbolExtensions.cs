@@ -290,9 +290,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsAnonymousTypeProperty(this ISymbol symbol)
-        {
-            return symbol is IPropertySymbol && symbol.ContainingType.IsNormalAnonymousType();
-        }
+            => symbol is IPropertySymbol && symbol.ContainingType.IsNormalAnonymousType();
+
+        public static bool IsTupleField(this ISymbol symbol)
+            => symbol is IFieldSymbol && symbol.ContainingType.IsTupleType;
 
         public static bool IsIndexer(this ISymbol symbol)
         {

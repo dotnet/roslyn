@@ -439,6 +439,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, identifier, initializer)))
         End Function
 
+        Friend Overrides Function WithInitializer(variableDeclarator As SyntaxNode, initializer As SyntaxNode) As SyntaxNode
+            Return DirectCast(variableDeclarator, VariableDeclaratorSyntax).WithInitializer(DirectCast(initializer, EqualsValueSyntax))
+        End Function
+
+        Friend Overrides Function EqualsValueClause(operatorToken As SyntaxToken, value As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.EqualsValue(operatorToken, DirectCast(value, ExpressionSyntax))
+        End Function
+
         Private Function VariableDeclarator(type As SyntaxNode, name As String, Optional expression As SyntaxNode = Nothing) As VariableDeclaratorSyntax
             Return SyntaxFactory.VariableDeclarator(
                 SyntaxFactory.SingletonSeparatedList(name.ToModifiedIdentifier),
