@@ -22,6 +22,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return result;
             }
 
+            internal static ImmutableArray<Words> GetBaseNames(IAliasSymbol alias)
+            {
+                var name = alias.Name;
+                if (alias.Target.IsType && (((INamedTypeSymbol)alias.Target).IsInterfaceType()
+                    && CanRemoveInterfacePrefix(name)))
+                {
+                    name = name.Substring(1);
+                }
+
+                var breaks = StringBreaker.GetWordParts(name);
+                var result = GetInterleavedPatterns(breaks, name);
+                breaks.Free();
+                return result;
+            }
+
             private static ImmutableArray<Words> GetInterleavedPatterns(ArrayBuilder<TextSpan> breaks, string baseName)
             {
                 var result = ArrayBuilder<Words>.GetInstance();
@@ -69,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var name = type.Name;
                 if (type.TypeKind == TypeKind.Interface && name.Length > 1)
                 {
-                    if (name[0] == 'I' && char.IsLower(name[1]))
+                    if (CanRemoveInterfacePrefix(name))
                     {
                         return name.Substring(1);
                     }
@@ -77,5 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return type.CreateParameterName();
             }
         }
+
+        private static bool CanRemoveInterfacePrefix(string name) => name.Length > 1 && name[0] == 'I' && char.IsUpper(name[1]);
     }
 }
