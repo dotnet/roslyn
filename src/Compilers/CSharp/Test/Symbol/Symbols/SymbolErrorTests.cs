@@ -13331,7 +13331,7 @@ namespace NS
         }
 
         [Fact]
-        public void CS0753ERR_PartialMethodOnlyMethods()
+        public void CS067ERR_ERR_PartialMisplaced()
         {
             var text = @"
 partial class C
@@ -13347,18 +13347,18 @@ partial class C
 ";
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                   // (5,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                   //     partial int f;
-                   Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "f"),
-                   // (6,20): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                   //     partial object P { get { return null; } }
-                   Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "P"),
-                  // (7,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                  //     partial int this[int index]
-                  Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "this"),
-                   // (5,17): warning CS0169: The field 'C.f' is never used
-                   //     partial int f;
-                   Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f"));
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial int f;
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial object P { get { return null; } }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
+                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial int this[int index]
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5),
+                // (4,17): warning CS0169: The field 'C.f' is never used
+                //     partial int f;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f").WithLocation(4, 17));
         }
 
         [Fact]
