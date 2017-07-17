@@ -1,0 +1,36 @@
+{
+  "master": {
+    "nugetPush": [
+        {
+            "kind": "PerBuildPreRelease", 
+            "url": "https://dotnet.myget.org/F/roslyn/api/v2/package"
+        }
+    ],
+    "vsixPush": "https://dotnet.myget.org/F/roslyn/vsix/upload",
+    "channels": [
+        {
+            "name": "dev15.5",
+            "kind": "PerBuildPreRelease"
+        },
+        {
+            "name": "dev15.5p1",
+            "kind": "PerBuildPreRelease"
+        }
+    ]
+  },
+
+  "dev16": {
+    "nugetPush": [
+        {
+            "kind": "PerBuildPreRelease", 
+            "url": "https://dotnet.myget.org/F/roslyn/api/v2/package"
+        }
+    ],
+    "channels": [
+        {
+            "name": "dev16",
+            "kind": "PerBuildPreRelease"
+        }
+    ]
+  }
+}
