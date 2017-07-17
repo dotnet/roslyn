@@ -20,8 +20,8 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: '(x, x + y)')
-  Children(2):
+ITupleExpression (OperationKind.TupleExpression, Type: (x As System.Int32, System.Int32)) (Syntax: '(x, x + y)')
+  Elements(2):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
       IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
         Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')

@@ -543,6 +543,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitInvalidExpression(operation);
         }
 
+        public override void VisitTupleExpression(ITupleExpression operation)
+        {
+            base.VisitTupleExpression(operation);
+        }
+
         public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
         {
             base.VisitInterpolatedStringExpression(operation);

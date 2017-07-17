@@ -136,6 +136,8 @@ namespace Microsoft.CodeAnalysis
         CollectionElementInitializerExpression = 0x122,
         /// <summary>Indicates an <see cref="INameOfExpression"/>.</summary>
         NameOfExpression = 0x123,
+        /// <summary>Indicates an <see cref="ITupleExpression"/>.</summary>
+        TupleExpression = 0x124,
 
         // Expressions that occur only in C#.
 

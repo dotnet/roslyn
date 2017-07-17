@@ -4,11 +4,6 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundTupleExpression
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments);
-    }
-
     internal partial class BoundDelegateCreationExpression
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Argument);

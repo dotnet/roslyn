@@ -4759,6 +4759,73 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a tuple expression.
+    /// </summary>
+    internal abstract partial class BaseTupleExpression : Operation, ITupleExpression
+    {
+        protected BaseTupleExpression(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.TupleExpression, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Elements for tuple expression.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> Elements { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var element in Elements)
+                {
+                    yield return element;
+                }
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitTupleExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitTupleExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a tuple expression.
+    /// </summary>
+    internal sealed partial class TupleExpression : BaseTupleExpression, ITupleExpression
+    {
+        public TupleExpression(ImmutableArray<IOperation> elements, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            Elements = elements;
+        }
+        /// <summary>
+        /// Elements for tuple expression.
+        /// </summary>
+        public override ImmutableArray<IOperation> Elements { get; }
+    }
+
+    /// <summary>
+    /// Represents a tuple expression.
+    /// </summary>
+    internal sealed partial class LazyTupleExpression : BaseTupleExpression, ITupleExpression
+    {
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyElements;
+
+        public LazyTupleExpression(Lazy<ImmutableArray<IOperation>> elements, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            _lazyElements = elements;
+        }
+        /// <summary>
+        /// Elements for tuple expression.
+        /// </summary>
+        public override ImmutableArray<IOperation> Elements => _lazyElements.Value;
+    }
+
+    /// <summary>
     /// Represents a TypeOf expression.
     /// </summary>
     internal sealed partial class TypeOfExpression : TypeOperationExpression, ITypeOfExpression

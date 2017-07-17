@@ -1155,6 +1155,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCaseClauseCommon(operation);
         }
 
+        public override void VisitTupleExpression(ITupleExpression operation)
+        {
+            LogString(nameof(ITupleExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Elements, "Elements", logElementCount: true);
+        }
+
         public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
         {
             LogString(nameof(IInterpolatedStringExpression));
