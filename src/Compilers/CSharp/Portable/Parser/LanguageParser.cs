@@ -5329,15 +5329,26 @@ tryAgain:
                             result = ScanTypeFlags.GenericTypeOrMethod;
                             break;
 
-                        case ScanTypeFlags.TupleType:
-                            // See above.  If we have  X<(a, b),   or  X<(a, b)> then this is definitely a type argument list.
-                            // 
-                            // Note: this works because ScanType ensures that tuples have at least two elements
-                            // in them.  if it didn't, we could have  X<a, (b)>    which could totally be a real
-                            // expression and not a type argument list.
-                            isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
-                            result = ScanTypeFlags.GenericTypeOrMethod;
-                            break;
+                        // case ScanTypeFlags.TupleType:
+                        // It would be nice if we saw a tuple to state that we definitely had a 
+                        // type argument list.  However, there are cases where this would not be
+                        // true.  For example:
+                        //
+                        // public class C
+                        // {
+                        //     public static void Main()
+                        //     {
+                        //         XX X = default;
+                        //         int a = 1, b = 2;
+                        //         bool z = X < (a, b), w = false;
+                        //     }
+                        // }
+                        //
+                        // struct XX
+                        // {
+                        //     public static bool operator <(XX x, (int a, int b) arg) => true;
+                        //     public static bool operator >(XX x, (int a, int b) arg) => false;
+                        // }
 
                         case ScanTypeFlags.NullableType:
                             // See above.  If we have X<Y?,  or X<Y?>, then this is definitely a type argument list.
@@ -5348,8 +5359,8 @@ tryAgain:
                             }
 
                             // Note: we intentionally fall out without setting 'result'. 
-                            // See a nullable type is not enough information for us to determine
-                            // what this is yet.  i.e. the user may have:
+                            // Seeing a nullable type (not followed by a , or > ) is not enough 
+                            // information for us to determine what this is yet.  i.e. the user may have:
                             //
                             //      X < Y ? Z : W
                             //
