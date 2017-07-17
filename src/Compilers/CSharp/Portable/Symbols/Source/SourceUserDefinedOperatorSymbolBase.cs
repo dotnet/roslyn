@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Unsafe;
 
             bool modifierErrors;
-            var declarationModifiers = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                modifiersSyntax, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            var declarationModifiers = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiersSyntax, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
