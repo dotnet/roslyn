@@ -13331,7 +13331,7 @@ namespace NS
         }
 
         [Fact]
-        public void CS0753ERR_PartialMethodOnlyMethods()
+        public void CS067ERR_ERR_PartialMisplaced()
         {
             var text = @"
 partial class C

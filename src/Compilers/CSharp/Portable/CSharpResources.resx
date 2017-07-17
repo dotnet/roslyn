@@ -2063,9 +2063,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PartialMethodCannotHaveOutParameters" xml:space="preserve">
     <value>A partial method cannot have out parameters</value>
   </data>
-  <data name="ERR_PartialMethodOnlyMethods" xml:space="preserve">
-    <value>Only methods, classes, structs, or interfaces may be partial</value>
-  </data>
   <data name="ERR_PartialMethodNotExplicit" xml:space="preserve">
     <value>A partial method may not explicitly implement an interface method</value>
   </data>
