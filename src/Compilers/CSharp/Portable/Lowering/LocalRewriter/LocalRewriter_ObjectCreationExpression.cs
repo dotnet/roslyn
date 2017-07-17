@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -203,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 resultKind: LookupResultKind.Viable,
+                binderOpt: null,
                 type: typeParameter);
 
             return createInstanceCall;

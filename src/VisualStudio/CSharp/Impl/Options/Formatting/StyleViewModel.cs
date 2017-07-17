@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     {
         #region "Preview Text"
 
-        private static readonly string s_fieldDeclarationPreviewTrue = @"
+        private const string s_fieldDeclarationPreviewTrue = @"
 class C{
     int capacity;
     void Method()
@@ -32,7 +32,7 @@ class C{
     }
 }";
 
-        private static readonly string s_fieldDeclarationPreviewFalse = @"
+        private const string s_fieldDeclarationPreviewFalse = @"
 class C{
     int capacity;
     void Method()
@@ -43,7 +43,7 @@ class C{
     }
 }";
 
-        private static readonly string s_propertyDeclarationPreviewTrue = @"
+        private const string s_propertyDeclarationPreviewTrue = @"
 class C{
     public int Id { get; set; }
     void Method()
@@ -54,7 +54,7 @@ class C{
     }
 }";
 
-        private static readonly string s_propertyDeclarationPreviewFalse = @"
+        private const string s_propertyDeclarationPreviewFalse = @"
 class C{
     public int Id { get; set; }
     void Method()
@@ -65,7 +65,7 @@ class C{
     }
 }";
 
-        private static readonly string s_eventDeclarationPreviewTrue = @"
+        private const string s_eventDeclarationPreviewTrue = @"
 using System;
 class C{
     event EventHandler Elapsed;
@@ -77,7 +77,7 @@ class C{
     }
 }";
 
-        private static readonly string s_eventDeclarationPreviewFalse = @"
+        private const string s_eventDeclarationPreviewFalse = @"
 using System;
 class C{
     event EventHandler Elapsed;
@@ -89,7 +89,7 @@ class C{
     }
 }";
 
-        private static readonly string s_methodDeclarationPreviewTrue = @"
+        private const string s_methodDeclarationPreviewTrue = @"
 using System;
 class C{
     void Display()
@@ -100,7 +100,7 @@ class C{
     }
 }";
 
-        private static readonly string s_methodDeclarationPreviewFalse = @"
+        private const string s_methodDeclarationPreviewFalse = @"
 using System;
 class C{
     void Display()
@@ -111,7 +111,7 @@ class C{
     }
 }";
 
-        private static readonly string s_intrinsicPreviewDeclarationTrue = @"
+        private const string s_intrinsicPreviewDeclarationTrue = @"
 class Program
 {
 //[
@@ -123,7 +123,7 @@ class Program
 //]
 }";
 
-        private static readonly string s_intrinsicPreviewDeclarationFalse = @"
+        private const string s_intrinsicPreviewDeclarationFalse = @"
 using System;
 class Program
 {
@@ -136,7 +136,7 @@ class Program
 //]
 }";
 
-        private static readonly string s_intrinsicPreviewMemberAccessTrue = @"
+        private const string s_intrinsicPreviewMemberAccessTrue = @"
 class Program
 {
 //[
@@ -147,7 +147,7 @@ class Program
 //]
 }";
 
-        private static readonly string s_intrinsicPreviewMemberAccessFalse = @"
+        private const string s_intrinsicPreviewMemberAccessFalse = @"
 using System;
 class Program
 {
@@ -442,6 +442,42 @@ class Customer
 }}
 ";
 
+        private static readonly string s_preferInferredTupleName = $@"
+using System.Threading;
+
+class Customer
+{{
+    public Customer(int age, string name)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var tuple = (age, name);
+
+        // {ServicesVSResources.Over_colon}
+        var tuple = (age: age, name: name);
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferInferredAnonymousTypeMemberName = $@"
+using System.Threading;
+
+class Customer
+{{
+    public Customer(int age, string name)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var anon = new {{ age, name }};
+
+        // {ServicesVSResources.Over_colon}
+        var anon = new {{ age = age, name = name }};
+//]
+    }}
+}}
+";
+
         private static readonly string s_preferInlinedVariableDeclaration = $@"
 using System;
 
@@ -489,7 +525,7 @@ class Customer
 }}
 ";
 
-        private static readonly string s_preferExpressionBodyForMethods = @"
+        private const string s_preferExpressionBodyForMethods = @"
 using System;
 
 //[
@@ -502,7 +538,7 @@ class Customer
 //]
 ";
 
-        private static readonly string s_preferBlockBodyForMethods = @"
+        private const string s_preferBlockBodyForMethods = @"
 using System;
 
 //[
@@ -518,7 +554,7 @@ class Customer
 //]
 ";
 
-        private static readonly string s_preferExpressionBodyForConstructors = @"
+        private const string s_preferExpressionBodyForConstructors = @"
 using System;
 
 //[
@@ -531,7 +567,7 @@ class Customer
 //]
 ";
 
-        private static readonly string s_preferBlockBodyForConstructors = @"
+        private const string s_preferBlockBodyForConstructors = @"
 using System;
 
 //[
@@ -547,7 +583,7 @@ class Customer
 //]
 ";
 
-        private static readonly string s_preferExpressionBodyForOperators = @"
+        private const string s_preferExpressionBodyForOperators = @"
 using System;
 
 struct ComplexNumber
@@ -559,7 +595,7 @@ struct ComplexNumber
 }
 ";
 
-        private static readonly string s_preferBlockBodyForOperators = @"
+        private const string s_preferBlockBodyForOperators = @"
 using System;
 
 struct ComplexNumber
@@ -573,7 +609,7 @@ struct ComplexNumber
 }
 ";
 
-        private static readonly string s_preferExpressionBodyForProperties = @"
+        private const string s_preferExpressionBodyForProperties = @"
 using System;
 
 //[
@@ -585,7 +621,7 @@ class Customer
 //]
 ";
 
-        private static readonly string s_preferBlockBodyForProperties = @"
+        private const string s_preferBlockBodyForProperties = @"
 using System;
 
 //[
@@ -597,7 +633,7 @@ class Customer
 //]
 ";
 
-        private static readonly string s_preferExpressionBodyForAccessors = @"
+        private const string s_preferExpressionBodyForAccessors = @"
 using System;
 
 //[
@@ -613,7 +649,7 @@ class Customer
 //]
 ";
 
-        private static readonly string s_preferBlockBodyForAccessors = @"
+        private const string s_preferBlockBodyForAccessors = @"
 using System;
 
 //[
@@ -629,7 +665,7 @@ class Customer
 //]
 ";
 
-        private static readonly string s_preferExpressionBodyForIndexers= @"
+        private const string s_preferExpressionBodyForIndexers = @"
 using System;
 
 //[
@@ -641,7 +677,7 @@ class List<T>
 //]
 ";
 
-        private static readonly string s_preferBlockBodyForIndexers = @"
+        private const string s_preferBlockBodyForIndexers = @"
 using System;
 
 //[
@@ -709,6 +745,8 @@ class List<T>
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, ServicesVSResources.Prefer_simple_default_expression, s_preferSimpleDefaultExpression, s_preferSimpleDefaultExpression, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferInferredTupleNames, ServicesVSResources.Prefer_inferred_tuple_names, s_preferInferredTupleName, s_preferInferredTupleName, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferInferredAnonymousTypeMemberNames, ServicesVSResources.Prefer_inferred_anonymous_type_member_names, s_preferInferredAnonymousTypeMemberName, s_preferInferredAnonymousTypeMemberName, this, optionSet, expressionPreferencesGroupTitle));
 
             AddExpressionBodyOptions(optionSet, expressionPreferencesGroupTitle);
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 _logMessage.Free();
                 _logMessage = null;
                 _logger = null;
-                _cancellationToken = default(CancellationToken);
+                _cancellationToken = default;
 
                 _pool.Free(this);
             }

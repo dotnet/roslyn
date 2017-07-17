@@ -7,7 +7,20 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class CodeStyleHelpers
     {
-        public static bool TryParseEditorConfigCodeStyleOption(string arg, out CodeStyleOption<bool> option)
+        public static bool TryParseStringEditorConfigCodeStyleOption(string arg, out CodeStyleOption<string> option)
+        {
+            if (TryGetCodeStyleValueAndOptionalNotification(
+                    arg, out string value, out NotificationOption notificationOpt))
+            {
+                option = new CodeStyleOption<string>(value, notificationOpt ?? NotificationOption.None);
+                return true;
+            }
+
+            option = null;
+            return false;
+        }
+
+        public static bool TryParseBoolEditorConfigCodeStyleOption(string arg, out CodeStyleOption<bool> option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
                     arg, out string value, out NotificationOption notificationOpt))
@@ -81,7 +94,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             switch (value.Trim())
             {
-                case EditorConfigSeverityStrings.Silent: notification = NotificationOption.None; return true;
+                case EditorConfigSeverityStrings.None:
+                case EditorConfigSeverityStrings.Silent:
+                    notification = NotificationOption.None;
+                    return true;
+
                 case EditorConfigSeverityStrings.Suggestion: notification = NotificationOption.Suggestion; return true;
                 case EditorConfigSeverityStrings.Warning: notification = NotificationOption.Warning; return true;
                 case EditorConfigSeverityStrings.Error: notification = NotificationOption.Error; return true;

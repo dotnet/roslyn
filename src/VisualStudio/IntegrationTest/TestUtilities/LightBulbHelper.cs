@@ -20,6 +20,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 HostWaitHelper.PumpingWait(Task.Delay(TimeSpan.FromSeconds(1)));
 
                 return broker.IsLightBulbSessionActive(view);
-            }, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(20));
+            }, TimeSpan.FromSeconds(0));
     }
 }

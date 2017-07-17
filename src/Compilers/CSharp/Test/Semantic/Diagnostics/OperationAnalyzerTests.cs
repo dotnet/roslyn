@@ -280,7 +280,7 @@ class C
                 Diagnostic(SwitchTestAnalyzer.NoDefaultSwitchDescriptor.Id, "y").WithLocation(40, 17));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void InvocationCSharp()
         {
             const string source = @"
@@ -337,10 +337,6 @@ class C
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new InvocationTestAnalyzer() }, null, null, false,
-                Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "2").WithLocation(16, 21),
-                Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "1").WithLocation(17, 15),
-                Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "2").WithLocation(17, 21),
-                Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "4").WithLocation(17, 33),
                 Diagnostic(InvocationTestAnalyzer.BigParamArrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)").WithLocation(19, 9),
                 Diagnostic(InvocationTestAnalyzer.BigParamArrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)").WithLocation(20, 9),
                 Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "3").WithLocation(23, 21),
@@ -753,7 +749,7 @@ interface IDerived : IMiddle, IBase2
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void ValueContextsCSharp()
         {
             const string source = @"
@@ -1167,7 +1163,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void ParamsArraysCSharp()
         {
             const string source = @"
@@ -1213,17 +1209,13 @@ class C
 ";
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ParamsArrayTestAnalyzer() }, null, null, false,
-                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(13, 15),
-                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(13, 15),
-                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(14, 15),
-                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(14, 15),
-                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }").WithLocation(16, 15),
-                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }").WithLocation(16, 15),
-                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15),
-                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15),
-                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "1").WithLocation(20, 28),
-                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 1, 2, 3, 4 }").WithLocation(21, 28)
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ParamsArrayTestAnalyzer() }, null, null, false, 
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5)").WithLocation(13, 9),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6)").WithLocation(14, 9),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }"),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }"),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, @"new D(""Hello"", 1, 2, 3, 4)").WithLocation(20, 13),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 1, 2, 3, 4 }")
                 );
         }
 
@@ -1623,10 +1615,9 @@ class C
                  Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x + 10").WithArguments("Invalid").WithLocation(29, 13),
                  Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-x").WithArguments("Invalid").WithLocation(31, 13)
                  );
-        }
-
-        [WorkItem(8520, "https://github.com/dotnet/roslyn/issues/8520")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        } 
+        
+        [Fact, WorkItem(8520, "https://github.com/dotnet/roslyn/issues/8520")]
         public void NullOperationSyntaxCSharp()
         {
             const string source = @"
@@ -1650,9 +1641,9 @@ class C
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NullOperationSyntaxTestAnalyzer() }, null, null, false,
-                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0()").WithLocation(10, 9),
-                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(11, 12),
-                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(12, 12));
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0()"),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1)").WithLocation(11, 9),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1, 2)").WithLocation(12, 9));
         }
 
         [WorkItem(9113, "https://github.com/dotnet/roslyn/issues/9113")]
@@ -1724,7 +1715,7 @@ public class A
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidIncrementDescriptor.Id, "f++").WithLocation(16, 9));
         }
         
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549"), WorkItem(9114, "https://github.com/dotnet/roslyn/issues/9114")]
+        [Fact, WorkItem(9114, "https://github.com/dotnet/roslyn/issues/9114")]
         public void InvalidArgumentCSharp()
         {
             const string source = @"
@@ -1748,9 +1739,7 @@ public class A
                 // (8,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'A.Foo(params int)'
                 //         Foo();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("a", "A.Foo(params int)").WithLocation(8, 9))
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new InvocationTestAnalyzer() }, null, null, false,
-                Diagnostic(InvocationTestAnalyzer.InvalidArgumentDescriptor.Id, "Foo()").WithLocation(8, 9),
-                Diagnostic(InvocationTestAnalyzer.InvalidArgumentDescriptor.Id, "Foo(1)").WithLocation(9, 9));
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new InvocationTestAnalyzer() }, null, null, false);
         }
 
         [Fact]
@@ -1812,8 +1801,7 @@ class C
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1").WithLocation(32, 9));
         }
 
-        [WorkItem(9116, "https://github.com/dotnet/roslyn/issues/9116")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact, WorkItem(9116, "https://github.com/dotnet/roslyn/issues/9116")]
         public void LiteralCSharp()
         {
             const string source = @"
@@ -1844,10 +1832,9 @@ struct S
                 Diagnostic("Literal", "1").WithArguments("1").WithLocation(13, 17),
                 Diagnostic("Literal", @"""hello""").WithArguments(@"""hello""").WithLocation(14, 22),
                 Diagnostic("Literal", "null").WithArguments("null").WithLocation(15, 20),
-                Diagnostic("Literal", "M()").WithArguments("1").WithLocation(18, 9),
-                Diagnostic("Literal", "M()").WithArguments(@"""hello""").WithLocation(18, 9),
-                Diagnostic("Literal", "M()").WithArguments("null").WithLocation(18, 9),
-                Diagnostic("Literal", "M()").WithArguments("null").WithLocation(18, 9));
+                Diagnostic("Literal", "M()").WithArguments("M()").WithLocation(18, 9),
+                Diagnostic("Literal", "M()").WithArguments("M()").WithLocation(18, 9),
+                Diagnostic("Literal", "M()").WithArguments("M()").WithLocation(18, 9));
         }
 
         [Fact]

@@ -895,7 +895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' T if we get a delegate as the first argument to Select/Where.
                     If ienumerableType IsNot Nothing AndAlso memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) Then
                         Dim invocation = DirectCast(memberAccessExpression.Parent, InvocationExpressionSyntax)
-                        If invocation.ArgumentList.Arguments.Count > 0 AndAlso
+                        If invocation.ArgumentList IsNot Nothing AndAlso invocation.ArgumentList.Arguments.Count > 0 AndAlso
                            TypeOf invocation.ArgumentList.Arguments(0) Is SimpleArgumentSyntax Then
                             Dim argumentExpression = DirectCast(invocation.ArgumentList.Arguments(0), SimpleArgumentSyntax).Expression
                             Dim argumentTypes = GetTypes(argumentExpression)

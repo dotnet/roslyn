@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -37,17 +38,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken.None, TaskScheduler.Default);
         }
 
-        public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default(CancellationToken))
+        public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
         }
 
-        public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default(CancellationToken))
+        public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
         }
 
-        public void RegisterNotification(Action action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default(CancellationToken))
+        public void RegisterNotification(Action action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             Contract.Requires(delay >= 0);
 
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue.Enqueue(new PendingWork(current + delay, action, asyncToken, cancellationToken));
         }
 
-        public void RegisterNotification(Func<bool> action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default(CancellationToken))
+        public void RegisterNotification(Func<bool> action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             Contract.Requires(delay >= 0);
 
@@ -230,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
         {
             // use pool to share linked list nodes rather than re-create them every time
             private static readonly ObjectPool<LinkedListNode<PendingWork>> s_pool =
-                new ObjectPool<LinkedListNode<PendingWork>>(() => new LinkedListNode<PendingWork>(default(PendingWork)), 100);
+                new ObjectPool<LinkedListNode<PendingWork>>(() => new LinkedListNode<PendingWork>(default), 100);
 
             private readonly object _gate = new object();
             private readonly LinkedList<PendingWork> _list = new LinkedList<PendingWork>();
@@ -329,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
             public bool TryGetWorkItem(int currentTime, out PendingWork pendingWork)
             {
-                pendingWork = default(PendingWork);
+                pendingWork = default;
 
                 lock (_gate)
                 {
@@ -356,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                 _list.RemoveFirst();
 
                 // reset the value and put it back to pool
-                entry.Value = default(PendingWork);
+                entry.Value = default;
                 s_pool.Free(entry);
 
                 return work;

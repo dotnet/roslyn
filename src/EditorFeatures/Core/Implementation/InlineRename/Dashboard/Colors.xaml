@@ -5,8 +5,6 @@
     <Color x:Key="SystemCaptionTextColor">Black</Color>
     <SolidColorBrush x:Key="SystemCaptionTextBrush"  Color="Black"/>
     <SolidColorBrush x:Key="CheckBoxTextBrush"  Color="Black"/>
-    <SolidColorBrush x:Key="RenameResolvableConflictTextBrush" Color="Green"/>
-    <SolidColorBrush x:Key="RenameErrorTextBrush">Red</SolidColorBrush>
     <SolidColorBrush x:Key="BackgroundBrush">LightGray</SolidColorBrush>
     <SolidColorBrush x:Key="AccentBarBrush">Blue</SolidColorBrush>
     <Style TargetType="Button" x:Key="ButtonStyle" BasedOn="{StaticResource {x:Type Button}}"/>

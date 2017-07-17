@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
             => CanOfferUseExpressionBody(optionSet, (TDeclaration)declaration, forAnalyzer);
 
-        public override bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
+        public override (bool canOffer, bool fixesError) CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
             => CanOfferUseBlockBody(optionSet, (TDeclaration)declaration, forAnalyzer);
 
-        public override SyntaxNode Update(SyntaxNode declaration, OptionSet options, bool useExpressionBody)
-            => Update((TDeclaration)declaration, options, useExpressionBody);
+        public override SyntaxNode Update(SyntaxNode declaration, OptionSet options, ParseOptions parseOptions, bool useExpressionBody)
+            => Update((TDeclaration)declaration, options, parseOptions, useExpressionBody);
 
         public override Location GetDiagnosticLocation(SyntaxNode declaration)
             => GetDiagnosticLocation((TDeclaration)declaration);
@@ -112,35 +112,103 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             out ArrowExpressionClauseSyntax expressionWhenOnSingleLine, 
             out SyntaxToken semicolonWhenOnSingleLine)
         {
-            var body = this.GetBody(declaration);
-
-            return body.TryConvertToExpressionBody(options, conversionPreference,
+            return TryConvertToExpressionBodyWorker(
+                declaration, options, conversionPreference,
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }
 
-        public virtual bool CanOfferUseBlockBody(
-            OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
+        private bool TryConvertToExpressionBodyWorker(
+            SyntaxNode declaration, ParseOptions options, ExpressionBodyPreference conversionPreference,
+            out ArrowExpressionClauseSyntax expressionWhenOnSingleLine, out SyntaxToken semicolonWhenOnSingleLine)
         {
-            var preference = optionSet.GetOption(this.Option).Value;
-            var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
+            var body = this.GetBody(declaration);
 
-            // If the user likes block bodies, then we offer block bodies from the diagnostic analyzer.
-            // If the user does not like block bodies then we offer block bodies from the refactoring provider.
-            if (userPrefersBlockBodies == forAnalyzer)
+            return body.TryConvertToExpressionBody(
+                declaration.Kind(), options, conversionPreference,
+                out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
+        }
+
+        protected bool TryConvertToExpressionBodyForBaseProperty(
+            BasePropertyDeclarationSyntax declaration, ParseOptions options,
+            ExpressionBodyPreference conversionPreference,
+            out ArrowExpressionClauseSyntax arrowExpression,
+            out SyntaxToken semicolonToken)
+        {
+            if (this.TryConvertToExpressionBodyWorker(
+                    declaration, options, conversionPreference,
+                    out arrowExpression, out semicolonToken))
             {
-                return this.GetExpressionBody(declaration)?.TryConvertToBlock(
-                    SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, out var block) == true;
+                return true;
+            }
+
+            var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
+            if (getAccessor?.ExpressionBody != null &&
+                BlockSyntaxExtensions.MatchesPreference(getAccessor.ExpressionBody.Expression, conversionPreference))
+            {
+                arrowExpression = SyntaxFactory.ArrowExpressionClause(getAccessor.ExpressionBody.Expression);
+                semicolonToken = getAccessor.SemicolonToken;
+                return true;
             }
 
             return false;
         }
 
-        public TDeclaration Update(TDeclaration declaration, OptionSet options, bool useExpressionBody)
+        public (bool canOffer, bool fixesError) CanOfferUseBlockBody(
+            OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
+        {
+            var preference = optionSet.GetOption(this.Option).Value;
+            var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
+
+            var expressionBodyOpt = this.GetExpressionBody(declaration);
+            var canOffer = expressionBodyOpt?.TryConvertToBlock(
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, out var block) == true;
+            if (!canOffer)
+            {
+                return (canOffer, fixesError: false);
+            }
+
+            var languageVersion = ((CSharpParseOptions)declaration.SyntaxTree.Options).LanguageVersion;
+            if (expressionBodyOpt.Expression.IsKind(SyntaxKind.ThrowExpression) &&
+                languageVersion < LanguageVersion.CSharp7)
+            {
+                // If they're using a throw expression in a declaration and it's prior to C# 7
+                // then always mark this as something that can be fixed by the analyzer.  This way
+                // we'll also get 'fix all' working to fix all these cases.
+                return (canOffer, fixesError: true);
+            }
+
+            var isAccessorOrConstructor = declaration is AccessorDeclarationSyntax ||
+                                          declaration is ConstructorDeclarationSyntax;
+            if (isAccessorOrConstructor &&
+                languageVersion < LanguageVersion.CSharp7)
+            {
+                // If they're using expression bodies for accessors/constructors and it's prior to C# 7
+                // then always mark this as something that can be fixed by the analyzer.  This way
+                // we'll also get 'fix all' working to fix all these cases.
+                return (canOffer, fixesError: true);
+            }
+            else if (languageVersion < LanguageVersion.CSharp6)
+            {
+                // If they're using expression bodies prior to C# 6, then always mark this as something
+                // that can be fixed by the analyzer.  This way we'll also get 'fix all' working to fix 
+                // all these cases.
+                return (canOffer, fixesError: true);
+            }
+
+            // If the user likes block bodies, then we offer block bodies from the diagnostic analyzer.
+            // If the user does not like block bodies then we offer block bodies from the refactoring provider.
+            return (userPrefersBlockBodies == forAnalyzer, fixesError: false);
+        }
+
+        public TDeclaration Update(
+            TDeclaration declaration, OptionSet options, 
+            ParseOptions parseOptions, bool useExpressionBody)
         {
             if (useExpressionBody)
             {
-                TryConvertToExpressionBody(declaration, declaration.SyntaxTree.Options,
-                    ExpressionBodyPreference.WhenPossible, out var expressionBody, out var semicolonToken);
+                TryConvertToExpressionBody(
+                    declaration, declaration.SyntaxTree.Options, ExpressionBodyPreference.WhenPossible,
+                    out var expressionBody, out var semicolonToken);
 
                 var trailingTrivia = semicolonToken.TrailingTrivia
                                                    .Where(t => t.Kind() != SyntaxKind.EndOfLineTrivia)
@@ -149,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
                 return WithSemicolonToken(
                            WithExpressionBody(
-                               WithBody(declaration, null),
+                               WithBody(declaration, body: null),
                                expressionBody),
                            semicolonToken);
             }
@@ -157,8 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 return WithSemicolonToken(
                            WithExpressionBody(
-                               WithGenerateBody(declaration, options),
-                               null),
+                               WithGenerateBody(declaration, options, parseOptions),
+                               expressionBody: null),
                            default(SyntaxToken));
             }
         }
@@ -176,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected abstract TDeclaration WithBody(TDeclaration declaration, BlockSyntax body);
 
         protected virtual TDeclaration WithGenerateBody(
-            TDeclaration declaration, OptionSet options)
+            TDeclaration declaration, OptionSet options, ParseOptions parseOptions)
         {
             var expressionBody = GetExpressionBody(declaration);
             var semicolonToken = GetSemicolonToken(declaration);
@@ -193,25 +261,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected TDeclaration WithAccessorList(
-            TDeclaration declaration, OptionSet options)
+            TDeclaration declaration, OptionSet options, ParseOptions parseOptions)
         {
             var expressionBody = GetExpressionBody(declaration);
             var semicolonToken = GetSemicolonToken(declaration);
 
-            var expressionBodyPreference = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+            // When converting an expression-bodied property to a block body, always attempt to 
+            // create an accessor with a block body (even if the user likes expression bodied
+            // accessors.  While this technically doesn't match their preferences, it fits with
+            // the far more likely scenario that the user wants to convert this property into
+            // a full property so that they can flesh out the body contents.  If we keep around
+            // an expression bodied accessor they'll just have to convert that to a block as well
+            // and that means two steps to take instead of one.
 
-            AccessorDeclarationSyntax accessor;
-            if (expressionBodyPreference != ExpressionBodyPreference.Never ||
-                !expressionBody.TryConvertToBlock(GetSemicolonToken(declaration), CreateReturnStatementForExpression(declaration), out var block))
-            {
-                accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                        .WithExpressionBody(expressionBody)
-                                        .WithSemicolonToken(semicolonToken);
-            }
-            else
-            {
-                accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, block);
-            }
+            expressionBody.TryConvertToBlock(GetSemicolonToken(declaration), CreateReturnStatementForExpression(declaration), out var block);
+
+            var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);
+            accessor = block != null
+                ? accessor.WithBody(block)
+                : accessor.WithExpressionBody(expressionBody)
+                          .WithSemicolonToken(semicolonToken);
 
             return WithAccessorList(declaration, SyntaxFactory.AccessorList(
                 SyntaxFactory.SingletonList(accessor)));

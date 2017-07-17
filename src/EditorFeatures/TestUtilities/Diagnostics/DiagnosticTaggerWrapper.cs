@@ -15,8 +15,8 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    internal class DiagnosticTaggerWrapper<TTag> : IDisposable
-        where TTag : ITag
+    internal class DiagnosticTaggerWrapper<TProvider> : IDisposable
+        where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
         private readonly TestWorkspace _workspace;
         public readonly DiagnosticAnalyzerService AnalyzerService;
@@ -100,14 +100,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 if (_taggerProvider == null)
                 {
-                    WpfTestCase.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<ITag>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
+                    WpfTestCase.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
 
-                    if (typeof(TTag) == typeof(IErrorTag))
+                    if (typeof(TProvider) == typeof(DiagnosticsSquiggleTaggerProvider))
                     {
                         _taggerProvider = new DiagnosticsSquiggleTaggerProvider(
                             DiagnosticService, _workspace.GetService<IForegroundNotificationService>(), _listeners);
                     }
-                    else if (typeof(TTag) == typeof(SuggestionTag))
+                    else if (typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider))
                     {
                         _taggerProvider = new DiagnosticsSuggestionTaggerProvider(
                             _workspace.ExportProvider.GetExportedValue<IEditorFormatMapService>(), DiagnosticService, 

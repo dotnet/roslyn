@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,6 +12,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal interface ISyntaxFactsService : ILanguageService
     {
         bool IsCaseSensitive { get; }
+        StringComparer StringComparer { get; }
+
+        SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
@@ -48,10 +50,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsRegularComment(SyntaxTrivia trivia);
         bool IsDocumentationComment(SyntaxTrivia trivia);
+        bool IsElastic(SyntaxTrivia trivia);
 
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
         bool IsNullLiteralExpression(SyntaxNode node);
+        bool IsLiteralExpression(SyntaxNode node);
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLeftSideOfAssignment(SyntaxNode node);
 
         bool IsSimpleAssignmentStatement(SyntaxNode statement);
-        void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxNode right);
+        void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
 
         // Left side of any assignment (for example  *=  or += )
         bool IsLeftSideOfAnyAssignment(SyntaxNode node);
@@ -156,6 +160,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         RefKind GetRefKindOfArgument(SyntaxNode node);
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
+        bool LooksGeneric(SyntaxNode simpleName);
+
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
 
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode node);
@@ -182,7 +188,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
 
         bool IsLocalDeclarationStatement(SyntaxNode node);
-        bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declator, SyntaxNode localDeclarationStatement);
+        bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement);
+        SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node);
+        SyntaxNode GetInitializerOfVariableDeclarator(SyntaxNode node);
+        SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node);
 
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);
@@ -220,10 +229,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTopLevelNodeWithMembers(SyntaxNode node);
         bool HasIncompleteParentMember(SyntaxNode node);
 
+        bool IsExecutableBlock(SyntaxNode node);
+        SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
+        SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
+
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
         bool AreEquivalent(SyntaxNode node1, SyntaxNode node2);
-
-        bool TryGetDeclaredSymbolInfo(SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
 
         string GetDisplayName(SyntaxNode node, DisplayNameOptions options, string rootNamespace = null);
 
@@ -286,12 +297,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
 
+        ImmutableArray<SyntaxTrivia> GetLeadingBlankLines(SyntaxNode node);
+        TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode;
+
         ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
 
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
 
         string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken);
+
+        SyntaxTokenList GetModifiers(SyntaxNode node);
+        SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers);
     }
 
     [Flags]

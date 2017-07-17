@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup, TestParameters parameters)
         {
             var workspace = TestWorkspace.IsWorkspaceElement(initialMarkup)
-                 ? TestWorkspace.Create(initialMarkup)
+                 ? TestWorkspace.Create(initialMarkup, openDocuments: false)
                  : CreateWorkspaceFromFile(initialMarkup, parameters);
 
             workspace.ApplyOptions(parameters.options);
@@ -356,6 +357,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
+                // Currently, OOP diagnostics don't work with code action tests.
+                workspace.Options = workspace.Options.WithChangedOption(
+                    RemoteFeatureOptions.DiagnosticsEnabled, false);
+
                 var actions = await GetCodeActionsAsync(workspace, parameters);
                 await TestActionsAsync(
                     workspace, expected, index,

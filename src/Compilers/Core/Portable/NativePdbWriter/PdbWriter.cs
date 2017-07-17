@@ -16,6 +16,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
 using System.Security.Cryptography;

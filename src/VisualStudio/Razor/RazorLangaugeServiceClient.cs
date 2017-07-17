@@ -23,7 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public async Task<Session> CreateSessionAsync(Solution solution, object callbackTarget = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var innerSession = await _client.TryCreateServiceSessionAsync(RazorServiceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (solution == null)
+            {
+                // keep old behavior for Razor
+                return null;
+            }
+
+            var innerSession = await _client.TryCreateSessionAsync(RazorServiceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (innerSession == null)
             {
                 return null;
@@ -34,31 +40,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public sealed class Session : IDisposable
         {
-            private readonly RemoteHostClient.Session _inner;
+            private readonly SessionWithSolution _inner;
 
-            internal Session(RemoteHostClient.Session inner)
+            internal Session(SessionWithSolution inner)
             {
                 _inner = inner;
             }
 
-            public Task InvokeAsync(string targetName, params object[] arguments)
+            public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
-                return _inner.InvokeAsync(targetName, arguments);
+                return _inner.InvokeAsync(targetName, arguments, cancellationToken);
             }
 
-            public Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
+            public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
-                return _inner.InvokeAsync<T>(targetName, arguments);
+                return _inner.InvokeAsync<T>(targetName, arguments, cancellationToken);
             }
 
-            public Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
+            public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
             {
-                return _inner.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync);
+                return _inner.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
             }
 
-            public Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+            public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
             {
-                return _inner.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync);
+                return _inner.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
             }
 
             public void Dispose()

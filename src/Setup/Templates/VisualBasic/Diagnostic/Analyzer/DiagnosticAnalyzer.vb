@@ -1,4 +1,4 @@
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+﻿<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Public Class $saferootidentifiername$Analyzer
     Inherits DiagnosticAnalyzer
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return _state.DelegateMethodSymbol.Parameters;
                 }
 
-                return default(ImmutableArray<IParameterSymbol>);
+                return default;
             }
 
             private ImmutableArray<ISymbol> DetermineMembers(GenerateTypeOptionsResult options = null)
@@ -231,7 +232,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
 
                     parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         refKind: refKind,
                         isParams: false,
                         type: parameterType,
@@ -260,14 +261,14 @@ namespace Microsoft.CodeAnalysis.GenerateType
                    exceptionType.InstanceConstructors
                        .Where(c => c.DeclaredAccessibility == Accessibility.Public || c.DeclaredAccessibility == Accessibility.Protected)
                        .Select(c => CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                           attributes: default(ImmutableArray<AttributeData>),
+                           attributes: default,
                            accessibility: c.DeclaredAccessibility,
-                           modifiers: default(DeclarationModifiers),
+                           modifiers: default,
                            typeName: DetermineName(),
                            parameters: c.Parameters,
-                           statements: default(ImmutableArray<SyntaxNode>),
+                           statements: default,
                            baseConstructorArguments: c.Parameters.Length == 0
-                                ? default(ImmutableArray<SyntaxNode>)
+                                ? default
                                 : factory.CreateArguments(c.Parameters)));
                 members.AddRange(constructors);
             }
@@ -284,7 +285,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                return default(ImmutableArray<AttributeData>);
+                return default;
             }
 
             private Accessibility DetermineAccessibility()
@@ -294,7 +295,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private DeclarationModifiers DetermineModifiers()
             {
-                return default(DeclarationModifiers);
+                return default;
             }
 
             private INamedTypeSymbol DetermineBaseType()

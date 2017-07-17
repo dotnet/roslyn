@@ -27,7 +27,7 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
-            var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
+            var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             Assert.True(method.IsAsync);
         }
 
@@ -845,10 +845,7 @@ class Test
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (10,32): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
                 //     static int Foo(int[] arr = await t)
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await t").WithArguments("int").WithLocation(10, 32),
-                // (10,26): error CS1750: A value of type 'void' cannot be used as a default parameter because there are no standard conversions to type 'int[]'
-                //     static int Foo(int[] arr = await t)
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "arr").WithArguments("void", "int[]").WithLocation(10, 26)
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await t").WithArguments("int").WithLocation(10, 32)
                 );
         }
 

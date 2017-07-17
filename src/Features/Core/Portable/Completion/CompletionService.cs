@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -85,10 +86,10 @@ namespace Microsoft.CodeAnalysis.Completion
         public abstract Task<CompletionList> GetCompletionsAsync(
             Document document,
             int caretPosition,
-            CompletionTrigger trigger = default(CompletionTrigger),
+            CompletionTrigger trigger = default,
             ImmutableHashSet<string> roles = null,
             OptionSet options = null,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the description of the item.
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public virtual Task<CompletionDescription> GetDescriptionAsync(
             Document document,
             CompletionItem item,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return Task.FromResult(CompletionDescription.Empty);
         }
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document,
             CompletionItem item,
             char? commitCharacter = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
         }

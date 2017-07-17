@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (symbol == null)
                 {
-                    return default(SymbolAndProjectId);
+                    return default;
                 }
 
                 var symbolAndProjectId = SymbolAndProjectId.Create(symbol, document.Project.Id);
@@ -240,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     }
                 }
 
-                return default(SymbolAndProjectId);
+                return default;
             }
 
             private static async Task<bool> IsPropertyAccessorOrAnOverride(

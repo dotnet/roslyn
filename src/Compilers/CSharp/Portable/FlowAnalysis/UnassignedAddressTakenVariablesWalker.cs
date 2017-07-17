@@ -48,15 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _result;
         }
 
-        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node)
-        {
-            if (node.Parent.Kind() == SyntaxKind.AddressOfExpression)
-            {
-                _result.Add((PrefixUnaryExpressionSyntax)node.Parent);
-            }
-        }
-
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
             if (node.Parent.Kind() == SyntaxKind.AddressOfExpression)
             {
