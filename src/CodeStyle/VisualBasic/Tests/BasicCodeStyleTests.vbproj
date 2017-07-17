@@ -10,7 +10,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests</AssemblyName>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <PackageTargetFallback>portable-net45</PackageTargetFallback>
-    <TargetFrameworks>net46;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>$(RoslynUnitTestTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />

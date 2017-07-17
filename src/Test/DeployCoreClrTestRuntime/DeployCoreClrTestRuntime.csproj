@@ -41,7 +41,6 @@
     <ProjectReference Include="..\..\Scripting\CoreTestUtilities\ScriptingTestUtilities.csproj" />
     <ProjectReference Include="..\..\Scripting\CoreTest\ScriptingTest.csproj" />
     <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj" />
-    <ProjectReference Include="..\..\Scripting\CSharpTest\CSharpScriptingTest.csproj" />
     <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj" />
     <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />

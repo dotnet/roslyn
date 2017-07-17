@@ -363,7 +363,7 @@ function Test-XUnit() {
     }
     
     try {
-        # Exec-Console $runTests $args
+        Exec-Console $runTests $args
     }
     finally {
         Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process    
