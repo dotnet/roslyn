@@ -35,23 +35,39 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 return SpecializedCollections.EmptyEnumerable<IOperation>();
             }
-            var list = new List<IOperation>();
-            var collector = new OperationCollector(list);
-            collector.Visit(operation);
-            list.RemoveAt(0);
-            return list;
+
+            return DescendantsAndSelf(operation).Skip(1);
         }
 
         public static IEnumerable<IOperation> DescendantsAndSelf(this IOperation operation)
         {
             if (operation == null)
             {
-                return SpecializedCollections.EmptyEnumerable<IOperation>();
+                yield break;
             }
-            var list = new List<IOperation>();
-            var collector = new OperationCollector(list);
-            collector.Visit(operation);
-            return list;
+
+            yield return operation;
+
+            var stack = new Stack<IEnumerator<IOperation>>();
+            stack.Push(operation.Children.GetEnumerator());
+
+            IEnumerator<IOperation> iterator;
+            while ((iterator = stack.Pop()) != null)
+            {
+                if (!iterator.MoveNext())
+                {
+                    continue;
+                }
+
+                var current = iterator.Current;
+                yield return current;
+
+                // push current iterator back in to the stack
+                stack.Push(iterator);
+
+                // push children iterator to the stack
+                stack.Push(current.Children.GetEnumerator());
+            }
         }
 
         public static IOperation GetRootOperation(this ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
@@ -191,25 +207,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             // root node. there is no parent
             return null;
-        }
-
-        private sealed class OperationCollector : OperationWalker
-        {
-            private readonly List<IOperation> _list;
-
-            public OperationCollector(List<IOperation> list)
-            {
-                _list = list;
-            }
-
-            public override void Visit(IOperation operation)
-            {
-                if (operation != null)
-                {
-                    _list.Add(operation);
-                }
-                base.Visit(operation);
-            }
         }
     }
 
