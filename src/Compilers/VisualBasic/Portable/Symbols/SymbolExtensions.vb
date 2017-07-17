@@ -435,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return [property].Type.ContainsTupleNames() OrElse ContainsTupleNames([property].Parameters)
                 Case SymbolKind.Event
                     ' We don't check the event Type directly because materializing it requires checking the tuple names in the type (to validate interface implementations)
-                    Return DirectCast(member, EventSymbol).DelegateParameters.Any(Function(dp) dp.Type.ContainsTupleNames())
+                    Return ContainsTupleNames(DirectCast(member, EventSymbol).DelegateParameters)
                 Case Else
                     '  We currently don't need to use this method for other kinds of symbols
                     Throw ExceptionUtilities.UnexpectedValue(member.Kind)
