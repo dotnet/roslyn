@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                return CheckConversionOfParamToParamArray(parameter, castType, semanticModel);
+                return ParameterTypeMatchesParamsElementType(parameter, castType, semanticModel);
             }
 
             if (parent is AttributeArgumentSyntax attributeArgument)
@@ -187,20 +187,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // params parameter are positioned in between if named arguments are used.
                     // The *single* argument check above is also broken: https://github.com/dotnet/roslyn/issues/20742
                     var parameter = attributeArgument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                    return CheckConversionOfParamToParamArray(parameter, castType, semanticModel);
+                    return ParameterTypeMatchesParamsElementType(parameter, castType, semanticModel);
                 }
             }
 
             return false;
         }
 
-        private static bool CheckConversionOfParamToParamArray(IParameterSymbol parameter, ITypeSymbol castType, SemanticModel semanticModel)
+        private static bool ParameterTypeMatchesParamsElementType(IParameterSymbol parameter, ITypeSymbol castType, SemanticModel semanticModel)
         {
-            if (parameter != null && parameter.IsParams)
+            if (parameter?.IsParams == true)
             {
-                Debug.Assert(parameter.Type is IArrayTypeSymbol);
-
-                var parameterType = (IArrayTypeSymbol)parameter.Type;
+                // if the method is defined with errors: void M(params int wrongDefined), paramter.IsParams == true but paramter.Type is not an array.
+                // In such cases is better to be conservative and opt out.
+                var parameterType = parameter.Type as IArrayTypeSymbol;
+                if (parameterType == null)
+                {
+                    return true;
+                }
 
                 var conversion = semanticModel.Compilation.ClassifyConversion(castType, parameterType);
                 if (conversion.Exists &&
@@ -233,8 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool EnumCastDefinitelyCantBeRemoved(CastExpressionSyntax cast, ITypeSymbol expressionType)
         {
-            if (expressionType != null 
-                && expressionType.IsEnumType() 
+            if (expressionType != null
+                && expressionType.IsEnumType()
                 && cast.WalkUpParentheses().IsParentKind(SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
             {
                 return true;
