@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var accessibleConstructors = type.InstanceConstructors
-                                             .WhereAsArray(c => c.IsAccessibleWithin(within) && c != currentConstructor)
+                                             .WhereAsArray(c => c.IsAccessibleWithin(within) && !c.Equals(currentConstructor))
                                              .WhereAsArray(c => c.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
                                              .Sort(symbolDisplayService, semanticModel, constructorInitializer.SpanStart);
 
