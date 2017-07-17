@@ -278,7 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var argumentType = _semanticModel.GetTypeInfo(node.Expression).ConvertedType;
                 if (argumentType != null &&
                     !IsPassedToDelegateCreationExpression(node, argumentType) &&
-                    node.Expression.Kind() != SyntaxKind.DeclarationExpression)
+                    node.Expression.Kind() != SyntaxKind.DeclarationExpression &&
+                    node.RefOrOutKeyword.Kind() == SyntaxKind.None)
                 {
                     if (TryCastTo(argumentType, node.Expression, newArgument.Expression, out var newArgumentExpressionWithCast))
                     {
