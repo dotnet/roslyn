@@ -4499,5 +4499,43 @@ class C
 }";
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
+
+        [WorkItem(19247, "https://github.com/dotnet/roslyn/issues/19247")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineTemporary_LocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        var [|testStr|] = ""test"";
+        expand(testStr);
+
+        void expand(string str)
+        {
+
+        }
+    }
+}",
+
+@"
+using System;
+class C
+{
+    void M()
+    {
+        expand(""test"");
+
+        void expand(string str)
+        {
+
+        }
+    }
+}",
+ignoreTrivia: false);
+        }
     }
 }

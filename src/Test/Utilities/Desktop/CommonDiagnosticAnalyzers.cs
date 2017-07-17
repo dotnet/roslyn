@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// This analyzer will report diagnostics only if it receives any concurrent action callbacks, which would be a
-        /// bug in the analyzer driver as this analyzer doesn't invoke <see cref="AnalysisContext.RegisterConcurrentExecution"/>.
+        /// bug in the analyzer driver as this analyzer doesn't invoke <see cref="AnalysisContext.EnableConcurrentExecution"/>.
         /// </summary>
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public class NonConcurrentAnalyzer : DiagnosticAnalyzer

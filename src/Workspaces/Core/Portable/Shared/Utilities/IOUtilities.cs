@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             });
         }
 
-        public static T PerformIO<T>(Func<T> function, T defaultValue = default(T))
+        public static T PerformIO<T>(Func<T> function, T defaultValue = default)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return defaultValue;
         }
 
-        public static async Task<T> PerformIOAsync<T>(Func<Task<T>> function, T defaultValue = default(T))
+        public static async Task<T> PerformIOAsync<T>(Func<Task<T>> function, T defaultValue = default)
         {
             try
             {

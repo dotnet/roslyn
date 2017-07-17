@@ -227,7 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (methodDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (methodDeclaration.Body.TryConvertToExpressionBody(
-                        parseOptions, expressionBodyPreference, out var arrowExpression, out var semicolonToken))
+                        methodDeclaration.Kind(), parseOptions, expressionBodyPreference,
+                        out var arrowExpression, out var semicolonToken))
                 {
                     return methodDeclaration.WithBody(null)
                                             .WithExpressionBody(arrowExpression)

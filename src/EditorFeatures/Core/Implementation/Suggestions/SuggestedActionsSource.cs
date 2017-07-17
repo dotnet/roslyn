@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public bool TryGetTelemetryId(out Guid telemetryId)
             {
-                telemetryId = default(Guid);
+                telemetryId = default;
 
                 var workspace = _workspace;
                 if (workspace == null || _subjectBuffer == null)

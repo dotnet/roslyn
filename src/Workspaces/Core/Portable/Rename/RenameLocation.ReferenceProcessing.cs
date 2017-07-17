@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (symbol == null)
                 {
-                    return default(SymbolAndProjectId);
+                    return default;
                 }
 
                 var symbolAndProjectId = SymbolAndProjectId.Create(symbol, document.Project.Id);
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     }
                 }
 
-                return default(SymbolAndProjectId);
+                return default;
             }
 
             private static async Task<bool> IsPropertyAccessorOrAnOverride(

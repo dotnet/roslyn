@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<MetadataReference> metadataReferences = null,
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             IEnumerable<DocumentInfo> additionalDocuments = null,
-            Optional<Type> hostObjectType = default(Optional<Type>))
+            Optional<Type> hostObjectType = default)
         {
             var newAttributes = attributes ?? Attributes;
             var newCompilationOptions = compilationOptions ?? CompilationOptions;
@@ -391,14 +391,14 @@ namespace Microsoft.CodeAnalysis
             }
 
             public ProjectAttributes With(
-                VersionStamp? version = default(VersionStamp?),
+                VersionStamp? version = default,
                 string name = null,
                 string assemblyName = null,
                 string language = null,
-                Optional<string> filePath = default(Optional<string>),
-                Optional<string> outputPath = default(Optional<string>),
-                Optional<bool> isSubmission = default(Optional<bool>),
-                Optional<bool> hasAllInformation = default(Optional<bool>))
+                Optional<string> filePath = default,
+                Optional<string> outputPath = default,
+                Optional<bool> isSubmission = default,
+                Optional<bool> hasAllInformation = default)
             {
                 var newVersion = version.HasValue ? version.Value : Version;
                 var newName = name ?? Name;

@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 switch (kind)
                 {
                     case WellKnownSynchronizationKind.Null:
-                        return default(T);
+                        return default;
 
                     case WellKnownSynchronizationKind.SolutionState:
                     case WellKnownSynchronizationKind.ProjectState:

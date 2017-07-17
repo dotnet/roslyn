@@ -1958,7 +1958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_Experimental = 42380
 
         ' // AVAILABLE                             42381 - 49998
-        ERRWRN_Last = WRN_Experimental
+        ERRWRN_NextAvailable = 42381
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000

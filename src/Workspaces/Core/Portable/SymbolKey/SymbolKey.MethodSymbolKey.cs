@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (typeArguments.Any(s_typeIsNull))
                 {
-                    return default(SymbolKeyResolution);
+                    return default;
                 }
 
                 var result = constructedFromResolution.GetAllSymbols()
