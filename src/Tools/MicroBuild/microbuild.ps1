@@ -31,7 +31,7 @@ function Print-Usage() {
 }
 
 function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$parallel = $true) {
-    $args = "/nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /p:DeployExtension=false";
+    $args = "/nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /p:DeployExtension=false /p:Configuration=$config";
 
     if ($parallel) { 
         $args += " /m"
@@ -53,58 +53,10 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
     Exec-Console $msbuild $args
 }
 
-function Run-SignTool() { 
-    Push-Location $repoDir
-    try {
-        $signTool = Join-Path (Get-PackageDir "RoslynTools.Microsoft.SignTool") "tools\SignTool.exe"
-        $signToolArgs = "-msbuildPath `"$msbuild`""
-        if (-not $official) {
-            $signToolArgs += " -test"
-        }
-        $signToolArgs += " `"$configDir`""
-        Exec-Command $signTool $signToolArgs
-    }
-    finally { 
-        Pop-Location
-    }
-}
-
-# Not all of our artifacts needed for signing are included inside Roslyn.sln. Need to 
-# finish building these before we can run signing.
-function Build-ExtraSignArtifacts() { 
-
-    Push-Location $setupDir
-    try {
-        # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
-        Run-MSBuild "..\Compilers\CSharp\CscCore\CscCore.csproj /t:PublishWithoutBuilding"
-        Run-MSBuild "..\Compilers\VisualBasic\VbcCore\VbcCore.csproj /t:PublishWithoutBuilding"
-
-        # No need to build references here as we just built the rest of the source tree. 
-        # We build these serially to work around https://github.com/dotnet/roslyn/issues/11856,
-        # where building multiple projects that produce VSIXes larger than 10MB will race against each other
-        Run-MSBuild "Deployment\Current\Roslyn.Deployment.Full.csproj /p:BuildProjectReferences=false" -parallel:$false
-        Run-MSBuild "Deployment\Next\Roslyn.Deployment.Full.Next.csproj /p:BuildProjectReferences=false" -parallel:$false
-
-        $dest = @(
-            $configDir,
-            "Templates\CSharp\Diagnostic\Analyzer",
-            "Templates\VisualBasic\Diagnostic\Analyzer\tools")
-        foreach ($dir in $dest) { 
-            Copy-Item "PowerShell\*.ps1" $dir
-        }
-
-        Run-MSBuild "Templates\Templates.sln /p:VersionType=Release"
-    }
-    finally {
-        Pop-Location
-    }
-}
-
 function Build-InsertionItems() { 
     Push-Location $setupDir
     try { 
-        Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln"
-
+        Create-PerfTests
         Exec-Command (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $setupDir $(Get-PackagesDir) `"$assemblyVersion`"" | Out-Host
         
         # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
@@ -119,7 +71,7 @@ function Build-InsertionItems() {
         Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj $extraArgs"
         Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj $extraArgs"
         Run-MSBuild "..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj"
-        Run-MSBuild "Vsix\Vsix.proj" 
+        Copy-Item -Force "Vsix\myget_org-extensions.config" $configDir
     }
     finally {
         Pop-Location
@@ -173,20 +125,10 @@ try {
     $configDir = Join-Path $binariesDir $config
     $setupDir = Join-Path $repoDir "src\Setup"
 
-    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -build -official:$official -msbuildDir $msbuildDir -release:$release }
-    Create-PerfTests
-    Build-ExtraSignArtifacts
-    Run-SignTool
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -official:$official -msbuildDir $msbuildDir -release:$release -sign -pack -testDesktop:$testDesktop }
+
     Exec-Block { & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config }
-    Run-MSBuild (Join-Path $repoDir "src\NuGet\NuGet.proj")
     Build-InsertionItems
-
-    # The desktop tests need to run after signing so that tests run against fully signed 
-    # assemblies.
-    if ($testDesktop) {
-        Exec-Block { & (Join-Path $scriptDir "build.ps1") -testDesktop -test32 -release:$release }
-    }
-
     Exec-Block { & (Join-Path $scriptDir "check-toolset-insertion.ps1") -sourcePath $repoDir -binariesPath $configDir }
 
     # Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
