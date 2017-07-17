@@ -86,7 +86,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ServicesVisualStudioNextResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SymbolSearch\VisualStudioSymbolSearchService.ProgressService.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="ServicesVisualStudioNextResources.resx">
