@@ -196,6 +196,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
+        [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void EscapeKeywords1()
         {
@@ -211,6 +212,7 @@ public class C
             await VerifyItemExistsAsync(markup, "builder", glyph: (int) Glyph.Parameter);
         }
 
+        [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void EscapeKeywords2()
         {
@@ -224,6 +226,7 @@ public class C
             await VerifyItemExistsAsync(markup, "@for", glyph: (int) Glyph.Parameter);
         }
 
+        [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void EscapeKeywords3()
         {
@@ -240,6 +243,7 @@ public class C
             await VerifyItemExistsAsync(markup, "@for");
         }
 
+        [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void EscapeKeywords4()
         {
