@@ -16,7 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool modifierErrors,
             bool allowPartial)
         {
-            var result = modifiers.ToDeclarationModifiers(allowPartial, diagnostics);
+            var result = modifiers.ToDeclarationModifiers(diagnostics);
+
+            if (allowPartial)
+            {
+                allowedModifiers |= DeclarationModifiers.Partial;
+            }
+
             result = CheckModifiers(result, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
@@ -42,17 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
                 Debug.Assert(oneError != DeclarationModifiers.None);
                 errorModifiers = errorModifiers & ~oneError;
-                switch (oneError)
-                {
-                    case DeclarationModifiers.Partial:
-                        // Errors about 'partial' are reported in ToDeclarationModifiers.  So no need to report
-                        // any issues here.
-                        break;
 
-                    default:
-                        diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, ConvertSingleModifierToSyntaxText(oneError));
-                        break;
-                }
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, ConvertSingleModifierToSyntaxText(oneError));
                 modifierErrors = true;
             }
 
@@ -157,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static DeclarationModifiers ToDeclarationModifiers(
-            this SyntaxTokenList modifiers, bool allowPartial, DiagnosticBag diagnostics)
+            this SyntaxTokenList modifiers, DiagnosticBag diagnostics)
         {
             var result = DeclarationModifiers.None;
             bool seenNoDuplicates = true;
@@ -166,11 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var modifier in modifiers)
             {
                 DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind());
-
-                if (one == DeclarationModifiers.Partial && !allowPartial)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, modifier.GetLocation());
-                }
 
                 ReportDuplicateModifiers(
                     modifier, one, result,

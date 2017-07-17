@@ -338,8 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
                                                     ref declFlags);
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(
-                allowPartial: true, diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
 
             return new SingleTypeDeclaration(
                 kind: kind,
@@ -388,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(allowPartial: false, diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
 
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Delegate,
@@ -419,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string[] memberNames = GetEnumMemberNames(members, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var modifiers = node.Modifiers.ToDeclarationModifiers(allowPartial: false, diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
 
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Enum,

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _declarationModifiers =
                 DeclarationModifiers.Private |
                 DeclarationModifiers.Static |
-                syntax.Modifiers.ToDeclarationModifiers(allowPartial: false, diagnostics: _declarationDiagnostics);
+                syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics);
 
             ScopeBinder = binder;
 
