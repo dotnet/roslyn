@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? DeclarationModifiers.Internal
                 : DeclarationModifiers.Private;
 
-            var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Partial;
+            var allowedModifiers = DeclarationModifiers.AccessibilityMask;
 
             if (ContainingSymbol is TypeSymbol)
             {

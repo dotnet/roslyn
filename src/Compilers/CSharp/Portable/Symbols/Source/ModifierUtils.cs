@@ -42,7 +42,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(oneError != DeclarationModifiers.None);
                 errorModifiers = errorModifiers & ~oneError;
 
-                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, ConvertSingleModifierToSyntaxText(oneError));
+                switch (oneError)
+                {
+                    case DeclarationModifiers.Partial:
+                        // Provide a specialized error message in the case of partial.
+                        diagnostics.Add(ErrorCode.ERR_PartialMisplaced, errorLocation);
+                        break;
+
+                    default:
+                        diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, ConvertSingleModifierToSyntaxText(oneError));
+                        break;
+                }
+
                 modifierErrors = true;
             }
 
