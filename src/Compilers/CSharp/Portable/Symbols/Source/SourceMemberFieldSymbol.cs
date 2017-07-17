@@ -143,7 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Abstract; // filtered out later
 
             var errorLocation = new SourceLocation(firstIdentifier);
-            DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
+            DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+                modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
             if ((result & DeclarationModifiers.Abstract) != 0)
             {
