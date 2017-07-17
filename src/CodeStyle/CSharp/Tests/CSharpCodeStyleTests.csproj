@@ -9,8 +9,9 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests</AssemblyName>
-    <TargetFramework>netstandard1.3</TargetFramework>
-    <RoslynProjectType>UnitTestPortable</RoslynProjectType>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
+    <PackageTargetFallback>portable-net45</PackageTargetFallback>
+    <TargetFrameworks>net46;netcoreapp2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />

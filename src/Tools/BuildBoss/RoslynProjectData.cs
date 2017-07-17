@@ -13,8 +13,6 @@ namespace BuildBoss
         Exe,
         ExeNonDeployment,
         UnitTest,
-        UnitTestDesktop,
-        UnitTestPortable,
         DeploymentTest,
         Vsix,
         Depedency,
@@ -30,10 +28,6 @@ namespace BuildBoss
         {
             switch (value)
             {
-                case "UnitTestPortable":
-                    return RoslynProjectKind.UnitTestPortable;
-                case "UnitTestDesktop":
-                    return RoslynProjectKind.UnitTestDesktop;
                 case "UnitTest":
                     return RoslynProjectKind.UnitTest;
                 case "DeploymentTest":
@@ -51,10 +45,7 @@ namespace BuildBoss
 
         internal static bool IsAnyUnitTest(RoslynProjectKind kind)
         {
-            return
-                kind == RoslynProjectKind.UnitTest ||
-                kind == RoslynProjectKind.UnitTestDesktop ||
-                kind == RoslynProjectKind.UnitTestPortable;
+            return kind == RoslynProjectKind.UnitTest;
         }
 
         internal static bool IsDeploymentProject(RoslynProjectKind kind)
@@ -62,7 +53,7 @@ namespace BuildBoss
             return
                 kind == RoslynProjectKind.Exe ||
                 kind == RoslynProjectKind.DeploymentTest ||
-                IsAnyUnitTest(kind);
+                kind == RoslynProjectKind.UnitTest;
         }
     }
 

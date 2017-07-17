@@ -10,27 +10,6 @@
         <OutputPath>$(OutputPath)UnitTests\$(MSBuildProjectName)\</OutputPath>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'UnitTestPortable' OR '$(RoslynProjectType)' == 'UnitTestDesktop'">
-      <!-- Portable DLLs don't have a supported mechanism for deploying their dependencies
-           as a part of a normal build.  This breaks developer workflows like F5, TDD, and
-           standard unit testing.
-
-           For developer convenience we use an unsupported way of deploying dependencies.  This
-           includes NuGet and standard references.  This is not done on official builds because
-           it's not a supported mechanism hence we don't rely on it for official validation.
-
-           This bug tracks getting an official solution out of MSBuild.
-
-           https://github.com/Microsoft/msbuild/issues/1499 -->
-      <PropertyGroup>
-        <_CopyReferences>$(DeveloperBuild)</_CopyReferences>
-        <_CopyProjectReferences>$(DeveloperBuild)</_CopyProjectReferences>
-        <_IsAnyUnitTest>true</_IsAnyUnitTest>
-        <_IsAnyPortableUnitTest>true</_IsAnyPortableUnitTest>
-        <CopyNuGetImplementations>false</CopyNuGetImplementations>
-        <OutputPath>$(OutputPath)UnitTests\$(MSBuildProjectName)\</OutputPath>
-      </PropertyGroup>
-    </When>
     <When Condition="'$(RoslynProjectType)' == 'Vsix'">
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
