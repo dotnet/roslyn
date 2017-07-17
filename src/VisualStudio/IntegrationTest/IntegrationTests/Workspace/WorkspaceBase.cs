@@ -87,5 +87,20 @@ End Module");
             VisualStudio.Editor.InvokeQuickInfo();
             Assert.Equal("Sub‎ Program.M‎(p‎ As‎ Object‎)‎ ‎(‎+‎ 1‎ overload‎)", VisualStudio.Editor.GetQuickInfo());
         }
+
+        [Fact]
+        public void RenamingOpenFiles()
+        {
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddFile(project, "BeforeRename.cs", open: true);
+            
+            // Verify we are connected to the project before...
+            Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());
+
+            VisualStudio.SolutionExplorer.RenameFile(project, "BeforeRename.cs", "AfterRename.cs");
+
+            // ...and after.
+            Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());
+        }
     }
 }

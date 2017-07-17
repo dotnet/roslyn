@@ -8,6 +8,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctions : FlowTestBase
     {
         [Fact]
+        public void ConstUnassigned()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        L();
+        int L()
+        {
+            int y = x + 1;
+            const int x = 0;
+            return y;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,21): error CS0841: Cannot use local variable 'x' before it is declared
+                //             int y = x + 1;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(9, 21));
+        }
+
+        [Fact]
+        public void ConstUnassigned2()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        L();
+        int L() => x;
+        const int x = 0;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,20): error CS0841: Cannot use local variable 'x' before it is declared
+                //         int L() => x;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(7, 20));
+        }
+
+        [Fact]
+        public void ConstUnassigned3()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        L();
+        const int x;
+        int L() => x;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,19): error CS0145: A const field requires a value to be provided
+                //         const int x;
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "x").WithLocation(7, 19));
+        }
+
+        [Fact]
         [WorkItem(14243, "https://github.com/dotnet/roslyn/issues/14243")]
         public void AssignInsideCallToLocalFunc()
         {
@@ -519,9 +580,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,14): warning CS0168: The variable 'Local' is declared but never used
+                // (7,14): warning CS8321: The local function 'Local' is declared but never used
                 //         bool Local() => x == 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(7, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(7, 14));
         }
 
         [Fact]
@@ -1317,6 +1378,67 @@ struct S
                 // (14,9): error CS0170: Use of possibly unassigned field '_x'
                 //         Local();
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local()").WithArguments("_x").WithLocation(14, 9));
+        }
+
+        [Fact]
+        [WorkItem(18813, "https://github.com/dotnet/roslyn/issues/18813")]
+        public void LocalIEnumerableFunctionWithOutParameter1()
+        {
+            var comp = CreateStandardCompilation(@"
+class c
+{
+    static void Main(string[] args)
+    {
+        System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool output)
+        {
+            output = true;
+            yield return ""foo"";
+        }
+
+        getFoo(1, out bool myBool);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,83): error CS1623: Iterators cannot have ref or out parameters
+                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "output"),
+                // (6,56): error CS0177: The out parameter 'foobar' must be assigned to before control leaves the current method
+                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "getFoo").WithArguments("output").WithLocation(6, 56));
+        }
+
+        [Fact]
+        [WorkItem(18813, "https://github.com/dotnet/roslyn/issues/18813")]
+        public void LocalIEnumerableFunctionWithOutParameter2()
+        {
+            var comp = CreateStandardCompilation(@"
+class c
+{
+    static void Main(string[] args)
+    {
+        System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool output)
+        {
+            output = false;
+            for (int i = 0; i < count; i++)
+            {
+                foreach (var val in getFoo(3, out var bar))
+                yield return ""foo"";
+            }
+            yield return ""foo"";
+        }
+
+        getFoo(1, out bool myBool);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,83): error CS1623: Iterators cannot have ref or out parameters
+                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "output"),
+                // (6,56): error CS0177: The out parameter 'foobar' must be assigned to before control leaves the current method
+                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "getFoo").WithArguments("output").WithLocation(6, 56));
         }
     }
 }

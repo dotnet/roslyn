@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
@@ -9,9 +9,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private struct ProjectState
         {
             public readonly bool IsEnabled;
-            public readonly Dictionary<string, string> InstalledPackageToVersion;
+            public readonly MultiDictionary<string, string> InstalledPackageToVersion;
 
-            public ProjectState(bool isEnabled, Dictionary<string, string> installedPackageToVersion)
+            public ProjectState(bool isEnabled, MultiDictionary<string, string> installedPackageToVersion)
             {
                 IsEnabled = isEnabled;
                 InstalledPackageToVersion = installedPackageToVersion;

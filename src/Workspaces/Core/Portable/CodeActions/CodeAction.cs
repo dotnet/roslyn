@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Tags;
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// used by batch fixer engine to get new solution
         /// </summary>
-        internal async Task<Solution> GetChangedSolutionInternalAsync(bool postProcessChanges = true, CancellationToken cancellationToken = default(CancellationToken))
+        internal async Task<Solution> GetChangedSolutionInternalAsync(bool postProcessChanges = true, CancellationToken cancellationToken = default)
         {
             var solution = await GetChangedSolutionAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
             if (solution == null || !postProcessChanges)

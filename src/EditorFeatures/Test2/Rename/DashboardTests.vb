@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -592,7 +592,11 @@ class D : B
                 Dim listeners = DirectCast(workspace.ExportProvider.GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(), IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
                 Dim renameListener = New AggregateAsynchronousOperationListener(listeners, FeatureAttribute.Rename)
 
-                Using dashboard = New Dashboard(New DashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)), cursorDocument.GetTextView())
+                Using dashboard = New Dashboard(
+                    New DashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
+                    editorFormatMapService:=Nothing,
+                    textView:=cursorDocument.GetTextView())
+
                     Await WaitForRename(workspace)
 
                     Dim model = DirectCast(dashboard.DataContext, DashboardViewModel)

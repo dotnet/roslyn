@@ -360,9 +360,9 @@ class A
                 // (5,37): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(5, 37),
-                // (5,43): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (5,43): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(5, 43),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(5, 43),
                 // (5,44): error CS8124: Tuple must contain at least two elements.
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 44),

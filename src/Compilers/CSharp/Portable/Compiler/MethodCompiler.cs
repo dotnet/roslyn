@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -226,7 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !hasDeclarationErrors &&
                 !diagnostics.HasAnyErrors())
             {
-                BoundStatement body = synthesizedEntryPoint.CreateBody();
+                BoundStatement body = synthesizedEntryPoint.CreateBody(diagnostics);
+                if (body.HasErrors || diagnostics.HasAnyErrors())
+                {
+                    return entryPoint;
+                }
 
                 var dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
@@ -845,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState)
         {
             _cancellationToken.ThrowIfCancellationRequested();
-            SourceMethodSymbol sourceMethod = methodSymbol as SourceMethodSymbol;
+            SourceMemberMethodSymbol sourceMethod = methodSymbol as SourceMemberMethodSymbol;
 
             if (methodSymbol.IsAbstract)
             {
@@ -1556,7 +1561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock body;
 
-            var sourceMethod = method as SourceMethodSymbol;
+            var sourceMethod = method as SourceMemberMethodSymbol;
             if ((object)sourceMethod != null)
             {
                 var constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;
@@ -1693,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note that the base type can be null if we're compiling System.Object in source.
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
 
-            SourceMethodSymbol sourceConstructor = constructor as SourceMethodSymbol;
+            SourceMemberMethodSymbol sourceConstructor = constructor as SourceMemberMethodSymbol;
             ConstructorDeclarationSyntax constructorSyntax = null;
             ArgumentListSyntax initializerArgumentListOpt = null;
             if ((object)sourceConstructor != null)
@@ -1875,7 +1880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        private static void GenerateExternalMethodWarnings(SourceMethodSymbol methodSymbol, DiagnosticBag diagnostics)
+        private static void GenerateExternalMethodWarnings(SourceMemberMethodSymbol methodSymbol, DiagnosticBag diagnostics)
         {
             if (methodSymbol.GetAttributes().IsEmpty && !methodSymbol.ContainingType.IsComImport)
             {
@@ -1894,7 +1899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)method != null && method.MethodKind == MethodKind.Constructor)
             {
-                SourceMethodSymbol sourceMethod = method as SourceMethodSymbol;
+                SourceMemberMethodSymbol sourceMethod = method as SourceMemberMethodSymbol;
                 if ((object)sourceMethod != null)
                 {
                     ConstructorDeclarationSyntax constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;

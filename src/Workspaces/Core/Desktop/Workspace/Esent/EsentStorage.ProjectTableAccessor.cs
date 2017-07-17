@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
 using System.Text;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Esent
             public ProjectTableAccessor(
                 OpenSession session, string tableName, string indexName,
                 JET_COLUMNID projectColumnId, JET_COLUMNID projectNameColumnId, JET_COLUMNID nameColumnId, JET_COLUMNID valueColumnId) :
-                base(session, tableName, indexName, projectColumnId, projectNameColumnId, default(JET_COLUMNID))
+                base(session, tableName, indexName, projectColumnId, projectNameColumnId, default)
             {
                 _nameColumnId = nameColumnId;
                 _valueColumnId = valueColumnId;

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var appDomain = moduleInstance.AppDomain;
             var previous = appDomain.GetMetadataContext<CSharpMetadataContext>();
-            var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain);
+            var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
 
             CSharpCompilation compilation;
             if (previous.Matches(metadataBlocks))

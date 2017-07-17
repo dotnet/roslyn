@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;

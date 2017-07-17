@@ -51,6 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             var originalNodes = diagnostics.SelectAsArray(
                 d => (DefaultExpressionSyntax)originalRoot.FindNode(d.Location.SourceSpan, getInnermostNodeForTie: true));
 
+            // This code fix will not make changes that affect the semantics of a statement or declaration. Therefore,
+            // we can skip the expensive verification step in cases where only one default expression appears within the
+            // group.
+            var nodesBySemanticBoundary = originalNodes.GroupBy(node => GetSemanticBoundary(node));
+            var nodesToVerify = nodesBySemanticBoundary.Where(group => group.Skip(1).Any()).Flatten().ToSet();
+
             // We're going to be continually editing this tree.  Track all the nodes we
             // care about so we can find them across each edit.
             document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalNodes));
@@ -60,8 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             foreach (var originalDefaultExpression in originalNodes)
             {
                 var defaultExpression = currentRoot.GetCurrentNode(originalDefaultExpression);
+                var skipVerification = !nodesToVerify.Contains(originalDefaultExpression);
 
-                if (defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, options, semanticModel, cancellationToken))
+                if (skipVerification || defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, options, semanticModel, cancellationToken))
                 {
                     var replacement = SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
                                                    .WithTriviaFrom(defaultExpression);
@@ -76,10 +83,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             editor.ReplaceNode(originalRoot, currentRoot);
         }
 
+        private static SyntaxNode GetSemanticBoundary(DefaultExpressionSyntax node)
+        {
+            // Notes:
+            // 1. Syntax which doesn't fall into one of the "safe buckets" will get placed into a single group keyed off
+            //    the root of the tree. If more than one such node exists in the document, all will be verified.
+            // 2. Cannot include ArgumentSyntax because it could affect generic argument inference.
+            return node.FirstAncestorOrSelf<SyntaxNode>(n =>
+                n is StatementSyntax
+                || n is ParameterSyntax
+                || n is VariableDeclaratorSyntax
+                || n.Parent == null);
+        }
+
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Simplify_default_expression, createChangedDocument)
+                : base(FeaturesResources.Simplify_default_expression, createChangedDocument, FeaturesResources.Simplify_default_expression)
             {
             }
         }

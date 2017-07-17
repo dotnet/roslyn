@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private bool AllowsReadOnly(DocumentId documentId)
         {
             // All documents of regular running projects are read-only until the debugger breaks the app.
-            // However, ASP.NET doesn�t want its views (aspx, cshtml, or vbhtml) to be read-only, so they can be editable
+            // However, ASP.NET doesn’t want its views (aspx, cshtml, or vbhtml) to be read-only, so they can be editable
             // while the code is running and get refreshed next time the web page is hit.
 
             // Note that Razor-like views are modelled as a ContainedDocument but normal code including code-behind are modelled as a StandardTextDocument.

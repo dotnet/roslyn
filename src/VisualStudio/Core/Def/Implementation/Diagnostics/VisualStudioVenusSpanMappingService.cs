@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private static bool TryAdjustSpanIfNeededForVenus(VisualStudioWorkspaceImpl workspace, DocumentId documentId, int originalLine, int originalColumn, out MappedSpan mappedSpan)
         {
-            mappedSpan = default(MappedSpan);
+            mappedSpan = default;
 
             if (documentId == null)
             {

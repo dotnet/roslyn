@@ -2,6 +2,7 @@
 
 Imports System.Text
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE

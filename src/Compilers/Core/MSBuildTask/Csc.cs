@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -183,7 +183,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
             commandLine.AppendSwitchWithSplitting("/nowarn:", DisabledWarnings, ",", ';', ',');
             commandLine.AppendWhenTrue("/fullpaths", _store, nameof(GenerateFullPaths));
-            commandLine.AppendSwitchIfNotNull("/langversion:", LangVersion);
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", ModuleAssemblyName);
             commandLine.AppendSwitchIfNotNull("/pdb:", PdbFile);
             commandLine.AppendPlusOrMinusSwitch("/nostdlib", _store, nameof(NoStandardLib));
@@ -202,10 +201,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;
-            if (HostObject != null)
+            if (HostObject is ICscHostObject csHost)
             {
-                var csHost = HostObject as ICscHostObject;
                 designTime = csHost.IsDesignTime();
+            }
+            else if (HostObject != null)
+            {
+                throw new InvalidOperationException(string.Format(ErrorString.General_IncorrectHostObject, "Csc", "ICscHostObject"));
             }
             if (!designTime)
             {
@@ -642,12 +644,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 // NOTE: For compat reasons this must remain ICscHostObject
                 // we can dynamically test for smarter interfaces later..
-                using (RCWForCurrentContext<ICscHostObject> hostObject = new RCWForCurrentContext<ICscHostObject>(HostObject as ICscHostObject))
+                if (HostObject is ICscHostObject hostObjectCOM)
                 {
-                    ICscHostObject cscHostObject = hostObject.RCW;
-
-                    if (cscHostObject != null)
+                    using (RCWForCurrentContext<ICscHostObject> hostObject = new RCWForCurrentContext<ICscHostObject>(hostObjectCOM))
                     {
+                        ICscHostObject cscHostObject = hostObject.RCW;
+
                         bool hostObjectSuccessfullyInitialized = InitializeHostCompiler(cscHostObject);
 
                         // If we're currently only in design-time (as opposed to build-time),
@@ -699,10 +701,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             return HostObjectInitializationStatus.NoActionReturnFailure;
                         }
                     }
-                    else
-                    {
-                        Log.LogErrorWithCodeFromResources("General_IncorrectHostObject", "Csc", "ICscHostObject");
-                    }
+                }
+                else
+                {
+                    Log.LogErrorWithCodeFromResources("General_IncorrectHostObject", "Csc", "ICscHostObject");
                 }
             }
 

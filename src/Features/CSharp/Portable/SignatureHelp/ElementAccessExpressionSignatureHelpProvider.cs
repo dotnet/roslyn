@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -372,7 +372,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             {
                 if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out ElementBindingExpressionSyntax elementBindingExpression))
                 {
-                    identifier = ((ConditionalAccessExpressionSyntax)elementBindingExpression.Parent).Expression;
+                    // Find the first conditional access expression that starts left of our open bracket
+                    var conditionalAccess = elementBindingExpression.FirstAncestorOrSelf<ConditionalAccessExpressionSyntax>(
+                        c => c.SpanStart < elementBindingExpression.SpanStart);
+
+                    identifier = conditionalAccess.Expression;
                     openBrace = elementBindingExpression.ArgumentList.OpenBracketToken;
 
                     return true;

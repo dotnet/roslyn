@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.ObjectModel
 Imports System.Threading.Tasks
@@ -55,10 +55,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         Private Async Function VerifySpansBeforeConflictResolution(actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
             ' Verify no fixup/resolved non-reference conflict span.
-            Await VerifyEmptyTaggedSpans(HighlightTags.FixupTag.Instance, actualWorkspace, renameService)
+            Await VerifyEmptyTaggedSpans(HighlightTags.RenameFixupTag.Instance, actualWorkspace, renameService)
 
             ' Verify valid reference tags.
-            Await VerifyTaggedSpans(HighlightTags.ValidTag.Instance, actualWorkspace, renameService)
+            Await VerifyTaggedSpans(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, actualWorkspace, renameService)
         End Function
 
         Private Async Function VerifySpansAndBufferForConflictResolution(actualWorkspace As TestWorkspace, renameService As InlineRenameService, resolvedConflictWorkspace As TestWorkspace,
@@ -66,10 +66,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Await WaitForRename(actualWorkspace)
 
             ' Verify fixup/resolved conflict spans.
-            Await VerifyAnnotatedTaggedSpans(HighlightTags.FixupTag.Instance, "Complexified", actualWorkspace, renameService, resolvedConflictWorkspace)
+            Await VerifyAnnotatedTaggedSpans(HighlightTags.RenameFixupTag.Instance, "Complexified", actualWorkspace, renameService, resolvedConflictWorkspace)
 
             ' Verify valid reference tags.
-            Await VerifyTaggedSpans(HighlightTags.ValidTag.Instance, actualWorkspace, renameService, resolvedConflictWorkspace)
+            Await VerifyTaggedSpans(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, actualWorkspace, renameService, resolvedConflictWorkspace)
 
             VerifyBufferContentsInWorkspace(actualWorkspace, resolvedConflictWorkspace)
 
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
 
-                Await VerifyTaggedSpans(HighlightTags.ValidTag.Instance, workspace, renameService)
+                Await VerifyTaggedSpans(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, workspace, renameService)
                 session.Cancel()
             End Using
         End Function
@@ -183,7 +183,7 @@ class Program
 
                     Dim renamedDocument = renamedWorkspace.Documents.Single()
                     Dim expectedSpans = GetAnnotatedSpans("conflict", renamedDocument)
-                    Dim taggedSpans = GetTagsOfType(ConflictTag.Instance, renameService, document.TextBuffer)
+                    Dim taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, document.TextBuffer)
                     Assert.Equal(expectedSpans, taggedSpans)
                 End Using
             End Using
@@ -285,15 +285,15 @@ public class Class1
 
                     Dim renamedDocument = renamedWorkspace.Documents.First()
                     Dim expectedSpans = GetAnnotatedSpans("resolved", renamedDocument)
-                    Dim taggedSpans = GetTagsOfType(FixupTag.Instance, renameService, document.TextBuffer)
+                    Dim taggedSpans = GetTagsOfType(RenameFixupTag.Instance, renameService, document.TextBuffer)
                     Assert.Equal(expectedSpans, taggedSpans)
 
                     expectedSpans = GetAnnotatedSpans("conflict", renamedDocument)
-                    taggedSpans = GetTagsOfType(ConflictTag.Instance, renameService, document.TextBuffer)
+                    taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, document.TextBuffer)
                     Assert.Equal(expectedSpans, taggedSpans)
 
                     expectedSpans = GetAnnotatedSpans("valid", renamedDocument)
-                    taggedSpans = GetTagsOfType(ValidTag.Instance, renameService, document.TextBuffer)
+                    taggedSpans = GetTagsOfType(RenameFieldBackgroundAndBorderTag.Instance, renameService, document.TextBuffer)
                     Assert.Equal(expectedSpans, taggedSpans)
                 End Using
             End Using
@@ -367,7 +367,7 @@ public class Class1
 
                     Dim renamedDocument = renamedWorkspace.Documents.First()
                     Dim expectedSpans = GetAnnotatedSpans("conflict", renamedDocument)
-                    Dim taggedSpans = GetTagsOfType(ConflictTag.Instance, renameService, document.TextBuffer)
+                    Dim taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, document.TextBuffer)
                     Assert.Equal(expectedSpans, taggedSpans)
                 End Using
             End Using
@@ -404,7 +404,7 @@ public class Class1
 
                 Dim conflictDocument = workspace.Documents.Single(Function(d) d.FilePath = "B.cs")
                 Dim expectedSpans = GetAnnotatedSpans("conflict", conflictDocument)
-                Dim taggedSpans = GetTagsOfType(ConflictTag.Instance, renameService, conflictDocument.TextBuffer)
+                Dim taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, conflictDocument.TextBuffer)
                 Assert.Equal(expectedSpans, taggedSpans)
             End Using
         End Function
@@ -1605,10 +1605,10 @@ static class E
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
 
-                Dim validTaggedSpans = Await GetTagsOfType(HighlightTags.ValidTag.Instance, workspace, renameService)
+                Dim validTaggedSpans = Await GetTagsOfType(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, workspace, renameService)
                 Dim validExpectedSpans = workspace.Documents.Single(Function(d) d.AnnotatedSpans.Count > 0).AnnotatedSpans("valid").Select(Function(ts) ts.ToSpan())
 
-                Dim conflictTaggedSpans = Await GetTagsOfType(ConflictTag.Instance, workspace, renameService)
+                Dim conflictTaggedSpans = Await GetTagsOfType(RenameConflictTag.Instance, workspace, renameService)
                 Dim conflictExpectedSpans = workspace.Documents.Single(Function(d) d.AnnotatedSpans.Count > 0).AnnotatedSpans("conflict").Select(Function(ts) ts.ToSpan())
 
                 session.Cancel()
@@ -1639,10 +1639,10 @@ static class E
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
 
-                Dim validTaggedSpans = Await GetTagsOfType(HighlightTags.ValidTag.Instance, workspace, renameService)
+                Dim validTaggedSpans = Await GetTagsOfType(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, workspace, renameService)
                 Dim validExpectedSpans = workspace.Documents.Single(Function(d) d.AnnotatedSpans.Count > 0).AnnotatedSpans("valid").Select(Function(ts) ts.ToSpan())
 
-                Dim conflictTaggedSpans = Await GetTagsOfType(ConflictTag.Instance, workspace, renameService)
+                Dim conflictTaggedSpans = Await GetTagsOfType(RenameConflictTag.Instance, workspace, renameService)
                 Dim conflictExpectedSpans = workspace.Documents.Single(Function(d) d.AnnotatedSpans.Count > 0).AnnotatedSpans("conflict").Select(Function(ts) ts.ToSpan())
 
                 session.Cancel()

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Settings;
@@ -112,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             var allPackagesWithType = await engine.FindPackagesWithTypeAsync(
-                source, name, arity).ConfigureAwait(false);
+                source, name, arity, cancellationToken).ConfigureAwait(false);
 
             return FilterAndOrderPackages(allPackagesWithType);
         }
@@ -122,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             var allPackagesWithAssembly = await engine.FindPackagesWithAssemblyAsync(
-                source, assemblyName).ConfigureAwait(false);
+                source, assemblyName, cancellationToken).ConfigureAwait(false);
 
             return FilterAndOrderPackages(allPackagesWithAssembly);
         }
@@ -174,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             return await engine.FindReferenceAssembliesWithTypeAsync(
-                name, arity).ConfigureAwait(false);
+                name, arity, cancellationToken).ConfigureAwait(false);
         }
     }
 }

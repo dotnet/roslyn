@@ -7653,23 +7653,26 @@ public class Program
                 expectedOutput: "RemoveEmptyEntries");
             compVerifier.VerifyIL("Program.Main",
 @"{
-  // Code size       24 (0x18)
+  // Code size       26 (0x1a)
   .maxstack  1
   .locals init (object V_0,
-                object V_1) //o
+                object V_1, //o
+                System.StringSplitOptions V_2)
   IL_0000:  nop
   IL_0001:  ldc.i4.1
-  IL_0002:  box        ""System.StringSplitOptions""
-  IL_0007:  stloc.0
-  IL_0008:  br.s       IL_000a
-  IL_000a:  ldloc.0
-  IL_000b:  stloc.1
-  IL_000c:  br.s       IL_000e
-  IL_000e:  ldloc.1
-  IL_000f:  call       ""void System.Console.WriteLine(object)""
-  IL_0014:  nop
-  IL_0015:  br.s       IL_0017
-  IL_0017:  ret
+  IL_0002:  stloc.2
+  IL_0003:  ldc.i4.1
+  IL_0004:  box        ""System.StringSplitOptions""
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  stloc.1
+  IL_000e:  br.s       IL_0010
+  IL_0010:  ldloc.1
+  IL_0011:  call       ""void System.Console.WriteLine(object)""
+  IL_0016:  nop
+  IL_0017:  br.s       IL_0019
+  IL_0019:  ret
 }"
             );
         }
@@ -8455,12 +8458,12 @@ class Program
 }
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (13,21): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                // (13,21): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t ? t : default(T);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7", "7.1").WithLocation(13, 21),
-                // (19,18): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7", "7.1").WithLocation(19, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(19, 18)
                 );
             var compVerifier = CompileAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
@@ -8657,12 +8660,12 @@ class Program
     }
 }";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (13,21): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7. Please use language version 7.1 or greater.
+                // (13,21): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is int t ? t : default(int);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7", "7.1").WithLocation(13, 21),
-                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7.0", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7.0. Please use language version 7.1 or greater.
                 //             case int t:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7", "7.1").WithLocation(19, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7.0", "7.1").WithLocation(19, 18)
                 );
             var compVerifier = CompileAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
@@ -8889,12 +8892,12 @@ class B : A
 class X : B { }
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (14,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                // (14,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t ? t : default(T);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7", "7.1").WithLocation(14, 21),
-                // (20,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(14, 21),
+                // (20,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7", "7.1").WithLocation(20, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(20, 18)
                 );
             var compVerifier = CompileAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
@@ -8944,12 +8947,12 @@ class B : A
 class X : B { }
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (14,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                // (14,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t ? t : default(T);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7", "7.1").WithLocation(14, 21),
-                // (20,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(14, 21),
+                // (20,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7", "7.1").WithLocation(20, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(20, 18)
                 );
             var compVerifier = CompileAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
@@ -8997,12 +9000,12 @@ struct B : I1
 }
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (13,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                // (13,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t;
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7", "7.1").WithLocation(13, 21),
-                // (19,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7", "7.1").WithLocation(19, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(19, 18)
                 );
             var compilation = CreateStandardCompilation(source,
                     options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
@@ -9010,6 +9013,59 @@ struct B : I1
                 .VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation,
                 expectedOutput: "FalseFalseTrueTrue");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestMatchWithTypeParameter_07()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(M1<B>(new A()));
+        Console.Write(M2<B>(new A()));
+        Console.Write(M1<A>(new A()));
+        Console.Write(M2<A>(new A()));
+    }
+    public static bool M1<T>(A o) where T : new()
+    {
+        return o is T t;
+    }
+    public static bool M2<T>(A o) where T : new()
+    {
+        switch (o)
+        {
+            case T t:
+                return true;
+            default:
+                return false;
+        }
+    }
+}
+struct A
+{
+}
+struct B
+{
+}
+";
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (13,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //         return o is T t;
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(19, 18)
+                );
+            var compilation = CreateStandardCompilation(source,
+                    options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                    parseOptions: TestOptions.Regular7_1)
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation,
+                expectedOutput: "FalseFalseTrueTrue");
+            compVerifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]

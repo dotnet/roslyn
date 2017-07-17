@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> result, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> result, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             var blockForData = false;
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(this, document, range, blockForData, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
             return await getter.TryGetAsync(result, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             var blockForData = true;
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(this, document, range, blockForData, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
@@ -201,7 +201,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (_projectResultCache == null)
                 {
                     // execute whole project as one shot and cache the result.
-                    _projectResultCache = await _owner._executor.ComputeDiagnosticsAsync(_analyzerDriverOpt, _project, _stateSets, cancellationToken).ConfigureAwait(false);
+                    var forceAnalyzerRun = true;
+                    var analysisResult = await _owner._executor.GetProjectAnalysisDataAsync(_analyzerDriverOpt, _project, _stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
+
+                    _projectResultCache = analysisResult.Result;
                 }
 
                 if (!_projectResultCache.TryGetValue(analyzer, out var result))

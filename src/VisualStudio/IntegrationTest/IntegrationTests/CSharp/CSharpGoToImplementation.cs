@@ -49,7 +49,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.SetText(
 @"class Implementation : IBar
 {
-}");
+}
+");
             VisualStudio.SolutionExplorer.CloseFile(project, "FileImplementation.cs", saveFile: true);
             VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.cs");

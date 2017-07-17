@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute()>  _
     Friend Class BasicVSResources
@@ -137,15 +137,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Enable full solution _analysis.
-        '''</summary>
-        Friend Shared ReadOnly Property Enable_full_solution_analysis() As String
-            Get
-                Return ResourceManager.GetString("Enable_full_solution_analysis", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Enter key behavior:.
         '''</summary>
         Friend Shared ReadOnly Property Enter_key_behavior_colon() As String
@@ -169,6 +160,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Extract_Method() As String
             Get
                 Return ResourceManager.GetString("Extract_Method", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Fade out unused imports.
+        '''</summary>
+        Friend Shared ReadOnly Property Fade_out_unused_imports() As String
+            Get
+                Return ResourceManager.GetString("Fade_out_unused_imports", resourceCulture)
             End Get
         End Property
         

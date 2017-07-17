@@ -23,50 +23,60 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return 0;
         }
 
-        public Common.Expression GetEntry(string entryName)
-        {
-            return new Common.Expression(GetEntryInternal(entryName));
-        }
-
         public Common.Expression GetEntry(params string[] entryNames)
         {
-            return new Common.Expression(GetEntryInternal(entryNames));
-        }
-
-        private EnvDTE.Expression GetEntryInternal(params string[] entryNames)
-        {
-            var entry = GetEntryInternal(entryNames[0]);
-            for (int i = 1; i < entryNames.Length; i++)
-            {
-                entry = GetEntryInternal(entryNames[i], entry.DataMembers);
-            }
-
-            return entry;
-        }
-
-        private EnvDTE.Expression GetEntryInternal(string entryName, EnvDTE.Expressions expressions)
-        {
-            var expressionCollection = expressions.Cast<EnvDTE.Expression>();
-            var expressionMatched = expressionCollection.FirstOrDefault(e => e.Name == entryName);
-            if (expressionMatched != null)
-            {
-                return expressionMatched;
-            }
-
-            string nestedExpressionNamesString = string.Join(",", expressionCollection.Select(e => e.Name));
-            throw new Exception($"Could not find the local named {entryName}. Available locals are {nestedExpressionNamesString}.");
-        }
-
-        private EnvDTE.Expression GetEntryInternal(string entryName)
-        {
             var dte = ((DTE2)GetDTE());
-            if (dte.Debugger.CurrentStackFrame != null) // Ensure that debugger is running
+            if (dte.Debugger.CurrentStackFrame == null) // Ensure that debugger is running
             {
-                EnvDTE.Expressions locals = dte.Debugger.CurrentStackFrame.Locals;
-                return GetEntryInternal(entryName, locals);
+                throw new Exception($"Could not find locals. Debugger is not running.");
             }
 
-            throw new Exception($"Could not find locals. Debugger is not running.");
+            EnvDTE.Expressions expressions = dte.Debugger.CurrentStackFrame.Locals;
+            EnvDTE.Expression entry = null;
+
+            int i = 0;
+            while (i < entryNames.Length && TryGetEntryInternal(entryNames[i], expressions, out entry))
+            {
+                i++;
+                expressions = entry.DataMembers;
+            }
+
+            if ((i == entryNames.Length) && (entry != null))
+            {
+                return new Common.Expression(entry);
+            }
+
+            string localHierarchicalName = string.Join("->", entryNames);
+            string allLocalsString = string.Join("\n", GetAllLocals(dte.Debugger.CurrentStackFrame.Locals));
+            throw new Exception($"\nCould not find the local named {localHierarchicalName}.\nAll available locals are: \n{allLocalsString}");
+        }
+
+        private bool TryGetEntryInternal(string entryName, EnvDTE.Expressions expressions, out EnvDTE.Expression expression)
+        {
+            expression = expressions.Cast<EnvDTE.Expression>().FirstOrDefault(e => e.Name == entryName);
+            if (expression != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static IEnumerable<string> GetAllLocals(EnvDTE.Expressions expressions)
+        {
+            foreach (var expression in expressions.Cast<EnvDTE.Expression>())
+            {
+                string expressionName = expression.Name;
+                yield return expressionName;
+                var nestedExpressions = expression.DataMembers;
+                if (nestedExpressions != null)
+                {
+                    foreach (var nestedLocal in GetAllLocals(nestedExpressions))
+                    {
+                        yield return string.Format("{0}->{1}", expressionName, nestedLocal);
+                    }
+                }
+            }
         }
     }
 }

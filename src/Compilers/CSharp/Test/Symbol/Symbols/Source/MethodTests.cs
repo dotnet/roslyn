@@ -1845,10 +1845,10 @@ class C
 
             var @class = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("C").Single();
 
-            var method1 = (SourceMethodSymbol)@class.GetMembers("Method1").Single();
-            var method2 = (SourceMethodSymbol)@class.GetMembers("Method2").Single();
-            var method3 = (SourceMethodSymbol)@class.GetMembers("Method3").Single();
-            var method4 = (SourceMethodSymbol)@class.GetMembers("Method4").Single();
+            var method1 = (SourceMemberMethodSymbol)@class.GetMembers("Method1").Single();
+            var method2 = (SourceMemberMethodSymbol)@class.GetMembers("Method2").Single();
+            var method3 = (SourceMemberMethodSymbol)@class.GetMembers("Method3").Single();
+            var method4 = (SourceMemberMethodSymbol)@class.GetMembers("Method4").Single();
 
             Assert.True(method1.IsVirtual);
             Assert.True(method2.IsVirtual);
@@ -2191,9 +2191,9 @@ static class C
                 // (6,13): error CS1547: Keyword 'void' cannot be used in this context
                 //         ref void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 13),
-                // (6,18): warning CS0168: The variable 'M' is declared but never used
+                // (6,18): warning CS8321: The local function 'M' is declared but never used
                 //         ref void M() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "M").WithArguments("M").WithLocation(6, 18)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(6, 18)
                 );
         }
 

@@ -1,9 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -402,6 +403,105 @@ class Program
 #endif
 
 }", options: UseExpressionBody, ignoreTrivia: false);
+        }
+
+        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp6()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M() [|=>|] throw new NotImplementedException();
+}",
+@"
+using System;
+class C
+{
+    void M()
+    {
+        throw new NotImplementedException();
+    }
+}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+        }
+
+        [WorkItem(20352, "https://github.com/dotnet/roslyn/issues/20352")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestDoNotOfferToConvertToBlockIfExpressionBodyPreferredIfCSharp6()
+        {
+            await TestMissingAsync(
+@"
+using System;
+class C
+{
+    void M() [|=>|] 0;
+}", new TestParameters(options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
+        }
+
+        [WorkItem(20352, "https://github.com/dotnet/roslyn/issues/20352")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferToConvertToExpressionIfCSharp6()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M() { [|return|] 0; }
+}",
+@"
+using System;
+class C
+{
+    void M() => 0;
+}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [WorkItem(20352, "https://github.com/dotnet/roslyn/issues/20352")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestDoNotOfferToConvertToExpressionInCSharp6IfThrowExpression()
+        {
+            await TestMissingAsync(
+@"
+using System;
+class C
+{
+    // throw expressions not supported in C# 6.
+    void M() { [|throw|] new Exception(); }
+}", new TestParameters(options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
+        }
+
+        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp6_FixAll()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M() {|FixAllInDocument:=>|} throw new NotImplementedException();
+    void M(int i) => throw new NotImplementedException();
+    int M(bool b) => 0;
+}",
+@"
+using System;
+class C
+{
+    void M()
+    {
+        throw new NotImplementedException();
+    }
+
+    void M(int i)
+    {
+        throw new NotImplementedException();
+    }
+
+    int M(bool b) => 0;
+}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
     }
 }

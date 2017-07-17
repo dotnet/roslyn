@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 extern alias core;
 
@@ -44,8 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             _componentModel = (IComponentModel)GetService(typeof(SComponentModel));
             _interactiveWindowProvider = _componentModel.DefaultExportProvider.GetExportedValue<TVsInteractiveWindowProvider>();
-            KnownUIContexts.ShellInitializedContext.WhenActivated(() =>
-                _componentModel.GetService<HACK_ThemeColorFixer>());
 
             var menuCommandService = (OleMenuCommandService)GetService(typeof(IMenuCommandService));
             InitializeMenuCommands(menuCommandService);

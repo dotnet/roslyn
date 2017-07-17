@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return default(ForEachSymbols);
+                return default;
             }
         }
 

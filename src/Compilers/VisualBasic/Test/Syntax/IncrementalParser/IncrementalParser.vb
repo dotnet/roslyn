@@ -4,6 +4,7 @@ Imports System.Collections.ObjectModel
 Imports System.Text
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic

@@ -18,7 +18,6 @@
     <PackageReference Include="FakeSign" Version="$(FakeSignVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
     <PackageReference Include="Roslyn.Build.Util" Version="$(RoslynBuildUtilVersion)" />
     <PackageReference Include="RoslynDependencies.OptimizationData" Version="$(RoslynDependenciesOptimizationDataVersion)" />
     <PackageReference Include="RoslynTools.Microsoft.LocateVS" Version="$(RoslynToolsMicrosoftLocateVSVersion)" />

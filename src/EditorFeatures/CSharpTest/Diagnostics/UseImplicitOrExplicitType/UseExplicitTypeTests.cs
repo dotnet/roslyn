@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -1182,6 +1182,32 @@ options: ExplicitTypeEverywhere());
     static void M()
     {
         (int a, string) s = (a: 1, ""hello"");
+    }
+}",
+options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(20437, "https://github.com/dotnet/roslyn/issues/20437")]
+        public async Task SuggestExplicitTypeOnDeclarationExpressionSyntax()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        DateTime.TryParse(string.Empty, [|out var|] date);
+    }
+}",
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        DateTime.TryParse(string.Empty, out DateTime date);
     }
 }",
 options: ExplicitTypeEverywhere());

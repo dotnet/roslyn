@@ -30,4 +30,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils
             Name = name;
         }
     }
+
+    public class PackageReference : Identity
+    {
+        public string Version { get; }
+
+        public PackageReference(string name, string version)
+        {
+            Name = name;
+            Version = version;
+        }
+    }
 }

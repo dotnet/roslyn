@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -51,14 +52,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // Create a constructor that calls the base constructor.  Note: if there are no
             // parameters then don't bother writing out "base()" it's automatically implied.
             return CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 typeName: typeName,
                 parameters: constructor.Parameters,
-                statements: default(ImmutableArray<SyntaxNode>),
+                statements: default,
                 baseConstructorArguments: constructor.Parameters.Length == 0
-                    ? default(ImmutableArray<SyntaxNode>)
+                    ? default
                     : factory.CreateArguments(constructor.Parameters));
         }
 
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             yield return CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 typeName: typeName,
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return default(ImmutableArray<SyntaxNode>);
+            return default;
         }
 
         public static IEnumerable<IFieldSymbol> CreateFieldsForParameters(
@@ -139,9 +140,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (TryGetValue(parameterToNewFieldMap, parameterName, out var fieldName))
                     {
                         yield return CodeGenerationSymbolFactory.CreateFieldSymbol(
-                            attributes: default(ImmutableArray<AttributeData>),
+                            attributes: default,
                             accessibility: Accessibility.Private,
-                            modifiers: default(DeclarationModifiers),
+                            modifiers: default,
                             type: parameterType,
                             name: parameterToNewFieldMap[parameterName]);
                     }
@@ -440,10 +441,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return CodeGenerationSymbolFactory.CreateEventSymbol(
                 overriddenEvent,
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: overriddenEvent.ComputeResultantAccessibility(newContainingType),
                 modifiers: modifiers,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: overriddenEvent.Name);
         }
 
@@ -453,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol containingType,
             Document document,
             DeclarationModifiers? modifiersOpt = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var modifiers = modifiersOpt ?? GetOverrideModifiers(symbol);
 

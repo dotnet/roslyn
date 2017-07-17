@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static ImmutableArray<T> GetOrDefault<T>(StrongBox<ImmutableArray<T>> items)
         {
-            return items?.Value ?? default(ImmutableArray<T>);
+            return items?.Value ?? default;
         }
     }
 }

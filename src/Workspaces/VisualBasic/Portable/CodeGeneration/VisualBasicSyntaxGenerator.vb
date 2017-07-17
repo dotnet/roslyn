@@ -1,10 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -15,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
 
+        Friend Overrides ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
         Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
 
         Friend Overrides ReadOnly Property RequiresExplicitImplementationForInterfaceMembers As Boolean = True
@@ -39,6 +41,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function NameOfExpression(expression As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.NameOfExpression(DirectCast(expression, ExpressionSyntax))
+        End Function
+
+        Public Overrides Function TupleExpression(arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AddressOf AsSimpleArgument)))
         End Function
 
         Private Function Parenthesize(expression As SyntaxNode) As ParenthesizedExpressionSyntax
@@ -418,18 +424,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function AsArgument(argOrExpression As SyntaxNode) As ArgumentSyntax
-            Dim arg = TryCast(argOrExpression, ArgumentSyntax)
-            If arg IsNot Nothing Then
-                Return arg
-            Else
-                Return SyntaxFactory.SimpleArgument(DirectCast(argOrExpression, ExpressionSyntax))
-            End If
+            Return If(TryCast(argOrExpression, ArgumentSyntax),
+                      SyntaxFactory.SimpleArgument(DirectCast(argOrExpression, ExpressionSyntax)))
+        End Function
+
+        Private Function AsSimpleArgument(argOrExpression As SyntaxNode) As SimpleArgumentSyntax
+            Return If(TryCast(argOrExpression, SimpleArgumentSyntax),
+                      SyntaxFactory.SimpleArgument(DirectCast(argOrExpression, ExpressionSyntax)))
         End Function
 
         Public Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As String, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
             Return SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.TokenList(SyntaxFactory.Token(If(isConst, SyntaxKind.ConstKeyword, SyntaxKind.DimKeyword))),
                 SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, identifier, initializer)))
+        End Function
+
+        Friend Overrides Function WithInitializer(variableDeclarator As SyntaxNode, initializer As SyntaxNode) As SyntaxNode
+            Return DirectCast(variableDeclarator, VariableDeclaratorSyntax).WithInitializer(DirectCast(initializer, EqualsValueSyntax))
+        End Function
+
+        Friend Overrides Function EqualsValueClause(operatorToken As SyntaxToken, value As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.EqualsValue(operatorToken, DirectCast(value, ExpressionSyntax))
         End Function
 
         Private Function VariableDeclarator(type As SyntaxNode, name As String, Optional expression As SyntaxNode = Nothing) As VariableDeclaratorSyntax
@@ -528,6 +543,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return nullableType
             Else
                 Return SyntaxFactory.NullableType(DirectCast(type, TypeSyntax))
+            End If
+        End Function
+
+        Friend Overrides Function CreateTupleType(elements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast(Of TupleElementSyntax)()))
+        End Function
+
+        Public Overrides Function TupleElementExpression(type As SyntaxNode, Optional name As String = Nothing) As SyntaxNode
+            If name Is Nothing Then
+                Return SyntaxFactory.TypedTupleElement(DirectCast(type, TypeSyntax))
+            Else
+                Return SyntaxFactory.NamedTupleElement(name.ToIdentifierToken(), SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax)))
             End If
         End Function
 
@@ -844,6 +871,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 tokens = tokens.Add(SyntaxFactory.Token(SyntaxKind.ByRefKeyword))
             End If
             Return tokens
+        End Function
+
+        Public Overrides Function GetAccessorDeclaration(Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return SyntaxFactory.GetAccessorBlock(
+                SyntaxFactory.GetAccessorStatement().WithModifiers(GetModifierList(accessibility, DeclarationModifiers.None, DeclarationKind.Property)),
+                GetStatementList(statements))
+        End Function
+
+        Public Overrides Function SetAccessorDeclaration(Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return SyntaxFactory.SetAccessorBlock(
+                SyntaxFactory.SetAccessorStatement().WithModifiers(GetModifierList(accessibility, DeclarationModifiers.None, DeclarationKind.Property)),
+                GetStatementList(statements))
+        End Function
+
+        Public Overrides Function WithAccessorDeclarations(declaration As SyntaxNode, accessorDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim propertyBlock = GetPropertyBlock(declaration)
+            If propertyBlock Is Nothing Then
+                Return declaration
+            End If
+
+            propertyBlock = propertyBlock.WithAccessors(
+                SyntaxFactory.List(accessorDeclarations.OfType(Of AccessorBlockSyntax)))
+
+            Dim hasGetAccessor = propertyBlock.Accessors.Any(SyntaxKind.GetAccessorBlock)
+            Dim hasSetAccessor = propertyBlock.Accessors.Any(SyntaxKind.SetAccessorBlock)
+
+            If hasGetAccessor AndAlso Not hasSetAccessor Then
+                propertyBlock = DirectCast(WithModifiers(propertyBlock, GetModifiers(propertyBlock) Or DeclarationModifiers.ReadOnly), PropertyBlockSyntax)
+            ElseIf Not hasGetAccessor AndAlso hasSetAccessor Then
+                propertyBlock = DirectCast(WithModifiers(propertyBlock, GetModifiers(propertyBlock) Or DeclarationModifiers.WriteOnly), PropertyBlockSyntax)
+            ElseIf hasGetAccessor AndAlso hasSetAccessor Then
+                propertyBlock = DirectCast(WithModifiers(propertyBlock, GetModifiers(propertyBlock).WithIsReadOnly(False).WithIsWriteOnly(False)), PropertyBlockSyntax)
+            End If
+
+            Return If(propertyBlock.Accessors.Count = 0,
+                      propertyBlock.PropertyStatement,
+                      DirectCast(propertyBlock, SyntaxNode))
+        End Function
+
+        Private Function GetPropertyBlock(declaration As SyntaxNode) As PropertyBlockSyntax
+            Dim propertyBlock = TryCast(declaration, PropertyBlockSyntax)
+            If propertyBlock IsNot Nothing Then
+                Return propertyBlock
+            End If
+
+            Dim propertyStatement = TryCast(declaration, PropertyStatementSyntax)
+            If propertyStatement IsNot Nothing Then
+                Return SyntaxFactory.PropertyBlock(propertyStatement, SyntaxFactory.List(Of AccessorBlockSyntax))
+            End If
+
+            Return Nothing
         End Function
 
         Public Overrides Function PropertyDeclaration(
@@ -2449,11 +2527,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Function Merge(original As SyntaxTokenList, newList As SyntaxTokenList) As SyntaxTokenList
-            '' return tokens from newList, but use original tokens if kind matches
-            Return SyntaxFactory.TokenList(newList.Select(Function(token) If(original.Any(token.Kind), original.First(Function(tk) tk.IsKind(token.Kind)), token)))
-        End Function
-
         Private Function GetModifierTokens(declaration As SyntaxNode) As SyntaxTokenList
             Select Case declaration.Kind
                 Case SyntaxKind.ClassBlock
@@ -2861,6 +2934,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Return declaration
+        End Function
+
+        Friend Overrides Function WithExplicitInterfaceImplementations(declaration As SyntaxNode, explicitInterfaceImplementations As ImmutableArray(Of IMethodSymbol)) As SyntaxNode
+            If TypeOf declaration Is MethodStatementSyntax Then
+                Dim methodStatement = DirectCast(declaration, MethodStatementSyntax)
+
+                Dim interfaceMembers = explicitInterfaceImplementations.Select(AddressOf GenerateInterfaceMember)
+
+                Return methodStatement.WithImplementsClause(
+                    SyntaxFactory.ImplementsClause(SyntaxFactory.SeparatedList(interfaceMembers)))
+            ElseIf TypeOf declaration Is MethodBlockSyntax Then
+                Dim methodBlock = DirectCast(declaration, MethodBlockSyntax)
+                Return methodBlock.WithSubOrFunctionStatement(
+                    DirectCast(WithExplicitInterfaceImplementations(methodBlock.SubOrFunctionStatement, explicitInterfaceImplementations), MethodStatementSyntax))
+            End If
+
+            Return declaration
+        End Function
+
+        Private Function GenerateInterfaceMember(method As IMethodSymbol) As QualifiedNameSyntax
+            Dim interfaceName = method.ContainingType.GenerateTypeSyntax()
+            Return SyntaxFactory.QualifiedName(
+                DirectCast(interfaceName, NameSyntax),
+                SyntaxFactory.IdentifierName(method.Name))
         End Function
 
         Public Overrides Function WithTypeConstraint(declaration As SyntaxNode, typeParameterName As String, kinds As SpecialTypeConstraintKind, Optional types As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode

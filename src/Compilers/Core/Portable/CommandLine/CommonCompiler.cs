@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis
         public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLoggerOpt);
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
+        public abstract void PrintLangVersions(TextWriter consoleOutput);
 
         /// <summary>
         /// Print compiler version
@@ -520,6 +521,12 @@ namespace Microsoft.CodeAnalysis
                 return Succeeded;
             }
 
+            if (Arguments.DisplayLangVersions)
+            {
+                PrintLangVersions(consoleOutput);
+                return Succeeded;
+            }
+
             if (Arguments.DisplayLogo)
             {
                 PrintLogo(consoleOutput);
@@ -577,7 +584,7 @@ namespace Microsoft.CodeAnalysis
                 if (!analyzers.IsEmpty)
                 {
                     analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    analyzerManager = new AnalyzerManager();
+                    analyzerManager = new AnalyzerManager(analyzers);
                     analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                     Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
@@ -838,12 +845,6 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerCts != null)
                 {
                     analyzerCts.Cancel();
-
-                    if (analyzerManager != null)
-                    {
-                        // Clear cached analyzer descriptors and unregister exception handlers hooked up to the LocalizableString fields of the associated descriptors.
-                        analyzerManager.ClearAnalyzerState(analyzers);
-                    }
 
                     if (reportAnalyzer)
                     {

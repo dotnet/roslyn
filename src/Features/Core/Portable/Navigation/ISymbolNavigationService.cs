@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Host;
 using System.Threading;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <param name="options">A set of options. If these options are not supplied the
         /// current set of options from the project's workspace will be used.</param>
         /// <param name="cancellationToken">The token to check for cancellation</param>
-        bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken));
+        bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet options = null, CancellationToken cancellationToken = default);
 
         /// <returns>True if the navigation was handled, indicating that the caller should not 
         /// perform the navigation.</returns>

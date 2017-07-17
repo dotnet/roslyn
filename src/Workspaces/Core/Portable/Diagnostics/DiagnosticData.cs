@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var lines = text.Lines;
             if (lines.Count == 0)
             {
-                return default(TextSpan);
+                return default;
             }
 
             var originalStartLine = dataLocation?.OriginalStartLine ?? 0;
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             throw new NotImplementedException();
         }
 
-        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData, CancellationToken cancellationToken = default(CancellationToken))
+        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData, CancellationToken cancellationToken = default)
         {
             diagnosticData = null;
             var project = workspace.CurrentSolution.GetProject(projectId);

@@ -2,10 +2,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public Accessibility Accessibility => GetAccessibility(_flags);
         public byte ParameterCount => GetParameterCount(_flags);
         public byte TypeParameterCount => GetTypeParameterCount(_flags);
+        public bool IsNestedType => GetIsNestedType(_flags);
 
         /// <summary>
         /// The names directly referenced in source that this type inherits from.
@@ -81,6 +82,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public ImmutableArray<string> InheritanceNames { get; }
 
         public DeclaredSymbolInfo(
+            StringTable stringTable,
             string name,
             string nameSuffix,
             string containerDisplayName,
@@ -89,13 +91,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Accessibility accessibility,
             TextSpan span,
             ImmutableArray<string> inheritanceNames,
-            int parameterCount = 0, int typeParameterCount = 0)
-            : this()
+            bool isNestedType = false, int parameterCount = 0, int typeParameterCount = 0)
         {
-            Name = name;
-            NameSuffix = nameSuffix;
-            ContainerDisplayName = containerDisplayName;
-            FullyQualifiedContainerName = fullyQualifiedContainerName;
+            Name = Intern(stringTable, name);
+            NameSuffix = Intern(stringTable, nameSuffix);
+            ContainerDisplayName = Intern(stringTable, containerDisplayName);
+            FullyQualifiedContainerName = Intern(stringTable, fullyQualifiedContainerName);
             Span = span;
             InheritanceNames = inheritanceNames;
 
@@ -105,8 +106,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             parameterCount = Math.Min(parameterCount, (byte)MaxFlagValue);
             typeParameterCount = Math.Min(typeParameterCount, (byte)MaxFlagValue);
 
-            _flags = (uint)kind | ((uint)accessibility << 4) | ((uint)parameterCount << 8) | ((uint)typeParameterCount << 12);
+            _flags =
+                (uint)kind |
+                ((uint)accessibility << 4) |
+                ((uint)parameterCount << 8) |
+                ((uint)typeParameterCount << 12) |
+                ((isNestedType ? 1u : 0u) << 16);
         }
+
+        public static string Intern(StringTable stringTable, string name)
+            => name == null ? null : stringTable.Add(name);
 
         private static DeclaredSymbolInfoKind GetKind(uint flags)
             => (DeclaredSymbolInfoKind)(flags & Lower4BitMask);
@@ -119,6 +128,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static byte GetTypeParameterCount(uint flags)
             => (byte)((flags >> 12) & Lower4BitMask);
+
+        private static bool GetIsNestedType(uint flags)
+            => ((flags >> 16) & 1) == 1;
 
         internal void WriteTo(ObjectWriter writer)
         {
@@ -137,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(ObjectReader reader)
+        internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(StringTable stringTable, ObjectReader reader)
         {
             var name = reader.ReadString();
             var nameSuffix = reader.ReadString();
@@ -156,6 +168,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var span = new TextSpan(spanStart, spanLength);
             return new DeclaredSymbolInfo(
+                stringTable,
                 name: name,
                 nameSuffix: nameSuffix,
                 containerDisplayName: containerDisplayName,

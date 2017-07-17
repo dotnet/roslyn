@@ -3914,9 +3914,28 @@ class C
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.FixedStatement, ms.Body.Statements[0].Kind());
             var diags = file.ErrorsAndWarnings();
-            Assert.Equal(2, diags.Length);
+            Assert.Equal(1, diags.Length);
             Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, diags[0].Code);
-            Assert.Equal((int)ErrorCode.WRN_PossibleMistakenNullStatement, diags[1].Code);
+
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,31): error CS1026: ) expected
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31),
+                // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "fixed(t v;").WithLocation(1, 22),
+                // (1,28): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(1, 28),
+                // (1,30): error CS0209: The type of a local declared in a fixed statement must be a pointer type
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.ERR_BadFixedInitType, "v").WithLocation(1, 30),
+                // (1,30): error CS0210: You must provide an initializer in a fixed or using statement declaration
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "v").WithLocation(1, 30),
+                // (1,31): warning CS0642: Possible mistaken empty statement
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(1, 31));
         }
 
         [Fact]

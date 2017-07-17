@@ -1,9 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -167,8 +167,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", options: UseBlockBody);
         }
 
+        [WorkItem(20363, "https://github.com/dotnet/roslyn/issues/20363")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUseBlockBodyIfAccessorWantExpression1()
+        public async Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -179,9 +180,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     int Foo
     {
-        get => Bar();
-        }
-    }", options: UseBlockBodyExceptAccessor);
+        get { return Bar(); }
+    }
+}", options: UseBlockBodyExceptAccessor);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -363,6 +364,65 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     }
 }", ignoreTrivia: false,
     options: UseBlockBody);
+        }
+
+        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfHasThrowExpressionPriorToCSharp7()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int Foo [|=>|] throw new NotImplementedException();
+}",
+@"
+using System;
+class C
+{
+    int Foo 
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfHasThrowExpressionPriorToCSharp7_FixAll()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int Foo {|FixAllInDocument:=>|} throw new NotImplementedException();
+    int Bar => throw new NotImplementedException();
+}",
+@"
+using System;
+class C
+{
+    int Foo 
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    int Bar 
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
     }
 }
