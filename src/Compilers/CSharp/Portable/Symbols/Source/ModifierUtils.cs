@@ -13,16 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
             DiagnosticBag diagnostics,
-            out bool modifierErrors,
-            bool allowPartial)
+            out bool modifierErrors)
         {
             var result = modifiers.ToDeclarationModifiers(diagnostics);
-
-            if (allowPartial)
-            {
-                allowedModifiers |= DeclarationModifiers.Partial;
-            }
-
             result = CheckModifiers(result, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)

@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const DeclarationModifiers allowedModifiers = DeclarationModifiers.Extern | DeclarationModifiers.Unsafe;
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
                 modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics,
-                out modifierErrors, allowPartial: false);
+                out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 

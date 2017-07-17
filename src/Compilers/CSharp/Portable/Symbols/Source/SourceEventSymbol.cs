@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
                 modifiers, defaultAccess, allowedModifiers, location, diagnostics,
-                out modifierErrors, allowPartial: false);
+                out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
