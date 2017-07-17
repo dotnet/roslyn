@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
 
                 return CodeGenerationSymbolFactory.CreateTypeParameter(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     varianceKind: typeParameter.Variance,
                     name: typeParameter.Name,
                     constraintTypes: constraints.AsImmutable<ITypeSymbol>(),

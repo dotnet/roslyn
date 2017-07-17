@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             {
                 case CompilationUnitSyntax c: return c.Usings;
                 case NamespaceDeclarationSyntax n: return n.Usings;
-                default: return default(SyntaxList<UsingDirectiveSyntax>);
+                default: return default;
             }
         }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             {
                 case CompilationUnitSyntax c: return c.Externs;
                 case NamespaceDeclarationSyntax n: return n.Externs;
-                default: return default(SyntaxList<ExternAliasDirectiveSyntax>);
+                default: return default;
             }
         }
 

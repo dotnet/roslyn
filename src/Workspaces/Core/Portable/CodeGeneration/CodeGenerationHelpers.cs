@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return -1;
         }
 
-        public static bool TryGetDocumentationComment(ISymbol symbol, string commentToken, out string comment, CancellationToken cancellationToken = default(CancellationToken))
+        public static bool TryGetDocumentationComment(ISymbol symbol, string commentToken, out string comment, CancellationToken cancellationToken = default)
         {
             var xml = symbol.GetDocumentationCommentXml(cancellationToken: cancellationToken);
             if (string.IsNullOrEmpty(xml))

@@ -85,7 +85,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public static ObjectReader TryGetReader(
             Stream stream,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (stream == null)
             {

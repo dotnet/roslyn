@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -609,7 +608,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         return FirstEntityHandleProvider.Instance.GetTypeFromSpecification(
                             _metadataReader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle);
                     default:
-                        return default(EntityHandle);
+                        return default;
                 }
             }
 

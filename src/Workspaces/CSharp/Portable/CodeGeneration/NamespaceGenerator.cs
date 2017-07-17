@@ -116,10 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (declaration.Kind())
             {
                 case SyntaxKind.CompilationUnit:
-                    return ((CompilationUnitSyntax)declaration).WithMembers(default(SyntaxList<MemberDeclarationSyntax>));
+                    return ((CompilationUnitSyntax)declaration).WithMembers(default);
 
                 case SyntaxKind.NamespaceDeclaration:
-                    return ((NamespaceDeclarationSyntax)declaration).WithMembers(default(SyntaxList<MemberDeclarationSyntax>));
+                    return ((NamespaceDeclarationSyntax)declaration).WithMembers(default);
 
                 default:
                     return declaration;

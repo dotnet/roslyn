@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return _symbol.GetDocumentationCommentId();
             }
 
-            public string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+            public string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
             {
                 return _symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
             }

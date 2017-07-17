@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 var range = newText.GetEncompassingTextChangeRange(oldText);
-                if (range == default(TextChangeRange))
+                if (range == default)
                 {
                     // nothing has changed. don't do anything
                     return null;

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                     }
                     else if (getAccessor.Body != null &&
                              getAccessor.Body.TryConvertToExpressionBody(
-                                 parseOptions, expressionBodyPreference,
+                                 propertyDeclaration.Kind(), parseOptions, expressionBodyPreference,
                                  out var arrowExpression, out var semicolonToken))
                     {
                         return propertyDeclaration.WithExpressionBody(arrowExpression)
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             if (accessorDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (accessorDeclaration.Body.TryConvertToExpressionBody(
-                        parseOptions, expressionBodyPreference,
+                        accessorDeclaration.Kind(), parseOptions, expressionBodyPreference,
                         out var arrowExpression, out var semicolonToken))
                 {
                     return accessorDeclaration.WithBody(null)

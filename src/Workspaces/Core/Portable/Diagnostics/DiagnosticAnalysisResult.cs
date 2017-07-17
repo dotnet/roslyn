@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             _syntaxLocals = null;
             _semanticLocals = null;
             _nonLocals = null;
-            _others = default(ImmutableArray<DiagnosticData>);
+            _others = default;
         }
 
         public DiagnosticAnalysisResult(
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private T ReturnIfNotDefault<T>(T value)
         {
-            if (object.Equals(value, default(T)))
+            if (object.Equals(value, default))
             {
                 Contract.Fail("shouldn't be called");
             }

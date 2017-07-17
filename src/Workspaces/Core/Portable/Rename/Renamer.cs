@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Rename
     public static class Renamer
     {
         public static Task<Solution> RenameSymbolAsync(
-            Solution solution, ISymbol symbol, string newName, OptionSet optionSet, CancellationToken cancellationToken = default(CancellationToken))
+            Solution solution, ISymbol symbol, string newName, OptionSet optionSet, CancellationToken cancellationToken = default)
         {
             return RenameSymbolAsync(
                 solution,
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         internal static Task<Solution> RenameSymbolAsync(
-            Solution solution, SymbolAndProjectId symbolAndProjectId, string newName, OptionSet optionSet, CancellationToken cancellationToken = default(CancellationToken))
+            Solution solution, SymbolAndProjectId symbolAndProjectId, string newName, OptionSet optionSet, CancellationToken cancellationToken = default)
         {
             return RenameSymbolAsync(solution, symbolAndProjectId, newName, optionSet, filter: null, cancellationToken: cancellationToken);
         }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Rename
             string newName,
             Func<Location, bool> filter = null,
             Func<IEnumerable<ISymbol>, bool?> hasConflict = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(newName))
             {
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Rename
             OptionSet options,
             Func<Location, bool> filter,
             Func<IEnumerable<ISymbol>, bool?> hasConflict = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (solution == null)
             {

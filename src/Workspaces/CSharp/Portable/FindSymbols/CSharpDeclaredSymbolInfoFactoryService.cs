@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     break;
             }
 
-            declaredSymbolInfo = default(DeclaredSymbolInfo);
+            declaredSymbolInfo = default;
             return false;
         }
 
