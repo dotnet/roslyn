@@ -172,7 +172,7 @@ End Module
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
 
-                Assert.Equal("    Dim foo = 1 + _", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(2).GetText())
+                Assert.Equal("    dim foo = 1 + _", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(2).GetText())
                 testData.AssertHadCommit(True)
             End Using
         End Sub
