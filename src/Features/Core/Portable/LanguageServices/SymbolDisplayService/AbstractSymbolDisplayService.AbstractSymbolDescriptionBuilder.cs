@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
 
                 var token = await _semanticModel.SyntaxTree.GetTouchingTokenAsync(_position, this.CancellationToken).ConfigureAwait(false);
-                if (token != default(SyntaxToken))
+                if (token != default)
                 {
                     var syntaxFactsService = this.Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
                     if (syntaxFactsService.IsAwaitKeyword(token))

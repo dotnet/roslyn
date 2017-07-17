@@ -820,7 +820,7 @@ class C {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="binding"></param>
+        /// <param name="semanticModel"></param>
         /// <param name="expr"></param>
         /// <param name="ept1">expr -> TypeInParent</param>
         /// <param name="ept2">Type(expr) -> TypeInParent</param>
@@ -1611,10 +1611,10 @@ namespace N { }
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
         }
 
-        [WorkItem(542634, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542634")]
         /// Test that binding a local declared with var binds the same way when localSymbol.Type is called before BindVariableDeclaration.
         /// Assert occurs if the two do not compute the same type.
         [Fact]
+        [WorkItem(542634, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542634")]
         public void VarInitializedWithStaticType()
         {
             var text =
@@ -5847,6 +5847,52 @@ class C
             var expr = tokens.Single(t => t.Kind() == SyntaxKind.TrueKeyword).Parent;
             Assert.Null(model.GetSymbolInfo(expr).Symbol);
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType);
+        }
+
+        [Fact]
+        public void GetSpecialType_ThrowsOnLessThanZero()
+        {
+            var source = "class C1 { }";
+            var comp = CreateStandardCompilation(source);
+
+            var specialType = (SpecialType)(-1);
+
+            var exceptionThrown = false;
+
+            try
+            {
+                comp.GetSpecialType(specialType);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                exceptionThrown = true;
+                Assert.StartsWith(expectedStartString: $"Unexpected SpecialType: '{(int)specialType}'.", actualString: e.Message);
+            }
+
+            Assert.True(exceptionThrown, $"{nameof(comp.GetSpecialType)} did not throw when it should have.");
+        }
+
+        [Fact]
+        public void GetSpecialType_ThrowsOnGreaterThanCount()
+        {
+            var source = "class C1 { }";
+            var comp = CreateStandardCompilation(source);
+
+            var specialType = SpecialType.Count + 1;
+
+            var exceptionThrown = false;
+
+            try
+            {
+                comp.GetSpecialType(specialType);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                exceptionThrown = true;
+                Assert.StartsWith(expectedStartString: $"Unexpected SpecialType: '{(int)specialType}'.", actualString: e.Message);
+            }
+
+            Assert.True(exceptionThrown, $"{nameof(comp.GetSpecialType)} did not throw when it should have.");
         }
     }
 }

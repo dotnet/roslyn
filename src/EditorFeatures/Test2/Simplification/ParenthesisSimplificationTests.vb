@@ -1010,7 +1010,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation3() As Task
             Dim input =
@@ -1043,7 +1043,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation4() As Task
             Dim input =
@@ -1078,7 +1078,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation5() As Task
             Dim input =
@@ -1113,7 +1113,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation6() As Task
             Dim input =

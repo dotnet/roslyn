@@ -157,9 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 // a previous node, we'll handle it accordingly.
                 if (shouldComplexifyNode)
                 {
-                    _skipRenameForComplexification += shouldComplexifyNode ? 1 : 0;
+                    _skipRenameForComplexification++;
                     result = base.Visit(node);
-                    _skipRenameForComplexification -= shouldComplexifyNode ? 1 : 0;
+                    _skipRenameForComplexification--;
                     result = Complexify(node, result);
                 }
                 else
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     break;
                 }
 
-                if (identifierToken != default(SyntaxToken) && !_annotatedIdentifierTokens.Contains(identifierToken))
+                if (identifierToken != default && !_annotatedIdentifierTokens.Contains(identifierToken))
                 {
                     var symbolInfo = _semanticModel.GetSymbolInfo(invocationExpression, _cancellationToken);
                     IEnumerable<ISymbol> symbols = null;

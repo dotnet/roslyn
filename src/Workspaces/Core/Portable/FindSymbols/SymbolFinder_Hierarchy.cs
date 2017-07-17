@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Find symbols for members that override the specified member symbol.
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindOverridesAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var result = await FindOverridesAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindOverridesAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Find symbols for declarations that implement members of the specified interface symbol
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindImplementedInterfaceMembersAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var result = await FindImplementedInterfaceMembersAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementedInterfaceMembersAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             // Member can only implement interface members if it is an explicit member, or if it is
             // public and non static.
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="cancellationToken"></param>
         /// <returns>The derived types of the symbol. The symbol passed in is not included in this list.</returns>
         public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
-            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var result = await FindDerivedClassesAsync(
                 SymbolAndProjectId.Create(type, projectId: null),
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedClassesAsync(
-            SymbolAndProjectId<INamedTypeSymbol> typeAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            SymbolAndProjectId<INamedTypeSymbol> typeAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var type = typeAndProjectId.Symbol;
             if (type == null)
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Finds the symbols that implement an interface or interface member.
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindImplementationsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var result = await FindImplementationsAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             // A symbol can only have implementations if it's an interface or a
             // method/property/event from an interface.
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Finds all the callers of a specified symbol.
         /// </summary>
         public static Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken = default(CancellationToken))
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken = default)
         {
             return FindCallersAsync(symbol, solution, documents: null, cancellationToken: cancellationToken);
         }
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Finds all the callers of a specified symbol.
         /// </summary>
-        public static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(ISymbol symbol, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(ISymbol symbol, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
         {
             symbol = symbol.OriginalDefinition;
             var foundSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             ISymbol symbol,
             IImmutableSet<Document> documents,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (symbol != null)
             {

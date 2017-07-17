@@ -4945,13 +4945,22 @@ namespace N1
 ";
 
             // Native compiler : CS1003
-            ParseAndValidate(test,
-    // (6,15): error CS7000: Unexpected use of an aliased name
-    //     namespace N1Alias::N2 {}
-    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N1Alias::N2"),
-    // (12,22): error CS7000: Unexpected use of an aliased name
-    //             N1.global::Test.M1();
-    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (12,22): error CS7000: Unexpected use of an aliased name
+                //             N1.global::Test.M1();
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(12, 22),
+                // (6,15): error CS7000: Unexpected use of an aliased name
+                //     namespace N1Alias::N2 {}
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N1Alias::N2").WithLocation(6, 15),
+                // (12,13): error CS0234: The type or namespace name 'global' does not exist in the namespace 'N1' (are you missing an assembly reference?)
+                //             N1.global::Test.M1();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "N1.global").WithArguments("global", "N1").WithLocation(12, 13),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N1Alias = N1;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1Alias = N1;").WithLocation(2, 1),
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
         }
 
         [Fact]

@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 return false;
             }
 
-            node = ancestors.FirstOrDefault((n) => n.Span.Contains(span) && n != root && n.IsKind(SyntaxKind.ReturnStatement));
+            node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root && n.IsKind(SyntaxKind.ReturnStatement));
             return node != null;
         }
 

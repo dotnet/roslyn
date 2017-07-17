@@ -17,7 +17,7 @@
     <MicrosoftAzureKeyVaultVersion>2.0.6</MicrosoftAzureKeyVaultVersion>
     <MicrosoftBuildVersion>15.1.0-preview-000458-02</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>15.1.0-preview-000458-02</MicrosoftBuildFrameworkVersion>
-    <MicrosoftBuildLoggingStructuredLoggerVersion>1.0.58</MicrosoftBuildLoggingStructuredLoggerVersion>
+    <MicrosoftBuildLoggingStructuredLoggerVersion>1.1.130</MicrosoftBuildLoggingStructuredLoggerVersion>
     <MicrosoftBuildRuntimeVersion>15.1.0-preview-000458-02</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.1.0-preview-000458-02</MicrosoftBuildTasksCoreVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
@@ -45,8 +45,8 @@
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-61531-03</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
-    <MicrosoftNetCompilersVersion>2.3.0-beta3-61821-14</MicrosoftNetCompilersVersion>
-    <MicrosoftNetRoslynDiagnosticsVersion>2.3.0-beta1</MicrosoftNetRoslynDiagnosticsVersion>
+    <MicrosoftNetCompilersVersion>2.6.0-beta1-61906-08</MicrosoftNetCompilersVersion>
+    <MicrosoftNetRoslynDiagnosticsVersion>2.5.0-beta1-61906-01</MicrosoftNetRoslynDiagnosticsVersion>
     <MicrosoftNetCoreILAsmVersion>1.1.0</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCoreCompilersVersion>2.3.0-beta3-61821-14</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
@@ -213,7 +213,7 @@
     <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>
     <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
-    <MicrosoftVSSDKBuildToolsVersion>15.0.26124-RC3</MicrosoftVSSDKBuildToolsVersion>
+    <MicrosoftVSSDKBuildToolsVersion>15.1.192</MicrosoftVSSDKBuildToolsVersion>
     <VSExternalAPIsCodingConventionsVersion>1.0.60704.2</VSExternalAPIsCodingConventionsVersion>
     <VSLangProjVersion>7.0.3300</VSLangProjVersion>
     <VSLangProj140Version>14.3.25407-alpha</VSLangProj140Version>
@@ -226,7 +226,6 @@
     <xunitassertVersion>2.2.0-beta4-build3444</xunitassertVersion>
     <xunitconsolenetcoreVersion>1.0.2-prerelease-00104</xunitconsolenetcoreVersion>
     <xunitrunnerconsoleVersion>2.2.0-beta4-build3444</xunitrunnerconsoleVersion>
-    <xunitrunnervisualstudioVersion>2.2.0-beta4-build1194</xunitrunnervisualstudioVersion>
   </PropertyGroup>
 
 </Project>
