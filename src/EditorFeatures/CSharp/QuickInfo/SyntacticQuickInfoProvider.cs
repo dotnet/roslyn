@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
             }
 
             var span = new SnapshotSpan(textSnapshot, Span.FromBounds(spanStart, spanEnd));
-            return this.CreateElisionBufferDeferredContent(span);
+            return this.CreateProjectionBufferDeferredContent(span);
         }
 
         private static bool IsScopeBlock(SyntaxNode node)

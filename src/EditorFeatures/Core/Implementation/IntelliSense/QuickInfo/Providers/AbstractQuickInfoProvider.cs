@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return new DocumentationCommentDeferredContent(documentationComment, _typeMap);
         }
 
-        protected IDeferredQuickInfoContent CreateElisionBufferDeferredContent(SnapshotSpan span)
+        protected IDeferredQuickInfoContent CreateProjectionBufferDeferredContent(SnapshotSpan span)
         {
-            return new ElisionBufferDeferredContent(
+            return new ProjectionBufferDeferredContent(
                 span, _projectionBufferFactoryService, _editorOptionsFactoryService, _textEditorFactoryService);
         }
     }

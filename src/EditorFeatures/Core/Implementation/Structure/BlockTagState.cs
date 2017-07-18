@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         private ITextBuffer CreateElisionBufferWithoutIndentation(
             ITextBuffer dataBuffer, Span shortHintSpan)
         {
-            return _projectionBufferFactoryService.CreateElisionBufferWithoutIndentation(
+            return _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
                 _editorOptionsFactoryService.GlobalOptions,
                 contentType: null,
                 exposedSpans: new SnapshotSpan(dataBuffer.CurrentSnapshot, shortHintSpan));

@@ -292,16 +292,9 @@ if (true)
             var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
             Assert.NotNull(state);
 
-            var viewHostingControl = (ViewHostingControl)((ElisionBufferDeferredContent)state.Content).Create();
-            try
-            {
-                var actualContent = viewHostingControl.ToString();
-                Assert.Equal(expectedContent, actualContent);
-            }
-            finally
-            {
-                viewHostingControl.TextView_TestOnly.Close();
-            }
+            var viewHostingControl = (ViewHostingControl)((ProjectionBufferDeferredContent)state.Content).Create();
+            var actualContent = viewHostingControl.GetText_TestOnly();
+            Assert.Equal(expectedContent, actualContent);
         }
 
         protected override Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null)
