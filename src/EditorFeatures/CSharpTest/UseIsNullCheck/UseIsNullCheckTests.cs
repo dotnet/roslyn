@@ -26,7 +26,7 @@ class C
 {
     void M(string s)
     {
-        if ([||]ReferenceEquals(s, Nothing))
+        if ([||]ReferenceEquals(s, null))
             return;
     }
 }",
@@ -36,7 +36,7 @@ class C
 {
     void M(string s)
     {
-        if (s Is Nothing)
+        if (s is null)
             return;
     }
 }");
@@ -52,7 +52,7 @@ class C
 {
     void M(string s)
     {
-        if (object.[||]ReferenceEquals(s, Nothing))
+        if (object.[||]ReferenceEquals(s, null))
             return;
     }
 }",
@@ -62,7 +62,7 @@ class C
 {
     void M(string s)
     {
-        if (s Is Nothing)
+        if (s is null)
             return;
     }
 }");
@@ -78,7 +78,7 @@ class C
 {
     void M(string s)
     {
-        if (Object.[||]ReferenceEquals(s, Nothing))
+        if (Object.[||]ReferenceEquals(s, null))
             return;
     }
 }",
@@ -88,7 +88,7 @@ class C
 {
     void M(string s)
     {
-        if (s Is Nothing)
+        if (s is null)
             return;
     }
 }");
@@ -104,7 +104,7 @@ class C
 {
     void M(string s)
     {
-        if ([||]ReferenceEquals(Nothing, s))
+        if ([||]ReferenceEquals(null, s))
             return;
     }
 }",
@@ -114,7 +114,7 @@ class C
 {
     void M(string s)
     {
-        if (s Is Nothing)
+        if (s is null)
             return;
     }
 }");
@@ -130,7 +130,7 @@ class C
 {
     void M(string s)
     {
-        if (![||]ReferenceEquals(Nothing, s))
+        if (![||]ReferenceEquals(null, s))
             return;
     }
 }",
@@ -140,7 +140,7 @@ class C
 {
     void M(string s)
     {
-        if (!(s Is Nothing))
+        if (!(s is null))
             return;
     }
 }");
@@ -156,7 +156,7 @@ class C
 {
     void M(string s)
     {
-        if ([||]ReferenceEquals(Nothing, s))
+        if ([||]ReferenceEquals(null, s))
             return;
     }
 }", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
@@ -172,8 +172,8 @@ class C
 {
     void M(string s1, string s2)
     {
-        if ({|FixAllInDocument:ReferenceEquals|}(s1, Nothing) ||
-            ReferenceEquals(s2, Nothing))
+        if ({|FixAllInDocument:ReferenceEquals|}(s1, null) ||
+            ReferenceEquals(s2, null))
             return;
     }
 }",
@@ -183,8 +183,8 @@ class C
 {
     void M(string s1, string s2)
     {
-        if (s1 Is Nothing ||
-            s2 Is Nothing)
+        if (s1 is null ||
+            s2 is null)
             return;
     }
 }", ignoreTrivia: false);
@@ -200,8 +200,8 @@ class C
 {
     void M(string s1, string s2)
     {
-        if (ReferenceEquals(s1, Nothing) ||
-            {|FixAllInDocument:ReferenceEquals|}(s2, Nothing))
+        if (ReferenceEquals(s1, null) ||
+            {|FixAllInDocument:ReferenceEquals|}(s2, null))
             return;
     }
 }",
@@ -211,8 +211,8 @@ class C
 {
     void M(string s1, string s2)
     {
-        if (s1 Is Nothing ||
-            s2 Is Nothing)
+        if (s1 is null ||
+            s2 is null)
             return;
     }
 }", ignoreTrivia: false);
