@@ -355,14 +355,26 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IEventAssignmentExpression CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
-            IEventSymbol @event = boundEventAssignmentOperator.Event;
-            Lazy<IOperation> eventInstance = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Event.IsStatic ? null : boundEventAssignmentOperator.ReceiverOpt));
+            SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
+            Lazy<IEventReferenceExpression> eventReference = new Lazy<IEventReferenceExpression>(() =>
+            {
+                IEventSymbol @event = boundEventAssignmentOperator.Event;
+                Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Event.IsStatic ? null : boundEventAssignmentOperator.ReceiverOpt));
+                ISymbol member = boundEventAssignmentOperator.Event;
+                // BoundEventAssignmentOperator doesn't hold on to all the data from the provided BoundEventAccess during binding.
+                // Based on the implementation of those two bound node types, the following data can be retieved w/o changing BoundEventAssignmentOperator:
+                //  1. The type of BoundEventAccess is the type of the event symbol.
+                //  2. the constant value of BoundEventAccess is always null.
+                // However, we can't reliably get the syntax node for the BoundEventAccess w/o changing BoundEventAssignmentOperator, so the syntax of entire
+                // BoundEventAssignmentOperator is used instead.
+                return new LazyEventReferenceExpression(@event, instance, @event, syntax, @event.Type, ConvertToOptional(null));
+            });
+                
             Lazy<IOperation> handlerValue = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Argument));
             bool adds = boundEventAssignmentOperator.IsAddition;
-            SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
             ITypeSymbol type = boundEventAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundEventAssignmentOperator.ConstantValue);
-            return new LazyEventAssignmentExpression(@event, eventInstance, handlerValue, adds, syntax, type, constantValue);
+            return new LazyEventAssignmentExpression(eventReference, handlerValue, adds, syntax, type, constantValue);
         }
 
         private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)

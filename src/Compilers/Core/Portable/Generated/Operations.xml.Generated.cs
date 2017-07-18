@@ -1458,21 +1458,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseEventAssignmentExpression : Operation, IEventAssignmentExpression
     {
-        protected BaseEventAssignmentExpression(IEventSymbol @event, bool adds, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseEventAssignmentExpression(bool adds, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.EventAssignmentExpression, syntax, type, constantValue)
         {
-            Event = @event;
             Adds = adds;
         }
-        /// <summary>
-        /// Event being bound.
-        /// </summary>
-        public IEventSymbol Event { get; }
 
         /// <summary>
-        /// Instance used to refer to the event being bound.
+        /// Reference to the event being bound.
         /// </summary>
-        public abstract IOperation EventInstance { get; }
+        public abstract IEventReferenceExpression EventReference { get; }
 
         /// <summary>
         /// Handler supplied for the event.
@@ -1487,7 +1482,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return EventInstance;
+                yield return EventReference;
                 yield return HandlerValue;
             }
         }
@@ -1506,17 +1501,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class EventAssignmentExpression : BaseEventAssignmentExpression, IEventAssignmentExpression
     {
-        public EventAssignmentExpression(IEventSymbol @event, IOperation eventInstance, IOperation handlerValue, bool adds, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(@event, adds, syntax, type, constantValue)
+        public EventAssignmentExpression(IEventReferenceExpression eventReference, IOperation handlerValue, bool adds, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(adds, syntax, type, constantValue)
         {
-            EventInstance = eventInstance;
+            EventReference = eventReference;
             HandlerValue = handlerValue;
         }
 
         /// <summary>
         /// Instance used to refer to the event being bound.
         /// </summary>
-        public override IOperation EventInstance { get; }
+        public override IEventReferenceExpression EventReference { get; }
 
         /// <summary>
         /// Handler supplied for the event.
@@ -1529,19 +1524,19 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyEventAssignmentExpression : BaseEventAssignmentExpression, IEventAssignmentExpression
     {
-        private readonly Lazy<IOperation> _lazyEventInstance;
+        private readonly Lazy<IEventReferenceExpression> _lazyEventReference;
         private readonly Lazy<IOperation> _lazyHandlerValue;
 
-        public LazyEventAssignmentExpression(IEventSymbol @event, Lazy<IOperation> eventInstance, Lazy<IOperation> handlerValue, bool adds, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(@event, adds, syntax, type, constantValue)
+        public LazyEventAssignmentExpression(Lazy<IEventReferenceExpression> eventReference, Lazy<IOperation> handlerValue, bool adds, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(adds, syntax, type, constantValue)
         {
-            _lazyEventInstance = eventInstance ?? throw new System.ArgumentNullException(nameof(eventInstance));
+            _lazyEventReference = eventReference ?? throw new System.ArgumentNullException(nameof(eventReference));
             _lazyHandlerValue = handlerValue ?? throw new System.ArgumentNullException(nameof(handlerValue));
         }
 
         /// <summary>
         /// Instance used to refer to the event being bound.
         /// </summary>
-        public override IOperation EventInstance => _lazyEventInstance.Value;
+        public override IEventReferenceExpression EventReference => _lazyEventReference.Value;
 
         /// <summary>
         /// Handler supplied for the event.

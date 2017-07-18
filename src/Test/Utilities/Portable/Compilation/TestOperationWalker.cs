@@ -302,7 +302,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitEventAssignmentExpression(IEventAssignmentExpression operation)
         {
-            var eventSymbol = operation.Event;
             var adds = operation.Adds;
 
             base.VisitEventAssignmentExpression(operation);

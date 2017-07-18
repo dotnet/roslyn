@@ -408,20 +408,16 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function GetAddHandlerStatementExpression(statement As BoundAddHandlerStatement) As IOperation
             Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
-            Dim [event] As IEventSymbol = eventAccess?.EventSymbol
-            Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
-
+            Dim eventReference = If(eventAccess Is Nothing, Nothing, CreateBoundEventAccessOperation(eventAccess))
             Return New EventAssignmentExpression(
-                        [event], instance, Create(statement.Handler), adds:=True, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
+                        eventReference, Create(statement.Handler), adds:=True, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
         End Function
 
         Private Function GetRemoveStatementExpression(statement As BoundRemoveHandlerStatement) As IOperation
             Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
-            Dim [event] As IEventSymbol = eventAccess?.EventSymbol
-            Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
-
+            Dim eventReference = If(eventAccess Is Nothing, Nothing, CreateBoundEventAccessOperation(eventAccess))
             Return New EventAssignmentExpression(
-                [event], instance, Create(statement.Handler), adds:=False, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
+                eventReference, Create(statement.Handler), adds:=False, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
         End Function
 
         Private Shared Function GetConversionKind(kind As VisualBasic.ConversionKind) As Semantics.ConversionKind
