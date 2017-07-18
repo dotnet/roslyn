@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Execution
                         WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
                         break;
 
-                    case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == "Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.VisualStudioAnalyzer.VisualStudioUnresolvedAnalyzerReference":
+                    case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == "Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.VisualStudioAnalyzer+VisualStudioUnresolvedAnalyzerReference":
                         WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
                         break;
 
