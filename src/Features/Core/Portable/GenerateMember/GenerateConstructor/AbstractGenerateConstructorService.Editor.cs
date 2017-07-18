@@ -53,15 +53,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 // then, see if there are any constructors that would take the first 'n' arguments
                 // we've provided.  If so, delegate to those, and then create a field for any
                 // remaining arguments.  Try to match from largest to smallest.
-                //
-                // Otherwise, just generate a normal constructor that assigns any provided
-                // parameters into fields.
                 var edit = await GenerateThisOrBaseDelegatingConstructorAsync().ConfigureAwait(false);
                 if (edit.document != null)
                 {
                     return edit;
                 }
 
+                // Otherwise, just generate a normal constructor that assigns any provided
+                // parameters into fields.
                 return await GenerateFieldDelegatingConstructorAsync().ConfigureAwait(false);
             }
 
