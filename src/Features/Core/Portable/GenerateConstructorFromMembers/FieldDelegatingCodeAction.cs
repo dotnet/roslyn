@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
                     _state.ContainingType,
-                    fields.Cast<ISymbol>().Concat(constructor),
+                    fields.Concat(constructor),
                     new CodeGenerationOptions(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
                         afterThisLocation: afterThisLocation),

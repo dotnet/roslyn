@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var result = await codeGenerationService.AddMembersAsync(
                     _document.Project.Solution,
                     _state.TypeToGenerateIn,
-                    fields.Cast<ISymbol>().Concat(constructor),
+                    fields.Concat(constructor),
                     new CodeGenerationOptions(_state.Token.GetLocation()),
                     _cancellationToken)
                     .ConfigureAwait(false);

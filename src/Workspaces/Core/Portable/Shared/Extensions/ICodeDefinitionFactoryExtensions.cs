@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     : factory.CreateArguments(constructor.Parameters));
         }
 
-        public static (ImmutableArray<IFieldSymbol> fields, IMethodSymbol constructor) CreateFieldDelegatingConstructor(
+        public static (ImmutableArray<ISymbol> fields, ISymbol constructor) CreateFieldDelegatingConstructor(
             this SyntaxGenerator factory,
             Compilation compilation,
             string typeName,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 statements: statements,
                 thisConstructorArguments: GetThisConstructorArguments(containingTypeOpt, parameterToExistingFieldMap));
 
-            return (fields, constructor);
+            return (ImmutableArray<ISymbol>.CastUp(fields), constructor);
         }
 
         private static ImmutableArray<SyntaxNode> GetThisConstructorArguments(
