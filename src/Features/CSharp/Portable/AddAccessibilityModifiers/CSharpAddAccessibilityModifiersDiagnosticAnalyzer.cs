@@ -70,46 +70,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                 return;
             }
 
+            // Certain members never have accessibility. Don't bother reporting on them.
+            if (!generator.CanHaveAccessibility(member))
+            {
+                return;
+            }
+
             // If they already have accessibility, no need to report anything.
             var accessibility = generator.GetAccessibility(member);
             if (accessibility != Accessibility.NotApplicable)
-            {
-                return;
-            }
-
-            // Certain members never have accessibility. Don't bother reporting on them.
-
-            if (member.IsKind(SyntaxKind.DestructorDeclaration))
-            {
-                return;
-            }
-
-            if (member.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax constructor) &&
-                constructor.Modifiers.Any(SyntaxKind.StaticKeyword))
-            {
-                return;
-            }
-
-            if (member.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax method) && 
-                method.ExplicitInterfaceSpecifier != null)
-            {
-                return;
-            }
-
-            if (member.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax property) &&
-                property.ExplicitInterfaceSpecifier != null)
-            {
-                return;
-            }
-
-            if (member.IsKind(SyntaxKind.EventDeclaration, out EventDeclarationSyntax ev) &&
-                ev.ExplicitInterfaceSpecifier != null)
-            {
-                return;
-            }
-
-            if (member.IsKind(SyntaxKind.IndexerDeclaration, out IndexerDeclarationSyntax indexer) &&
-                indexer.ExplicitInterfaceSpecifier != null)
             {
                 return;
             }
