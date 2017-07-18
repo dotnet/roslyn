@@ -861,8 +861,10 @@ End Enum";
 
             source = new TaskCompletionSource<RenameTrackingTaggerProvider.TriggerIdentifierKind>();
             Assert.Throws<OperationCanceledException>(() => RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, new CancellationToken(canceled: true)));
-            source.TrySetException(new Exception());
-            Assert.Throws<Exception>(() => RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationToken.None));
+            var thrownException = new Exception();
+            source.TrySetException(thrownException);
+            var caughtException = Assert.Throws<Exception>(() => RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationToken.None));
+            Assert.Same(thrownException, caughtException);
         }
 
         [WpfFact, WorkItem(1063943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063943")]
