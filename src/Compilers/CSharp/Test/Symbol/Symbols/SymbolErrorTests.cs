@@ -19194,11 +19194,13 @@ static class A
     public static int f1 { get { return 1; } }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, Line = 3, Column = 22 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidExprTerm, Line = 3, Column = 25 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidExprTerm, Line = 3, Column = 30 }
-            );
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (3,22): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //     object F = new { f1<int> = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "f1<int> = 1").WithLocation(3, 22),
+                // (3,22): error CS0307: The property 'ClassA.f1' cannot be used with type arguments
+                //     object F = new { f1<int> = 1 };
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f1<int>").WithArguments("ClassA.f1", "property").WithLocation(3, 22));
         }
 
         [Fact]
