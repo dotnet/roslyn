@@ -259,6 +259,7 @@
     <Compile Include="Mocks\TestOptionSet.cs" />
     <Compile Include="Remote\JsonConverterTests.cs" />
     <Compile Include="Remote\RemoteHostClientServiceFactoryTests.cs" />
+    <Compile Include="Services\VisualStudioSnapshotSerializationTests.cs" />
     <Compile Include="Services\SolutionServiceTests.cs" />
     <Compile Include="Services\AssetStorageTests.cs" />
     <Compile Include="Services\AssetServiceTests.cs" />
