@@ -543,6 +543,8 @@ namespace Microsoft.CodeAnalysis
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
                 var oldText = oldDocument.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
+                AddToOpenDocumentMap(documentId);
+
                 // keep open document text alive by using PreserveIdentity
                 var newText = textContainer.CurrentText;
                 Solution currentSolution;
