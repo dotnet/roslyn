@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ((CSharpParseOptions)_assemblySymbol.DeclaringCompilation.SyntaxTrees.FirstOrDefault()?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true;
+                return _assemblySymbol.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
             }
         }
 

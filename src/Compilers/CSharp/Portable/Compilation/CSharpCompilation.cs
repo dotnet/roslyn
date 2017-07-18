@@ -3077,8 +3077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool IsIOperationFeatureEnabled()
         {
-            var options = (CSharpParseOptions)this.SyntaxTrees.FirstOrDefault()?.Options;
-            return options?.IsFeatureEnabled(MessageID.IDS_FeatureIOperation) ?? false;
+            return this.IsFeatureEnabled(MessageID.IDS_FeatureIOperation);
         }
 
         internal TypeSymbolWithAnnotations GetTypeOrReturnTypeWithAdjustedNullableAnnotations(Symbol symbol)
@@ -3092,7 +3091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Nullable annotations on definition should be ignored
             TypeSymbolWithAnnotations definitionType = definition.Kind == SymbolKind.Parameter ? ((ParameterSymbol)definition).Type : definition.GetTypeOrReturnType();
-            TypeSymbolWithAnnotations adjustedDefinitionType = definitionType.SetUnknownNullabilityForRefernceTypes();
+            TypeSymbolWithAnnotations adjustedDefinitionType = definitionType.SetUnknownNullabilityForReferenceTypes();
 
             if ((object)definition == symbol)
             {
@@ -3162,7 +3161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Nullable annotations on definition should be ignored
             TypeSymbolWithAnnotations definitionType = definition.GetFieldType(fieldsBeingBound);
-            TypeSymbolWithAnnotations adjustedDefinitionType = definitionType.SetUnknownNullabilityForRefernceTypes();
+            TypeSymbolWithAnnotations adjustedDefinitionType = definitionType.SetUnknownNullabilityForReferenceTypes();
 
             if ((object)definition == field)
             {

@@ -266,10 +266,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol SetUnknownNullabilityForRefernceTypes()
+        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
         {
             TypeSymbolWithAnnotations oldPointedAtType = PointedAtType;
-            TypeSymbolWithAnnotations newPointedAtType = oldPointedAtType.SetUnknownNullabilityForRefernceTypes();
+            TypeSymbolWithAnnotations newPointedAtType = oldPointedAtType.SetUnknownNullabilityForReferenceTypes();
 
             if ((object)oldPointedAtType == newPointedAtType)
             {

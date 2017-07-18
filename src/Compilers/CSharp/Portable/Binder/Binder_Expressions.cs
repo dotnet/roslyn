@@ -2749,7 +2749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // For now erase all notion about nullability of reference types as the algorithm is not taking it into account yet.
                 // Default inferred reference type itself to a nullable state.
-                elementType = TypeSymbolWithAnnotations.Create(bestType.SetUnknownNullabilityForRefernceTypes(), isNullableIfReferenceType: true);
+                elementType = TypeSymbolWithAnnotations.Create(bestType.SetUnknownNullabilityForReferenceTypes(), isNullableIfReferenceType: true);
             }
             else
             {
@@ -6087,7 +6087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal TypeSymbol GetFieldTypeWithAdjustedNullableAnnotations(FieldSymbol fieldSymbol, ConsList<FieldSymbol> fieldsBeingBound)
         {
-            if (((CSharpParseOptions)Compilation.SyntaxTrees.FirstOrDefault()?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
+            if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) &&
                 !IsBindingModuleLevelAttribute()) // TODO: It is possible to get into cycle while binding module level attributes because Opt-In/Opt-Out state depends on them
             {
                 return Compilation.GetFieldTypeWithAdjustedNullableAnnotations(fieldSymbol, fieldsBeingBound).TypeSymbol;
