@@ -877,15 +877,5 @@ namespace Microsoft.CodeAnalysis
         {
             return declaringSyntax;
         }
-
-        internal void SetParentOperation(IOperation operation, BaseAddressOfExpression baseAddressOfExpression)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal IOperation GetParentOperation(Operation operation)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

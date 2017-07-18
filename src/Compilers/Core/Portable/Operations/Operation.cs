@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis
@@ -12,9 +14,15 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
+        private readonly SemanticModel _semanticModel;
+
+        // this will be lazily initialized. this will be initialized only once
+        // but once initialized, will never change
+        private IOperation _parentDoNotAccessDirectly;
+
         public Operation(SemanticModel semanticModel, OperationKind kind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
         {
-            SemanticModel = semanticModel;
+            _semanticModel = semanticModel;
 
             Kind = kind;
             Syntax = syntax;
@@ -25,7 +33,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// IOperation that has this operation as a child
         /// </summary>
-        public IOperation Parent => SemanticModel.GetParentOperation(this);
+        public IOperation Parent
+        {
+            get
+            {
+                if (_parentDoNotAccessDirectly == null)
+                {
+                    Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, _semanticModel.FindParentOperation(this), null);
+                }
+
+                return _parentDoNotAccessDirectly;
+            }
+        }
 
         /// <summary>
         /// Identifies the kind of the operation.
@@ -47,17 +66,32 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Optional<object> ConstantValue { get; }
 
-        protected SemanticModel SemanticModel { get; }
-
         public abstract IEnumerable<IOperation> Children { get; }
 
         public abstract void Accept(OperationVisitor visitor);
 
         public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
 
+        protected void SetParentOperation(IOperation operation)
+        {
+            var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, operation, null);
+#if DEBUG
+            if (result == null)
+            {
+                // confirm explicitly given parent is same as what we would have found.
+                Debug.Assert(operation == _semanticModel.FindParentOperation(this));
+            }
+#endif
+        }
+
         public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
         {
             return new NoneOperation(semanticModel, node, constantValue, getChildren);
+        }
+
+        public static void SetParentOperation(IOperation current, IOperation parent)
+        {
+            ((Operation)current).SetParentOperation(parent);
         }
 
         private class NoneOperation : Operation
