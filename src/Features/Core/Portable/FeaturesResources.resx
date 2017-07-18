@@ -1271,7 +1271,6 @@ This version used in: {2}</value>
   <data name="in_0_project_1" xml:space="preserve">
     <value>in {0} (project {1})</value>
   </data>
-<<<<<<< HEAD
   <data name="Accessibility_modifiers_required" xml:space="preserve">
     <value>Accessibility modifiers required</value>
   </data>
