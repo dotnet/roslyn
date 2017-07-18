@@ -40,6 +40,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return (diagnostics?.Item2?.Fixes.Select(f => f.Action).ToImmutableArray()).GetValueOrDefault().NullToEmpty();
         }
 
+        protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
+        {
+            var diagnosticsAndCodeFixes = await GetDiagnosticAndFixAsync(workspace, parameters);
+            if (diagnosticsAndCodeFixes == null)
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+
+            return ImmutableArray.Create(diagnosticsAndCodeFixes.Item1);
+        }
+
         internal async Task<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
@@ -140,8 +151,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 // Simple code fix.
                 foreach (var diagnostic in diagnostics)
                 {
+                    // to support diagnostics without fixers
+                    if (fixer == null)
+                    {
+                        result.Add(Tuple.Create(diagnostic, (CodeFixCollection)null));
+                        continue;
+                    }
+
                     var fixes = new List<CodeFix>();
+
                     var context = new CodeFixContext(document, diagnostic, (a, d) => fixes.Add(new CodeFix(document.Project, a, d)), CancellationToken.None);
+                    
 
                     await fixer.RegisterCodeFixesAsync(context);
                     if (fixes.Any())
