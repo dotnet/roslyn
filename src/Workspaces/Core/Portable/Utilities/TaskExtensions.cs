@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -60,10 +61,15 @@ namespace Roslyn.Utilities
         // thread.  In the future we are going ot be removing this and disallowing its use.
         public static T WaitAndGetResult_CanCallOnBackground<T>(this Task<T> task, CancellationToken cancellationToken)
         {
-            // WaitAny waits for the task to complete with cancellation and without throwing;
-            // GetAwaiter().GetResult() is then used so that if the task failed, the exception is not wrapped in AggregateException
-            Task.WaitAny(new Task[] { task }, cancellationToken);
-            return task.GetAwaiter().GetResult();
+            try
+            {
+                task.Wait(cancellationToken);
+            }
+            catch (AggregateException ex)
+            {
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            }
+            return task.Result;
         }
 
         // NOTE(cyrusn): Once we switch over to .Net 4.5 we can make our SafeContinueWith overloads
