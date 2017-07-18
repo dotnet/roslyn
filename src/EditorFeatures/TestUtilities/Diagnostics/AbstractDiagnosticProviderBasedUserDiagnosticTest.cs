@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -64,38 +65,54 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
             var fixer = providerAndFixer.Item2;
+            if (fixer == null)
+            {
+                return diagnostics.Select(d => Tuple.Create(d, (CodeFixCollection) null));
+            }
+            
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
             var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
             return await GetDiagnosticAndFixesAsync(
                 dxs, provider, fixer, testDriver, document, span, annotation, parameters.fixAllActionEquivalenceKey);
         }
 
-        protected async Task TestDiagnosticSeverityAndCountAsync(
+        protected async Task TestDiagnosticInfoAsync(
             string initialMarkup,
             IDictionary<OptionKey, object> options,
-            int diagnosticCount,
             string diagnosticId,
-            DiagnosticSeverity diagnosticSeverity)
+            DiagnosticSeverity diagnosticSeverity,
+            LocalizableString diagnosticMessage = null)
         {
-            await TestDiagnosticSeverityAndCountAsync(initialMarkup, null, null, options, diagnosticCount, diagnosticId, diagnosticSeverity);
-            await TestDiagnosticSeverityAndCountAsync(initialMarkup, GetScriptOptions(), null, options, diagnosticCount, diagnosticId, diagnosticSeverity);
+            await TestDiagnosticInfoAsync(initialMarkup, null, null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
+            await TestDiagnosticInfoAsync(initialMarkup, GetScriptOptions(), null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
         }
 
-        protected async Task TestDiagnosticSeverityAndCountAsync(
+        protected async Task TestDiagnosticInfoAsync(
             string initialMarkup,
             ParseOptions parseOptions,
             CompilationOptions compilationOptions,
             IDictionary<OptionKey, object> options,
-            int diagnosticCount,
             string diagnosticId,
-            DiagnosticSeverity diagnosticSeverity)
+            DiagnosticSeverity diagnosticSeverity,
+            LocalizableString diagnosticMessage = null)
         {
             var testOptions = new TestParameters(parseOptions, compilationOptions, options);
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
             {
                 var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).Where(d => d.Id == diagnosticId);
-                Assert.Equal(diagnosticCount, diagnostics.Count());
+                Assert.Equal(1, diagnostics.Count());
+
+                var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
+                var expected = hostDocument.SelectedSpans.Single();
+                var actual = diagnostics.Single().Location.SourceSpan;
+                Assert.Equal(expected, actual);
+
                 Assert.Equal(diagnosticSeverity, diagnostics.Single().Severity);
+
+                if (diagnosticMessage != null)
+                {
+                    Assert.Equal(diagnosticMessage, diagnostics.Single().GetMessage());
+                }
             }
         }
 
