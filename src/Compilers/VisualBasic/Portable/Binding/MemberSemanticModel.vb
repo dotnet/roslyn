@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _parentSemanticModelOpt = parentSemanticModelOpt
             _speculatedPosition = speculatedPosition
 
-            _operationFactory = New VisualBasicOperationFactory()
+            _operationFactory = New VisualBasicOperationFactory(Me)
         End Sub
 
         Friend ReadOnly Property RootBinder As Binder

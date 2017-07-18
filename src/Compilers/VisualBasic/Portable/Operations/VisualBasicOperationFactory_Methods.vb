@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Return child
             End If
 
-            Return OperationFactory.CreateInvalidExpression([operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty)
+            Return OperationFactory.CreateInvalidExpression(_semanticModel, [operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty)
         End Function
 
         Private Shared Function GetUserDefinedBinaryOperatorChildBoundNode([operator] As BoundUserDefinedBinaryOperator, index As Integer) As BoundNode
@@ -82,6 +82,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         value,
                         Create(byRefArgument.InConversion),
                         Create(byRefArgument.OutConversion),
+                        _semanticModel,
                         value.Syntax,
                         type:=Nothing,
                         constantValue:=Nothing)
@@ -102,6 +103,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             value,
                             inConversion:=Nothing,
                             outConversion:=Nothing,
+                            semanticModel:=_semanticModel,
                             syntax:=value.Syntax,
                             type:=Nothing,
                             constantValue:=Nothing)
@@ -120,6 +122,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             value,
                             inConversion:=Nothing,
                             outConversion:=Nothing,
+                            semanticModel:=_semanticModel,
                             syntax:=value.Syntax,
                             type:=Nothing,
                             constantValue:=Nothing)
@@ -137,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Return child
             End If
 
-            Return OperationFactory.CreateInvalidExpression(parent.Syntax, ImmutableArray(Of IOperation).Empty)
+            Return OperationFactory.CreateInvalidExpression(_semanticModel, parent.Syntax, ImmutableArray(Of IOperation).Empty)
         End Function
 
         Private Shared Function GetChildOfBadExpressionBoundNode(parent As BoundNode, index As Integer) As BoundNode
@@ -171,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
                 Dim constantValue As [Optional](Of Object) = value.ConstantValue
-                Dim assignment = New SimpleAssignmentExpression(target, value, syntax, type, constantValue)
+                Dim assignment = New SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue)
                 builder.Add(assignment)
             Next i
 
@@ -188,7 +191,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
                         clauses = ImmutableArray.Create(Of ICaseClause)(
                                                                     New DefaultCaseClause(
-                                                                        syntax:=caseStatement.Syntax,
+                                                                        _semanticModel,
+                                                                        caseStatement.Syntax,
                                                                         type:=Nothing,
                                                                         constantValue:=Nothing))
                     Else
@@ -197,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
                     Dim body = ImmutableArray.Create(Create(boundCaseBlock.Body))
                     Dim syntax = boundCaseBlock.Syntax
-                    Return DirectCast(New SwitchCase(clauses, body, syntax, type:=Nothing, constantValue:=Nothing), ISwitchCase)
+                    Return DirectCast(New SwitchCase(clauses, body, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing), ISwitchCase)
                 End Function)
         End Function
 
@@ -257,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             ' ControlVariable = InitialValue
             Dim controlReference As IOperation = Create(boundFor.ControlVariable)
             If controlReference IsNot Nothing Then
-                statements.Add(OperationFactory.CreateSimpleAssignmentExpressionStatement(controlReference, Create(boundFor.InitialValue), boundFor.InitialValue.Syntax))
+                statements.Add(OperationFactory.CreateSimpleAssignmentExpressionStatement(controlReference, Create(boundFor.InitialValue), _semanticModel, boundFor.InitialValue.Syntax))
             End If
 
             ' T0 = LimitValue
@@ -268,9 +272,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                     New SyntheticLocalReferenceExpression(
                                             SyntheticLocalKind.ForLoopLimitValue,
                                             Create(boundFor),
-                                            syntax:=value.Syntax,
-                                            type:=value.Type,
-                                            constantValue:=Nothing), value, value.Syntax))
+                                            _semanticModel,
+                                            value.Syntax,
+                                            value.Type,
+                                            constantValue:=Nothing), value, _semanticModel, value.Syntax))
             End If
 
             ' T1 = StepValue
@@ -281,9 +286,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                     New SyntheticLocalReferenceExpression(
                                         SyntheticLocalKind.ForLoopStepValue,
                                         Create(boundFor),
-                                        syntax:=value.Syntax,
-                                        type:=value.Type,
-                                        constantValue:=Nothing), value, value.Syntax))
+                                        _semanticModel,
+                                        value.Syntax,
+                                        value.Type,
+                                        constantValue:=Nothing), value, _semanticModel, value.Syntax))
             End If
 
             Return statements.ToImmutableAndFree()
@@ -311,10 +317,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                         New SyntheticLocalReferenceExpression(
                                             SyntheticLocalKind.ForLoopStepValue,
                                             Create(boundFor),
-                                            syntax:=value.Syntax,
-                                            type:=value.Type,
+                                            _semanticModel,
+                                            value.Syntax,
+                                            value.Type,
                                             constantValue:=Nothing))
-                    statements.Add(OperationFactory.CreateCompoundAssignmentExpressionStatement(controlReference, stepOperand, Semantics.Expression.DeriveAdditionKind(controlType), Nothing, stepValue.Syntax))
+                    statements.Add(OperationFactory.CreateCompoundAssignmentExpressionStatement(controlReference, stepOperand, Semantics.Expression.DeriveAdditionKind(controlType), Nothing, _semanticModel, stepValue.Syntax))
                 End If
             End If
 
@@ -329,8 +336,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             New SyntheticLocalReferenceExpression(
                                 SyntheticLocalKind.ForLoopLimitValue,
                                 Create(boundFor),
-                                syntax:=operationValue.Syntax,
-                                type:=operationValue.Type,
+                                _semanticModel,
+                                operationValue.Syntax,
+                                operationValue.Type,
                                 constantValue:=Nothing))
 
             Dim controlVariable As BoundExpression = boundFor.ControlVariable
@@ -347,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
 
                     Dim relationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(If(boundFor.StepValue IsNot Nothing AndAlso boundFor.StepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
-                    Return OperationFactory.CreateBinaryOperatorExpression(relationalCode, Create(controlVariable), limitValue, booleanType, limitValue.Syntax)
+                    Return OperationFactory.CreateBinaryOperatorExpression(relationalCode, Create(controlVariable), limitValue, booleanType, _semanticModel, limitValue.Syntax)
                 Else
                     ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
 
@@ -355,24 +363,26 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Dim stepValue As IOperation = New SyntheticLocalReferenceExpression(
                                 SyntheticLocalKind.ForLoopStepValue,
                                 Create(boundFor),
-                                syntax:=value.Syntax,
-                                type:=value.Type,
+                                _semanticModel,
+                                value.Syntax,
+                                value.Type,
                                 constantValue:=Nothing)
 
                     Dim stepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, boundFor.StepValue)
                     Dim stepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(stepRelationalCode,
                                  stepValue,
-                                 OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), boundFor.StepValue.Type, boundFor.StepValue.Syntax),
+                                 OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), boundFor.StepValue.Type, _semanticModel, boundFor.StepValue.Syntax),
                                  booleanType,
+                                 _semanticModel,
                                  boundFor.StepValue.Syntax)
 
                     Dim positiveStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
-                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, Create(controlVariable), limitValue, booleanType, limitValue.Syntax)
+                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, Create(controlVariable), limitValue, booleanType, _semanticModel, limitValue.Syntax)
 
                     Dim negativeStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
-                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, Create(controlVariable), limitValue, booleanType, limitValue.Syntax)
+                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, Create(controlVariable), limitValue, booleanType, _semanticModel, limitValue.Syntax)
 
-                    Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, limitValue.Syntax)
+                    Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, _semanticModel, limitValue.Syntax)
                 End If
             End If
         End Function
@@ -382,11 +392,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
             For Each base In statement.LocalDeclarations
                 If base.Kind = BoundKind.LocalDeclaration Then
                     Dim declaration = DirectCast(base, BoundLocalDeclaration)
-                    builder.Add(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax))
+                    builder.Add(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), _semanticModel, declaration.Syntax))
                 ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
                     Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
                     Dim localSymbols = asNewDeclarations.LocalDeclarations.SelectAsArray(Of ILocalSymbol)(Function(declaration) declaration.LocalSymbol)
-                    builder.Add(OperationFactory.CreateVariableDeclaration(localSymbols, Create(asNewDeclarations.Initializer), asNewDeclarations.Syntax))
+                    builder.Add(OperationFactory.CreateVariableDeclaration(localSymbols, Create(asNewDeclarations.Initializer), _semanticModel, asNewDeclarations.Syntax))
                 End If
             Next
 
@@ -401,7 +411,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax = DirectCast(boundUsing.Syntax, UsingBlockSyntax).UsingStatement
             Return New VariableDeclarationStatement(
                             declaration,
-                            syntax:=syntax,
+                            _semanticModel,
+                            syntax,
                             type:=Nothing,
                             constantValue:=Nothing)
         End Function
@@ -412,7 +423,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
 
             Return New EventAssignmentExpression(
-                        [event], instance, Create(statement.Handler), adds:=True, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
+                        [event], instance, Create(statement.Handler), adds:=True, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
         End Function
 
         Private Function GetRemoveStatementExpression(statement As BoundRemoveHandlerStatement) As IOperation
@@ -421,7 +432,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
 
             Return New EventAssignmentExpression(
-                [event], instance, Create(statement.Handler), adds:=False, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
+                [event], instance, Create(statement.Handler), adds:=False, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
         End Function
 
         Private Shared Function GetConversionKind(kind As VisualBasic.ConversionKind) As Semantics.ConversionKind
