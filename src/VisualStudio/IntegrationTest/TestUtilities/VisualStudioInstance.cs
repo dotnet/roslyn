@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
@@ -251,6 +253,44 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             });
 
             return result;
+        }
+
+        public TelemetryVerifier EnableTestTelemetryChannel()
+        {
+            _inProc.EnableTestTelemetryChannel();
+            return new TelemetryVerifier(this);
+        }
+
+        private void DisableTestTelemetryChannel()
+            => _inProc.DisableTestTelemetryChannel();
+
+        private string[] GetTelemetryEventNames()
+            => _inProc.GetTelemetryEventNames();
+
+        public class TelemetryVerifier : IDisposable
+        {
+            internal VisualStudioInstance _instance;
+
+            public TelemetryVerifier(VisualStudioInstance instance)
+            {
+                _instance = instance;
+            }
+
+            public void Dispose() => _instance.DisableTestTelemetryChannel();
+
+            public void Verify(params string[] expectedEventNames)
+            {
+                var telemetryEventNames = new HashSet<string>(_instance.GetTelemetryEventNames());
+
+                foreach (var name in expectedEventNames)
+                {
+                    if (!telemetryEventNames.Contains(name))
+                    {
+                        var existingNames = string.Join(", ", telemetryEventNames);
+                        throw new InvalidOperationException($"Expected {name} not found. Existing event names: {existingNames}");
+                    }
+                }
+            }
         }
     }
 }
