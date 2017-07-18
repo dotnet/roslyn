@@ -270,4 +270,7 @@
   <data name="Fade_out_unused_imports" xml:space="preserve">
     <value>Fade out unused imports</value>
   </data>
+  <data name="Prefer_Is_Nothing_over_ReferenceEquals" xml:space="preserve">
+    <value>Prefer 'Is Nothing' over 'Object.ReferenceEquals(..., Nothing)'</value>
+  </data>
 </root>

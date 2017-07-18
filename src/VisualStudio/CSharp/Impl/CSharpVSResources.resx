@@ -519,4 +519,7 @@
   <data name="Fade_out_unused_usings" xml:space="preserve">
     <value>Fade out unused usings</value>
   </data>
+  <data name="Prefer_is_null_over_ReferenceEquals" xml:space="preserve">
+    <value>Prefer 'is null' over 'object.ReferenceEquals(..., null)'</value>
+  </data>
 </root>

@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseLocalFunctionDiagnosticId = "IDE0039";
 
+        public const string UseIsNullCheckDiagnosticId = "IDE0041";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
