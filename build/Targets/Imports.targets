@@ -507,4 +507,6 @@
     <!-- Special items in VSSDK projects -->
     <None Include="@(VSCTCompile)" />
   </ItemGroup>
+  
+  <Target Name="_CheckForUnsupportedNETCoreVersion" />
 </Project>
