@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     {
                         foreach (var baseName in baseNames)
                         {
-                            var name = rule.NamingStyle.CreateName(baseName);
+                            var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
                             if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
                             {
                                 result.Add(name, symbolKind);
