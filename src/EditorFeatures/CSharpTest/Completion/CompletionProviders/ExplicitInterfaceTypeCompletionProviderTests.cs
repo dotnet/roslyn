@@ -37,6 +37,19 @@ class C : IList
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(459044, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=459044")]
+        public async Task TestInMisplacedUsing()
+        {
+            var markup = @"
+class C
+{
+    using ($$)
+}
+";
+            await VerifyNoItemsExistAsync(markup); // no crash
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestAtStartOfStruct()
         {
             var markup = @"
