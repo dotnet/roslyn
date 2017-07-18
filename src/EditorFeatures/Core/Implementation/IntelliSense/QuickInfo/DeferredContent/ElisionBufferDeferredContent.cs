@@ -54,11 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             var view = _textEditorFactoryService.CreateTextView(
                 buffer, _roleSet);
 
-            view.SizeToFit();
+            view.SizeToContentsAndScale();
             view.Background = Brushes.Transparent;
-
-            // Zoom out a bit to shrink the text.
-            view.ZoomLevel *= 0.75;
 
             return view;
         }
