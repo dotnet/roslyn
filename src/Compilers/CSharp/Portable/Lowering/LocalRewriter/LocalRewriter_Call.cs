@@ -525,7 +525,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
                 ArrayBuilder<IArgument> argumentsBuilder = ArrayBuilder<IArgument>.GetInstance(arguments.Length);
 
-
                 int i = 0;
                 for (; i < parameters.Length; ++i)
                 {
