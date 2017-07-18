@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Execution
     internal abstract class AbstractReferenceSerializationService : IReferenceSerializationService
     {
         private const int MetadataFailed = int.MaxValue;
+        private const string VisualStudioUnresolvedAnalyzerReference = "Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.VisualStudioAnalyzer+VisualStudioUnresolvedAnalyzerReference";
 
         protected const byte NoEncodingSerialization = 0;
         protected const byte EncodingSerialization = 1;
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Execution
                         WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
                         break;
 
-                    case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == "Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.VisualStudioAnalyzer+VisualStudioUnresolvedAnalyzerReference":
+                    case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
                         WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
                         break;
 
@@ -185,6 +186,12 @@ namespace Microsoft.CodeAnalysis.Execution
                 case UnresolvedAnalyzerReference unresolved:
                     {
                         WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
+                        return;
+                    }
+
+                case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
+                    {
+                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
                         return;
                     }
 
