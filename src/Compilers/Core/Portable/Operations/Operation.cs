@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_parentDoNotAccessDirectly == null)
                 {
-                    Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, _semanticModel.FindParentOperation(this), null);
+                    Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, SearchParentOperation(), null);
                 }
 
                 return _parentDoNotAccessDirectly;
@@ -82,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(((Operation)operation)._semanticModel == _semanticModel);
 
                 // confirm explicitly given parent is same as what we would have found.
-                Debug.Assert(operation == _semanticModel.FindParentOperation(this));
+                Debug.Assert(operation == SearchParentOperation());
             }
 #endif
         }
@@ -92,9 +95,35 @@ namespace Microsoft.CodeAnalysis
             return new NoneOperation(semanticModel, node, constantValue, getChildren);
         }
 
-        public static void SetParentOperation(IOperation current, IOperation parent)
+        public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation
         {
-            ((Operation)current).SetParentOperation(parent);
+            (operation as Operation).SetParentOperation(parent);
+            return operation;
+        }
+
+        public static ImmutableArray<T> SetParentOperation<T>(ImmutableArray<T> operations, IOperation parent) where T : IOperation
+        {
+            // check quick bail out case first
+            if (operations.Length == 0)
+            {
+                // no element
+                return operations;
+            }
+
+            // race is okay. paneltiy is going through a loop one more time
+            if ((operations[0] as Operation)._parentDoNotAccessDirectly != null)
+            {
+                // already initialized
+                return operations;
+            }
+
+            for (var i = 0; i < operations.Length; i++)
+            {
+                // go through slowest path
+                SetParentOperation(operations[i], parent);
+            }
+
+            return operations;
         }
 
         private class NoneOperation : Operation
@@ -118,6 +147,109 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override IEnumerable<IOperation> Children => _getChildren().NullToEmpty();
+        }
+
+        private static IOperation WalkDownOperationToFindParent(
+            HashSet<IOperation> operationAlreadyProcessed, IOperation operation, TextSpan span)
+        {
+            void EnqueueChildOperations(Queue<IOperation> queue, IOperation parent)
+            {
+                foreach (var o in parent.Children)
+                {
+                    queue.Enqueue(o);
+                }
+            }
+
+            // do we have a pool for queue?
+            var parentChildQueue = new Queue<IOperation>();
+            EnqueueChildOperations(parentChildQueue, operation);
+
+            // walk down the child operation to find parent operation
+            // every child returned by the queue should already have Parent operation set
+            IOperation child;
+            while ((child = parentChildQueue.Dequeue()) != null)
+            {
+                if (!operationAlreadyProcessed.Add(child))
+                {
+                    // don't process IOperation we already processed otherwise,
+                    // we can walk down same tree multiple times
+                    continue;
+                }
+
+                if (child == operation)
+                {
+                    // parent found
+                    return child.Parent;
+                }
+
+                if (!child.Syntax.FullSpan.IntersectsWith(span))
+                {
+                    // not related node, don't walk down
+                    continue;
+                }
+
+                // queue children so that we can do breadth first search
+                EnqueueChildOperations(parentChildQueue, child);
+            }
+
+            return null;
+        }
+
+        private IOperation SearchParentOperation()
+        {
+            // do we have a pool for hashset?
+            var operationAlreadyProcessed = new HashSet<IOperation>();
+
+            var targetNode = Syntax;
+            var currentCandidate = targetNode.Parent;
+
+            while (currentCandidate != null)
+            {
+                Debug.Assert(currentCandidate.FullSpan.IntersectsWith(targetNode.FullSpan));
+
+                foreach (var childNode in currentCandidate.ChildNodes())
+                {
+                    if (!childNode.FullSpan.IntersectsWith(targetNode.FullSpan))
+                    {
+                        // skip unrelated node
+                        continue;
+                    }
+
+                    // get child operation
+                    var childOperation = _semanticModel.GetOperationInternal(childNode);
+                    if (childOperation != null)
+                    {
+                        // there is no operation for this node
+                        continue;
+                    }
+
+                    // record we have processed this node
+                    if (!operationAlreadyProcessed.Add(childOperation))
+                    {
+                        // we already processed this tree. no need to dig down
+                        continue;
+                    }
+
+                    // check easy case first
+                    if (childOperation == this)
+                    {
+                        // found parent, go up the spine until we found non-null parent Operation
+                        return currentCandidate.AncestorsAndSelf().Select(n => _semanticModel.GetOperationInternal(n)).WhereNotNull().FirstOrDefault();
+                    }
+
+                    // walk down child operation tree to see whether sub tree contains the given operation
+                    var parent = WalkDownOperationToFindParent(operationAlreadyProcessed, childOperation, targetNode.FullSpan);
+                    if (parent != null)
+                    {
+                        return parent;
+                    }
+                }
+
+                currentCandidate = currentCandidate.Parent;
+            }
+
+            // root node. there is no parent
+            return null;
         }
     }
 }
