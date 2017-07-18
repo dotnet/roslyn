@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string InlineIsTypeWithoutNameCheckId = "IDE0038";
 
+        public const string UseLocalFunctionDiagnosticId = "IDE0039";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
