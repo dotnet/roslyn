@@ -1,7 +1,6 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.10
+VisualStudioVersion = 15.0.26621.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeAnalysis", "src\Compilers\Core\Portable\CodeAnalysis.csproj", "{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}"
 EndProject
@@ -69,8 +68,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpScripting", "src\Scri
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicScripting", "src\Scripting\VisualBasic\BasicScripting.vbproj", "{3E7DEA65-317B-4F43-A25D-62F18D96CFD7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpScriptingTest", "src\Scripting\CSharpTest\CSharpScriptingTest.csproj", "{2DAE4406-7A89-4B5F-95C3-BC5422CE47CE}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{A18BACE1-BB66-4156-8E89-81429A5814C6}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Debugging", "src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.shproj", "{D73ADF7D-2C1C-42AE-B2AB-EDC9497E4B71}"
@@ -114,6 +111,8 @@ EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCodeStyleTests", "src\CodeStyle\VisualBasic\Tests\BasicCodeStyleTests.vbproj", "{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCompilerSymbolTest", "src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj", "{28026D16-EB0C-40B0-BDA7-11CAA2B97CCC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptingTest", "src\Scripting\CoreTest\ScriptingTest.csproj", "{98D02FEE-6F08-4E21-A707-B844EE0834CF}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -290,6 +289,10 @@ Global
 		{28026D16-EB0C-40B0-BDA7-11CAA2B97CCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28026D16-EB0C-40B0-BDA7-11CAA2B97CCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28026D16-EB0C-40B0-BDA7-11CAA2B97CCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98D02FEE-6F08-4E21-A707-B844EE0834CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98D02FEE-6F08-4E21-A707-B844EE0834CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98D02FEE-6F08-4E21-A707-B844EE0834CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98D02FEE-6F08-4E21-A707-B844EE0834CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -342,5 +345,9 @@ Global
 		{5018D049-5870-465A-889B-C742CE1E31CB} = {6B83F334-CB79-47C8-8EA9-5391DA1601F4}
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510} = {6B83F334-CB79-47C8-8EA9-5391DA1601F4}
 		{28026D16-EB0C-40B0-BDA7-11CAA2B97CCC} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
+		{98D02FEE-6F08-4E21-A707-B844EE0834CF} = {A6F70573-57FE-49F9-A26C-75B8D202B795}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3B7A651D-15E3-4F55-9B04-F84B0C740D78}
 	EndGlobalSection
 EndGlobal
