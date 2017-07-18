@@ -1818,6 +1818,38 @@ class C
         }
 
         [Fact]
+        public void MethodWithExpressionBody_ToBlockBody()
+        {
+            var src1 = "class C { static int F(int a) => 1; }";
+            var src2 = "class C { static int F(int a) { return 2; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [static int F(int a) => 1;]@10 -> [static int F(int a) { return 2; }]@10");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: false)
+            });
+        }
+
+        [Fact]
+        public void MethodWithBlockBody_ToExpressionBody()
+        {
+            var src1 = "class C { static int F(int a) { return 2; } }";
+            var src2 = "class C { static int F(int a) => 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [static int F(int a) { return 2; }]@10 -> [static int F(int a) => 1;]@10");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: false)
+            });
+        }
+
+        [Fact]
         public void MethodWithLambda_Update()
         {
             string src1 = @"
@@ -3299,6 +3331,38 @@ class C
             {
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.op_Implicit")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.op_Addition")),
+            });
+        }
+
+        [Fact]
+        public void OperatorWithExpressionBody_ToBlockBody()
+        {
+            var src1 = "class C { public static C operator +(C c, C d) => d; }";
+            var src2 = "class C { public static C operator +(C c, C d) { return c; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [public static C operator +(C c, C d) => d;]@10 -> [public static C operator +(C c, C d) { return c; }]@10");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.op_Addition"))
+            });
+        }
+
+        [Fact]
+        public void OperatorWithBlockBody_ToExpressionBody()
+        {
+            var src1 = "class C { public static C operator +(C c, C d) { return c; } }";
+            var src2 = "class C { public static C operator +(C c, C d) => d;  }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [public static C operator +(C c, C d) { return c; }]@10 -> [public static C operator +(C c, C d) => d;]@10");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.op_Addition"))
             });
         }
 
