@@ -453,5 +453,112 @@ public class MyClass
 ";
             await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
+
+        [WorkItem(20273, "https://github.com/dotnet/roslyn/issues/20273")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void Alias1()
+        {
+            var markup = @"
+using MyType = System.String;
+public class C
+{
+    MyType $$
+}
+";
+            await VerifyItemExistsAsync(markup, "my");
+            await VerifyItemExistsAsync(markup, "type");
+            await VerifyItemExistsAsync(markup, "myType");
+        }
+        [WorkItem(20273, "https://github.com/dotnet/roslyn/issues/20273")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void AliasWithInterfacePattern()
+        {
+            var markup = @"
+using IMyType = System.String;
+public class C
+{
+    MyType $$
+}
+";
+            await VerifyItemExistsAsync(markup, "my");
+            await VerifyItemExistsAsync(markup, "type");
+            await VerifyItemExistsAsync(markup, "myType");
+        }
+
+        [WorkItem(20016, "https://github.com/dotnet/roslyn/issues/20016")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void NotAfterExistingName1()
+        {
+            var markup = @"
+using IMyType = System.String;
+public class C
+{
+    MyType myType $$
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(20016, "https://github.com/dotnet/roslyn/issues/20016")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void NotAfterExistingName2()
+        {
+            var markup = @"
+using IMyType = System.String;
+public class C
+{
+    MyType myType, MyType $$
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutVarArgument()
+        {
+            var markup = @"
+class Test
+{
+    void Do(out Test foo)
+    {
+        Do(out var $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
+        }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutArgument()
+        {
+            var markup = @"
+class Test
+{
+    void Do(out Test foo)
+    {
+        Do(out Test $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
+        }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutGenericArgument()
+        {
+            var markup = @"
+class Test
+{
+    void Do<T>(out T foo)
+    {
+        Do(out Test $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
+        }
     }
 }
