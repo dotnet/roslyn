@@ -70,17 +70,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 // delegate.  It will fall out of the GenerateFieldDelegatingConstructor above.
                 for (int i = _state.Arguments.Length; i >= 1; i--)
                 {
-                    var (document, addedFields) = await GenerateThisOrBaseDelegatingConstructorAsync(i).ConfigureAwait(false);
-                    if (document != null)
+                    var edit = await GenerateThisOrBaseDelegatingConstructorAsync(i).ConfigureAwait(false);
+                    if (edit.document != null)
                     {
-                        return (document, addedFields);
+                        return edit;
                     }
                 }
 
-                return (null, false);
+                return default;
             }
 
-            private async Task<(Document, bool addedFields)> GenerateThisOrBaseDelegatingConstructorAsync(int argumentCount)
+            private async Task<(Document document, bool addedFields)> GenerateThisOrBaseDelegatingConstructorAsync(int argumentCount)
             {
                 (Document document, bool addedField) edit;
                 if ((edit = await GenerateDelegatingConstructorAsync(argumentCount, _state.TypeToGenerateIn).ConfigureAwait(false)).document != null ||
