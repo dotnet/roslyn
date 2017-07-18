@@ -101,13 +101,17 @@ namespace Microsoft.CodeAnalysis.Execution
                         WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
                         break;
 
+                    case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == "Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.VisualStudioAnalyzer.VisualStudioUnresolvedAnalyzerReference":
+                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
+                        break;
+
                     case AnalyzerImageReference _:
                         // TODO: think a way to support this or a way to deal with this kind of situation.
                         // https://github.com/dotnet/roslyn/issues/15783
                         throw new NotSupportedException(nameof(AnalyzerImageReference));
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(reference.GetType());
+                        throw ExceptionUtilities.UnexpectedValue(reference);
                 }
 
                 stream.Position = 0;
