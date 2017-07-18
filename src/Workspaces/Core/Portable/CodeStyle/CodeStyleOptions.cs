@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[]{
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_is_null_check_over_reference_equality_method"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferIsNullCheckOverReferenceEquals") });
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferIsNullCheckOverReferenceEqualityMethod)}") });
 
     }
 }
