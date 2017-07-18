@@ -87,6 +87,58 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionIsTriggeredWhenCharacterIsEnteredAfterOpeningDoubleQuote() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("$$")]
+                        </Document>
+                    </Project>
+                </Workspace>)
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("a"c)
+                Await state.AssertCompletionSession()
+                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionIsNotTriggeredWhenCharacterIsEnteredThatIsNotRightBesideTheOpeniningDoubleQuote() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("a$$")]
+                        </Document>
+                    </Project>
+                </Workspace>)
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("b"c)
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionIsNotTriggeredWhenDoubleQuoteIsEnteredAtStartOfFile() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">$$
+                        </Document>
+                    </Project>
+                </Workspace>)
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("a"c)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionIsNotTriggeredByArrayElementAccess() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                 <Workspace>

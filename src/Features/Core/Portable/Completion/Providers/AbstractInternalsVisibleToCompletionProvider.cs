@@ -22,8 +22,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
         {
+            // Should trigger in these cases ($$ is the cursor position)
+            // [InternalsVisibleTo($$         -> user enters "
+            // [InternalsVisibleTo("$$")]     -> user enters any character
             var ch = text[insertedCharacterPosition];
-            return ch == '\"';
+            if (ch == '\"')
+            {
+                return true;
+            }
+            else
+            {
+                if (insertedCharacterPosition > 0)
+                {
+                    ch = text[insertedCharacterPosition - 1];
+                    if (ch == '\"')
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -122,6 +141,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private async Task<IImmutableSet<string>> GetAllInternalsVisibleToAssemblyNamesOfProjectAsync(CompletionContext completionContext, CancellationToken cancellationToken)
         {
+            // Looking up other InternalsVisibleTo attributes of this project. This is faster than compiling all projects of the solution and checking access via 
+            // sourceAssembly.GivesAccessTo(compilation.Assembly)
+            // at the cost of being not so precise (can't check the validity of the PublicKey).
             var project = completionContext.Document.Project;
             var resultBuilder = default(ImmutableHashSet<string>.Builder);
             foreach (var document in project.Documents)
@@ -152,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         // * Extract the assemblyName by AssemblyIdentity.TryParseDisplayName
                         // * Compare with StringComparer.OrdinalIgnoreCase
                         // We take the same approach, but we do only a limited check of the PublicKey. 
-                        // The PublicKey is checked by AssemblyIdentity.TryParseDisplayName to be a 
+                        // The PublicKey is checked by AssemblyIdentity.TryParseDisplayName to be 
                         // parseable (length, can be converted to bytes, etc.), but it is not tested whether 
                         // the public key actually fits to the assembly.
                         var assemblyName = await GetAssemblyNameFromInternalsVisibleToAttributeAsync(document, attribute, completionContext.CancellationToken).ConfigureAwait(false);
