@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return default(TSymbol);
+            return default;
         }
 
         public static ISymbol GetEnclosingNamedTypeOrAssembly(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -221,6 +221,38 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Contract.ThrowIfTrue(semanticModel.ParentModel.IsSpeculativeSemanticModel);
             Contract.ThrowIfTrue(semanticModel.ParentModel.ParentModel != null);
             return semanticModel.ParentModel;
+        }
+
+        public static HashSet<ISymbol> GetAllDeclaredSymbols(
+            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
+        {
+            var symbols = new HashSet<ISymbol>();
+            if (container != null)
+            {
+                GetAllDeclaredSymbols(semanticModel, container, symbols, cancellationToken);
+            }
+
+            return symbols;
+        }
+
+        private static void GetAllDeclaredSymbols(
+            SemanticModel semanticModel, SyntaxNode node,
+            HashSet<ISymbol> symbols, CancellationToken cancellationToken)
+        {
+            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+
+            if (symbol != null)
+            {
+                symbols.Add(symbol);
+            }
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsNode)
+                {
+                    GetAllDeclaredSymbols(semanticModel, child.AsNode(), symbols, cancellationToken);
+                }
+            }
         }
     }
 }

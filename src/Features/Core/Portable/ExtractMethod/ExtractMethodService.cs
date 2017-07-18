@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal static class ExtractMethodService
     {
-        public static Task<ExtractMethodResult> ExtractMethodAsync(Document document, TextSpan textSpan, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<ExtractMethodResult> ExtractMethodAsync(Document document, TextSpan textSpan, OptionSet options = null, CancellationToken cancellationToken = default)
         {
             return document.GetLanguageService<IExtractMethodService>().ExtractMethodAsync(document, textSpan, options, cancellationToken);
         }

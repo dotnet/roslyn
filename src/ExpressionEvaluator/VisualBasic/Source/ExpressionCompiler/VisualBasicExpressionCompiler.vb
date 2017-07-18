@@ -109,6 +109,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             appDomain.RemoveMetadataContext(Of VisualBasicMetadataContext)()
         End Sub
 
+        Friend Overrides Function GetMetadataBlocks(appDomain As DkmClrAppDomain, runtimeInstance As DkmClrRuntimeInstance) As ImmutableArray(Of MetadataBlock)
+            Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
+            Return runtimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks)
+        End Function
+
     End Class
 
 End Namespace

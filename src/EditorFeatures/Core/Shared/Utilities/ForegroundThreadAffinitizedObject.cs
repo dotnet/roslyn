@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             // Does nothing.
         }
 
-        public Task InvokeBelowInputPriority(Action action, CancellationToken cancellationToken = default(CancellationToken))
+        public Task InvokeBelowInputPriority(Action action, CancellationToken cancellationToken = default)
         {
             if (IsForeground() && !IsInputPending())
             {

@@ -72,7 +72,7 @@ namespace Roslyn.Utilities
         /// <param name="cancellationToken"></param>
         public ObjectWriter(
             Stream stream,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.

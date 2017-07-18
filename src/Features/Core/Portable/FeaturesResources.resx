@@ -1277,4 +1277,13 @@ This version used in: {2}</value>
   <data name="in_0_project_1" xml:space="preserve">
     <value>in {0} (project {1})</value>
   </data>
+  <data name="Use_local_function" xml:space="preserve">
+    <value>Use local function</value>
+  </data>
+  <data name="Warning_colon_Declaration_changes_scope_and_may_change_meaning" xml:space="preserve">
+    <value>Warning: Declaration changes scope and may change meaning.</value>
+  </data>
+  <data name="Move_declaration_near_reference" xml:space="preserve">
+    <value>Move declaration near reference</value>
+  </data>
 </root>

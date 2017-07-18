@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            diagnostic = default(Diagnostic);
+            diagnostic = default;
 
             if (!IsUnnecessaryCast(model, node, cancellationToken))
             {

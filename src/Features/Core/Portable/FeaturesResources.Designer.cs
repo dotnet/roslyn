@@ -2120,6 +2120,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move declaration near reference.
+        /// </summary>
+        internal static string Move_declaration_near_reference {
+            get {
+                return ResourceManager.GetString("Move_declaration_near_reference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move type to {0}.
         /// </summary>
         internal static string Move_type_to_0 {
@@ -3463,6 +3472,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use local function.
+        /// </summary>
+        internal static string Use_local_function {
+            get {
+                return ResourceManager.GetString("Use_local_function", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use local version &apos;{0}&apos;.
         /// </summary>
         internal static string Use_local_version_0 {
@@ -3532,6 +3550,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Variadic_SignatureHelpItem_must_have_at_least_one_parameter {
             get {
                 return ResourceManager.GetString("Variadic_SignatureHelpItem_must_have_at_least_one_parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Declaration changes scope and may change meaning..
+        /// </summary>
+        internal static string Warning_colon_Declaration_changes_scope_and_may_change_meaning {
+            get {
+                return ResourceManager.GetString("Warning_colon_Declaration_changes_scope_and_may_change_meaning", resourceCulture);
             }
         }
         

@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             public int GetLocationOfName(string pszName, out string pbstrMkDoc, out VsTextSpan pspanLocation)
             {
                 pbstrMkDoc = null;
-                pspanLocation = default(VsTextSpan);
+                pspanLocation = default;
                 return VSConstants.E_NOTIMPL;
             }
 

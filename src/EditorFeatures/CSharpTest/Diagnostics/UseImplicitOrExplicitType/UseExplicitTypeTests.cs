@@ -1183,5 +1183,31 @@ options: ExplicitTypeEverywhere());
 }",
 options: ExplicitTypeEverywhere());
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(20437, "https://github.com/dotnet/roslyn/issues/20437")]
+        public async Task SuggestExplicitTypeOnDeclarationExpressionSyntax()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        DateTime.TryParse(string.Empty, [|out var|] date);
+    }
+}",
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        DateTime.TryParse(string.Empty, out DateTime date);
+    }
+}",
+options: ExplicitTypeEverywhere());
+        }
     }
 }

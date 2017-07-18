@@ -108,8 +108,13 @@ namespace Roslyn.Utilities
         private static readonly ThreadLocal<int[,]> t_matrixPool = 
             new ThreadLocal<int[,]>(() => InitializeMatrix(new int[MaxMatrixPoolDimension, MaxMatrixPoolDimension]));
 
-        private static ThreadLocal<Dictionary<char, int>> t_dictionaryPool = 
-            new ThreadLocal<Dictionary<char, int>>(() => new Dictionary<char, int>());
+        // To find swapped characters we make use of a table that keeps track of the last location
+        // we found that character.  For performnace reasons we only do this work for ascii characters
+        // (i.e. with value <= 127).  This allows us to just use a simple array we can index into instead
+        // of needing something more expensive like a dictionary.
+        private const int LastSeenIndexLength = 128;
+        private static ThreadLocal<int[]> t_lastSeenIndexPool = 
+            new ThreadLocal<int[]>(() => new int[LastSeenIndexLength]);
 
         private static int[,] GetMatrix(int width, int height)
         {
@@ -138,7 +143,6 @@ namespace Roslyn.Utilities
             //
             // So we initialize this once when the matrix is created.  For pooled arrays we only
             // have to do this once, and it will retain this layout for all future computations.
-
 
             var width = matrix.GetLength(0);
             var height = matrix.GetLength(1);
@@ -179,7 +183,7 @@ namespace Roslyn.Utilities
             //
             // Also Note: sourceLength and targetLength values will mutate and represent the lengths 
             // of the portions of the arrays we want to compare.  However, even after mutation, hte
-            // invariant htat sourceLength is <= targetLength will remain.
+            // invariant that sourceLength is <= targetLength will remain.
             Debug.Assert(source.Length <= target.Length);
 
             // First:
@@ -487,8 +491,8 @@ namespace Roslyn.Utilities
 
             var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
 
-            var characterToLastSeenIndex_inSource = t_dictionaryPool.Value;
-            characterToLastSeenIndex_inSource.Clear();
+            var characterToLastSeenIndex_inSource = t_lastSeenIndexPool.Value;
+            Array.Clear(characterToLastSeenIndex_inSource, 0, LastSeenIndexLength);
 
             for (int i = 1; i <= sourceLength; i++)
             {
@@ -517,7 +521,7 @@ namespace Roslyn.Utilities
                 {
                     var targetChar = target[j - 1];
 
-                    var i1 = GetValue(characterToLastSeenIndex_inSource, targetChar);
+                    var i1 = targetChar < LastSeenIndexLength ? characterToLastSeenIndex_inSource[targetChar] : 0;
                     var j1 = lastMatchIndex_inTarget;
 
                     var matched = sourceChar == targetChar;
@@ -533,7 +537,10 @@ namespace Roslyn.Utilities
                         matrix[i1, j1] + (i - i1 - 1) + 1 + (j - j1 - 1));
                 }
 
-                characterToLastSeenIndex_inSource[sourceChar] = i;
+                if (sourceChar < LastSeenIndexLength)
+                {
+                    characterToLastSeenIndex_inSource[sourceChar] = i;
+                }
 
                 // Recall that minimumEditCount is simply the difference in length of our two
                 // strings.  So matrix[i+1,i+1] is the cost for the upper-left diagonal of the

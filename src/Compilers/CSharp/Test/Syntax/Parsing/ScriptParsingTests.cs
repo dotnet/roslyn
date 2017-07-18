@@ -1841,7 +1841,10 @@ partial void Foo(){};
             var test = @"
 partial enum en {};
 ";
-            ParseAndValidate(test, new ErrorDescription { Code = 267, Line = 2, Column = 1 });
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum en {};
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "en").WithLocation(2, 14));
         }
 
         [Fact]
