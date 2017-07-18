@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -931,9 +931,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (d.GetTy ... }')
         Left: IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: dynamic) (Syntax: 'd.GetType() == t')
             Left: IOperation:  (OperationKind.None) (Syntax: 'd.GetType()')
                 Children(1):
-                    IOperation:  (OperationKind.None) (Syntax: 'd.GetType')
-                      Children(1):
-                          IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+                    IDynamicMemberReferenceExpression (Member name: GetType, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'd.GetType')
+                      Instance Receiver: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
             Right: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Type) (Syntax: 't')
         Right: IInvocationExpression (virtual System.Boolean System.ValueType.Equals(System.Object obj)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: '((T)d).Equals(x)')
             Instance Receiver: IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: T) (Syntax: '(T)d')
