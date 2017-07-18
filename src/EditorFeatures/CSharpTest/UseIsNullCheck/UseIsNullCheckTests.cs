@@ -29,7 +29,7 @@ class C
         if ([||]ReferenceEquals(s, Nothing))
             return;
     }
-end class",
+}",
 @"using System;
 
 class C
@@ -39,7 +39,7 @@ class C
         if (s Is Nothing)
             return;
     }
-end class");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -55,7 +55,7 @@ class C
         if (object.[||]ReferenceEquals(s, Nothing))
             return;
     }
-end class",
+}",
 @"using System;
 
 class C
@@ -65,7 +65,7 @@ class C
         if (s Is Nothing)
             return;
     }
-end class");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -81,7 +81,7 @@ class C
         if (Object.[||]ReferenceEquals(s, Nothing))
             return;
     }
-end class",
+}",
 @"using System;
 
 class C
@@ -91,7 +91,7 @@ class C
         if (s Is Nothing)
             return;
     }
-end class");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -107,7 +107,7 @@ class C
         if ([||]ReferenceEquals(Nothing, s))
             return;
     }
-end class",
+}",
 @"using System;
 
 class C
@@ -117,7 +117,7 @@ class C
         if (s Is Nothing)
             return;
     }
-end class");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -133,7 +133,7 @@ class C
         if (![||]ReferenceEquals(Nothing, s))
             return;
     }
-end class",
+}",
 @"using System;
 
 class C
@@ -143,7 +143,7 @@ class C
         if (!(s Is Nothing))
             return;
     }
-end class");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -159,7 +159,7 @@ class C
         if ([||]ReferenceEquals(Nothing, s))
             return;
     }
-end class", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
+}", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -176,7 +176,7 @@ class C
             ReferenceEquals(s2, Nothing))
             return;
     }
-end class",
+}",
 @"using System;
 
 class C
@@ -187,7 +187,7 @@ class C
             s2 Is Nothing)
             return;
     }
-end class", ignoreTrivia: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -204,7 +204,7 @@ class C
             {|FixAllInDocument:ReferenceEquals|}(s2, Nothing))
             return;
     }
-end class",
+}",
 @"using System;
 
 class C
@@ -215,7 +215,7 @@ class C
             s2 Is Nothing)
             return;
     }
-end class", ignoreTrivia: false);
+}", ignoreTrivia: false);
         }
     }
 }
