@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     {
                         foreach (var baseName in baseNames)
                         {
-                            var name = EscapeIdentifier(rule.NamingStyle.CreateName(baseName));
+                            var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
                             if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
                             {
                                 result.Add(name, symbolKind);
@@ -188,14 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return result.Select(kvp => (kvp.Key, kvp.Value)).ToImmutableArray();
-        }
-
-        private static string EscapeIdentifier(string identifier)
-        {
-            var kind = SyntaxFacts.GetKeywordKind(identifier);
-            return kind == SyntaxKind.None
-                ? identifier
-                : $"@{identifier}";
         }
 
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
