@@ -546,4 +546,7 @@
   <ItemGroup>
     <AdditionalFiles Include="@(PublicAPI)" />
   </ItemGroup>
+  
+  <!-- Work around https://github.com/dotnet/roslyn/issues/20945 -->
+  <Target Name="_CheckForUnsupportedNETCoreVersion" />
 </Project>
