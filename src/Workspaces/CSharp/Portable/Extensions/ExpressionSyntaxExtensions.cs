@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             int position,
             SemanticModel semanticModel)
         {
-            if (targetType.ContainsAnonymousType())
+            if (targetType.ContainsAnonymousType() || expression.Kind() == SyntaxKind.CastExpression)
             {
                 return expression;
             }
