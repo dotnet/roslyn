@@ -78,6 +78,9 @@ namespace Microsoft.CodeAnalysis
 #if DEBUG
             if (result == null)
             {
+                // tree must belong to same semantic model
+                Debug.Assert(((Operation)operation)._semanticModel == _semanticModel);
+
                 // confirm explicitly given parent is same as what we would have found.
                 Debug.Assert(operation == _semanticModel.FindParentOperation(this));
             }
