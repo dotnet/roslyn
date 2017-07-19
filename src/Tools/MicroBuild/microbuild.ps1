@@ -6,12 +6,17 @@ param (
     [string]$msbuildDir = "",
     [switch]$cibuild = $false,
     [string]$branchName = "master",
-    [string]$myGetApiKey = "",
-    [string]$nugetApiKey = "",
     [string]$assemblyVersion = "42.42.42.4242",
     [switch]$testDesktop = $false,
     [switch]$publish = $false,
     [switch]$help = $false,
+
+    # Credentials
+    [string]$myGetApiKey = "",
+    [string]$nugetApiKey = "",
+    [string]$gitHubUserName = "",
+    [string]$gitHubToken = "",
+    [string]$gitHubEmail = "",
     [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
 Set-StrictMode -version 2.0
@@ -139,7 +144,7 @@ try {
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | Stop-Process
 
     if ($publish) { 
-        Exec-Block { & .\publish-assets.ps1 -configDir $configDir -branchName $branchName -mygetApiKey $mygetApiKey -nugetAapiKey $nugetApiKey -test:$(-not $official) }
+        Exec-Block { & .\publish-assets.ps1 -configDir $configDir -branchName $branchName -mygetApiKey $mygetApiKey -nugetAapiKey $nugetApiKey -gitHubUserName $githubUserName -gitHubToken $gitHubToken -gitHubEmail $gitHubEmail -test:$(-not $official) }
     }
 
     Exec-Block { & .\copy-insertion-items.ps1 -binariesPath $configDir -test:$(-not $official) }
