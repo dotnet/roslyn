@@ -64,9 +64,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             ' Missing accessibility.  Report issue to user.
             Dim additionalLocations = ImmutableArray.Create(member.GetLocation())
             context.ReportDiagnostic(Diagnostic.Create(
-            CreateDescriptorWithSeverity([option].Notification.Value),
-            name.GetLocation(),
-            additionalLocations:=additionalLocations))
+                CreateDescriptorWithSeverity([option].Notification.Value),
+                name.GetLocation(),
+                additionalLocations:=additionalLocations))
         End Sub
     End Class
 End Namespace
