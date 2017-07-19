@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -27,6 +28,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.DefaultSeverity == DiagnosticSeverity.Error);
         }
 
+        private static readonly ObjectPool<Stack<IEnumerator<IOperation>>> s_childEnumeratorStackPool =
+            new ObjectPool<Stack<IEnumerator<IOperation>>>(() => new Stack<IEnumerator<IOperation>>(), 10);
+
         public static IEnumerable<IOperation> Descendants(this IOperation operation)
         {
             if (operation == null)
@@ -46,26 +50,33 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             yield return operation;
 
-            var stack = new Stack<IEnumerator<IOperation>>();
+            var stack = s_childEnumeratorStackPool.Allocate();
             stack.Push(operation.Children.GetEnumerator());
 
-            IEnumerator<IOperation> iterator;
-            while ((iterator = stack.Pop()) != null)
+            while (stack.Count > 0)
             {
+                var iterator = stack.Pop();
+
                 if (!iterator.MoveNext())
                 {
                     continue;
                 }
 
                 var current = iterator.Current;
-                yield return current;
 
                 // push current iterator back in to the stack
                 stack.Push(iterator);
 
                 // push children iterator to the stack
-                stack.Push(current.Children.GetEnumerator());
+                if (current != null)
+                {
+                    yield return current;
+                    stack.Push(current.Children.GetEnumerator());
+                }
             }
+
+            stack.Clear();
+            s_childEnumeratorStackPool.Free(stack);
         }
 
         public static IOperation GetRootOperation(this ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))

@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -147,11 +148,23 @@ namespace Microsoft.CodeAnalysis
                 return visitor.VisitNoneOperation(this, argument);
             }
 
-            public override IEnumerable<IOperation> Children => _getChildren().NullToEmpty();
+            public override IEnumerable<IOperation> Children
+            {
+                get
+                {
+                    foreach (var child in _getChildren().NullToEmpty().WhereNotNull())
+                    {
+                        yield return Operation.SetParentOperation(child, this);
+                    }
+                }
+            }
         }
 
-        private static IOperation WalkDownOperationToFindParent(
-            HashSet<IOperation> operationAlreadyProcessed, IOperation operation, TextSpan span)
+        private static readonly ObjectPool<Queue<IOperation>> s_queuePool =
+            new ObjectPool<Queue<IOperation>>(() => new Queue<IOperation>(), 10);
+
+        private IOperation WalkDownOperationToFindParent(
+            HashSet<IOperation> operationAlreadyProcessed, IOperation root, TextSpan span)
         {
             void EnqueueChildOperations(Queue<IOperation> queue, IOperation parent)
             {
@@ -162,96 +175,89 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // do we have a pool for queue?
-            var parentChildQueue = new Queue<IOperation>();
-            EnqueueChildOperations(parentChildQueue, operation);
+            var operationQueue = s_queuePool.Allocate();
 
-            // walk down the child operation to find parent operation
-            // every child returned by the queue should already have Parent operation set
-            IOperation child;
-            while ((child = parentChildQueue.Dequeue()) != null)
+            try
             {
-                if (!operationAlreadyProcessed.Add(child))
+                EnqueueChildOperations(operationQueue, root);
+
+                // walk down the tree to find parent operation
+                // every operation returned by the queue should already have Parent operation set
+                while (operationQueue.Count > 0)
                 {
-                    // don't process IOperation we already processed otherwise,
-                    // we can walk down same tree multiple times
-                    continue;
+                    var operation = operationQueue.Dequeue();
+
+                    if (!operationAlreadyProcessed.Add(operation))
+                    {
+                        // don't process IOperation we already processed otherwise,
+                        // we can walk down same tree multiple times
+                        continue;
+                    }
+
+                    if (operation == this)
+                    {
+                        // parent found
+                        return operation.Parent;
+                    }
+
+                    if (!operation.Syntax.FullSpan.IntersectsWith(span))
+                    {
+                        // not related node, don't walk down
+                        continue;
+                    }
+
+                    // queue children so that we can do breadth first search
+                    EnqueueChildOperations(operationQueue, operation);
                 }
 
-                if (child == operation)
-                {
-                    // parent found
-                    return child.Parent;
-                }
-
-                if (!child.Syntax.FullSpan.IntersectsWith(span))
-                {
-                    // not related node, don't walk down
-                    continue;
-                }
-
-                // queue children so that we can do breadth first search
-                EnqueueChildOperations(parentChildQueue, child);
+                return null;
             }
-
-            return null;
+            finally
+            {
+                operationQueue.Clear();
+                s_queuePool.Free(operationQueue);
+            }
         }
 
         private IOperation SearchParentOperation()
         {
-            // do we have a pool for hashset?
-            var operationAlreadyProcessed = new HashSet<IOperation>();
+            var operationAlreadyProcessed = PooledHashSet<IOperation>.GetInstance();
 
             var targetNode = Syntax;
-            var currentCandidate = targetNode.Parent;
 
-            while (currentCandidate != null)
+            // start from current node since one node can have multiple operations mapped to
+            var currentCandidate = targetNode;
+
+            try
             {
-                Debug.Assert(currentCandidate.FullSpan.IntersectsWith(targetNode.FullSpan));
-
-                foreach (var childNode in currentCandidate.ChildNodes())
+                while (currentCandidate != null)
                 {
-                    if (!childNode.FullSpan.IntersectsWith(targetNode.FullSpan))
+                    Debug.Assert(currentCandidate.FullSpan.IntersectsWith(targetNode.FullSpan));
+
+                    // get operation
+                    var tree = _semanticModel.GetOperationInternal(currentCandidate);
+                    if (tree != null)
                     {
-                        // skip unrelated node
-                        continue;
+                        // walk down operation tree to see whether this tree contains parent of this operation
+                        var parent = WalkDownOperationToFindParent(operationAlreadyProcessed, tree, targetNode.FullSpan);
+                        if (parent != null)
+                        {
+                            return parent;
+                        }
                     }
 
-                    // get child operation
-                    var childOperation = _semanticModel.GetOperationInternal(childNode);
-                    if (childOperation != null)
-                    {
-                        // there is no operation for this node
-                        continue;
-                    }
-
-                    // record we have processed this node
-                    if (!operationAlreadyProcessed.Add(childOperation))
-                    {
-                        // we already processed this tree. no need to dig down
-                        continue;
-                    }
-
-                    // check easy case first
-                    if (childOperation == this)
-                    {
-                        // found parent, go up the spine until we found non-null parent Operation
-                        return currentCandidate.AncestorsAndSelf().Select(n => _semanticModel.GetOperationInternal(n)).WhereNotNull().FirstOrDefault();
-                    }
-
-                    // walk down child operation tree to see whether sub tree contains the given operation
-                    var parent = WalkDownOperationToFindParent(operationAlreadyProcessed, childOperation, targetNode.FullSpan);
-                    if (parent != null)
-                    {
-                        return parent;
-                    }
+                    // move up the tree
+                    currentCandidate = currentCandidate.Parent;
                 }
 
-                currentCandidate = currentCandidate.Parent;
+                // root node. there is no parent
+                return null;
             }
-
-            // root node. there is no parent
-            return null;
+            finally
+            {
+                // put the hashset back to the pool
+                operationAlreadyProcessed.Free();
+            }
         }
     }
 }
