@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -34,7 +35,6 @@ namespace myNamespace
         public void EncapsulateThroughCommand()
         {
             SetUpEditor(TestSource);
-
             var encapsulateField = VisualStudio.EncapsulateField;
             var dialog = VisualStudio.PreviewChangesDialog;
             encapsulateField.Invoke();
@@ -43,7 +43,7 @@ namespace myNamespace
             dialog.VerifyClosed(encapsulateField.DialogName);
             encapsulateField.Invoke();
             dialog.VerifyOpen(encapsulateField.DialogName);
-            dialog.ClickApply(encapsulateField.DialogName);
+            dialog.ClickApplyAndWaitForFeature(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
             VisualStudio.Editor.Verify.TextContains("public static int? Param { get => param; set => param = value; }");
         }
 
