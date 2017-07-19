@@ -779,6 +779,24 @@ class Program
             await VerifyBuilderAsync(markup);
         }
 
+        [WorkItem(20937, "https://github.com/dotnet/roslyn/issues/20937")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AsyncLambdaAfterComma()
+        {
+            var markup = @"
+using System;
+using System.Threading.Tasks;
+class Program
+{
+    public void B(Func<int, int, Task<int>> f) { }
+
+    void A()
+    {
+        B(async(p1, $$";
+
+            await VerifyBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
         {
             await VerifyWorkerAsync(markup, isBuilder: false);

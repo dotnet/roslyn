@@ -168,8 +168,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 return false;
             }
 
-            // async lambda: Foo(async($$
-            if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.ArgumentList)
+            // async lambda: 
+            //    Foo(async($$
+            //    Foo(async(p1, $$
+            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.ArgumentList)
                 && token.Parent.Parent is InvocationExpressionSyntax invocation
                 && invocation.Expression is IdentifierNameSyntax identifier)
             {
