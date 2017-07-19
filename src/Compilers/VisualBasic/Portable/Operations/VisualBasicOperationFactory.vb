@@ -645,7 +645,16 @@ Namespace Microsoft.CodeAnalysis.Semantics
             If boundLateMemberAccess.TypeArgumentsOpt IsNot Nothing Then
                 typeArguments = ImmutableArray(Of ITypeSymbol).CastUp(boundLateMemberAccess.TypeArgumentsOpt.Arguments)
             End If
-            Dim containingType As ITypeSymbol = boundLateMemberAccess.ContainerTypeOpt
+            Dim containingType As ITypeSymbol = Nothing
+            ' If there's nothing being late-bound against, something is very wrong
+            Debug.Assert(boundLateMemberAccess.ReceiverOpt IsNot Nothing OrElse boundLateMemberAccess.ContainerTypeOpt IsNot Nothing)
+            ' Only set containing type if the container is set to something, and either there is no reciever, or the receiver's type
+            ' does not match the type of the containing type.
+            If (boundLateMemberAccess.ContainerTypeOpt IsNot Nothing AndAlso
+                (boundLateMemberAccess.ReceiverOpt Is Nothing OrElse
+                 boundLateMemberAccess.ContainerTypeOpt <> boundLateMemberAccess.ReceiverOpt.Type)) Then
+                containingType = boundLateMemberAccess.ContainerTypeOpt
+            End If
             Dim syntax As SyntaxNode = boundLateMemberAccess.Syntax
             Dim type As ITypeSymbol = boundLateMemberAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLateMemberAccess.ConstantValueOpt)

@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="ITupleExpression"/>.</summary>
         TupleExpression = 0x124,
         /// <summary>Indicates an <see cref="IDynamicMemberReferenceExpression"/>.</summary>
-        DynamicAccessExpression = 0x125,
+        DynamicMemberReferenceExpression = 0x125,
 
         // Expressions that occur only in C#.
 

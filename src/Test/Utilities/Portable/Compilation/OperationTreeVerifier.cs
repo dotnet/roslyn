@@ -187,10 +187,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($"{symbolStr}");
         }
 
-        private void LogType(ITypeSymbol type)
+        private void LogType(ITypeSymbol type, string header = "Type")
         {
             var typeStr = type != null ? type.ToTestDisplayString() : "null";
-            LogString($"Type: {typeStr}");
+            LogString($"{header}: {typeStr}");
         }
 
         #endregion
@@ -1051,7 +1051,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitDynamicMemberReferenceExpression(IDynamicMemberReferenceExpression operation)
         {
             LogString(nameof(IDynamicMemberReferenceExpression));
-            LogString($" (Member name: {operation.MemberName}, Containing Type: {(object)operation.ContainingType ?? "null"})");
+            // (Member Name: "quoted name", Containing Type: type)
+            LogString(" (");
+            LogConstant((object)operation.MemberName, "Member Name");
+            LogString(", ");
+            LogType(operation.ContainingType, "Containing Type");
+            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
             if (!operation.TypeArguments.IsDefaultOrEmpty)
