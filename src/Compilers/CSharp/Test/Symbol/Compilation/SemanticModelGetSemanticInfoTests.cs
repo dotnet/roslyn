@@ -15214,6 +15214,7 @@ class K
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
+        [WorkItem(18763, "https://github.com/dotnet/roslyn/issues/18763")]
         [Fact]
         public void AttributeArgumentLambdaThis()
         {
