@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                                 continue;
                             }
 
-                            faultUtility.AddFile(file);
+                            u.AddFile(file);
                         }
                     }
                 }

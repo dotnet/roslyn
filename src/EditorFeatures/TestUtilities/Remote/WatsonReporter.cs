@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public interface IFaultUtility
         {
             void AddProcessDump(int pid);
+            void AddFile(string fullpathname);
         }
     }
 }
