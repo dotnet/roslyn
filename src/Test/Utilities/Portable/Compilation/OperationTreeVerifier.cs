@@ -229,8 +229,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        private void VisitArray<T>(IEnumerable<T> list, string header, bool logElementCount)
-            where T : IOperation
+        private void VisitArrayCommon<T>(IEnumerable<T> list, string header, bool logElementCount, Action<T> arrayElementVisitor)
         {
             Debug.Assert(!string.IsNullOrEmpty(header));
 
@@ -241,7 +240,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString($"{header}{elementCount}:");
                 LogNewLine();
                 Indent();
-                VisitArray(list);
+                foreach (var element in list)
+                {
+                    arrayElementVisitor(element);
+                }
                 Unindent();
             }
             else
@@ -251,6 +253,47 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             Unindent();
+        }
+
+        internal void VisitSymbolArrayElement(ISymbol element)
+        {
+            LogSymbol(element, header: "Symbol");
+            LogNewLine();
+        }
+
+        internal void VisitStringArrayElement(string element)
+        {
+            var valueStr = element != null ? element.ToString() : "null";
+            valueStr = @"""" + valueStr + @"""";
+            LogString(valueStr);
+            LogNewLine();
+        }
+
+        internal void VisitRefKindArrayElement(RefKind element)
+        {
+            LogString(element.ToString());
+            LogNewLine();
+        }
+
+        private void VisitArray<T>(IEnumerable<T> list, string header, bool logElementCount)
+            where T: IOperation
+        {
+            VisitArrayCommon(list, header, logElementCount, VisitOperationArrayElement);
+        }
+
+        private void VisitArray(IEnumerable<ISymbol> list, string header, bool logElementCount)
+        {
+            VisitArrayCommon(list, header, logElementCount, VisitSymbolArrayElement);
+        }
+
+        private void VisitArray(IEnumerable<string> list, string header, bool logElementCount)
+        {
+            VisitArrayCommon(list, header, logElementCount, VisitStringArrayElement);
+        }
+
+        private void VisitArray(IEnumerable<RefKind> list, string header, bool logElementCount)
+        {
+            VisitArrayCommon(list, header, logElementCount, VisitRefKindArrayElement);
         }
 
         private void VisitInstanceExpression(IOperation instance)
@@ -552,6 +595,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void VisitArguments(IHasArgumentsExpression operation)
         {
             VisitArray(operation.ArgumentsInEvaluationOrder, "Arguments", logElementCount: true);
+        }
+
+        private void VisitDynamicArguments(IHasDynamicArgumentsExpression operation)
+        {
+            VisitArray(operation.ApplicableSymbols, "ApplicableSymbols", logElementCount: true);
+            VisitArray(operation.Arguments, "Arguments", logElementCount: true);
+            VisitArray(operation.ArgumentNames, "ArgumentNames", logElementCount: true);
+            VisitArray(operation.ArgumentRefKinds, "ArgumentRefKinds", logElementCount: true);
         }
 
         public override void VisitArgument(IArgument operation)
@@ -903,6 +954,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Initializers, "Initializers", logElementCount: true);
         }
 
+        public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
+        {
+            LogString(nameof(IDynamicObjectCreationExpression));
+
+            var name = operation.Name;
+            LogString($" (Name: {operation.Name})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitDynamicArguments(operation);
+            Visit(operation.Initializer, "Initializer");
+        }
+
         public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
         {
             LogString(nameof(IObjectOrCollectionInitializerExpression));
@@ -1089,8 +1152,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IDefaultValueExpression));
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitDefaultValueExpression(operation);
         }
 
         public override void VisitTypeParameterObjectCreationExpression(ITypeParameterObjectCreationExpression operation)
@@ -1098,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(ITypeParameterObjectCreationExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitTypeParameterObjectCreationExpression(operation);
+            Visit(operation.Initializer);
         }
 
         public override void VisitInvalidStatement(IInvalidStatement operation)

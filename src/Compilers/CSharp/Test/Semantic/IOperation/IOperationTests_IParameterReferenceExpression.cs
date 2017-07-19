@@ -597,9 +597,15 @@ internal class Class
 }
 ";
     string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'new Class(x)')
-  Children(1):
+IDynamicObjectCreationExpression (Name: Class) (OperationKind.TypeParameterObjectCreationExpression, Type: Class) (Syntax: 'new Class(x)')
+  ApplicableSymbols(2):
+    Symbol: Class..ctor(Class x)
+    Symbol: Class..ctor(System.String x)
+  Arguments(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
+  Initializer: null
 ";
     var expectedDiagnostics = DiagnosticDescription.None;
 

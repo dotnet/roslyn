@@ -138,8 +138,10 @@ namespace Microsoft.CodeAnalysis
         NameOfExpression = 0x123,
         /// <summary>Indicates an <see cref="ITupleExpression"/>.</summary>
         TupleExpression = 0x124,
+        /// <summary>Indicates an <see cref="IDynamicObjectCreationExpression"/>.</summary>
+        DynamicObjectCreationExpression = 0x125,
         /// <summary>Indicates an <see cref="IDynamicMemberReferenceExpression"/>.</summary>
-        DynamicMemberReferenceExpression = 0x125,
+        DynamicMemberReferenceExpression = 0x126,
 
         // Expressions that occur only in C#.
 
