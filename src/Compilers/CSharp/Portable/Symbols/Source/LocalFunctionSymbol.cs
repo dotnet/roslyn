@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class LocalFunctionSymbol : SourceMethodSymbol
     {
-
         private readonly Binder _binder;
         private readonly LocalFunctionStatementSyntax _syntax;
         private readonly Symbol _containingSymbol;
@@ -41,16 +40,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntax = syntax;
             _containingSymbol = containingSymbol;
 
+            _declarationDiagnostics = new DiagnosticBag();
+
             _declarationModifiers =
                 DeclarationModifiers.Private |
                 DeclarationModifiers.Static |
-                syntax.Modifiers.ToDeclarationModifiers();
+                syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics);
 
             ScopeBinder = binder;
 
             binder = binder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
-
-            _declarationDiagnostics = new DiagnosticBag();
 
             if (_syntax.TypeParameterList != null)
             {

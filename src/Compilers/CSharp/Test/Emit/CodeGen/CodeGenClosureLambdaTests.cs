@@ -1011,18 +1011,18 @@ class Program
     }
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
-            verifier.VerifyIL("Program.<>c__DisplayClass1_1<T>.<F>b__0", @"
+            verifier.VerifyIL("Program.<>c__DisplayClass1_0<T>.<F>b__0", @"
 {
   // Code size      131 (0x83)
   .maxstack  3
   .locals init (Program.<>c__DisplayClass1_2<T> V_0, //CS$<>8__locals0
-                Program.<>c__DisplayClass1_0<T> V_1, //CS$<>8__locals1
+                Program.<>c__DisplayClass1_1<T> V_1, //CS$<>8__locals1
                 T V_2)
   IL_0000:  newobj     ""Program.<>c__DisplayClass1_2<T>..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
-  IL_0008:  stfld      ""Program.<>c__DisplayClass1_1<T> Program.<>c__DisplayClass1_2<T>.CS$<>8__locals1""
+  IL_0008:  stfld      ""Program.<>c__DisplayClass1_0<T> Program.<>c__DisplayClass1_2<T>.CS$<>8__locals1""
   IL_000d:  ldloc.0
   IL_000e:  ldstr      ""y""
   IL_0013:  stfld      ""string Program.<>c__DisplayClass1_2<T>.y""
@@ -1041,17 +1041,17 @@ class Program
     IL_002c:  ldc.i4.0
     IL_002d:  br.s       IL_005d
     IL_002f:  unbox.any  ""T""
-    IL_0034:  newobj     ""Program.<>c__DisplayClass1_0<T>..ctor()""
+    IL_0034:  newobj     ""Program.<>c__DisplayClass1_1<T>..ctor()""
     IL_0039:  stloc.1
     IL_003a:  ldloc.1
     IL_003b:  ldloc.0
-    IL_003c:  stfld      ""Program.<>c__DisplayClass1_2<T> Program.<>c__DisplayClass1_0<T>.CS$<>8__locals2""
+    IL_003c:  stfld      ""Program.<>c__DisplayClass1_2<T> Program.<>c__DisplayClass1_1<T>.CS$<>8__locals2""
     IL_0041:  stloc.2
     IL_0042:  ldloc.1
     IL_0043:  ldloc.2
-    IL_0044:  stfld      ""T Program.<>c__DisplayClass1_0<T>.e""
+    IL_0044:  stfld      ""T Program.<>c__DisplayClass1_1<T>.e""
     IL_0049:  ldloc.1
-    IL_004a:  ldftn      ""bool Program.<>c__DisplayClass1_0<T>.<F>b__1()""
+    IL_004a:  ldftn      ""bool Program.<>c__DisplayClass1_1<T>.<F>b__1()""
     IL_0050:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
     IL_0055:  callvirt   ""bool System.Func<bool>.Invoke()""
     IL_005a:  ldc.i4.0
@@ -1062,9 +1062,9 @@ class Program
     IL_005f:  pop
     IL_0060:  ldstr      ""pass_""
     IL_0065:  ldarg.0
-    IL_0066:  ldfld      ""string Program.<>c__DisplayClass1_1<T>.x""
+    IL_0066:  ldfld      ""string Program.<>c__DisplayClass1_0<T>.x""
     IL_006b:  ldloc.1
-    IL_006c:  ldfld      ""Program.<>c__DisplayClass1_2<T> Program.<>c__DisplayClass1_0<T>.CS$<>8__locals2""
+    IL_006c:  ldfld      ""Program.<>c__DisplayClass1_2<T> Program.<>c__DisplayClass1_1<T>.CS$<>8__locals2""
     IL_0071:  ldfld      ""string Program.<>c__DisplayClass1_2<T>.y""
     IL_0076:  call       ""string string.Concat(string, string, string)""
     IL_007b:  call       ""void System.Console.Write(string)""
@@ -3383,18 +3383,18 @@ class Program
     }
 }";
             CompileAndVerify(source, expectedOutput: "13").
-            VerifyIL("Program.c1.<>c__DisplayClass1_2.<Test>b__2",
+            VerifyIL("Program.c1.<>c__DisplayClass1_1.<Test>b__2",
 @"{
   // Code size       31 (0x1f)
   .maxstack  3
-  IL_0000:  newobj     ""Program.c1.<>c__DisplayClass1_1..ctor()""
+  IL_0000:  newobj     ""Program.c1.<>c__DisplayClass1_2..ctor()""
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      ""Program.c1.<>c__DisplayClass1_2 Program.c1.<>c__DisplayClass1_1.CS$<>8__locals2""
+  IL_0007:  stfld      ""Program.c1.<>c__DisplayClass1_1 Program.c1.<>c__DisplayClass1_2.CS$<>8__locals2""
   IL_000c:  dup
   IL_000d:  ldarg.1
-  IL_000e:  stfld      ""int Program.c1.<>c__DisplayClass1_1.z""
-  IL_0013:  ldftn      ""int Program.c1.<>c__DisplayClass1_1.<Test>b__3(int)""
+  IL_000e:  stfld      ""int Program.c1.<>c__DisplayClass1_2.z""
+  IL_0013:  ldftn      ""int Program.c1.<>c__DisplayClass1_2.<Test>b__3(int)""
   IL_0019:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_001e:  ret
 }");
@@ -3462,14 +3462,14 @@ using System;
   IL_0018:  ldloca.s   V_2
   IL_001a:  call       ""string int.ToString()""
   IL_001f:  brfalse.s  IL_0040
-  IL_0021:  newobj     ""Program.c1.<>c__DisplayClass1_2..ctor()""
+  IL_0021:  newobj     ""Program.c1.<>c__DisplayClass1_1..ctor()""
   IL_0026:  dup
   IL_0027:  ldloc.0
-  IL_0028:  stfld      ""Program.c1.<>c__DisplayClass1_0 Program.c1.<>c__DisplayClass1_2.CS$<>8__locals1""
+  IL_0028:  stfld      ""Program.c1.<>c__DisplayClass1_0 Program.c1.<>c__DisplayClass1_1.CS$<>8__locals1""
   IL_002d:  dup
   IL_002e:  ldc.i4.4
-  IL_002f:  stfld      ""int Program.c1.<>c__DisplayClass1_2.a""
-  IL_0034:  ldftn      ""System.Func<System.Func<int, System.Func<int>>> Program.c1.<>c__DisplayClass1_2.<Test>b__0()""
+  IL_002f:  stfld      ""int Program.c1.<>c__DisplayClass1_1.a""
+  IL_0034:  ldftn      ""System.Func<System.Func<int, System.Func<int>>> Program.c1.<>c__DisplayClass1_1.<Test>b__0()""
   IL_003a:  newobj     ""System.Func<System.Func<System.Func<int, System.Func<int>>>>..ctor(object, System.IntPtr)""
   IL_003f:  stloc.1
   IL_0040:  ldc.i4.2
@@ -3477,14 +3477,14 @@ using System;
   IL_0042:  ldloca.s   V_2
   IL_0044:  call       ""string int.ToString()""
   IL_0049:  brfalse.s  IL_006a
-  IL_004b:  newobj     ""Program.c1.<>c__DisplayClass1_4..ctor()""
+  IL_004b:  newobj     ""Program.c1.<>c__DisplayClass1_3..ctor()""
   IL_0050:  dup
   IL_0051:  ldloc.0
-  IL_0052:  stfld      ""Program.c1.<>c__DisplayClass1_0 Program.c1.<>c__DisplayClass1_4.CS$<>8__locals3""
+  IL_0052:  stfld      ""Program.c1.<>c__DisplayClass1_0 Program.c1.<>c__DisplayClass1_3.CS$<>8__locals3""
   IL_0057:  dup
   IL_0058:  ldc.i4.4
-  IL_0059:  stfld      ""int Program.c1.<>c__DisplayClass1_4.a""
-  IL_005e:  ldftn      ""System.Func<System.Func<int, System.Func<int>>> Program.c1.<>c__DisplayClass1_4.<Test>b__4()""
+  IL_0059:  stfld      ""int Program.c1.<>c__DisplayClass1_3.a""
+  IL_005e:  ldftn      ""System.Func<System.Func<int, System.Func<int>>> Program.c1.<>c__DisplayClass1_3.<Test>b__4()""
   IL_0064:  newobj     ""System.Func<System.Func<System.Func<int, System.Func<int>>>>..ctor(object, System.IntPtr)""
   IL_0069:  stloc.1
   IL_006a:  ldloc.1
