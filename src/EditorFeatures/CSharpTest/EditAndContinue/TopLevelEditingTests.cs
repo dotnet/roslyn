@@ -4457,6 +4457,114 @@ partial class C
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 18));
         }
 
+        [Fact]
+        public void Constructor_BlockToExpressionBody()
+        {
+            string src1 = @"
+public class C
+{
+    private int _value;
+
+    public C(int value) 
+    {
+        <AS:0>_value = value;</AS:0>
+    }
+}
+";
+            string src2 = @"
+public class C
+{
+    private int _value;
+
+    public C(int value) => <AS:0>_value = value;</AS:0>
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.MethodBodyDelete, "public C(int value)", "constructor"));
+        }
+
+        [Fact]
+        public void Constructor_ExpressionBodyToBlock()
+        {
+            string src1 = @"
+public class C
+{
+    private int _value;
+
+    public C(int value) => <AS:0>_value = value;</AS:0>
+}
+";
+            string src2 = @"
+public class C
+{
+    private int _value;
+
+    public C(int value) 
+    {
+        <AS:0>_value = value;</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.MethodBodyAdd, "public C(int value)", "constructor"));
+        }
+
+        [Fact]
+        public void Destructor_BlockToExpressionBody()
+        {
+            string src1 = @"
+public class C
+{
+    ~C() 
+    {
+        <AS:0>Console.WriteLine(""destructed"");</AS:0>
+    }
+}
+";
+            string src2 = @"
+public class C
+{
+    ~C() => <AS:0>Console.WriteLine(""destructed"");</AS:0>
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.MethodBodyDelete, "~C()", "destructor"));
+        }
+
+        [Fact]
+        public void Destructor_ExpressionBodyToBlock()
+        {
+            string src1 = @"
+public class C
+{
+    ~C() => <AS:0>Console.WriteLine(""destructed"");</AS:0>
+}
+";
+            string src2 = @"
+public class C
+{
+    ~C() 
+    {
+        <AS:0>Console.WriteLine(""destructed"");</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.MethodBodyAdd, "~C()", "destructor"));
+        }
+
         #endregion
 
         #region Fields and Properties with Initializers
