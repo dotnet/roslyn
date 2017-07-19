@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     }
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(reference.GetType());
+                    throw ExceptionUtilities.UnexpectedValue(reference);
             }
         }
 
