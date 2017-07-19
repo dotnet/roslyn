@@ -2682,7 +2682,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function WithAccessibility(declaration As SyntaxNode, accessibility As Accessibility) As SyntaxNode
-            If Not CanHaveAccessibility(declaration) Then
+            If Not CanHaveAccessibility(declaration) AndAlso
+               accessibility <> accessibility.notapplicable Then
                 Return declaration
             End If
 

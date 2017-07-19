@@ -1467,7 +1467,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode WithAccessibility(SyntaxNode declaration, Accessibility accessibility)
         {
-            if (!this.CanHaveAccessibility(declaration))
+            if (!this.CanHaveAccessibility(declaration) &&
+                accessibility != Accessibility.NotApplicable)
             {
                 return declaration;
             }
