@@ -475,6 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // C# interface implementations are implicit/not-specified -- so they are just named the name as the interface member
             return PreserveTrivia(declaration, d =>
             {
+                d = WithInterfaceSpecifier(d, null);
                 d = this.AsImplementation(d, Accessibility.Public);
 
                 if (interfaceMemberName != null)
@@ -482,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     d = this.WithName(d, interfaceMemberName);
                 }
 
-                return WithInterfaceSpecifier(d, null);
+                return d;
             });
         }
 
