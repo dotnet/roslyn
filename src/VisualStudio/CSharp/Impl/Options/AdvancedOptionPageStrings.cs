@@ -161,5 +161,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Suggest_usings_for_types_in_NuGet_packages =>
             CSharpVSResources.Suggest_usings_for_types_in_NuGet_packages;
+
+        public static string Option_Report_invalid_placeholders_in_string_dot_format_calls =>
+            CSharpVSResources.Report_invalid_placeholders_in_string_dot_format_calls; 
     }
 }

@@ -47,7 +47,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TNode GetAncestor<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            return node?.GetAncestors<TNode>().FirstOrDefault();
+            var current = node.Parent;
+            while (current != null)
+            {
+                if (current is TNode tNode)
+                {
+                    return tNode;
+                }
+
+                current = current.GetParent();
+            }
+
+            return null;
         }
 
         public static TNode GetAncestorOrThis<TNode>(this SyntaxNode node)
