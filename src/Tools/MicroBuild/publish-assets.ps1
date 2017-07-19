@@ -129,6 +129,11 @@ function Publish-Entry($publishData, [switch]$isBranch) {
     exit 0
 }
 
+function Test-Member($obj, [string]$name) { 
+    $value = Get-Member -Name $name -InputObject $obj 
+    return $value -ne $null
+}
+
 try {
     . (Join-Path $PSScriptRoot "..\..\..\build\scripts\build-utils.ps1")
     $nuget = Ensure-NuGet
@@ -148,22 +153,20 @@ try {
         exit 1
     }
     elseif ($branchName -ne "") {
-        $branchData = $data.branches.$branchName
-        if ($branchData -eq $null) {
+        if (-not (Test-Member $data.branches $branchName)) { 
             Write-Host "$branchName is not listed for publishing"
             exit 0
         }
 
-        Publish-Entry $branchData -isBranch:$true
+        Publish-Entry $data.branches.$branchName -isBranch:$true
     }
     elseif ($releaseName -ne "") { 
-        $releaseData = $data.releases.$releaseName
-        if ($releaseData -eq $null) {
+        if (-not (Test-Member $data.releases $releaseName)) { 
            Write-Host "$releaseName is not a valid release"
            exit 1
         }
 
-        Publish-Entry $releaseName -isBranch:$false
+        Publish-Entry $data.releases.$releaseName -isBranch:$false
     }
     else {
         Write-Host "Need to specify -branchName or -releaseName"
