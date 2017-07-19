@@ -113,7 +113,7 @@ class Program
                     }
                     });
 
-                telemetry.Verify("vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference");
+                telemetry.VerifyFired("vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference");
             }
         }
 

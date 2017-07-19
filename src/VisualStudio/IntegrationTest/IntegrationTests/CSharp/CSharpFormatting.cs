@@ -40,7 +40,7 @@ class C
     {
     }
 }");
-                telemetry.Verify("vs/ide/vbcs/commandhandler/formatcommand");
+                telemetry.VerifyFired("vs/ide/vbcs/commandhandler/formatcommand");
             }
         }
 

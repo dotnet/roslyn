@@ -278,7 +278,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             public void Dispose() => _instance.DisableTestTelemetryChannel();
 
-            public void Verify(params string[] expectedEventNames)
+            /// <summary>
+            /// Asserts that a telemetry event of the given name was fired. Does not
+            /// do any additional validation (of performance numbers, etc).
+            /// </summary>
+            /// <param name="expectedEventNames"></param>
+            public void VerifyFired(params string[] expectedEventNames)
             {
                 _instance.WaitForTelemetryEvents(expectedEventNames);
             }

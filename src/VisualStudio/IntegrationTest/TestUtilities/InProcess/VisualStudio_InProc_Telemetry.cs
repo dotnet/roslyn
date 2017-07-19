@@ -13,13 +13,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             InvokeOnUIThread(() =>
             {
-                // detach if there is one already attached
                 TelemetryService.DetachTestChannel(LoggerTestChannel.Instance);
 
-                // make sure we clear any remaining events before attach it back
                 LoggerTestChannel.Instance.Clear();
 
-                // attach logger channel to the telemetry session
                 TelemetryService.AttachTestChannel(LoggerTestChannel.Instance);
             });
         }
@@ -28,10 +25,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             InvokeOnUIThread(() =>
             {
-                // detach if there is one attached
                 TelemetryService.DetachTestChannel(LoggerTestChannel.Instance);
 
-                // make sure we clear any leftout events before attach it back
                 LoggerTestChannel.Instance.Clear();
             });
         }
@@ -39,10 +34,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void WaitForTelemetryEvents(string[] names)
             => LoggerTestChannel.Instance.WaitForEvents(names);
 
-        /// <summary>
-        /// Logger channel collects events and provide them as a list, starting from the beginning.
-        /// One of the functionality is to clear current list of the events.
-        /// </summary>
         private sealed class LoggerTestChannel : ITelemetryTestChannel
         {
             public static readonly LoggerTestChannel Instance = new LoggerTestChannel();

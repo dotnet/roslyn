@@ -51,7 +51,7 @@ class FirstClass
                 VisualStudio.Editor.NavigateToSendKeys("{ENTER}");
                 VisualStudio.Editor.WaitForActiveView("test1.cs");
                 Assert.Equal("FirstClass", VisualStudio.Editor.GetSelectedText());
-                telemetry.Verify("vs/ide/vbcs/navigateto/search", "vs/platform/goto/launch");
+                telemetry.VerifyFired("vs/ide/vbcs/navigateto/search", "vs/platform/goto/launch");
             }
         }
     }

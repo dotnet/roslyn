@@ -76,7 +76,7 @@ class Program
 
     }
 }");
-                telemetry.Verify("vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore");
+                telemetry.VerifyFired("vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore");
             }
         }
 
