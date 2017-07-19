@@ -430,18 +430,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 project = null;
-                if (_projectsByBinPath.TryGetValue(filePath, out var projects))
+                if (!_projectsByBinPath.TryGetValue(filePath, out var projects))
                 {
-                    // If for some reason we have more than one referencing project, it's ambiguous so bail
-                    if (projects.Length == 1)
+                    // Workaround https://github.com/dotnet/roslyn/issues/20412 by checking to see if */ref/A.dll can be
+                    // adjusted to */A.dll - only handles the default location for reference assemblies during a build.
+                    if (!HACK_StripRefDirectoryFromPath(filePath, out string binFilePath)
+                        || !_projectsByBinPath.TryGetValue(binFilePath, out projects))
                     {
-                        project = projects[0];
-                        return true;
+                        return false;
                     }
+                }
+
+                // If for some reason we have more than one referencing project, it's ambiguous so bail
+                if (projects.Length == 1)
+                {
+                    project = projects[0];
+                    return true;
                 }
 
                 return false;
             }
+        }
+
+        private static readonly char[] s_directorySeparatorChars = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
+        private bool HACK_StripRefDirectoryFromPath(string filePath, out string binFilePath)
+        {
+            const string refDirectoryName = "ref";
+
+            // looking for "/ref/" where:
+            // 1. the first / is a directory separator
+            // 2. 'ref' matches in a case-insensitive comparison
+            // 3. the second / is the last directory separator
+            var lastSeparator = filePath.LastIndexOfAny(s_directorySeparatorChars);
+            var secondToLastSeparator = lastSeparator - refDirectoryName.Length - 1;
+            if (secondToLastSeparator < 0)
+            {
+                // Failed condition 3
+                binFilePath = null;
+                return false;
+            }
+
+            if (filePath[secondToLastSeparator] != Path.DirectorySeparatorChar
+                && filePath[secondToLastSeparator] != Path.AltDirectorySeparatorChar)
+            {
+                // Failed condition 1
+                binFilePath = null;
+                return false;
+            }
+
+            if (string.Compare(refDirectoryName, 0, filePath, secondToLastSeparator + 1, lastSeparator - secondToLastSeparator - 1, StringComparison.OrdinalIgnoreCase) != 0)
+            {
+                // Failed condition 2
+                binFilePath = null;
+                return false;
+            }
+
+            binFilePath = filePath.Remove(secondToLastSeparator, lastSeparator - secondToLastSeparator);
+            return true;
         }
 
         /// <summary>
