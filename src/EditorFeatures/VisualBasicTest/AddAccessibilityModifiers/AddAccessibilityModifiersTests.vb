@@ -61,6 +61,9 @@ namespace N
             public function M5() as integer
             end function
 
+            partial sub M6()
+            end sub
+
             property P1 as integer
             
             property P2 as integer
@@ -149,6 +152,9 @@ namespace N
 
             public function M5() as integer
             end function
+
+            Public partial sub M6()
+            end sub
 
             Public property P1 as integer
             

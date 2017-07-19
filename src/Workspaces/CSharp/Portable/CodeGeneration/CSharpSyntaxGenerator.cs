@@ -1444,7 +1444,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((IndexerDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
 
                 case SyntaxKind.MethodDeclaration:
-                    return ((MethodDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
+                    var method = (MethodDeclarationSyntax)declaration;
+                    if (method.ExplicitInterfaceSpecifier != null)
+                    {
+                        // explicit interface methods can't have accessibility.
+                        return false;
+                    }
+
+                    if (method.Modifiers.Any(SyntaxKind.PartialKeyword))
+                    {
+                        // partial methods can't have accessibility modifiers.
+                        return false;
+                    }
+
+                    return true;
 
                 case SyntaxKind.EventDeclaration:
                     return ((EventDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;

@@ -50,6 +50,7 @@ namespace Outer
             void M1() { }
             public void M2() { }
             void I.M3() { }
+            partial void M4() { }
 
             int P1 { get; }
             public int P2 { get; }
@@ -107,6 +108,7 @@ namespace Outer
             private void M1() { }
             public void M2() { }
             void I.M3() { }
+            partial void M4() { }
 
             private int P1 { get; }
             public int P2 { get; }
