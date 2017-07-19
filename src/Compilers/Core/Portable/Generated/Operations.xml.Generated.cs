@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseAddressOfExpression : Operation, IAddressOfExpression
     {
         protected BaseAddressOfExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.AddressOfExpression, semanticModel, syntax, type, constantValue)
+                    base(OperationKind.AddressOfExpression, semanticModel, syntax, type, constantValue)
         {
         }
 
@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Reference;
             }
         }
+        /// <summary>
+        /// Addressed reference.
+        /// </summary>
         public IOperation Reference => Operation.SetParentOperation(ReferenceImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -81,6 +84,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Argument;
             }
         }
+        /// <summary>
+        /// Argument to name of expression.
+        /// </summary>
         public IOperation Argument => Operation.SetParentOperation(ArgumentImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -138,6 +144,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Expression;
             }
         }
+        /// <summary>
+        /// Expression.
+        /// </summary>
         public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -208,8 +217,17 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return OutConversion;
             }
         }
+        /// <summary>
+        /// Value supplied for the argument.
+        /// </summary>
         public IOperation Value => Operation.SetParentOperation(ValueImpl, this);
+        /// <summary>
+        /// Conversion applied to the argument value passing it into the target method. Applicable only to VB Reference arguments.
+        /// </summary>
         public IOperation InConversion => Operation.SetParentOperation(InConversionImpl, this);
+        /// <summary>
+        /// Conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.
+        /// </summary>
         public IOperation OutConversion => Operation.SetParentOperation(OutConversionImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -289,7 +307,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Initializer;
             }
         }
+        /// <summary>
+        /// Sizes of the dimensions of the created array instance.
+        /// </summary>
         public ImmutableArray<IOperation> DimensionSizes => Operation.SetParentOperation(DimensionSizesImpl, this);
+        /// <summary>
+        /// Values of elements of the created array instance.
+        /// </summary>
         public IArrayInitializer Initializer => Operation.SetParentOperation(InitializerImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -359,7 +383,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Array to be indexed.
+        /// </summary>
         public IOperation ArrayReference => Operation.SetParentOperation(ArrayReferenceImpl, this);
+        /// <summary>
+        /// Indices that specify an individual element.
+        /// </summary>
         public ImmutableArray<IOperation> Indices => Operation.SetParentOperation(IndicesImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -427,6 +457,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Values to initialize array elements.
+        /// </summary>
         public ImmutableArray<IOperation> ElementValues => Operation.SetParentOperation(ElementValuesImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -577,6 +610,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return AwaitedValue;
             }
         }
+        /// <summary>
+        /// Value to be awaited.
+        /// </summary>
         public IOperation AwaitedValue => Operation.SetParentOperation(AwaitedValueImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -651,7 +687,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return RightOperand;
             }
         }
+        /// <summary>
+        /// Left operand.
+        /// </summary>
         public IOperation LeftOperand => Operation.SetParentOperation(LeftOperandImpl, this);
+        /// <summary>
+        /// Right operand.
+        /// </summary>
         public IOperation RightOperand => Operation.SetParentOperation(RightOperandImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -724,6 +766,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Statements contained within the block.
+        /// </summary>
         public ImmutableArray<IOperation> Statements => Operation.SetParentOperation(StatementsImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -846,7 +891,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Handler;
             }
         }
+        /// <summary>
+        /// Body of the exception handler.
+        /// </summary>
         public IBlockStatement Handler => Operation.SetParentOperation(HandlerImpl, this);
+        /// <summary>
+        /// Filter expression to be executed to determine whether to handle the exception.
+        /// </summary>
         public IOperation Filter => Operation.SetParentOperation(FilterImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -1002,7 +1053,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return ConditionalValue;
             }
         }
+        /// <summary>
+        /// Expression to be evaluated if the conditional instance is non null.
+        /// </summary>
         public IOperation ConditionalValue => Operation.SetParentOperation(ConditionalValueImpl, this);
+        /// <summary>
+        /// Expresson that is conditionally accessed.
+        /// </summary>
         public IOperation ConditionalInstance => Operation.SetParentOperation(ConditionalInstanceImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -1097,8 +1154,17 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return IfFalseValue;
             }
         }
+        /// <summary>
+        /// Condition to be tested.
+        /// </summary>
         public IOperation Condition => Operation.SetParentOperation(ConditionImpl, this);
+        /// <summary>
+        /// Value evaluated if the Condition is true.
+        /// </summary>
         public IOperation IfTrueValue => Operation.SetParentOperation(IfTrueValueImpl, this);
+        /// <summary>
+        /// Value evaluated if the Condition is false.
+        /// </summary>
         public IOperation IfFalseValue => Operation.SetParentOperation(IfFalseValueImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -1189,6 +1255,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Operand;
             }
         }
+        /// <summary>
+        /// Value to be converted.
+        /// </summary>
         public IOperation Operand => Operation.SetParentOperation(OperandImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -1338,7 +1407,15 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return HandlerValue;
             }
         }
+
+        /// <summary>
+        /// Instance used to refer to the event being bound.
+        /// </summary>
         public IOperation EventInstance => Operation.SetParentOperation(EventInstanceImpl, this);
+
+        /// <summary>
+        /// Handler supplied for the event.
+        /// </summary>
         public IOperation HandlerValue => Operation.SetParentOperation(HandlerValueImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -1469,6 +1546,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Expression;
             }
         }
+        /// <summary>
+        /// Expression of the statement.
+        /// </summary>
         public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -1655,7 +1735,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Body;
             }
         }
+        /// <summary>
+        /// Variables to be fixed.
+        /// </summary>
         public IVariableDeclarationStatement Variables => Operation.SetParentOperation(VariablesImpl, this);
+        /// <summary>
+        /// Body of the fixed, over which the variables are fixed.
+        /// </summary>
         public IOperation Body => Operation.SetParentOperation(BodyImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -1725,6 +1811,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Body;
             }
         }
+        /// <summary>
+        /// Collection value over which the loop iterates.
+        /// </summary>
         public IOperation Collection => Operation.SetParentOperation(CollectionImpl, this);
 
         public override void Accept(OperationVisitor visitor)
@@ -1811,7 +1900,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
+        /// </summary>
         public ImmutableArray<IOperation> Before => Operation.SetParentOperation(BeforeImpl, this);
+        /// <summary>
+        /// Statements to execute at the bottom of the loop. For C# these come from the third clause of the for statement. For VB these increment the index variable of the For statement.
+        /// </summary>
         public ImmutableArray<IOperation> AtLoopBottom => Operation.SetParentOperation(AtLoopBottomImpl, this);
 
         public override void Accept(OperationVisitor visitor)
@@ -1921,8 +2016,17 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return IfFalseStatement;
             }
         }
+        /// <summary>
+        /// Condition of the if statement. For C# there is naturally one clause per if, but for VB If statements with multiple clauses are rewritten to have only one.
+        /// </summary>
         public IOperation Condition => Operation.SetParentOperation(ConditionImpl, this);
+        /// <summary>
+        /// Statement executed if the condition is true.
+        /// </summary>
         public IOperation IfTrueStatement => Operation.SetParentOperation(IfTrueStatementImpl, this);
+        /// <summary>
+        /// Statement executed if the condition is false.
+        /// </summary>
         public IOperation IfFalseStatement => Operation.SetParentOperation(IfFalseStatementImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -2007,6 +2111,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Target;
             }
         }
+        /// <summary>
+        /// Target of the assignment.
+        /// </summary>
         public IOperation Target => Operation.SetParentOperation(TargetImpl, this);
 
         public override void Accept(OperationVisitor visitor)
@@ -2102,6 +2209,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Constituent parts of interpolated string, each of which is an <see cref="IInterpolatedStringContent"/>.
+        /// </summary>
         public ImmutableArray<IInterpolatedStringContent> Parts => Operation.SetParentOperation(PartsImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -2160,6 +2270,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Text;
             }
         }
+        /// <summary>
+        /// Text content.
+        /// </summary>
         public IOperation Text => Operation.SetParentOperation(TextImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -2222,8 +2335,17 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return FormatString;
             }
         }
+        /// <summary>
+        /// Expression of the interpolation.
+        /// </summary>
         public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
+        /// <summary>
+        /// Optional alignment of the interpolation.
+        /// </summary>
         public IOperation Alignment => Operation.SetParentOperation(AlignmentImpl, this);
+        /// <summary>
+        /// Optional format string of the interpolation.
+        /// </summary>
         public IOperation FormatString => Operation.SetParentOperation(FormatStringImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -2416,7 +2538,17 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// 'This' or 'Me' instance to be supplied to the method, or null if the method is static.
+        /// </summary>
         public IOperation Instance => Operation.SetParentOperation(InstanceImpl, this);
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
+        /// </summary>
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source.
+        /// </remarks>
         public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => Operation.SetParentOperation(ArgumentsInEvaluationOrderImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -2486,6 +2618,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Operand;
             }
         }
+        /// <summary>
+        /// Value to test.
+        /// </summary>
         public IOperation Operand => Operation.SetParentOperation(OperandImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -2548,6 +2683,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return LabeledStatement;
             }
         }
+        /// <summary>
+        /// Statement that has been labeled.
+        /// </summary>
         public IOperation LabeledStatement => Operation.SetParentOperation(LabeledStatementImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -2610,6 +2748,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Body;
             }
         }
+        /// <summary>
+        /// Body of the lambda.
+        /// </summary>
         public IBlockStatement Body => Operation.SetParentOperation(BodyImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -2673,6 +2814,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Instance;
             }
         }
+        /// <summary>
+        /// Instance used to bind the member reference.
+        /// </summary>
         public IOperation Instance => Operation.SetParentOperation(InstanceImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -2795,7 +2939,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Body;
             }
         }
+        /// <summary>
+        /// Value to be locked.
+        /// </summary>
         public IOperation LockedObject => Operation.SetParentOperation(LockedObjectImpl, this);
+        /// <summary>
+        /// Body of the lock, to be executed while holding the lock.
+        /// </summary>
         public IOperation Body => Operation.SetParentOperation(BodyImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -2975,7 +3125,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return SecondaryOperand;
             }
         }
+        /// <summary>
+        /// Value to be unconditionally evaluated.
+        /// </summary>
         public IOperation PrimaryOperand => Operation.SetParentOperation(PrimaryOperandImpl, this);
+        /// <summary>
+        /// Value to be evaluated if Primary evaluates to null/Nothing.
+        /// </summary>
         public IOperation SecondaryOperand => Operation.SetParentOperation(SecondaryOperandImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -3049,7 +3205,17 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Initializer;
             }
         }
+        /// <summary>
+        /// Object or collection initializer, if any.
+        /// </summary>
         public IObjectOrCollectionInitializerExpression Initializer => Operation.SetParentOperation(InitializerImpl, this);
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
+        /// </summary>
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source.
+        /// </remarks>
         public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => Operation.SetParentOperation(ArgumentsInEvaluationOrderImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -3118,6 +3284,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Explicitly-specified member initializers.
+        /// </summary>
         public ImmutableArray<IOperation> Initializers => Operation.SetParentOperation(InitializersImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -3294,6 +3463,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Operand;
             }
         }
+        /// <summary>
+        /// Operand enclosed in parentheses.
+        /// </summary>
         public IOperation Operand => Operation.SetParentOperation(OperandImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -3379,6 +3551,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Pointer;
             }
         }
+        /// <summary>
+        /// Pointer to be dereferenced.
+        /// </summary>
         public IOperation Pointer => Operation.SetParentOperation(PointerImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -3505,6 +3680,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
+        /// </summary>
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source.
+        /// </remarks>
         public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => Operation.SetParentOperation(ArgumentsInEvaluationOrderImpl, this);
 
         public override void Accept(OperationVisitor visitor)
@@ -3595,7 +3777,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return MaximumValue;
             }
         }
+        /// <summary>
+        /// Minimum value of the case range.
+        /// </summary>
         public IOperation MinimumValue => Operation.SetParentOperation(MinimumValueImpl, this);
+        /// <summary>
+        /// Maximum value of the case range.
+        /// </summary>
         public IOperation MaximumValue => Operation.SetParentOperation(MaximumValueImpl, this);
 
         public override void Accept(OperationVisitor visitor)
@@ -3667,6 +3855,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Value;
             }
         }
+        /// <summary>
+        /// Case value.
+        /// </summary>
         public IOperation Value => Operation.SetParentOperation(ValueImpl, this);
 
         public override void Accept(OperationVisitor visitor)
@@ -3730,6 +3921,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return ReturnedValue;
             }
         }
+        /// <summary>
+        /// Value to be returned.
+        /// </summary>
         public IOperation ReturnedValue => Operation.SetParentOperation(ReturnedValueImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -3807,6 +4001,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Value;
             }
         }
+        /// <summary>
+        /// Case value.
+        /// </summary>
         public IOperation Value => Operation.SetParentOperation(ValueImpl, this);
 
         public override void Accept(OperationVisitor visitor)
@@ -3953,7 +4150,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Clauses of the case. For C# there is one clause per case, but for VB there can be multiple.
+        /// </summary>
         public ImmutableArray<ICaseClause> Clauses => Operation.SetParentOperation(ClausesImpl, this);
+        /// <summary>
+        /// Statements of the case.
+        /// </summary>
         public ImmutableArray<IOperation> Body => Operation.SetParentOperation(BodyImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -4023,7 +4226,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Value to be switched upon.
+        /// </summary>
         public IOperation Value => Operation.SetParentOperation(ValueImpl, this);
+        /// <summary>
+        /// Cases of the switch.
+        /// </summary>
         public ImmutableArray<ISwitchCase> Cases => Operation.SetParentOperation(CasesImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -4104,6 +4313,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield break;
             }
         }
+        /// <summary>
+        /// Statement defining the lifetime of the synthetic local.
+        /// </summary>
         public IOperation ContainingStatement => Operation.SetParentOperation(ContainingStatementImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -4162,6 +4374,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return ThrownObject;
             }
         }
+        /// <summary>
+        /// Value to be thrown.
+        /// </summary>
         public IOperation ThrownObject => Operation.SetParentOperation(ThrownObjectImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -4227,8 +4442,17 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return FinallyHandler;
             }
         }
+        /// <summary>
+        /// Body of the try, over which the handlers are active.
+        /// </summary>
         public IBlockStatement Body => Operation.SetParentOperation(BodyImpl, this);
+        /// <summary>
+        /// Catch clauses of the try.
+        /// </summary>
         public ImmutableArray<ICatchClause> Catches => Operation.SetParentOperation(CatchesImpl, this);
+        /// <summary>
+        /// Finally handler of the try.
+        /// </summary>
         public IBlockStatement FinallyHandler => Operation.SetParentOperation(FinallyHandlerImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -4302,6 +4526,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Elements for tuple expression.
+        /// </summary>
         public ImmutableArray<IOperation> Elements => Operation.SetParentOperation(ElementsImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -4444,6 +4671,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Operand;
             }
         }
+        /// <summary>
+        /// Single operand.
+        /// </summary>
         public IOperation Operand => Operation.SetParentOperation(OperandImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -4506,8 +4736,19 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Body;
             }
         }
+        /// <summary>
+        /// Body of the using, over which the resources of the using are maintained.
+        /// </summary>
         public IOperation Body => Operation.SetParentOperation(BodyImpl, this);
+
+        /// <summary>
+        /// Declaration introduced by the using statement. Null if the using statement does not declare any variables.
+        /// </summary>
         public IVariableDeclarationStatement Declaration => Operation.SetParentOperation(DeclarationImpl, this);
+
+        /// <summary>
+        /// Resource held by the using. Can be null if Declaration is not null.
+        /// </summary>
         public IOperation Value => Operation.SetParentOperation(ValueImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -4583,6 +4824,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Initializer;
             }
         }
+
+        /// <summary>
+        /// Optional initializer of the variable.
+        /// </summary>
         public IOperation Initializer => Operation.SetParentOperation(InitializerImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -4644,6 +4889,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Variables declared by the statement.
+        /// </summary>
         public ImmutableArray<IVariableDeclaration> Declarations => Operation.SetParentOperation(DeclarationsImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -4786,7 +5034,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Body;
             }
         }
+        /// <summary>
+        /// Body of the with.
+        /// </summary>
         public IOperation Body => Operation.SetParentOperation(BodyImpl, this);
+        /// <summary>
+        /// Value to whose members leading-dot-qualified references within the with body bind.
+        /// </summary>
         public IOperation Value => Operation.SetParentOperation(ValueImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -4855,6 +5109,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Body;
             }
         }
+        /// <summary>
+        /// Body of the local function.
+        /// </summary>
         public IBlockStatement Body => Operation.SetParentOperation(BodyImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -4914,6 +5171,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Value;
             }
         }
+        /// <summary>
+        /// Constant value of the pattern.
+        /// </summary>
         public IOperation Value => Operation.SetParentOperation(ValueImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -5010,7 +5270,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return GuardExpression;
             }
         }
+        /// <summary>
+        /// Pattern associated with case clause.
+        /// </summary>
         public IPattern Pattern => Operation.SetParentOperation(PatternImpl, this);
+        /// <summary>
+        /// Guard expression associated with the pattern case clause.
+        /// </summary>
         public IOperation GuardExpression => Operation.SetParentOperation(GuardExpressionImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -5078,7 +5344,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Pattern;
             }
         }
+        /// <summary>
+        /// Expression.
+        /// </summary>
         public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
+        /// <summary>
+        /// Pattern.
+        /// </summary>
         public IPattern Pattern => Operation.SetParentOperation(PatternImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -5147,6 +5419,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Object member or collection initializers.
+        /// </summary>
         public ImmutableArray<IOperation> Initializers => Operation.SetParentOperation(InitializersImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -5208,7 +5483,14 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Initializer;
             }
         }
+        /// <summary>
+        /// Initialized member.
+        /// </summary>
         public IMemberReferenceExpression InitializedMember => Operation.SetParentOperation(InitializedMemberImpl, this);
+
+        /// <summary>
+        /// Member initializer.
+        /// </summary>
         public IObjectOrCollectionInitializerExpression Initializer => Operation.SetParentOperation(InitializerImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
@@ -5286,6 +5568,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
         }
+        /// <summary>
+        /// Arguments passed to add method invocation.
+        /// </summary>
         public ImmutableArray<IOperation> Arguments => Operation.SetParentOperation(ArgumentsImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
