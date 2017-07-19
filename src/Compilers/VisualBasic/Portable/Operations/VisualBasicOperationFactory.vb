@@ -522,10 +522,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundNewTOperation(boundNewT As BoundNewT) As ITypeParameterObjectCreationExpression
+            Dim initializer As Lazy(Of IObjectOrCollectionInitializerExpression) = New Lazy(Of IObjectOrCollectionInitializerExpression)(Function() DirectCast(Create(boundNewT.InitializerOpt), IObjectOrCollectionInitializerExpression))
             Dim syntax As SyntaxNode = boundNewT.Syntax
             Dim type As ITypeSymbol = boundNewT.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundNewT.ConstantValueOpt)
-            Return New TypeParameterObjectCreationExpression(syntax, type, constantValue)
+            Return New LazyTypeParameterObjectCreationExpression(initializer, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundArrayCreationOperation(boundArrayCreation As BoundArrayCreation) As IArrayCreationExpression

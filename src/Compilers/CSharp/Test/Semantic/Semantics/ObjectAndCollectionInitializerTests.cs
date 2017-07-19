@@ -113,11 +113,18 @@ class MemberInitializerTest<T> where T : Base, new()
     }
 }
 ";
-
-            // Expected operation tree should expose the object initializer.
-            // See https://github.com/dotnet/roslyn/issues/20491.
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T) (Syntax: 'new T() { x = 0, y = 0 }')
+  IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: T) (Syntax: '{ x = 0, y = 0 }')
+    Initializers(2):
+        ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = 0')
+          Left: IFieldReferenceExpression: System.Int32 Base.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
+              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Base) (Syntax: 'x')
+          Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y = 0')
+          Left: IPropertyReferenceExpression: System.Int32 Base.y { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y')
+              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Base) (Syntax: 'y')
+          Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

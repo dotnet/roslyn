@@ -3,13 +3,13 @@
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a type parameter object creation expression, i.e. new T(), where T is a type parameter with new constraint.
+    /// Represents a dynamically bound new/New expression.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ITypeParameterObjectCreationExpression : IOperation
+    public interface IDynamicObjectCreationExpression : IHasDynamicArgumentsExpression
     {
         /// <summary>
         /// Object or collection initializer, if any.
@@ -17,4 +17,3 @@ namespace Microsoft.CodeAnalysis.Semantics
         IObjectOrCollectionInitializerExpression Initializer { get; }
     }
 }
-
