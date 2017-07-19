@@ -36,8 +36,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        public string[] GetTelemetryEventNames()
-            => LoggerTestChannel.Instance.GetEvents().Select(e => e.Name).ToArray();
+        public void WaitForTelemetryEvents(string[] names)
+            => LoggerTestChannel.Instance.WaitForEvents(names);
 
         /// <summary>
         /// Logger channel collects events and provide them as a list, starting from the beginning.
@@ -51,12 +51,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 new ConcurrentBag<TelemetryEvent>();
 
             /// <summary>
-            /// Get the current list of the events. It is assumed that list can be dynamically changed
-            /// and user just get latest snapshot.
+            /// Waits for one or more events with the specified names
             /// </summary>
-            /// <returns></returns>
-            public IEnumerable<TelemetryEvent> GetEvents() =>
-                this.eventsQueue.ToArray();
+            /// <param name="events"></param>
+            public void WaitForEvents(string[] events)
+            {
+                var set = new HashSet<string>(events);
+                while (true)
+                {
+                    if (eventsQueue.TryTake(out var result))
+                    {
+                        set.Remove(result.Name);
+                        if (set.Count == 0)
+                        {
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        System.Threading.Thread.Sleep(1000);
+                    }
+                }
+            }
 
             /// <summary>
             /// Clear current queue.

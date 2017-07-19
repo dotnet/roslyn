@@ -264,8 +264,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private void DisableTestTelemetryChannel()
             => _inProc.DisableTestTelemetryChannel();
 
-        private string[] GetTelemetryEventNames()
-            => _inProc.GetTelemetryEventNames();
+        private void WaitForTelemetryEvents(string[] names)
+            => _inProc.WaitForTelemetryEvents(names);
 
         public class TelemetryVerifier : IDisposable
         {
@@ -280,16 +280,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             public void Verify(params string[] expectedEventNames)
             {
-                var telemetryEventNames = new HashSet<string>(_instance.GetTelemetryEventNames());
-
-                foreach (var name in expectedEventNames)
-                {
-                    if (!telemetryEventNames.Contains(name))
-                    {
-                        var existingNames = string.Join(", ", telemetryEventNames);
-                        throw new InvalidOperationException($"Expected {name} not found. Existing event names: {existingNames}");
-                    }
-                }
+                _instance.WaitForTelemetryEvents(expectedEventNames);
             }
         }
     }
