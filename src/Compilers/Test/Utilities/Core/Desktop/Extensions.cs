@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if NET46
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Roslyn.Test.Utilities.Desktop
 {
     internal static class SerializationInfoExtensions
     {
@@ -49,3 +50,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
     }
 }
+
+#endif

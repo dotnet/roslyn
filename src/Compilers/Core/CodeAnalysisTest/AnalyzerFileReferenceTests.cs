@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.Desktop;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -180,7 +181,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestAnalyzerLoading()
         {
             var dir = Temp.CreateDirectory();
-            dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
             var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
             var analyzerFile = DesktopTestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "MyAnalyzer");
             var loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
@@ -218,7 +218,6 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var dir = Temp.CreateDirectory();
 
             dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
-            dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
             var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);

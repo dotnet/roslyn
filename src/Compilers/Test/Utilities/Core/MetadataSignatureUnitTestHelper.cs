@@ -2,11 +2,12 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Roslyn.Test.Utilities
 {
     internal class MetadataSignatureUnitTestHelper
     {

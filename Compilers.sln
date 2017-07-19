@@ -1,7 +1,6 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26405.2
+VisualStudioVersion = 15.0.26621.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -156,6 +155,8 @@ EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCodeStyleFixes", "src\CodeStyle\VisualBasic\CodeFixes\BasicCodeStyleFixes.vbproj", "{0141285D-8F6C-42C7-BAF3-3C0CCD61C716}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCodeStyleTests", "src\CodeStyle\VisualBasic\Tests\BasicCodeStyleTests.vbproj", "{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilerTestUtilities", "src\Compilers\Test\Utilities\Core\CompilerTestUtilities.csproj", "{EFA78DD2-BFF2-4B19-BC1B-228FBFBA0D43}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -435,6 +436,10 @@ Global
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFA78DD2-BFF2-4B19-BC1B-228FBFBA0D43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFA78DD2-BFF2-4B19-BC1B-228FBFBA0D43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFA78DD2-BFF2-4B19-BC1B-228FBFBA0D43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFA78DD2-BFF2-4B19-BC1B-228FBFBA0D43}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -507,5 +512,9 @@ Global
 		{2531A8C4-97DD-47BC-A79C-B7846051E137} = {B20208C3-D3A6-4020-A274-6BE3786D29FB}
 		{0141285D-8F6C-42C7-BAF3-3C0CCD61C716} = {B20208C3-D3A6-4020-A274-6BE3786D29FB}
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510} = {B20208C3-D3A6-4020-A274-6BE3786D29FB}
+		{EFA78DD2-BFF2-4B19-BC1B-228FBFBA0D43} = {6F016299-BA96-45BA-9BFF-6C0793979177}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A13C6F94-187A-4814-8E6D-2C407868BC95}
 	EndGlobalSection
 EndGlobal

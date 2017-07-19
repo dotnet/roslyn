@@ -27,6 +27,7 @@
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
     <ProjectReference Include="..\..\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\Test\Utilities\Core\CompilerTestUtilities.csproj" />
     <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\VBCSCompiler\VBCSCompiler.csproj" />
     <ProjectReference Include="..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+#if NETCOREAPP2_0
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ using System.Runtime.Loader;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
+namespace Roslyn.Test.Utilities.CoreClr
 {
     internal sealed class TestExecutionLoadContext : AssemblyLoadContext
     {
@@ -174,3 +174,4 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
         }
     }
 }
+#endif

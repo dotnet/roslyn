@@ -36,6 +36,7 @@
     <ProjectReference Include="..\..\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Test\Syntax\CSharpCompilerSyntaxTest.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\Core\CompilerTestUtilities.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
     <ProjectReference Include="..\..\Scripting\CoreTestUtilities\ScriptingTestUtilities.csproj" />
@@ -55,6 +56,7 @@
     <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppFixedVersion)" />
     <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(MicrosoftNETCoreILAsmVersion)" />
     <PackageReference Include="Microsoft.NETCore.TestHost" Version="$(MicrosoftNETCoreTestHostVersion)" />
+    <PackageReference Include="System.Console" Version="$(SystemConsoleVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

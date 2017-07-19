@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+#if NET46
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Roslyn.Test.Utilities.Desktop
 {
     public class MetadataSignatureHelper
     {
@@ -683,3 +683,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
     }
 }
+
+#endif

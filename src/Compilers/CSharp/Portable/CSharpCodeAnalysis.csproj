@@ -79,6 +79,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Compilers" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />

@@ -11,12 +11,17 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.Cci;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Roslyn.Test.Utilities
 {
     /// <summary>
     /// Base class for all language specific tests.
@@ -123,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (verify)
             {
                 // Unsafe code might not verify, so don't try.
-                var csharpOptions = compilation.Options as CSharp.CSharpCompilationOptions;
+                var csharpOptions = compilation.Options as CSharpCompilationOptions;
                 verify = (csharpOptions == null || !csharpOptions.AllowUnsafe);
             }
 
@@ -285,21 +290,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         #region Compilation Creation Helpers
 
-        protected CSharp.CSharpCompilation CreateCSharpCompilation(
+        protected CSharpCompilation CreateCSharpCompilation(
             XCData code,
-            CSharp.CSharpParseOptions parseOptions = null,
-            CSharp.CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            CSharpCompilationOptions compilationOptions = null,
             string assemblyName = null,
             IEnumerable<MetadataReference> referencedAssemblies = null)
         {
             return CreateCSharpCompilation(assemblyName, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
         }
 
-        protected CSharp.CSharpCompilation CreateCSharpCompilation(
+        protected CSharpCompilation CreateCSharpCompilation(
             string assemblyName,
             XCData code,
-            CSharp.CSharpParseOptions parseOptions = null,
-            CSharp.CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            CSharpCompilationOptions compilationOptions = null,
             IEnumerable<MetadataReference> referencedAssemblies = null,
             IEnumerable<Compilation> referencedCompilations = null)
         {
@@ -312,21 +317,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 referencedCompilations);
         }
 
-        protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
+        protected VisualBasicCompilation CreateVisualBasicCompilation(
             XCData code,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
+            VisualBasicParseOptions parseOptions = null,
+            VisualBasicCompilationOptions compilationOptions = null,
             string assemblyName = null,
             IEnumerable<MetadataReference> referencedAssemblies = null)
         {
             return CreateVisualBasicCompilation(assemblyName, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
         }
 
-        protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
+        protected VisualBasicCompilation CreateVisualBasicCompilation(
             string assemblyName,
             XCData code,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
+            VisualBasicParseOptions parseOptions = null,
+            VisualBasicCompilationOptions compilationOptions = null,
             IEnumerable<MetadataReference> referencedAssemblies = null,
             IEnumerable<Compilation> referencedCompilations = null)
         {
@@ -339,21 +344,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 referencedCompilations);
         }
 
-        protected CSharp.CSharpCompilation CreateCSharpCompilation(
+        protected CSharpCompilation CreateCSharpCompilation(
             string code,
-            CSharp.CSharpParseOptions parseOptions = null,
-            CSharp.CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            CSharpCompilationOptions compilationOptions = null,
             string assemblyName = null,
             IEnumerable<MetadataReference> referencedAssemblies = null)
         {
             return CreateCSharpCompilation(assemblyName, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
         }
 
-        protected CSharp.CSharpCompilation CreateCSharpCompilation(
+        protected CSharpCompilation CreateCSharpCompilation(
             string assemblyName,
             string code,
-            CSharp.CSharpParseOptions parseOptions = null,
-            CSharp.CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            CSharpCompilationOptions compilationOptions = null,
             IEnumerable<MetadataReference> referencedAssemblies = null,
             IEnumerable<Compilation> referencedCompilations = null)
         {
@@ -364,12 +369,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (parseOptions == null)
             {
-                parseOptions = CSharp.CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None);
+                parseOptions = CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None);
             }
 
             if (compilationOptions == null)
             {
-                compilationOptions = new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+                compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             }
 
             var references = new List<MetadataReference>();
@@ -389,26 +394,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             AddReferencedCompilations(referencedCompilations, references);
 
-            var tree = CSharp.SyntaxFactory.ParseSyntaxTree(code, options: parseOptions);
+            var tree = Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(code, options: parseOptions);
 
-            return CSharp.CSharpCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
+            return CSharpCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
         }
 
-        protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
+        protected VisualBasicCompilation CreateVisualBasicCompilation(
             string code,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
+            VisualBasicParseOptions parseOptions = null,
+            VisualBasicCompilationOptions compilationOptions = null,
             string assemblyName = null,
             IEnumerable<MetadataReference> referencedAssemblies = null)
         {
             return CreateVisualBasicCompilation(assemblyName, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
         }
 
-        protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
+        protected VisualBasicCompilation CreateVisualBasicCompilation(
             string assemblyName,
             string code,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
+            VisualBasicParseOptions parseOptions = null,
+            VisualBasicCompilationOptions compilationOptions = null,
             IEnumerable<MetadataReference> referencedAssemblies = null,
             IEnumerable<Compilation> referencedCompilations = null)
         {
@@ -419,12 +424,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (parseOptions == null)
             {
-                parseOptions = VisualBasic.VisualBasicParseOptions.Default;
+                parseOptions = VisualBasicParseOptions.Default;
             }
 
             if (compilationOptions == null)
             {
-                compilationOptions = new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+                compilationOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             }
 
             var references = new List<MetadataReference>();
@@ -444,9 +449,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             AddReferencedCompilations(referencedCompilations, references);
 
-            var tree = VisualBasic.VisualBasicSyntaxTree.ParseText(code, options: parseOptions);
+            var tree = VisualBasicSyntaxTree.ParseText(code, options: parseOptions);
 
-            return VisualBasic.VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
+            return VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
         }
 
         private void AddReferencedCompilations(IEnumerable<Compilation> referencedCompilations, List<MetadataReference> references)
@@ -470,20 +475,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         #region Other Helpers
 
-        internal static Cci.ModulePropertiesForSerialization GetDefaultModulePropertiesForSerialization()
+        internal static ModulePropertiesForSerialization GetDefaultModulePropertiesForSerialization()
         {
-            return new Cci.ModulePropertiesForSerialization(
+            return new ModulePropertiesForSerialization(
                 persistentIdentifier: default(Guid),
                 corFlags: CorFlags.ILOnly,
-                fileAlignment: Cci.ModulePropertiesForSerialization.DefaultFileAlignment32Bit,
-                sectionAlignment: Cci.ModulePropertiesForSerialization.DefaultSectionAlignment,
+                fileAlignment: ModulePropertiesForSerialization.DefaultFileAlignment32Bit,
+                sectionAlignment: ModulePropertiesForSerialization.DefaultSectionAlignment,
                 targetRuntimeVersion: "v4.0.30319",
                 machine: 0,
-                baseAddress: Cci.ModulePropertiesForSerialization.DefaultExeBaseAddress32Bit,
-                sizeOfHeapReserve: Cci.ModulePropertiesForSerialization.DefaultSizeOfHeapReserve32Bit,
-                sizeOfHeapCommit: Cci.ModulePropertiesForSerialization.DefaultSizeOfHeapCommit32Bit,
-                sizeOfStackReserve: Cci.ModulePropertiesForSerialization.DefaultSizeOfStackReserve32Bit,
-                sizeOfStackCommit: Cci.ModulePropertiesForSerialization.DefaultSizeOfStackCommit32Bit,
+                baseAddress: ModulePropertiesForSerialization.DefaultExeBaseAddress32Bit,
+                sizeOfHeapReserve: ModulePropertiesForSerialization.DefaultSizeOfHeapReserve32Bit,
+                sizeOfHeapCommit: ModulePropertiesForSerialization.DefaultSizeOfHeapCommit32Bit,
+                sizeOfStackReserve: ModulePropertiesForSerialization.DefaultSizeOfStackReserve32Bit,
+                sizeOfStackCommit: ModulePropertiesForSerialization.DefaultSizeOfStackCommit32Bit,
                 dllCharacteristics: Compilation.GetDllCharacteristics(enableHighEntropyVA: true, configureToExecuteInAppContainer: false),
                 subsystem: Subsystem.WindowsCui,
                 imageCharacteristics: Characteristics.Dll,

@@ -1,31 +1,29 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <AssemblyName>Roslyn.Test.Utilities</AssemblyName>
+    <AssemblyName>Roslyn.Test.Utilities.Compilers</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nonshipping>true</Nonshipping>
-    <TargetFramework>netstandard1.3</TargetFramework>
-    <DefineConstants>$(DefineConstants);DNX</DefineConstants>
+    <TargetFrameworks>$(RoslynUnitTestTargetFrameworks)</TargetFrameworks>
     <NoStdLib>true</NoStdLib>
-    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.CoreClr" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Compilers" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.WinRT.UnitTests" />
@@ -65,26 +63,6 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Shared\CoreClrShim.cs">
-      <Link>Assert\CoreClrShim.cs</Link>
-    </Compile>
-    <Compile Update="TestResource.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>TestResource.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="TestResource.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" Version="$(MicrosoftCodeAnalysisTestResourcesProprietaryVersion)" />
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" Version="$(MicrosoftDiaSymReaderConverterXmlVersion)" />
@@ -104,9 +82,12 @@
     <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
     <PackageReference Include="System.Xml.XDocument" Version="$(SystemXmlXDocumentVersion)" />
     <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
+    <PackageReference Include="System.Runtime.Loader" Version="$(SystemRuntimeLoaderVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
-  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
+  <ItemGroup>
+    <Folder Include="Desktop\" />
+  </ItemGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
   <ProjectExtensions />
 </Project>

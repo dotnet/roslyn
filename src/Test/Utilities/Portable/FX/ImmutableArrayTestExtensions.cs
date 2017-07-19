@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         /// <param name="bytes">Data to write to the file.</param>
         /// <param name="path">File path.</param>
-        internal static void WriteToFile(this ImmutableArray<byte> bytes, string path)
+        public static void WriteToFile(this ImmutableArray<byte> bytes, string path)
         {
             Debug.Assert(!bytes.IsDefault);
 

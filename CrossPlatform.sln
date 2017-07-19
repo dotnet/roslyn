@@ -114,6 +114,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCompilerSymbolTest", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptingTest", "src\Scripting\CoreTest\ScriptingTest.csproj", "{98D02FEE-6F08-4E21-A707-B844EE0834CF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilerTestUtilities", "src\Compilers\Test\Utilities\Core\CompilerTestUtilities.csproj", "{59BB30E7-F4F5-4292-AB0B-7C0DE8E284DB}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
@@ -293,6 +295,10 @@ Global
 		{98D02FEE-6F08-4E21-A707-B844EE0834CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98D02FEE-6F08-4E21-A707-B844EE0834CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98D02FEE-6F08-4E21-A707-B844EE0834CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59BB30E7-F4F5-4292-AB0B-7C0DE8E284DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59BB30E7-F4F5-4292-AB0B-7C0DE8E284DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59BB30E7-F4F5-4292-AB0B-7C0DE8E284DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59BB30E7-F4F5-4292-AB0B-7C0DE8E284DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -346,6 +352,7 @@ Global
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510} = {6B83F334-CB79-47C8-8EA9-5391DA1601F4}
 		{28026D16-EB0C-40B0-BDA7-11CAA2B97CCC} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{98D02FEE-6F08-4E21-A707-B844EE0834CF} = {A6F70573-57FE-49F9-A26C-75B8D202B795}
+		{59BB30E7-F4F5-4292-AB0B-7C0DE8E284DB} = {50509463-6012-4061-99BF-6C5C8262E643}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B7A651D-15E3-4F55-9B04-F84B0C740D78}
