@@ -15213,5 +15213,24 @@ class K
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
+
+        [Fact]
+        public void AttributeArgumentLambdaThis()
+        {
+            string source =
+@"class C
+{
+    [X(() => this._Y)]
+    public void Z()
+    {
+    }
+}";
+            var compilation = CreateStandardCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.ThisExpression);
+            var info = model.GetSemanticInfoSummary(syntax);
+            Assert.Equal("C", info.Type.Name);
+        }
     }
 }
