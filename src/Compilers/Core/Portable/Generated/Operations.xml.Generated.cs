@@ -4931,8 +4931,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
+    /// Represents a dynamically bound new/New expression.
     /// </remarks>
     internal abstract partial class BaseDynamicObjectCreationExpression : Operation, IHasDynamicArgumentsExpression, IDynamicObjectCreationExpression
     {
@@ -4986,8 +4985,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
+    /// Represents a dynamically bound new/New expression.
     /// </remarks>
     internal sealed partial class DynamicObjectCreationExpression : BaseDynamicObjectCreationExpression, IHasDynamicArgumentsExpression, IDynamicObjectCreationExpression
     {
@@ -5008,8 +5006,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
+    /// Represents a dynamically bound new/New expression.
     /// </remarks>
     internal sealed partial class LazyDynamicObjectCreationExpression : BaseDynamicObjectCreationExpression, IHasDynamicArgumentsExpression, IDynamicObjectCreationExpression
     {

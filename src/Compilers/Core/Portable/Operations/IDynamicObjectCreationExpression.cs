@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a new/New expression.
+    /// Represents a dynamically bound new/New expression.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to

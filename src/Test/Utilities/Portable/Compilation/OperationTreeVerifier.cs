@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        private void VisitArrayCommon<T>(IEnumerable<T> list, string header, bool logElementCount, Action<IEnumerable<T>> elementVisitor)
+        private void VisitArrayCommon<T>(IEnumerable<T> list, string header, bool logElementCount, Action<T> arrayElementVisitor)
         {
             Debug.Assert(!string.IsNullOrEmpty(header));
 
@@ -240,7 +240,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString($"{header}{elementCount}:");
                 LogNewLine();
                 Indent();
-                elementVisitor(list);
+                foreach (var element in list)
+                {
+                    arrayElementVisitor(element);
+                }
                 Unindent();
             }
             else
@@ -252,54 +255,43 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        internal void VisitArray(IEnumerable<ISymbol> list)
+        internal void VisitArrayElement(ISymbol element)
         {
-            foreach (var element in list)
-            {
-                LogSymbol(element, header: "Symbol");
-                LogNewLine();
-            }
+            LogSymbol(element, header: "Symbol");
+            LogNewLine();
         }
 
-        internal void VisitArray(IEnumerable<string> list)
+        internal void VisitArrayElement(string element)
         {
-            foreach (var element in list)
-            {
-                var valueStr = element != null ? element.ToString() : "null";
-                valueStr = @"""" + valueStr + @"""";
-                LogString(valueStr);
-                LogNewLine();
-            }
+            var valueStr = element != null ? element.ToString() : "null";
+            valueStr = @"""" + valueStr + @"""";
         }
 
-        internal void VisitArray(IEnumerable<RefKind> list)
+        internal void VisitArrayElement(RefKind element)
         {
-            foreach (var refKind in list)
-            {
-                LogString(refKind.ToString());
-                LogNewLine();
-            }
+            LogString(element.ToString());
+            LogNewLine();
         }
 
         private void VisitArray<T>(IEnumerable<T> list, string header, bool logElementCount)
             where T: IOperation
         {
-            VisitArrayCommon(list, header, logElementCount, VisitArray);
+            VisitArrayCommon(list, header, logElementCount, VisitArrayElement);
         }
 
         private void VisitArray(IEnumerable<ISymbol> list, string header, bool logElementCount)
         {
-            VisitArrayCommon(list, header, logElementCount, VisitArray);
+            VisitArrayCommon(list, header, logElementCount, VisitArrayElement);
         }
 
         private void VisitArray(IEnumerable<string> list, string header, bool logElementCount)
         {
-            VisitArrayCommon(list, header, logElementCount, VisitArray);
+            VisitArrayCommon(list, header, logElementCount, VisitArrayElement);
         }
 
         private void VisitArray(IEnumerable<RefKind> list, string header, bool logElementCount)
         {
-            VisitArrayCommon(list, header, logElementCount, VisitArray);
+            VisitArrayCommon(list, header, logElementCount, VisitArrayElement);
         }
 
         private void VisitInstanceExpression(IOperation instance)
