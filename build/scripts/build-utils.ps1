@@ -330,6 +330,7 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
         $all = @(
             "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
             "Roslyn:Roslyn.sln",
+            "Samples:src\Samples\Samples.sln",
             "Templates:src\Setup\Templates\Templates.sln",
             "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln")
 
