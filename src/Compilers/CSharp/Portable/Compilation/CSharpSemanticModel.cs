@@ -1852,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void AddUnwrappingErrorTypes(ArrayBuilder<Symbol> builder, Symbol s)
         {
             var originalErrorSymbol = s.OriginalDefinition as ErrorTypeSymbol;
-            if ((object)originalErrorSymbol != null && originalErrorSymbol.CandidateSymbols != null)
+            if ((object)originalErrorSymbol != null)
             {
                 builder.AddRange(originalErrorSymbol.CandidateSymbols);
             }
@@ -3323,7 +3323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var containingMember = binder.ContainingMember();
 
                         var thisParam = GetThisParameter(boundNode.Type, containingType, containingMember, out resultKind);
-                        symbols = ImmutableArray.Create<Symbol>(thisParam);
+                        symbols = thisParam != null ? ImmutableArray.Create<Symbol>(thisParam) : ImmutableArray<Symbol>.Empty;
                     }
                     break;
 
