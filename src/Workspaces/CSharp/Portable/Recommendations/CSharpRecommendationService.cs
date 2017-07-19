@@ -458,13 +458,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 }
 
                 // If the thing on the left is a lambda expression, we shouldn't show anything.
-                var originalExpressionKind = originalExpression.Kind();
                 if (symbol.Kind == SymbolKind.Method &&
                     ((IMethodSymbol)symbol).MethodKind == MethodKind.AnonymousFunction)
                 {
                     return ImmutableArray<ISymbol>.Empty;
                 }
 
+                // If the thing on the left is a method name identifier, we shouldn't show anything.
+                var originalExpressionKind = originalExpression.Kind();
                 if (symbol.Kind == SymbolKind.Method &&
                     (originalExpressionKind == SyntaxKind.IdentifierName || originalExpressionKind == SyntaxKind.GenericName))
                 {
