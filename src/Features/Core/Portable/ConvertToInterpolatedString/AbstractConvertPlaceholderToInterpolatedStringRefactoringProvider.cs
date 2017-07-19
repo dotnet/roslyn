@@ -278,12 +278,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             public const string ArgsArgumentName = "args";
 
-            public static readonly Dictionary<int, string> ParamsArgumentNames = new Dictionary<int, string>
-            {
-                [1] = "arg0",
-                [2] = "arg1",
-                [3] = "arg2"
-            };
+            public static readonly ImmutableArray<string> ParamsArgumentNames =
+                ImmutableArray.Create("", "arg0", "arg1", "arg2");
         }
     }
 }
