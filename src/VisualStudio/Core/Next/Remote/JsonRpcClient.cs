@@ -107,11 +107,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             WatsonReporter.Report("RemoteHost Failed", ex, u =>
             {
-                // we will record dumps for all service hub processes
-                foreach (var p in Process.GetProcessesByName("ServiceHub.RoslynCodeAnalysisService32"))
+                try
                 {
-                    // include all remote host processes
-                    u.AddProcessDump(p.Id);
+                    // we will record dumps for all service hub processes
+                    foreach (var p in Process.GetProcessesByName("ServiceHub.RoslynCodeAnalysisService32"))
+                    {
+                        // include all remote host processes
+                        u.AddProcessDump(p.Id);
+                    }
+
+                    // include all service hub logs as well
+                    var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
+                    if (Directory.Exists(logPath))
+                    {
+                        // attach all log files that are modified less than 1 day before.
+                        var now = DateTime.UtcNow;
+                        var oneDay = TimeSpan.FromDays(1);
+
+                        foreach (var file in Directory.EnumerateFiles(logPath, "*.log"))
+                        {
+                            var lastWrite = File.GetLastWriteTimeUtc(file);
+                            if (now - lastWrite > oneDay)
+                            {
+                                continue;
+                            }
+
+                            faultUtility.AddFile(file);
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore issue
                 }
 
                 // 0 means send watson
