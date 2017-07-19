@@ -22,6 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         private readonly JsonRpc _rpc;
 
+        private JsonRpcDisconnectedEventArgs _debuggingLastDisconnectReason;
+        private string _debuggingLastDisconnectCallstack;
+
         public JsonRpcEx(Stream stream, object callbackTarget, bool useThisAsCallback)
         {
             Contract.Requires(stream != null);
@@ -94,6 +97,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // make it to explicitly crash to get better info
             FatalError.Report(ex);
 
+            GC.KeepAlive(_debuggingLastDisconnectReason);
+            GC.KeepAlive(_debuggingLastDisconnectCallstack);
+
             return Contract.FailWithReturn<bool>("shouldn't be able to reach here");
         }
 
@@ -128,6 +134,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         protected virtual void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             // do nothing
+            _debuggingLastDisconnectReason = e;
+            _debuggingLastDisconnectCallstack = new StackTrace().ToString();
         }
 
         public void Dispose()
