@@ -901,7 +901,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ReportBadOverriding(ERRID.ERR_OverrideWithConstraintMismatch2, member, overriddenMember, diagnostics)
                 ElseIf Not ConsistentAccessibility(member, overriddenMember, errorId) Then
                     ReportBadOverriding(errorId, member, overriddenMember, diagnostics)
-                ElseIf (comparisonResults And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
+                ElseIf member.ContainsTupleNames() AndAlso (comparisonResults And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
+                    ' it is ok to override with no tuple names, for compatibility with VB 14, but otherwise names should match
                     ReportBadOverriding(ERRID.WRN_InvalidOverrideDueToTupleNames2, member, overriddenMember, diagnostics)
                 Else
                     For Each inaccessibleMember In overriddenMembersResult.InaccessibleMembers

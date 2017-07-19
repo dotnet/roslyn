@@ -5269,6 +5269,61 @@ class Program {
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[0].Code);
         }
 
+        [Fact]
+        public void TestPartialPartial()
+        {
+            var text = @"
+partial class PartialPartial
+{
+    int i = 1;
+    partial partial void PM();
+    partial partial void PM()
+    {
+        i = 0;
+    }
+    static int Main()
+    {
+        PartialPartial t = new PartialPartial();
+        t.PM();
+        return t.i;
+    }
+}
+";
+            // These errors aren't great.  Ideally we can improve things in the future.
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (5,13): error CS1525: Invalid expression term 'partial'
+                //     partial partial void PM();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 13),
+                // (5,13): error CS1002: ; expected
+                //     partial partial void PM();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 13),
+                // (6,13): error CS1525: Invalid expression term 'partial'
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(6, 13),
+                // (6,13): error CS1002: ; expected
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(6, 13),
+                // (6,13): error CS0102: The type 'PartialPartial' already contains a definition for ''
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("PartialPartial", "").WithLocation(6, 13),
+                // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial partial void PM();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),
+                // (6,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(6, 5));
+        }
+
+        [Fact]
+        public void TestPartialEnum()
+        {
+            var text = @"partial enum E{}";
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum E{}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
+        }
+
         [WorkItem(539120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539120")]
         [Fact]
         public void TestEscapedConstructor()
@@ -5774,7 +5829,6 @@ class C
             }
         }
 
-
         [Fact]
         public void ParseOutVar()
         {
@@ -5843,6 +5897,206 @@ class C
                         }
                     }
                     N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestPartiallyWrittenConstraintClauseInBaseList1()
+        {
+            var tree = UsingTree(@"
+class C<T> : where
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "where");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestPartiallyWrittenConstraintClauseInBaseList2()
+        {
+            var tree = UsingTree(@"
+class C<T> : where T
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "where");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestPartiallyWrittenConstraintClauseInBaseList3()
+        {
+            var tree = UsingTree(@"
+class C<T> : where T :
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.SimpleBaseType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestPartiallyWrittenConstraintClauseInBaseList4()
+        {
+            var tree = UsingTree(@"
+class C<T> : where T : X
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.SimpleBaseType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
