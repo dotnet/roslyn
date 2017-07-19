@@ -255,19 +255,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        internal void VisitArrayElement(ISymbol element)
+        internal void VisitSymbolArrayElement(ISymbol element)
         {
             LogSymbol(element, header: "Symbol");
             LogNewLine();
         }
 
-        internal void VisitArrayElement(string element)
+        internal void VisitStringArrayElement(string element)
         {
             var valueStr = element != null ? element.ToString() : "null";
             valueStr = @"""" + valueStr + @"""";
+            LogString(valueStr);
+            LogNewLine();
         }
 
-        internal void VisitArrayElement(RefKind element)
+        internal void VisitRefKindArrayElement(RefKind element)
         {
             LogString(element.ToString());
             LogNewLine();
@@ -276,22 +278,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void VisitArray<T>(IEnumerable<T> list, string header, bool logElementCount)
             where T: IOperation
         {
-            VisitArrayCommon(list, header, logElementCount, VisitArrayElement);
+            VisitArrayCommon(list, header, logElementCount, VisitOperationArrayElement);
         }
 
         private void VisitArray(IEnumerable<ISymbol> list, string header, bool logElementCount)
         {
-            VisitArrayCommon(list, header, logElementCount, VisitArrayElement);
+            VisitArrayCommon(list, header, logElementCount, VisitSymbolArrayElement);
         }
 
         private void VisitArray(IEnumerable<string> list, string header, bool logElementCount)
         {
-            VisitArrayCommon(list, header, logElementCount, VisitArrayElement);
+            VisitArrayCommon(list, header, logElementCount, VisitStringArrayElement);
         }
 
         private void VisitArray(IEnumerable<RefKind> list, string header, bool logElementCount)
         {
-            VisitArrayCommon(list, header, logElementCount, VisitArrayElement);
+            VisitArrayCommon(list, header, logElementCount, VisitRefKindArrayElement);
         }
 
         private void VisitInstanceExpression(IOperation instance)

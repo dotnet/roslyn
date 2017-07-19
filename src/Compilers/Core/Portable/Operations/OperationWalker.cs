@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             foreach (var operation in operations)
             {
-                VisitArrayElement(operation);
+                VisitOperationArrayElement(operation);
             }
         }
 
-        internal void VisitArrayElement<T>(T operation) where T : IOperation
+        internal void VisitOperationArrayElement<T>(T operation) where T : IOperation
         {
             Visit(operation);
         }
