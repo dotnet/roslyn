@@ -71,7 +71,7 @@ function Publish-Vsix([string]$uploadUrl) {
 
             Write-Host "  Publishing '$vsix'"
             if (-not $test) { 
-                $response = Invoke-WebRequest -Uri $requestUrl -Headers @{"X-NuGet-ApiKey"=$apiKey} -ContentType 'multipart/form-data' -InFile $vsix -Method Post -UseBasicParsing
+                $response = Invoke-WebRequest -Uri $uploadUrl -Headers @{"X-NuGet-ApiKey"=$apiKey} -ContentType 'multipart/form-data' -InFile $vsix -Method Post -UseBasicParsing
                 if ($response.StatusCode -ne 201) {
                     throw "Failed to upload VSIX extension: $vsix. Upload failed with Status code: $response.StatusCode"
                 }
