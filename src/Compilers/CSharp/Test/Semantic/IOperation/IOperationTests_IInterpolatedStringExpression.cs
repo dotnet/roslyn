@@ -25,7 +25,9 @@ internal class Class
 ";
 string expectedOperationTree = @"
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""""')
-  Parts(0)
+  Parts(1):
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: '$""')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String) (Syntax: '$""""')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
