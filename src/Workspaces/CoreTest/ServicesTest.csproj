@@ -72,9 +72,7 @@
     <Compile Include="DependentTypeFinderTests.cs" />
     <Compile Include="Differencing\LongestCommonSubsequenceTests.cs" />
     <Compile Include="Editting\SyntaxEditorTests.cs" />
-    <Compile Include="Execution\Extensions.cs" />
     <Compile Include="EditorConfigStorageLocation\EditorConfigStorageLocationTests.cs" />
-    <Compile Include="Execution\SnapshotSerializationTestBase.cs" />
     <Compile Include="Execution\SnapshotSerializationTests.cs" />
     <Compile Include="ExtensionOrdererTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestOptionsServiceFactory.cs" />
