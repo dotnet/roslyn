@@ -4469,6 +4469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     result = new BoundDynamicObjectCreationExpression(
                         node,
+                        typeName,
                         argArray,
                         analyzedArguments.GetNames(),
                         analyzedArguments.RefKinds.ToImmutableOrNull(),

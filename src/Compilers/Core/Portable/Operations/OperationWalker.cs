@@ -16,8 +16,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             foreach (var operation in operations)
             {
-                Visit(operation);
+                VisitOperationArrayElement(operation);
             }
+        }
+
+        internal void VisitOperationArrayElement<T>(T operation) where T : IOperation
+        {
+            Visit(operation);
         }
 
         public override void Visit(IOperation operation)

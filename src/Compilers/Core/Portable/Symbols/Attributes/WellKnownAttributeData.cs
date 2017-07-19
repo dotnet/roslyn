@@ -11,12 +11,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class WellKnownAttributeData
     {
+#pragma warning disable CA1802 // Remove suppression once https://github.com/dotnet/roslyn/issues/20894 is fixed
         /// <summary>
         /// Used to distinguish cases when attribute is applied with null value and when attribute is not applied.
         /// For some well-known attributes, the latter case will return string stored in <see cref="StringMissingValue"/>
         /// field.
         /// </summary>
-        public const string StringMissingValue = nameof(StringMissingValue);
+        public static readonly string StringMissingValue = nameof(StringMissingValue);
+#pragma warning restore CA1802
 
 #if DEBUG
         private bool _isSealed;

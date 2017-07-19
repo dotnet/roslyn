@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -1048,6 +1048,20 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, IsInvalid) (Syntax: 'New T() Fro ... , "World!"}')
+  IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: T, IsInvalid) (Syntax: 'From {"Hell ... , "World!"}')
+    Initializers(3):
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: '"Hello"')
+          Children(2):
+              IOperation:  (OperationKind.None, IsInvalid) (Syntax: '"Hello"')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello", IsInvalid) (Syntax: '"Hello"')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: '" "')
+          Children(2):
+              IOperation:  (OperationKind.None, IsInvalid) (Syntax: '" "')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " ", IsInvalid) (Syntax: '" "')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: '"World!"')
+          Children(2):
+              IOperation:  (OperationKind.None, IsInvalid) (Syntax: '"World!"')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "World!", IsInvalid) (Syntax: '"World!"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

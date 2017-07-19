@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// method being analyzed and has a null <see cref="Parent" />.
             /// </summary>
             [DebuggerDisplay("{ToString(), nq}")]
-            private sealed class Scope
+            public sealed class Scope
             {
                 public Scope Parent { get; }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// variables into captured environments and for calculating
             /// the rewritten signature of the method.
             /// </summary>
-            private sealed class Closure
+            public sealed class Closure
             {
                 /// <summary>
                 /// The method symbol for the original lambda or local function.
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var capturesThis = new HashSet<MethodSymbol>();
                 var capturesVariable = new HashSet<MethodSymbol>();
                 var visitStack = new Stack<MethodSymbol>();
-                VisitClosures(_scopeTree, (scope, closure) =>
+                VisitClosures(ScopeTree, (scope, closure) =>
                 {
                     foreach (var capture in closure.CapturedVariables)
                     {
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                VisitClosures(_scopeTree, (scope, closure) =>
+                VisitClosures(ScopeTree, (scope, closure) =>
                 {
                     if (!capturesVariable.Contains(closure.OriginalMethodSymbol))
                     {
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Visit all closures in all nested scopes and run the <paramref name="action"/>.
             /// </summary>
-            private static void VisitClosures(Scope scope, Action<Scope, Closure> action)
+            public static void VisitClosures(Scope scope, Action<Scope, Closure> action)
             {
                 foreach (var closure in scope.Closures)
                 {

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -210,7 +211,8 @@ class Program
 
                 var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new EncapsulateFieldCommandHandler(workspace.GetService<Host.IWaitIndicator>(), workspace.GetService<ITextBufferUndoManagerProvider>());
+                var handler = new EncapsulateFieldCommandHandler(workspace.GetService<Host.IWaitIndicator>(), workspace.GetService<ITextBufferUndoManagerProvider>(),
+                    workspace.ExportProvider.GetExportedValues<Lazy<IAsynchronousOperationListener, FeatureMetadata>>());
                 var delegatedToNext = false;
                 Func<CommandState> nextHandler = () =>
                 {
