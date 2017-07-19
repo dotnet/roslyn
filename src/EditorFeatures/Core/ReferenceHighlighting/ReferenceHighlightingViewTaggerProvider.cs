@@ -128,7 +128,6 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             {
                 if (document != null)
                 {
-
                     var service = document.GetLanguageService<IDocumentHighlightsService>();
                     if (service != null)
                     {
