@@ -457,8 +457,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     return ImmutableArray<ISymbol>.Empty;
                 }
 
-                // If the thing on the left is a method, we shouldn't show anything.
-                if (symbol.Kind == SymbolKind.Method)
+                // If the thing on the left is a lambda expression, we shouldn't show anything.
+                var originalExpressionKind = originalExpression.Kind();
+                if (symbol.Kind == SymbolKind.Method &&
+                    ((IMethodSymbol)symbol).MethodKind == MethodKind.AnonymousFunction)
+                {
+                    return ImmutableArray<ISymbol>.Empty;
+                }
+
+                if (symbol.Kind == SymbolKind.Method &&
+                    (originalExpressionKind == SyntaxKind.IdentifierName || originalExpressionKind == SyntaxKind.GenericName))
                 {
                     return ImmutableArray<ISymbol>.Empty;
                 }
