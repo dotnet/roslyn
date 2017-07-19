@@ -4491,8 +4491,7 @@ class C
     void M()
     {
         var t = new {
-            /*comment*/
-            i = 1 + 2,
+            /*comment*/ i = 1 + 2,
             /*comment*/ j = 3
         };
     }
