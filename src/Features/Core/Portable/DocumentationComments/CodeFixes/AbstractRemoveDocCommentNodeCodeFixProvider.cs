@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             }
         }
 
-        private TXmlElementSyntax GetParamNode(SyntaxNode root, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
+        private TXmlElementSyntax GetParamNode(SyntaxNode root, TextSpan span, CancellationToken cancellationToken = default)
         {
             // First, we get the node the diagnostic fired on
             // Then, we climb the tree to the first parent that is of the type XMLElement

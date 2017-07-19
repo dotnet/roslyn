@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => diagnostic.Severity != DiagnosticSeverity.Hidden;
+            => diagnostic.Severity != DiagnosticSeverity.Hidden ||
+               diagnostic.Properties.ContainsKey(UseExpressionBodyDiagnosticAnalyzer.FixesError);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

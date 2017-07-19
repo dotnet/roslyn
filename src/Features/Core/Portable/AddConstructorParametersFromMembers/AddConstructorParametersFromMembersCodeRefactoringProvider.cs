@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
+                return default;
             }
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
 
             var parameters = state.Parameters.Select(p => CodeGenerationSymbolFactory.CreateParameterSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 refKind: p.RefKind,
                 isParams: p.IsParams,
                 type: p.Type,

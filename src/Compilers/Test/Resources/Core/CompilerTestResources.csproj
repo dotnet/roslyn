@@ -1,24 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.Test.Resources</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
     <RootNamespace></RootNamespace>
+    <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Analyzers\FaultyAnalyzer.cs" />
@@ -390,9 +387,11 @@
   <ItemGroup>
     <EmbeddedResource Include="NetFX\ValueTuple\ValueTuple.cs" />
     <EmbeddedResource Include="NetFX\ValueTuple\TupleElementNamesAttribute.cs" />
-    <Compile Include="ResourceLoader.cs" />
     <Content Include="SymbolsTests\CustomModifiers\GenericMethodWithModifiers.cpp" />
     <None Include="SymbolsTests\Metadata\public-and-private.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ResourceLoader.cs" />
     <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />
   </ItemGroup>

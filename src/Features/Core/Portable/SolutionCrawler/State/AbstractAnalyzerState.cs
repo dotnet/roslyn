@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
             if (!this.DataCache.TryGetValue(GetCacheKey(value), out var entry))
             {
                 // we don't have data
-                return default(TData);
+                return default;
             }
 
             // we have in memory cache for the document
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
             {
             }
 
-            return default(TData);
+            return default;
         }
 
         public async Task PersistAsync(TValue value, TData data, CancellationToken cancellationToken)
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
             // if data is for opened document or if persistence failed, 
             // we keep small cache so that we don't pay cost of deserialize/serializing data that keep changing
-            this.DataCache[id] = (!succeeded || ShouldCache(value)) ? new CacheEntry(data, GetCount(data)) : new CacheEntry(default(TData), GetCount(data));
+            this.DataCache[id] = (!succeeded || ShouldCache(value)) ? new CacheEntry(data, GetCount(data)) : new CacheEntry(default, GetCount(data));
         }
 
         public bool Remove(TKey id)
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
                 Count = count;
             }
 
-            public bool HasCachedData => !object.Equals(Data, default(TData));
+            public bool HasCachedData => !object.Equals(Data, default);
         }
     }
 }

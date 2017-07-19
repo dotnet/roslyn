@@ -1,14 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{6E9FD555-EC3F-4865-A164-CB11A424B910}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>BasicAnalyzers</RootNamespace>
-    <AssemblyName>BasicAnalyzers.Vsix</AssemblyName>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFramework>net46</TargetFramework>
     <ImportVSSDKTargets>True</ImportVSSDKTargets>
@@ -36,11 +34,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Empty.vb" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\BasicAnalyzers\BasicAnalyzers.vbproj">
-      <Project>{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}</Project>
       <Name>BasicAnalyzers</Name>
     </ProjectReference>
   </ItemGroup>

@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         private static bool TryAddLeadingElasticTriviaIfNecessary(SyntaxToken token, SyntaxToken originalToken, out SyntaxToken tokenWithLeadingWhitespace)
         {
-            tokenWithLeadingWhitespace = default(SyntaxToken);
+            tokenWithLeadingWhitespace = default;
 
             if (token.HasLeadingTrivia)
             {

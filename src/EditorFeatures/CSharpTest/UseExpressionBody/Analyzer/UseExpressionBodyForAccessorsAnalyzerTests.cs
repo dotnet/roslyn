@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -343,6 +344,65 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
     }
 }", options: UseBlockBodyIncludingPropertiesAndIndexers, ignoreTrivia: false);
+        }
+
+        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int Foo { get [|=>|] throw new NotImplementedException(); }
+}",
+@"
+using System;
+class C
+{
+    int Foo 
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7_FixAll()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int Foo { get {|FixAllInDocument:=>|} throw new NotImplementedException(); }
+    int Bar { get => throw new NotImplementedException(); }
+}",
+@"
+using System;
+class C
+{
+    int Foo 
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    int Bar 
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
     }
 }

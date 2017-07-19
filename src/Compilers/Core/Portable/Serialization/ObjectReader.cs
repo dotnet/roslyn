@@ -31,7 +31,7 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00001000;
+        internal const byte VersionByte2 = 0b00001001;
 
         private readonly BinaryReader _reader;
         private readonly CancellationToken _cancellationToken;
@@ -85,7 +85,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public static ObjectReader TryGetReader(
             Stream stream,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (stream == null)
             {

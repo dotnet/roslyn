@@ -119,12 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (declaration.Kind())
             {
                 case SyntaxKind.EnumDeclaration:
-                    return ((EnumDeclarationSyntax)declaration).WithMembers(default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>));
+                    return ((EnumDeclarationSyntax)declaration).WithMembers(default);
 
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.ClassDeclaration:
-                    return ((TypeDeclarationSyntax)declaration).WithMembers(default(SyntaxList<MemberDeclarationSyntax>));
+                    return ((TypeDeclarationSyntax)declaration).WithMembers(default);
 
                 default:
                     return declaration;
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 GenerateModifiers(namedType, destination, options),
                 namedType.Name.ToIdentifierToken(),
                 baseList: baseList,
-                members: default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>));
+                members: default);
         }
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributeDeclarations(

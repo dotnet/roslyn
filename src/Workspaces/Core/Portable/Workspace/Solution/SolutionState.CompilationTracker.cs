@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
                 ProjectState newProject,
                 CompilationTranslationAction translate = null,
                 bool clone = false,
-                CancellationToken cancellationToken = default(CancellationToken))
+                CancellationToken cancellationToken = default)
             {
                 var state = this.ReadState();
 
@@ -307,9 +307,14 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    return GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken)
-                        .ContinueWith(t => t.Result.Compilation, cancellationToken, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                    return GetCompilationSlowAsync(solution, cancellationToken);
                 }
+            }
+
+            private async Task<Compilation> GetCompilationSlowAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return compilationInfo.Compilation;
             }
 
             private static string LogBuildCompilationAsync(ProjectState state)
@@ -854,9 +859,14 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    return GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken)
-                        .ContinueWith(t => t.Result.HasSuccessfullyLoadedTransitively, cancellationToken, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                    return HasSuccessfullyLoadedSlowAsync(solution, cancellationToken);
                 }
+            }
+
+            private async Task<bool> HasSuccessfullyLoadedSlowAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return compilationInfo.HasSuccessfullyLoadedTransitively;
             }
 
             #region Versions

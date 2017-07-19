@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
             }
 
-            return default(ValueTuple<SyntaxToken, SyntaxToken>);
+            return default;
         }
 
         private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             var tokens = GetSpecificNodeSuppressionTokenRange(node);
-            if (!tokens.Equals(default(ValueTuple<SyntaxToken, SyntaxToken>)))
+            if (!tokens.Equals(default))
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
             }
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             var tokens = GetSpecificNodeSuppressionTokenRange(node);
-            if (!tokens.Equals(default(ValueTuple<SyntaxToken, SyntaxToken>)))
+            if (!tokens.Equals(default))
             {
                 RemoveSuppressOperation(list, tokens.Item1, tokens.Item2);
             }

@@ -498,4 +498,16 @@
     <AdditionalFiles Include="@(PublicAPI)" />
   </ItemGroup>
 
+  <!-- CPS doesn't show these items by default, but we want to show them. -->
+  <ItemGroup>
+    <!-- XAML pages and resources -->
+    <None Include="@(Page)" />
+    <None Include="@(Resource)" />
+
+    <!-- Special items in VSSDK projects -->
+    <None Include="@(VSCTCompile)" />
+  </ItemGroup>
+  
+  <!-- Work around https://github.com/dotnet/roslyn/issues/20945 -->
+  <Target Name="_CheckForUnsupportedNETCoreVersion" />
 </Project>

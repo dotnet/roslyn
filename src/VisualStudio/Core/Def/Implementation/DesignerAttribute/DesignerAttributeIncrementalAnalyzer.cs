@@ -97,6 +97,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var designerAttribute = compilation.DesignerCategoryAttributeType();
+            if (designerAttribute == null)
+            {
+                // Project doesn't know about the System.ComponentModel.DesignerCategoryAttribute type.
+                // Don't bother running the analysis.
+                return;
+            }
+
             // Try to compute this data in the remote process.  If that fails, then compute
             // the results in the local process.
             var pathToResult = await TryAnalyzeProjectInRemoteProcessAsync(project, cancellationToken).ConfigureAwait(false);

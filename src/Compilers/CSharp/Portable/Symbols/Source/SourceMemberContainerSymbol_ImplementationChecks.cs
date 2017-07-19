@@ -668,8 +668,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_CantChangeAccessOnOverride, overridingMemberLocation, overridingMember, accessibility, overriddenMember);
                         suppressAccessors = true;
                     }
-                    else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(overridingMember, overriddenMember))
+                    else if (overridingMember.ContainsTupleNames() &&
+                        MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(overridingMember, overriddenMember))
                     {
+                        // it is ok to override with no tuple names, for compatibility with C# 6, but otherwise names should match
                         diagnostics.Add(ErrorCode.ERR_CantChangeTupleNamesOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                     }
                     else

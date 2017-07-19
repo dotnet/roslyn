@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             if (document == null || !document.IsOpen())
             {
-                return default(FirstDiagnosticResult);
+                return default;
             }
 
             using (var diagnostics = SharedPools.Default<List<DiagnosticData>>().GetPooledObject())
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     }
                 }
 
-                return new FirstDiagnosticResult(!fullResult, false, default(DiagnosticData));
+                return new FirstDiagnosticResult(!fullResult, false, default);
             }
         }
 
