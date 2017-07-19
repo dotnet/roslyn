@@ -2,12 +2,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using StreamJsonRpc;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -42,12 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 await _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
-            catch
+            catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
+                // if any exception is thrown unrelated to cancellation, then we will rethrow the exception
                 cancellationToken.ThrowIfCancellationRequested();
                 throw;
             }
@@ -61,12 +61,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
-            catch
+            catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
+                // if any exception is thrown unrelated to cancellation, then we will rethrow the exception
                 cancellationToken.ThrowIfCancellationRequested();
                 throw;
             }
@@ -82,6 +79,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
             return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+        }
+
+        private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return true;
+            }
+
+            // save extra info using NFW
+            ReportExtraInfoAsNFW(ex);
+
+            // make it to explicitly crash to get better info
+            FatalError.Report(ex);
+
+            return Contract.FailWithReturn<bool>("shouldn't be able to reach here");
+        }
+
+        private void ReportExtraInfoAsNFW(Exception ex)
+        {
+            WatsonReporter.Report("RemoteHost Failed", ex, u =>
+            {
+                // we will record dumps for all service hub processes
+                foreach (var p in Process.GetProcessesByName("ServiceHub.RoslynCodeAnalysisService32"))
+                {
+                    // include all remote host processes
+                    u.AddProcessDump(p.Id);
+                }
+
+                // 0 means send watson
+                return 0;
+            });
         }
 
         protected void Disconnect()
