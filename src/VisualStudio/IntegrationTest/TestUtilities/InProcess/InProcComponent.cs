@@ -23,9 +23,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// </summary>
     internal abstract class InProcComponent : MarshalByRefObject
     {
-        // Ensure InProcComponents live forever
-        public override object InitializeLifetimeService() => null;
-
         protected InProcComponent() { }
 
         private static Dispatcher CurrentApplicationDispatcher
@@ -69,5 +66,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected static void WaitForSystemIdle()
             => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
+
+        // Ensure InProcComponents live forever
+        public override object InitializeLifetimeService() => null;
     }
 }
