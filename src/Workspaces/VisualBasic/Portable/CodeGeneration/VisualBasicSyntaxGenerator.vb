@@ -2683,7 +2683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function WithAccessibility(declaration As SyntaxNode, accessibility As Accessibility) As SyntaxNode
             If Not CanHaveAccessibility(declaration) AndAlso
-               accessibility <> accessibility.notapplicable Then
+               accessibility <> Accessibility.NotApplicable Then
                 Return declaration
             End If
 
@@ -2750,6 +2750,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                      SyntaxKind.SubNewStatement
                     ' Shared constructor cannot have modifiers in VB.
                     Return Not declaration.GetModifiers().Any(SyntaxKind.SharedKeyword)
+
+                Case SyntaxKind.ModifiedIdentifier
+                    Return If(IsChildOf(declaration, SyntaxKind.VariableDeclarator),
+                              CanHaveAccessibility(declaration.Parent),
+                              False)
+
+                Case SyntaxKind.VariableDeclarator
+                    Return If(IsChildOfVariableDeclaration(declaration),
+                              CanHaveAccessibility(declaration.Parent),
+                              False)
 
                 Case Else
                     Return False
