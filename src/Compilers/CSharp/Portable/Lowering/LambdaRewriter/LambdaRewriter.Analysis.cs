@@ -56,11 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public MultiDictionary<Symbol, SyntaxNode> CapturedVariables = new MultiDictionary<Symbol, SyntaxNode>();
 
             /// <summary>
-            /// For each lambda in the code, the set of variables that it captures.
-            /// </summary>
-            public OrderedMultiDictionary<MethodSymbol, Symbol> CapturedVariablesByLambda = new OrderedMultiDictionary<MethodSymbol, Symbol>();
-
-            /// <summary>
             /// If a local function is in the set, at some point in the code it is converted to a delegate and should then not be optimized to a struct closure.
             /// Also contains all lambdas (as they are converted to delegates implicitly).
             /// </summary>
@@ -105,7 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public Dictionary<MethodSymbol, BoundNode> LambdaScopes;
 
-            private Scope _scopeTree;
+            /// <summary>
+            /// The root of the scope tree for this method.
+            /// </summary>
+            public Scope ScopeTree { get; private set; }
 
             private Analysis(MethodSymbol method)
             {
@@ -123,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void Analyze(BoundNode node)
             {
-                _scopeTree = ScopeTreeBuilder.Build(node, this);
+                ScopeTree = ScopeTreeBuilder.Build(node, this);
                 _currentScope = FindNodeToAnalyze(node);
 
                 Debug.Assert(!_inExpressionLambda);
@@ -181,84 +179,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// The old version of <see cref="RemoveUnneededReferences"/> This is still necesary
-            /// because it modifies <see cref="CapturedVariablesByLambda"/>, which is still used
-            /// in other areas of the code. Once those uses are gone, this method should be removed.
-            /// </summary>
-            private void OldRemoveUnneededReferences()
-            {
-                // Note: methodGraph is the inverse of the dependency graph
-                var methodGraph = new MultiDictionary<MethodSymbol, MethodSymbol>();
-                var capturesThis = new HashSet<MethodSymbol>();
-                var capturesVariable = new HashSet<MethodSymbol>();
-                var visitStack = new Stack<MethodSymbol>();
-                foreach (var methodKvp in CapturedVariablesByLambda)
-                {
-                    foreach (var capture in methodKvp.Value)
-                    {
-                        var method = capture as MethodSymbol;
-                        if (method != null)
-                        {
-                            methodGraph.Add(method, methodKvp.Key);
-                        }
-                        else if (capture == _topLevelMethod.ThisParameter)
-                        {
-                            if (capturesThis.Add(methodKvp.Key))
-                            {
-                                visitStack.Push(methodKvp.Key);
-                            }
-                        }
-                        else if (capturesVariable.Add(methodKvp.Key) && !capturesThis.Contains(methodKvp.Key)) // if capturesThis contains methodKvp, it's already in the stack.
-                        {
-                            visitStack.Push(methodKvp.Key);
-                        }
-                    }
-                }
-
-                while (visitStack.Count > 0)
-                {
-                    var current = visitStack.Pop();
-                    var setToAddTo = capturesVariable.Contains(current) ? capturesVariable : capturesThis;
-                    foreach (var capturesCurrent in methodGraph[current])
-                    {
-                        if (setToAddTo.Add(capturesCurrent))
-                        {
-                            visitStack.Push(capturesCurrent);
-                        }
-                    }
-                }
-
-                var capturedVariablesByLambdaNew = new OrderedMultiDictionary<MethodSymbol, Symbol>();
-                foreach (var old in CapturedVariablesByLambda)
-                {
-                    if (capturesVariable.Contains(old.Key))
-                    {
-                        foreach (var oldValue in old.Value)
-                        {
-                            capturedVariablesByLambdaNew.Add(old.Key, oldValue);
-                        }
-                    }
-                    else if (capturesThis.Contains(old.Key))
-                    {
-                        capturedVariablesByLambdaNew.Add(old.Key, _topLevelMethod.ThisParameter);
-                    }
-                }
-                CapturedVariablesByLambda = capturedVariablesByLambdaNew;
-            }
-
-            /// <summary>
             /// Create the optimized plan for the location of lambda methods and whether scopes need access to parent scopes
             ///  </summary>
             internal void ComputeLambdaScopesAndFrameCaptures()
             {
-                // We need to keep this around
-                OldRemoveUnneededReferences();
                 RemoveUnneededReferences();
 
                 LambdaScopes = new Dictionary<MethodSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
                 NeedsParentFrame = new HashSet<BoundNode>();
 
-                VisitClosures(_scopeTree, (scope, closure) =>
+                VisitClosures(ScopeTree, (scope, closure) =>
                 {
                     if (closure.CapturedVariables.Count > 0)
                     {
@@ -285,7 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (captured is LocalFunctionSymbol localFunc)
                         {
-                            capturedVars.AddAll(FindClosureInScope(closureScope, localFunc).CapturedVariables);
+                            var (found, _) = GetVisibleClosure(closureScope, localFunc);
+                            capturedVars.AddAll(found.CapturedVariables);
                         }
                     }
 
@@ -318,22 +249,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     capturedVars.Free();
 
                     return (innermost, outermost);
-                }
-
-                // Walk up the scope tree looking for a closure
-                Closure FindClosureInScope(Scope startingScope, MethodSymbol closureSymbol)
-                {
-                    var currentScope = startingScope;
-                    while (currentScope != null)
-                    {
-                        var found = currentScope.Closures.SingleOrDefault(c => c.OriginalMethodSymbol == closureSymbol);
-                        if (found != null)
-                        {
-                            return found;
-                        }
-                        currentScope = currentScope.Parent;
-                    }
-                    return null;
                 }
 
                 void RecordClosureScope(Scope innermost, Scope outermost, Closure closure)
@@ -370,6 +285,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
+                }
+            }
+
+            /// <summary>
+            /// Walk up the scope tree looking for a closure.
+            /// </summary>
+            /// <returns>
+            /// A tuple of the found <see cref="Closure"/> and the <see cref="Scope"/> it was found in.
+            /// </returns>
+            public static (Closure, Scope) GetVisibleClosure(Scope startingScope, MethodSymbol closureSymbol)
+            {
+                var currentScope = startingScope;
+                while (currentScope != null)
+                {
+                    foreach (var closure in currentScope.Closures)
+                    {
+                        if (closure.OriginalMethodSymbol == closureSymbol)
+                        {
+                            return (closure, currentScope);
+                        }
+                    }
+                    currentScope = currentScope.Parent;
+                }
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            /// <summary>
+            /// Finds a <see cref="Closure"/> with a matching original symbol somewhere in the given scope or nested scopes.
+            /// </summary>
+            public static Closure GetClosureInTree(Scope treeRoot, MethodSymbol closureSymbol)
+            {
+                return Helper(treeRoot) ?? throw ExceptionUtilities.Unreachable;
+
+                Closure Helper(Scope scope)
+                {
+                    foreach (var closure in scope.Closures)
+                    {
+                        if (closure.OriginalMethodSymbol == closureSymbol)
+                        {
+                            return closure;
+                        }
+                    }
+
+                    foreach (var nestedScope in scope.NestedScopes)
+                    {
+                        var found = Helper(nestedScope);
+                        if (found != null)
+                        {
+                            return found;
+                        }
+                    }
+
+                    return null;
                 }
             }
 
@@ -563,17 +531,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_currentParent is MethodSymbol lambda && symbol != lambda && symbol.ContainingSymbol != lambda)
                 {
                     CapturedVariables.Add(symbol, syntax);
-
-                    // mark the variable as captured in each enclosing lambda up to the variable's point of declaration.
-                    while ((object)lambda != null &&
-                           symbol != lambda &&
-                           symbol.ContainingSymbol != lambda &&
-                           // Necessary because the EE can insert non-closure synthesized method symbols
-                           IsClosure(lambda))
-                    {
-                        CapturedVariablesByLambda.Add(lambda, symbol);
-                        lambda = lambda.ContainingSymbol as MethodSymbol;
-                    }
                 }
             }
 

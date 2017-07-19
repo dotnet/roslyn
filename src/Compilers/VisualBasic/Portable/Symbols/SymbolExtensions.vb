@@ -423,5 +423,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return member
         End Function
+
+        <Extension>
+        Friend Function ContainsTupleNames(member As Symbol) As Boolean
+            Select Case member.Kind
+                Case SymbolKind.Method
+                    Dim method = DirectCast(member, MethodSymbol)
+                    Return method.ReturnType.ContainsTupleNames() OrElse ContainsTupleNames(method.Parameters)
+                Case SymbolKind.Property
+                    Dim [property] = DirectCast(member, PropertySymbol)
+                    Return [property].Type.ContainsTupleNames() OrElse ContainsTupleNames([property].Parameters)
+                Case SymbolKind.Event
+                    ' We don't check the event Type directly because materializing it requires checking the tuple names in the type (to validate interface implementations)
+                    Return ContainsTupleNames(DirectCast(member, EventSymbol).DelegateParameters)
+                Case Else
+                    '  We currently don't need to use this method for other kinds of symbols
+                    Throw ExceptionUtilities.UnexpectedValue(member.Kind)
+            End Select
+        End Function
+
+        Private Function ContainsTupleNames(parameters As ImmutableArray(Of ParameterSymbol)) As Boolean
+            Return parameters.Any(Function(p) p.Type.ContainsTupleNames())
+        End Function
     End Module
 End Namespace

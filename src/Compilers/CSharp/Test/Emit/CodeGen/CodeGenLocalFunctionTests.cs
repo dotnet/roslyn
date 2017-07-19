@@ -77,49 +77,49 @@ class C
 @"0
 1");
             // L1
-            verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)", @"
 {
   // Code size       13 (0xd)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
   IL_0006:  ldarg.0
-  IL_0007:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_1)""
+  IL_0007:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)""
   IL_000c:  ret
 }");
             // L2
-            verifier.VerifyIL("C.<M>g__L22_1(ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""void C.<M>g__L32_2(ref C.<>c__DisplayClass2_1)""
+  IL_0002:  call       ""void C.<M>g__L32_2(ref C.<>c__DisplayClass2_0)""
   IL_0007:  ret
 }");
             // Skip some... L5
-            verifier.VerifyIL("C.<M>g__L52_4(ref C.<>c__DisplayClass2_1, ref C.<>c__DisplayClass2_0)", @"
+            verifier.VerifyIL("C.<M>g__L52_4(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_1, ref C.<>c__DisplayClass2_0)""
+  IL_0002:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
   IL_0007:  pop
   IL_0008:  ret
 }");
             // L6
-            verifier.VerifyIL("C.<M>g__L62_5(ref C.<>c__DisplayClass2_1, ref C.<>c__DisplayClass2_0)", @"
+            verifier.VerifyIL("C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
   // Code size       35 (0x23)
   .maxstack  4
   .locals init (int V_0)
   IL_0000:  ldarg.1
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass2_0.var2""
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass2_1.var2""
   IL_0006:  ldarg.1
-  IL_0007:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
+  IL_0007:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
   IL_000c:  ldarg.1
-  IL_000d:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
+  IL_000d:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
   IL_0012:  ldfld      ""int C._x""
   IL_0017:  stloc.0
   IL_0018:  ldloc.0

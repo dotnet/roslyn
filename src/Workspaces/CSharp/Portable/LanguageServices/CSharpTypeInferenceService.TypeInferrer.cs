@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Overload resolution (see DevDiv 611477) in certain extension method cases
                 // can result in GetSymbolInfo returning nothing. In this case, get the 
                 // method group info, which is what signature help already does.
-                if (info.CandidateReason == CandidateReason.None)
+                if (info.Symbol == null &&  info.CandidateReason == CandidateReason.None)
                 {
                     methods = SemanticModel.GetMemberGroup(invocation.Expression, CancellationToken)
                                                             .OfType<IMethodSymbol>();
