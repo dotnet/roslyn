@@ -284,15 +284,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return statements.ToImmutableAndFree();
         }
 
-        public static string GetLocalName(this INamedTypeSymbol containingType)
+        public static string GetLocalName(this ITypeSymbol containingType)
         {
-            var parts = StringBreaker.GetWordParts(containingType.Name);
-            for (var i = parts.Count - 1; i >= 0; i--)
+            var name = containingType.Name;
+            if (name.Length > 0)
             {
-                var p = parts[i];
-                if (char.IsLetter(containingType.Name[p.Start]))
+                var parts = StringBreaker.GetWordParts(name);
+                for (var i = parts.Count - 1; i >= 0; i--)
                 {
-                    return containingType.Name.Substring(p.Start, p.Length).ToCamelCase();
+                    var p = parts[i];
+                    if (p.Length > 0 && char.IsLetter(name[p.Start]))
+                    {
+                        return name.Substring(p.Start, p.Length).ToCamelCase();
+                    }
                 }
             }
 

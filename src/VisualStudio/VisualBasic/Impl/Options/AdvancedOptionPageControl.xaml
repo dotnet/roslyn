@@ -91,6 +91,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
+                    <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="GoToDefinitionGroupBox"

@@ -91,6 +91,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
+        protected async Task TestDiagnosticMissingAsync(
+            string initialMarkup,
+            TestParameters parameters = default(TestParameters))
+        {
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            {
+                var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters);
+                Assert.Equal(0, diagnostics.Length);
+            }
+        }
+
         protected async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
@@ -98,6 +109,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected abstract Task<ImmutableArray<CodeAction>> GetCodeActionsWorkerAsync(
+            TestWorkspace workspace, TestParameters parameters);
+
+
+        protected abstract Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
             TestWorkspace workspace, TestParameters parameters);
 
         protected async Task TestSmartTagTextAsync(
