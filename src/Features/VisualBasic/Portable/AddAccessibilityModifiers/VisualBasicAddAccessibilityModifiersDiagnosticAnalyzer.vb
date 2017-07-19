@@ -37,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
 
             ' If we have a class or struct or module, recurse inwards.
             If member.IsKind(SyntaxKind.ClassBlock) OrElse
-           member.IsKind(SyntaxKind.StructureBlock) OrElse
-           member.IsKind(SyntaxKind.ModuleBlock) Then
+               member.IsKind(SyntaxKind.StructureBlock) OrElse
+               member.IsKind(SyntaxKind.ModuleBlock) Then
 
                 Dim typeBlock = DirectCast(member, TypeBlockSyntax)
                 ProcessMembers(context, generator, [option], typeBlock.Members)
