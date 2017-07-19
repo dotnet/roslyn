@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseAddressOfExpression : Operation, IAddressOfExpression
     {
         protected BaseAddressOfExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.AddressOfExpression, semanticModel, syntax, type, constantValue)
+            base(OperationKind.AddressOfExpression, semanticModel, syntax, type, constantValue)
         {
         }
 

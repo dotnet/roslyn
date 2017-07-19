@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis
 
         public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation
         {
-            (operation as Operation).SetParentOperation(parent);
+            // operation can be null
+            (operation as Operation)?.SetParentOperation(parent);
             return operation;
         }
 
@@ -154,7 +155,8 @@ namespace Microsoft.CodeAnalysis
         {
             void EnqueueChildOperations(Queue<IOperation> queue, IOperation parent)
             {
-                foreach (var o in parent.Children)
+                // children can return null
+                foreach (var o in parent.Children.WhereNotNull())
                 {
                     queue.Enqueue(o);
                 }
