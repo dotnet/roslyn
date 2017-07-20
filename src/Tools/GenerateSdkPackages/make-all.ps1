@@ -2,7 +2,8 @@
 param(
     [string]$version = "26606.00",
     [string]$branch = "d15rel",
-    [string]$outPath = $null
+    [string]$outPath = $null,
+    [string]$versionSuffix = "alpha"
 )
 
 Set-StrictMode -version 2.0
@@ -55,7 +56,7 @@ try {
     $fakeSign = Join-Path (Get-PackageDir "FakeSign") "Tools\FakeSign.exe"
 
     $shortVersion = $version.Substring(0, $version.IndexOf('.'))
-    $packageVersion = "15.0.$shortVersion-alpha"
+    $packageVersion = "15.0.$shortVersion-$versionSuffix"
     $dllPath = Join-Path $outPath "Dlls"
     $packagePath = Join-Path $outPath "Packages"
 
