@@ -469,6 +469,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var csnode = (CSharpSyntaxNode)node;
             CheckSyntaxNode(csnode);
+
+            if (!Root.FullSpan.Contains(node.FullSpan))
+            {
+                // given node must be sub node of this root.
+                return null;
+            }
+
             return this.GetOperationWorker(csnode, GetOperationOptions.Lowest, cancellationToken);
         }
 

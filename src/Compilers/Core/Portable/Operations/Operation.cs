@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(((Operation)operation)._semanticModel == _semanticModel);
 
                 // confirm explicitly given parent is same as what we would have found.
-                Debug.Assert(operation == SearchParentOperation());
+                var found = SearchParentOperation();
+                Debug.Assert(operation == found);
             }
 #endif
         }
@@ -99,7 +100,13 @@ namespace Microsoft.CodeAnalysis
         public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation
         {
             // operation can be null
-            (operation as Operation)?.SetParentOperation(parent);
+            if (operation == null)
+            {
+                return operation;
+            }
+
+            // explicit cast is not allowed, so using "as" instead
+            (operation as Operation).SetParentOperation(parent);
             return operation;
         }
 
@@ -113,6 +120,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // race is okay. paneltiy is going through a loop one more time
+            // explicit cast is not allowed, so using "as" instead
             if ((operations[0] as Operation)._parentDoNotAccessDirectly != null)
             {
                 // already initialized
@@ -200,11 +208,9 @@ namespace Microsoft.CodeAnalysis
                         return operation.Parent;
                     }
 
-                    if (!operation.Syntax.FullSpan.IntersectsWith(span))
-                    {
-                        // not related node, don't walk down
-                        continue;
-                    }
+                    // It can't filter visiting children by node span since IOperation
+                    // might have children which belong to completely different sub tree of
+                    // syntax tree
 
                     // queue children so that we can do breadth first search
                     EnqueueChildOperations(operationQueue, operation);

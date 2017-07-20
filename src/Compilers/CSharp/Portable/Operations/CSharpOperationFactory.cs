@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly ConcurrentDictionary<BoundNode, IOperation> _cache =
             new ConcurrentDictionary<BoundNode, IOperation>(concurrencyLevel: 2, capacity: 10);
 
+        private readonly ConcurrentDictionary<BoundLocalDeclaration, IVariableDeclaration> _variableDeclarationCache =
+            new ConcurrentDictionary<BoundLocalDeclaration, IVariableDeclaration>(concurrencyLevel: 2, capacity: 10);
+
         private readonly SemanticModel _semanticModel;
 
         public CSharpOperationFactory(SemanticModel semanticModel)
@@ -1166,10 +1169,18 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyInvalidStatement(children, _semanticModel, syntax, type, constantValue);
         }
 
+        private IVariableDeclaration CreateVariableDeclaration(BoundLocalDeclaration boundLocalDeclaration)
+        {
+            // special case for variable decl due to BoundNode using same node for both statement and other construct
+            return _variableDeclarationCache.GetOrAdd(boundLocalDeclaration, d =>
+            {
+                return OperationFactory.CreateVariableDeclaration(d.LocalSymbol, Create(d.InitializerOpt), _semanticModel, d.Syntax);
+            });
+        }
+
         private IVariableDeclarationStatement CreateBoundLocalDeclarationOperation(BoundLocalDeclaration boundLocalDeclaration)
         {
-            Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() =>
-                ImmutableArray.Create(OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, Create(boundLocalDeclaration.InitializerOpt), _semanticModel, boundLocalDeclaration.Syntax)));
+            Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() => ImmutableArray.Create(CreateVariableDeclaration(boundLocalDeclaration)));
             SyntaxNode syntax = boundLocalDeclaration.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -1179,8 +1190,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private IVariableDeclarationStatement CreateBoundMultipleLocalDeclarationsOperation(BoundMultipleLocalDeclarations boundMultipleLocalDeclarations)
         {
             Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() =>
-                boundMultipleLocalDeclarations.LocalDeclarations.SelectAsArray(declaration =>
-                    OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), _semanticModel, declaration.Syntax)));
+                boundMultipleLocalDeclarations.LocalDeclarations.SelectAsArray(declaration => CreateVariableDeclaration(declaration)));
             SyntaxNode syntax = boundMultipleLocalDeclarations.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);

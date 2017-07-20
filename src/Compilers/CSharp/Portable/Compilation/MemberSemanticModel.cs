@@ -986,7 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory
             // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
             // UnboundLambda.BindForErrorRecovery() when it encounters an UnboundLambda node.
-            Debug.Assert(result.Kind != BoundKind.UnboundLambda);
+            Debug.Assert(result?.Kind != BoundKind.UnboundLambda);
             return _operationFactory.Create(result);
         }
 
@@ -1087,6 +1087,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetBoundNodes(CSharpSyntaxNode node, out CSharpSyntaxNode bindableNode, out BoundNode lowestBoundNode, out BoundNode highestBoundNode, out BoundNode boundParent)
         {
             bindableNode = this.GetBindableSyntaxNode(node);
+
+            // no good node to bind
+            if (!Root.FullSpan.Contains(bindableNode.FullSpan))
+            {
+                bindableNode = null;
+                lowestBoundNode = null;
+                highestBoundNode = null;
+                boundParent = null;
+                return;
+            }
+
             CSharpSyntaxNode bindableParent = this.GetBindableParentNode(bindableNode);
 
             // Special handling for the Color Color case.
@@ -1294,11 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (CSharpSyntaxNode current = node; current != this.Root; current = current.ParentOrStructuredTriviaParent)
             {
-                if (current == null)
-                {
-                    // this can happen if this.Root is not parent of given node
-                    return enclosingStatement ?? this.Root;
-                }
+                Debug.Assert(current != null, "How did we get outside the root?");
 
                 if (enclosingStatement == null)
                 {
@@ -1554,7 +1561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (node != null);
 
-done:
+            done:
             return GetEnclosingBinderInternalWithinRoot(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
                                       position, queryClause.Binder, queryClause.Syntax);
         }

@@ -141,6 +141,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function GetOperationCore(node As SyntaxNode, cancellationToken As CancellationToken) As IOperation
             Dim vbnode = DirectCast(node, VisualBasicSyntaxNode)
             CheckSyntaxNode(vbnode)
+
+            If Not Root.FullSpan.Contains(node.FullSpan) Then
+                ' given node must be sub node of this root
+                Return Nothing
+            End If
+
             Return GetOperationWorker(vbnode, GetOperationOptions.Highest, cancellationToken)
         End Function
 
