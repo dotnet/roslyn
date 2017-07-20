@@ -45,12 +45,6 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
             while (true)
             {
-                token = token.GetNextToken(includeZeroWidth: true);
-                if (token.RawKind == 0)
-                {
-                    return;
-                }
-
                 var index = GetEqualsConflictMarkerIndex(text, token);
                 if (index >= 0)
                 {
@@ -58,6 +52,8 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
                     if (index + 3 < token.LeadingTrivia.Count)
                     {
+                        // normal case where there us =====, then dead code, then >>>>>>
+
                         var equalsTrivia = leadingTrivia[index];
                         var endOfLineTrivia = leadingTrivia[index + 1];
                         var disabledTrivia = leadingTrivia[index + 2];
@@ -67,36 +63,67 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                             IsDisabledText(disabledTrivia) &&
                             IsConflictMarker(text, endTrivia, '>'))
                         {
-                            var topText = startTrivia.ToString().Substring(s_mergeConflictLength).Trim();
-                            var takeTopText = string.IsNullOrWhiteSpace(topText)
-                                ? FeaturesResources.Take_top
-                                : string.Format(FeaturesResources.Take_0, topText);
+                            RegisterCodeFixes(context, startTrivia, equalsTrivia, endTrivia);
+                            return;
+                        }
+                    }
 
-                            var bottomText = endTrivia.ToString().Substring(s_mergeConflictLength).Trim();
-                            var takeBottomText = string.IsNullOrWhiteSpace(bottomText)
-                                ? FeaturesResources.Take_bottom
-                                : string.Format(FeaturesResources.Take_0, bottomText);
+                    if (index + 2 < token.LeadingTrivia.Count)
+                    {
+                        // case where there is ===== followed by >>>>>>  on the next line.
 
-                            var startSpan = startTrivia.Span;
-                            var equalsSpan = equalsTrivia.Span;
-                            var endSpan = endTrivia.Span;
-                            
-                            context.RegisterCodeFix(
-                                new MyCodeAction(takeTopText, 
-                                    c => TakeTopAsync(document, startSpan, equalsSpan, endSpan, c)),
-                                context.Diagnostics);
-                            context.RegisterCodeFix(
-                                new MyCodeAction(takeBottomText, 
-                                c => TakeBottomAsync(document, startSpan, equalsSpan, endSpan, c)),
-                                context.Diagnostics);
-                            context.RegisterCodeFix(
-                                new MyCodeAction(FeaturesResources.Take_both, 
-                                c => TakeBothAsync(document, startSpan, equalsSpan, endSpan, c)),
-                                context.Diagnostics);
+                        var equalsTrivia = leadingTrivia[index];
+                        var endOfLineTrivia = leadingTrivia[index + 1];
+                        var endTrivia = leadingTrivia[index + 2];
+
+                        if (IsEndOfLine(endOfLineTrivia) &&
+                            IsConflictMarker(text, endTrivia, '>'))
+                        {
+                            RegisterCodeFixes(context, startTrivia, equalsTrivia, endTrivia);
+                            return;
                         }
                     }
                 }
+
+                token = token.GetNextToken(includeZeroWidth: true);
+                if (token.RawKind == 0)
+                {
+                    return;
+                }
             }
+        }
+
+        private void RegisterCodeFixes(
+            CodeFixContext context, SyntaxTrivia startTrivia, SyntaxTrivia equalsTrivia, SyntaxTrivia endTrivia)
+        {
+            var document = context.Document;
+
+            var topText = startTrivia.ToString().Substring(s_mergeConflictLength).Trim();
+            var takeTopText = string.IsNullOrWhiteSpace(topText)
+                ? FeaturesResources.Take_top
+                : string.Format(FeaturesResources.Take_0, topText);
+
+            var bottomText = endTrivia.ToString().Substring(s_mergeConflictLength).Trim();
+            var takeBottomText = string.IsNullOrWhiteSpace(bottomText)
+                ? FeaturesResources.Take_bottom
+                : string.Format(FeaturesResources.Take_0, bottomText);
+
+            var startSpan = startTrivia.Span;
+            var equalsSpan = equalsTrivia.Span;
+            var endSpan = endTrivia.Span;
+
+            context.RegisterCodeFix(
+                new MyCodeAction(takeTopText,
+                    c => TakeTopAsync(document, startSpan, equalsSpan, endSpan, c)),
+                context.Diagnostics);
+            context.RegisterCodeFix(
+                new MyCodeAction(takeBottomText,
+                c => TakeBottomAsync(document, startSpan, equalsSpan, endSpan, c)),
+                context.Diagnostics);
+            context.RegisterCodeFix(
+                new MyCodeAction(FeaturesResources.Take_both,
+                c => TakeBothAsync(document, startSpan, equalsSpan, endSpan, c)),
+                context.Diagnostics);
         }
 
         private async Task<Document> TakeTopAsync(
