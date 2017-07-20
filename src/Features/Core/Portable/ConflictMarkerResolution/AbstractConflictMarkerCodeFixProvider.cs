@@ -107,68 +107,68 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 ? FeaturesResources.Take_bottom
                 : string.Format(FeaturesResources.Take_0, bottomText);
 
-            var lessThanPosition = startTrivia.SpanStart;
-            var equalsPosition = equalsTrivia.SpanStart;
-            var greaterThanPosition = endTrivia.SpanStart;
+            var startPos = startTrivia.SpanStart;
+            var equalsPos = equalsTrivia.SpanStart;
+            var endPos = endTrivia.SpanStart;
 
             context.RegisterCodeFix(
                 new MyCodeAction(takeTopText,
-                    c => TakeTopAsync(document, lessThanPosition, equalsPosition, greaterThanPosition, c)),
+                    c => TakeTopAsync(document, startPos, equalsPos, endPos, c)),
                 context.Diagnostics);
             context.RegisterCodeFix(
                 new MyCodeAction(takeBottomText,
-                    c => TakeBottomAsync(document, lessThanPosition, equalsPosition, greaterThanPosition, c)),
+                    c => TakeBottomAsync(document, startPos, equalsPos, endPos, c)),
                 context.Diagnostics);
             context.RegisterCodeFix(
                 new MyCodeAction(FeaturesResources.Take_both,
-                    c => TakeBothAsync(document, lessThanPosition, equalsPosition, greaterThanPosition, c)),
+                    c => TakeBothAsync(document, startPos, equalsPos, endPos, c)),
                 context.Diagnostics);
         }
 
         private async Task<Document> TakeTopAsync(
-            Document document, int lessThanPos, int equalsPos, int greaterThanPos,
+            Document document, int startPos, int equalsPos, int endPos,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var bottomEnd = GetEndIncludingLineBreak(text, greaterThanPos);
+            var bottomEnd = GetEndIncludingLineBreak(text, endPos);
             var newText = text.Replace(TextSpan.FromBounds(equalsPos, bottomEnd), "");
 
-            var startEnd = GetEndIncludingLineBreak(text, lessThanPos);
-            var finaltext = newText.Replace(TextSpan.FromBounds(lessThanPos, startEnd), "");
+            var startEnd = GetEndIncludingLineBreak(text, startPos);
+            var finaltext = newText.Replace(TextSpan.FromBounds(startPos, startEnd), "");
 
             return document.WithText(finaltext);
         }
 
         private async Task<Document> TakeBottomAsync(
-            Document document, int lessThanPos, int equalsPos, int greaterThanPos,
+            Document document, int startPos, int equalsPos, int endPos,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var bottomEnd = GetEndIncludingLineBreak(text, greaterThanPos);
-            var newText = text.Replace(TextSpan.FromBounds(greaterThanPos, bottomEnd), "");
+            var bottomEnd = GetEndIncludingLineBreak(text, endPos);
+            var newText = text.Replace(TextSpan.FromBounds(endPos, bottomEnd), "");
 
             var equalsEnd = GetEndIncludingLineBreak(text, equalsPos);
-            var finaltext = newText.Replace(TextSpan.FromBounds(lessThanPos, equalsEnd), "");
+            var finaltext = newText.Replace(TextSpan.FromBounds(startPos, equalsEnd), "");
 
             return document.WithText(finaltext);
         }
 
         private async Task<Document> TakeBothAsync(
-            Document document, int lessThanPos, int equalsPos, int greaterThanPos,
+            Document document, int startPos, int equalsPos, int endPos,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var bottomEnd = GetEndIncludingLineBreak(text, greaterThanPos);
-            var newText = text.Replace(TextSpan.FromBounds(greaterThanPos, bottomEnd), "");
+            var bottomEnd = GetEndIncludingLineBreak(text, endPos);
+            var newText = text.Replace(TextSpan.FromBounds(endPos, bottomEnd), "");
 
             var equalsEnd = GetEndIncludingLineBreak(text, equalsPos);
             newText = newText.Replace(TextSpan.FromBounds(equalsPos, equalsEnd), "");
 
-            var startEnd = GetEndIncludingLineBreak(text, lessThanPos);
-            var finaltext = newText.Replace(TextSpan.FromBounds(lessThanPos, startEnd), "");
+            var startEnd = GetEndIncludingLineBreak(text, startPos);
+            var finaltext = newText.Replace(TextSpan.FromBounds(startPos, startEnd), "");
 
             return document.WithText(finaltext);
         }
