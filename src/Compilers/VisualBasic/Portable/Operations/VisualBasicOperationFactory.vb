@@ -169,6 +169,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundAddHandlerStatementOperation(DirectCast(boundNode, BoundAddHandlerStatement))
                 Case BoundKind.RemoveHandlerStatement
                     Return CreateBoundRemoveHandlerStatementOperation(DirectCast(boundNode, BoundRemoveHandlerStatement))
+                Case BoundKind.TupleLiteral,
+                     BoundKind.ConvertedTupleLiteral
+                    Return CreateBoundTupleExpressionOperation(DirectCast(boundNode, BoundTupleExpression))
                 Case BoundKind.InterpolatedStringExpression
                     Return CreateBoundInterpolatedStringExpressionOperation(DirectCast(boundNode, BoundInterpolatedStringExpression))
                 Case BoundKind.Interpolation
@@ -524,10 +527,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundNewTOperation(boundNewT As BoundNewT) As ITypeParameterObjectCreationExpression
+            Dim initializer As Lazy(Of IObjectOrCollectionInitializerExpression) = New Lazy(Of IObjectOrCollectionInitializerExpression)(Function() DirectCast(Create(boundNewT.InitializerOpt), IObjectOrCollectionInitializerExpression))
             Dim syntax As SyntaxNode = boundNewT.Syntax
             Dim type As ITypeSymbol = boundNewT.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundNewT.ConstantValueOpt)
-            Return New TypeParameterObjectCreationExpression(syntax, type, constantValue)
+            Return New LazyTypeParameterObjectCreationExpression(initializer, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundArrayCreationOperation(boundArrayCreation As BoundArrayCreation) As IArrayCreationExpression
@@ -652,7 +656,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundFieldInitializerOperation(boundFieldInitializer As BoundFieldInitializer) As IFieldInitializer
             Dim initializedFields As ImmutableArray(Of IFieldSymbol) = ImmutableArray(Of IFieldSymbol).CastUp(boundFieldInitializer.InitializedFields)
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundFieldInitializer.InitialValue))
-            Dim kind As OperationKind = OperationKind.FieldInitializerAtDeclaration
+            Dim kind As OperationKind = OperationKind.FieldInitializer
             Dim syntax As SyntaxNode = boundFieldInitializer.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -662,7 +666,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundPropertyInitializerOperation(boundPropertyInitializer As BoundPropertyInitializer) As IPropertyInitializer
             Dim initializedProperty As IPropertySymbol = boundPropertyInitializer.InitializedProperties.FirstOrDefault()
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundPropertyInitializer.InitialValue))
-            Dim kind As OperationKind = OperationKind.PropertyInitializerAtDeclaration
+            Dim kind As OperationKind = OperationKind.PropertyInitializer
             Dim syntax As SyntaxNode = boundPropertyInitializer.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -672,7 +676,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundParameterEqualsValueOperation(boundParameterEqualsValue As BoundParameterEqualsValue) As IParameterInitializer
             Dim parameter As IParameterSymbol = boundParameterEqualsValue.Parameter
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundParameterEqualsValue.Value))
-            Dim kind As OperationKind = OperationKind.ParameterInitializerAtDeclaration
+            Dim kind As OperationKind = OperationKind.ParameterInitializer
             Dim syntax As SyntaxNode = boundParameterEqualsValue.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -802,7 +806,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundTryStatementOperation(boundTryStatement As BoundTryStatement) As ITryStatement
             Dim body As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundTryStatement.TryBlock), IBlockStatement))
-            Dim catches As Lazy(Of ImmutableArray(Of ICatchClause)) = New Lazy(Of ImmutableArray(Of ICatchClause))(Function() boundTryStatement.CatchBlocks.As(Of ICatchClause)())
+            Dim catches As Lazy(Of ImmutableArray(Of ICatchClause)) = New Lazy(Of ImmutableArray(Of ICatchClause))(Function() boundTryStatement.CatchBlocks.SelectAsArray(Function(n) DirectCast(Create(n), ICatchClause)))
             Dim finallyHandler As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundTryStatement.FinallyBlockOpt), IBlockStatement))
             Dim syntax As SyntaxNode = boundTryStatement.Syntax
             Dim type As ITypeSymbol = Nothing
@@ -1011,6 +1015,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Return New LazyExpressionStatement(expression, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundTupleExpressionOperation(boundTupleExpression As BoundTupleExpression) As ITupleExpression
+            Dim elements As New Lazy(Of ImmutableArray(Of IOperation))(Function() boundTupleExpression.Arguments.SelectAsArray(Function(element) Create(element)))
+            Dim syntax As SyntaxNode = boundTupleExpression.Syntax
+            Dim type As ITypeSymbol = boundTupleExpression.Type
+            Dim constantValue As [Optional](Of Object) = Nothing
+            Return New LazyTupleExpression(elements, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundInterpolatedStringExpressionOperation(boundInterpolatedString As BoundInterpolatedStringExpression) As IInterpolatedStringExpression

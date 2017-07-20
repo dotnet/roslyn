@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -44,8 +44,8 @@ class C
     static int s1 /*<bind>*/= 1/*</bind>*/;
 }
 ";
-            string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1')
+string expectedOperationTree = @"
+IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -66,8 +66,8 @@ class C
     int i1 = 1, i2 /*<bind>*/= 2/*</bind>*/;
 }
 ";
-            string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 2')
+string expectedOperationTree = @"
+IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializer) (Syntax: '= 2')
   ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -92,7 +92,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IPropertyInitializer (Property: System.Int32 C.P1 { get; }) (OperationKind.PropertyInitializerAtDeclaration) (Syntax: '= 1')
+IPropertyInitializer (Property: System.Int32 C.P1 { get; }) (OperationKind.PropertyInitializer) (Syntax: '= 1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -110,7 +110,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IParameterInitializer (Parameter: [System.Int32 p1 = 0]) (OperationKind.ParameterInitializerAtDeclaration) (Syntax: '= 0')
+IParameterInitializer (Parameter: [System.Int32 p1 = 0]) (OperationKind.ParameterInitializer) (Syntax: '= 0')
   ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -131,10 +131,10 @@ class C
     void M(int p1 = 0, params int[] p2 /*<bind>*/= null/*</bind>*/) { }
 }
 ";
-            string expectedOperationTree = @"
-IParameterInitializer (Parameter: params System.Int32[] p2) (OperationKind.ParameterInitializerAtDeclaration) (Syntax: '= null')
+string expectedOperationTree = @"
+IParameterInitializer (Parameter: params System.Int32[] p2) (OperationKind.ParameterInitializer) (Syntax: '= null')
   IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null) (Syntax: 'null')
-    ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+    Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1751: Cannot specify a default value for a parameter array
@@ -156,11 +156,13 @@ class C
     static int F() { return 1; }
 }
 ";
-            string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1 + F()')
+string expectedOperationTree = @"
+IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-    Right: IInvocationExpression (static System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
+    Right: IInvocationExpression (System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
+        Instance Receiver: null
+        Arguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -180,11 +182,13 @@ class C
     static int F() { return 1; }
 }
 ";
-            string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1 + F()')
+string expectedOperationTree = @"
+IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-    Right: IInvocationExpression (static System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
+    Right: IInvocationExpression (System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
+        Instance Receiver: null
+        Arguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -202,11 +206,13 @@ class C
     static int F() { return 1; }
 }
 ";
-            string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1 + F()')
+string expectedOperationTree = @"
+IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-    Right: IInvocationExpression (static System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
+    Right: IInvocationExpression (System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
+        Instance Receiver: null
+        Arguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -229,8 +235,8 @@ partial class C
     int i2 = 2;
 }
 ";
-            string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 1')
+string expectedOperationTree = @"
+IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -267,8 +273,8 @@ partial class C
     int i2 /*<bind>*/= 2/*</bind>*/;
 }
 ";
-            string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= 2')
+string expectedOperationTree = @"
+IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializer) (Syntax: '= 2')
   ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -300,11 +306,15 @@ class C
     static System.Action MakeAction(int x) { return null; }
 }
 ";
-            string expectedOperationTree = @"
-IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= MakeAction(1)')
-  IInvocationExpression (static System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(1)')
-    Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+string expectedOperationTree = @"
+IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializer) (Syntax: '= MakeAction(1)')
+  IInvocationExpression (System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(1)')
+    Instance Receiver: null
+    Arguments(1):
+        IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+          ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          InConversion: null
+          OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -322,11 +332,15 @@ class C
     static System.Action MakeAction(int x) { return null; }
 }
 ";
-            string expectedOperationTree = @"
-IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= MakeAction(2)')
-  IInvocationExpression (static System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(2)')
-    Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '2')
-        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+string expectedOperationTree = @"
+IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializer) (Syntax: '= MakeAction(2)')
+  IInvocationExpression (System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(2)')
+    Instance Receiver: null
+    Arguments(1):
+        IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '2')
+          ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+          InConversion: null
+          OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

@@ -4764,6 +4764,73 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a tuple expression.
+    /// </summary>
+    internal abstract partial class BaseTupleExpression : Operation, ITupleExpression
+    {
+        protected BaseTupleExpression(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.TupleExpression, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Elements for tuple expression.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> Elements { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var element in Elements)
+                {
+                    yield return element;
+                }
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitTupleExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitTupleExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a tuple expression.
+    /// </summary>
+    internal sealed partial class TupleExpression : BaseTupleExpression, ITupleExpression
+    {
+        public TupleExpression(ImmutableArray<IOperation> elements, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            Elements = elements;
+        }
+        /// <summary>
+        /// Elements for tuple expression.
+        /// </summary>
+        public override ImmutableArray<IOperation> Elements { get; }
+    }
+
+    /// <summary>
+    /// Represents a tuple expression.
+    /// </summary>
+    internal sealed partial class LazyTupleExpression : BaseTupleExpression, ITupleExpression
+    {
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyElements;
+
+        public LazyTupleExpression(Lazy<ImmutableArray<IOperation>> elements, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            _lazyElements = elements;
+        }
+        /// <summary>
+        /// Elements for tuple expression.
+        /// </summary>
+        public override ImmutableArray<IOperation> Elements => _lazyElements.Value;
+    }
+
+    /// <summary>
     /// Represents a TypeOf expression.
     /// </summary>
     internal sealed partial class TypeOfExpression : TypeOperationExpression, ITypeOfExpression
@@ -4805,13 +4872,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ITypeSymbol TypeOperand { get; }
     }
 
-    /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
-    /// </remarks>
-    internal sealed partial class TypeParameterObjectCreationExpression : Operation, ITypeParameterObjectCreationExpression
+    /// <summary>
+    /// Represents a type parameter object creation expression, i.e. new T(), where T is a type parameter with new constraint.
+    /// </summary>
+    internal abstract partial class BaseTypeParameterObjectCreationExpression : Operation, ITypeParameterObjectCreationExpression
     {
-        public TypeParameterObjectCreationExpression(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseTypeParameterObjectCreationExpression(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.TypeParameterObjectCreationExpression, syntax, type, constantValue)
         {
         }
@@ -4819,9 +4885,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield break;
+                yield return Initializer;
             }
         }
+        /// <summary>
+        /// Object or collection initializer, if any.
+        /// </summary>
+        public abstract IObjectOrCollectionInitializerExpression Initializer { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitTypeParameterObjectCreationExpression(this);
@@ -4830,6 +4900,137 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitTypeParameterObjectCreationExpression(this, argument);
         }
+    }
+
+    /// <summary>
+    /// Represents a type parameter object creation expression, i.e. new T(), where T is a type parameter with new constraint.
+    /// </summary>
+    internal sealed partial class TypeParameterObjectCreationExpression : BaseTypeParameterObjectCreationExpression, ITypeParameterObjectCreationExpression
+    {
+        public TypeParameterObjectCreationExpression(IObjectOrCollectionInitializerExpression initializer, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            Initializer = initializer;
+        }
+        /// <summary>
+        /// Object or collection initializer, if any.
+        /// </summary>
+        public override IObjectOrCollectionInitializerExpression Initializer { get; }
+    }
+
+    /// <summary>
+    /// Represents a type parameter object creation expression, i.e. new T(), where T is a type parameter with new constraint.
+    /// </summary>
+    internal sealed partial class LazyTypeParameterObjectCreationExpression : BaseTypeParameterObjectCreationExpression, ITypeParameterObjectCreationExpression
+    {
+        private readonly Lazy<IObjectOrCollectionInitializerExpression> _lazyInitializer;
+        public LazyTypeParameterObjectCreationExpression(Lazy<IObjectOrCollectionInitializerExpression> initializer, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
+        }
+        /// <summary>
+        /// Object or collection initializer, if any.
+        /// </summary>
+        public override IObjectOrCollectionInitializerExpression Initializer => _lazyInitializer.Value;
+    }
+
+    /// <remarks>
+    /// Represents a dynamically bound new/New expression.
+    /// </remarks>
+    internal abstract partial class BaseDynamicObjectCreationExpression : Operation, IHasDynamicArgumentsExpression, IDynamicObjectCreationExpression
+    {
+        public BaseDynamicObjectCreationExpression(string name, ImmutableArray<ISymbol> applicableSymbols, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.TypeParameterObjectCreationExpression, syntax, type, constantValue)
+        {
+            Name = name;
+            ApplicableSymbols = applicableSymbols;
+            ArgumentNames = argumentNames;
+            ArgumentRefKinds = argumentRefKinds;
+        }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Initializer;
+            }
+        }
+        /// <summary>
+        /// Name of the dynamically invoked member.
+        /// </summary>
+        public string Name { get; }
+        /// <summary>
+        /// List of applicable symbols that are dynamically bound to the <see cref="Name"/>.
+        /// </summary>
+        public ImmutableArray<ISymbol> ApplicableSymbols { get; }
+        /// <summary>
+        /// Dynamically bound arguments, excluding the instance argument.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> Arguments { get; }
+        /// <summary>
+        /// Optional argument names for named arguments.
+        /// </summary>
+        public ImmutableArray<string> ArgumentNames { get; }
+        /// <summary>
+        /// Optional argument ref kinds.
+        /// </summary>
+        public ImmutableArray<RefKind> ArgumentRefKinds { get; }
+        /// <summary>
+        /// Object or collection initializer, if any.
+        /// </summary>
+        public abstract IObjectOrCollectionInitializerExpression Initializer { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDynamicObjectCreationExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDynamicObjectCreationExpression(this, argument);
+        }
+    }
+
+    /// <remarks>
+    /// Represents a dynamically bound new/New expression.
+    /// </remarks>
+    internal sealed partial class DynamicObjectCreationExpression : BaseDynamicObjectCreationExpression, IHasDynamicArgumentsExpression, IDynamicObjectCreationExpression
+    {
+        public DynamicObjectCreationExpression(string name, ImmutableArray<ISymbol> applicableSymbols, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, IObjectOrCollectionInitializerExpression initializer, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(name, applicableSymbols, argumentNames, argumentRefKinds, syntax, type, constantValue)
+        {
+            Arguments = arguments;
+            Initializer = initializer;
+        }
+        /// <summary>
+        /// Dynamically bound arguments, excluding the instance argument.
+        /// </summary>
+        public override ImmutableArray<IOperation> Arguments { get; }
+        /// <summary>
+        /// Object or collection initializer, if any.
+        /// </summary>
+        public override IObjectOrCollectionInitializerExpression Initializer { get; }
+    }
+
+    /// <remarks>
+    /// Represents a dynamically bound new/New expression.
+    /// </remarks>
+    internal sealed partial class LazyDynamicObjectCreationExpression : BaseDynamicObjectCreationExpression, IHasDynamicArgumentsExpression, IDynamicObjectCreationExpression
+    {
+        private readonly Lazy<IObjectOrCollectionInitializerExpression> _lazyInitializer;
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyArguments;
+        public LazyDynamicObjectCreationExpression(string name, ImmutableArray<ISymbol> applicableSymbols, Lazy<ImmutableArray<IOperation>> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, Lazy<IObjectOrCollectionInitializerExpression> initializer, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(name, applicableSymbols, argumentNames, argumentRefKinds, syntax, type, constantValue)
+        {
+            _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
+            _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
+        }
+        /// <summary>
+        /// Dynamically bound arguments, excluding the instance argument.
+        /// </summary>
+        public override ImmutableArray<IOperation> Arguments => _lazyArguments.Value;
+        /// <summary>
+        /// Object or collection initializer, if any.
+        /// </summary>
+        public override IObjectOrCollectionInitializerExpression Initializer => _lazyInitializer.Value;
     }
 
     /// <summary>

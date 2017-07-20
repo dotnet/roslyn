@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly List<ProjectReference> _projectReferences = new List<ProjectReference>();
         private readonly List<VisualStudioMetadataReference> _metadataReferences = new List<VisualStudioMetadataReference>();
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _documents = new Dictionary<DocumentId, IVisualStudioHostDocument>();
-        private readonly Dictionary<string, (IVisualStudioHostDocument document, int refCount)> _documentMonikers = new Dictionary<string, (IVisualStudioHostDocument, int)>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, IVisualStudioHostDocument> _documentMonikers = new Dictionary<string, IVisualStudioHostDocument>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzers = new Dictionary<string, VisualStudioAnalyzer>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _additionalDocuments = new Dictionary<DocumentId, IVisualStudioHostDocument>();
 
@@ -411,9 +411,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                return _documentMonikers.TryGetValue(filePath, out var value)
-                    ? value.document
-                    : null;
+                _documentMonikers.TryGetValue(filePath, out var document);
+                return document;
             }
         }
 
@@ -894,7 +893,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private static void OnAdditionalDocumentOpened(object sender, bool isCurrentContextIgnored)
+        private static void OnAdditionalDocumentOpened(object sender, bool isCurrentContext)
         {
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
             AbstractProject project = (AbstractProject)document.Project;
@@ -903,7 +902,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (project._pushingChangesToWorkspaceHosts)
             {
-                project.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentOpened(document.Id, document.GetOpenTextBuffer()));
+                project.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentOpened(document.Id, document.GetOpenTextBuffer(), isCurrentContext));
             }
             else
             {
@@ -953,7 +952,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 filePath: filename,
                 sourceCodeKind: sourceCodeKind,
                 getFolderNames: getFolderNames,
-                isAdditionalFile: false,
                 canUseTextBuffer: CanUseTextBuffer,
                 updatedOnDiskHandler: s_documentUpdatedOnDiskEventHandler,
                 openedHandler: s_documentOpenedEventHandler,
@@ -1017,7 +1015,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 lock (_gate)
                 {
                     _documents.Add(document.Id, document);
-                    AddMoniker(document);
+                    _documentMonikers.Add(document.Key.Moniker, document);
                 }
 
                 if (_pushingChangesToWorkspaceHosts)
@@ -1056,7 +1054,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 lock (_gate)
                 {
                     _documents.Remove(document.Id);
-                    RemoveMoniker(document);
+                    _documentMonikers.Remove(document.Key.Moniker);
                 }
 
                 UninitializeDocument(document);
@@ -1064,14 +1062,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void AddAdditionalDocument(IVisualStudioHostDocument document)
+        internal void AddAdditionalDocument(IVisualStudioHostDocument document, bool isCurrentContext)
         {
             AssertIsForeground();
 
             lock (_gate)
             {
                 _additionalDocuments.Add(document.Id, document);
-                AddMoniker(document);
+                _documentMonikers.Add(document.Key.Moniker, document);
             }
 
             if (_pushingChangesToWorkspaceHosts)
@@ -1080,7 +1078,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (document.IsOpen)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentOpened(document.Id, document.GetOpenTextBuffer()));
+                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentOpened(document.Id, document.GetOpenTextBuffer(), isCurrentContext));
                 }
             }
 
@@ -1099,46 +1097,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 _additionalDocuments.Remove(document.Id);
-                RemoveMoniker(document);
+                _documentMonikers.Remove(document.Key.Moniker);
             }
 
             UninitializeAdditionalDocument(document);
-        }
-
-        private void AddMoniker(IVisualStudioHostDocument document)
-        {
-            var moniker = document.Key.Moniker;
-            if (_documentMonikers.TryGetValue(moniker, out var value))
-            {
-                value.refCount++;
-                _documentMonikers[moniker] = (value.document, value.refCount);
-            }
-            else
-            {
-                _documentMonikers.Add(moniker, (document, 1));
-            }
-        }
-
-        private void RemoveMoniker(IVisualStudioHostDocument document)
-        {
-            var moniker = document.Key.Moniker;
-            if (_documentMonikers.TryGetValue(moniker, out var value))
-            {
-                Debug.Assert(value.document.Equals(document));
-                value.refCount--;
-                if (value.refCount == 0)
-                {
-                    _documentMonikers.Remove(moniker);
-                }
-                else
-                {
-                    _documentMonikers[moniker] = (value.document, value.refCount);
-                }
-            }
-            else
-            {
-                Debug.Fail($"Couldn't find '{moniker}' in {nameof(_documentMonikers)} to remove it.");
-            }
         }
 
         public virtual void Disconnect()

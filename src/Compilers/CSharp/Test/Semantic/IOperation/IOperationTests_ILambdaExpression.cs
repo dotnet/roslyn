@@ -1,3 +1,5 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Semantics;
@@ -26,16 +28,19 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action x /* ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action x /* ... *</bind>*/;')
     Variables: Local_1: System.Action x
     Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: '() => F()')
-        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => F()')
-          IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'F()')
-            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'F()')
-              IInvocationExpression (static void Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')
-            IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'F()')
+        Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => F()')
+            IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'F()')
+              IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'F()')
+                Expression: IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')
+                    Instance Receiver: null
+                    Arguments(0)
+              IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'F()')
+                ReturnedValue: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -60,14 +65,16 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var x /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'var x /*<bi ... *</bind>*/;')
     Variables: Local_1: var x
     Initializer: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: '() => F()')
         IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'F()')
           IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'F()')
-            IInvocationExpression (static void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
+            Expression: IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
+                Instance Receiver: null
+                Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0815: Cannot assign lambda expression to an implicitly-typed variable
@@ -96,15 +103,17 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action<int> ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action<int> ... *</bind>*/;')
     Variables: Local_1: System.Action<System.Int32> x
     Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: '() => F()')
-        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: '() => F()')
-          IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'F()')
-            IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'F()')
-              IInvocationExpression (static void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
+        Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: '() => F()')
+            IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'F()')
+              IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'F()')
+                Expression: IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
+                    Instance Receiver: null
+                    Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1593: Delegate 'Action<int>' does not take 0 arguments

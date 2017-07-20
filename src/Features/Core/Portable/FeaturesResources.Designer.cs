@@ -1189,6 +1189,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Format string contains invalid placeholder.
+        /// </summary>
+        internal static string Format_string_contains_invalid_placeholder {
+            get {
+                return ResourceManager.GetString("Format_string_contains_invalid_placeholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to from {0}.
         /// </summary>
         internal static string from_0 {
@@ -1792,6 +1801,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid format string.
+        /// </summary>
+        internal static string Invalid_format_string {
+            get {
+                return ResourceManager.GetString("Invalid_format_string", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to is.
         /// </summary>
         internal static string is_ {
@@ -1905,6 +1923,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Make_method_synchronous {
             get {
                 return ResourceManager.GetString("Make_method_synchronous", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member name can be simplified.
+        /// </summary>
+        internal static string Member_name_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Member_name_can_be_simplified", resourceCulture);
             }
         }
         
@@ -2089,6 +2116,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Modules {
             get {
                 return ResourceManager.GetString("Modules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move declaration near reference.
+        /// </summary>
+        internal static string Move_declaration_near_reference {
+            get {
+                return ResourceManager.GetString("Move_declaration_near_reference", resourceCulture);
             }
         }
         
@@ -3427,6 +3463,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use inferred member name.
+        /// </summary>
+        internal static string Use_inferred_member_name {
+            get {
+                return ResourceManager.GetString("Use_inferred_member_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use local function.
+        /// </summary>
+        internal static string Use_local_function {
+            get {
+                return ResourceManager.GetString("Use_local_function", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use local version &apos;{0}&apos;.
         /// </summary>
         internal static string Use_local_version_0 {
@@ -3496,6 +3550,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Variadic_SignatureHelpItem_must_have_at_least_one_parameter {
             get {
                 return ResourceManager.GetString("Variadic_SignatureHelpItem_must_have_at_least_one_parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Declaration changes scope and may change meaning..
+        /// </summary>
+        internal static string Warning_colon_Declaration_changes_scope_and_may_change_meaning {
+            get {
+                return ResourceManager.GetString("Warning_colon_Declaration_changes_scope_and_may_change_meaning", resourceCulture);
             }
         }
         

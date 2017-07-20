@@ -15,11 +15,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Workspace.SetUseSuggestionMode(true);
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
-            VisualStudio.InteractiveWindow.Reset();
-            base.Dispose();
+            if (disposing)
+            {
+                VisualStudio.Workspace.SetUseSuggestionMode(false);
+                VisualStudio.InteractiveWindow.Reset();
+            }
+
+            base.Dispose(disposing);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]

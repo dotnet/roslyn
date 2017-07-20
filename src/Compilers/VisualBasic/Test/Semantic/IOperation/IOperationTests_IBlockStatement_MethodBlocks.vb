@@ -25,8 +25,11 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub Meth
         Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+    IfFalse: null
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
+    LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+    ReturnedValue: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -51,8 +54,11 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub New(
         Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+    IfFalse: null
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
+    LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+    ReturnedValue: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -80,11 +86,13 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
         Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+    IfFalse: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return True')
-    ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
+    ReturnedValue: ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
+    LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-    ILocalReferenceExpression: Method (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'End Function')
+    ReturnedValue: ILocalReferenceExpression: Method (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -112,9 +120,11 @@ IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
         Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+    IfFalse: null
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Get')
+    LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Get')
-    ILocalReferenceExpression: Prop (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Get')
+    ReturnedValue: ILocalReferenceExpression: Prop (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Get')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -145,8 +155,11 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Set(Valu
         Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+    IfFalse: null
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Set')
+    LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Set')
+    ReturnedValue: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -181,8 +194,11 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'AddHandl
         Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+    IfFalse: null
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End AddHandler')
+    LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End AddHandler')
+    ReturnedValue: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -217,8 +233,11 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'RemoveHa
         Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+    IfFalse: null
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End RemoveHandler')
+    LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End RemoveHandler')
+    ReturnedValue: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -253,8 +272,11 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'RaiseEve
         Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+    IfFalse: null
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End RaiseEvent')
+    LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End RaiseEvent')
+    ReturnedValue: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -282,11 +304,13 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
         Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+    IfFalse: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 0')
-    ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    ReturnedValue: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Operator')
+    LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Operator')
-    ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Operator')
+    ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Operator')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

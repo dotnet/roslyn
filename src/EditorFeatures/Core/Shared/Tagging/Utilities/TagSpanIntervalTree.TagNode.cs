@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 }
                 else if (localSpan.Snapshot != null)
                 {
-                    _snapshotSpan = default(SnapshotSpan);
+                    _snapshotSpan = default;
                 }
 
-                return default(SnapshotSpan);
+                return default;
             }
 
             internal int GetStart(ITextSnapshot textSnapshot)

@@ -136,6 +136,10 @@ namespace Microsoft.CodeAnalysis
         CollectionElementInitializerExpression = 0x122,
         /// <summary>Indicates an <see cref="INameOfExpression"/>.</summary>
         NameOfExpression = 0x123,
+        /// <summary>Indicates an <see cref="ITupleExpression"/>.</summary>
+        TupleExpression = 0x124,
+        /// <summary>Indicates an <see cref="IDynamicObjectCreationExpression"/>.</summary>
+        DynamicObjectCreationExpression = 0x125,
 
         // Expressions that occur only in C#.
 
@@ -167,16 +171,15 @@ namespace Microsoft.CodeAnalysis
 
         // Operations that are constituents of statements, expressions, or declarations.
 
+
+        // Unused 0x400 and 0x402
+
         /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
-        FieldInitializerInCreation = 0x400,
-        /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
-        FieldInitializerAtDeclaration = 0x401,
+        FieldInitializer = 0x401,
         /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
-        PropertyInitializerInCreation = 0x402,
-        /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
-        PropertyInitializerAtDeclaration = 0x403,
+        PropertyInitializer = 0x403,
         /// <summary>Indicates an <see cref="IParameterInitializer"/>.</summary>
-        ParameterInitializerAtDeclaration = 0x404,
+        ParameterInitializer = 0x404,
         /// <summary>Indicates an <see cref="IArrayInitializer"/>.</summary>
         ArrayInitializer = 0x405,
 

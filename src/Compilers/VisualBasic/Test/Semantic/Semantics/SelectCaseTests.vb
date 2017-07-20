@@ -582,31 +582,45 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
   Switch expression: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
-  Sections: ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case Functi ... e("Failed")')
-        Clauses: ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.Invalid) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause) (Syntax: 'Function() 5')
-            IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Function() 5')
-              IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: Function <generated method>() As System.Int32) (Syntax: 'Function() 5')
-                ILambdaExpression (Signature: Function () As System.Int32) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function() 5')
-                  IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() 5')
-                    Locals: Local_1: <anonymous local> As System.Int32
-                    IReturnStatement (OperationKind.ReturnStatement) (Syntax: '5')
-                      ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
-                    ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'Function() 5')
-                    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function() 5')
-                      ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'Function() 5')
-        Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case Functi ... e("Failed")')
-            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... e("Failed")')
-              IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... e("Failed")')
-                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Failed"')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Failed") (Syntax: '"Failed"')
-    ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case Else ... Succeeded")')
-        Clauses: IDefaultCaseClause (CaseKind.Default) (OperationKind.DefaultCaseClause) (Syntax: 'Case Else')
-        Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case Else ... Succeeded")')
-            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... Succeeded")')
-              IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... Succeeded")')
-                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Succeeded"')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Succeeded") (Syntax: '"Succeeded"')
+      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+  Sections:
+      ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case Functi ... e("Failed")')
+          Clauses:
+              ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.Invalid) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause) (Syntax: 'Function() 5')
+                Value: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Function() 5')
+                    Operand: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: Function <generated method>() As System.Int32) (Syntax: 'Function() 5')
+                        Operand: ILambdaExpression (Signature: Function () As System.Int32) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function() 5')
+                            IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() 5')
+                              Locals: Local_1: <anonymous local> As System.Int32
+                              IReturnStatement (OperationKind.ReturnStatement) (Syntax: '5')
+                                ReturnedValue: ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+                              ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'Function() 5')
+                                LabeledStatement: null
+                              IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function() 5')
+                                ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'Function() 5')
+          Body:
+              IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case Functi ... e("Failed")')
+                IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... e("Failed")')
+                  Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... e("Failed")')
+                      Instance Receiver: null
+                      Arguments(1):
+                          IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Failed"')
+                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Failed") (Syntax: '"Failed"')
+                            InConversion: null
+                            OutConversion: null
+      ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case Else ... Succeeded")')
+          Clauses:
+              IDefaultCaseClause (CaseKind.Default) (OperationKind.DefaultCaseClause) (Syntax: 'Case Else')
+          Body:
+              IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case Else ... Succeeded")')
+                IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... Succeeded")')
+                  Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... Succeeded")')
+                      Instance Receiver: null
+                      Arguments(1):
+                          IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Succeeded"')
+                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Succeeded") (Syntax: '"Succeeded"')
+                            InConversion: null
+                            OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

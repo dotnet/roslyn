@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundLiteralOperation((BoundLiteral)boundNode);
                 case BoundKind.ObjectCreationExpression:
                     return CreateBoundObjectCreationExpressionOperation((BoundObjectCreationExpression)boundNode);
+                case BoundKind.DynamicObjectCreationExpression:
+                    return CreateBoundDynamicObjectCreationExpressionOperation((BoundDynamicObjectCreationExpression)boundNode);
                 case BoundKind.ObjectInitializerExpression:
                     return CreateBoundObjectInitializerExpressionOperation((BoundObjectInitializerExpression)boundNode);
                 case BoundKind.CollectionInitializerExpression:
@@ -189,6 +191,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundLabeledStatementOperation((BoundLabeledStatement)boundNode);
                 case BoundKind.ExpressionStatement:
                     return CreateBoundExpressionStatementOperation((BoundExpressionStatement)boundNode);
+                case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
+                    return CreateBoundTupleExpressionOperation((BoundTupleExpression)boundNode);
                 case BoundKind.InterpolatedString:
                     return CreateBoundInterpolatedStringExpressionOperation((BoundInterpolatedString)boundNode);
                 case BoundKind.StringInsert:
@@ -420,6 +425,20 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundObjectCreationExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundObjectCreationExpression.ConstantValue);
             return new LazyObjectCreationExpression(constructor, initializer, argumentsInEvaluationOrder, syntax, type, constantValue);
+        }
+
+        private IDynamicObjectCreationExpression CreateBoundDynamicObjectCreationExpressionOperation(BoundDynamicObjectCreationExpression boundDynamicObjectCreationExpression)
+        {
+            string name = boundDynamicObjectCreationExpression.Name;
+            ImmutableArray<ISymbol> applicableSymbols = StaticCast<ISymbol>.From(boundDynamicObjectCreationExpression.ApplicableMethods);
+            Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundDynamicObjectCreationExpression.Arguments.SelectAsArray(n => Create(n)));
+            ImmutableArray<string> argumentNames = boundDynamicObjectCreationExpression.ArgumentNamesOpt.NullToEmpty();
+            ImmutableArray<RefKind> argumentRefKinds = boundDynamicObjectCreationExpression.ArgumentRefKindsOpt.NullToEmpty();
+            Lazy<IObjectOrCollectionInitializerExpression> initializer = new Lazy<IObjectOrCollectionInitializerExpression>(() => (IObjectOrCollectionInitializerExpression)Create(boundDynamicObjectCreationExpression.InitializerExpressionOpt));
+            SyntaxNode syntax = boundDynamicObjectCreationExpression.Syntax;
+            ITypeSymbol type = boundDynamicObjectCreationExpression.Type;
+            Optional<object> constantValue = ConvertToOptional(boundDynamicObjectCreationExpression.ConstantValue);
+            return new LazyDynamicObjectCreationExpression(name, applicableSymbols, arguments, argumentNames, argumentRefKinds, initializer, syntax, type, constantValue);
         }
 
         private IObjectOrCollectionInitializerExpression CreateBoundObjectInitializerExpressionOperation(BoundObjectInitializerExpression boundObjectInitializerExpression)
@@ -730,10 +749,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ITypeParameterObjectCreationExpression CreateBoundNewTOperation(BoundNewT boundNewT)
         {
+            Lazy<IObjectOrCollectionInitializerExpression> initializer = new Lazy<IObjectOrCollectionInitializerExpression>(() => (IObjectOrCollectionInitializerExpression)Create(boundNewT.InitializerExpressionOpt));
             SyntaxNode syntax = boundNewT.Syntax;
             ITypeSymbol type = boundNewT.Type;
             Optional<object> constantValue = ConvertToOptional(boundNewT.ConstantValue);
-            return new TypeParameterObjectCreationExpression(syntax, type, constantValue);
+            return new LazyTypeParameterObjectCreationExpression(initializer, syntax, type, constantValue);
         }
 
         private IUnaryOperatorExpression CreateBoundUnaryOperatorOperation(BoundUnaryOperator boundUnaryOperator)
@@ -870,7 +890,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             ImmutableArray<IFieldSymbol> initializedFields = ImmutableArray.Create<IFieldSymbol>(boundFieldEqualsValue.Field);
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundFieldEqualsValue.Value));
-            OperationKind kind = OperationKind.FieldInitializerAtDeclaration;
+            OperationKind kind = OperationKind.FieldInitializer;
             SyntaxNode syntax = boundFieldEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -881,7 +901,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             IPropertySymbol initializedProperty = boundPropertyEqualsValue.Property;
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundPropertyEqualsValue.Value));
-            OperationKind kind = OperationKind.PropertyInitializerAtDeclaration;
+            OperationKind kind = OperationKind.PropertyInitializer;
             SyntaxNode syntax = boundPropertyEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -892,7 +912,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             IParameterSymbol parameter = boundParameterEqualsValue.Parameter;
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundParameterEqualsValue.Value));
-            OperationKind kind = OperationKind.ParameterInitializerAtDeclaration;
+            OperationKind kind = OperationKind.ParameterInitializer;
             SyntaxNode syntax = boundParameterEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -1189,6 +1209,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             return new LazyExpressionStatement(expression, syntax, type, constantValue);
+        }
+
+        private ITupleExpression CreateBoundTupleExpressionOperation(BoundTupleExpression boundTupleExpression)
+        {
+            Lazy<ImmutableArray<IOperation>> elements = new Lazy<ImmutableArray<IOperation>>(() => boundTupleExpression.Arguments.SelectAsArray(element => Create(element)));
+            SyntaxNode syntax = boundTupleExpression.Syntax;
+            ITypeSymbol type = boundTupleExpression.Type;
+            Optional<object> constantValue = default(Optional<object>);
+            return new LazyTupleExpression(elements, syntax, type, constantValue);
         }
 
         private IInterpolatedStringExpression CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString)

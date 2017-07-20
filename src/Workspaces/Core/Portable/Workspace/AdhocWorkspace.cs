@@ -177,15 +177,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Puts the specified additional document into the open state.
         /// </summary>
-        /// <param name="documentId">The <see cref="DocumentId"/> to open.</param>
-        /// <param name="activate">Ignored - not necessary for additional documents.</param>
         public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
         {
             var doc = this.CurrentSolution.GetAdditionalDocument(documentId);
             if (doc != null)
             {
                 var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                this.OnAdditionalDocumentOpened(documentId, text.Container);
+                this.OnAdditionalDocumentOpened(documentId, text.Container, activate);
             }
         }
 

@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editing
             WriteOnly = 0x1000
         }
 
-        public static DeclarationModifiers None => default(DeclarationModifiers);
+        public static DeclarationModifiers None => default;
 
         public static DeclarationModifiers Static => new DeclarationModifiers(Modifiers.Static);
         public static DeclarationModifiers Abstract => new DeclarationModifiers(Modifiers.Abstract);
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
             else
             {
-                modifiers = default(DeclarationModifiers);
+                modifiers = default;
                 return false;
             }
         }

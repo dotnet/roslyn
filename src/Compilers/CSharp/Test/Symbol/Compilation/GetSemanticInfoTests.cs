@@ -820,7 +820,7 @@ class C {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="binding"></param>
+        /// <param name="semanticModel"></param>
         /// <param name="expr"></param>
         /// <param name="ept1">expr -> TypeInParent</param>
         /// <param name="ept2">Type(expr) -> TypeInParent</param>
@@ -1611,10 +1611,10 @@ namespace N { }
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
         }
 
-        [WorkItem(542634, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542634")]
         /// Test that binding a local declared with var binds the same way when localSymbol.Type is called before BindVariableDeclaration.
         /// Assert occurs if the two do not compute the same type.
         [Fact]
+        [WorkItem(542634, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542634")]
         public void VarInitializedWithStaticType()
         {
             var text =

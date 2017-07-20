@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
   line 2
   line 3", contentTypeRegistryService.GetContentType("text"));
 
-            var elisionBuffer = IProjectionBufferFactoryServiceExtensions.CreateElisionBufferWithoutIndentation(
+            var elisionBuffer = IProjectionBufferFactoryServiceExtensions.CreateProjectionBufferWithoutIndentation(
                 exportProvider.GetExportedValue<IProjectionBufferFactoryService>(),
                 exportProvider.GetExportedValue<IEditorOptionsFactoryService>().GlobalOptions,
                 contentType: null,

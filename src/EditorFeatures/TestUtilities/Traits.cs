@@ -100,11 +100,13 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
             public const string CodeActionsUseCollectionInitializer = "CodeActions.UseCollectionInitializer";
             public const string CodeActionsUseDefaultLiteral = "CodeActions.UseDefaultLiteral";
+            public const string CodeActionsUseInferredMemberName = "CodeActions.UseInferredMemberName";
             public const string CodeActionsUseExpressionBody = "CodeActions.UseExpressionBody";
             public const string CodeActionsUseImplicitType = "CodeActions.UseImplicitType";
             public const string CodeActionsUseExplicitType = "CodeActions.UseExplicitType";
             public const string CodeActionsUseExplicitTupleName = "CodeActions.UseExplicitTupleName";
             public const string CodeActionsUseFrameworkType = "CodeActions.UseFrameworkType";
+            public const string CodeActionsUseLocalFunction = "CodeActions.UseLocalFunction";
             public const string CodeActionsUseNullPropagation = "CodeActions.UseNullPropagation";
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
@@ -174,6 +176,7 @@ namespace Roslyn.Test.Utilities
             public const string TodoComments = nameof(TodoComments);
             public const string TypeInferenceService = nameof(TypeInferenceService);
             public const string Venus = nameof(Venus);
+            public const string ValidateFormatString = nameof(ValidateFormatString);
             public const string VsLanguageBlock = nameof(VsLanguageBlock);
             public const string VsNavInfo = nameof(VsNavInfo);
             public const string XmlTagCompletion = nameof(XmlTagCompletion);

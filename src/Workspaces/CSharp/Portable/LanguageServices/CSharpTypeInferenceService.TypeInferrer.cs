@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                operatorToken = default(SyntaxToken);
+                operatorToken = default;
                 left = right = null;
                 return false;
             }
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Overload resolution (see DevDiv 611477) in certain extension method cases
                 // can result in GetSymbolInfo returning nothing. In this case, get the 
                 // method group info, which is what signature help already does.
-                if (info.CandidateReason == CandidateReason.None)
+                if (info.Symbol == null &&  info.CandidateReason == CandidateReason.None)
                 {
                     methods = SemanticModel.GetMemberGroup(invocation.Expression, CancellationToken)
                                                             .OfType<IMethodSymbol>();
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var name = argumentOpt != null && argumentOpt.NameColon != null ? argumentOpt.NameColon.Name.Identifier.ValueText : null;
-                return InferTypeInArgument(index, parameterizedSymbols, name);
+                return InferTypeInArgument(index, parameterizedSymbols, name, RefKind.None);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArgument(
@@ -708,39 +708,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArgumentSyntax argumentOpt)
             {
                 var name = argumentOpt != null && argumentOpt.NameColon != null ? argumentOpt.NameColon.Name.Identifier.ValueText : null;
-                return InferTypeInArgument(index, parameterizedSymbols, name);
+                var refKind = argumentOpt.GetRefKind();
+                return InferTypeInArgument(index, parameterizedSymbols, name, refKind);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArgument(
                 int index,
                 IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
-                string name)
+                string name,
+                RefKind refKind)
             {
                 // If the callsite has a named argument, then try to find a method overload that has a
                 // parameter with that name.  If we can find one, then return the type of that one.
                 if (name != null)
                 {
-                    var parameters = parameterizedSymbols.SelectMany(m => m)
-                                                        .Where(p => p.Name == name)
-                                                        .Select(p => new TypeInferenceInfo(p.Type, p.IsParams));
-                    if (parameters.Any())
-                    {
-                        return parameters;
-                    }
+                    var matchingNameParameters = parameterizedSymbols.SelectMany(m => m)
+                                                                     .Where(p => p.Name == name)
+                                                                     .Select(p => new TypeInferenceInfo(p.Type, p.IsParams));
+
+                    return matchingNameParameters;
                 }
-                else
+
+                var allParameters = ArrayBuilder<TypeInferenceInfo>.GetInstance();
+                var matchingRefParameters = ArrayBuilder<TypeInferenceInfo>.GetInstance();
+                try
                 {
-                    // Otherwise, just take the first overload and pick what type this parameter is
-                    // based on index.
-                    var q = from parameterSet in parameterizedSymbols
-                            where index < parameterSet.Length
-                            let param = parameterSet[index]
-                            select new TypeInferenceInfo(param.Type, param.IsParams);
+                    foreach (var parameterSet in parameterizedSymbols)
+                    {
+                        if (index < parameterSet.Length)
+                        {
+                            var parameter = parameterSet[index];
+                            var info = new TypeInferenceInfo(parameter.Type, parameter.IsParams);
+                            allParameters.Add(info);
 
-                    return q;
+                            if (parameter.RefKind == refKind)
+                            {
+                                matchingRefParameters.Add(info);
+                            }
+                        }
+                    }
+
+                    return matchingRefParameters.Count > 0
+                        ? matchingRefParameters.ToImmutable()
+                        : allParameters.ToImmutable();
                 }
-
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                finally
+                {
+                    allParameters.Free();
+                    matchingRefParameters.Free();
+                }
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArrayCreationExpression(
@@ -2081,8 +2097,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out ImmutableArray<ITypeSymbol> elementTypes,
                 out ImmutableArray<string> elementNames)
             {
-                elementTypes = default(ImmutableArray<ITypeSymbol>);
-                elementNames = default(ImmutableArray<string>);
+                elementTypes = default;
+                elementNames = default;
 
                 var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance();
                 var elementNamesBuilder = ArrayBuilder<string>.GetInstance();

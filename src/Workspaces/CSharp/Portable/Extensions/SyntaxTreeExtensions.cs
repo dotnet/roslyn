@@ -593,8 +593,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out SyntaxToken genericIdentifier,
             out SyntaxToken lessThanToken)
         {
-            genericIdentifier = default(SyntaxToken);
-            lessThanToken = default(SyntaxToken);
+            genericIdentifier = default;
+            lessThanToken = default;
             int index = 0;
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);

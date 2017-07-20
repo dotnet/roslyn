@@ -30,18 +30,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend Partial Class BoundAttribute
+    Partial Friend Class BoundAttribute
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
                 Return StaticCast(Of BoundNode).From(Me.ConstructorArguments.AddRange(Me.NamedArguments))
-            End Get
-        End Property
-    End Class
-
-    Friend Partial MustInherit Class BoundTupleExpression
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return StaticCast(Of BoundNode).From(Me.Arguments)
             End Get
         End Property
     End Class

@@ -435,6 +435,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAnonymousObjectCreationExpression(operation);
         }
 
+        public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
+        {
+            var name = operation.Name;
+            var applicableSymbols = operation.ApplicableSymbols;
+            var names = operation.ArgumentNames;
+            var refKinds = operation.ArgumentRefKinds;
+
+            base.VisitDynamicObjectCreationExpression(operation);
+        }
+
         public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
         {
             base.VisitObjectOrCollectionInitializerExpression(operation);
@@ -541,6 +551,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInvalidExpression(IInvalidExpression operation)
         {
             base.VisitInvalidExpression(operation);
+        }
+
+        public override void VisitTupleExpression(ITupleExpression operation)
+        {
+            base.VisitTupleExpression(operation);
         }
 
         public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)

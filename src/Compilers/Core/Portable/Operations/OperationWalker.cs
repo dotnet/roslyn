@@ -12,12 +12,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private int _recursionDepth;
 
-        internal void VisitArray<T>(IEnumerable<T> list) where T : IOperation
+        internal void VisitArray<T>(IEnumerable<T> operations) where T : IOperation
         {
-            foreach (var operation in list)
+            foreach (var operation in operations)
             {
-                Visit(operation);
+                VisitOperationArrayElement(operation);
             }
+        }
+
+        internal void VisitOperationArrayElement<T>(T operation) where T : IOperation
+        {
+            Visit(operation);
         }
 
         public override void Visit(IOperation operation)
@@ -39,18 +44,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void DefaultVisit(IOperation operation)
         {
-            if (operation is IOperationWithChildren operationWithChildren)
-            {
-                VisitArray(operationWithChildren.Children);
-            }
+            VisitArray(operation.Children);
         }
 
         internal override void VisitNoneOperation(IOperation operation)
         {
-            if (operation is IOperationWithChildren operationWithChildren)
-            {
-                VisitArray(operationWithChildren.Children);
-            }
+            VisitArray(operation.Children);
         }
     }
 }

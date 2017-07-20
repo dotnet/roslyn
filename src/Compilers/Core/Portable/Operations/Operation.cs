@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Root type for representing the abstract semantics of C# and VB statements and expressions.
     /// </summary>
-    internal abstract class Operation : IOperation, IOperationWithChildren
+    internal abstract class Operation : IOperation
     {
         public Operation(OperationKind kind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
         {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
             return new NoneOperation(node, constantValue, getChildren);
         }
 
-        private class NoneOperation : IOperation, IOperationWithChildren
+        private class NoneOperation : IOperation
         {
             private readonly Func<ImmutableArray<IOperation>> _getChildren;
 

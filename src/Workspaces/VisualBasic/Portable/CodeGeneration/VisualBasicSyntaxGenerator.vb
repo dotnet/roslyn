@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
 
+        Friend Overrides ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
         Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
 
         Friend Overrides ReadOnly Property RequiresExplicitImplementationForInterfaceMembers As Boolean = True
@@ -436,6 +437,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.TokenList(SyntaxFactory.Token(If(isConst, SyntaxKind.ConstKeyword, SyntaxKind.DimKeyword))),
                 SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, identifier, initializer)))
+        End Function
+
+        Friend Overrides Function WithInitializer(variableDeclarator As SyntaxNode, initializer As SyntaxNode) As SyntaxNode
+            Return DirectCast(variableDeclarator, VariableDeclaratorSyntax).WithInitializer(DirectCast(initializer, EqualsValueSyntax))
+        End Function
+
+        Friend Overrides Function EqualsValueClause(operatorToken As SyntaxToken, value As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.EqualsValue(operatorToken, DirectCast(value, ExpressionSyntax))
         End Function
 
         Private Function VariableDeclarator(type As SyntaxNode, name As String, Optional expression As SyntaxNode = Nothing) As VariableDeclaratorSyntax
@@ -862,6 +871,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 tokens = tokens.Add(SyntaxFactory.Token(SyntaxKind.ByRefKeyword))
             End If
             Return tokens
+        End Function
+
+        Public Overrides Function GetAccessorDeclaration(Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return SyntaxFactory.GetAccessorBlock(
+                SyntaxFactory.GetAccessorStatement().WithModifiers(GetModifierList(accessibility, DeclarationModifiers.None, DeclarationKind.Property)),
+                GetStatementList(statements))
+        End Function
+
+        Public Overrides Function SetAccessorDeclaration(Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return SyntaxFactory.SetAccessorBlock(
+                SyntaxFactory.SetAccessorStatement().WithModifiers(GetModifierList(accessibility, DeclarationModifiers.None, DeclarationKind.Property)),
+                GetStatementList(statements))
+        End Function
+
+        Public Overrides Function WithAccessorDeclarations(declaration As SyntaxNode, accessorDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim propertyBlock = GetPropertyBlock(declaration)
+            If propertyBlock Is Nothing Then
+                Return declaration
+            End If
+
+            propertyBlock = propertyBlock.WithAccessors(
+                SyntaxFactory.List(accessorDeclarations.OfType(Of AccessorBlockSyntax)))
+
+            Dim hasGetAccessor = propertyBlock.Accessors.Any(SyntaxKind.GetAccessorBlock)
+            Dim hasSetAccessor = propertyBlock.Accessors.Any(SyntaxKind.SetAccessorBlock)
+
+            If hasGetAccessor AndAlso Not hasSetAccessor Then
+                propertyBlock = DirectCast(WithModifiers(propertyBlock, GetModifiers(propertyBlock) Or DeclarationModifiers.ReadOnly), PropertyBlockSyntax)
+            ElseIf Not hasGetAccessor AndAlso hasSetAccessor Then
+                propertyBlock = DirectCast(WithModifiers(propertyBlock, GetModifiers(propertyBlock) Or DeclarationModifiers.WriteOnly), PropertyBlockSyntax)
+            ElseIf hasGetAccessor AndAlso hasSetAccessor Then
+                propertyBlock = DirectCast(WithModifiers(propertyBlock, GetModifiers(propertyBlock).WithIsReadOnly(False).WithIsWriteOnly(False)), PropertyBlockSyntax)
+            End If
+
+            Return If(propertyBlock.Accessors.Count = 0,
+                      propertyBlock.PropertyStatement,
+                      DirectCast(propertyBlock, SyntaxNode))
+        End Function
+
+        Private Function GetPropertyBlock(declaration As SyntaxNode) As PropertyBlockSyntax
+            Dim propertyBlock = TryCast(declaration, PropertyBlockSyntax)
+            If propertyBlock IsNot Nothing Then
+                Return propertyBlock
+            End If
+
+            Dim propertyStatement = TryCast(declaration, PropertyStatementSyntax)
+            If propertyStatement IsNot Nothing Then
+                Return SyntaxFactory.PropertyBlock(propertyStatement, SyntaxFactory.List(Of AccessorBlockSyntax))
+            End If
+
+            Return Nothing
         End Function
 
         Public Overrides Function PropertyDeclaration(

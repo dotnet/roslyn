@@ -442,6 +442,42 @@ class Customer
 }}
 ";
 
+        private static readonly string s_preferInferredTupleName = $@"
+using System.Threading;
+
+class Customer
+{{
+    public Customer(int age, string name)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var tuple = (age, name);
+
+        // {ServicesVSResources.Over_colon}
+        var tuple = (age: age, name: name);
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferInferredAnonymousTypeMemberName = $@"
+using System.Threading;
+
+class Customer
+{{
+    public Customer(int age, string name)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var anon = new {{ age, name }};
+
+        // {ServicesVSResources.Over_colon}
+        var anon = new {{ age = age, name = name }};
+//]
+    }}
+}}
+";
+
         private static readonly string s_preferInlinedVariableDeclaration = $@"
 using System;
 
@@ -484,6 +520,31 @@ class Customer
         // {ServicesVSResources.Over_colon}
         if (test)
             this.Display();
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferLocalFunctionOverAnonymousFunction = $@"
+using System;
+
+class Customer
+{{
+    public Customer(string value)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        int fibonacci(int n)
+        {{
+            return n <= 1 ? 1 : fibonacci(n - 1) + fibonacci(n - 2);
+        }}
+
+        // {ServicesVSResources.Over_colon}
+        Func<int, int> fibonacci = null;
+        fibonacci = (int n) =>
+        {{
+            return n <= 1 ? 1 : fibonacci(n - 1) + fibonacci(n - 2);
+        }};
 //]
     }}
 }}
@@ -709,6 +770,9 @@ class List<T>
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, ServicesVSResources.Prefer_simple_default_expression, s_preferSimpleDefaultExpression, s_preferSimpleDefaultExpression, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferInferredTupleNames, ServicesVSResources.Prefer_inferred_tuple_names, s_preferInferredTupleName, s_preferInferredTupleName, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferInferredAnonymousTypeMemberNames, ServicesVSResources.Prefer_inferred_anonymous_type_member_names, s_preferInferredAnonymousTypeMemberName, s_preferInferredAnonymousTypeMemberName, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, ServicesVSResources.Prefer_local_function_over_anonymous_function, s_preferLocalFunctionOverAnonymousFunction, s_preferLocalFunctionOverAnonymousFunction, this, optionSet, expressionPreferencesGroupTitle));
 
             AddExpressionBodyOptions(optionSet, expressionPreferencesGroupTitle);
 
