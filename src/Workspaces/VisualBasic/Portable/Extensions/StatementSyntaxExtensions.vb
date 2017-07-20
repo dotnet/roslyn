@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function GetNameToken(member As DeclarationStatementSyntax) As SyntaxToken
+        Public Function GetNameToken(member As StatementSyntax) As SyntaxToken
             If member IsNot Nothing Then
                 Select Case member.Kind
                     Case SyntaxKind.ClassBlock,
