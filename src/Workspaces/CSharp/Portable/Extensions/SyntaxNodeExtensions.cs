@@ -17,6 +17,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxNodeExtensions
     {
+        public static bool IsKind<TNode>(this SyntaxNode node, SyntaxKind kind, out TNode result)
+            where TNode : SyntaxNode
+        {
+            if (node.IsKind(kind))
+            {
+                result = (TNode)node;
+                return true;
+            }
+
+            result = null;
+            return false;
+        }
+
         public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind)
         {
             return node != null && CodeAnalysis.CSharpExtensions.IsKind(node.Parent, kind);
