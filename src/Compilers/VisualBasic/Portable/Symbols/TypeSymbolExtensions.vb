@@ -16,13 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function IsNullableType(this As ITypeSymbol) As Boolean
-            Dim original = this.OriginalDefinition
-
-            Return original IsNot Nothing AndAlso original.SpecialType = SpecialType.System_Nullable_T
-        End Function
-
-        <Extension()>
         Public Function IsNullableOfBoolean(this As TypeSymbol) As Boolean
             Return this.IsNullableType() AndAlso this.GetNullableUnderlyingType().IsBooleanType()
         End Function

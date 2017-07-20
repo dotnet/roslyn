@@ -349,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 ' This will be a lifted comparison if either the control variable or
                 ' limit value is nullable itself.
                 Dim isLifted = controlVariable.Type.IsNullableType() OrElse
-                               limitValue.Type.IsNullableType()
+                               operationValue.Type.IsNullableType()
 
                 If boundFor.StepValue Is Nothing OrElse (boundFor.StepValue.IsConstant AndAlso boundFor.StepValue.ConstantValueOpt IsNot Nothing) Then
                     ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
