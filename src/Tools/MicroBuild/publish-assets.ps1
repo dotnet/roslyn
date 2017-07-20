@@ -85,7 +85,7 @@ function Publish-Vsix([string]$uploadUrl) {
 
 function Publish-Channel([string]$packageDir, [string]$name) {
     $publish = Join-Path $configDir "Exes\RoslynPublish\RoslynPublish.exe"
-    $args = "-nugetdir $packageDir -channel $name -gu $gitHubUserName -gt $gitHubToken -ge $githubEmail"
+    $args = "-nugetDir $packageDir -channel $name -gu $gitHubUserName -gt $gitHubToken -ge $githubEmail"
     Write-Host "Publishing $packageDir to channel $name"
     if (-not $test) { 
         Exec-Console $publish $args
