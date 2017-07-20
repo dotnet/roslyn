@@ -134,6 +134,17 @@ function Test-Member($obj, [string]$name) {
     return $value -ne $null
 }
 
+# This script is interested in the short branch name: master, dev15.x, etc ... But several
+# of our publish operations specify fully branch names like /refs/heads/master. Normalizing
+# those out to the short branch name here.
+function Normalize-BranchName([string]$branchName) {
+    switch -regex ($branchName) { 
+        "refs/heads/(.*)" { return $matches[1] }
+        "refs/pull/\d*/(.*)" { return $matches[1] }
+        default { return $branchName }
+    }
+}
+
 try {
     . (Join-Path $PSScriptRoot "..\..\..\build\scripts\build-utils.ps1")
     $nuget = Ensure-NuGet
@@ -153,6 +164,7 @@ try {
         exit 1
     }
     elseif ($branchName -ne "") {
+        $branchName = Normalize-BranchName $branchName
         if (-not (Test-Member $data.branches $branchName)) { 
             Write-Host "$branchName is not listed for publishing"
             exit 0
