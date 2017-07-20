@@ -2965,7 +2965,7 @@ IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenc
             var source = @"
  class C
  {
-     void Foo(int? x)
+     void F(int? x)
      {
          var y = /*<bind>*/-x/*</bind>*/;
      }
@@ -2984,7 +2984,7 @@ IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenc
             var source = @"
 class C
 {
-    void Foo(int x)
+    void F(int x)
     {
         var y = /*<bind>*/-x/*</bind>*/;
     }
@@ -3004,7 +3004,7 @@ class C
 struct C
 {
     public static C operator -(C c) { }
-    void Foo(C? x)
+    void F(C? x)
     {
         var y = /*<bind>*/-x/*</bind>*/;
     }
@@ -3024,7 +3024,7 @@ struct C
 struct C
 {
     public static C operator -(C c) { }
-    void Foo(C x)
+    void F(C x)
     {
         var y = /*<bind>*/-x/*</bind>*/;
     }
@@ -3043,7 +3043,7 @@ struct C
             var source = @"
 class C
 {
-    void Foo(int? x, int? y)
+    void F(int? x, int? y)
     {
         var z = /*<bind>*/x + y/*</bind>*/;
     }
@@ -3063,7 +3063,7 @@ class C
             var source = @"
 class C
 {
-    void Foo(int x, int y)
+    void F(int x, int y)
     {
         var z = /*<bind>*/x + y/*</bind>*/;
     }
@@ -3084,7 +3084,7 @@ class C
 struct C
 {
     public static C operator +(C c1, C c2) { }
-    void Foo(C? x, C? y)
+    void F(C? x, C? y)
     {
         var z = /*<bind>*/x + y/*</bind>*/;
     }
@@ -3105,7 +3105,7 @@ struct C
 struct C
 {
     public static C operator +(C c1, C c2) { }
-    void Foo(C x, C y)
+    void F(C x, C y)
     {
         var z = /*<bind>*/x + y/*</bind>*/;
     }
