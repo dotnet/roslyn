@@ -157,5 +157,296 @@ namespace N
     }
 }", index: 2, ignoreTrivia: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestEmptyTop_TakeTop()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+namespace N
+{
+[|<<<<<<<|] This is mine!
+=======
+    class Program2
+    {
+        static void Main2(string[] args)
+        {
+            Program2 p;
+            Console.WriteLine(""Their section"");
+        }
+    }
+>>>>>>> This is theirs!
+}",
+@"
+using System;
+
+namespace N
+{
+}", index: 0, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestEmptyTop_TakeBottom()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+namespace N
+{
+[|<<<<<<<|] This is mine!
+=======
+    class Program2
+    {
+        static void Main2(string[] args)
+        {
+            Program2 p;
+            Console.WriteLine(""Their section"");
+        }
+    }
+>>>>>>> This is theirs!
+}",
+@"
+using System;
+
+namespace N
+{
+    class Program2
+    {
+        static void Main2(string[] args)
+        {
+            Program2 p;
+            Console.WriteLine(""Their section"");
+        }
+    }
+}", index: 1, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestEmptyBottom_TakeTop()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+namespace N
+{
+[|<<<<<<<|] This is mine!
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Program p;
+            Console.WriteLine(""My section"");
+        }
+    }
+=======
+>>>>>>> This is theirs!
+}",
+@"
+using System;
+
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Program p;
+            Console.WriteLine(""My section"");
+        }
+    }
+}", index: 0, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestEmptyBottom_TakeBottom()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+namespace N
+{
+[|<<<<<<<|] This is mine!
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Program p;
+            Console.WriteLine(""My section"");
+        }
+    }
+=======
+>>>>>>> This is theirs!
+}",
+@"
+using System;
+
+namespace N
+{
+}", index: 1, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestTakeTop_WhitespaceInSection()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+namespace N
+{
+[|<<<<<<<|] This is mine!
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Program p;
+            Console.WriteLine(""My section"");
+        }
+    }
+
+=======
+    class Program2
+    {
+        static void Main2(string[] args)
+        {
+            Program2 p;
+            Console.WriteLine(""Their section"");
+        }
+    }
+>>>>>>> This is theirs!
+}",
+@"
+using System;
+
+namespace N
+{
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Program p;
+            Console.WriteLine(""My section"");
+        }
+    }
+
+}", index: 0, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestTakeBottom1_WhitespaceInSection()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+namespace N
+{
+[|<<<<<<<|] This is mine!
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Program p;
+            Console.WriteLine(""My section"");
+        }
+    }
+=======
+
+    class Program2
+    {
+        static void Main2(string[] args)
+        {
+            Program2 p;
+            Console.WriteLine(""Their section"");
+        }
+    }
+
+>>>>>>> This is theirs!
+}",
+@"
+using System;
+
+namespace N
+{
+
+    class Program2
+    {
+        static void Main2(string[] args)
+        {
+            Program2 p;
+            Console.WriteLine(""Their section"");
+        }
+    }
+
+}", index: 1, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestTakeBoth_WhitespaceInSection()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+namespace N
+{
+[|<<<<<<<|] This is mine!
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Program p;
+            Console.WriteLine(""My section"");
+        }
+    }
+
+=======
+
+    class Program2
+    {
+        static void Main2(string[] args)
+        {
+            Program2 p;
+            Console.WriteLine(""Their section"");
+        }
+    }
+
+>>>>>>> This is theirs!
+}",
+@"
+using System;
+
+namespace N
+{
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Program p;
+            Console.WriteLine(""My section"");
+        }
+    }
+
+
+    class Program2
+    {
+        static void Main2(string[] args)
+        {
+            Program2 p;
+            Console.WriteLine(""Their section"");
+        }
+    }
+
+}", index: 2, ignoreTrivia: false);
+        }
     }
 }
