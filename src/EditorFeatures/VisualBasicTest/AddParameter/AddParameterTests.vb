@@ -55,6 +55,33 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        Public Async Function TestNothingArgument1() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public sub new(i as integer)
+    end sub
+end class
+
+class D
+    sub M()
+        dim a = new C(nothing, [|1|])
+    end sub
+end class",
+"
+class C
+    public sub new(i as integer, v As Integer)
+    end sub
+end class
+
+class D
+    sub M()
+        dim a = new C(nothing, 1)
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestNamedArg() As Task
             Await TestInRegularAndScriptAsync(
 "

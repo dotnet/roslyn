@@ -442,13 +442,15 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     // don't match, then this is the argument we should make the parameter for.
                     var expressionOfArgumment = syntaxFacts.GetExpressionOfArgument(argument);
                     var argumentTypeInfo = semanticModel.GetTypeInfo(expressionOfArgumment);
+                    var isNullLiteral = syntaxFacts.IsNullLiteralExpression(expressionOfArgumment);
+                    var isDefaultLiteral = syntaxFacts.IsDefaultLiteralExpression(expressionOfArgumment);
+
                     if (argumentTypeInfo.Type == null && argumentTypeInfo.ConvertedType == null)
                     {
                         // Didn't know the type of the argument.  We shouldn't assume it doesn't
                         // match a parameter.  However, if the user wrote 'null' and it didn't
                         // match anything, then this is the problem argument.
-                        if (!syntaxFacts.IsNullLiteralExpression(expressionOfArgumment) &&
-                            !syntaxFacts.IsDefaultLiteralExpression(expressionOfArgumment))
+                        if (!isNullLiteral && !isDefaultLiteral)
                         {
                             continue;
                         }
@@ -456,9 +458,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     var parameter = method.Parameters[i];
 
-                    if (!TypeInfoMatchesType(argumentTypeInfo, parameter.Type))
+                    if (!TypeInfoMatchesType(argumentTypeInfo, parameter.Type, isNullLiteral, isDefaultLiteral))
                     {
-                        if (TypeInfoMatchesWithParamsExpansion(argumentTypeInfo, parameter))
+                        if (TypeInfoMatchesWithParamsExpansion(argumentTypeInfo, parameter, isNullLiteral, isDefaultLiteral))
                         {
                             // The argument matched if we expanded out the params-parameter.
                             // As the params-parameter has to be last, there's nothing else to 
@@ -474,11 +476,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return null;
         }
 
-        private bool TypeInfoMatchesWithParamsExpansion(TypeInfo argumentTypeInfo, IParameterSymbol parameter)
+        private bool TypeInfoMatchesWithParamsExpansion(
+            TypeInfo argumentTypeInfo, IParameterSymbol parameter, 
+            bool isNullLiteral, bool isDefaultLiteral)
         {
             if (parameter.IsParams && parameter.Type is IArrayTypeSymbol arrayType)
             {
-                if (TypeInfoMatchesType(argumentTypeInfo, arrayType.ElementType))
+                if (TypeInfoMatchesType(argumentTypeInfo, arrayType.ElementType, isNullLiteral, isDefaultLiteral))
                 {
                     return true;
                 }
@@ -487,8 +491,27 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return false;
         }
 
-        private bool TypeInfoMatchesType(TypeInfo argumentTypeInfo, ITypeSymbol type)
-            => type.Equals(argumentTypeInfo.Type) || type.Equals(argumentTypeInfo.ConvertedType);
+        private bool TypeInfoMatchesType(
+            TypeInfo argumentTypeInfo, ITypeSymbol type,
+            bool isNullLiteral, bool isDefaultLiteral)
+        {
+            if (type.Equals(argumentTypeInfo.Type) || type.Equals(argumentTypeInfo.ConvertedType))
+            {
+                return true;
+            }
+
+            if (isDefaultLiteral)
+            {
+                return true;
+            }
+
+            if (isNullLiteral)
+            {
+                return type.IsReferenceType || type.IsNullable();
+            }
+
+            return false;
+        }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

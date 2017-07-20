@@ -460,7 +460,7 @@ ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestNullArg()
+        public async Task TestNullArg1()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -487,6 +487,102 @@ class D
     void M()
     {
         new C(null, 1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestNullArg2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public C(string s) { }
+}
+
+class D
+{
+    void M()
+    {
+        new [|C|](null, 1);
+    }
+}",
+@"
+class C
+{
+    public C(string s, int v) { }
+}
+
+class D
+{
+    void M()
+    {
+        new C(null, 1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestDefaultArg1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public C(int i) { }
+}
+
+class D
+{
+    void M()
+    {
+        new [|C|](default, 1);
+    }
+}",
+@"
+class C
+{
+    public C(int i, int v) { }
+}
+
+class D
+{
+    void M()
+    {
+        new C(default, 1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestDefaultArg2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public C(string s) { }
+}
+
+class D
+{
+    void M()
+    {
+        new [|C|](default, 1);
+    }
+}",
+@"
+class C
+{
+    public C(string s, int v) { }
+}
+
+class D
+{
+    void M()
+    {
+        new C(default, 1);
     }
 }");
         }
