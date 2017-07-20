@@ -269,6 +269,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_IsByRefLikeAttribute,
         System_Runtime_InteropServices_InAttribute,
         System_ObsoleteAttribute,
+        System_Span_T,
 
         NextAvailable,
     }
@@ -533,6 +534,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.IsByRefLikeAttribute",
             "System.Runtime.InteropServices.InAttribute",
             "System.ObsoleteAttribute",
+            "System.Span`1",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

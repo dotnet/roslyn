@@ -4776,20 +4776,16 @@ tryAgain:
         {
             switch (this.CurrentToken.Kind)
             {
-                case SyntaxKind.StackAllocKeyword:
-                    return this.ParseStackAllocExpression();
                 case SyntaxKind.OpenBraceToken:
                     return this.ParseArrayInitializer();
                 default:
-                    return this.ParseElementInitializer();
+                    return this.ParseExpressionCore();
             }
         }
 
         private bool IsPossibleVariableInitializer()
         {
-            return this.CurrentToken.Kind == SyntaxKind.StackAllocKeyword
-                || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                || this.IsPossibleExpression();
+            return this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.IsPossibleExpression();
         }
 
         private FieldDeclarationSyntax ParseConstantFieldDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxKind parentKind)
@@ -8701,6 +8697,7 @@ tryAgain:
                 case SyntaxKind.DelegateKeyword:
                 case SyntaxKind.ColonColonToken: // bad aliased name
                 case SyntaxKind.ThrowKeyword:
+                case SyntaxKind.StackAllocKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
@@ -9250,6 +9247,9 @@ tryAgain:
                     break;
                 case SyntaxKind.NewKeyword:
                     expr = this.ParseNewExpression();
+                    break;
+                case SyntaxKind.StackAllocKeyword:
+                    expr = this.ParseStackAllocExpression();
                     break;
                 case SyntaxKind.DelegateKeyword:
                     expr = this.ParseAnonymousMethodExpression();
@@ -10617,19 +10617,7 @@ tryAgain:
                 }
             }
         }
-
-        private ExpressionSyntax ParseElementInitializer()
-        {
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-            {
-                return this.ParseComplexElementInitializer();
-            }
-            else
-            {
-                return this.ParseExpressionCore();
-            }
-        }
-
+        
         private bool IsImplicitlyTypedArray()
         {
             return this.CurrentToken.Kind == SyntaxKind.NewKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken;

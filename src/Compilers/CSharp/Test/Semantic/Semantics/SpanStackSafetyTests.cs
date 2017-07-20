@@ -20,60 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
     public class SpanStackSafetyTests : CompilingTestBase
     {
-        private static string spanSource = @"
-namespace System
-{
-    public ref struct Span<T> 
-    {
-        public ref T this[int i] => throw null;
-        public override int GetHashCode() => 1;
-    }
-
-    public ref struct ReadOnlySpan<T>
-    {
-        public ref readonly T this[int i] => throw null;
-        public override int GetHashCode() => 2;
-    }
-
-    public ref struct SpanLike<T>
-    {
-        public Span<T> field;
-    }
-}
-";
-
-        //PROTOTYPE(span): this will be updated when rules for defining span are implemented
-        //                 most likely we would just pick the actual binary/corlib where
-        //                 span lives.
-        private static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null)
-        {
-            var reference = CreateCompilation(
-                spanSource,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
-                options: TestOptions.ReleaseDll);
-
-            reference.VerifyDiagnostics();
-
-            var comp = CreateCompilation(
-                text,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
-                options: options ?? TestOptions.ReleaseExe);
-
-
-            return comp;
-        }
-
-        private static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions options = null)
-        {
-            var textWitSpan = new string[] { text, spanSource };
-            var comp = CreateCompilation(
-                textWitSpan,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
-                options: options ?? TestOptions.ReleaseExe);
-
-            return comp;
-        }
-
         [Fact]
         public void TrivialBoxing()
         {
@@ -238,6 +184,7 @@ class Program
     // OK
     static void M2(out SpanLike<string> ss)
     {
+        ss = default;
     }
 
     // OK
@@ -265,13 +212,12 @@ class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (38,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(38, 34),
-                // (38,12): error CS1599: Method or delegate cannot return type 'TypedReference'
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(39, 34),
+                // (39,12): error CS1599: Method or delegate cannot return type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12)
-            );
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12));
         }
 
         [Fact]

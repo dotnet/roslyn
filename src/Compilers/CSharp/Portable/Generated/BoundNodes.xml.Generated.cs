@@ -5227,16 +5227,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundStackAllocArrayCreation : BoundExpression
     {
-        public BoundStackAllocArrayCreation(SyntaxNode syntax, BoundExpression count, TypeSymbol type, bool hasErrors = false)
+        public BoundStackAllocArrayCreation(SyntaxNode syntax, ConversionKind conversionKind, TypeSymbol elementType, BoundExpression count, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.StackAllocArrayCreation, syntax, type, hasErrors || count.HasErrors())
         {
 
+            Debug.Assert(elementType != null, "Field 'elementType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(count != null, "Field 'count' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.ConversionKind = conversionKind;
+            this.ElementType = elementType;
             this.Count = count;
         }
 
+
+        public ConversionKind ConversionKind { get; }
+
+        public TypeSymbol ElementType { get; }
 
         public BoundExpression Count { get; }
 
@@ -5245,11 +5251,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitStackAllocArrayCreation(this);
         }
 
-        public BoundStackAllocArrayCreation Update(BoundExpression count, TypeSymbol type)
+        public BoundStackAllocArrayCreation Update(ConversionKind conversionKind, TypeSymbol elementType, BoundExpression count, TypeSymbol type)
         {
-            if (count != this.Count || type != this.Type)
+            if (conversionKind != this.ConversionKind || elementType != this.ElementType || count != this.Count || type != this.Type)
             {
-                var result = new BoundStackAllocArrayCreation(this.Syntax, count, type, this.HasErrors);
+                var result = new BoundStackAllocArrayCreation(this.Syntax, conversionKind, elementType, count, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9108,8 +9114,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
             BoundExpression count = (BoundExpression)this.Visit(node.Count);
+            TypeSymbol elementType = this.VisitType(node.ElementType);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(count, type);
+            return node.Update(node.ConversionKind, elementType, count, type);
         }
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
@@ -10559,6 +10566,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("stackAllocArrayCreation", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("conversionKind", node.ConversionKind, null),
+                new TreeDumperNode("elementType", node.ElementType, null),
                 new TreeDumperNode("count", null, new TreeDumperNode[] { Visit(node.Count, null) }),
                 new TreeDumperNode("type", node.Type, null)
             }

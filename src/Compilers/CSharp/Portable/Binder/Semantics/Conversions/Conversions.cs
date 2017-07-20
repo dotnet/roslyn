@@ -283,5 +283,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup);
         }
+
+        public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert((object)sourceExpression.Type == null);
+            Debug.Assert(sourceExpression.ElementType != null);
+
+            var pointerConversion = default(Conversion);
+
+            if (sourceExpression.Syntax.IsVariableDeclarationInitialization())
+            {
+                var sourceAsPointer = new PointerTypeSymbol(sourceExpression.ElementType);
+                pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
+            }
+
+            if (pointerConversion.IsValid)
+            {
+                // Report unsafe errors
+                _binder.ReportUnsafeIfNotAllowed(sourceExpression.Syntax.Location, ref useSiteDiagnostics);
+
+                return Conversion.MakeStackAllocToPointerType(pointerConversion);
+            }
+            else
+            {
+                var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteDiagnostics).Construct(sourceExpression.ElementType);
+                var spanConversion = ClassifyImplicitConversionFromType(spanType, destination, ref useSiteDiagnostics);
+
+                if (spanConversion.Exists)
+                {
+                    // Report errors if Span ctor is missing, or using an older C# version
+                    Binder.CheckFeatureAvailability(sourceExpression.Syntax, MessageID.IDS_FeatureRefStructs, ref useSiteDiagnostics);
+                    Binder.GetWellKnownTypeMember(_binder.Compilation, WellKnownMember.System_Span__ctor, out DiagnosticInfo memberDiagnosticInfo);
+                    HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, memberDiagnosticInfo);
+
+                    return Conversion.MakeStackAllocToSpanType(spanConversion);
+                }
+            }
+
+            return Conversion.NoConversion;
+        }
     }
 }

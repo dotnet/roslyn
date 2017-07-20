@@ -1439,8 +1439,8 @@
   </Node>
 
   <Node Name="BoundStackAllocArrayCreation" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="ConversionKind" Type="ConversionKind" Null="allow"/>
+    <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="Count" Type="BoundExpression"/>
   </Node>
 

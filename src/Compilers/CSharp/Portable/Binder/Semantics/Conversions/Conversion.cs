@@ -258,6 +258,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static ImmutableArray<Conversion> PointerToIntegerUnderlying = ImmutableArray.Create(PointerToInteger);
         }
 
+        internal static Conversion MakeStackAllocToPointerType(Conversion underlyingConversion)
+        {
+            return new Conversion(ConversionKind.StackAllocToPointerType, ImmutableArray.Create(underlyingConversion));
+        }
+
+        internal static Conversion MakeStackAllocToSpanType(Conversion underlyingConversion)
+        {
+            return new Conversion(ConversionKind.StackAllocToSpanType, ImmutableArray.Create(underlyingConversion));
+        }
 
         internal static Conversion MakeNullableConversion(ConversionKind kind, Conversion nestedConversion)
         {

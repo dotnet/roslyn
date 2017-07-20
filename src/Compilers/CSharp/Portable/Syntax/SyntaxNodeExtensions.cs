@@ -100,6 +100,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static bool IsVariableDeclarationInitialization(this SyntaxNode node)
+        {
+            Debug.Assert(node != null);
+
+            return node.Parent != null &&
+                node.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
+                node.Parent.Parent.IsKind(SyntaxKind.VariableDeclarator) &&
+                node.Parent.Parent.Parent.IsKind(SyntaxKind.VariableDeclaration);
+        }
+
         internal static CSharpSyntaxNode AnonymousFunctionBody(this SyntaxNode lambda)
         {
             switch (lambda.Kind())

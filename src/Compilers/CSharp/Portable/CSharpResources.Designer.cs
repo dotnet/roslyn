@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -8882,6 +8882,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Conversion of a stackalloc expression of type &apos;{0}&apos; to type &apos;{1}&apos; is not possible..
+        /// </summary>
+        internal static string ERR_StackAllocConversionNotPossible {
+            get {
+                return ResourceManager.GetString("ERR_StackAllocConversionNotPossible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to stackalloc may not be used in a catch or finally block.
         /// </summary>
         internal static string ERR_StackallocInCatchFinally {
@@ -10877,6 +10886,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_SK_VARIABLE {
             get {
                 return ResourceManager.GetString("IDS_SK_VARIABLE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to stackalloc expression of type &apos;{0}&apos;.
+        /// </summary>
+        internal static string IDS_StackAllocExpression {
+            get {
+                return ResourceManager.GetString("IDS_StackAllocExpression", resourceCulture);
             }
         }
         

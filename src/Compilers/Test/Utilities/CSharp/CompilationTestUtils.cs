@@ -174,9 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // The information that is available varies by the type of the syntax node.
 
             SymbolInfo symbolInfo = SymbolInfo.None;
-            if (node is ExpressionSyntax)
+            if (node is ExpressionSyntax expr)
             {
-                ExpressionSyntax expr = (ExpressionSyntax)node;
                 symbolInfo = semanticModel.GetSymbolInfo(expr);
                 summary.ConstantValue = semanticModel.GetConstantValue(expr);
                 var typeInfo = semanticModel.GetTypeInfo(expr);
@@ -185,9 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 summary.ImplicitConversion = semanticModel.GetConversion(expr);
                 summary.MemberGroup = semanticModel.GetMemberGroup(expr);
             }
-            else if (node is AttributeSyntax)
+            else if (node is AttributeSyntax attribute)
             {
-                var attribute = (AttributeSyntax)node;
                 symbolInfo = semanticModel.GetSymbolInfo(attribute);
                 var typeInfo = semanticModel.GetTypeInfo(attribute);
                 summary.Type = (TypeSymbol)typeInfo.Type;
@@ -195,17 +193,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 summary.ImplicitConversion = semanticModel.GetConversion(attribute);
                 summary.MemberGroup = semanticModel.GetMemberGroup(attribute);
             }
-            else if (node is OrderingSyntax)
+            else if (node is OrderingSyntax ordering)
             {
-                symbolInfo = semanticModel.GetSymbolInfo((OrderingSyntax)node);
+                symbolInfo = semanticModel.GetSymbolInfo(ordering);
             }
-            else if (node is SelectOrGroupClauseSyntax)
+            else if (node is SelectOrGroupClauseSyntax selectOrGroupClause)
             {
-                symbolInfo = semanticModel.GetSymbolInfo((SelectOrGroupClauseSyntax)node);
+                symbolInfo = semanticModel.GetSymbolInfo(selectOrGroupClause);
             }
-            else if (node is ConstructorInitializerSyntax)
+            else if (node is ConstructorInitializerSyntax initializer)
             {
-                var initializer = (ConstructorInitializerSyntax)node;
                 symbolInfo = semanticModel.GetSymbolInfo(initializer);
                 var typeInfo = semanticModel.GetTypeInfo(initializer);
                 summary.Type = (TypeSymbol)typeInfo.Type;
@@ -215,16 +212,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else
             {
-                throw new NotSupportedException("Type of syntax node is not supported by GetSemanticInfoSummary");
+                throw ExceptionUtilities.UnexpectedValue(node);
             }
 
             summary.Symbol = (Symbol)symbolInfo.Symbol;
             summary.CandidateReason = symbolInfo.CandidateReason;
             summary.CandidateSymbols = symbolInfo.CandidateSymbols;
 
-            if (node is IdentifierNameSyntax)
+            if (node is IdentifierNameSyntax identifier)
             {
-                summary.Alias = semanticModel.GetAliasInfo((IdentifierNameSyntax)node);
+                summary.Alias = semanticModel.GetAliasInfo(identifier);
             }
 
             return summary;

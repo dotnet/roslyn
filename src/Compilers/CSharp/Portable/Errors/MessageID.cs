@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefStructs = MessageBase + 12819,
         IDS_FeatureReadOnlyStructs = MessageBase + 12820,
         IDS_FeatureRefExtensionMethods = MessageBase + 12821,
+        IDS_StackAllocExpression = MessageBase + 12822,
     }
 
     // Message IDs may refer to strings that need to be localized.

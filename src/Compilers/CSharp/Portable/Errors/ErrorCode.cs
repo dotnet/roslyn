@@ -1521,5 +1521,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefStructInterfaceImpl = 8517,
         ERR_BadSpecialByRefIterator = 8518,
         ERR_FieldAutoPropCantBeByRefLike = 8519,
+        ERR_StackAllocConversionNotPossible = 8520,
     }
 }

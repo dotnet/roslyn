@@ -4603,22 +4603,13 @@ public class Test
 }
 ";
             // Extra errors
-            CreateStandardCompilation(test).VerifyDiagnostics(
-                // (6,33): error CS1002: ; expected
-                //         int *p = stackalloc int (30); 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(6, 33),
+            CreateStandardCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (7,34): error CS1002: ; expected
                 //         int *pp = stackalloc int 30; 
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "30").WithLocation(7, 34),
-                // (4,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                //     unsafe public static int Main()
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Main").WithLocation(4, 30),
                 // (6,29): error CS1575: A stackalloc expression requires [] after type
                 //         int *p = stackalloc int (30); 
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(6, 29),
-                // (6,33): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         int *p = stackalloc int (30); 
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(30)").WithLocation(6, 33),
                 // (7,30): error CS1575: A stackalloc expression requires [] after type
                 //         int *pp = stackalloc int 30; 
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(7, 30),
@@ -4637,10 +4628,7 @@ unsafe public class Test
     int* p = stackalloc int[1];
 }
 ";
-            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
-                // (4,14): error CS1525: Invalid expression term 'stackalloc'
-                //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 14));
+            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).GetParseDiagnostics().Verify();
         }
 
         [Fact]
@@ -4656,73 +4644,7 @@ unsafe public class Test
     }
 }
 ";
-            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
-                // (6,33): error CS1525: Invalid expression term 'stackalloc'
-                //         int*[] p = new int*[] { stackalloc int[1] };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 33));
-        }
-
-        [Fact]
-        public void CS1575ERR_BadStackAllocExpr3()
-        {
-            // Diff errors
-            var test = @"
-unsafe public class Test
-{
-    void M()
-    {
-        const int* p = stackalloc int[1];
-    }
-}
-";
-            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
-                // (6,15): error CS0283: The type 'int*' cannot be declared const
-                //         const int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15),
-                // (6,24): error CS1525: Invalid expression term 'stackalloc'
-                //         const int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 24));
-        }
-        
-        public void CS1674ERR_StackAllocInUsing1()
-        {
-            // Diff errors
-            var test = @"
-public class Test
-{
-    unsafe public static void Main()
-    {
-        using (var v = stackalloc int[1])
-        {
-        }
-    }
-}
-";
-            CreateStandardCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
-                //         using (var v = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("int*").WithLocation(6, 16));
-        }
-
-        [Fact]
-        public void CS0029ERR_StackAllocInUsing2()
-        {
-            // Diff errors
-            var test = @"
-public class Test
-{
-    unsafe public static void Main()
-    {
-        using (System.IDisposable v = stackalloc int[1])
-        {
-        }
-    }
-}
-";
-            CreateStandardCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,39): error CS0029: Cannot implicitly convert type 'int*' to 'System.IDisposable'
-                //         using (System.IDisposable v = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "stackalloc int[1]").WithArguments("int*", "System.IDisposable").WithLocation(6, 39));
+            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).GetParseDiagnostics().Verify();
         }
 
         [WorkItem(906993, "DevDiv/Personal")]
