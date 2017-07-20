@@ -1122,28 +1122,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            if (!operation.TypeArguments.IsDefaultOrEmpty)
-            {
-                Indent();
-                if (operation.TypeArguments.Length == 1)
-                {
-                    LogSymbol(operation.TypeArguments.Single(), "Type Arguments");
-                    LogNewLine();
-                }
-                else
-                {
-                    LogString("Type Arguments:");
-                    LogNewLine();
-                    Indent();
-                    foreach (var typeArg in operation.TypeArguments)
-                    {
-                        LogSymbol(typeArg, null);
-                        LogNewLine();
-                    }
-                    Unindent();
-                }
-                Unindent();
-            }
+            VisitArrayCommon(operation.TypeArguments, "Type Arguments", true, VisitSymbolArrayElement);
 
             VisitInstanceExpression(operation.Instance);
         }

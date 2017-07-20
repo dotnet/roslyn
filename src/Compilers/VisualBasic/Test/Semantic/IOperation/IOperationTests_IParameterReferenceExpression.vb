@@ -513,7 +513,8 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IOperation:  (OperationKind.None) (Syntax: 'x.M(y)')
   Children(2):
-      IDynamicMemberReferenceExpression (Member name: M, Containing Type: Object) (OperationKind.DynamicAccessExpression, Type: System.Object) (Syntax: 'x.M')
+      IDynamicMemberReferenceExpression (Member Name: "M", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'x.M')
+        Type Arguments(0)
         Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ]]>.Value
@@ -743,7 +744,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IOperation:  (OperationKind.None) (Syntax: 'AddressOf x.Method')
   Children(1):
-      IDynamicMemberReferenceExpression (Member name: Method, Containing Type: Object) (OperationKind.DynamicAccessExpression, Type: System.Object) (Syntax: 'x.Method')
+      IDynamicMemberReferenceExpression (Member Name: "Method", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'x.Method')
+        Type Arguments(0)
         Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
 ]]>.Value
 

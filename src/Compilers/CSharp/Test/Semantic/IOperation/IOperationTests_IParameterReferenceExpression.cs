@@ -549,7 +549,8 @@ class Class1
     string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'x.M(y)')
   Children(2):
-      IDynamicMemberReferenceExpression (Member name: M, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'x.M')
+      IDynamicMemberReferenceExpression (Member Name: ""M"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'x.M')
+        Type Arguments(0)
         Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ";

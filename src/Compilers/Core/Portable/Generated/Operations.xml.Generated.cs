@@ -2956,7 +2956,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseDynamicMemberReferenceExpression : Operation, IDynamicMemberReferenceExpression
     {
         protected BaseDynamicMemberReferenceExpression(string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.DynamicAccessExpression, syntax, type, constantValue)
+            base(OperationKind.DynamicMemberReferenceExpression, syntax, type, constantValue)
         {
             MemberName = memberName;
             TypeArguments = typeArguments;

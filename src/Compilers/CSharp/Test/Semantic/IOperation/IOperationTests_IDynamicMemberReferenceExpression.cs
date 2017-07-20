@@ -27,7 +27,8 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicMemberReferenceExpression (Member name: Prop1, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'd.Prop1')
+IDynamicMemberReferenceExpression (Member Name: ""Prop1"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Prop1')
+  Type Arguments(0)
   Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -54,7 +55,8 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicMemberReferenceExpression (Member name: , Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic, IsInvalid) (Syntax: 'd./*</bind>*/')
+IDynamicMemberReferenceExpression (Member Name: """", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd./*</bind>*/')
+  Type Arguments(0)
   Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -87,7 +89,8 @@ namespace ConsoleApp1
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'd.GetValue()')
   Children(1):
-      IDynamicMemberReferenceExpression (Member name: GetValue, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'd.GetValue')
+      IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.GetValue')
+        Type Arguments(0)
         Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -114,7 +117,8 @@ namespace ConsoleApp1
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.()')
   Children(1):
-      IDynamicMemberReferenceExpression (Member name: , Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic, IsInvalid) (Syntax: 'd.')
+      IDynamicMemberReferenceExpression (Member Name: """", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd.')
+        Type Arguments(0)
         Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -145,7 +149,8 @@ namespace ConsoleApp1
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.GetValue(/*</bind>*/')
   Children(1):
-      IDynamicMemberReferenceExpression (Member name: GetValue, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'd.GetValue')
+      IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.GetValue')
+        Type Arguments(0)
         Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -176,8 +181,9 @@ namespace ConsoleApp1
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'd.GetValue<int>()')
   Children(1):
-      IDynamicMemberReferenceExpression (Member name: GetValue, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'd.GetValue<int>')
-        Type Arguments: System.Int32
+      IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.GetValue<int>')
+        Type Arguments(1):
+          Symbol: System.Int32
         Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -204,10 +210,10 @@ namespace ConsoleApp1
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'd.GetValue<int, C1>()')
   Children(1):
-      IDynamicMemberReferenceExpression (Member name: GetValue, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'd.GetValue<int, C1>')
-        Type Arguments:
-          System.Int32
-          ConsoleApp1.C1
+      IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.GetValue<int, C1>')
+        Type Arguments(2):
+          Symbol: System.Int32
+          Symbol: ConsoleApp1.C1
         Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -232,10 +238,10 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicMemberReferenceExpression (Member name: GetValue, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic, IsInvalid) (Syntax: 'd.GetValue<int, C1>')
-  Type Arguments:
-    System.Int32
-    ConsoleApp1.C1
+IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd.GetValue<int, C1>')
+  Type Arguments(2):
+    Symbol: System.Int32
+    Symbol: ConsoleApp1.C1
   Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -269,10 +275,10 @@ namespace ConsoleApp1
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.GetValue<int,>()')
   Children(1):
-      IDynamicMemberReferenceExpression (Member name: GetValue, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic, IsInvalid) (Syntax: 'd.GetValue<int,>')
-        Type Arguments:
-          System.Int32
-          ?
+      IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd.GetValue<int,>')
+        Type Arguments(2):
+          Symbol: System.Int32
+          Symbol: ?
         Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -301,8 +307,10 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicMemberReferenceExpression (Member name: Prop2, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'd.Prop1.Prop2')
-  Instance Receiver: IDynamicMemberReferenceExpression (Member name: Prop1, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'd.Prop1')
+IDynamicMemberReferenceExpression (Member Name: ""Prop2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Prop1.Prop2')
+  Type Arguments(0)
+  Instance Receiver: IDynamicMemberReferenceExpression (Member Name: ""Prop1"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Prop1')
+      Type Arguments(0)
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -329,10 +337,12 @@ namespace ConsoleApp1
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'd.Method1().Method2()')
   Children(1):
-      IDynamicMemberReferenceExpression (Member name: Method2, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'd.Method1().Method2')
+      IDynamicMemberReferenceExpression (Member Name: ""Method2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Method1().Method2')
+        Type Arguments(0)
         Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'd.Method1()')
             Children(1):
-                IDynamicMemberReferenceExpression (Member name: Method1, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'd.Method1')
+                IDynamicMemberReferenceExpression (Member Name: ""Method1"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Method1')
+                  Type Arguments(0)
                   Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -359,11 +369,13 @@ namespace ConsoleApp1
 }
 ";
             string expectedOperationTree = @"
-IDynamicMemberReferenceExpression (Member name: Prop2, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'd.Method1<int>().Prop2')
+IDynamicMemberReferenceExpression (Member Name: ""Prop2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Method1<int>().Prop2')
+  Type Arguments(0)
   Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'd.Method1<int>()')
       Children(1):
-          IDynamicMemberReferenceExpression (Member name: Method1, Containing Type: null) (OperationKind.DynamicAccessExpression, Type: dynamic) (Syntax: 'd.Method1<int>')
-            Type Arguments: System.Int32
+          IDynamicMemberReferenceExpression (Member Name: ""Method1"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Method1<int>')
+            Type Arguments(1):
+              Symbol: System.Int32
             Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
