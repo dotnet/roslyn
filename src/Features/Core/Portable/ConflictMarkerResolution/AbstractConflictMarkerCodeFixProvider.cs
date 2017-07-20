@@ -117,11 +117,11 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 context.Diagnostics);
             context.RegisterCodeFix(
                 new MyCodeAction(takeBottomText,
-                c => TakeBottomAsync(document, lessThanPosition, equalsPosition, greaterThanPosition, c)),
+                    c => TakeBottomAsync(document, lessThanPosition, equalsPosition, greaterThanPosition, c)),
                 context.Diagnostics);
             context.RegisterCodeFix(
                 new MyCodeAction(FeaturesResources.Take_both,
-                c => TakeBothAsync(document, lessThanPosition, equalsPosition, greaterThanPosition, c)),
+                    c => TakeBothAsync(document, lessThanPosition, equalsPosition, greaterThanPosition, c)),
                 context.Diagnostics);
         }
 
