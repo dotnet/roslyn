@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
 {
-    public partial class RemoveUnusedVariableTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class RemoveUnusedVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpRemoveUnusedVariableCodeFixProvider());
@@ -205,5 +205,59 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
     }
 }");
         }
+
+        [WorkItem(20987, "https://github.com/dotnet/roslyn/issues/20987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task LeadingDirectives()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#define NET461
+
+using System;
+
+namespace ClassLibrary
+{
+    public class Class1
+    {
+        public static string GetText()
+        {
+#if NET461
+        return ""Hello from "" + Environment.OSVersion;
+#elif NETSTANDARD1_4
+        return ""Hello from .NET Standard"";
+#else
+#error Unknown platform 
+#endif
+            int [|blah|] = 5;
+        }
+    }
+}",
+@"
+#define NET461
+
+using System;
+
+namespace ClassLibrary
+{
+    public class Class1
+    {
+        public static string GetText()
+        {
+#if NET461
+        return ""Hello from "" + Environment.OSVersion;
+#elif NETSTANDARD1_4
+        return ""Hello from .NET Standard"";
+#else
+#error Unknown platform 
+#endif
+        }
+    }
+}", ignoreTrivia: false);
+        }
+
+#if false
+
+#endif
     }
 }
