@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -69,7 +69,7 @@ class Class1
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'var (x, y) = point')
   Children(2):
       ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
@@ -77,7 +77,7 @@ IOperation:  (OperationKind.None) (Syntax: 'var (x, y) = point')
             ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
             ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
       IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'point')
-        IParameterReferenceExpression: point (OperationKind.ParameterReferenceExpression, Type: Point) (Syntax: 'point')
+        Operand: IParameterReferenceExpression: point (OperationKind.ParameterReferenceExpression, Type: Point) (Syntax: 'point')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -137,7 +137,7 @@ class Class1
     }
 }
 ";
-    string expectedOperationTree = @"
+string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'from cust i ... t cust.Name')
   Children(1):
       IOperation:  (OperationKind.None) (Syntax: 'select cust.Name')
@@ -147,18 +147,18 @@ IOperation:  (OperationKind.None) (Syntax: 'from cust i ... t cust.Name')
               Arguments(2):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument) (Syntax: 'from cust in customers')
                     IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<Customer>) (Syntax: 'from cust in customers')
-                      IOperation:  (OperationKind.None) (Syntax: 'from cust in customers')
-                        Children(1):
-                            IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List<Customer>) (Syntax: 'customers')
+                      Operand: IOperation:  (OperationKind.None) (Syntax: 'from cust in customers')
+                          Children(1):
+                              IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List<Customer>) (Syntax: 'customers')
                     InConversion: null
                     OutConversion: null
                   IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'cust.Name')
                     IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Func<Customer, System.String>) (Syntax: 'cust.Name')
-                      ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'cust.Name')
-                        IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'cust.Name')
-                          IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'cust.Name')
-                            IPropertyReferenceExpression: System.String Customer.Name { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
-                              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'cust')
+                      Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'cust.Name')
+                          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'cust.Name')
+                            IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'cust.Name')
+                              ReturnedValue: IPropertyReferenceExpression: System.String Customer.Name { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
+                                  Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'cust')
                     InConversion: null
                     OutConversion: null
 ";
@@ -251,17 +251,17 @@ class Class
     }
 }
 ";
-    string expectedOperationTree = @"
+string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
   Children(1):
       ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => ... }')
         IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
           IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a();')
-            IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')
-              Instance Receiver: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Action) (Syntax: 'a')
-              Arguments(0)
+            Expression: IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')
+                Instance Receiver: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Action) (Syntax: 'a')
+                Arguments(0)
           IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ ... }')
-          null
+            ReturnedValue: null
 ";
     var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -395,9 +395,9 @@ class Class1
     }
 }
 ";
-    string expectedOperationTree = @"
+string expectedOperationTree = @"
 IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenceExpression, Type: System.Int32) (Syntax: '*x')
-  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32*) (Syntax: 'x')
+  Pointer: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32*) (Syntax: 'x')
 ";
     var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -817,13 +817,13 @@ class P
     }
 }
 ";
-    string expectedOperationTree = @"
+string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'x && y')
   Children(2):
       IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: B) (Syntax: 'x')
-        IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')
+        Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')
       IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: B) (Syntax: 'y')
-        IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')
+        Operand: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')
 ";
     var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -960,7 +960,7 @@ ILocalFunctionStatement (Local Function: System.Collections.Generic.IEnumerable<
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IForEachLoopStatement (Iteration variable: T element) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... rn element;')
       Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
-          IParameterReferenceExpression: source (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
+          Operand: IParameterReferenceExpression: source (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
       Body: IIfStatement (OperationKind.IfStatement) (Syntax: 'if (predica ... rn element;')
           Condition: IInvocationExpression (virtual System.Boolean System.Func<T, System.Boolean>.Invoke(T arg)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'predicate(element)')
               Instance Receiver: IParameterReferenceExpression: predicate (OperationKind.ParameterReferenceExpression, Type: System.Func<T, System.Boolean>) (Syntax: 'predicate')
@@ -970,10 +970,10 @@ ILocalFunctionStatement (Local Function: System.Collections.Generic.IEnumerable<
                     InConversion: null
                     OutConversion: null
           IfTrue: IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return element;')
-              ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
+              ReturnedValue: ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
           IfFalse: null
     IReturnStatement (OperationKind.YieldBreakStatement) (Syntax: '{ ... }')
-    null
+      ReturnedValue: null
 ";
     var expectedDiagnostics = DiagnosticDescription.None;
 

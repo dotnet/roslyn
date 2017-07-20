@@ -369,7 +369,7 @@ Class C1
     End Sub
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Public Shar ... End Sub')
   Locals: Local_1: a As C2
     Local_2: b As C2
@@ -418,9 +418,9 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
                         Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ... .a = "foo"}')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "foo", IsInvalid) (Syntax: '"foo"')
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-  null
+    LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-  null
+    ReturnedValue: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1048,20 +1048,6 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, IsInvalid) (Syntax: 'New T() Fro ... , "World!"}')
-  IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: T, IsInvalid) (Syntax: 'From {"Hell ... , "World!"}')
-    Initializers(3):
-        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: '"Hello"')
-          Children(2):
-              IOperation:  (OperationKind.None, IsInvalid) (Syntax: '"Hello"')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello", IsInvalid) (Syntax: '"Hello"')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: '" "')
-          Children(2):
-              IOperation:  (OperationKind.None, IsInvalid) (Syntax: '" "')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " ", IsInvalid) (Syntax: '" "')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: '"World!"')
-          Children(2):
-              IOperation:  (OperationKind.None, IsInvalid) (Syntax: '"World!"')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "World!", IsInvalid) (Syntax: '"World!"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

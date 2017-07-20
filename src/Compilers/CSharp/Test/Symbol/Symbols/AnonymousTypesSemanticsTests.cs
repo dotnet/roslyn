@@ -138,57 +138,57 @@ IBlockStatement (4 statements, 4 locals) (OperationKind.BlockStatement) (Syntax:
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'object v1 = ... };')
       Variables: Local_1: System.Object v1
       Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'new ... }')
-          IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'new ... }')
-            Initializers(3):
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: 'aa = 1')
-                  Left: IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>.aa { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'aa')
-                      Instance Receiver: null
-                  Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: """") (Syntax: 'BB = """"')
-                  Left: IPropertyReferenceExpression: System.String <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>.BB { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'BB')
-                      Instance Receiver: null
-                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: '""""')
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ClassA.SSS) (Syntax: 'CCC = new SSS()')
-                  Left: IPropertyReferenceExpression: ClassA.SSS <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>.CCC { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: ClassA.SSS) (Syntax: 'CCC')
-                      Instance Receiver: null
-                  Right: IObjectCreationExpression (Constructor: ClassA.SSS..ctor()) (OperationKind.ObjectCreationExpression, Type: ClassA.SSS) (Syntax: 'new SSS()')
-                      Arguments(0)
-                      Initializer: null
+          Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'new ... }')
+              Initializers(3):
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: 'aa = 1')
+                    Left: IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>.aa { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'aa')
+                        Instance Receiver: null
+                    Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: """") (Syntax: 'BB = """"')
+                    Left: IPropertyReferenceExpression: System.String <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>.BB { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'BB')
+                        Instance Receiver: null
+                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: '""""')
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ClassA.SSS) (Syntax: 'CCC = new SSS()')
+                    Left: IPropertyReferenceExpression: ClassA.SSS <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>.CCC { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: ClassA.SSS) (Syntax: 'CCC')
+                        Instance Receiver: null
+                    Right: IObjectCreationExpression (Constructor: ClassA.SSS..ctor()) (OperationKind.ObjectCreationExpression, Type: ClassA.SSS) (Syntax: 'new SSS()')
+                        Arguments(0)
+                        Initializer: null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'object v2 = ... };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'object v2 = ... };')
       Variables: Local_1: System.Object v2
       Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'new ... }')
-          IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>) (Syntax: 'new ... }')
-            Initializers(3):
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ClassA.SSS) (Syntax: 'aa = new SSS()')
-                  Left: IPropertyReferenceExpression: ClassA.SSS <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>.aa { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: ClassA.SSS) (Syntax: 'aa')
-                      Instance Receiver: null
-                  Right: IObjectCreationExpression (Constructor: ClassA.SSS..ctor()) (OperationKind.ObjectCreationExpression, Type: ClassA.SSS) (Syntax: 'new SSS()')
-                      Arguments(0)
-                      Initializer: null
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Double, Constant: 123.456) (Syntax: 'BB = 123.456')
-                  Left: IPropertyReferenceExpression: System.Double <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>.BB { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Double) (Syntax: 'BB')
-                      Instance Receiver: null
-                  Right: ILiteralExpression (Text: 123.456) (OperationKind.LiteralExpression, Type: System.Double, Constant: 123.456) (Syntax: '123.456')
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'CCC = new ... }')
-                  Left: IPropertyReferenceExpression: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>.CCC { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'CCC')
-                      Instance Receiver: null
-                  Right: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'new ... }')
-                      Initializers(3):
-                          IPropertyReferenceExpression: System.Int32 ClassA.aa { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '(new ClassA()).aa')
-                            Instance Receiver: IObjectCreationExpression (Constructor: ClassA..ctor()) (OperationKind.ObjectCreationExpression, Type: ClassA) (Syntax: 'new ClassA()')
-                                Arguments(0)
-                                Initializer: null
-                          IFieldReferenceExpression: System.String ClassA.BB (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: ""-=-= -"") (Syntax: 'ClassA.BB')
-                            Instance Receiver: null
-                          IFieldReferenceExpression: ClassA.SSS ClassA.CCC (Static) (OperationKind.FieldReferenceExpression, Type: ClassA.SSS) (Syntax: 'ClassA.CCC')
-                            Instance Receiver: null
+          Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>) (Syntax: 'new ... }')
+              Initializers(3):
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ClassA.SSS) (Syntax: 'aa = new SSS()')
+                    Left: IPropertyReferenceExpression: ClassA.SSS <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>.aa { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: ClassA.SSS) (Syntax: 'aa')
+                        Instance Receiver: null
+                    Right: IObjectCreationExpression (Constructor: ClassA.SSS..ctor()) (OperationKind.ObjectCreationExpression, Type: ClassA.SSS) (Syntax: 'new SSS()')
+                        Arguments(0)
+                        Initializer: null
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Double, Constant: 123.456) (Syntax: 'BB = 123.456')
+                    Left: IPropertyReferenceExpression: System.Double <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>.BB { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Double) (Syntax: 'BB')
+                        Instance Receiver: null
+                    Right: ILiteralExpression (Text: 123.456) (OperationKind.LiteralExpression, Type: System.Double, Constant: 123.456) (Syntax: '123.456')
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'CCC = new ... }')
+                    Left: IPropertyReferenceExpression: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>.CCC { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'CCC')
+                        Instance Receiver: null
+                    Right: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'new ... }')
+                        Initializers(3):
+                            IPropertyReferenceExpression: System.Int32 ClassA.aa { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '(new ClassA()).aa')
+                              Instance Receiver: IObjectCreationExpression (Constructor: ClassA..ctor()) (OperationKind.ObjectCreationExpression, Type: ClassA) (Syntax: 'new ClassA()')
+                                  Arguments(0)
+                                  Initializer: null
+                            IFieldReferenceExpression: System.String ClassA.BB (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: ""-=-= -"") (Syntax: 'ClassA.BB')
+                              Instance Receiver: null
+                            IFieldReferenceExpression: ClassA.SSS ClassA.CCC (Static) (OperationKind.FieldReferenceExpression, Type: ClassA.SSS) (Syntax: 'ClassA.CCC')
+                              Instance Receiver: null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'object v3 = new { };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'object v3 = new { };')
       Variables: Local_1: System.Object v3
       Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'new { }')
-          IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>) (Syntax: 'new { }')
-            Initializers(0)
+          Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>) (Syntax: 'new { }')
+              Initializers(0)
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var v4 = new { };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'var v4 = new { };')
       Variables: Local_1: <empty anonymous type> v4
@@ -345,10 +345,10 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
         Left: IPropertyReferenceExpression: D1 <anonymous type: D1 module>.module { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: D1) (Syntax: 'module')
             Instance Receiver: null
         Right: IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: D1) (Syntax: '(D1)(() => false)')
-            ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => false')
-              IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'false')
-                IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'false')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
+            Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => false')
+                IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'false')
+                  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'false')
+                    ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -499,8 +499,8 @@ IInvocationExpression (virtual System.Boolean System.Object.Equals(System.Object
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument) (Syntax: 'new { }')
         IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'new { }')
-          IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>) (Syntax: 'new { }')
-            Initializers(0)
+          Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>) (Syntax: 'new { }')
+              Initializers(0)
         InConversion: null
         OutConversion: null
 ";
@@ -1012,53 +1012,53 @@ IBlockStatement (2 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'object v1 = ... };')
       Variables: Local_1: System.Object v1
       Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'new ... }')
-          IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: ? aa, System.String BB, SSS CCC>, IsInvalid) (Syntax: 'new ... }')
-            Initializers(3):
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'aa = xyz')
-                  Left: IPropertyReferenceExpression: ? <anonymous type: ? aa, System.String BB, SSS CCC>.aa { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'aa')
-                      Instance Receiver: null
-                  Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'xyz')
-                      Children(0)
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: """") (Syntax: 'BB = """"')
-                  Left: IPropertyReferenceExpression: System.String <anonymous type: ? aa, System.String BB, SSS CCC>.BB { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'BB')
-                      Instance Receiver: null
-                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: '""""')
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: SSS, IsInvalid) (Syntax: 'CCC = new SSS()')
-                  Left: IPropertyReferenceExpression: SSS <anonymous type: ? aa, System.String BB, SSS CCC>.CCC { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: SSS) (Syntax: 'CCC')
-                      Instance Receiver: null
-                  Right: IInvalidExpression (OperationKind.InvalidExpression, Type: SSS, IsInvalid) (Syntax: 'new SSS()')
-                      Children(0)
+          Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: ? aa, System.String BB, SSS CCC>, IsInvalid) (Syntax: 'new ... }')
+              Initializers(3):
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'aa = xyz')
+                    Left: IPropertyReferenceExpression: ? <anonymous type: ? aa, System.String BB, SSS CCC>.aa { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'aa')
+                        Instance Receiver: null
+                    Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'xyz')
+                        Children(0)
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: """") (Syntax: 'BB = """"')
+                    Left: IPropertyReferenceExpression: System.String <anonymous type: ? aa, System.String BB, SSS CCC>.BB { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'BB')
+                        Instance Receiver: null
+                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: '""""')
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: SSS, IsInvalid) (Syntax: 'CCC = new SSS()')
+                    Left: IPropertyReferenceExpression: SSS <anonymous type: ? aa, System.String BB, SSS CCC>.CCC { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: SSS) (Syntax: 'CCC')
+                        Instance Receiver: null
+                    Right: IInvalidExpression (OperationKind.InvalidExpression, Type: SSS, IsInvalid) (Syntax: 'new SSS()')
+                        Children(0)
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'object v2 = ... };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'object v2 = ... };')
       Variables: Local_1: System.Object v2
       Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'new ... }')
-          IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>, IsInvalid) (Syntax: 'new ... }')
-            Initializers(3):
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: SSS, IsInvalid) (Syntax: 'aa = new SSS()')
-                  Left: IPropertyReferenceExpression: SSS <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>.aa { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: SSS) (Syntax: 'aa')
-                      Instance Receiver: null
-                  Right: IInvalidExpression (OperationKind.InvalidExpression, Type: SSS, IsInvalid) (Syntax: 'new SSS()')
-                      Children(0)
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Double, Constant: 123.456) (Syntax: 'BB = 123.456')
-                  Left: IPropertyReferenceExpression: System.Double <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>.BB { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Double) (Syntax: 'BB')
-                      Instance Receiver: null
-                  Right: ILiteralExpression (Text: 123.456) (OperationKind.LiteralExpression, Type: System.Double, Constant: 123.456) (Syntax: '123.456')
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: <anonymous type: ? aa, ? BB, ? CCC>, IsInvalid) (Syntax: 'CCC = new ... }')
-                  Left: IPropertyReferenceExpression: <anonymous type: ? aa, ? BB, ? CCC> <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>.CCC { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: <anonymous type: ? aa, ? BB, ? CCC>) (Syntax: 'CCC')
-                      Instance Receiver: null
-                  Right: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: ? aa, ? BB, ? CCC>, IsInvalid) (Syntax: 'new ... }')
-                      Initializers(3):
-                          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '(new ClassA()).aa')
-                            Children(1):
-                                IObjectCreationExpression (Constructor: ClassA..ctor()) (OperationKind.ObjectCreationExpression, Type: ClassA) (Syntax: 'new ClassA()')
-                                  Arguments(0)
-                                  Initializer: null
-                          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'ClassA.BB')
-                            Children(1):
-                                IOperation:  (OperationKind.None) (Syntax: 'ClassA')
-                          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'ClassA.CCC')
-                            Children(1):
-                                IOperation:  (OperationKind.None) (Syntax: 'ClassA')
+          Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>, IsInvalid) (Syntax: 'new ... }')
+              Initializers(3):
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: SSS, IsInvalid) (Syntax: 'aa = new SSS()')
+                    Left: IPropertyReferenceExpression: SSS <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>.aa { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: SSS) (Syntax: 'aa')
+                        Instance Receiver: null
+                    Right: IInvalidExpression (OperationKind.InvalidExpression, Type: SSS, IsInvalid) (Syntax: 'new SSS()')
+                        Children(0)
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Double, Constant: 123.456) (Syntax: 'BB = 123.456')
+                    Left: IPropertyReferenceExpression: System.Double <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>.BB { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Double) (Syntax: 'BB')
+                        Instance Receiver: null
+                    Right: ILiteralExpression (Text: 123.456) (OperationKind.LiteralExpression, Type: System.Double, Constant: 123.456) (Syntax: '123.456')
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: <anonymous type: ? aa, ? BB, ? CCC>, IsInvalid) (Syntax: 'CCC = new ... }')
+                    Left: IPropertyReferenceExpression: <anonymous type: ? aa, ? BB, ? CCC> <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>.CCC { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: <anonymous type: ? aa, ? BB, ? CCC>) (Syntax: 'CCC')
+                        Instance Receiver: null
+                    Right: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: ? aa, ? BB, ? CCC>, IsInvalid) (Syntax: 'new ... }')
+                        Initializers(3):
+                            IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '(new ClassA()).aa')
+                              Children(1):
+                                  IObjectCreationExpression (Constructor: ClassA..ctor()) (OperationKind.ObjectCreationExpression, Type: ClassA) (Syntax: 'new ClassA()')
+                                    Arguments(0)
+                                    Initializer: null
+                            IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'ClassA.BB')
+                              Children(1):
+                                  IOperation:  (OperationKind.None) (Syntax: 'ClassA')
+                            IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'ClassA.CCC')
+                              Children(1):
+                                  IOperation:  (OperationKind.None) (Syntax: 'ClassA')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0103: The name 'xyz' does not exist in the current context

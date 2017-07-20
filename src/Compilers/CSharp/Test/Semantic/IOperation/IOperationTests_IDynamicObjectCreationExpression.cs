@@ -305,7 +305,7 @@ IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCre
       ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'delegate { }')
         IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
           IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '{ }')
-          null
+            ReturnedValue: null
       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'y')
   ArgumentNames(0)
   ArgumentRefKinds(0)
