@@ -289,6 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckLocalsDefined(body);
 
+            analysis.Free();
+
             return body;
         }
 
