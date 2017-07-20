@@ -54,6 +54,7 @@ class D
 end class")
         End Function
 
+        <WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestNothingArgument1() As Task
             Await TestInRegularAndScriptAsync(

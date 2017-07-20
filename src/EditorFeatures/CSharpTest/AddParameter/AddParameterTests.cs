@@ -459,6 +459,7 @@ class C
 ignoreTrivia: false);
         }
 
+        [WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestNullArg1()
         {
@@ -491,6 +492,7 @@ class D
 }");
         }
 
+        [WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestNullArg2()
         {
@@ -523,6 +525,7 @@ class D
 }");
         }
 
+        [WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestDefaultArg1()
         {
@@ -555,6 +558,7 @@ class D
 }");
         }
 
+        [WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestDefaultArg2()
         {
