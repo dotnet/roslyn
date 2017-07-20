@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var currentProject = context.Document.Project;
             var allInternalsVisibleToAttributesOfProject = await GetAllInternalsVisibleToAssemblyNamesOfProjectAsync(context, cancellationToken).ConfigureAwait(false);
             var currentCompilation = await currentProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var currentAssemblyInfo = currentCompilation.Assembly;
             foreach (var project in context.Document.Project.Solution.Projects)
             {
                 if (project == currentProject)
@@ -124,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     continue;
                 }
 
-                if (allInternalsVisibleToAttributesOfProject.Contains(project.AssemblyName) == true)
+                if (allInternalsVisibleToAttributesOfProject.Contains(project.AssemblyName))
                 {
                     continue;
                 }
