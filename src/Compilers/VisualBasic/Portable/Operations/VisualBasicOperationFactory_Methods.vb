@@ -349,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 ' This will be a lifted comparison if either the control variable or
                 ' limit value is nullable itself.
                 Dim isLifted = controlVariable.Type.IsNullableType() OrElse
-                               operationValue.Type.IsNullableType()
+                               boundFor.LimitValue.Type.IsNullableType()
 
                 If boundFor.StepValue Is Nothing OrElse (boundFor.StepValue.IsConstant AndAlso boundFor.StepValue.ConstantValueOpt IsNot Nothing) Then
                     ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
@@ -369,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                 constantValue:=Nothing)
 
                     Dim stepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, boundFor.StepValue)
-                    Dim stepConditionIsLifted = stepValue.Type.IsNullableType()
+                    Dim stepConditionIsLifted = boundFor.StepValue.Type.IsNullableType()
                     Dim stepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(stepRelationalCode,
                                  stepValue,
                                  OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), boundFor.StepValue.Type, boundFor.StepValue.Syntax),
