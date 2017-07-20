@@ -1433,6 +1433,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Kind() = SyntaxKind.NothingLiteralExpression
         End Function
 
+        Public Function IsDefaultLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDefaultLiteralExpression
+            Return IsNullLiteralExpression(node)
+        End Function
+
         Public Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBinaryExpression
             Return TypeOf node Is BinaryExpressionSyntax
         End Function

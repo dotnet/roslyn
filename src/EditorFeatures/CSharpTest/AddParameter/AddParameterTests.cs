@@ -458,5 +458,37 @@ class C
 }",
 ignoreTrivia: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestNullArg()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public C(int i) { }
+}
+
+class D
+{
+    void M()
+    {
+        new [|C|](null, 1);
+    }
+}",
+@"
+class C
+{
+    public C(object p, int i) { }
+}
+
+class D
+{
+    void M()
+    {
+        new C(null, 1);
+    }
+}");
+        }
     }
 }

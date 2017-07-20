@@ -440,12 +440,18 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     // Now check the type of the argument versus the type of the parameter.  If they
                     // don't match, then this is the argument we should make the parameter for.
-                    var argumentTypeInfo = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(argument));
+                    var expressionOfArgumment = syntaxFacts.GetExpressionOfArgument(argument);
+                    var argumentTypeInfo = semanticModel.GetTypeInfo(expressionOfArgumment);
                     if (argumentTypeInfo.Type == null && argumentTypeInfo.ConvertedType == null)
                     {
                         // Didn't know the type of the argument.  We shouldn't assume it doesn't
-                        // match a parameter. 
-                        continue;
+                        // match a parameter.  However, if the user wrote 'null' and it didn't
+                        // match anything, then this is the problem argument.
+                        if (!syntaxFacts.IsNullLiteralExpression(expressionOfArgumment) &&
+                            !syntaxFacts.IsDefaultLiteralExpression(expressionOfArgumment))
+                        {
+                            continue;
+                        }
                     }
 
                     var parameter = method.Parameters[i];
