@@ -24,7 +24,10 @@
          Otherwise, it writes to the same file (GeneratedAssemblyInfoFile) as our GenerateAssemblyInfoFile target.
          Follow-up issue to reconcile the two: https://github.com/dotnet/roslyn/issues/19645 -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
+
+    <!-- Disabling on developer builds until perf issue figured out 
+         https://github.com/dotnet/roslyn/issues/21041 -->
+    <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == '' AND '$(DeveloperBuild)' != 'true'">true</UseRoslynAnalyzers>
     <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">$(RepoRoot)Binaries\</BaseOutputPath>
     <OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(RepoRoot)Binaries\Obj\</BaseIntermediateOutputPath>
