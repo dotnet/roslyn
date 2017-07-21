@@ -32,6 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderReplacementMapDoNotUseDirectly;
 
+        private readonly int _methodOrdinal;
+
+        /// <summary>
+        /// A lazily created delegate cache container of <see cref="DelegateCacheContainerKind.MethodScopedGeneric"/>.
+        /// </summary>
+        private TypeOrMethodScopedDelegateCacheContainer _lazyMethodScopedGenericDelegateCacheContainer;
+
         private LocalRewriter(
             CSharpCompilation compilation,
             MethodSymbol containingMethod,
@@ -52,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
             _diagnostics = diagnostics;
+            _methodOrdinal = containingMethodOrdinal;
 
             Debug.Assert(instrumenter != null);
             _instrumenter = instrumenter;
@@ -115,6 +123,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return !_inExpressionLambda;
+            }
+        }
+
+        private TypeOrMethodScopedDelegateCacheContainer MethodScopedGenericDelegateCacheContainer
+        {
+            get
+            {
+                var container = _lazyMethodScopedGenericDelegateCacheContainer;
+
+                if ((object)container == null)
+                {
+                    _lazyMethodScopedGenericDelegateCacheContainer
+                        = container
+                        = new TypeOrMethodScopedDelegateCacheContainer(_factory.TopLevelMethod, _methodOrdinal, _factory.ModuleBuilderOpt.CurrentGenerationOrdinal);
+
+                    _factory.AddNestedType(container);
+                }
+
+                return container;
             }
         }
 

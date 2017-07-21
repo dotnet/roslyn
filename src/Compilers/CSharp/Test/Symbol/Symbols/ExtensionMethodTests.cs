@@ -2180,20 +2180,32 @@ class C
 }";
             var code =
 @"{
-  // Code size       42 (0x2a)
+  // Code size       72 (0x48)
   .maxstack  3
-  IL_0000:  ldarg.0   
-  IL_0001:  ldc.i4.1  
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
   IL_0002:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Skip<string>(System.Collections.Generic.IEnumerable<string>, int)""
-  IL_0007:  ldnull    
-  IL_0008:  ldftn      ""bool C.Filter(string)""
-  IL_000e:  newobj     ""System.Func<string, bool>..ctor(object, System.IntPtr)""
-  IL_0013:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Where<string>(System.Collections.Generic.IEnumerable<string>, System.Func<string, bool>)""
-  IL_0018:  ldnull    
-  IL_0019:  ldftn      ""string C.Combine(string, string)""
-  IL_001f:  newobj     ""System.Func<string, string, string>..ctor(object, System.IntPtr)""
-  IL_0024:  call       ""string System.Linq.Enumerable.Aggregate<string>(System.Collections.Generic.IEnumerable<string>, System.Func<string, string, string>)""
-  IL_0029:  ret       
+  IL_0007:  ldsfld     ""System.Func<string, bool> <>x.<Filter>w""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  pop
+  IL_0010:  ldnull
+  IL_0011:  ldftn      ""bool C.Filter(string)""
+  IL_0017:  newobj     ""System.Func<string, bool>..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""System.Func<string, bool> <>x.<Filter>w""
+  IL_0022:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Where<string>(System.Collections.Generic.IEnumerable<string>, System.Func<string, bool>)""
+  IL_0027:  ldsfld     ""System.Func<string, string, string> <>x__1.<Combine>w""
+  IL_002c:  dup
+  IL_002d:  brtrue.s   IL_0042
+  IL_002f:  pop
+  IL_0030:  ldnull
+  IL_0031:  ldftn      ""string C.Combine(string, string)""
+  IL_0037:  newobj     ""System.Func<string, string, string>..ctor(object, System.IntPtr)""
+  IL_003c:  dup
+  IL_003d:  stsfld     ""System.Func<string, string, string> <>x__1.<Combine>w""
+  IL_0042:  call       ""string System.Linq.Enumerable.Aggregate<string>(System.Collections.Generic.IEnumerable<string>, System.Func<string, string, string>)""
+  IL_0047:  ret
 }";
             var compilation = CompileAndVerify(source, expectedOutput: "orange, apple");
             compilation.VerifyIL("C.F", code);

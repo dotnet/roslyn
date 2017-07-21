@@ -341,17 +341,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenType: (NamedTypeSymbol)rewrittenType);
 
                 case ConversionKind.MethodGroup:
+
+                    var targetMethod = oldNode.SymbolOpt;
+                    Debug.Assert((object)targetMethod != null);
+
+                    var boundedAsExtensionMethod = oldNode.IsExtensionMethod;
+
+                    var mg = (BoundMethodGroup)rewrittenOperand;
+                    var oldSyntax = _factory.Syntax;
+                    _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
+                    var receiver = (targetMethod.IsStatic && !boundedAsExtensionMethod) ? _factory.Type(targetMethod.ContainingType) : mg.ReceiverOpt;
+                    _factory.Syntax = oldSyntax;
+
+                    // Try to see if we can cache the delegate
+                    if (!targetMethod.IsStatic     // We only look at static methods for global caching here,
+                        || boundedAsExtensionMethod    // and it cannot be bounded as extension method.
+                        || targetMethod.MethodKind == MethodKind.LocalFunction // TODO: Can we do cache for non-capturing local functions?
+                        || _factory.CurrentMethod.MethodKind == MethodKind.LocalFunction // TODO: How to do cache when the current method or up involves generics?
+                        || _inExpressionLambda  // The tree structure / meaning for expression trees should not be touched.
+                        || _factory.TopLevelMethod.MethodKind == MethodKind.StaticConstructor   // Avoid caching twice if people do it manually.
+                        )
                     {
                         // we eliminate the method group conversion entirely from the bound nodes following local lowering
-                        var mg = (BoundMethodGroup)rewrittenOperand;
-                        var method = oldNode.SymbolOpt;
-                        Debug.Assert((object)method != null);
-                        var oldSyntax = _factory.Syntax;
-                        _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                        var receiver = (method.IsStatic && !oldNode.IsExtensionMethod) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
-                        _factory.Syntax = oldSyntax;
-                        return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method, isExtensionMethod: oldNode.IsExtensionMethod, type: rewrittenType);
+                        return new BoundDelegateCreationExpression(syntax, receiver, targetMethod, boundedAsExtensionMethod, rewrittenType);
                     }
+                    else
+                    {
+                        // Rewriting this to use a cached delegate
+                        return RewriteStaticMethodGroupConversion(syntax, receiver, targetMethod, (NamedTypeSymbol)rewrittenType);
+                    }
+
                 default:
                     break;
             }
@@ -1355,6 +1374,94 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(method.ReturnType == toType);
                 return BoundCall.Synthesized(syntax, null, method, operand);
             }
+        }
+
+        private BoundExpression RewriteStaticMethodGroupConversion(SyntaxNode syntax, BoundExpression receiver, MethodSymbol targetMethod, NamedTypeSymbol delegateType)
+        {
+            Debug.Assert(delegateType.IsDelegateType());
+            Debug.Assert((object)targetMethod != null);
+
+            var orgSyntax = _factory.Syntax;
+            _factory.Syntax = syntax;
+
+            var cacheContainer = GetOrAddCacheContainer(delegateType, targetMethod);
+            var cacheField = cacheContainer.GetOrAddCacheField(_factory, delegateType, targetMethod);
+
+            var boundCacheField = _factory.Field(null, cacheField);
+            var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, receiver, targetMethod, isExtensionMethod: false, type: delegateType)
+            {
+                WasCompilerGenerated = true
+            };
+
+            var rewrittenNode = _factory.Coalesce(boundCacheField, _factory.AssignmentExpression(boundCacheField, boundDelegateCreation));
+
+            _factory.Syntax = orgSyntax;
+
+            return rewrittenNode;
+        }
+
+        private DelegateCacheContainer GetOrAddCacheContainer(NamedTypeSymbol delegateType, MethodSymbol targetMethod)
+        {
+            switch (ChooseDelegateCacheContainerKind(_factory.TopLevelMethod, delegateType, targetMethod))
+            {
+                case DelegateCacheContainerKind.ModuleScopedConcrete:
+                    return _factory.ModuleBuilderOpt.DelegateCacheManager.GetOrAddContainer(delegateType);
+                case DelegateCacheContainerKind.TypeScopedConcrete:
+                    return _factory.CompilationState.TypeScopedDelegateCacheContainer;
+                case DelegateCacheContainerKind.MethodScopedGeneric:
+                    return MethodScopedGenericDelegateCacheContainer;
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private static DelegateCacheContainerKind ChooseDelegateCacheContainerKind(MethodSymbol currentMethod, NamedTypeSymbol delegateType, MethodSymbol targetMethod)
+        {
+            // First, if delegateType and targetMethod are both concrete to the teeth, consider a module scoped cache container, because
+            // a. targetMethod could be somewhere outside of currentMethod.ContainingType, there might be another method somewhere else want to use this cache
+            // b. currentMethod.ContainingType or/and its ancestors could be generic, making the container type scoped could possibly cause multiple instances at runtime
+
+            // However, there are cases when targetMethod or/and delegateType being private or only visible inside currentMethod.ContainingType by code.
+            // It's not a problem that targetMethod being not visible, but delegateType could. Even it seems to work, it's not worth the risk.
+            if (Symbol.IsSymbolAccessible(delegateType, currentMethod.ContainingAssembly))
+            {
+                // If the currentMethod and it's containing type and it's ancestors all the way up are not generic types,
+                // then the delegate type and target method should be fully concrete.
+                if (currentMethod.Arity == 0 && !currentMethod.ContainingType.IsGenericType)
+                {
+                    return DelegateCacheContainerKind.ModuleScopedConcrete;
+                }
+
+                // Although the currentMethod or it's containing types may be generic, the delegateType and targetMethod may not. Let's find out.
+                var fullyConcreteChecker = FullyConcreteChecker.Instance;
+                if (fullyConcreteChecker.Visit(delegateType) && fullyConcreteChecker.Visit(targetMethod))
+                {
+                    return DelegateCacheContainerKind.ModuleScopedConcrete;
+                }
+            }
+
+            // Now the conversion could involve generics. All the possible type parameters that act as type arguments
+            // needed to construct the delegateType or targetMethod come from either the current method or it's containing types
+
+            // So obviously,
+            if (currentMethod.Arity == 0)
+            {
+                return DelegateCacheContainerKind.TypeScopedConcrete;
+            }
+
+            // Then we need to really check if currentMethod.TypeParameters are involved.
+            var typeParams = currentMethod.TypeParameters;
+            var typeParamUsageChecker = TypeParameterUsageChecker.Instance;
+            if (typeParamUsageChecker.Visit(delegateType, typeParams) || typeParamUsageChecker.Visit(targetMethod, typeParams))
+            {
+                // If so, we have to "mock" the type parameters of the currentMethod as type parameters of the cache container.
+                // So we can later use them to define the delegate type of the fields of the cache container.
+                // In conclusion, we need a generic container here.
+                return DelegateCacheContainerKind.MethodScopedGeneric;
+            }
+
+            // If not, we can just use the delegateType for the cache field of the container as is.
+            return DelegateCacheContainerKind.TypeScopedConcrete;
         }
 
         /// <summary>

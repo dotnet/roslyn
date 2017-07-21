@@ -254,27 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // new indexes to the created anonymous type templates
             if (!this.AreTemplatesSealed)
             {
-                // If we are emitting .NET module, include module's name into type's name to ensure
-                // uniqueness across added modules.
-                string moduleId;
-
-                if (moduleBeingBuilt.OutputKind == OutputKind.NetModule)
-                {
-                    moduleId = moduleBeingBuilt.Name;
-
-                    string extension = OutputKind.NetModule.GetDefaultExtension();
-
-                    if (moduleId.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
-                    {
-                        moduleId = moduleId.Substring(0, moduleId.Length - extension.Length);
-                    }
-
-                    moduleId = MetadataHelpers.MangleForTypeNameIfNeeded(moduleId);
-                }
-                else
-                {
-                    moduleId = string.Empty;
-                }
+                var moduleId = moduleBeingBuilt.GetModuleIdForSynthesizedTopLevelTypes();
 
                 int nextIndex = moduleBeingBuilt.GetNextAnonymousTypeIndex();
                 foreach (var template in builder)

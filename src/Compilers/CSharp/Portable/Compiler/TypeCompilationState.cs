@@ -69,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public LambdaFrame StaticLambdaFrame;
 
         /// <summary>
+        /// A lazily created delegate cache container of <see cref="DelegateCacheContainerKind.TypeScopedConcrete"/>.
+        /// </summary>
+        private TypeOrMethodScopedDelegateCacheContainer _lazyTypeScopedDelegateCacheContainer;
+
+        /// <summary>
         /// A graph of method->method references for this(...) constructor initializers.
         /// Used to detect and report initializer cycles.
         /// </summary>
@@ -156,6 +161,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         public int NextWrapperMethodIndex
         {
             get { return _wrappers == null ? 0 : _wrappers.Count; }
+        }
+
+        internal TypeOrMethodScopedDelegateCacheContainer TypeScopedDelegateCacheContainer
+        {
+            get
+            {
+                Debug.Assert(ModuleBuilderOpt != null);
+                Debug.Assert((object)_typeOpt != null);
+
+                var container = _lazyTypeScopedDelegateCacheContainer;
+
+                if ((object)container == null)
+                {
+                    _lazyTypeScopedDelegateCacheContainer
+                        = container
+                        = new TypeOrMethodScopedDelegateCacheContainer(_typeOpt, ModuleBuilderOpt.CurrentGenerationOrdinal);
+
+                    ModuleBuilderOpt.AddSynthesizedDefinition(_typeOpt, container);
+                }
+
+                return container;
+            }
         }
 
         /// <summary> 

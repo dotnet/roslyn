@@ -56,15 +56,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClass, methodOrdinal, generation, suffix: "DisplayClass", entityOrdinal: closureOrdinal, entityGeneration: closureGeneration);
         }
 
-        internal static string MakeAnonymousTypeTemplateName(int index, int submissionSlotIndex, string moduleId)
+        private static string MakeScopedIndexedTypeName(string nameKind, string suffixOpt, int index, int generation, string scopeIdOpt)
         {
-            var name = "<" + moduleId + ">f__AnonymousType" + StringExtensions.GetNumeral(index);
-            if (submissionSlotIndex >= 0)
+            Debug.Assert(!String.IsNullOrWhiteSpace(nameKind));
+
+            var result = PooledStringBuilder.GetInstance();
+            var builder = result.Builder;
+
+            builder.Append("<").Append(scopeIdOpt).Append(">").Append(nameKind);
+
+            if (suffixOpt != null || index > 0)
             {
-                name += "#" + StringExtensions.GetNumeral(submissionSlotIndex);
+                builder.Append(SuffixSeparator).Append(suffixOpt).Append(StringExtensions.GetNumeral(index));
             }
 
+            if (generation > 0)
+            {
+                builder.Append(GenerationSeparator).Append(StringExtensions.GetNumeral(generation));
+            }
+
+            return result.ToStringAndFree();
+        }
+
+        internal static string MakeDelegateCacheContainerName(int index, int generation, string scopeIdOpt)
+        {
+            Debug.Assert((char)GeneratedNameKind.DelegateCacheContainer == 'x');
+            return MakeScopedIndexedTypeName("x", null, index, generation, scopeIdOpt);
+        }
+
+        internal static string MakeDelegateCacheContainerFieldName(string targetMethodName, int index)
+        {
+            Debug.Assert((char)GeneratedNameKind.DelegateCacheContainerField == 'w');
+
+            var name = "<" + targetMethodName + ">w";
+            if (index > 0)
+            {
+                name += SuffixSeparator + StringExtensions.GetNumeral(index);
+            }
             return name;
+        }
+
+        internal static string MakeAnonymousTypeTemplateName(int index, int submissionSlotIndex, string moduleId)
+        {
+            Debug.Assert((char)GeneratedNameKind.AnonymousType == 'f');
+            return MakeScopedIndexedTypeName("f", "AnonymousType", index, submissionSlotIndex, moduleId);
         }
 
         internal const string AnonymousNamePrefix = "<>f__AnonymousType";

@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 _embeddedTypesManagerOpt = new NoPia.EmbeddedTypesManager(this);
             }
+
+            DelegateCacheManager = new ModuleScopedDelegateCacheManager(this);
         }
 
         public override string Name
@@ -115,6 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         // C# doesn't allow to define default namespace for compilation.
         public sealed override string DefaultNamespace => null;
+
+        /// <summary>
+        /// Manages cache containers of <see cref="DelegateCacheContainerKind.ModuleScopedConcrete"/> created for method group conversion from static methods.
+        /// </summary>
+        internal ModuleScopedDelegateCacheManager DelegateCacheManager { get; }
 
         protected sealed override IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics)
         {
@@ -339,6 +346,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
             return null;
+        }
+
+        internal override ImmutableArray<Cci.INamespaceTypeDefinition> GetDelegateCacheContainers()
+        {
+            if (EmitOptions.EmitMetadataOnly)
+            {
+                return ImmutableArray<Cci.INamespaceTypeDefinition>.Empty;
+            }
+
+            return StaticCast<Cci.INamespaceTypeDefinition>.From(DelegateCacheManager.GetAllCreatedContainers());
         }
 
         internal virtual ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()

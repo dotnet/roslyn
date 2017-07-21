@@ -8594,7 +8594,7 @@ End Module
             Dim result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
             Assert.Equal(
-                $"Could not load file or assembly '{GetType(VisualBasicCompilation).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+                $"Could not load file or assembly '{GetType(IAnalyzerAssemblyLoader).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
 
             ' Missing System.Collections.Immutable.dll.

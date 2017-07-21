@@ -3970,36 +3970,161 @@ class C
         }
 
         [Fact]
-        public void StaticDelegate()
+        public void StaticDelegate0()
         {
             var source =
-@"delegate void D();
-class C
+@"class C
 {
-    static void F()
+    static void Target()
     {
     }
-    static void G(D d)
+    static void Invoke(System.Action d)
     {
     }
-    static void M()
+    static void Test()
     {
     }
 }";
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "G(F)");
+                methodName: "C.Test",
+                expr: "Invoke(Target)");
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       18 (0x12)
+  // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldnull
-  IL_0001:  ldftn      ""void C.F()""
-  IL_0007:  newobj     ""D..ctor(object, System.IntPtr)""
-  IL_000c:  call       ""void C.G(D)""
-  IL_0011:  ret
+  IL_0000:  ldsfld     ""System.Action <>x.<Target>w""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""void C.Target()""
+  IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""System.Action <>x.<Target>w""
+  IL_001b:  call       ""void C.Invoke(System.Action)""
+  IL_0020:  ret
+}");
+        }
+
+        [Fact]
+        public void StaticDelegate1()
+        {
+            var source =
+@"delegate void D();
+class C
+{
+    static void Target()
+    {
+    }
+    static void Invoke(D d)
+    {
+    }
+    static void Test()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.Test",
+                expr: "Invoke(Target)");
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldsfld     ""D <>x.<>x.<Target>w""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""void C.Target()""
+  IL_0010:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""D <>x.<>x.<Target>w""
+  IL_001b:  call       ""void C.Invoke(D)""
+  IL_0020:  ret
+}");
+        }
+
+        [Fact]
+        public void StaticDelegate2()
+        {
+            var source =
+@"delegate void D<V>();
+class C<T>
+{
+    static void Target()
+    {
+    }
+    static void Invoke(D<T> d)
+    {
+    }
+    static void Test()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.Test",
+                expr: "Invoke(Target)");
+            testData.GetMethodData("<>x<T>.<>m0").VerifyIL(
+@"{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldsfld     ""D<T> <>x<T>.<>x.<Target>w""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""void C<T>.Target()""
+  IL_0010:  newobj     ""D<T>..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""D<T> <>x<T>.<>x.<Target>w""
+  IL_001b:  call       ""void C<T>.Invoke(D<T>)""
+  IL_0020:  ret
+}");
+        }
+
+        [Fact]
+        public void StaticDelegate3()
+        {
+            var source =
+@"delegate void D<A>();
+class C
+{
+    static void Target()
+    {
+    }
+    static void Invoke<T>(D<T> d)
+    {
+    }
+    static void Test<V>()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.Test",
+                expr: "Invoke<V>(Target)");
+            testData.GetMethodData("<>x.<>m0<V>").VerifyIL(
+@"{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldsfld     ""D<V> <>x.<<>m0>x<V>.<Target>w""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""void C.Target()""
+  IL_0010:  newobj     ""D<V>..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""D<V> <>x.<<>m0>x<V>.<Target>w""
+  IL_001b:  call       ""void C.Invoke<V>(D<V>)""
+  IL_0020:  ret
 }");
         }
 

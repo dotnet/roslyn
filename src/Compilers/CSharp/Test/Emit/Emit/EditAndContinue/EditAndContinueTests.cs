@@ -6578,7 +6578,7 @@ public struct S
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
-                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C`1", "IA", "IC", "S");
+                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C`1", "IA", "IC", "S", "<>x");
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
                 var method0 = compilation0.GetMember<MethodSymbol>("C.M1");
 
@@ -7331,6 +7331,273 @@ public class C
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>o__0");
             CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>o__0#1");
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>o__0#2");
+        }
+
+        [Fact]
+        public void UniqueSynthesizedNames_ModuleScopedDelegateCacheContainer0()
+        {
+            var source0 = @"
+public class C
+{
+    static void F()
+    {
+        System.Action a = Target;
+        a();
+    }
+    public static void Target() { }
+}";
+            var source1 = @"
+public class C
+{
+    static void F()
+    {
+        System.Action a = Target;
+        a();
+        a();
+    }
+    public static void Target() { }
+}";
+            var source2a = @"
+public class C
+{
+    static void F()
+    {
+        System.Action a = Target;
+        a();
+        System.Action b = Target;
+        b();
+    }
+    public static void Target() { }
+}";
+            var source2b = @"
+public class C
+{
+    static void F()
+    {
+        System.Action a = Target;
+        a();
+        System.Action b = Target1;
+        b();
+    }
+    public static void Target() { }
+    public static void Target1() { }
+}";
+            var source3 = @"
+public class C
+{
+    static void F()
+    {
+        System.Action a = Target;
+        a();
+        System.Action b = Target1;
+        b();
+    }
+    void G()
+    {
+        System.Action s = System.Console.WriteLine;
+    }
+    public static void Target() { }
+    public static void Target1() { }
+}";
+
+            var compilation0 = CreateStandardCompilation(source0, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2a = compilation1.WithSource(source2a);
+            var compilation2b = compilation1.WithSource(source2b);
+            var compilation3 = compilation2b.WithSource(source3);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2a = compilation2a.GetMember<MethodSymbol>("C.F");
+            var f2b = compilation2b.GetMember<MethodSymbol>("C.F");
+            var t1 = compilation2b.GetMember<MethodSymbol>("C.Target1");
+            var f3 = compilation3.GetMember<MethodSymbol>("C.F");
+            var g = compilation3.GetMember<MethodSymbol>("C.G");
+
+            var v0 = CompileAndVerify(compilation0).VerifyIL("C.F", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (System.Action V_0) //a
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""System.Action <>x.<Target>w""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  ldftn      ""void C.Target()""
+  IL_0011:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0016:  dup
+  IL_0017:  stsfld     ""System.Action <>x.<Target>w""
+  IL_001c:  stloc.0
+  IL_001d:  ldloc.0
+  IL_001e:  callvirt   ""void System.Action.Invoke()""
+  IL_0023:  nop
+  IL_0024:  ret
+}
+");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify();
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (System.Action V_0) //a
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""System.Action <>x#1.<Target>w""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  ldftn      ""void C.Target()""
+  IL_0011:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0016:  dup
+  IL_0017:  stsfld     ""System.Action <>x#1.<Target>w""
+  IL_001c:  stloc.0
+  IL_001d:  ldloc.0
+  IL_001e:  callvirt   ""void System.Action.Invoke()""
+  IL_0023:  nop
+  IL_0024:  ldloc.0
+  IL_0025:  callvirt   ""void System.Action.Invoke()""
+  IL_002a:  nop
+  IL_002b:  ret
+}
+");
+
+            var diff2a = compilation2a.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f1, f2a, preserveLocalVariables: true)));
+
+            diff2a.EmitResult.Diagnostics.Verify();
+            diff2a.VerifyIL("C.F", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  2
+  .locals init (System.Action V_0, //a
+                System.Action V_1) //b
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""System.Action <>x#2.<Target>w""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  ldftn      ""void C.Target()""
+  IL_0011:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0016:  dup
+  IL_0017:  stsfld     ""System.Action <>x#2.<Target>w""
+  IL_001c:  stloc.0
+  IL_001d:  ldloc.0
+  IL_001e:  callvirt   ""void System.Action.Invoke()""
+  IL_0023:  nop
+  IL_0024:  ldsfld     ""System.Action <>x#2.<Target>w""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_003f
+  IL_002c:  pop
+  IL_002d:  ldnull
+  IL_002e:  ldftn      ""void C.Target()""
+  IL_0034:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0039:  dup
+  IL_003a:  stsfld     ""System.Action <>x#2.<Target>w""
+  IL_003f:  stloc.1
+  IL_0040:  ldloc.1
+  IL_0041:  callvirt   ""void System.Action.Invoke()""
+  IL_0046:  nop
+  IL_0047:  ret
+}
+");
+
+            var diff2b = compilation2b.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f1, f2b, preserveLocalVariables: true),
+                    new SemanticEdit(SemanticEditKind.Insert, null, t1)));
+
+            diff2b.EmitResult.Diagnostics.Verify();
+            diff2b.VerifyIL("C.F", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  2
+  .locals init (System.Action V_0, //a
+                System.Action V_1) //b
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""System.Action <>x#2.<Target>w""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  ldftn      ""void C.Target()""
+  IL_0011:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0016:  dup
+  IL_0017:  stsfld     ""System.Action <>x#2.<Target>w""
+  IL_001c:  stloc.0
+  IL_001d:  ldloc.0
+  IL_001e:  callvirt   ""void System.Action.Invoke()""
+  IL_0023:  nop
+  IL_0024:  ldsfld     ""System.Action <>x#2.<Target1>w__1""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_003f
+  IL_002c:  pop
+  IL_002d:  ldnull
+  IL_002e:  ldftn      ""void C.Target1()""
+  IL_0034:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0039:  dup
+  IL_003a:  stsfld     ""System.Action <>x#2.<Target1>w__1""
+  IL_003f:  stloc.1
+  IL_0040:  ldloc.1
+  IL_0041:  callvirt   ""void System.Action.Invoke()""
+  IL_0046:  nop
+  IL_0047:  ret
+}
+");
+
+            var diff3 = compilation3.EmitDifference(
+                diff2b.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Insert, null, g)));
+
+            diff3.EmitResult.Diagnostics.Verify();
+            diff3.VerifyIL("C.G", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (System.Action V_0) //s
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""System.Action <>x#3.<WriteLine>w""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  ldftn      ""void System.Console.WriteLine()""
+  IL_0011:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0016:  dup
+  IL_0017:  stsfld     ""System.Action <>x#3.<WriteLine>w""
+  IL_001c:  stloc.0
+  IL_001d:  ret
+}
+");
+
+            var reader0 = md0.MetadataReader;
+            var reader1 = diff1.GetMetadata().Reader;
+            var reader2a = diff2a.GetMetadata().Reader;
+            var reader2b = diff2b.GetMetadata().Reader;
+            var reader3 = diff3.GetMetadata().Reader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>x", "C");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>x#1");
+            CheckNames(new[] { reader0, reader1, reader2a }, reader2a.GetTypeDefNames(), "<>x#2");
+            CheckNames(new[] { reader0, reader1, reader2a }, reader2a.GetMethodDefNames(), "F");
+            CheckNames(new[] { reader0, reader1, reader2b }, reader2b.GetTypeDefNames(), "<>x#2");
+            CheckNames(new[] { reader0, reader1, reader2b }, reader2b.GetMethodDefNames(), "F", "Target1");
+            CheckNames(new[] { reader0, reader1, reader2b, reader3 }, reader3.GetTypeDefNames(), "<>x#3");
+            CheckNames(new[] { reader0, reader1, reader2b, reader3 }, reader3.GetMethodDefNames(), "G");
         }
 
         [WorkItem(918650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918650")]
