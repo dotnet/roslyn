@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseLocalFunctionDiagnosticId = "IDE0039";
 
+        public const string AddAccessibilityModifiersDiagnosticId = "IDE0040";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

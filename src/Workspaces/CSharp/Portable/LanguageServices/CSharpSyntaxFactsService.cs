@@ -1541,6 +1541,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsNullLiteralExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.NullLiteralExpression;
 
+        public bool IsDefaultLiteralExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.DefaultLiteralExpression;
+
         public bool IsBinaryExpression(SyntaxNode node)
             => node is BinaryExpressionSyntax;
 
