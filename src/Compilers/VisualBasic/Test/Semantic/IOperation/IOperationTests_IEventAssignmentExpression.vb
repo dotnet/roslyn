@@ -16,7 +16,7 @@ Class TestClass
     
     Event TestEvent As Action
 
-    Sub Add(receiver As TestClass)
+    Sub Add()
         AddHandler TestEvent, AddressOf M'BIND:"AddHandler TestEvent, AddressOf M"
     End Sub
 
@@ -48,7 +48,7 @@ Class TestClass
     
     Event TestEvent As Action
 
-    Sub Remove(receiver As TestClass)
+    Sub Remove()
         RemoveHandler TestEvent, AddressOf M'BIND:"RemoveHandler TestEvent, AddressOf M"
     End Sub
 
@@ -80,7 +80,7 @@ Class TestClass
     
     Shared Event TestEvent As Action
 
-    Sub Add(receiver As TestClass)
+    Sub Add()
         AddHandler TestEvent, AddressOf M'BIND:"AddHandler TestEvent, AddressOf M"
     End Sub
 
@@ -112,7 +112,7 @@ Class TestClass
     
     Shared Event TestEvent As Action
 
-    Sub Remove(receiver As TestClass)
+    Sub Remove()
         RemoveHandler TestEvent, AddressOf M'BIND:"RemoveHandler TestEvent, AddressOf M"
     End Sub
 
@@ -144,7 +144,7 @@ Class TestClass
     
     Shared Event TestEvent As Action
 
-    Sub Remove(receiver As TestClass)
+    Sub Remove()
         RemoveHandler TestEvent, AddressOf M'BIND:"RemoveHandler TestEvent, AddressOf M"
     End Sub
 

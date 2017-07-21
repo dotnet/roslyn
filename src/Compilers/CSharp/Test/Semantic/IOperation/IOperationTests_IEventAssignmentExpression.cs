@@ -33,7 +33,7 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 't.MyEvent += Handler')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 't.MyEvent += Handler')
+  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 't.MyEvent')
       Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test) (Syntax: 't')
   Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
@@ -69,7 +69,7 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 't.MyEvent -= null')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 't.MyEvent -= null')
+  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 't.MyEvent')
       Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test) (Syntax: 't')
   Handler: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.EventHandler, Constant: null) (Syntax: 'null')
       ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
@@ -108,7 +108,7 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 'Test.MyEvent += Handler')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'Test.MyEvent += Handler')
+  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'Test.MyEvent')
       Instance Receiver: null
   Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
@@ -147,7 +147,7 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 'Test.MyEvent -= Handler')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'Test.MyEvent -= Handler')
+  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'Test.MyEvent')
       Instance Receiver: null
   Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
@@ -187,7 +187,7 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: 't.MyEvent += Handler')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 't.MyEvent += Handler')
+  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 't.MyEvent')
       Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test, IsInvalid) (Syntax: 't')
   Handler: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'Handler')
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Handler')

@@ -1485,11 +1485,11 @@ class C
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E").WithLocation(6, 32))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new StaticMemberTestAnalyzer() }, null, null, false,
-                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E += D.Method").WithLocation(23, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E").WithLocation(23, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method").WithLocation(23, 16),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E").WithLocation(24, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.Bar()").WithLocation(25, 9),
-                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.E += () => { }").WithLocation(27, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.E").WithLocation(27, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Field").WithLocation(28, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Property").WithLocation(29, 17),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method()").WithLocation(30, 9)
