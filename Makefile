@@ -1,69 +1,70 @@
-SHELL = /usr/bin/env bash
-OS_NAME = $(shell uname -s)
-BUILD_CONFIGURATION = Debug
-BINARIES_PATH = $(shell pwd)/Binaries
-SRC_PATH = $(shell pwd)/src
-BOOTSTRAP_PATH = $(BINARIES_PATH)/Bootstrap
-BUILD_LOG_PATH =
-HOME_DIR = $(shell cd ~ && pwd)
-DOTNET_VERSION = 1.0.1
-DOTNET = $(BINARIES_PATH)/dotnet-cli/dotnet
-TARGET_FX = netcoreapp1.1
+SHELL := /usr/bin/env bash
+OS_NAME := $(shell uname -s)
+BUILD_CONFIGURATION := Debug
+THIS_MAKEFILE_PATH := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+BINARIES_PATH := $(THIS_MAKEFILE_PATH)/Binaries
+SRC_PATH := $(THIS_MAKEFILE_PATH)/src
+BOOTSTRAP_PATH := $(BINARIES_PATH)/Bootstrap
+BUILD_LOG_PATH :=
+DOTNET_VERSION := 1.0.1
+DOTNET_PATH := $(BINARIES_PATH)/dotnet-cli
+DOTNET := $(DOTNET_PATH)/dotnet
+export PATH := $(DOTNET_PATH):$(PATH)
+TARGET_FX := netcoreapp1.1
 
-MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
-
-ifeq ($(OS_NAME),Linux)
-	RUNTIME_ID := $(shell . /etc/os-release && echo $$ID.$$VERSION_ID)-x64
-else ifeq ($(OS_NAME),Darwin)
-	RUNTIME_ID := osx.10.12-x64
+# Workaround, see https://github.com/dotnet/roslyn/issues/10210
+ifeq ($(origin HOME), undefined)
+    # Note that while ~ usually refers to $HOME, in the case where $HOME is unset,
+    # it looks up the current user's home dir, which is what we want.
+    # https://www.gnu.org/software/bash/manual/html_node/Tilde-Expansion.html
+    export HOME := $(shell cd ~ && pwd)
 endif
 
+ifeq ($(OS_NAME),Linux)
+    RUNTIME_ID := $(shell . /etc/os-release && echo $$ID.$$VERSION_ID)-x64
+else ifeq ($(OS_NAME),Darwin)
+    RUNTIME_ID := osx.10.12-x64
+else
+    $(error "Unknown OS_NAME: $(OS_NAME)")
+endif
+
+MSBUILD_ARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
+
 ifneq ($(BUILD_LOG_PATH),)
-	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /fileloggerparameters:LogFile=$(BUILD_LOG_PATH)
+    MSBUILD_ARGS := $(MSBUILD_ARGS) /fileloggerparameters:LogFile=$(BUILD_LOG_PATH)
 endif
 
 ifeq ($(BOOTSTRAP),true)
-	MSBUILD_ARGS = $(MSBUILD_ADDITIONALARGS) /p:CscToolPath=$(BOOTSTRAP_PATH)/csc /p:CscToolExe=csc /p:VbcToolPath=$(BOOTSTRAP_PATH)/vbc /p:VbcToolExe=vbc
-else
-	MSBUILD_ARGS = $(MSBUILD_ADDITIONALARGS)
+    MSBUILD_ARGS := $(MSBUILD_ARGS) /p:CscToolPath=$(BOOTSTRAP_PATH)/csc /p:CscToolExe=csc /p:VbcToolPath=$(BOOTSTRAP_PATH)/vbc /p:VbcToolExe=vbc
 endif
 
-BUILD_CMD = dotnet build $(MSBUILD_ARGS)
+BUILD_CMD := dotnet build $(MSBUILD_ARGS)
 
 .PHONY: all bootstrap test toolset
 
 all: restore
-	@export PATH="$(BINARIES_PATH)/dotnet-cli:$(PATH)" ; \
-	export HOME="$(HOME_DIR)" ; \
-	$(BUILD_CMD) CrossPlatform.sln
+	$(BUILD_CMD) $(THIS_MAKEFILE_PATH)/CrossPlatform.sln
 
 bootstrap: restore
-	export HOME="$(HOME_DIR)" ; \
-	export PATH="$(BINARIES_PATH)/dotnet-cli:$(PATH)" ; \
-	$(BUILD_CMD) src/Compilers/CSharp/CscCore && \
-	$(BUILD_CMD) src/Compilers/VisualBasic/VbcCore && \
-	mkdir -p $(BOOTSTRAP_PATH)/csc && mkdir -p $(BOOTSTRAP_PATH)/vbc && \
-	dotnet publish -c $(BUILD_CONFIGURATION) -r $(RUNTIME_ID) src/Compilers/CSharp/CscCore -o $(BOOTSTRAP_PATH)/csc && \
-	dotnet publish -c $(BUILD_CONFIGURATION) -r $(RUNTIME_ID) src/Compilers/VisualBasic/VbcCore -o $(BOOTSTRAP_PATH)/vbc
-	rm -rf Binaries/$(BUILD_CONFIGURATION)
+	$(BUILD_CMD) $(SRC_PATH)/Compilers/CSharp/CscCore
+	$(BUILD_CMD) $(SRC_PATH)/Compilers/VisualBasic/VbcCore
+	mkdir -p $(BOOTSTRAP_PATH)/csc
+	mkdir -p $(BOOTSTRAP_PATH)/vbc
+	dotnet publish -c $(BUILD_CONFIGURATION) -r $(RUNTIME_ID) $(SRC_PATH)/Compilers/CSharp/CscCore -o $(BOOTSTRAP_PATH)/csc
+	dotnet publish -c $(BUILD_CONFIGURATION) -r $(RUNTIME_ID) $(SRC_PATH)/Compilers/VisualBasic/VbcCore -o $(BOOTSTRAP_PATH)/vbc
+	rm -rf $(BINARIES_PATH)/$(BUILD_CONFIGURATION)
 
 test:
-	@export PATH="$(BINARIES_PATH)/dotnet-cli:$(PATH)" ; \
-	export HOME="$(HOME_DIR)" ; \
-	dotnet publish -r $(RUNTIME_ID) src/Test/DeployCoreClrTestRuntime -o $(BINARIES_PATH)/$(BUILD_CONFIGURATION)/CoreClrTest -p:RoslynRuntimeIdentifier=$(RUNTIME_ID) && \
-	build/scripts/tests.sh $(BUILD_CONFIGURATION)
+	dotnet publish -r $(RUNTIME_ID) $(SRC_PATH)/Test/DeployCoreClrTestRuntime -o $(BINARIES_PATH)/$(BUILD_CONFIGURATION)/CoreClrTest -p:RoslynRuntimeIdentifier=$(RUNTIME_ID)
+	./build/scripts/tests.sh $(BUILD_CONFIGURATION)
 
 restore: $(DOTNET)
-	export PATH="$(BINARIES_PATH)/dotnet-cli:$(PATH)" ; \
 	./build/scripts/restore.sh
 
 $(DOTNET):
-	mkdir -p $(BINARIES_PATH) ; \
-	pushd $(BINARIES_PATH) ; \
-	curl -O https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.sh && \
-	chmod +x dotnet-install.sh && \
-	./dotnet-install.sh --version "$(DOTNET_VERSION)" --install-dir "$(BINARIES_PATH)/dotnet-cli"
+	curl https://raw.githubusercontent.com/dotnet/cli/rel/$(DOTNET_VERSION)/scripts/obtain/dotnet-install.sh | \
+	$(SHELL) -s -- --version "$(DOTNET_VERSION)" --install-dir "$(DOTNET_PATH)"
 
 
 clean:
-	@rm -rf Binaries
+	rm -rf $(BINARIES_PATH)
