@@ -15,7 +15,7 @@
     <VSIXExpInstallerPackageName>RoslynTools.Microsoft.VSIXExpInstaller</VSIXExpInstallerPackageName>
     <VSIXExpInstallerPackageVersion>0.2.1-beta</VSIXExpInstallerPackageVersion>
     <RoslynDiagnosticsNugetPackageVersion>$(MicrosoftNetRoslynDiagnosticsVersion)</RoslynDiagnosticsNugetPackageVersion>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/build/microsoft.net.roslyndiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/build/Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynRuntimeIdentifier Condition="'$(RoslynRuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7-x64</RoslynRuntimeIdentifier>
     <Features>strict,IOperation</Features>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
