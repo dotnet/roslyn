@@ -360,7 +360,7 @@
   <Target Name="RestoreToolsetCheck" Condition="'$(BuildingProject)' == 'true'">
       <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
              Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
-      <Error Text="Analyzer packages have not been restored, run Restore.cmd before building"
+      <Error Text="Analyzer packages have not been restored, run Restore.cmd before building. File not found: '$(RoslynDiagnosticsPropsFilePath'"
              Condition="!Exists('$(RoslynDiagnosticsPropsFilePath)')" />
   </Target>
 
