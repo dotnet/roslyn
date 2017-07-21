@@ -678,7 +678,7 @@ class T
 {
     void M()
     {
-        var a = [|string.Format(""{0} {1} {2}"", ""10"", arg1: ""11"", arg2: ""12"")|];
+        var a = [|string.Format(""{0} {1} {2}"", ""10"", arg2: ""12"", arg1: ""11"")|];
     }
 }",
 @"using System;

@@ -150,16 +150,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             => syntaxFactsService.GetNameForArgument(argument);
 
         private SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
-        {
-            var i = arguments.IndexOf(argument => GetArgumentName(argument, syntaxFactsService) == StringFormatArguments.ArgsArgumentName);
-            return i >= 0 ? arguments[i] : arguments[1];
-        }
+        => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[1];
 
         private TArgumentSyntax GetFormatArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
-        {
-            var index = arguments.IndexOf(argument => GetArgumentName(argument, syntaxFactsService) == StringFormatArguments.FormatArgumentName);
-            return index >= 0 ? arguments[index] : arguments[0];
-        }
+            => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[0];
 
         private TArgumentSyntax GetArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, int index, ISyntaxFactsService syntaxFactsService)
         {
@@ -168,7 +162,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return arguments[index];
             }
 
-            return arguments.FirstOrDefault(argument => GetArgumentName(argument, syntaxFactsService) == StringFormatArguments.ParamsArgumentNames[index]) ?? arguments[index];
+            return arguments.FirstOrDefault(
+                argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.ParamsArgumentNames[index], StringComparison.OrdinalIgnoreCase)) 
+                ?? arguments[index];
         }
 
         private ImmutableArray<TExpressionSyntax> GetExpandedArguments(
