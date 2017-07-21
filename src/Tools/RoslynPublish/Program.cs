@@ -61,7 +61,7 @@ namespace RoslynPublish
                 versionsPath,
                 updateLatestPackageList: true,
                 updateLatestVersion: true,
-                updateLastBuildPackageList: true);
+                updateLastBuildPackageList: true).ConfigureAwait(false);
             return 0;
         }
 
