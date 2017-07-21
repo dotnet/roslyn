@@ -7,8 +7,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend MustInherit Class BaseVisualBasicConversionExpression
         Inherits BaseConversionExpression(Of Conversion)
 
-        Protected Sub New(conversion As Conversion, isExplicitInCode As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
-            MyBase.New(conversion, isExplicitInCode, syntax, type, constantValue)
+        Protected Sub New(conversion As Conversion, isExplicitInCode As Boolean, throwsExceptionOnFailure As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
+            MyBase.New(conversion, isExplicitInCode, throwsExceptionOnFailure, syntax, type, constantValue)
         End Sub
 
         Public Overrides ReadOnly Property LanguageName As String = LanguageNames.VisualBasic
@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class VisualBasicConversionExpression
         Inherits BaseVisualBasicConversionExpression
 
-        Public Sub New(operand As IOperation, conversion As Conversion, isExplicitInCode As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
-            MyBase.New(conversion, isExplicitInCode, syntax, type, constantValue)
+        Public Sub New(operand As IOperation, conversion As Conversion, isExplicitInCode As Boolean, throwsExceptionOnFailure As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
+            MyBase.New(conversion, isExplicitInCode, throwsExceptionOnFailure, syntax, type, constantValue)
 
             Me.Operand = operand
         End Sub
@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private _operandLazy As Lazy(Of IOperation)
 
-        Public Sub New(operand As Lazy(Of IOperation), conversion As Conversion, isExplicitInCode As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
-            MyBase.New(conversion, isExplicitInCode, syntax, type, constantValue)
+        Public Sub New(operand As Lazy(Of IOperation), conversion As Conversion, isExplicitInCode As Boolean, throwsExceptionOnFailure As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
+            MyBase.New(conversion, isExplicitInCode, throwsExceptionOnFailure, syntax, type, constantValue)
 
             _operandLazy = operand
         End Sub
@@ -41,6 +41,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Public Module IConversionExpressionExtensions
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information from an <see cref="IConversionExpression"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="conversionExpression">The conversion expression to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/>.</returns>
+        ''' <exception cref="InvalidCastException">If the <see cref="IConversionExpression"/> was not created from Visual Basic code.</exception>
         <Extension>
         Public Function GetVisualBasicConversion(conversionExpression As IConversionExpression) As Conversion
             If TypeOf conversionExpression Is BaseVisualBasicConversionExpression Then

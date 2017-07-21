@@ -584,9 +584,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                 SyntaxNode syntax = boundConversion.Syntax;
                 Conversion conversion = _semanticModel.GetConversion(syntax);
                 bool isExplicit = boundConversion.ExplicitCastInCode;
+                bool throwsExceptionOnFailure = true;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyCSharpConversionExpression(operand, conversion, isExplicit, syntax, type, constantValue);
+                return new LazyCSharpConversionExpression(operand, conversion, isExplicit, throwsExceptionOnFailure, syntax, type, constantValue);
             }
         }
 
@@ -596,9 +597,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundAsOperator.Syntax;
             Conversion conversion = _semanticModel.GetConversion(syntax);
             bool isExplicit = true;
+            bool throwsExceptionOnFailure = false;
             ITypeSymbol type = boundAsOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAsOperator.ConstantValue);
-            return new LazyCSharpConversionExpression(operand, conversion, isExplicit, syntax, type, constantValue);
+            return new LazyCSharpConversionExpression(operand, conversion, isExplicit, throwsExceptionOnFailure, syntax, type, constantValue);
         }
 
         private IIsTypeExpression CreateBoundIsOperatorOperation(BoundIsOperator boundIsOperator)
