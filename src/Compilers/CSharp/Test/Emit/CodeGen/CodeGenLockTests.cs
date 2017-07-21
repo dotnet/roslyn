@@ -517,8 +517,8 @@ class Test
 ");
         }
 
+        /// For method group conversion <see cref="CodeGenMethodGroupConversionTests.LockDelegate" />
         [Fact]
-        /// For method group conversion <see cref="CodeGenMethodGroupConversionTests.LockDelegate">
         public void LockDelegate()
         {
             var text =

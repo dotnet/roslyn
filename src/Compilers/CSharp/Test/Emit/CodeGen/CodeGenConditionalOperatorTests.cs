@@ -1075,8 +1075,8 @@ class C
 ");
         }
 
+        /// For method group conversion <see cref="CodeGenMethodGroupConversionTests.TestConditionalOperatorMethodGroup" />
         [Fact]
-        /// For method group conversion <see cref="CodeGenMethodGroupConversionTests.TestConditionalOperatorMethodGroup">
         public void TestConditionalOperatorMethodGroup()
         {
             var source = @"using System;
