@@ -6657,7 +6657,7 @@ class C
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
         public void Property_GetterBlockBodyWithSetterToGetterExpressionBodyWithSetter()
         {
-            var src1 = "class C { int P { get => 2; set { Console.WriteLine(0); } } }";
+            var src1 = "class C { int P { get => 2;         set { Console.WriteLine(0); } } }";
             var src2 = "class C { int P { get { return 2; } set { Console.WriteLine(0); } } }";
 
             var edits = GetTopEdits(src1, src2);
@@ -6667,7 +6667,6 @@ class C
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P"), preserveLocalVariables: false)
             });
         }
 
@@ -7187,7 +7186,7 @@ class C
         public void Indexer_GetterBlockBodyToGetterExpressionBody()
         {
             var src1 = "class C { int this[int a] { get { return 1; } set { Console.WriteLine(0); } } }";
-            var src2 = "class C { int this[int a] { get => 1; set { Console.WriteLine(0); } } }";
+            var src2 = "class C { int this[int a] { get => 1;         set { Console.WriteLine(0); } } }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -7196,7 +7195,6 @@ class C
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: false)
             });
         }
 
@@ -7715,12 +7713,15 @@ public class C
 using System;
 public class C
 {
-   event Action E { add { F(); } remove => F(); }
+   event Action E { add { F(); } remove { } }
 }
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Update [add => F();]@57 -> [add { F(); }]@56");
+            edits.VerifyEdits(
+                "Update [add => F();]@57 -> [add { F(); }]@56",
+                "Update [remove => F();]@69 -> [remove { }]@69"
+                );
 
             edits.VerifySemanticDiagnostics();
         }
@@ -7732,7 +7733,7 @@ public class C
 using System;
 public class C
 {
-   event Action E { add { F(); } remove => F(); }
+   event Action E { add { F(); } remove { } }
 }
 ";
             string src2 = @"
@@ -7744,7 +7745,10 @@ public class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Update [add { F(); }]@56 -> [add => F();]@57");
+            edits.VerifyEdits(
+                "Update [add { F(); }]@56 -> [add => F();]@57",
+                "Update [remove { }]@69 -> [remove => F();]@69"
+                );
 
             edits.VerifySemanticDiagnostics();
         }

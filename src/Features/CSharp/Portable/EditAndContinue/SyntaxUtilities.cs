@@ -187,8 +187,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return propertyBody.Expression;
             }
 
-            var firstAccessor = accessorList?.Accessors.Where(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)).FirstOrDefault();
-            return (SyntaxNode)firstAccessor?.Body ?? firstAccessor?.ExpressionBody?.Expression;
+            var firstGetter = accessorList?.Accessors.Where(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)).FirstOrDefault();
+            if (firstGetter == null)
+            {
+                return null;
+            }
+
+            return (SyntaxNode)firstGetter.Body ?? firstGetter.ExpressionBody?.Expression;
         }
 
         public static SyntaxTokenList? TryGetFieldOrPropertyModifiers(SyntaxNode node)
