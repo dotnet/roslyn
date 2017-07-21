@@ -34,6 +34,7 @@
     <Reference Include="System.Xml" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\SymbolDisplay\ObjectDisplay.cs">

@@ -227,6 +227,7 @@
     <xunitassertVersion>2.2.0-beta4-build3444</xunitassertVersion>
     <xunitconsolenetcoreVersion>1.0.2-prerelease-00104</xunitconsolenetcoreVersion>
     <xunitrunnerconsoleVersion>2.2.0-beta4-build3444</xunitrunnerconsoleVersion>
+    <xunitrunnervisualstudioVersion>2.3.0-beta3-build3705</xunitrunnervisualstudioVersion>
   </PropertyGroup>
 
 </Project>

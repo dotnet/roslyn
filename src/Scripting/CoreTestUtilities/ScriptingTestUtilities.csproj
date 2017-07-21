@@ -44,6 +44,7 @@
     <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
