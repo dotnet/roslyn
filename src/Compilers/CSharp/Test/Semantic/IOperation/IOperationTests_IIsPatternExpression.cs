@@ -169,12 +169,12 @@ class X
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'x is (int)12.0')
   Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern) (Syntax: '(int)12.0')
       Value: IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 12) (Syntax: '(int)12.0')
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 12) (Syntax: '12.0')
+          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 12) (Syntax: '12.0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -195,12 +195,12 @@ class X
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is 12.0')
   Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: '12.0')
       Value: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 12, IsInvalid) (Syntax: '12.0')
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 12, IsInvalid) (Syntax: '12.0')
+          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 12, IsInvalid) (Syntax: '12.0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'double' to 'int?'. An explicit conversion exists (are you missing a cast?)
@@ -225,12 +225,12 @@ class X
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is null')
   Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: 'null')
       Value: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'null')
-          ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+          Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0037: Cannot convert null to 'int' because it is a non-nullable value type
@@ -419,8 +419,8 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
   Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: '')
       Value: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
-          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-            Children(0)
+          Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+              Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term 'const'
