@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if NET46
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,9 +8,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
+namespace Roslyn.Test.Utilities.Desktop
 {
     internal sealed class RuntimeAssemblyManager : MarshalByRefObject, IDisposable
     {
@@ -70,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             var currentDomain = AppDomain.CurrentDomain;
             currentDomain.AssemblyResolve += AssemblyResolve;
             currentDomain.AssemblyLoad += AssemblyLoad;
-            CLRHelpers.ReflectionOnlyAssemblyResolve += ReflectionOnlyAssemblyResolve;
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += ReflectionOnlyAssemblyResolve;
 
             _preloadedSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var assembly in currentDomain.GetAssemblies())
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             // clean up our handlers, so that they don't accumulate
             AppDomain.CurrentDomain.AssemblyResolve -= AssemblyResolve;
             AppDomain.CurrentDomain.AssemblyLoad -= AssemblyLoad;
-            CLRHelpers.ReflectionOnlyAssemblyResolve -= ReflectionOnlyAssemblyResolve;
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve -= ReflectionOnlyAssemblyResolve;
 
             foreach (var assembly in _loadedAssemblies)
             {
@@ -448,3 +451,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
         }
     }
 }
+#endif
+
