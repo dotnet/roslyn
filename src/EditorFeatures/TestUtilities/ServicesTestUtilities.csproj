@@ -246,6 +246,7 @@
     <Compile Include="Preview\MockPreviewPaneService.cs" />
     <Compile Include="QuickInfo\AbstractQuickInfoSourceTests.cs" />
     <Compile Include="QuickInfo\AbstractSemanticQuickInfoSourceTests.cs" />
+    <Compile Include="Remote\WatsonReporter.cs" />
     <Compile Include="RenameTracking\MockPreviewDialogService.cs" />
     <Compile Include="RenameTracking\MockRefactorNotifyService.cs" />
     <Compile Include="Semantics\SpeculationAnalyzerTestsBase.cs" />
