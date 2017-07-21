@@ -72,7 +72,7 @@ IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpressi
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 't.MyEvent')
       Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test) (Syntax: 't')
   Handler: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.EventHandler, Constant: null) (Syntax: 'null')
-      ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+      Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new[] { 
                 // file.cs(6,31): warning CS0067: The event 'Test.MyEvent' is never used
@@ -190,7 +190,7 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 't.MyEvent')
       Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test, IsInvalid) (Syntax: 't')
   Handler: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'Handler')
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Handler')
+      Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  
                 // file.cs(18,19): error CS0123: No overload for 'Handler' matches delegate 'EventHandler'
