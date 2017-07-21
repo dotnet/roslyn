@@ -73,17 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             bool keepVoid, IMethodSymbol methodSymbol, TypeSyntax returnType,
             INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType)
         {
-            var newReturnType = returnType;
+            var newReturnType = returnType.WithAdditionalAnnotations(Formatter.Annotation);
 
             if (methodSymbol.ReturnsVoid)
             {
                 if (!keepVoid)
                 {
                     newReturnType = taskType.GenerateTypeSyntax();
-                }
-                else
-                {
-                    newReturnType = newReturnType.WithAdditionalAnnotations(Formatter.Annotation);
                 }
             }
             else
@@ -93,10 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                     // If it's not already Task-like, then wrap the existing return type
                     // in Task<>.
                     newReturnType = taskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax();
-                }
-                else
-                {
-                    newReturnType = newReturnType.WithAdditionalAnnotations(Formatter.Annotation);
                 }
             }
 
