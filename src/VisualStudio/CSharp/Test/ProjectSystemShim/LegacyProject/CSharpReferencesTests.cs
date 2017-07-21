@@ -135,5 +135,29 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
                 project1.Disconnect();
             }
         }
+
+
+        [WorkItem(461967, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/461967")]
+        [WpfFact()]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void AddingMetadataReferenceToProjectThatCannotCompileInTheIdeKeepsMetadataReference()
+        {
+            using (var environment = new TestEnvironment())
+            {
+                var project1 = CreateCSharpProject(environment, "project1");
+                environment.ProjectTracker.UpdateProjectBinPath(project1, null, @"c:\project1.dll");
+
+                var project2 = CreateNonCompilableProject(environment, "project2", @"C:\project2.fsproj");
+                environment.ProjectTracker.UpdateProjectBinPath(project2, null, @"c:\project2.dll");
+
+                project1.OnImportAdded(@"c:\project2.dll", "project2");
+
+                // We shoudl not have converted that to a project reference, because we would have no way to produce the compilation
+                Assert.Empty(project1.GetCurrentProjectReferences());
+
+                project2.Disconnect();
+                project1.Disconnect();
+            }
+        }
     }
 }
