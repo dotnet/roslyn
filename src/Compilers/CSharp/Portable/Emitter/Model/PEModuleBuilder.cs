@@ -348,9 +348,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        internal override ImmutableArray<Cci.INamespaceTypeDefinition> GetDelegateCacheContainers()
+        internal override ImmutableArray<Cci.INamespaceTypeDefinition> GetDelegateCacheContainers(EmitContext context)
         {
-            if (EmitOptions.EmitMetadataOnly)
+            if (context.MetadataOnly)
             {
                 return ImmutableArray<Cci.INamespaceTypeDefinition>.Empty;
             }

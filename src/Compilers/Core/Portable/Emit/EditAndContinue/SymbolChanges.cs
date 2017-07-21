@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             var module = (CommonPEModuleBuilder)context.Module;
 
-            foreach (var container in module.GetDelegateCacheContainers())
+            foreach (var container in module.GetDelegateCacheContainers(context))
             {
                 yield return container;
             }
