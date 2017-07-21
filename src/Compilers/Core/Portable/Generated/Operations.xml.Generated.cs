@@ -1294,36 +1294,49 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a conversion operation.
     /// </summary>
-    internal abstract partial class BaseConversionExpression : Operation, IHasOperatorMethodExpression, IConversionExpression
+    internal abstract partial class BaseConversionExpression<TConversion> : Operation, IHasOperatorMethodExpression, IConversionExpression
+        where TConversion : struct, IConversion
     {
-        protected BaseConversionExpression(ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseConversionExpression(TConversion conversion, bool isExplicitInCode, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ConversionExpression, syntax, type, constantValue)
         {
-            ConversionKind = conversionKind;
-            IsExplicit = isExplicit;
-            UsesOperatorMethod = usesOperatorMethod;
-            OperatorMethod = operatorMethod;
+            ConversionInternal = conversion;
+            IsExplicitInCode = isExplicitInCode;
         }
+        /// <summary>
+        /// Internal direct conversion access. Used for the non-boxing language specific conversion methods.
+        /// </summary>
+        internal TConversion ConversionInternal { get; }
         /// <summary>
         /// Value to be converted.
         /// </summary>
         public abstract IOperation Operand { get; }
+#pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved
+                               // These crefs come from conversions defined in the C# and VB specific projects
+                              /// <summary>
+                              /// Gets the underlying conversion. This will be either <see cref="Microsoft.CodeAnalysis.CSharp.Conversion"/>
+                              /// or <see cref="Microsoft.CodeAnalysis.VisualBasic.Conversion"/>. This is a boxing operation: if you need
+                              /// conversion information that is language specific, use either TODO or TODO, which do not allocate memory.
+                              /// </summary>
+        public IConversion Conversion => ConversionInternal;
+#pragma warning restore CS1574 // XML comment has cref attribute that could not be resolved
+                              /// <summary>
+                              /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
+                              /// </summary>
+        public bool IsExplicitInCode { get; }
         /// <summary>
-        /// Kind of conversion.
+        /// The language that defined this conversion. Possible values are <see cref="LanguageNames.CSharp"/> and
+        /// <see cref="LanguageNames.VisualBasic"/>.
         /// </summary>
-        public ConversionKind ConversionKind { get; }
-        /// <summary>
-        /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
-        /// </summary>
-        public bool IsExplicit { get; }
+        public abstract string LanguageName { get; }
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
         /// </summary>
-        public bool UsesOperatorMethod { get; }
+        public bool UsesOperatorMethod => Conversion.IsUserDefined;
         /// <summary>
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
-        public IMethodSymbol OperatorMethod { get; }
+        public virtual IMethodSymbol OperatorMethod => Conversion.MethodSymbol;
         public override IEnumerable<IOperation> Children
         {
             get
@@ -1339,39 +1352,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitConversionExpression(this, argument);
         }
-    }
-
-    /// <summary>
-    /// Represents a conversion operation.
-    /// </summary>
-    internal sealed partial class ConversionExpression : BaseConversionExpression, IHasOperatorMethodExpression, IConversionExpression
-    {
-        public ConversionExpression(IOperation operand, ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(conversionKind, isExplicit, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
-        {
-            Operand = operand;
-        }
-        /// <summary>
-        /// Value to be converted.
-        /// </summary>
-        public override IOperation Operand { get; }
-    }
-
-    /// <summary>
-    /// Represents a conversion operation.
-    /// </summary>
-    internal sealed partial class LazyConversionExpression : BaseConversionExpression, IHasOperatorMethodExpression, IConversionExpression
-    {
-        private readonly Lazy<IOperation> _lazyOperand;
-
-        public LazyConversionExpression(Lazy<IOperation> operand, ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(conversionKind, isExplicit, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
-        {
-            _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
-        }
-        /// <summary>
-        /// Value to be converted.
-        /// </summary>
-        public override IOperation Operand => _lazyOperand.Value;
     }
 
     /// <remarks>

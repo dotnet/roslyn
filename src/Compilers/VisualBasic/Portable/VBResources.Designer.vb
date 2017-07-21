@@ -12235,6 +12235,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to IConversionExpression &apos;{0}&apos; is not a valid Visual Basic conversion expression..
+        '''</summary>
+        Friend ReadOnly Property IConversionExpression_Is_Not_Visual_Basic_Conversion() As String
+            Get
+                Return ResourceManager.GetString("IConversionExpression_Is_Not_Visual_Basic_Conversion", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to IdentifierSyntax not within syntax tree.
         '''</summary>
         Friend ReadOnly Property IdentifierSyntaxNotWithinSyntaxTree() As String

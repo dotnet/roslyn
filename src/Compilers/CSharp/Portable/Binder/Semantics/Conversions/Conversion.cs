@@ -6,6 +6,7 @@ using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Summarizes whether a conversion is allowed, and if so, which kind of conversion (and in some cases, the
     /// associated symbol).
     /// </summary>
-    public struct Conversion : IEquatable<Conversion>
+    public struct Conversion : IEquatable<Conversion>, IConversion
     {
         private readonly ConversionKind _kind;
         private readonly UncommonData _uncommonData;

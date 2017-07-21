@@ -386,9 +386,17 @@ Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression.IfFalseValue.get -
 Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression.IfTrueValue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IConstantPattern
 Microsoft.CodeAnalysis.Semantics.IConstantPattern.Value.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IConversion
+Microsoft.CodeAnalysis.Semantics.IConversion.Exists.get -> bool
+Microsoft.CodeAnalysis.Semantics.IConversion.IsIdentity.get -> bool
+Microsoft.CodeAnalysis.Semantics.IConversion.IsNumeric.get -> bool
+Microsoft.CodeAnalysis.Semantics.IConversion.IsReference.get -> bool
+Microsoft.CodeAnalysis.Semantics.IConversion.IsUserDefined.get -> bool
+Microsoft.CodeAnalysis.Semantics.IConversion.MethodSymbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.IConversionExpression
-Microsoft.CodeAnalysis.Semantics.IConversionExpression.ConversionKind.get -> Microsoft.CodeAnalysis.Semantics.ConversionKind
-Microsoft.CodeAnalysis.Semantics.IConversionExpression.IsExplicit.get -> bool
+Microsoft.CodeAnalysis.Semantics.IConversionExpression.Conversion.get -> Microsoft.CodeAnalysis.Semantics.IConversion
+Microsoft.CodeAnalysis.Semantics.IConversionExpression.IsExplicitInCode.get -> bool
+Microsoft.CodeAnalysis.Semantics.IConversionExpression.LanguageName.get -> string
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.Operand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IDeclarationPattern
 Microsoft.CodeAnalysis.Semantics.IDeclarationPattern.DeclaredSymbol.get -> Microsoft.CodeAnalysis.ISymbol

@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbolExtensions
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.Semantics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -20,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Public Structure Conversion
         Implements IEquatable(Of Conversion)
+        Implements IConversion
 
         Private ReadOnly _convKind As ConversionKind
         Private ReadOnly _method As MethodSymbol
@@ -42,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If this returns True, exactly one of <see cref="IsNarrowing"/> or <see cref="IsWidening"/> will return True. 
         ''' If this returns False, neither <see cref="IsNarrowing"/> or <see cref="IsWidening"/> will return True.
         ''' </remarks>
-        Public ReadOnly Property Exists As Boolean
+        Public ReadOnly Property Exists As Boolean Implements IConversion.Exists
             Get
                 Return Not Conversions.NoConversion(_convKind)
             End Get
@@ -72,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>
         ''' Note that identity conversion are also considered widening conversions.
         ''' </remarks>
-        Public ReadOnly Property IsIdentity As Boolean
+        Public ReadOnly Property IsIdentity As Boolean Implements IConversion.IsIdentity
             Get
                 Return Conversions.IsIdentityConversion(_convKind)
             End Get
@@ -92,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns True if this conversion is a widening numeric conversion or a narrowing numeric conversion, as defined in
         ''' section 8.3.
         ''' </summary>
-        Public ReadOnly Property IsNumeric As Boolean
+        Public ReadOnly Property IsNumeric As Boolean Implements IConversion.IsNumeric
             Get
                 Return (_convKind And ConversionKind.Numeric) <> 0
             End Get
@@ -111,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns True if this conversion is a widening reference conversion or narrowing reference conversion, as defined in
         ''' section 8.4.
         ''' </summary>
-        Public ReadOnly Property IsReference As Boolean
+        Public ReadOnly Property IsReference As Boolean Implements IConversion.IsReference
             Get
                 Return (_convKind And ConversionKind.Reference) <> 0
             End Get
@@ -194,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If this returns True, the involved conversion method can be obtained with the <see cref="Method"/>
         ''' property.
         ''' </remarks>
-        Public ReadOnly Property IsUserDefined As Boolean
+        Public ReadOnly Property IsUserDefined As Boolean Implements IConversion.IsUserDefined
             Get
                 Return (_convKind And ConversionKind.UserDefined) <> 0
             End Get
@@ -209,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns the method that defines the user defined conversion, if any. Otherwise returns Nothing.
         ''' </summary>
-        Public ReadOnly Property MethodSymbol As IMethodSymbol
+        Public ReadOnly Property MethodSymbol As IMethodSymbol Implements IConversion.MethodSymbol
             Get
                 Return _method
             End Get

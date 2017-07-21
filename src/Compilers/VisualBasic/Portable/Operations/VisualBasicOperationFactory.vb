@@ -11,6 +11,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private ReadOnly _cache As ConcurrentDictionary(Of BoundNode, IOperation) =
             New ConcurrentDictionary(Of BoundNode, IOperation)(concurrencyLevel:=2, capacity:=10)
 
+        Private ReadOnly _semanticModel As SemanticModel
+
+        Public Sub New(semanticModel As SemanticModel)
+            _semanticModel = semanticModel
+        End Sub
+
         Public Function Create(boundNode As BoundNode) As IOperation
             If boundNode Is Nothing Then
                 Return Nothing
@@ -404,50 +410,42 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTryCast.Operand))
-            Dim conversionKind As ConversionKind = Semantics.ConversionKind.TryCast
-            Dim isExplicit As Boolean = True
-            Dim usesOperatorMethod As Boolean = False
-            Dim operatorMethod As IMethodSymbol = Nothing
             Dim syntax As SyntaxNode = boundTryCast.Syntax
+            Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
+            Dim isExplicitCastInCode As Boolean = True
             Dim type As ITypeSymbol = boundTryCast.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTryCast.ConstantValueOpt)
-            Return New LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
+            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicitCastInCode, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundDirectCastOperation(boundDirectCast As BoundDirectCast) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDirectCast.Operand))
-            Dim conversionKind As ConversionKind = Semantics.ConversionKind.Cast
             Dim isExplicit As Boolean = True
-            Dim usesOperatorMethod As Boolean = False
-            Dim operatorMethod As IMethodSymbol = Nothing
             Dim syntax As SyntaxNode = boundDirectCast.Syntax
+            Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
             Dim type As ITypeSymbol = boundDirectCast.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDirectCast.ConstantValueOpt)
-            Return New LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
+            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundConversionOperation(boundConversion As BoundConversion) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundConversion.Operand))
-            Dim conversionKind As ConversionKind = GetConversionKind(boundConversion.ConversionKind)
             Dim isExplicit As Boolean = boundConversion.ExplicitCastInCode
-            Dim usesOperatorMethod As Boolean = False
-            Dim operatorMethod As IMethodSymbol = Nothing
             Dim syntax As SyntaxNode = boundConversion.Syntax
+            Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
             Dim type As ITypeSymbol = boundConversion.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
-            Return New LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
+            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundUserDefinedConversionOperation(boundUserDefinedConversion As BoundUserDefinedConversion) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUserDefinedConversion.Operand))
-            Dim conversionKind As ConversionKind = Semantics.ConversionKind.OperatorMethod
             Dim isExplicit As Boolean = Not boundUserDefinedConversion.WasCompilerGenerated
-            Dim usesOperatorMethod As Boolean = True
-            Dim operatorMethod As IMethodSymbol = boundUserDefinedConversion.Call.Method
             Dim syntax As SyntaxNode = boundUserDefinedConversion.Syntax
+            Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
             Dim type As ITypeSymbol = boundUserDefinedConversion.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedConversion.ConstantValueOpt)
-            Return New LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, syntax, type, constantValue)
+            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundTernaryConditionalExpressionOperation(boundTernaryConditionalExpression As BoundTernaryConditionalExpression) As IConditionalChoiceExpression
