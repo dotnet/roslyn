@@ -191,6 +191,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var field = fields[i];
 
+                // Use default field rather than implicitly named fields since
+                // fields from inferred names are not usable in C# 7.0.
+                field = field.CorrespondingTupleField ?? field;
+
                 DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
                 if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
                 {
