@@ -1417,50 +1417,6 @@ class C
                 Array.Empty<string>());
         }
 
-        [Fact]
-        public void Event_ExpressionBodyToBlock()
-        {
-            string src1 = @"
-public class C
-{
-    event Action E { add => <AS:0>F();</AS:0> remove => F(); }
-}
-";
-            string src2 = @"
-public class C
-{
-   event Action E { add { <AS:0>F();</AS:0> } remove => F(); }
-}
-";
-            var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.MethodBodyAdd, "add", "event accessor"));
-        }
-
-        [Fact]
-        public void Event_BlockToExpressionBody()
-        {
-            string src1 = @"
-public class C
-{
-   event Action E { add { <AS:0>F();</AS:0> } remove => F(); }
-}
-";
-            string src2 = @"
-public class C
-{
-    event Action E { add => <AS:0>F();</AS:0> remove => F(); }
-}
-";
-            var edits = GetTopEdits(src1, src2); 
-            var active = GetActiveStatements(src1, src2);
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.MethodBodyDelete, "add", "event accessor"));
-        }
-
         #endregion
     }
 }

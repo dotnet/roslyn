@@ -187,7 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return propertyBody.Expression;
             }
 
-            return accessorList?.Accessors.Where(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)).FirstOrDefault()?.Body;
+            var firstAccessor = accessorList?.Accessors.Where(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)).FirstOrDefault();
+            return (SyntaxNode)firstAccessor?.Body ?? firstAccessor?.ExpressionBody?.Expression;
         }
 
         public static SyntaxTokenList? TryGetFieldOrPropertyModifiers(SyntaxNode node)

@@ -4457,18 +4457,15 @@ partial class C
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 18));
         }
 
-        [Fact]
-        public void Constructor_BlockToExpressionBody()
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Constructor_BlockBodyToExpressionBody()
         {
             string src1 = @"
 public class C
 {
     private int _value;
 
-    public C(int value) 
-    {
-        <AS:0>_value = value;</AS:0>
-    }
+    public C(int value) { _value = value; }
 }
 ";
             string src2 = @"
@@ -4476,25 +4473,61 @@ public class C
 {
     private int _value;
 
-    public C(int value) => <AS:0>_value = value;</AS:0>
+    public C(int value) => _value = value;
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.MethodBodyDelete, "public C(int value)", "constructor"));
+            edits.VerifyEdits("Update [public C(int value) { _value = value; }]@52 -> [public C(int value) => _value = value;]@52");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
+                });
         }
 
-        [Fact]
-        public void Constructor_ExpressionBodyToBlock()
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void ConstructorWithInitializer_BlockBodyToExpressionBody()
+        {
+            string src1 = @"
+public class B { B(int value) {} }
+public class C : B
+{
+    private int _value;
+    public C(int value) : base(value) { _value = value; }
+}
+";
+            string src2 = @"
+public class B { B(int value) {} }
+public class C : B
+{
+    private int _value;
+    public C(int value) : base(value) => _value = value;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [public C(int value) : base(value) { _value = value; }]@90 -> [public C(int value) : base(value) => _value = value;]@90");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
+                });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Constructor_ExpressionBodyToBlockBody()
         {
             string src1 = @"
 public class C
 {
     private int _value;
 
-    public C(int value) => <AS:0>_value = value;</AS:0>
+    public C(int value) => _value = value;
 }
 ";
             string src2 = @"
@@ -4502,67 +4535,104 @@ public class C
 {
     private int _value;
 
-    public C(int value) 
-    {
-        <AS:0>_value = value;</AS:0>
-    }
+    public C(int value) { _value = value; }
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.MethodBodyAdd, "public C(int value)", "constructor"));
+            edits.VerifyEdits(@"Update [public C(int value) => _value = value;]@52 -> [public C(int value) { _value = value; }]@52");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
+                });
         }
 
-        [Fact]
-        public void Destructor_BlockToExpressionBody()
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void ConstructorWithInitializer_ExpressionBodyToBlockBody()
+        {
+            string src1 = @"
+public class B { B(int value) {} }
+public class C : B
+{
+    private int _value;
+    public C(int value) : base(value) => _value = value;
+}
+";
+            string src2 = @"
+public class B { B(int value) {} }
+public class C : B
+{
+    private int _value;
+    public C(int value) : base(value) { _value = value; }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [public C(int value) : base(value) => _value = value;]@90 -> [public C(int value) : base(value) { _value = value; }]@90");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
+                });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Destructor_BlockBodyToExpressionBody()
         {
             string src1 = @"
 public class C
 {
-    ~C() 
-    {
-        <AS:0>Console.WriteLine(""destructed"");</AS:0>
-    }
+    ~C() { Console.WriteLine(0); }
 }
 ";
             string src2 = @"
 public class C
 {
-    ~C() => <AS:0>Console.WriteLine(""destructed"");</AS:0>
+    ~C() => Console.WriteLine(0);
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.MethodBodyDelete, "~C()", "destructor"));
+            edits.VerifyEdits("Update [~C() { Console.WriteLine(0); }]@25 -> [~C() => Console.WriteLine(0);]@25");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Finalize"), preserveLocalVariables: false)
+                });
         }
 
-        [Fact]
-        public void Destructor_ExpressionBodyToBlock()
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Destructor_ExpressionBodyToBlockBody()
         {
             string src1 = @"
 public class C
 {
-    ~C() => <AS:0>Console.WriteLine(""destructed"");</AS:0>
+    ~C() => Console.WriteLine(0);
 }
 ";
             string src2 = @"
 public class C
 {
-    ~C() 
-    {
-        <AS:0>Console.WriteLine(""destructed"");</AS:0>
-    }
+    ~C() { Console.WriteLine(0); }
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.MethodBodyAdd, "~C()", "destructor"));
+            edits.VerifyEdits("Update [~C() => Console.WriteLine(0);]@25 -> [~C() { Console.WriteLine(0); }]@25");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Finalize"), preserveLocalVariables: false)
+                });
         }
 
         #endregion
@@ -6516,6 +6586,108 @@ class C
                 Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.property_setter));
         }
 
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Property_ExpressionBodyToGetterExpressionBody()
+        {
+            var src1 = "class C { int P => 1; }";
+            var src2 = "class C { int P { get => 2; } }";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int P => 1;]@10 -> [int P { get => 2; }]@10",
+                "Insert [{ get => 2; }]@16",
+                "Insert [get => 2;]@18");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Property_GetterExpressionBodyToExpressionBody()
+        {
+            var src1 = "class C { int P { get => 2; } }";
+            var src2 = "class C { int P => 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyEdits(
+                "Update [int P { get => 2; }]@10 -> [int P => 1;]@10",
+                "Delete [{ get => 2; }]@16",
+                "Delete [get => 2;]@18");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Property_GetterBlockBodyToGetterExpressionBody()
+        {
+            var src1 = "class C { int P { get { return 2; } } }";
+            var src2 = "class C { int P { get => 2; } }";
+            
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [get { return 2; }]@18 -> [get => 2;]@18");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Property_GetterExpressionBodyToGetterBlockBody()
+        {
+            var src1 = "class C { int P { get => 2; } }";
+            var src2 = "class C { int P { get { return 2; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [get => 2;]@18 -> [get { return 2; }]@18");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false)
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Property_GetterBlockBodyWithSetterToGetterExpressionBodyWithSetter()
+        {
+            var src1 = "class C { int P { get => 2; set { Console.WriteLine(0); } } }";
+            var src2 = "class C { int P { get { return 2; } set { Console.WriteLine(0); } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [get => 2;]@18 -> [get { return 2; }]@18");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P"), preserveLocalVariables: false)
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Property_GetterExpressionBodyWithSetterToGetterBlockBodyWithSetter()
+        {
+            var src1 = "class C { int P { get { return 2; } set { Console.WriteLine(0); } } }";
+            var src2 = "class C { int P { get => 2; set { Console.WriteLine(0); } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [get { return 2; }]@18 -> [get => 2;]@18");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P"), preserveLocalVariables: false)
+            });
+        }
+
         [Fact]
         public void PropertyRename1()
         {
@@ -6906,6 +7078,180 @@ class C
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false)
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Indexer_ExpressionBodyToBlockBody()
+        {
+            var src1 = "class C { int this[int a] => 1; }";
+            var src2 = "class C { int this[int a] { get { return 1; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int this[int a] => 1;]@10 -> [int this[int a] { get { return 1; } }]@10",
+                "Insert [{ get { return 1; } }]@26",
+                "Insert [get { return 1; }]@28");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false)
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Indexer_BlockBodyToExpressionBody()
+        {
+            var src1 = "class C { int this[int a] { get { return 1; } } }";
+            var src2 = "class C { int this[int a] => 1; } ";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int this[int a] { get { return 1; } }]@10 -> [int this[int a] => 1;]@10",
+                "Delete [{ get { return 1; } }]@26",
+                "Delete [get { return 1; }]@28");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false)
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Indexer_GetterExpressionBodyToBlockBody()
+        {
+            var src1 = "class C { int this[int a] { get => 1; } }";
+            var src2 = "class C { int this[int a] { get { return 1; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [get => 1;]@28 -> [get { return 1; }]@28");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false)
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Indexer_BlockBodyToGetterExpressionBody()
+        {
+            var src1 = "class C { int this[int a] { get { return 1; } } }";
+            var src2 = "class C { int this[int a] { get => 1; } }";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [get { return 1; }]@28 -> [get => 1;]@28");
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Indexer_GetterExpressionBodyToExpressionBody()
+        {
+            var src1 = "class C { int this[int a] { get => 1; } }";
+            var src2 = "class C { int this[int a] => 1; } ";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int this[int a] { get => 1; }]@10 -> [int this[int a] => 1;]@10",
+                "Delete [{ get => 1; }]@26",
+                "Delete [get => 1;]@28");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false)
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Indexer_ExpressionBodyToGetterExpressionBody()
+        {
+            var src1 = "class C { int this[int a] => 1; }";
+            var src2 = "class C { int this[int a] { get => 1; } }";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int this[int a] => 1;]@10 -> [int this[int a] { get => 1; }]@10",
+                "Insert [{ get => 1; }]@26",
+                "Insert [get => 1;]@28");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false)
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Indexer_GetterBlockBodyToGetterExpressionBody()
+        {
+            var src1 = "class C { int this[int a] { get { return 1; } set { Console.WriteLine(0); } } }";
+            var src2 = "class C { int this[int a] { get => 1; set { Console.WriteLine(0); } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [get { return 1; }]@28 -> [get => 1;]@28");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: false)
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Indexer_GetterExpressionBodyToGetterBlockBody()
+        {
+            var src1 = "class C { int this[int a] { get => 1; set { Console.WriteLine(0); } } }";
+            var src2 = "class C { int this[int a] { get { return 1; } set { Console.WriteLine(0); } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [get => 1;]@28 -> [get { return 1; }]@28");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: false)
+            });
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Indexer_GetterAndSetterBlockBodiesToExpressionBody()
+        {
+            var src1 = "class C { int this[int a] { get { return 1; } set { Console.WriteLine(0); } } }";
+            var src2 = "class C { int this[int a] => 1; }";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int this[int a] { get { return 1; } set { Console.WriteLine(0); } }]@10 -> [int this[int a] => 1;]@10",
+                "Delete [{ get { return 1; } set { Console.WriteLine(0); } }]@26",
+                "Delete [get { return 1; }]@28",
+                "Delete [set { Console.WriteLine(0); }]@46");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "int this[int a]", "indexer setter"));
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Indexer_ExpressionBodyToGetterAndSetterBlockBodies()
+        {
+            var src1 = "class C { int this[int a] => 1; }";
+            var src2 = "class C { int this[int a] { get { return 1; } set { Console.WriteLine(0); } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int this[int a] => 1;]@10 -> [int this[int a] { get { return 1; } set { Console.WriteLine(0); } }]@10",
+                "Insert [{ get { return 1; } set { Console.WriteLine(0); } }]@26",
+                "Insert [get { return 1; }]@28",
+                "Insert [set { Console.WriteLine(0); }]@46");
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false),
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Item"), preserveLocalVariables: false)
             });
         }
 
@@ -7351,6 +7697,54 @@ class C
 ";
 
             var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Event_ExpressionBodyToBlockBody()
+        {
+            string src1 = @"
+using System;
+public class C
+{
+    event Action E { add => F(); remove => F(); }
+}
+";
+            string src2 = @"
+using System;
+public class C
+{
+   event Action E { add { F(); } remove => F(); }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [add => F();]@57 -> [add { F(); }]@56");
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
+        public void Event_BlockBodyToExpressionBody()
+        {
+            string src1 = @"
+using System;
+public class C
+{
+   event Action E { add { F(); } remove => F(); }
+}
+";
+            string src2 = @"
+using System;
+public class C
+{
+    event Action E { add => F(); remove => F(); }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [add { F(); }]@56 -> [add => F();]@57");
 
             edits.VerifySemanticDiagnostics();
         }
