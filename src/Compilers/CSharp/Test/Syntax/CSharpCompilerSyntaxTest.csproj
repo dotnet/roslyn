@@ -10,10 +10,11 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Syntax.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <PackageTargetFallback>portable-net45</PackageTargetFallback>
+    <TargetFrameworks>$(RoslynUnitTestTargetFrameworks)</TargetFrameworks>
     <NoStdLib>true</NoStdLib>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RoslynProjectType>UnitTestPortable</RoslynProjectType>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
     <!-- The RESX resources generator produces invalid comments when the string has a line starting with '/' -->
     <NoWarn>$(NoWarn);1570;1587</NoWarn>
   </PropertyGroup>
@@ -23,6 +24,7 @@
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\Core\CompilerTestUtilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
     <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
     <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj" />

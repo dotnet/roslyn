@@ -11,7 +11,7 @@
     <AssemblyName>Roslyn.Compilers.CSharp.Test.Utilities</AssemblyName>
     <Nonshipping>true</Nonshipping>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFrameworks>$(RoslynUnitTestTargetFrameworks)</TargetFrameworks>
     <NoStdLib>true</NoStdLib>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\Core\CompilerTestUtilities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />

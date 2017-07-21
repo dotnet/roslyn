@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
+using Roslyn.Test.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
