@@ -1305,10 +1305,6 @@ class C
         [Fact, WorkItem(9025, "https://github.com/dotnet/roslyn/issues/9025")]
         public void LongArithmeticExpressionCSharp()
         {
-            // test only works in RELEASE
-            // in debug, debugging code will throw stackoverflow. not due to product code
-            // but due to debugging code
-#if !DEBUG
             Func<int, string> buildSequenceOfBinaryExpressions =
                 (count) =>
                 {
@@ -1344,7 +1340,6 @@ class Test
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentOperationSyntaxTestAnalyzer() }, null, null, true,
                 Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentOperationDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9),
                 Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9));
-#endif
         }
 
         [WorkItem(9020, "https://github.com/dotnet/roslyn/issues/9020")]

@@ -43,7 +43,14 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_parentDoNotAccessDirectly == null)
                 {
-                    Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, SearchParentOperation(), null);
+                    var parent = SearchParentOperation();
+                    if (Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, null) != null)
+                    {
+#if DEBUG
+                        // someone else actually have set it while searching parent. make sure 2 are same
+                        Debug.Assert(_parentDoNotAccessDirectly == parent);
+#endif
+                    }
                 }
 
                 return _parentDoNotAccessDirectly;
@@ -84,10 +91,6 @@ namespace Microsoft.CodeAnalysis
             {
                 // tree must belong to same semantic model
                 Debug.Assert(((Operation)operation)._semanticModel == _semanticModel);
-
-                // confirm explicitly given parent is same as what we would have found.
-                var found = SearchParentOperation();
-                Debug.Assert(operation == found);
             }
 #endif
         }
