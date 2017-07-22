@@ -32322,9 +32322,15 @@ class C
                 // (6,33): error CS8081: Expression does not have a name.
                 //         const bool a = M(nameof(M(out int z1)), z1);
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(6, 33),
+                // (6,24): error CS0133: The expression being assigned to 'a' must be constant
+                //         const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "M(nameof(M(out int z1)), z1)").WithArguments("a").WithLocation(6, 24),
                 // (7,33): error CS8081: Expression does not have a name.
                 //         const bool b = M(nameof(M(out var z2)), z2);
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(7, 33),
+                // (7,24): error CS0133: The expression being assigned to 'b' must be constant
+                //         const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "M(nameof(M(out var z2)), z2)").WithArguments("b").WithLocation(7, 24),
                 // (6,49): error CS0165: Use of unassigned local variable 'z1'
                 //         const bool a = M(nameof(M(out int z1)), z1);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(6, 49),

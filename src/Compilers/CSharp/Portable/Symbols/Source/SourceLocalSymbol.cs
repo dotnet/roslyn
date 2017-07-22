@@ -508,7 +508,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// Set both to constantTuple in a single operation for thread safety.
             /// </summary>
             /// <param name="inProgress">Null for the initial call, non-null if we are in the process of evaluating a constant.</param>
-            private void MakeConstantTuple(LocalSymbol inProgress)
+            /// <param name="boundInitValue">If we already have the bound node for the initial value, pass it in to avoid recomputing it.</param>
+            private void MakeConstantTuple(LocalSymbol inProgress, BoundExpression boundInitValue)
             {
                 if (this.IsConst && _constantTuple == null)
                 {
@@ -517,9 +518,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var diagnostics = DiagnosticBag.GetInstance();
                     Debug.Assert(inProgress != this);
                     var type = this.Type;
-
-                    var inProgressBinder = new LocalInProgressBinder(this, this._initializerBinder);
-                    BoundExpression boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(_initializer, this.RefKind, type, diagnostics);
+                    if (boundInitValue == null)
+                    {
+                        var inProgressBinder = new LocalInProgressBinder(this, this._initializerBinder);
+                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(_initializer, this.RefKind, type, diagnostics);
+                    }
 
                     value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
                     Interlocked.CompareExchange(ref _constantTuple, new EvaluatedConstant(value, diagnostics.ToReadOnlyAndFree()), null);
@@ -538,14 +541,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return Microsoft.CodeAnalysis.ConstantValue.Bad;
                 }
 
-                MakeConstantTuple(inProgress);
+                MakeConstantTuple(inProgress, boundInitValue: null);
                 return _constantTuple == null ? null : _constantTuple.Value;
             }
 
             internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue)
             {
                 Debug.Assert(boundInitValue != null);
-                MakeConstantTuple(inProgress: null);
+                MakeConstantTuple(inProgress: null, boundInitValue: boundInitValue);
                 return _constantTuple == null ? ImmutableArray<Diagnostic>.Empty : _constantTuple.Diagnostics;
             }
 

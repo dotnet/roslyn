@@ -2236,10 +2236,17 @@ class Test
     }
 }
 ";
+            // Roslyn gives same error twice
             CreateStandardCompilation(text).VerifyDiagnostics(
     // (8,22): error CS0119: 'int' is a type, which is not valid in the given context
     //             int y = (global::System.Int32) +x;
     Diagnostic(ErrorCode.ERR_BadSKunknown, "global::System.Int32").WithArguments("int", "type"),
+    // (8,22): error CS0119: 'int' is a type, which is not valid in the given context
+    //             int y = (global::System.Int32) +x;
+    Diagnostic(ErrorCode.ERR_BadSKunknown, "global::System.Int32").WithArguments("int", "type"),
+    // (9,24): error CS0119: 'short' is a type, which is not valid in the given context
+    //             short z = (System.Int16) +x;
+    Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int16").WithArguments("short", "type"),
     // (9,24): error CS0119: 'short' is a type, which is not valid in the given context
     //             short z = (System.Int16) +x;
     Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int16").WithArguments("short", "type")

@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // Basically inlined BindVariableInitializer, but with conversion optional.
-                    initializerOpt = BindPossibleArrayInitializer(value, declTypeOpt, valueKind, localDiagnostics);
+                    initializerOpt = BindPossibleArrayInitializer(value, declTypeOpt, valueKind, diagnostics);
                     if (kind != LocalDeclarationKind.FixedVariable)
                     {
                         // If this is for a fixed statement, we'll do our own conversion since there are some special cases.
@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var constantValueDiagnostics = localSymbol.GetConstantValueDiagnostics(initializerOpt);
                 foreach (var diagnostic in constantValueDiagnostics)
                 {
-                    localDiagnostics.Add(diagnostic);
+                    diagnostics.Add(diagnostic);
                     if (diagnostic.Severity == DiagnosticSeverity.Error)
                     {
                         hasErrors = true;
@@ -972,9 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            diagnostics.AddRange(localDiagnostics.AsEnumerable().Distinct());
-            localDiagnostics.Free();
-
+            diagnostics.AddRangeAndFree(localDiagnostics);
             var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declTypeOpt);
             return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, hasErrors);
         }

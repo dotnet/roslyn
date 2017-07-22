@@ -2107,7 +2107,7 @@ class M
                     "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                     "mscorlib");
 
-            main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning);
+            main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
         }
 
         [WorkItem(19458, "https://github.com/dotnet/roslyn/issues/19458")]
@@ -2132,9 +2132,11 @@ class M
 
             var compilation = CreateStandardCompilation(source, assemblyName: "Main");
 
-            compilation.VerifyEmitDiagnostics(
-                // warning CS0612: 'E.Field' is obsolete
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Color.Red").WithArguments("Color.Red").WithLocation(11, 29));
+            DiagnosticDescription obsoleteWarning =
+                // warning CS0612: 'Color.Red' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Color.Red").WithArguments("Color.Red").WithLocation(11, 29);
+
+            compilation.VerifyEmitDiagnostics(obsoleteWarning, obsoleteWarning);
         }
     }
 }
