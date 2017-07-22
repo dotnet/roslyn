@@ -255,18 +255,18 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return Nothing
         End Function
 
-        Private Function GetForLoopStatementBefore(boundFor As BoundForToStatement) As ImmutableArray(Of IOperation)
+        Private Function GetForLoopStatementBefore(boundFor As BoundForToStatement, controlVariable As BoundExpression, initialValue As BoundExpression, limitValue As BoundExpression, stepValue As BoundExpression) As ImmutableArray(Of IOperation)
             Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
 
             ' ControlVariable = InitialValue
-            Dim controlReference As IOperation = Create(boundFor.ControlVariable)
+            Dim controlReference As IOperation = Create(controlVariable)
             If controlReference IsNot Nothing Then
-                statements.Add(OperationFactory.CreateSimpleAssignmentExpressionStatement(controlReference, Create(boundFor.InitialValue), _semanticModel, boundFor.InitialValue.Syntax))
+                statements.Add(OperationFactory.CreateSimpleAssignmentExpressionStatement(controlReference, Create(initialValue), _semanticModel, initialValue.Syntax))
             End If
 
             ' T0 = LimitValue
-            If Not boundFor.LimitValue.IsConstant Then
-                Dim value = Create(boundFor.LimitValue)
+            If Not limitValue.IsConstant Then
+                Dim value = Create(limitValue)
                 statements.Add(
                                 OperationFactory.CreateSimpleAssignmentExpressionStatement(
                                     New SyntheticLocalReferenceExpression(
@@ -279,8 +279,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
             End If
 
             ' T1 = StepValue
-            If boundFor.StepValue IsNot Nothing AndAlso Not boundFor.StepValue.IsConstant Then
-                Dim value = Create(boundFor.StepValue)
+            If stepValue IsNot Nothing AndAlso Not stepValue.IsConstant Then
+                Dim value = Create(stepValue)
                 statements.Add(
                                 OperationFactory.CreateSimpleAssignmentExpressionStatement(
                                     New SyntheticLocalReferenceExpression(
@@ -295,24 +295,23 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return statements.ToImmutableAndFree()
         End Function
 
-        Private Function GetForLoopStatementAtLoopBottom(boundFor As BoundForToStatement) As ImmutableArray(Of IOperation)
+        Private Function GetForLoopStatementAtLoopBottom(boundFor As BoundForToStatement, controlVariable As BoundExpression, stepValue As BoundExpression, operatorsOpt As BoundForToUserDefinedOperators) As ImmutableArray(Of IOperation)
             Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
-            Dim operators As BoundForToUserDefinedOperators = boundFor.OperatorsOpt
+            Dim operators As BoundForToUserDefinedOperators = operatorsOpt
             If operators IsNot Nothing Then
                 ' Use the operator methods. Figure out the precise rules first.
             Else
-                Dim controlReference As IOperation = Create(boundFor.ControlVariable)
+                Dim controlReference As IOperation = Create(controlVariable)
                 If controlReference IsNot Nothing Then
 
                     ' ControlVariable += StepValue
+                    Dim controlType As VisualBasic.Symbols.TypeSymbol = controlVariable.Type
 
-                    Dim controlType As VisualBasic.Symbols.TypeSymbol = boundFor.ControlVariable.Type
+                    Dim stepValueExpression As BoundExpression = If(stepValue, New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(controlType, 1), controlType))
 
-                    Dim stepValue As BoundExpression = If(boundFor.StepValue, New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(controlType, 1), controlType))
-
-                    Dim value = Create(stepValue)
+                    Dim value = Create(stepValueExpression)
                     Dim stepOperand As IOperation =
-                                    If(stepValue.IsConstant,
+                                    If(stepValueExpression.IsConstant,
                                         value,
                                         New SyntheticLocalReferenceExpression(
                                             SyntheticLocalKind.ForLoopStepValue,
@@ -321,46 +320,43 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                             value.Syntax,
                                             value.Type,
                                             constantValue:=Nothing))
-                    statements.Add(OperationFactory.CreateCompoundAssignmentExpressionStatement(controlReference, stepOperand, Semantics.Expression.DeriveAdditionKind(controlType), Nothing, _semanticModel, stepValue.Syntax))
+                    statements.Add(OperationFactory.CreateCompoundAssignmentExpressionStatement(controlReference, stepOperand, Semantics.Expression.DeriveAdditionKind(controlType), Nothing, _semanticModel, stepValueExpression.Syntax))
                 End If
             End If
 
             Return statements.ToImmutableAndFree()
         End Function
 
-        Private Function GetForWhileUntilLoopStatmentCondition(boundFor As BoundForToStatement) As IOperation
-            Dim operationValue = Create(boundFor.LimitValue)
-            Dim limitValue As IOperation =
-                        If(boundFor.LimitValue.IsConstant,
-                            operationValue,
-                            New SyntheticLocalReferenceExpression(
-                                SyntheticLocalKind.ForLoopLimitValue,
-                                Create(boundFor),
-                                _semanticModel,
-                                operationValue.Syntax,
-                                operationValue.Type,
-                                constantValue:=Nothing))
-
-            Dim controlVariable As BoundExpression = boundFor.ControlVariable
+        Private Function GetForWhileUntilLoopStatmentCondition(boundFor As BoundForToStatement, controlVariable As BoundExpression, limitValue As BoundExpression, stepValue As BoundExpression, operatorsOpt As BoundForToUserDefinedOperators) As IOperation
+            Dim operationValue = Create(limitValue)
+            Dim limitValueOperation As IOperation =
+                        If(limitValue.IsConstant,
+                           operationValue,
+                           New SyntheticLocalReferenceExpression(
+                               SyntheticLocalKind.ForLoopLimitValue,
+                               Create(boundFor),
+                               _semanticModel,
+                               operationValue.Syntax,
+                               operationValue.Type,
+                               constantValue:=Nothing))
 
             ' controlVariable can be a BoundBadExpression in case of error
             Dim booleanType As ITypeSymbol = controlVariable.ExpressionSymbol?.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
 
-            Dim operators As BoundForToUserDefinedOperators = boundFor.OperatorsOpt
-            If operators IsNot Nothing Then
+            If operatorsOpt IsNot Nothing Then
                 ' Use the operator methods. Figure out the precise rules first.
                 Return Nothing
             Else
-                If boundFor.StepValue Is Nothing OrElse (boundFor.StepValue.IsConstant AndAlso boundFor.StepValue.ConstantValueOpt IsNot Nothing) Then
+                If stepValue Is Nothing OrElse (stepValue.IsConstant AndAlso stepValue.ConstantValueOpt IsNot Nothing) Then
                     ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
 
-                    Dim relationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(If(boundFor.StepValue IsNot Nothing AndAlso boundFor.StepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
-                    Return OperationFactory.CreateBinaryOperatorExpression(relationalCode, Create(controlVariable), limitValue, booleanType, _semanticModel, limitValue.Syntax)
+                    Dim relationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(If(stepValue IsNot Nothing AndAlso stepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
+                    Return OperationFactory.CreateBinaryOperatorExpression(relationalCode, Create(controlVariable), limitValueOperation, booleanType, _semanticModel, limitValueOperation.Syntax)
                 Else
                     ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
 
-                    Dim value = Create(boundFor.StepValue)
-                    Dim stepValue As IOperation = New SyntheticLocalReferenceExpression(
+                    Dim value = Create(stepValue)
+                    Dim stepValueOperation As IOperation = New SyntheticLocalReferenceExpression(
                                 SyntheticLocalKind.ForLoopStepValue,
                                 Create(boundFor),
                                 _semanticModel,
@@ -368,21 +364,21 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                 value.Type,
                                 constantValue:=Nothing)
 
-                    Dim stepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, boundFor.StepValue)
+                    Dim stepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, stepValue)
                     Dim stepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(stepRelationalCode,
-                                 stepValue,
-                                 OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), boundFor.StepValue.Type, _semanticModel, boundFor.StepValue.Syntax),
+                                 stepValueOperation,
+                                 OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValueOperation.Type, 0), stepValue.Type, _semanticModel, stepValue.Syntax),
                                  booleanType,
                                  _semanticModel,
-                                 boundFor.StepValue.Syntax)
+                                 stepValue.Syntax)
 
                     Dim positiveStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
-                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, Create(controlVariable), limitValue, booleanType, _semanticModel, limitValue.Syntax)
+                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, Create(controlVariable), limitValueOperation, booleanType, _semanticModel, limitValueOperation.Syntax)
 
                     Dim negativeStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
-                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, Create(controlVariable), limitValue, booleanType, _semanticModel, limitValue.Syntax)
+                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, Create(controlVariable), limitValueOperation, booleanType, _semanticModel, limitValueOperation.Syntax)
 
-                    Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, _semanticModel, limitValue.Syntax)
+                    Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, _semanticModel, limitValueOperation.Syntax)
                 End If
             End If
         End Function

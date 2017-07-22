@@ -782,10 +782,19 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundForToStatementOperation(boundForToStatement As BoundForToStatement) As IForLoopStatement
-            Dim before As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() GetForLoopStatementBefore(boundForToStatement))
-            Dim atLoopBottom As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() GetForLoopStatementAtLoopBottom(boundForToStatement))
+            Dim before As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function()
+                    Return GetForLoopStatementBefore(boundForToStatement, boundForToStatement.ControlVariable, boundForToStatement.InitialValue, boundForToStatement.LimitValue, boundForToStatement.StepValue)
+                End Function)
+            Dim atLoopBottom As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function()
+                    Return GetForLoopStatementAtLoopBottom(boundForToStatement, boundForToStatement.ControlVariable, boundForToStatement.StepValue, boundForToStatement.OperatorsOpt)
+                End Function)
             Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).Empty
-            Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetForWhileUntilLoopStatmentCondition(boundForToStatement))
+            Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(
+                Function()
+                    Return GetForWhileUntilLoopStatmentCondition(boundForToStatement, boundForToStatement.ControlVariable, boundForToStatement.LimitValue, boundForToStatement.StepValue, boundForToStatement.OperatorsOpt)
+                End Function)
             Dim loopKind As LoopKind = LoopKind.For
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForToStatement.Body))
             Dim syntax As SyntaxNode = boundForToStatement.Syntax
