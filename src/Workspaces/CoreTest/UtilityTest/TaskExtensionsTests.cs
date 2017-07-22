@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<TaskCanceledException>(() => Task.FromCanceled<int>(new CancellationToken(canceled: true)).WaitAndGetResult_CanCallOnBackground(CancellationToken.None));
             Assert.Throws<OperationCanceledException>(() => new TaskCompletionSource<int>().Task.WaitAndGetResult_CanCallOnBackground(new CancellationToken(canceled: true)));
             var ex = Assert.Throws<TestException>(() => Task.Run(() => ThrowTestException()).WaitAndGetResult_CanCallOnBackground(CancellationToken.None));
-            Assert.Contains("TaskExtensionsTests.ThrowTestException()", ex.StackTrace);
+            Assert.Contains($"{nameof(TaskExtensionsTests)}.{nameof(ThrowTestException)}()", ex.StackTrace);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
