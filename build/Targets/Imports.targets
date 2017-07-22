@@ -500,6 +500,11 @@
     <AdditionalFiles Include="@(PublicAPI)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Show launchSettings.json in the project if it exists. -->
+    <None Include="$(AppDesignerFolder)\launchSettings.json" Condition="Exists('$(AppDesignerFolder)\launchSettings.json')" />
+  </ItemGroup>
+
   <!-- CPS doesn't show these items by default, but we want to show them. -->
   <ItemGroup>
     <!-- XAML pages and resources -->
