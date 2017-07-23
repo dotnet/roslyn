@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Globalization
 Imports System.Linq
 Imports Roslyn.Test.Utilities
 
@@ -84,7 +85,7 @@ Public Class VisualBasicParseOptionsTests
             Max().
             ToDisplayString()
 
-        Assert.Equal(highest, PredefinedPreprocessorSymbols.CurrentVersionNumber.ToString())
+        Assert.Equal(highest, PredefinedPreprocessorSymbols.CurrentVersionNumber.ToString(CultureInfo.InvariantCulture))
     End Sub
 
     <Fact>
