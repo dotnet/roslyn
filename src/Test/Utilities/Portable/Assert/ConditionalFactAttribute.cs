@@ -47,6 +47,13 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "OS default codepage is not Shift-JIS (932).";
     }
 
+    public class HasEnglishDefaultEncoding : ExecutionCondition
+    {
+        public override bool ShouldSkip => Encoding.GetEncoding(0)?.CodePage != 1252;
+
+        public override string SkipReason => "OS default codepage is not Windows-1252.";
+    }
+
     public class IsEnglishLocal : ExecutionCondition
     {
         public override bool ShouldSkip =>

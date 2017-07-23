@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("f1945cd6 c19e56b3 c1c78943 ef5ec181 16907a4c a1efc40a 57d48ab1 db7adfc5", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
         [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void Decode_NonUtf8()
         {
