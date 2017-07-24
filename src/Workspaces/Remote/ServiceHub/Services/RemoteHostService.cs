@@ -125,21 +125,17 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public void RegisterPrimarySolutionId(SolutionId solutionId)
+        public void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation)
         {
             var persistentStorageService = GetPersistentStorageService();
             persistentStorageService?.RegisterPrimarySolution(solutionId);
+            RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
         }
 
         public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown)
         {
             var persistentStorageService = GetPersistentStorageService();
             persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
-        }
-
-        public void UpdateSolutionIdStorageLocation(SolutionId solutionId, string storageLocation)
-        {
-            RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
         }
 
         private static Func<FunctionId, bool> GetLoggingChecker()

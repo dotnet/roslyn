@@ -10,9 +10,7 @@ namespace Microsoft.CodeAnalysis.Remote
         Task SynchronizePrimaryWorkspaceAsync(Checksum checksum);
         Task SynchronizeGlobalAssetsAsync(Checksum[] checksums);
 
-        void RegisterPrimarySolutionId(SolutionId solutionId);
+        void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation);
         void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown);
-
-        void UpdateSolutionIdStorageLocation(SolutionId solutionId, string storageLocation);
     }
 }
