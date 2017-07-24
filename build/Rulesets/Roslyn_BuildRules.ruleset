@@ -123,4 +123,7 @@
   <Rules AnalyzerId="XmlDocumentationComments.Analyzers" RuleNamespace="XmlDocumentationComments.Analyzers">
     <Rule Id="RS0010" Action="Warning" />
   </Rules>
+  <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers">
+    <Rule Id="CA9999" Action="None" /> <!-- We know the analyzers will fail during a bootstrap build -->
+  </Rules>
 </RuleSet>
