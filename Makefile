@@ -29,7 +29,7 @@ else
     $(error "Unknown OS_NAME: $(OS_NAME)")
 endif
 
-MSBUILD_ARGS := /p:TreatWarningsAsErrors=true /warnaserror /nologo '/consoleloggerparameters:Verbosity=minimal;summary' /p:Configuration=$(BUILD_CONFIGURATION)
+MSBUILD_ARGS := /nologo '/consoleloggerparameters:Verbosity=minimal;summary' /p:Configuration=$(BUILD_CONFIGURATION)
 
 ifneq ($(BUILD_LOG_PATH),)
 	MSBUILD_ARGS += /filelogger '/fileloggerparameters:Verbosity=normal;logFile=$(BUILD_LOG_PATH)'
