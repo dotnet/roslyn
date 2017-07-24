@@ -3,15 +3,14 @@
 namespace Microsoft.CodeAnalysis.CodeActions
 {
     /// <summary>
-    /// Apply this annotation to an appropriate SyntaxNode to request that it should be renamed by the user after the action.
+    /// Apply this annotation to an appropriate Syntax element to request that it should be 
+    /// navigated to by the user after the action.
     /// </summary>
-    public static class RenameAnnotation
+    internal static class NavigationAnnotation
     {
-        public const string Kind = "CodeAction_Rename";
+        public const string Kind = "CodeAction_Navigation";
 
         public static SyntaxAnnotation Create()
-        {
-            return new SyntaxAnnotation(Kind);
-        }
+            => new SyntaxAnnotation(Kind);
     }
 }

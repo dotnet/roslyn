@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
 
             var updatedSolution = operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution ?? oldSolution;
-            TryStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
+            TryNavigateToLocationOrStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
         }
 
         private TextDocument TryGetSingleChangedText(
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
         }
 
-        private void TryStartRenameSession(Workspace workspace, Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
+        private void TryNavigateToLocationOrStartRenameSession(Workspace workspace, Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
         {
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
             foreach (var documentId in changedDocuments)
@@ -272,9 +272,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                 var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
-                var renameTokenOpt = root.GetAnnotatedNodesAndTokens(RenameAnnotation.Kind)
-                                         .Where(s => s.IsToken)
-                                         .Select(s => s.AsToken())
+                var navigationTokenOpt = root.GetAnnotatedTokens(NavigationAnnotation.Kind)
+                                             .FirstOrNullable();
+                if (navigationTokenOpt.HasValue)
+                {
+                    var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+                    navigationService.TryNavigateToPosition(workspace, documentId, navigationTokenOpt.Value.SpanStart);
+                    return;
+                }
+
+                var renameTokenOpt = root.GetAnnotatedTokens(RenameAnnotation.Kind)
                                          .FirstOrNullable();
 
                 if (renameTokenOpt.HasValue)

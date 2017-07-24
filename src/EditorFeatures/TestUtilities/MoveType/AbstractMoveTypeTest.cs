@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 conflictSpans: ImmutableArray<TextSpan>.Empty,
                 renameSpans: ImmutableArray<TextSpan>.Empty,
                 warningSpans: ImmutableArray<TextSpan>.Empty,
+                navigationSpans: ImmutableArray<TextSpan>.Empty,
                 ignoreTrivia: ignoreTrivia,
                 expectedChangedDocumentId: null);
         }

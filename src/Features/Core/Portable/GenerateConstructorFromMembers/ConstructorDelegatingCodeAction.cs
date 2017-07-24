@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         afterThisLocation: afterThisLocation),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                return result;
+                return await AddNavigationAnnotationAsync(result, cancellationToken).ConfigureAwait(false);
             }
 
             public override string Title
