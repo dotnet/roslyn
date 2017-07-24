@@ -334,8 +334,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             CancellationToken cancellationToken)
         {
             // Find the documentation comment before the new line that was just pressed
-            var token = GetTokenToRight(syntaxTree, originalPosition, cancellationToken);
-            if (!IsDocCommentNewLine(token) || token.SpanStart != originalPosition)
+            var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
+            if (!IsDocCommentNewLine(token) || token.Span.End != position)
             {
                 return false;
             }

@@ -38,9 +38,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                 });
         }
 
-        protected void VerifyPressingEnter(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
+        protected void VerifyPressingEnter(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true,
+            Action<TestWorkspace> setOptionsOpt = null)
         {
             Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
+                setOptionsOpt: setOptionsOpt,
                 execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
                 {
                     var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<ReturnKeyCommandArgs>;
@@ -113,7 +115,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
         }
 
         private void Verify(string initialMarkup, string expectedMarkup, bool useTabs, bool autoGenerateXmlDocComments,
-            Action<IWpfTextView, ITextUndoHistoryRegistry, IEditorOperationsFactoryService, IAsyncCompletionService> execute)
+            Action<IWpfTextView, ITextUndoHistoryRegistry, IEditorOperationsFactoryService, IAsyncCompletionService> execute,
+            Action<TestWorkspace> setOptionsOpt = null)
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
@@ -143,6 +146,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                 options = options.WithChangedOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, testDocument.Project.Language, autoGenerateXmlDocComments);
 
                 workspace.Options = options;
+
+                setOptionsOpt?.Invoke(workspace);
 
                 execute(
                     view,
