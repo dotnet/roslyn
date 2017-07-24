@@ -2948,12 +2948,12 @@ class Student : Person { public double GPA; }
         </encLocalSlotMap>
         <encLambdaMap>
           <methodOrdinal>2</methodOrdinal>
-          <closure offset=""383"" />
           <closure offset=""0"" />
-          <lambda offset=""109"" closure=""0"" />
-          <lambda offset=""202"" closure=""0"" />
-          <lambda offset=""295"" closure=""0"" />
-          <lambda offset=""383"" closure=""1"" />
+          <closure offset=""383"" />
+          <lambda offset=""109"" closure=""1"" />
+          <lambda offset=""202"" closure=""1"" />
+          <lambda offset=""295"" closure=""1"" />
+          <lambda offset=""383"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
