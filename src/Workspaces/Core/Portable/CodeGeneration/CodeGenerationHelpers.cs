@@ -47,10 +47,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return syntax;
         }
 
-        public static TSyntaxNode AddCleanupAnnotationsTo<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
-        {
-            return node.WithAdditionalAnnotations(Formatter.Annotation, CodeGenerator.Annotation);
-        }
+        public static TSyntaxNode AddFormatterAndCodeGeneratorAnnotationsTo<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
+            => node.WithAdditionalAnnotations(Formatter.Annotation, CodeGenerator.Annotation);
 
         public static void CheckNodeType<TSyntaxNode1>(SyntaxNode node, string argumentName)
             where TSyntaxNode1 : SyntaxNode
