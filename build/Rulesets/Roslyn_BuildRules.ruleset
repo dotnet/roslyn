@@ -94,7 +94,7 @@
     <Rule Id="RS0027" Action="Error" />
   </Rules>
   <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers.ImmutableCollections">
-    <Rule Id="RS0012" Action="None" /> <!-- Disabled for performance reasons: https://github.com/dotnet/roslyn/issues/21051 -->
+    <Rule Id="RS0012" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="System.Runtime.Analyzers" RuleNamespace="System.Runtime.Analyzers">
     <Rule Id="CA1305" Action="None" />
@@ -118,7 +118,7 @@
     <Rule Id="RS0015" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers.Tasks">
-    <Rule Id="RS0018" Action="None" /> <!-- Disabled for performance reasons: https://github.com/dotnet/roslyn/issues/21051 -->
+    <Rule Id="RS0018" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="XmlDocumentationComments.Analyzers" RuleNamespace="XmlDocumentationComments.Analyzers">
     <Rule Id="RS0010" Action="Warning" />
