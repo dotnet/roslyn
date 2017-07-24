@@ -1,9 +1,10 @@
 SHELL := /usr/bin/env bash
 OS_NAME := $(shell uname -s)
 BUILD_CONFIGURATION := Debug
+# $(dir) ends with slash
 THIS_MAKEFILE_PATH := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-BINARIES_PATH := $(THIS_MAKEFILE_PATH)/Binaries
-SRC_PATH := $(THIS_MAKEFILE_PATH)/src
+BINARIES_PATH := $(THIS_MAKEFILE_PATH)Binaries
+SRC_PATH := $(THIS_MAKEFILE_PATH)src
 BOOTSTRAP_PATH := $(BINARIES_PATH)/Bootstrap
 BUILD_LOG_PATH :=
 DOTNET_VERSION := 1.0.1
@@ -28,22 +29,22 @@ else
     $(error "Unknown OS_NAME: $(OS_NAME)")
 endif
 
-MSBUILD_ARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
+MSBUILD_ARGS := /p:TreatWarningsAsErrors=true /warnaserror /nologo '/consoleloggerparameters:Verbosity=minimal;summary' /p:Configuration=$(BUILD_CONFIGURATION)
 
 ifneq ($(BUILD_LOG_PATH),)
-    MSBUILD_ARGS := $(MSBUILD_ARGS) /fileloggerparameters:LogFile=$(BUILD_LOG_PATH)
+	MSBUILD_ARGS += /filelogger '/fileloggerparameters:Verbosity=normal;logFile=$(BUILD_LOG_PATH)'
 endif
 
 ifeq ($(BOOTSTRAP),true)
-    MSBUILD_ARGS := $(MSBUILD_ARGS) /p:CscToolPath=$(BOOTSTRAP_PATH)/csc /p:CscToolExe=csc /p:VbcToolPath=$(BOOTSTRAP_PATH)/vbc /p:VbcToolExe=vbc
+    MSBUILD_ARGS += /p:BootstrapBuildPath=$(BOOTSTRAP_PATH)
 endif
 
 BUILD_CMD := dotnet build $(MSBUILD_ARGS)
 
-.PHONY: all bootstrap test toolset
+.PHONY: all bootstrap test restore
 
 all: restore
-	$(BUILD_CMD) $(THIS_MAKEFILE_PATH)/CrossPlatform.sln
+	$(BUILD_CMD) $(THIS_MAKEFILE_PATH)CrossPlatform.sln
 
 bootstrap: restore
 	$(BUILD_CMD) $(SRC_PATH)/Compilers/CSharp/CscCore
@@ -56,15 +57,14 @@ bootstrap: restore
 
 test:
 	dotnet publish -r $(RUNTIME_ID) $(SRC_PATH)/Test/DeployCoreClrTestRuntime -o $(BINARIES_PATH)/$(BUILD_CONFIGURATION)/CoreClrTest -p:RoslynRuntimeIdentifier=$(RUNTIME_ID)
-	./build/scripts/tests.sh $(BUILD_CONFIGURATION)
+	$(THIS_MAKEFILE_PATH)build/scripts/tests.sh $(BUILD_CONFIGURATION)
 
 restore: $(DOTNET)
-	./build/scripts/restore.sh
+	$(THIS_MAKEFILE_PATH)build/scripts/restore.sh
 
 $(DOTNET):
 	curl https://raw.githubusercontent.com/dotnet/cli/rel/$(DOTNET_VERSION)/scripts/obtain/dotnet-install.sh | \
 	$(SHELL) -s -- --version "$(DOTNET_VERSION)" --install-dir "$(DOTNET_PATH)"
-
 
 clean:
 	rm -rf $(BINARIES_PATH)

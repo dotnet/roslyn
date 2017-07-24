@@ -6,4 +6,4 @@ dotnet restore -v Minimal --disable-parallel $(pwd)/build/ToolsetPackages/BaseTo
 
 echo "Restore CrossPlatform.sln"
 
-dotnet restore $(pwd)/CrossPlatform.sln
+dotnet restore -v Minimal --disable-parallel $(pwd)/CrossPlatform.sln
