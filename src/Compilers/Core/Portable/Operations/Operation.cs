@@ -83,14 +83,19 @@ namespace Microsoft.CodeAnalysis
 
         public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
 
-        protected void SetParentOperation(IOperation operation)
+        protected void SetParentOperation(IOperation parent)
         {
-            var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, operation, null);
+            var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, null);
 #if DEBUG
             if (result == null)
             {
                 // tree must belong to same semantic model
-                Debug.Assert(((Operation)operation)._semanticModel == _semanticModel);
+                Debug.Assert(((Operation)parent)._semanticModel == _semanticModel);
+            }
+            else
+            {
+                // make sure given parent and one we already have is same
+                Debug.Assert(result == parent);
             }
 #endif
         }
@@ -228,7 +233,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private IOperation SearchParentOperation()
+        // internal for testing
+        internal IOperation SearchParentOperation()
         {
             var operationAlreadyProcessed = PooledHashSet<IOperation>.GetInstance();
 

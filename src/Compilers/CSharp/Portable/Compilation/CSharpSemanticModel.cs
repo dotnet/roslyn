@@ -467,14 +467,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken)
         {
-            var csnode = (CSharpSyntaxNode)node;
-            CheckSyntaxNode(csnode);
-
             if (!Root.FullSpan.Contains(node.FullSpan))
             {
                 // given node must be sub node of this root.
                 return null;
             }
+
+            var csnode = (CSharpSyntaxNode)node;
+            CheckSyntaxNode(csnode);
 
             return this.GetOperationWorker(csnode, GetOperationOptions.Lowest, cancellationToken);
         }

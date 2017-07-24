@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -28,7 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var child = kv.Key;
                 var parent = kv.Value;
 
+                // check parent property returns same parent we gathered by walking down operation tree
                 Assert.Equal(child.Parent, parent);
+
+                // check SearchparentOperation return same parent
+                Assert.Equal(((Operation)child).SearchParentOperation(), parent);
             }
         }
 
