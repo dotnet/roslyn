@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
         private const byte PrivateKeyBlobId = 0x07;
 
         // internal for testing
-        internal unsafe static readonly int s_publicKeyHeaderSize = SnPublicKeyBlobSize - 1;
+        internal const int s_publicKeyHeaderSize = SnPublicKeyBlobSize - 1;
 
         // From StrongNameInternal.cpp
         // Checks to see if a public key is a valid instance of a PublicKeyBlob as
