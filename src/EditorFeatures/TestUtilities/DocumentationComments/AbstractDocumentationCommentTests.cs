@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 
                     var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
                     var nextHandler = CreateInsertTextHandler(view, "\r\n");
-
                     commandHandler.ExecuteCommand(commandArgs, nextHandler);
                 });
         }
