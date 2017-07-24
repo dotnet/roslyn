@@ -15,6 +15,8 @@
     <VSIXExpInstallerPackageName>RoslynTools.Microsoft.VSIXExpInstaller</VSIXExpInstallerPackageName>
     <VSIXExpInstallerPackageVersion>0.2.1-beta</VSIXExpInstallerPackageVersion>
     <RoslynDiagnosticsNugetPackageVersion>$(MicrosoftNetRoslynDiagnosticsVersion)</RoslynDiagnosticsNugetPackageVersion>
+    <!-- Disable analyzers if NuGet deviated from the expected restore location (e.g. by changing case on a case-sensitive file system) -->
+    <UseRoslynAnalyzers Condition="!Exists('$(NuGetPackageRoot)\Microsoft.CodeQuality.Analyzers\$(RoslynDiagnosticsNugetPackageVersion)\analyzers\dotnet\cs\Analyzer.Utilities.dll')">False</UseRoslynAnalyzers>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/roslyn/Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynRuntimeIdentifier Condition="'$(RoslynRuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7-x64</RoslynRuntimeIdentifier>
     <Features>strict,IOperation</Features>
