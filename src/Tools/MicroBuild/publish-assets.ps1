@@ -39,6 +39,7 @@ try
     {
         "dev15.3.x" { }
         "master" { }
+        "sessionBGThread15.3" { }
         default
         {
             if (-not $test)
