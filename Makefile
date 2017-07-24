@@ -32,31 +32,46 @@ endif
 MSBUILD_ARGS := /nologo '/consoleloggerparameters:Verbosity=minimal;summary' /p:Configuration=$(BUILD_CONFIGURATION)
 
 ifneq ($(BUILD_LOG_PATH),)
-	MSBUILD_ARGS += /filelogger '/fileloggerparameters:Verbosity=normal;logFile=$(BUILD_LOG_PATH)'
+    MSBUILD_ARGS += /filelogger '/fileloggerparameters:Verbosity=normal;logFile=$(BUILD_LOG_PATH)'
 endif
 
+MSBUILD_MAIN_ARGS := $(MSBUILD_ARGS)
+MSBUILD_BOOTSTRAP_ARGS := $(MSBUILD_ARGS)
+
+# arguments to dotnet build go in front, msbuild in back
+MSBUILD_BOOTSTRAP_ARGS := -r $(RUNTIME_ID) $(MSBUILD_BOOTSTRAP_ARGS)
+
+# This gets a bit complex. There are two cases here:
+# BOOTSTRAP=false:
+#   Things proceed simply. The "all" target does not depend on the bootstrap
+#   target, so bootstrap is never built, and BootstrapBuildPath is unspecified.
+# BOOTSTRAP=true:
+#   BOOTSTRAP_DEPENDENCY is set to "bootstrap", making the "all" target depend
+#   on it, and so the bootstrap compiler gets built. Additionally,
+#   BootstrapBuildPath is specified, but *only* for the main build, *not* the
+#   bootstrap build.
 ifeq ($(BOOTSTRAP),true)
-    MSBUILD_ARGS += /p:BootstrapBuildPath=$(BOOTSTRAP_PATH)
+    MSBUILD_MAIN_ARGS += /p:BootstrapBuildPath=$(BOOTSTRAP_PATH)
+    BOOTSTRAP_DEPENDENCY := bootstrap
+else
+    BOOTSTRAP_DEPENDENCY :=
 endif
-
-BUILD_CMD := dotnet build $(MSBUILD_ARGS)
 
 .PHONY: all bootstrap test restore
 
-all: restore
-	$(BUILD_CMD) $(THIS_MAKEFILE_PATH)CrossPlatform.sln
+all: restore $(BOOTSTRAP_DEPENDENCY)
+	@echo Building CrossPlatform.sln
+	dotnet build $(THIS_MAKEFILE_PATH)CrossPlatform.sln $(MSBUILD_MAIN_ARGS)
 
 bootstrap: restore
-	$(BUILD_CMD) $(SRC_PATH)/Compilers/CSharp/CscCore
-	$(BUILD_CMD) $(SRC_PATH)/Compilers/VisualBasic/VbcCore
-	mkdir -p $(BOOTSTRAP_PATH)/csc
-	mkdir -p $(BOOTSTRAP_PATH)/vbc
-	dotnet publish -c $(BUILD_CONFIGURATION) -r $(RUNTIME_ID) $(SRC_PATH)/Compilers/CSharp/CscCore -o $(BOOTSTRAP_PATH)/csc
-	dotnet publish -c $(BUILD_CONFIGURATION) -r $(RUNTIME_ID) $(SRC_PATH)/Compilers/VisualBasic/VbcCore -o $(BOOTSTRAP_PATH)/vbc
+	@echo Building Bootstrap
+	dotnet publish $(SRC_PATH)/Compilers/CSharp/CscCore -o $(BOOTSTRAP_PATH)/csc $(MSBUILD_BOOTSTRAP_ARGS)
+	dotnet publish $(SRC_PATH)/Compilers/VisualBasic/VbcCore -o $(BOOTSTRAP_PATH)/vbc $(MSBUILD_BOOTSTRAP_ARGS)
+	dotnet publish $(SRC_PATH)/Compilers/Core/MSBuildTask -o $(BOOTSTRAP_PATH) $(MSBUILD_BOOTSTRAP_ARGS)
 	rm -rf $(BINARIES_PATH)/$(BUILD_CONFIGURATION)
 
 test:
-	dotnet publish -r $(RUNTIME_ID) $(SRC_PATH)/Test/DeployCoreClrTestRuntime -o $(BINARIES_PATH)/$(BUILD_CONFIGURATION)/CoreClrTest -p:RoslynRuntimeIdentifier=$(RUNTIME_ID)
+	dotnet publish $(SRC_PATH)/Test/DeployCoreClrTestRuntime -o $(BINARIES_PATH)/$(BUILD_CONFIGURATION)/CoreClrTest -r $(RUNTIME_ID) -p:RoslynRuntimeIdentifier=$(RUNTIME_ID) $(MSBUILD_MAIN_ARGS)
 	$(THIS_MAKEFILE_PATH)build/scripts/tests.sh $(BUILD_CONFIGURATION)
 
 restore: $(DOTNET)
