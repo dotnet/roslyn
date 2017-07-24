@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             }
 
             return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
-                position - 1, includeDirectives: true, includeDocumentationComments: true);
+                position - 1, includeDirectives: true, includeDocumentationComments: true, includeSkipped: true);
         }
 
         protected override bool IsDocCommentNewLine(SyntaxToken token)

@@ -337,7 +337,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
             if (!IsDocCommentNewLine(token))
             {
-                return false;
+                // See PressingEnter_InsertSlashes11 for an example of
+                // a case where multiple skipped tokens trivia appear at the same position.
+                // In that case, we need to ask for the token from the next position over.
+                token = GetTokenToLeft(syntaxTree, position + 1, cancellationToken);
+
+                if (!IsDocCommentNewLine(token))
+                {
+                    return false;
+                }
             }
 
             var currentLine = text.Lines.GetLineFromPosition(position);

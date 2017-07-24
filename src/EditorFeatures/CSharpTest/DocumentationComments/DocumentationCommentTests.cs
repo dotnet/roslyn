@@ -1897,12 +1897,21 @@ class C { }";
 /// </summary>
 class C { }";
 
-            VerifyPressingEnter(code, expected, useTabs: true, setOptionsOpt:
+            try
+            {
+                VerifyPressingEnter(code, expected, useTabs: true, setOptionsOpt:
                 workspace =>
                 {
                     workspace.GetService<IEditorOptionsFactoryService>().GlobalOptions
                         .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, true);
                 });
+            }
+            finally
+            {
+                TestWorkspace.CreateCSharp("").GetService<IEditorOptionsFactoryService>().GlobalOptions
+                        .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, false);
+            }
+            
         }
 
         protected override char DocumentationCommentCharacter
