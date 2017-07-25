@@ -289,54 +289,13 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
         End Sub
 
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
-        Public Sub IForEachLoopStatement_Struct()
-            Dim source = <![CDATA[
-Option Infer On
-
-Imports System.Collections
-
-Class C
-    Public Shared Sub Main()
-        For Each x In New Enumerable()'BIND:"For Each x In New Enumerable()"
-            System.Console.WriteLine(x)
-        Next
-    End Sub
-End Class
-
-Structure Enumerable
-    Public Function GetEnumerator() As IEnumerator
-        Return New Integer() {1, 2, 3}.GetEnumerator()
-    End Function
-End Structure
-    ]]>.Value
-
-Dim expectedOperationTree = <![CDATA[
-IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next')
-  Collection: IObjectCreationExpression (Constructor: Sub Enumerable..ctor()) (OperationKind.ObjectCreationExpression, Type: Enumerable) (Syntax: 'New Enumerable()')
-      Arguments(0)
-      Initializer: null
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(x)')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(x)')
-            Instance Receiver: null
-            Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
-                  ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
-                  InConversion: null
-                  OutConversion: null
-]]>.Value
-
-            VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
-        End Sub
-
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
-        Public Sub IForEachLoopStatement_ConstantNull()
+        Public Sub IForEachLoopStatement_String()
             Dim source = <![CDATA[
 Option Infer On
 Class Program
     Public Shared Sub Main()
         Const s As String = Nothing
-        For Each y In TryCast(s, String)'BIND:"For Each y In TryCast(s, String)"
+        For Each y In s'BIND:"For Each y In s"
             System.Console.WriteLine(y)
         Next
     End Sub
@@ -345,8 +304,7 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each y  ... Next')
-  Collection: IConversionExpression (ConversionKind.TryCast, Explicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'TryCast(s, String)')
-      Operand: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String, Constant: null) (Syntax: 's')
+  Collection: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String, Constant: null) (Syntax: 's')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each y  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(y)')
         Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Char)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
@@ -404,42 +362,99 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_QueryExpression()
             Dim source = <![CDATA[
-Option Infer On
-Imports System.Collections
-Class C
-    Public Shared Sub Main()
-        For Each x In New Enumerable()'BIND:"For Each x In New Enumerable()"
-            System.Console.WriteLine(x)
+Imports System
+Imports System.Collections.Generic
+Imports System.Diagnostics
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        ' Obtain a list of customers.
+        Dim customers As List(Of Customer) = GetCustomers()
+
+        ' Return customers that are grouped based on country.
+        Dim countries = From cust In customers
+                        Order By cust.Country, cust.City
+                        Group By CountryName = cust.Country
+                        Into CustomersInCountry = Group, Count()
+                        Order By CountryName
+
+        ' Output the results.
+        For Each country In countries'BIND:"For Each country In countries"
+            Debug.WriteLine(country.CountryName & " count=" & country.Count)
+
+            For Each customer In country.CustomersInCountry
+                Debug.WriteLine("   " & customer.CompanyName & "  " & customer.City)
+            Next
         Next
     End Sub
-End Class
-Structure Enumerable
-    Implements IEnumerable
-    Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
-        Return New Integer() {1, 2, 3}.GetEnumerator()
-    End Function
-End Structure
-    ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next')
-  Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'New Enumerable()')
-      Operand: IObjectCreationExpression (Constructor: Sub Enumerable..ctor()) (OperationKind.ObjectCreationExpression, Type: Enumerable) (Syntax: 'New Enumerable()')
-          Arguments(0)
-          Initializer: null
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(x)')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(x)')
-            Instance Receiver: null
-            Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
-                  ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
-                  InConversion: null
-                  OutConversion: null
+    Private Function GetCustomers() As List(Of Customer)
+        Return New List(Of Customer) From
+            {
+                New Customer With {.CustomerID = 1, .CompanyName = "C", .City = "H", .Country = "C"},
+                New Customer With {.CustomerID = 2, .CompanyName = "M", .City = "R", .Country = "U"},
+                New Customer With {.CustomerID = 3, .CompanyName = "F", .City = "V", .Country = "C"}
+            }
+    End Function
+End Module
+
+Class Customer
+    Public Property CustomerID As Integer
+    Public Property CompanyName As String
+    Public Property City As String
+    Public Property Country As String
+End Class
+
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
+            Dim expectedOperationTree = <![CDATA[
+IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each co ... Next')
+  Collection: ILocalReferenceExpression: countries (OperationKind.LocalReferenceExpression, Type: System.Linq.IOrderedEnumerable(Of <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>)) (Syntax: 'countries')
+  Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'For Each co ... Next')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Debug.Write ... ntry.Count)')
+        Expression: IInvocationExpression (Sub System.Diagnostics.Debug.WriteLine(message As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Debug.Write ... ntry.Count)')
+            Instance Receiver: null
+            Arguments(1):
+                IArgument (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument) (Syntax: 'country.Cou ... untry.Count')
+                  IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: 'country.Cou ... untry.Count')
+                    Left: IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: 'country.Cou ... & " count="')
+                        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>.CountryName As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'country.CountryName')
+                            Instance Receiver: ILocalReferenceExpression: country (OperationKind.LocalReferenceExpression, Type: <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>) (Syntax: 'country')
+                        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " count=") (Syntax: '" count="')
+                    Right: IConversionExpression (ConversionKind.Basic, Explicit) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'country.Count')
+                        Operand: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>.Count As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'country.Count')
+                            Instance Receiver: ILocalReferenceExpression: country (OperationKind.LocalReferenceExpression, Type: <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>) (Syntax: 'country')
+                  InConversion: null
+                  OutConversion: null
+      IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each cu ... Next')
+        Collection: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>.CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of Customer)) (Syntax: 'country.Cus ... rsInCountry')
+            Instance Receiver: ILocalReferenceExpression: country (OperationKind.LocalReferenceExpression, Type: <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>) (Syntax: 'country')
+        Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each cu ... Next')
+            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Debug.Write ... tomer.City)')
+              Expression: IInvocationExpression (Sub System.Diagnostics.Debug.WriteLine(message As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Debug.Write ... tomer.City)')
+                  Instance Receiver: null
+                  Arguments(1):
+                      IArgument (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument) (Syntax: '"   " & cus ... stomer.City')
+                        IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '"   " & cus ... stomer.City')
+                          Left: IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '"   " & cus ... Name & "  "')
+                              Left: IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '"   " & cus ... CompanyName')
+                                  Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "   ") (Syntax: '"   "')
+                                  Right: IPropertyReferenceExpression: Property Customer.CompanyName As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'customer.CompanyName')
+                                      Instance Receiver: ILocalReferenceExpression: customer (OperationKind.LocalReferenceExpression, Type: Customer) (Syntax: 'customer')
+                              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "  ") (Syntax: '"  "')
+                          Right: IPropertyReferenceExpression: Property Customer.City As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'customer.City')
+                              Instance Receiver: ILocalReferenceExpression: customer (OperationKind.LocalReferenceExpression, Type: Customer) (Syntax: 'customer')
+                        InConversion: null
+                        OutConversion: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+
 
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Multidimensional()
@@ -650,7 +665,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
         End Sub
 
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
-        Public Sub IForEachLoopStatement_InvalidConverstion()
+        Public Sub IForEachLoopStatement_InvalidConversion()
             Dim source = <![CDATA[
 Imports System
 
@@ -663,7 +678,7 @@ Class C1
 End Class
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'For Each el ... Next')
   Collection: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World.", IsInvalid) (Syntax: '"Hello World."')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'For Each el ... Next')

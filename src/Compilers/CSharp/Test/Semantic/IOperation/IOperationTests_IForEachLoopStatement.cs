@@ -138,7 +138,7 @@ IForEachLoopStatement (Iteration variable: System.Collections.Generic.KeyValuePa
         }
 
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IForEachLoopStatement_WithYeild()
+        public void IForEachLoopStatement_WithYield()
         {
             string source = @"
 class Class1
@@ -504,7 +504,7 @@ IForEachLoopStatement (Iteration variable: System.Reflection.FieldInfo fi) (Loop
         }
 
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IForEachLoopStatement_ConstantNull()
+        public void IForEachLoopStatement_String()
         {
             string source = @"
 class Class1
@@ -584,70 +584,6 @@ IForEachLoopStatement (Iteration variable: System.Collections.Generic.KeyValuePa
                   IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'pair.Value')
                     Operand: IPropertyReferenceExpression: System.Int32 System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>.Value { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'pair.Value')
                         Instance Receiver: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>) (Syntax: 'pair')
-                  InConversion: null
-                  OutConversion: null
-";
-            VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
-        }
-
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IForEachLoopStatement_ForEachOutVar()
-        {
-            string source = @"
-class P
-{
-    private void M()
-    {
-        var s = """";
-        /*<bind>*/foreach (var j in new[] { int.TryParse(s, out var i) ? i : 0 })
-        {
-            System.Console.WriteLine($""i={i}, s={s}""); 
-        }/*</bind>*/
-    }
-}
-";
-string expectedOperationTree = @"
-IForEachLoopStatement (Iteration variable: System.Int32 j) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... }')
-  Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'new[] { int ... ) ? i : 0 }')
-      Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new[] { int ... ) ? i : 0 }')
-          Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'new[] { int ... ) ? i : 0 }')
-          Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ int.TryPa ... ) ? i : 0 }')
-              Element Values(1):
-                  IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: System.Int32) (Syntax: 'int.TryPars ...  i) ? i : 0')
-                    Condition: IInvocationExpression (System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'int.TryPars ...  out var i)')
-                        Instance Receiver: null
-                        Arguments(2):
-                            IArgument (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument) (Syntax: 's')
-                              ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
-                              InConversion: null
-                              OutConversion: null
-                            IArgument (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument) (Syntax: 'var i')
-                              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
-                              InConversion: null
-                              OutConversion: null
-                    IfTrue: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                    IfFalse: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... }, s={s}"");')
-        Expression: IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... i}, s={s}"")')
-            Instance Receiver: null
-            Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i={i}, s={s}""')
-                  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""i={i}, s={s}""')
-                    Parts(4):
-                        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'i=')
-                          Text: ILiteralExpression (Text: i=) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i="") (Syntax: 'i=')
-                        IInterpolation (OperationKind.Interpolation) (Syntax: '{i}')
-                          Expression: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                          Alignment: null
-                          FormatString: null
-                        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ', s=')
-                          Text: ILiteralExpression (Text: , s=) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s="") (Syntax: ', s=')
-                        IInterpolation (OperationKind.Interpolation) (Syntax: '{s}')
-                          Expression: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
-                          Alignment: null
-                          FormatString: null
                   InConversion: null
                   OutConversion: null
 ";
@@ -909,27 +845,23 @@ class C
 {
     static void Main(string[] args)
     {
-        /*<bind>*/foreach (C x in (IEnumerable)args) { }/*</bind>*/
-    }
-
-    public static implicit operator C(string s)
-    {
-        return new C();
+        /*<bind>*/foreach (string x in (IEnumerable)args) { }/*</bind>*/
     }
 }
 ";
-string expectedOperationTree = @"
-IForEachLoopStatement (Iteration variable: C x) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (C  ... e)args) { }')
+            string expectedOperationTree = @"
+IForEachLoopStatement (Iteration variable: System.String x) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (st ... e)args) { }')
   Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: '(IEnumerable)args')
       Operand: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: '(IEnumerable)args')
           Operand: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String[]) (Syntax: 'args')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
 ";
+
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }
 
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IForEachLoopStatement_Withhrow()
+        public void IForEachLoopStatement_WithThrow()
         {
             string source = @"
 class Program
