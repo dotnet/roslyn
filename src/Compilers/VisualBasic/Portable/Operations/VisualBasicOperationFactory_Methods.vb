@@ -325,10 +325,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function GetForWhileUntilLoopStatementCondition(
             controlVariable As BoundExpression,
-            controlVariableOperation As IOperation,
             limitValue As BoundExpression,
             stepValue As BoundExpression,
-            stepValueOperation As IOperation,
             operatorsOpt As BoundForToUserDefinedOperators) As IOperation
 
             Dim limitValueOperation = Create(limitValue)
@@ -354,14 +352,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
                     Dim relationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(
                         If(stepValue IsNot Nothing AndAlso stepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
-                    Return OperationFactory.CreateBinaryOperatorExpression(relationalCode, controlVariableOperation, limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax)
+                    Return OperationFactory.CreateBinaryOperatorExpression(relationalCode, Create(controlVariable).Clone(), limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax)
                 Else
                     ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
+                    Dim value = Create(stepValue)
                     Dim stepValueReference As IOperation = New SyntheticLocalReferenceExpression(
                                 SyntheticLocalKind.ForLoopStepValue,
                                 _semanticModel,
-                                stepValueOperation.Syntax,
-                                stepValueOperation.Type,
+                                value.Syntax,
+                                value.Type,
                                 constantValue:=Nothing)
 
                     Dim stepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, stepValue)
@@ -373,10 +372,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                  stepValue.Syntax)
 
                     Dim positiveStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
-                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, controlVariableOperation, limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax)
+                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, Create(controlVariable).Clone(), limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax)
 
                     Dim negativeStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
-                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, controlVariableOperation, limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax)
+                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, Create(controlVariable).Clone(), limitValueReference.Clone(), booleanType, _semanticModel, limitValueReference.Syntax)
 
                     Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, _semanticModel, limitValueReference.Syntax)
                 End If

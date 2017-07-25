@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntaxNode = boundDynamicMemberAccess.Syntax;
             ITypeSymbol type = boundDynamicMemberAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundDynamicMemberAccess.ConstantValue);
-            return new LazyDynamicMemberReferenceExpression(instance, memberName, typeArguments, containingType, syntaxNode, type, constantValue);
+            return new LazyDynamicMemberReferenceExpression(instance, memberName, typeArguments, containingType, _semanticModel, syntaxNode, type, constantValue);
         }
 
         private ICollectionElementInitializerExpression CreateBoundDynamicCollectionElementInitializerOperation(BoundDynamicCollectionElementInitializer boundCollectionElementInitializer)

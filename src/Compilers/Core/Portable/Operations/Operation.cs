@@ -129,7 +129,8 @@ namespace Microsoft.CodeAnalysis
 
             // race is okay. paneltiy is going through a loop one more time
             // explicit cast is not allowed, so using "as" instead
-            if ((operations[0] as Operation)._parentDoNotAccessDirectly != null)
+            // invalid expression can have null element in the array
+            if ((operations[0] as Operation)?._parentDoNotAccessDirectly != null)
             {
                 // already initialized
                 return operations;
@@ -190,8 +191,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly ObjectPool<Queue<IOperation>> s_queuePool =
             new ObjectPool<Queue<IOperation>>(() => new Queue<IOperation>(), 10);
 
-        private IOperation WalkDownOperationToFindParent(
-            HashSet<IOperation> operationAlreadyProcessed, IOperation root, TextSpan span)
+        private IOperation WalkDownOperationToFindParent(HashSet<IOperation> operationAlreadyProcessed, IOperation root)
         {
             void EnqueueChildOperations(Queue<IOperation> queue, IOperation parent)
             {
@@ -249,23 +249,19 @@ namespace Microsoft.CodeAnalysis
         {
             var operationAlreadyProcessed = PooledHashSet<IOperation>.GetInstance();
 
-            var targetNode = Syntax;
-
             // start from current node since one node can have multiple operations mapped to
-            var currentCandidate = targetNode;
+            var currentCandidate = Syntax;
 
             try
             {
                 while (currentCandidate != null)
                 {
-                    Debug.Assert(currentCandidate.FullSpan.IntersectsWith(targetNode.FullSpan));
-
                     // get operation
                     var tree = SemanticModel.GetOperationInternal(currentCandidate);
                     if (tree != null)
                     {
                         // walk down operation tree to see whether this tree contains parent of this operation
-                        var parent = WalkDownOperationToFindParent(operationAlreadyProcessed, tree, targetNode.FullSpan);
+                        var parent = WalkDownOperationToFindParent(operationAlreadyProcessed, tree);
                         if (parent != null)
                         {
                             return parent;

@@ -26,9 +26,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             If TypeOf boundNode Is BoundValuePlaceholderBase Then
                 ' since same place holder bound node appears in multiple places in the tree
                 ' we can't use bound node to operation map.
-                ' for now, we will just return nothing for all those cases but we need to figure out
-                ' what we want to do with place holder node
-                Return Nothing
+                ' for now, we will just create new operation and return clone but we need to figure out
+                ' what we want to do with place holder node such as just returning nothing
+                Return CreateInternal(boundNode).Clone()
             End If
 
             If IsIgnoredNode(boundNode) Then
@@ -864,10 +864,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Function()
                     Return GetForWhileUntilLoopStatementCondition(
                         boundForToStatement.ControlVariable,
-                        Create(boundForToStatement.ControlVariable).Clone(),
                         boundForToStatement.LimitValue,
                         boundForToStatement.StepValue,
-                        Create(boundForToStatement.StepValue).Clone(),
                         boundForToStatement.OperatorsOpt)
                 End Function)
             Dim loopKind As LoopKind = LoopKind.For

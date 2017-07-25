@@ -398,9 +398,14 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return new ParenthesizedExpression(Visit(operation.Operand), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
             }
 
-            public override IOperation VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation, object argument)
+            public override IOperation VisitDynamicMemberReferenceExpression(IDynamicMemberReferenceExpression operation, object argument)
             {
-                return new LateBoundMemberReferenceExpression(Visit(operation.Instance), operation.MemberName, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+                return new DynamicMemberReferenceExpression(Visit(operation.Instance), operation.MemberName, operation.TypeArguments, operation.ContainingType, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+            }
+
+            public override IOperation VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation, object argument)
+            {
+                return new DynamicObjectCreationExpression(operation.Name, operation.ApplicableSymbols, VisitArray(operation.Arguments), operation.ArgumentNames, operation.ArgumentRefKinds, Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
             }
 
             public override IOperation VisitDefaultValueExpression(IDefaultValueExpression operation, object argument)
