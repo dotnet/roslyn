@@ -997,6 +997,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var hostDocument = GetHostDocument(documentId);
+            if (hostDocument == null)
+            {
+                // This can happen if the document was temporary and has since been closed/deleted.
+                return base.GetDocumentIdInCurrentContext(documentId);
+            }
+
             var itemId = hostDocument.GetItemId();
             if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
