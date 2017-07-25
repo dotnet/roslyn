@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 // Placing the last parameter on its own line.  Get the indentation of the 
                 // curent last parameter and give the new last parameter the same indentation.
                 var leadingIndentation = GetDesiredLeadingIndentation(
-                    generator, syntaxFacts, existingParameters.Last(), includeLeadingNewLine: true);
+                    generator, syntaxFacts, existingParameters[existingParameters.Count - 1], includeLeadingNewLine: true);
                 parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation)
                                                             .WithAdditionalAnnotations(Formatter.Annotation);
 
