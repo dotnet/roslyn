@@ -2491,7 +2491,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => Operation.SetParentOperation(ArgumentsInEvaluationOrderImpl, this);
@@ -2737,14 +2737,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a late-bound reference to a member of a class or struct.
+    /// Represents a dynamic access to a member of a class, struct, or module.
     /// </summary>
-    internal abstract partial class BaseLateBoundMemberReferenceExpression : Operation, ILateBoundMemberReferenceExpression
+    internal abstract partial class BaseDynamicMemberReferenceExpression : Operation, IDynamicMemberReferenceExpression
     {
-        protected BaseLateBoundMemberReferenceExpression(string memberName, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.LateBoundMemberReferenceExpression, semanticModel, syntax, type, constantValue)
+        protected BaseDynamicMemberReferenceExpression(string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.DynamicMemberReferenceExpression, semanticModel, syntax, type, constantValue)
         {
             MemberName = memberName;
+            TypeArguments = typeArguments;
+            ContainingType = containingType;
         }
 
         protected abstract IOperation InstanceImpl { get; }
@@ -2752,6 +2754,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Name of the member.
         /// </summary>
         public string MemberName { get; }
+        /// <summary>
+        /// Type arguments.
+        /// </summary>
+        public ImmutableArray<ITypeSymbol> TypeArguments { get; }
+        /// <summary>
+        /// The containing type of this expression. In C#, this will always be null.
+        /// </summary>
+        public ITypeSymbol ContainingType { get; }
+
         public override IEnumerable<IOperation> Children
         {
             get
@@ -2765,21 +2776,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         public IOperation Instance => Operation.SetParentOperation(InstanceImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitLateBoundMemberReferenceExpression(this);
+            visitor.VisitDynamicMemberReferenceExpression(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLateBoundMemberReferenceExpression(this, argument);
+            return visitor.VisitDynamicMemberReferenceExpression(this, argument);
         }
+
     }
 
     /// <summary>
-    /// Represents a late-bound reference to a member of a class or struct.
+    /// Represents a dynamic access to a member of a class, struct, or module.
     /// </summary>
-    internal sealed partial class LateBoundMemberReferenceExpression : BaseLateBoundMemberReferenceExpression, ILateBoundMemberReferenceExpression
+    internal sealed partial class DynamicMemberReferenceExpression : BaseDynamicMemberReferenceExpression, IDynamicMemberReferenceExpression
     {
-        public LateBoundMemberReferenceExpression(IOperation instance, string memberName, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(memberName, semanticModel, syntax, type, constantValue)
+        public DynamicMemberReferenceExpression(IOperation instance, string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue)
         {
             InstanceImpl = instance;
         }
@@ -2788,15 +2800,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a late-bound reference to a member of a class or struct.
+    /// Represents a dynamic access to a member of a class, struct, or module.
     /// </summary>
-    internal sealed partial class LazyLateBoundMemberReferenceExpression : BaseLateBoundMemberReferenceExpression, ILateBoundMemberReferenceExpression
+    internal sealed partial class LazyDynamicMemberReferenceExpression : BaseDynamicMemberReferenceExpression, IDynamicMemberReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyLateBoundMemberReferenceExpression(Lazy<IOperation> instance, string memberName, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(memberName, semanticModel, syntax, type, constantValue)
+        public LazyDynamicMemberReferenceExpression(Lazy<IOperation> lazyInstance, string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue)
         {
-            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
+            _lazyInstance = lazyInstance;
         }
 
         protected override IOperation InstanceImpl => _lazyInstance.Value;
