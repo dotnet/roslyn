@@ -88,6 +88,21 @@ Public Class VisualBasicParseOptionsTests
         Assert.Equal(highest, PredefinedPreprocessorSymbols.CurrentVersionNumber.ToString(CultureInfo.InvariantCulture))
     End Sub
 
+    <Fact, WorkItem(21094, "https://github.com/dotnet/roslyn/issues/21094")>
+    Public Sub CurrentVersionNumberIsCultureIndependent()
+        Dim currentCulture = CultureInfo.CurrentCulture
+        Try
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture
+            Dim invariantCultureVersion = PredefinedPreprocessorSymbols.CurrentVersionNumber
+            ' cs-CZ uses decimal comma, which can cause issues
+            CultureInfo.CurrentCulture = New CultureInfo("cs-CZ")
+            Dim czechCultureVersion = PredefinedPreprocessorSymbols.CurrentVersionNumber
+            Assert.Equal(invariantCultureVersion, czechCultureVersion)
+        Finally
+            CultureInfo.CurrentCulture = currentCulture
+        End Try
+    End Sub
+
     <Fact>
     Public Sub PredefinedPreprocessorSymbols_Win8()
         Dim options = VisualBasicParseOptions.Default
