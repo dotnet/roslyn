@@ -548,7 +548,6 @@ Microsoft.CodeAnalysis.Semantics.ISwitchStatement.Value.get -> Microsoft.CodeAna
 Microsoft.CodeAnalysis.Semantics.ISymbolInitializer
 Microsoft.CodeAnalysis.Semantics.ISymbolInitializer.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ISyntheticLocalReferenceExpression
-Microsoft.CodeAnalysis.Semantics.ISyntheticLocalReferenceExpression.ContainingStatement.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ISyntheticLocalReferenceExpression.SyntheticLocalKind.get -> Microsoft.CodeAnalysis.Semantics.SyntheticLocalKind
 Microsoft.CodeAnalysis.Semantics.IThrowExpression
 Microsoft.CodeAnalysis.Semantics.IThrowExpression.Expression.get -> Microsoft.CodeAnalysis.IOperation

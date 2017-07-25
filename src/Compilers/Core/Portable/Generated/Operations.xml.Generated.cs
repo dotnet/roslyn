@@ -1328,7 +1328,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a VB End statemnt.
+    /// Represents a VB End statement.
     /// </summary>
     internal sealed partial class EndStatement : Operation, IEndStatement
     {
@@ -4244,7 +4244,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Kind of the synthetic local.
         /// </summary>
         public SyntheticLocalKind SyntheticLocalKind { get; }
-        protected abstract IOperation ContainingStatementImpl { get; }
+
         public override IEnumerable<IOperation> Children
         {
             get
@@ -4252,10 +4252,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield break;
             }
         }
-        /// <summary>
-        /// Statement defining the lifetime of the synthetic local.
-        /// </summary>
-        public IOperation ContainingStatement => Operation.SetParentOperation(ContainingStatementImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitSyntheticLocalReferenceExpression(this);
@@ -4271,13 +4267,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class SyntheticLocalReferenceExpression : BaseSyntheticLocalReferenceExpression, ISyntheticLocalReferenceExpression
     {
-        public SyntheticLocalReferenceExpression(SyntheticLocalKind syntheticLocalKind, IOperation containingStatement, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public SyntheticLocalReferenceExpression(SyntheticLocalKind syntheticLocalKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(syntheticLocalKind, semanticModel, syntax, type, constantValue)
         {
-            ContainingStatementImpl = containingStatement;
         }
-
-        protected override IOperation ContainingStatementImpl { get; }
     }
 
     /// <summary>
@@ -4285,14 +4278,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazySyntheticLocalReferenceExpression : BaseSyntheticLocalReferenceExpression, ISyntheticLocalReferenceExpression
     {
-        private readonly Lazy<IOperation> _lazyContainingStatement;
-
-        public LazySyntheticLocalReferenceExpression(SyntheticLocalKind syntheticLocalKind, Lazy<IOperation> containingStatement, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(syntheticLocalKind, semanticModel, syntax, type, constantValue)
+        public LazySyntheticLocalReferenceExpression(SyntheticLocalKind syntheticLocalKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntheticLocalKind, semanticModel, syntax, type, constantValue)
         {
-            _lazyContainingStatement = containingStatement ?? throw new System.ArgumentNullException(nameof(containingStatement));
         }
-
-        protected override IOperation ContainingStatementImpl => _lazyContainingStatement.Value;
     }
 
     /// <summary>

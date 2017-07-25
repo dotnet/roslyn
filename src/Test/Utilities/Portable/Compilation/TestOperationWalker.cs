@@ -256,7 +256,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation)
         {
             var syntheticLocalKind = operation.SyntheticLocalKind;
-            var containingStatement = operation.ContainingStatement;
 
             base.VisitSyntheticLocalReferenceExpression(operation);
         }

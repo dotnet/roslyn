@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
-        private readonly SemanticModel _semanticModel;
+        internal readonly SemanticModel SemanticModel;
 
         // this will be lazily initialized. this will be initialized only once
         // but once initialized, will never change
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
 
         public Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
         {
-            _semanticModel = semanticModel;
+            SemanticModel = semanticModel;
 
             Kind = kind;
             Syntax = syntax;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
             if (result == null)
             {
                 // tree must belong to same semantic model
-                Debug.Assert(((Operation)parent)._semanticModel == _semanticModel);
+                Debug.Assert(((Operation)parent).SemanticModel == SemanticModel);
             }
             else
             {
@@ -142,6 +142,17 @@ namespace Microsoft.CodeAnalysis
             }
 
             return operations;
+        }
+
+        public static T ResetParentOperation<T>(T operation) where T : IOperation
+        {
+            if (operation == null)
+            {
+                return operation;
+            }
+
+            Interlocked.Exchange(ref (operation as Operation)._parentDoNotAccessDirectly, null);
+            return operation;
         }
 
         private class NoneOperation : Operation
@@ -250,7 +261,7 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(currentCandidate.FullSpan.IntersectsWith(targetNode.FullSpan));
 
                     // get operation
-                    var tree = _semanticModel.GetOperationInternal(currentCandidate);
+                    var tree = SemanticModel.GetOperationInternal(currentCandidate);
                     if (tree != null)
                     {
                         // walk down operation tree to see whether this tree contains parent of this operation

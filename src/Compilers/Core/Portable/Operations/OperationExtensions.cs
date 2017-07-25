@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
-    public static class OperationExtensions
+    public static partial class OperationExtensions
     {
         /// <summary>
         /// This will check whether context around the operation has any error such as syntax or semantic error
@@ -104,6 +104,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             return arrayBuilder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Deep Clone given IOperation
+        /// </summary>
+        internal static T Clone<T>(this T operation) where T : IOperation
+        {
+            return Cloner.Instance.Visit(operation);
         }
     }
 
