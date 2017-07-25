@@ -206,6 +206,7 @@ function Build-ExtraSignArtifacts() {
 
         Run-MSBuild "Templates\Templates.sln /p:VersionType=Release"
         Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln"
+        Copy-Item -Force "Vsix\myget_org-extensions.config" $configDir
     }
     finally {
         Pop-Location

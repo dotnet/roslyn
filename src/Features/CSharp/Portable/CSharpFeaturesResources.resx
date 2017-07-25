@@ -521,4 +521,7 @@
   <data name="Remove_unused_function" xml:space="preserve">
     <value>Remove unused function</value>
   </data>
+  <data name="Use_is_null_check" xml:space="preserve">
+    <value>Use 'is null' check</value>
+  </data>
 </root>
