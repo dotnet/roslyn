@@ -559,5 +559,174 @@ public static class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestInlineNullCheck1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        if ((x = o as string) != null)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestInlineNullCheck2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        if (null != (x = o as string))
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestInlineNullCheck3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        while ((x = o as string) != null)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        while (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestInlineNullCheck4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        while (null != (x = o as string))
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        while (o is string x)
+        {
+        }
+    }
+}");
+        }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestWhileDefiniteAssignment1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        while ((x = o as string) != null)
+        {
+        }
+
+        var readAfterWhile = x;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestWhileDefiniteAssignment2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        while ((x = o as string) != null)
+        {
+        }
+
+        x = ""writeAfterWhile"";
+    }
+}");
+        }
+        
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestWhileDefiniteAssignment3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        x = ""writeBeforeWhile"";
+        while ((x = o as string) != null)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestWhileDefiniteAssignment4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x = null;
+        var readBeforeWhile = x;
+        while ((x = o as string) != null)
+        {
+        }
+    }
+}");
+        }
     }
 }
