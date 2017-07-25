@@ -639,13 +639,27 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LocalReferenceExpression(local, syntax, type, constantValue)
         End Function
 
-        Private Function CreateBoundLateMemberAccessOperation(boundLateMemberAccess As BoundLateMemberAccess) As ILateBoundMemberReferenceExpression
+        Private Function CreateBoundLateMemberAccessOperation(boundLateMemberAccess As BoundLateMemberAccess) As IDynamicMemberReferenceExpression
             Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLateMemberAccess.ReceiverOpt))
             Dim memberName As String = boundLateMemberAccess.NameOpt
+            Dim typeArguments As ImmutableArray(Of ITypeSymbol) = ImmutableArray(Of ITypeSymbol).Empty
+            If boundLateMemberAccess.TypeArgumentsOpt IsNot Nothing Then
+                typeArguments = ImmutableArray(Of ITypeSymbol).CastUp(boundLateMemberAccess.TypeArgumentsOpt.Arguments)
+            End If
+            Dim containingType As ITypeSymbol = Nothing
+            ' If there's nothing being late-bound against, something is very wrong
+            Debug.Assert(boundLateMemberAccess.ReceiverOpt IsNot Nothing OrElse boundLateMemberAccess.ContainerTypeOpt IsNot Nothing)
+            ' Only set containing type if the container is set to something, and either there is no reciever, or the receiver's type
+            ' does not match the type of the containing type.
+            If (boundLateMemberAccess.ContainerTypeOpt IsNot Nothing AndAlso
+                (boundLateMemberAccess.ReceiverOpt Is Nothing OrElse
+                 boundLateMemberAccess.ContainerTypeOpt <> boundLateMemberAccess.ReceiverOpt.Type)) Then
+                containingType = boundLateMemberAccess.ContainerTypeOpt
+            End If
             Dim syntax As SyntaxNode = boundLateMemberAccess.Syntax
             Dim type As ITypeSymbol = boundLateMemberAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLateMemberAccess.ConstantValueOpt)
-            Return New LazyLateBoundMemberReferenceExpression(instance, memberName, syntax, type, constantValue)
+            Return New LazyDynamicMemberReferenceExpression(instance, memberName, typeArguments, containingType, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundFieldInitializerOperation(boundFieldInitializer As BoundFieldInitializer) As IFieldInitializer
