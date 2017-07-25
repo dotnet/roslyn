@@ -11,7 +11,6 @@ DOTNET_VERSION := 1.0.1
 DOTNET_PATH := $(BINARIES_PATH)/dotnet-cli
 DOTNET := $(DOTNET_PATH)/dotnet
 export PATH := $(DOTNET_PATH):$(PATH)
-TARGET_FX := netcoreapp1.1
 
 # Workaround, see https://github.com/dotnet/roslyn/issues/10210
 ifeq ($(origin HOME), undefined)
@@ -38,8 +37,7 @@ endif
 MSBUILD_MAIN_ARGS := $(MSBUILD_ARGS)
 MSBUILD_BOOTSTRAP_ARGS := $(MSBUILD_ARGS)
 
-# arguments to dotnet build go in front, msbuild in back
-MSBUILD_BOOTSTRAP_ARGS := -r $(RUNTIME_ID) $(MSBUILD_BOOTSTRAP_ARGS)
+MSBUILD_BOOTSTRAP_ARGS += /p:RuntimeIdentifier=$(RUNTIME_ID)
 
 # This gets a bit complex. There are two cases here:
 # BOOTSTRAP=false:
