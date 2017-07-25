@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis
 
             private Compilation CreateEmptyCompilation()
             {
-                var compilationFactory = this.ProjectState.LanguageServices.GetService<ICompilationFactoryService>();
+                var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 
                 if (this.ProjectState.IsSubmission)
                 {

@@ -2563,6 +2563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.GreaterThanOrEqualExpression:
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
+                case SyntaxKind.IsPatternExpression:
                     // From C# spec, 7.3.1:
                     // Relational and type testing: <  >  <=  >=  is  as
 
