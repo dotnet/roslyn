@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 {
@@ -234,7 +235,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                 var lastNode = nodesToRemove.LastOrDefault() ?? ifStatement;
                 @switch = @switch.WithLeadingTrivia(ifStatement.GetLeadingTrivia())
-                                 .WithTrailingTrivia(lastNode.GetTrailingTrivia());
+                                 .WithTrailingTrivia(lastNode.GetTrailingTrivia())
+                                 .WithAdditionalAnnotations(Formatter.Annotation);
 
                 root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
                 return Task.FromResult(document.WithSyntaxRoot(root));
