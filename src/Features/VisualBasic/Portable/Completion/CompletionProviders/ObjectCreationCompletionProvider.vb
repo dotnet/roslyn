@@ -52,10 +52,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return s_rules
         End Function
 
-        Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Return MyBase.CreateItem(displayText, insertionText, symbols, context, preselect, supportedPlatformData)
-        End Function
-
         Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
             ' If not all  of the type arguments are concrete types, eg
             ' we've inferred something like `Task(Of T)`, just suggest the
