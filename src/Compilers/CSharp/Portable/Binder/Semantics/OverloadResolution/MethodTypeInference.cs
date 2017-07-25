@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (TypeSymbol t in _fixedResults)
             {
                 var result = eraseNullability ?
-                    TypeSymbolWithAnnotations.Create(t.SetUnknownNullabilityForRefernceTypes(), isNullableIfReferenceType: null) :
+                    TypeSymbolWithAnnotations.Create(t.SetUnknownNullabilityForReferenceTypes(), isNullableIfReferenceType: null) :
                     TypeSymbolWithAnnotations.Create(t);
                 builder.Add(result);
             }
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: bounds. The second phase may have to be repeated a number of times.
             InferTypeArgsFirstPhase(binder, ref useSiteDiagnostics);
             bool success = InferTypeArgsSecondPhase(binder, ref useSiteDiagnostics);
-            bool eraseNullability = (((CSharpParseOptions)binder.Compilation.SyntaxTrees.FirstOrDefault()?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true);
+            bool eraseNullability = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
             return new MethodTypeInferenceResult(success, GetResults(eraseNullability));
         }
 

@@ -399,10 +399,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol SetUnknownNullabilityForRefernceTypes()
+        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
         {
             TypeSymbolWithAnnotations oldElementType = ElementType;
-            TypeSymbolWithAnnotations newElementType = oldElementType.SetUnknownNullabilityForRefernceTypes();
+            TypeSymbolWithAnnotations newElementType = oldElementType.SetUnknownNullabilityForReferenceTypes();
 
             if ((object)oldElementType == newElementType)
             {

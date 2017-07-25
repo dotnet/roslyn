@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol SetUnknownNullabilityForRefernceTypes()
+        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
         {
             return this;
         }

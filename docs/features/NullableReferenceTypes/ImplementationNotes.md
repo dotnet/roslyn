@@ -121,7 +121,7 @@ namespace System.Runtime.CompilerServices
 
 **Opting in and opting out of nullability warnings**
 
-It is possible to suppress all nulability warnings originating from declarations in certain referenced 
+It is possible to suppress all nullability warnings originating from declarations in certain referenced 
 assembly by applying the following attribute:
 ```
 namespace System.Runtime.CompilerServices

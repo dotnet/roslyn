@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        public TypeSymbolWithAnnotations SetUnknownNullabilityForRefernceTypes()
+        public TypeSymbolWithAnnotations SetUnknownNullabilityForReferenceTypes()
         {
             var typeSymbol = TypeSymbol;
 
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!typeSymbol.IsNullableType() && typeSymbol.IsReferenceType)
                 {
-                    typeSymbol = typeSymbol.SetUnknownNullabilityForRefernceTypes();
+                    typeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
                     var customModifiers = CustomModifiers;
 
                     if (customModifiers.IsEmpty)
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var newTypeSymbol = typeSymbol.SetUnknownNullabilityForRefernceTypes();
+            var newTypeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
 
             if ((object)newTypeSymbol != typeSymbol)
             {

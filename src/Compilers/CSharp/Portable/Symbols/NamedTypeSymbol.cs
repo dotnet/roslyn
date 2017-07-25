@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol SetUnknownNullabilityForRefernceTypes()
+        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
         {
             if (!IsGenericType)
             {
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < allTypeArguments.Count; i++)
             {
                 TypeSymbolWithAnnotations oldTypeArgument = allTypeArguments[i];
-                TypeSymbolWithAnnotations newTypeArgument = oldTypeArgument.SetUnknownNullabilityForRefernceTypes();
+                TypeSymbolWithAnnotations newTypeArgument = oldTypeArgument.SetUnknownNullabilityForReferenceTypes();
                 if ((object)oldTypeArgument != newTypeArgument)
                 {
                     allTypeArguments[i] = newTypeArgument;

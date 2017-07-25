@@ -14578,6 +14578,68 @@ class C : I
             Assert.Equal(new[] { "void I.M<T>(T? x)" }, implementations.SelectAsArray(m => m.ToTestDisplayString()));
         }
 
+        [Fact]
+        public void EmptyStructDifferentAssembly()
+        {
+            var sourceA =
+@"using System.Collections;
+public struct S
+{
+    public S(string f, IEnumerable g)
+    {
+        F = f;
+        G = g;
+    }
+    private string F { get; }
+    private IEnumerable G { get; }
+}";
+            var compA = CreateStandardCompilation(sourceA);
+            var sourceB =
+@"using System.Collections.Generic;
+class C
+{
+    static void Main()
+    {
+        var c = new List<object>();
+        c.Add(new S(string.Empty, new object[0]));
+    }
+}";
+            var compB = CreateStandardCompilation(
+                new[] { sourceB, attributesDefinitions },
+                options: TestOptions.ReleaseExe,
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
+                references: new[] { compA.EmitToImageReference() });
+            CompileAndVerify(compB, expectedOutput: "");
+        }
+
+        [Fact]
+        public void EmptyStructField()
+        {
+            var source =
+@"class A { }
+struct B { }
+struct S
+{
+    public readonly A A;
+    public readonly B B;
+    public S(B b) : this(null, b)
+    {
+    }
+    public S(A a, B b)
+    {
+        this.A = a;
+        this.B = b;
+    }
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            comp.VerifyDiagnostics(
+                // (7,26): warning CS8604: Possible null reference argument for parameter 'a' in 'S.S(A a, B b)'.
+                //     public S(B b) : this(null, b)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("a", "S.S(A a, B b)").WithLocation(7, 26));
+        }
+
         // PROTOTYPE(NullableReferenceTypes)
         [Fact(Skip = "TODO")]
         public void Test2()

@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal TypeSymbolWithAnnotations GetTypeOrReturnTypeWithAdjustedNullableAnnotations(Symbol symbol)
         {
-            if (((CSharpParseOptions)Compilation.SyntaxTrees.FirstOrDefault()?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
+            if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) &&
                 !IsBindingModuleLevelAttribute()) // TODO: It is possible to get into cycle while binding module level attributes because Opt-In/Opt-Out state depends on them
             {
                 return Compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(symbol);

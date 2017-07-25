@@ -784,6 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NormalizeNullable(ref this.State);
             }
 
+            Debug.Assert(slot > 0);
             return slot;
         }
 
@@ -1606,9 +1607,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (EmptyStructTypeCache.IsTrackableStructType(fieldOrPropertyType.TypeSymbol))
             {
-                InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, 
-                                                      GetOrCreateSlot(fieldOrProperty, targetContainerSlot),
-                                                      valueContainerSlot > 0 ? GetOrCreateSlot(fieldOrProperty, valueContainerSlot) : -1, isByRefTarget);
+                var slot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
+                if (slot > 0)
+                {
+                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol,
+                                                          slot,
+                                                          valueContainerSlot > 0 ? GetOrCreateSlot(fieldOrProperty, valueContainerSlot) : -1, isByRefTarget);
+                }
             }
         }
 
@@ -2233,7 +2238,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EmptyStructTypeCache.IsTrackableStructType(node.Type))
             {
                 _implicitReceiver = GetOrCreateObjectCreationPlaceholder(node);
-                InheritNullableStateOfTrackableStruct(node.Type, MakeSlot(node), -1, false);
+                var slot = MakeSlot(node);
+                if (slot > 0)
+                {
+                    InheritNullableStateOfTrackableStruct(node.Type, slot, -1, false);
+                }
             }
 
             var result = base.VisitObjectCreationExpression(node);
