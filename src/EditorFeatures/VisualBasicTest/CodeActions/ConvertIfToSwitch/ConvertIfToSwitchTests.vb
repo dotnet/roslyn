@@ -361,6 +361,7 @@ End Class",
 End Class")
         End Function
 
+        <WorkItem(21103, "https://github.com/dotnet/roslyn/issues/21103")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestTrivia1() As Task
             Await TestInRegularAndScriptAsync(
@@ -386,8 +387,10 @@ End Class",
 #end if
 
         Select i
-            Case 1, 2, 3             M(0)
-            Case 4, 5, 6             M(1)
+            Case 1, 2, 3
+                M(0)
+            Case 4, 5, 6
+                M(1)
             Case Else
                 M(2)
         End Select
