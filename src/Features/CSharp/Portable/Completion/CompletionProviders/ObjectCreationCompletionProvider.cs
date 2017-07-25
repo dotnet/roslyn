@@ -79,6 +79,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return (symbol.Name, symbol.Name);
             }
 
+            // If not all  of the type arguments are concrete types, eg
+            // we've inferred something like `Task<T>`, just suggest the
+            // generic type `Task<>`
+            if (symbol is INamedTypeSymbol nt &&
+                nt.TypeArguments.Any(t => t.TypeKind == TypeKind.TypeParameter))
+            {
+                return CompletionUtilities.GetDisplayAndInsertionText(symbol, context);
+            }
+
             return base.GetDisplayAndInsertionText(symbol, context);
         }
 

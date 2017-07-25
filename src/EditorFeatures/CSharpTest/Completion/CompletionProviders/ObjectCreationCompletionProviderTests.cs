@@ -501,5 +501,46 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "TimeSpan");
         }
+
+        [WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task DoNotIncludeTypeParameters()
+        {
+            var markup =
+@"using System.Threading.Tasks;
+
+class C
+{
+    static void Foo<T> (Task<T> t)
+    {
+        Foo(new $$
+    }
+
+    void Bar()
+    {
+        Foo(new  Task<T>(null))
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Task<>");
+        }
+
+        [WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConcreteGenericType()
+        {
+            var markup =
+@"using System.Collections.Generic;
+
+class C
+{
+    void Bar()
+    {
+        List<int> x = new $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "List<int>");
+        }
     }
 }

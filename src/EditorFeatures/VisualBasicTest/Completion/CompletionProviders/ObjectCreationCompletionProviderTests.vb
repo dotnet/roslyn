@@ -99,5 +99,46 @@ End Namespace
 
             Await VerifyItemExistsAsync(markup, "N.S")
         End Function
+
+        <WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DoNotIncludeTypeParameters() As Task
+            Dim markup = <Text><![CDATA[
+Imports System.Threading.Tasks
+Module Module1
+
+    Sub Main()
+        Foo(New $$
+    End Sub
+
+    Sub Foo(Of T)(task As Task(Of T))
+
+    End Sub
+
+End Module
+
+
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Task(Of …)")
+        End Function
+
+        <WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ConcreteGeneric() As Task
+            Dim markup = <Text><![CDATA[
+Imports System.Collections.Generic
+Module Module1
+
+    Sub Main()
+       Dim x as List(Of String) = new $$
+    End Sub
+End Module
+
+
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "List(Of String)")
+        End Function
     End Class
 End Namespace

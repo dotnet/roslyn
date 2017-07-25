@@ -51,5 +51,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol)) As CompletionItemRules
             Return s_rules
         End Function
+
+        Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+            Return MyBase.CreateItem(displayText, insertionText, symbols, context, preselect, supportedPlatformData)
+        End Function
+
+        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
+            ' If not all  of the type arguments are concrete types, eg
+            ' we've inferred something like `Task(Of T)`, just suggest the
+            ' generic `Task(Of ...)`
+            Dim nt = TryCast(symbol, INamedTypeSymbol)
+            If nt.TypeArguments.Any(Function(t) t.TypeKind = TypeKind.TypeParameter) Then
+                Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
+            End If
+
+            Return MyBase.GetDisplayAndInsertionText(symbol, context)
+        End Function
     End Class
 End Namespace
