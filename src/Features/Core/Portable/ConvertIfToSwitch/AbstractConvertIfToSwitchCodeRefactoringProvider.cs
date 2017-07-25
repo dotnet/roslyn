@@ -227,13 +227,20 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
 
                 var ifSpan = ifStatement.Span;
-                var @switch = generator.SwitchStatement(_switchExpression, sectionList);
+                var @switch = CreateSwitchStatement(ifStatement, _switchExpression, sectionList);
                 var nodesToRemove = GetSubsequentStatements(ifStatement)
-                    .Skip(1).Take(_numberOfSubsequentIfStatementsToRemove);
+                    .Skip(1).Take(_numberOfSubsequentIfStatementsToRemove).ToList();
                 root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
+
+                var lastNode = nodesToRemove.LastOrDefault() ?? ifStatement;
+                @switch = @switch.WithLeadingTrivia(ifStatement.GetLeadingTrivia())
+                                 .WithTrailingTrivia(lastNode.GetTrailingTrivia());
+
                 root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
                 return Task.FromResult(document.WithSyntaxRoot(root));
             }
+
+            protected abstract SyntaxNode CreateSwitchStatement(TIfStatementSyntax ifStatement, TExpressionSyntax expression, List<SyntaxNode> sectionList);
 
             protected abstract TExpressionSyntax UnwrapCast(TExpressionSyntax expression);
 

@@ -798,5 +798,79 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     }
 }");
         }
+
+        [WorkItem(21109, "https://github.com/dotnet/roslyn/issues/21109")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestTrivia1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int i)
+    {
+#if TRUE
+        Console.WriteLine();
+#endif
+
+        [||]if (x == 1)
+        {
+            Console.WriteLine(x + z);
+        }
+        else if (x == 2)
+        {
+            Console.WriteLine(x + z);
+        }
+    }
+}",
+@"class C
+{
+    int M(int i)
+    {
+#if TRUE
+        Console.WriteLine();
+#endif
+
+        switch (x)
+        {
+            case 1:
+                Console.WriteLine(x + z);
+                break;
+            case 2:
+                Console.WriteLine(x + z);
+                break;
+        }
+    }
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(21101, "https://github.com/dotnet/roslyn/issues/21101")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestTrivia2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (/* t0 */args.Length /* t1*/ == /* t2 */ 2)
+            return /* t3 */ 0 /* t4 */; /* t5 */
+        else /* t6 */
+            return /* t7 */ 3 /* t8 */;
+    }
+}",
+@"class C
+{
+    int M(int i)
+    {
+        switch (/* t0 */args.Length /* t1*/ )
+        {
+            case 2:
+                return /* t3 */ 0 /* t4 */; /* t5 */
+            default:
+                return /* t7 */ 3 /* t8 */;
+        }
+    }
+}", ignoreTrivia: false);
+        }
     }
 }
