@@ -51,7 +51,8 @@ MSBUILD_BOOTSTRAP_ARGS := -r $(RUNTIME_ID) $(MSBUILD_BOOTSTRAP_ARGS)
 #   BootstrapBuildPath is specified, but *only* for the main build, *not* the
 #   bootstrap build.
 ifeq ($(BOOTSTRAP),true)
-    MSBUILD_MAIN_ARGS += /p:BootstrapBuildPath=$(BOOTSTRAP_PATH)
+    # MSBUILD_MAIN_ARGS += /p:BootstrapBuildPath=$(BOOTSTRAP_PATH)
+    MSBUILD_MAIN_ARGS += /p:CscToolPath=$(BOOTSTRAP_PATH)/csc /p:CscToolExe=csc /p:VbcToolPath=$(BOOTSTRAP_PATH)/vbc /p:VbcToolExe=vbc
     BOOTSTRAP_DEPENDENCY := bootstrap
 else
     BOOTSTRAP_DEPENDENCY :=
@@ -67,7 +68,6 @@ bootstrap: restore
 	@echo Building Bootstrap
 	dotnet publish $(SRC_PATH)/Compilers/CSharp/CscCore -o $(BOOTSTRAP_PATH)/csc $(MSBUILD_BOOTSTRAP_ARGS)
 	dotnet publish $(SRC_PATH)/Compilers/VisualBasic/VbcCore -o $(BOOTSTRAP_PATH)/vbc $(MSBUILD_BOOTSTRAP_ARGS)
-	dotnet publish $(SRC_PATH)/Compilers/Core/MSBuildTask -o $(BOOTSTRAP_PATH) $(MSBUILD_BOOTSTRAP_ARGS)
 	rm -rf $(BINARIES_PATH)/$(BUILD_CONFIGURATION)
 
 test:
@@ -75,7 +75,8 @@ test:
 	$(THIS_MAKEFILE_PATH)build/scripts/tests.sh $(BUILD_CONFIGURATION)
 
 restore: $(DOTNET)
-	$(THIS_MAKEFILE_PATH)build/scripts/restore.sh
+	dotnet restore -v Minimal --disable-parallel $(THIS_MAKEFILE_PATH)build/ToolsetPackages/BaseToolset.csproj
+	dotnet restore -v Minimal --disable-parallel $(THIS_MAKEFILE_PATH)CrossPlatform.sln
 
 $(DOTNET):
 	curl https://raw.githubusercontent.com/dotnet/cli/rel/$(DOTNET_VERSION)/scripts/obtain/dotnet-install.sh | \
