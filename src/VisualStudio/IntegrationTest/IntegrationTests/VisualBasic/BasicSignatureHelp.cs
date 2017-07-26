@@ -180,7 +180,7 @@ End Module");
             VisualStudio.Editor.Verify.CurrentParameter("b", "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact(Skip = "Testing"), Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void BufferTextReplacedWithSigHelpActiveWithLengthOfUpdatedTextLessThanPositionOfInvocationExpression()
         {
             SetUpEditor(@"
