@@ -256,8 +256,57 @@ namespace ClassLibrary
 }", ignoreTrivia: false);
         }
 
-#if false
+        [WorkItem(20942, "https://github.com/dotnet/roslyn/issues/20942")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task TestWhitespaceBetweenStatements1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        bool used = true;
+        int [|unused|];
 
-#endif
+        return used;
+    }
+}",
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        bool used = true;
+
+        return used;
+    }
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(20942, "https://github.com/dotnet/roslyn/issues/20942")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task TestWhitespaceBetweenStatements2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        int [|unused|];
+
+        return used;
+    }
+}",
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        return used;
+    }
+}", ignoreTrivia: false);
+        }
     }
 }

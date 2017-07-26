@@ -2519,8 +2519,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 Debug.Assert(newNode.Parent.Parent is BasePropertyDeclarationSyntax);
 
                 ClassifyMethodBodyRudeUpdate(
-                    oldNode.Body,
-                    newNode.Body,
+                    (SyntaxNode)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
+                    (SyntaxNode)newNode.Body ?? newNode.ExpressionBody?.Expression,
                     containingMethodOpt: null,
                     containingType: (TypeDeclarationSyntax)newNode.Parent.Parent.Parent);
             }
@@ -2546,8 +2546,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 ClassifyMethodBodyRudeUpdate(
-                    oldNode.Body,
-                    newNode.Body,
+                    (SyntaxNode)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
+                    (SyntaxNode)newNode.Body ?? newNode.ExpressionBody?.Expression,
                     containingMethodOpt: null,
                     containingType: (TypeDeclarationSyntax)newNode.Parent);
             }
@@ -2555,8 +2555,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             private void ClassifyUpdate(DestructorDeclarationSyntax oldNode, DestructorDeclarationSyntax newNode)
             {
                 ClassifyMethodBodyRudeUpdate(
-                    oldNode.Body,
-                    newNode.Body,
+                    (SyntaxNode)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
+                    (SyntaxNode)newNode.Body ?? newNode.ExpressionBody?.Expression,
                     containingMethodOpt: null,
                     containingType: (TypeDeclarationSyntax)newNode.Parent);
             }
