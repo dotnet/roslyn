@@ -1852,6 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(qs.Body.Continuation);
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
         public void TestFromGroupBy()
         {
             var text = "from a in A group b by c";
@@ -1891,6 +1892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(qs.Body.Continuation);
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
         public void TestFromGroupByIntoSelect()
         {
             var text = "from a in A group b by c into d select e";
