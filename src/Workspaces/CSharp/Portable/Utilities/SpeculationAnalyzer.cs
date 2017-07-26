@@ -392,12 +392,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 if (originalCaseType == newCaseType)
                     return false;
 
-                var oldSwitchStatement = originalCaseSwitchLabel?.Parent?.Parent as SwitchStatementSyntax;
-                var newSwitchStatement = newCaseSwitchLabel?.Parent?.Parent as SwitchStatementSyntax;
-                if (oldSwitchStatement == null || newSwitchStatement == null)
-                {
-                    return false;
-                }
+                var oldSwitchStatement = (SwitchStatementSyntax) originalCaseSwitchLabel.Parent.Parent;
+                var newSwitchStatement = (SwitchStatementSyntax) newCaseSwitchLabel.Parent.Parent;
 
                 var originalConversion = this.OriginalSemanticModel.ClassifyConversion(oldSwitchStatement.Expression, originalCaseType);
                 var newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newSwitchStatement.Expression, newCaseType);
