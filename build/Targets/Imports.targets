@@ -492,6 +492,14 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="BeforeBuild">
+    <ValidateBuildEnvironment
+      MSBuildBinPath="$(MSBuildBinPath)"
+      MSBuildMinimimFileVersion="15.1.1012"
+      MSBuildMinimimDisplayVersion="MSBuild 15.1"
+      />
+  </Target> 
+
   <!-- Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
        https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames
        isn't fully supported yet in the new project system. Removal of this hack is tracked
