@@ -935,7 +935,7 @@ class Z
 }",
 @"abstract class C 
 {
-    protected C(int prop) 
+    protected C(int prop{|Navigation:)|}
     {
         Prop = prop;
     } 
