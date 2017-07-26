@@ -1315,6 +1315,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate constructor in &apos;{0}&apos; (without fields).
+        /// </summary>
+        internal static string Generate_constructor_in_0_without_fields {
+            get {
+                return ResourceManager.GetString("Generate_constructor_in_0_without_fields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate delegating constructor &apos;{0}({1})&apos;.
         /// </summary>
         internal static string Generate_delegating_constructor_0_1 {
