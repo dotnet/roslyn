@@ -5501,6 +5501,6 @@
     <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
   </data>
   <data name="IConversionExpressionIsNotVisualBasicConversion" xml:space="preserve">
-    <value>{0} '{1}' is not a valid Visual Basic conversion expression.</value>
+    <value>{0} '{1}' is not a valid Visual Basic conversion expression</value>
   </data>
 </root>

@@ -9854,7 +9854,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} &apos;{1}&apos; is not a valid C# conversion expression..
+        ///   Looks up a localized string similar to {0} &apos;{1}&apos; is not a valid C# conversion expression.
         /// </summary>
         internal static string IConversionExpressionIsNotCSharpConversion {
             get {
