@@ -320,6 +320,13 @@ Microsoft.CodeAnalysis.Semantics.CaseKind.Pattern = 5 -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.Semantics.CaseKind.Range = 3 -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.CaseKind.Relational = 2 -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.CaseKind.SingleValue = 1 -> Microsoft.CodeAnalysis.Semantics.CaseKind
+Microsoft.CodeAnalysis.Semantics.CommonConversion
+Microsoft.CodeAnalysis.Semantics.CommonConversion.Exists.get -> bool
+Microsoft.CodeAnalysis.Semantics.CommonConversion.IsIdentity.get -> bool
+Microsoft.CodeAnalysis.Semantics.CommonConversion.IsNumeric.get -> bool
+Microsoft.CodeAnalysis.Semantics.CommonConversion.IsReference.get -> bool
+Microsoft.CodeAnalysis.Semantics.CommonConversion.IsUserDefined.get -> bool
+Microsoft.CodeAnalysis.Semantics.CommonConversion.MethodSymbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.Basic = 3 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.CSharp = 4 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
@@ -386,18 +393,12 @@ Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression.IfFalseValue.get -
 Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression.IfTrueValue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IConstantPattern
 Microsoft.CodeAnalysis.Semantics.IConstantPattern.Value.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IConversion
-Microsoft.CodeAnalysis.Semantics.IConversion.Exists.get -> bool
-Microsoft.CodeAnalysis.Semantics.IConversion.IsIdentity.get -> bool
-Microsoft.CodeAnalysis.Semantics.IConversion.IsNumeric.get -> bool
-Microsoft.CodeAnalysis.Semantics.IConversion.IsReference.get -> bool
-Microsoft.CodeAnalysis.Semantics.IConversion.IsUserDefined.get -> bool
-Microsoft.CodeAnalysis.Semantics.IConversion.MethodSymbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.IConversionExpression
-Microsoft.CodeAnalysis.Semantics.IConversionExpression.Conversion.get -> Microsoft.CodeAnalysis.Semantics.IConversion
+Microsoft.CodeAnalysis.Semantics.IConversionExpression.Conversion.get -> Microsoft.CodeAnalysis.Semantics.CommonConversion
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.IsExplicitInCode.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.LanguageName.get -> string
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.Operand.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IConversionExpression.ThrowsExceptionOnFailure.get -> bool
 Microsoft.CodeAnalysis.Semantics.IDeclarationPattern
 Microsoft.CodeAnalysis.Semantics.IDeclarationPattern.DeclaredSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.Semantics.IDefaultCaseClause

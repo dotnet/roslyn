@@ -5,11 +5,15 @@ Imports Microsoft.CodeAnalysis.Semantics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend MustInherit Class BaseVisualBasicConversionExpression
-        Inherits BaseConversionExpression(Of Conversion)
+        Inherits BaseConversionExpression
 
         Protected Sub New(conversion As Conversion, isExplicitInCode As Boolean, throwsExceptionOnFailure As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
             MyBase.New(conversion, isExplicitInCode, throwsExceptionOnFailure, syntax, type, constantValue)
+
+            ConversionInternal = conversion
         End Sub
+
+        Friend ReadOnly Property ConversionInternal As Conversion
 
         Public Overrides ReadOnly Property LanguageName As String = LanguageNames.VisualBasic
     End Class
@@ -48,13 +52,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The underlying <see cref="Conversion"/>.</returns>
         ''' <exception cref="InvalidCastException">If the <see cref="IConversionExpression"/> was not created from Visual Basic code.</exception>
         <Extension>
-        Public Function GetVisualBasicConversion(conversionExpression As IConversionExpression) As Conversion
+        Public Function GetConversion(conversionExpression As IConversionExpression) As Conversion
             If TypeOf conversionExpression Is BaseVisualBasicConversionExpression Then
                 Return DirectCast(conversionExpression, BaseVisualBasicConversionExpression).ConversionInternal
             Else
-                Throw New InvalidCastException(String.Format(VBResources.IConversionExpression_Is_Not_Visual_Basic_Conversion, conversionExpression))
+                Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
+                                                             NameOf(IConversionExpression),
+                                                             conversionExpression))
             End If
         End Function
     End Module
-
 End Namespace

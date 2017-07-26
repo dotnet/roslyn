@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
@@ -15,26 +17,25 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be converted.
         /// </summary>
         IOperation Operand { get; }
-#pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved
-        // These crefs come from conversions defined in the C# and VB specific projects
+
+#pragma warning disable RS0010 // Avoid using cref tags with a prefix
         /// <summary>
-        /// Gets the underlying conversion. This will be either <see cref="Microsoft.CodeAnalysis.CSharp.Conversion"/>
-        /// or <see cref="Microsoft.CodeAnalysis.VisualBasic.Conversion"/>.
+        /// Gets the underlying common conversion information.
         /// </summary>
         /// <remarks>
-        /// This is a boxing operation: if you need conversion information that is language specific, use either
-        /// <see cref="Microsoft.CodeAnalysis.CSharp.IConversionExpressionExtensions.GetCSharpConversion(IConversionExpression)"/> or
-        /// <see cref="Microsoft.CodeAnalysis.VisualBasic.GetVisualBasicConversion(IConversionExpression)"/>, which do not allocate memory.
+        /// If you need conversion information that is language specific, use either
+        /// <see cref="T:Microsoft.CodeAnalysis.CSharp.IConversionExpressionExtensions.GetConversion(IConversionExpression)"/> or
+        /// <see cref="T:Microsoft.CodeAnalysis.VisualBasic.GetConversion(IConversionExpression)"/>.
         /// </remarks>
-#pragma warning restore CS1574 // XML comment has cref attribute that could not be resolved
-        IConversion Conversion { get; }
+#pragma warning restore RS0010 // Avoid using cref tags with a prefix
+        CommonConversion Conversion { get; }
         /// <summary>
         /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
         /// </summary>
         bool IsExplicitInCode { get; }
         /// <summary>
-        /// True if the conversion will fail with an exception at runtime if the cast fails. This is false for C#'s <code>as</code>
-        /// operator and for VB's <code>TryCast</code> operator.
+        /// True if the conversion will fail with a <see cref="InvalidCastException"/> at runtime if the cast fails. This is false for C#'s
+        /// <code>as</code> operator and for VB's <code>TryCast</code> operator.
         /// </summary>
         bool ThrowsExceptionOnFailure { get; }
         /// <summary>

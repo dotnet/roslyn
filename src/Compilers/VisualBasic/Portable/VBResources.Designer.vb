@@ -12235,11 +12235,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to IConversionExpression &apos;{0}&apos; is not a valid Visual Basic conversion expression..
+        '''  Looks up a localized string similar to {0} &apos;{1}&apos; is not a valid Visual Basic conversion expression..
         '''</summary>
-        Friend ReadOnly Property IConversionExpression_Is_Not_Visual_Basic_Conversion() As String
+        Friend ReadOnly Property IConversionExpressionIsNotVisualBasicConversion() As String
             Get
-                Return ResourceManager.GetString("IConversionExpression_Is_Not_Visual_Basic_Conversion", resourceCulture)
+                Return ResourceManager.GetString("IConversionExpressionIsNotVisualBasicConversion", resourceCulture)
             End Get
         End Property
         

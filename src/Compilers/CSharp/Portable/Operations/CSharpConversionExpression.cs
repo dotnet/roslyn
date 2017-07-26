@@ -5,17 +5,17 @@ using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract class BaseCSharpConversionExpression : BaseConversionExpression<Conversion>
+    internal abstract class BaseCSharpConversionExpression : BaseConversionExpression
     {
         protected BaseCSharpConversionExpression(Conversion conversion, bool isExplicitInCode, bool throwsExceptionOnFailure, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(conversion, isExplicitInCode, throwsExceptionOnFailure, syntax, type, constantValue)
         {
+            ConversionInternal = conversion;
         }
 
+        internal Conversion ConversionInternal { get; }
+
         public override string LanguageName => LanguageNames.CSharp;
-        // We override this here so that we don't return the method symbol if the internal conversion is a MethodGroup conversion, instead of
-        // a user defined conversion. Operator method should only be returning a MethodSymbol if IsUserDefined is true.
-        public override IMethodSymbol OperatorMethod => ConversionInternal.IsUserDefined ? ConversionInternal.MethodSymbol : null;
     }
 
     internal sealed partial class CSharpConversionExpression : BaseCSharpConversionExpression
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="conversionExpression">The conversion expression to get original info from.</param>
         /// <returns>The underlying <see cref="Conversion"/>.</returns>
         /// <exception cref="InvalidCastException">If the <see cref="IConversionExpression"/> was not created from CSharp code.</exception>
-        public static Conversion GetCSharpConversion(this IConversionExpression conversionExpression)
+        public static Conversion GetConversion(this IConversionExpression conversionExpression)
         {
             if (conversionExpression is BaseCSharpConversionExpression csharpConversionExpression)
             {
@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                throw new InvalidCastException(string.Format(CSharpResources.IConversionExpression_Is_Not_A_Valid_CSharp_Conversion, conversionExpression));
+                throw new ArgumentException(string.Format(CSharpResources.IConversionExpressionIsNotCSharpConversion,
+                                                          nameof(IConversionExpression),
+                                                          conversionExpression));
             }
         }
     }

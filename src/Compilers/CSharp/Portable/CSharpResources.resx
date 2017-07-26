@@ -5108,7 +5108,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
     <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</value>
   </data>
-  <data name="IConversionExpression_Is_Not_A_Valid_CSharp_Conversion" xml:space="preserve">
-    <value>IConversionExpression '{0}' is not a valid C# conversion expression.</value>
+  <data name="IConversionExpressionIsNotCSharpConversion" xml:space="preserve">
+    <value>{0} '{1}' is not a valid C# conversion expression.</value>
   </data>
 </root>

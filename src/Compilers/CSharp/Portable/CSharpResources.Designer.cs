@@ -9854,11 +9854,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IConversionExpression &apos;{0}&apos; is not a valid C# conversion expression..
+        ///   Looks up a localized string similar to {0} &apos;{1}&apos; is not a valid C# conversion expression..
         /// </summary>
-        internal static string IConversionExpression_Is_Not_A_Valid_CSharp_Conversion {
+        internal static string IConversionExpressionIsNotCSharpConversion {
             get {
-                return ResourceManager.GetString("IConversionExpression_Is_Not_A_Valid_CSharp_Conversion", resourceCulture);
+                return ResourceManager.GetString("IConversionExpressionIsNotCSharpConversion", resourceCulture);
             }
         }
         

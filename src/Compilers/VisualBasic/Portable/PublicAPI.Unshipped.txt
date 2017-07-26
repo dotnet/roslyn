@@ -1,3 +1,4 @@
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_5 = 1505 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.IConversionExpressionExtensions
-Microsoft.CodeAnalysis.VisualBasic.IConversionExpressionExtensions.GetVisualBasicConversion(conversionExpression As Microsoft.CodeAnalysis.Semantics.IConversionExpression) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
+Microsoft.CodeAnalysis.VisualBasic.IConversionExpressionExtensions.GetConversion(conversionExpression As Microsoft.CodeAnalysis.Semantics.IConversionExpression) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
+Shared Microsoft.CodeAnalysis.VisualBasic.Conversion.CType(vbConversion As Microsoft.CodeAnalysis.VisualBasic.Conversion) -> Microsoft.CodeAnalysis.Semantics.CommonConversion
