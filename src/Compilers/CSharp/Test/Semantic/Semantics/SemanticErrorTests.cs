@@ -11537,12 +11537,9 @@ class A
 
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                // (6,15): error CS0822: Implicitly-typed variables cannot be constant
-                //         const var x = 0; // CS0822.cs
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var x = 0").WithLocation(6, 15),
-                // (7,15): error CS0822: Implicitly-typed variables cannot be constant
+                // (7,23): error CS0133: The expression being assigned to 'y' must be constant
                 //         const var y = (int?)null + x;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var y = (int?)null + x").WithLocation(7, 15),
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int?)null + x").WithArguments("y").WithLocation(7, 23),
                 // (7,23): warning CS0458: The result of the expression is always 'null' of type 'int?'
                 //         const var y = (int?)null + x;
                 Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?").WithLocation(7, 23)
@@ -11552,11 +11549,10 @@ class A
         [Fact]
         public void CS0822ERR_ImplicitlyTypedVariableCannotBeConst_Fields()
         {
+            // This is now legal.
             CreateCompilationWithMscorlib45(@"
 const var x = 0; // CS0822.cs
-", parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (2,7): error CS0822: Implicitly-typed variables cannot be constant
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var"));
+", parseOptions: TestOptions.Script).VerifyDiagnostics();
         }
 
         [Fact]
