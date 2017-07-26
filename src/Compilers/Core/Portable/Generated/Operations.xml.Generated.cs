@@ -1296,18 +1296,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseConversionExpression : Operation, IHasOperatorMethodExpression, IConversionExpression
     {
-        protected BaseConversionExpression(CommonConversion conversion, bool isExplicitInCode, bool throwsExceptionOnFailure, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseConversionExpression(CommonConversion conversion, bool isExplicitInCode, bool throwsExceptionOnFailure, bool isChecked, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ConversionExpression, syntax, type, constantValue)
         {
             Conversion = conversion;
             IsExplicitInCode = isExplicitInCode;
             ThrowsExceptionOnFailure = throwsExceptionOnFailure;
+            IsChecked = isChecked;
         }
 
         public abstract IOperation Operand { get; }
         public CommonConversion Conversion { get; }
         public bool IsExplicitInCode { get; }
         public bool ThrowsExceptionOnFailure { get; }
+        public bool IsChecked { get; }
         public abstract string LanguageName { get; }
         public bool UsesOperatorMethod => Conversion.IsUserDefined;
         public virtual IMethodSymbol OperatorMethod => Conversion.MethodSymbol;

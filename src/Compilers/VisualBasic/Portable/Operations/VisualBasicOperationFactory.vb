@@ -414,9 +414,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
             Dim isExplicitCastInCode As Boolean = True
             Dim throwsExceptionOnFailure As Boolean = False
+            Dim isChecked = False
             Dim type As ITypeSymbol = boundTryCast.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTryCast.ConstantValueOpt)
-            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicitCastInCode, throwsExceptionOnFailure, syntax, type, constantValue)
+            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicitCastInCode, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundDirectCastOperation(boundDirectCast As BoundDirectCast) As IConversionExpression
@@ -425,9 +426,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
             Dim isExplicit As Boolean = True
             Dim throwsExceptionOnFailure As Boolean = True
+            Dim isChecked = False
             Dim type As ITypeSymbol = boundDirectCast.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDirectCast.ConstantValueOpt)
-            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, throwsExceptionOnFailure, syntax, type, constantValue)
+            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundConversionOperation(boundConversion As BoundConversion) As IConversionExpression
@@ -436,9 +438,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
             Dim isExplicit As Boolean = boundConversion.ExplicitCastInCode
             Dim throwsExceptionOnFailure As Boolean = True
+            Dim isChecked = False
             Dim type As ITypeSymbol = boundConversion.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
-            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, throwsExceptionOnFailure, syntax, type, constantValue)
+            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundUserDefinedConversionOperation(boundUserDefinedConversion As BoundUserDefinedConversion) As IConversionExpression
@@ -447,9 +450,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
             Dim isExplicit As Boolean = Not boundUserDefinedConversion.WasCompilerGenerated
             Dim throwsExceptionOnFailure As Boolean = True
+            Dim isChecked = False
             Dim type As ITypeSymbol = boundUserDefinedConversion.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedConversion.ConstantValueOpt)
-            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, throwsExceptionOnFailure, syntax, type, constantValue)
+            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundTernaryConditionalExpressionOperation(boundTernaryConditionalExpression As BoundTernaryConditionalExpression) As IConditionalChoiceExpression
