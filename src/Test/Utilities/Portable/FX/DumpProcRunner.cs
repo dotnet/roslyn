@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         // -ma	Write a 'Full' dump file. Includes All the Image, Mapped and Private memory.
         // -e	Write a dump when the process encounters an unhandled exception. Include the 1 to create dump on first chance exceptions.
         // -t	Write a dump when the process terminates.
-        // -w 	Wait for the specified process to launch if it's not running.
-        private const string ProcDumpSwitches = "/accepteula -ma -e -t -w";
+        private const string ProcDumpSwitches = "/accepteula -ma -e -t";
 
         /// <summary>
         /// Starts procdump.exe against the process.
