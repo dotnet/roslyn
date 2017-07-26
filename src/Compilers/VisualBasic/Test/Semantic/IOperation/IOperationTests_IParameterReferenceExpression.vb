@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -86,28 +86,19 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'From cust I ... t cust.Name')
-  Children(1):
-      IOperation:  (OperationKind.None) (Syntax: 'Select cust.Name')
-        Children(1):
-            IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of Customer).Select(Of System.String)(selector As System.Func(Of Customer, System.String)) As System.Collections.Generic.IEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'Select cust.Name')
-              Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Customer)) (Syntax: 'cust In customers')
-                  Operand: IOperation:  (OperationKind.None) (Syntax: 'cust In customers')
-                      Children(1):
-                          IOperation:  (OperationKind.None) (Syntax: 'customers')
-                            Children(1):
-                                IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List(Of Customer)) (Syntax: 'customers')
-              Arguments(1):
-                  IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'cust.Name')
-                    IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of Customer, System.String)) (Syntax: 'cust.Name')
-                      Operand: IOperation:  (OperationKind.None) (Syntax: 'cust.Name')
-                          Children(1):
-                              IOperation:  (OperationKind.None) (Syntax: 'cust.Name')
-                                Children(1):
-                                    IPropertyReferenceExpression: Property Customer.Name As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
-                                      Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'cust')
-                    InConversion: null
-                    OutConversion: null
+IQueryExpression (OperationKind.QueryExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'From cust I ... t cust.Name')
+  LastClauseOrContinuation: ISelectQueryClause (Clause kind: SelectClause) (OperationKind.QueryClause) (Syntax: 'Select cust.Name')
+      ReducedExpression: IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of Customer).Select(Of System.String)(selector As System.Func(Of Customer, System.String)) As System.Collections.Generic.IEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'Select cust.Name')
+          Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Customer)) (Syntax: 'cust In customers')
+              Operand: IFromQueryClause (Clause kind: FromClause) (OperationKind.QueryClause) (Syntax: 'From cust In customers')
+                  ReducedExpression: IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List(Of Customer)) (Syntax: 'customers')
+          Arguments(1):
+              IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'cust.Name')
+                IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of Customer, System.String)) (Syntax: 'cust.Name')
+                  Operand: IPropertyReferenceExpression: Property Customer.Name As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
+                      Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'cust')
+                InConversion: null
+                OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -133,27 +124,18 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'Aggregate y ... nto Count()')
-  Children(1):
-      IOperation:  (OperationKind.None) (Syntax: 'Aggregate y ... nto Count()')
-        Children(1):
-            IOperation:  (OperationKind.None) (Syntax: 'Count()')
-              Children(1):
-                  IOperation:  (OperationKind.None) (Syntax: 'Count()')
-                    Children(1):
-                        IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Count()')
-                          Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'y In New Integer() {x}')
-                              Operand: IOperation:  (OperationKind.None) (Syntax: 'y In New Integer() {x}')
-                                  Children(1):
-                                      IOperation:  (OperationKind.None) (Syntax: 'New Integer() {x}')
-                                        Children(1):
-                                            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {x}')
-                                              Dimension Sizes(1):
-                                                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'New Integer() {x}')
-                                              Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{x}')
-                                                  Element Values(1):
-                                                      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                          Arguments(0)
+IQueryExpression (OperationKind.QueryExpression, Type: System.Int32) (Syntax: 'Aggregate y ... nto Count()')
+  LastClauseOrContinuation: IAggregateQueryClause (Clause kind: AggregateClause) (OperationKind.QueryClause) (Syntax: 'Aggregate y ... nto Count()')
+      ReducedExpression: IAggregationExpression (Aggregation Kind: Function) (OperationKind.AggregationExpression, Type: System.Int32) (Syntax: 'Count()')
+          Expression: IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Count()')
+              Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'y In New Integer() {x}')
+                  Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {x}')
+                      Dimension Sizes(1):
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'New Integer() {x}')
+                      Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{x}')
+                          Element Values(1):
+                              IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+              Arguments(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -180,28 +162,20 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'From y In x ... By y.Length')
-  Operand: IOperation:  (OperationKind.None) (Syntax: 'From y In x ... By y.Length')
-      Children(1):
-          IOperation:  (OperationKind.None) (Syntax: 'Order By y.Length')
-            Children(1):
-                IOperation:  (OperationKind.None) (Syntax: 'y.Length')
-                  Children(1):
-                      IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).OrderBy(Of System.Int32)(keySelector As System.Func(Of System.String, System.Int32)) As System.Linq.IOrderedEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Linq.IOrderedEnumerable(Of System.String)) (Syntax: 'y.Length')
-                        Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'y In x')
-                            Operand: IOperation:  (OperationKind.None) (Syntax: 'y In x')
-                                Children(1):
-                                    IOperation:  (OperationKind.None) (Syntax: 'x')
-                                      Children(1):
-                                          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
-                        Arguments(1):
-                            IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument) (Syntax: 'y.Length')
-                              IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, System.Int32)) (Syntax: 'y.Length')
-                                Operand: IOperation:  (OperationKind.None) (Syntax: 'y.Length')
-                                    Children(1):
-                                        IPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y.Length')
-                                          Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'y')
-                              InConversion: null
-                              OutConversion: null
+  Operand: IQueryExpression (OperationKind.QueryExpression, Type: System.Linq.IOrderedEnumerable(Of System.String)) (Syntax: 'From y In x ... By y.Length')
+      LastClauseOrContinuation: IOrderByQueryClause (Clause kind: OrderByClause) (OperationKind.QueryClause) (Syntax: 'Order By y.Length')
+          ReducedExpression: IOrderingExpression (Order kind: Ascending) (OperationKind.OrderingExpression, Type: System.Linq.IOrderedEnumerable(Of System.String)) (Syntax: 'y.Length')
+              Expression: IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).OrderBy(Of System.Int32)(keySelector As System.Func(Of System.String, System.Int32)) As System.Linq.IOrderedEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Linq.IOrderedEnumerable(Of System.String)) (Syntax: 'y.Length')
+                  Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'y In x')
+                      Operand: IFromQueryClause (Clause kind: FromClause) (OperationKind.QueryClause) (Syntax: 'From y In x')
+                          ReducedExpression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
+                  Arguments(1):
+                      IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument) (Syntax: 'y.Length')
+                        IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, System.Int32)) (Syntax: 'y.Length')
+                          Operand: IPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y.Length')
+                              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'y')
+                        InConversion: null
+                        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -227,49 +201,33 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
-  Children(1):
-      IOperation:  (OperationKind.None) (Syntax: 'Group By w  ... nto Count()')
-        Children(1):
-            IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).GroupBy(Of <anonymous type: Key w As System.String(), Key z As System.String>, <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)(keySelector As System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), resultSelector As System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'Group By w  ... nto Count()')
-              Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'y In x')
-                  Operand: IOperation:  (OperationKind.None) (Syntax: 'y In x')
-                      Children(1):
-                          IOperation:  (OperationKind.None) (Syntax: 'x')
-                            Children(1):
-                                IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
-              Arguments(2):
-                  IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument) (Syntax: 'x')
-                    IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>)) (Syntax: 'x')
-                      Operand: IOperation:  (OperationKind.None) (Syntax: 'x')
-                          Children(1):
-                              IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>) (Syntax: 'Group By w  ... nto Count()')
-                                Initializers(2):
-                                    IOperation:  (OperationKind.None) (Syntax: 'w = x')
-                                      Children(1):
-                                          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
-                                    IOperation:  (OperationKind.None) (Syntax: 'z = y')
-                                      Children(1):
-                                          IOperation:  (OperationKind.None) (Syntax: 'y')
-                    InConversion: null
-                    OutConversion: null
-                  IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument) (Syntax: 'Group By w  ... nto Count()')
-                    IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'Group By w  ... nto Count()')
-                      Operand: IOperation:  (OperationKind.None) (Syntax: 'Group By w  ... nto Count()')
-                          Children(1):
-                              IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>) (Syntax: 'Group By w  ... nto Count()')
-                                Initializers(3):
-                                    IOperation:  (OperationKind.None) (Syntax: 'w')
-                                    IOperation:  (OperationKind.None) (Syntax: 'z')
-                                    IOperation:  (OperationKind.None) (Syntax: 'Count()')
-                                      Children(1):
-                                          IOperation:  (OperationKind.None) (Syntax: 'Count()')
-                                            Children(1):
-                                                IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Count()')
-                                                  Instance Receiver: IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'Group By w  ... nto Count()')
-                                                  Arguments(0)
-                    InConversion: null
-                    OutConversion: null
+IQueryExpression (OperationKind.QueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'From y In x ... nto Count()')
+  LastClauseOrContinuation: IGroupByQueryClause (Clause kind: GroupByClause) (OperationKind.QueryClause) (Syntax: 'Group By w  ... nto Count()')
+      ReducedExpression: IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).GroupBy(Of <anonymous type: Key w As System.String(), Key z As System.String>, <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)(keySelector As System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), resultSelector As System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'Group By w  ... nto Count()')
+          Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'y In x')
+              Operand: IFromQueryClause (Clause kind: FromClause) (OperationKind.QueryClause) (Syntax: 'From y In x')
+                  ReducedExpression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
+          Arguments(2):
+              IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument) (Syntax: 'x')
+                IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>)) (Syntax: 'x')
+                  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>) (Syntax: 'Group By w  ... nto Count()')
+                      Initializers(2):
+                          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
+                          IOperation:  (OperationKind.None) (Syntax: 'y')
+                InConversion: null
+                OutConversion: null
+              IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument) (Syntax: 'Group By w  ... nto Count()')
+                IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'Group By w  ... nto Count()')
+                  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>) (Syntax: 'Group By w  ... nto Count()')
+                      Initializers(3):
+                          IOperation:  (OperationKind.None) (Syntax: 'w')
+                          IOperation:  (OperationKind.None) (Syntax: 'z')
+                          IAggregationExpression (Aggregation Kind: Function) (OperationKind.AggregationExpression, Type: System.Int32) (Syntax: 'Count()')
+                            Expression: IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Count()')
+                                Instance Receiver: IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'Group By w  ... nto Count()')
+                                Arguments(0)
+                InConversion: null
+                OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

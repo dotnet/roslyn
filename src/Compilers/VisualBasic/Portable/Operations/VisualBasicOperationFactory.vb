@@ -4,6 +4,7 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Semantics
     Partial Friend NotInheritable Class VisualBasicOperationFactory
@@ -182,6 +183,30 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return Create(DirectCast(boundNode, BoundAnonymousTypeFieldInitializer).Value)
                 Case BoundKind.AnonymousTypePropertyAccess
                     Return CreateBoundAnonymousTypePropertyAccessOperation(DirectCast(boundNode, BoundAnonymousTypePropertyAccess))
+                Case BoundKind.QueryExpression
+                    Return CreateBoundQueryExpressionOperation(DirectCast(boundNode, BoundQueryExpression))
+                Case BoundKind.QueryClause
+                    Return CreateBoundQueryClauseOperation(DirectCast(boundNode, BoundQueryClause))
+                Case BoundKind.QueryableSource
+                    Return CreateBoundQueryableSourceOperation(DirectCast(boundNode, BoundQueryableSource))
+                Case BoundKind.AggregateClause
+                    Return CreateBoundAggregateClauseOperation(DirectCast(boundNode, BoundAggregateClause))
+                Case BoundKind.Ordering
+                    Return CreateBoundOrderingOperation(DirectCast(boundNode, BoundOrdering))
+                Case BoundKind.GroupAggregation
+                    Return CreateBoundGroupAggregationOperation((DirectCast(boundNode, BoundGroupAggregation)))
+                Case BoundKind.QuerySource
+                    ' Query source has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundQuerySource).Expression)
+                Case BoundKind.ToQueryableCollectionConversion
+                    ' Queryable collection conversion has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundToQueryableCollectionConversion).ConversionCall)
+                Case BoundKind.QueryLambda
+                    ' Query lambda has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundQueryLambda).Expression)
+                Case BoundKind.RangeVariableAssignment
+                    ' Range variable assignment has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundRangeVariableAssignment).Value)
                 Case Else
                     Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
                     Return Operation.CreateOperationNone(boundNode.Syntax, constantValue, Function() GetIOperationChildren(boundNode))
@@ -1093,6 +1118,140 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundAnonymousTypePropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
             Return New LazyPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundQueryExpressionOperation(boundQueryExpression As BoundQueryExpression) As IQueryExpression
+            Dim lastClauseOrContinuation As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundQueryExpression.LastOperator))
+            Dim syntax As SyntaxNode = boundQueryExpression.Syntax
+            Dim type As ITypeSymbol = boundQueryExpression.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundQueryExpression.ConstantValueOpt)
+            Return New LazyQueryExpression(lastClauseOrContinuation, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundQueryClauseOperation(boundQueryClause As BoundQueryClause) As IOperation
+            Return CreateBoundQueryClauseOperation(boundQueryClause, boundQueryClause.UnderlyingExpression)
+        End Function
+
+        Private Function CreateBoundQueryableSourceOperation(boundQueryClause As BoundQueryableSource) As IOperation
+            Return CreateBoundQueryClauseOperation(boundQueryClause, boundQueryClause.Source)
+        End Function
+
+        Private Function CreateBoundQueryClauseOperation(boundQueryClause As BoundQueryClauseBase, underlyingExpression As BoundExpression) As IOperation
+            Dim syntax As SyntaxNode = boundQueryClause.Syntax
+            Dim clauseSyntaxKind = syntax.Kind
+
+            If boundQueryClause.WasCompilerGenerated AndAlso clauseSyntaxKind = SyntaxKind.FromClause Then
+                ' Handle implicit select clause
+                ' VB generates bound query clause with From syntax only for implicit select.
+                ' The actual from clauses are generated for the underlying range variable declaration syntax nodes
+                clauseSyntaxKind = SyntaxKind.SelectClause
+            ElseIf clauseSyntaxKind = SyntaxKind.ExpressionRangeVariable OrElse clauseSyntaxKind = SyntaxKind.CollectionRangeVariable Then
+                ' VB Binder does not generate a bound node for few query clause syntax nodes (From and Let in the current implementation).
+                ' So we generate an Operation node for such nodes when we encounter the bound node for the first range variable child.
+                If IsFirstRangeVariableChildWhoseParentHasNoBoundNode(boundQueryClause) Then
+                    syntax = syntax.Parent
+                    clauseSyntaxKind = syntax.Kind
+                Else
+                    ' Currently we do not generate IOperation nodes for range variable declarations.
+                    Return Create(underlyingExpression)
+                End If
+            End If
+
+            Dim reducedExpression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(underlyingExpression))
+            Dim type As ITypeSymbol = boundQueryClause.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundQueryClause.ConstantValueOpt)
+
+            Select Case clauseSyntaxKind
+                Case SyntaxKind.FromClause
+                    Return New LazyFromQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.SelectClause
+                    Return New LazySelectQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.WhereClause
+                    Return New LazyWhereQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.LetClause
+                    Return New LazyLetQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.OrderByClause
+                    Return New LazyOrderByQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.GroupByClause
+                    Return New LazyGroupByQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.GroupJoinClause
+                    Return New LazyGroupJoinQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.SimpleJoinClause
+                    Return New LazyJoinQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.DistinctClause
+                    Return New LazyDistinctQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.AggregateClause
+                    Return New LazyAggregateQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.SkipClause
+                    Return New LazySkipQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.SkipWhileClause
+                    Return New LazySkipWhileQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.TakeClause
+                    Return New LazyTakeQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.TakeWhileClause
+                    Return New LazyTakeWhileQueryClause(reducedExpression, syntax, type, constantValue)
+                Case SyntaxKind.FunctionAggregation
+                    Return New LazyAggregationExpression(reducedExpression, isGroupAggregation:=False, syntax:=syntax, type:=type, constantValue:=constantValue)
+                Case Else
+                    Throw ExceptionUtilities.Unreachable
+            End Select
+        End Function
+
+        Private Function IsFirstRangeVariableChildWhoseParentHasNoBoundNode(boundQueryClause As BoundQueryClauseBase) As Boolean
+            ' VB Binder does not generate a bound node for few query clause syntax nodes (From and Let in the current implementation).
+            ' So we generate an Operation node for such nodes when we encounter the bound node for the first range variable child.
+            Select Case boundQueryClause.Syntax.Parent.Kind
+                Case SyntaxKind.FromClause, SyntaxKind.LetClause
+                    Return IsFirstRangeVariableChild(boundQueryClause)
+                Case Else
+                    Return False
+            End Select
+        End Function
+
+        Private Function IsFirstRangeVariableChild(boundQueryClause As BoundQueryClauseBase) As Boolean
+            Select Case boundQueryClause.Syntax.Kind
+                Case SyntaxKind.ExpressionRangeVariable, SyntaxKind.CollectionRangeVariable
+                    Return boundQueryClause.Syntax.Parent.ChildNodes().First Is boundQueryClause.Syntax
+                Case Else
+                    Return False
+            End Select
+        End Function
+
+        Private Function CreateBoundAggregateClauseOperation(boundAggregateClause As BoundAggregateClause) As IAggregateQueryClause
+            Dim reducedExpression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAggregateClause.UnderlyingExpression))
+            Dim syntax As SyntaxNode = boundAggregateClause.Syntax
+            Dim type As ITypeSymbol = boundAggregateClause.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAggregateClause.ConstantValueOpt)
+            Return New LazyAggregateQueryClause(reducedExpression, syntax, type, constantValue)
+        End Function
+
+        Private Function CreateBoundOrderingOperation(boundOrdering As BoundOrdering) As IOrderingExpression
+            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundOrdering.UnderlyingExpression))
+            Dim orderKind = GetOrderKind(DirectCast(boundOrdering.Syntax, OrderingSyntax))
+            Dim syntax As SyntaxNode = boundOrdering.Syntax
+            Dim type As ITypeSymbol = boundOrdering.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundOrdering.ConstantValueOpt)
+            Return New LazyOrderingExpression(expression, orderKind, syntax, type, constantValue)
+        End Function
+
+        Private Shared Function GetOrderKind(orderingSyntax As OrderingSyntax) As OrderKind
+            Select Case orderingSyntax.Kind
+                Case SyntaxKind.AscendingOrdering
+                    Return OrderKind.Ascending
+                Case SyntaxKind.DescendingOrdering
+                    Return OrderKind.Descending
+                Case Else
+                    Return OrderKind.None
+            End Select
+        End Function
+
+        Private Function CreateBoundGroupAggregationOperation(boundGroupAggregation As BoundGroupAggregation) As IAggregationExpression
+            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundGroupAggregation.Group))
+            Dim isGroupAggregation = True
+            Dim syntax As SyntaxNode = boundGroupAggregation.Syntax
+            Dim type As ITypeSymbol = boundGroupAggregation.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundGroupAggregation.ConstantValueOpt)
+            Return New LazyAggregationExpression(expression, isGroupAggregation, syntax, type, constantValue)
         End Function
     End Class
 End Namespace

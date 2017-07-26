@@ -6075,4 +6075,912 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public override ImmutableArray<IOperation> Arguments => _lazyArguments.Value;
     }
+
+    /// <summary>
+    /// Represents a query expression in C# or VB.
+    /// </summary>
+    internal abstract partial class BaseQueryExpression : Operation, IQueryExpression
+    {
+        protected BaseQueryExpression(SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.QueryExpression, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Last <see cref="IQueryClause"/> or <see cref="IQueryContinuation"/> in the unrolled query expression.
+        /// For example, for the query expression "from x in set where x.Name != null select x.Name", the select clause is the last clause of the unrolled query expression,
+        /// with the where clause as one of its descendant, and the from clause as the descendant of the where clause.
+        /// </summary>
+        public abstract IOperation LastClauseOrContinuation { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return LastClauseOrContinuation;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitQueryExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitQueryExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a query expression in C# or VB.
+    /// </summary>
+    internal sealed partial class QueryExpression : BaseQueryExpression, IQueryExpression
+    {
+        public QueryExpression(IOperation lastClauseOrContinuation, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            LastClauseOrContinuation = lastClauseOrContinuation;
+        }
+        /// <summary>
+        /// Last <see cref="IQueryClause"/> or <see cref="IQueryContinuation"/> in the unrolled query expression.
+        /// For example, for the query expression "from x in set where x.Name != null select x.Name", the select clause is the last clause of the unrolled query expression,
+        /// with the where clause as one of its descendant, and the from clause as the descendant of the where clause.
+        /// </summary>
+        public override IOperation LastClauseOrContinuation { get; }
+    }
+
+    /// <summary>
+    /// Represents a query expression in C# or VB.
+    /// </summary>
+    internal sealed partial class LazyQueryExpression : BaseQueryExpression, IQueryExpression
+    {
+        private readonly Lazy<IOperation> _lazyLastClauseOrContinuation;
+
+        public LazyQueryExpression(Lazy<IOperation> lastClauseOrContinuation, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntax, type, constantValue)
+        {
+            _lazyLastClauseOrContinuation = lastClauseOrContinuation ?? throw new System.ArgumentNullException(nameof(lastClauseOrContinuation));
+        }
+        /// <summary>
+        /// Last <see cref="IQueryClause"/> or <see cref="IQueryContinuation"/> in the unrolled query expression.
+        /// For example, for the query expression "from x in set where x.Name != null select x.Name", the select clause is the last clause of the unrolled query expression,
+        /// with the where clause as one of its descendant, and the from clause as the descendant of the where clause.
+        /// </summary>
+        public override IOperation LastClauseOrContinuation => _lazyLastClauseOrContinuation.Value;
+    }
+
+    /// <summary>
+    /// Represents an ordering expression within an <see cref="IOrderByQueryClause"/> in C# or VB.
+    /// </summary>
+    internal abstract partial class BaseOrderingExpression : Operation, IOrderingExpression
+    {
+        protected BaseOrderingExpression(OrderKind orderKind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.OrderingExpression, syntax, type, constantValue)
+        {
+            OrderKind = orderKind;
+        }
+        /// <summary>
+        /// <see cref="OrderKind"/> for the ordering expression.
+        /// </summary>
+        public OrderKind OrderKind { get; }
+        /// <summary>
+        /// Underlying ordering expression for the order by query clause.
+        /// </summary>
+        public abstract IOperation Expression { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Expression;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitOrderingExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitOrderingExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents an ordering expression within an <see cref="IOrderByQueryClause"/> in C# or VB.
+    /// </summary>
+    internal sealed partial class OrderingExpression : BaseOrderingExpression, IOrderingExpression
+    {
+        public OrderingExpression(IOperation expression, OrderKind orderKind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(orderKind, syntax, type, constantValue)
+        {
+            Expression = expression;
+        }
+        /// <summary>
+        /// Underlying ordering expression for the order by query clause.
+        /// </summary>
+        public override IOperation Expression { get; }
+    }
+
+    /// <summary>
+    /// Represents an ordering expression within an <see cref="IOrderByQueryClause"/> in C# or VB.
+    /// </summary>
+    internal sealed partial class LazyOrderingExpression : BaseOrderingExpression, IOrderingExpression
+    {
+        private readonly Lazy<IOperation> _lazyExression;
+
+        public LazyOrderingExpression(Lazy<IOperation> expression, OrderKind orderKind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(orderKind, syntax, type, constantValue)
+        {
+            _lazyExression = expression ?? throw new System.ArgumentNullException(nameof(expression));
+        }
+        /// <summary>
+        /// Underlying ordering expression for the order by query clause.
+        /// </summary>
+        public override IOperation Expression => _lazyExression.Value;
+    }
+
+    /// <summary>
+    /// Represents a group or function aggregation expression inside an Into clause of a Group By or Aggregate query clause in VB.
+    /// </summary>
+    internal abstract partial class BaseAggregationExpression : Operation, IAggregationExpression
+    {
+        protected BaseAggregationExpression(bool isGroupAggregation, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.AggregationExpression, syntax, type, constantValue)
+        {
+            IsGroupAggregation = isGroupAggregation;
+        }
+        /// <summary>
+        /// Flag indicating if this is a group aggregation clause.
+        /// </summary>
+        public bool IsGroupAggregation { get; }
+        /// <summary>
+        /// Aggregation expression.
+        /// </summary>
+        public abstract IOperation Expression { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Expression;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitAggregationExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitAggregationExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a group or function aggregation expression inside an Into clause of a Group By or Aggregate query clause in VB.
+    /// </summary>
+    internal sealed partial class AggregationExpression : BaseAggregationExpression, IAggregationExpression
+    {
+        public AggregationExpression(IOperation expression, bool isGroupAggregation, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isGroupAggregation, syntax, type, constantValue)
+        {
+            Expression = expression;
+        }
+        /// <summary>
+        /// Aggregation expression.
+        /// </summary>
+        public override IOperation Expression { get; }
+    }
+
+    /// <summary>
+    /// Represents a group or function aggregation expression inside an Into clause of a Group By or Aggregate query clause in VB.
+    /// </summary>
+    internal sealed partial class LazyAggregationExpression : BaseAggregationExpression, IAggregationExpression
+    {
+        private readonly Lazy<IOperation> _lazyExression;
+
+        public LazyAggregationExpression(Lazy<IOperation> expression, bool isGroupAggregation, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isGroupAggregation, syntax, type, constantValue)
+        {
+            _lazyExression = expression ?? throw new System.ArgumentNullException(nameof(expression));
+        }
+        /// <summary>
+        /// Aggregation expression.
+        /// </summary>
+        public override IOperation Expression => _lazyExression.Value;
+    }
+
+    /// <summary>
+    /// Represents a query continuation in C#.
+    /// </summary>
+    internal abstract partial class BaseQueryContinuation : Operation, IQueryContinuation
+    {
+        protected BaseQueryContinuation(IRangeVariableSymbol declaredSymbol, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.QueryContinuation, syntax, type, constantValue)
+        {
+            DeclaredSymbol = declaredSymbol;
+        }
+        /// <summary>
+        /// Declared symbol.
+        /// </summary>
+        public IRangeVariableSymbol DeclaredSymbol { get; }
+        /// <summary>
+        /// Query body of the continuation.
+        /// </summary>
+        public abstract IOperation QueryBody { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return QueryBody;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitQueryContinuation(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitQueryContinuation(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a query continuation in C#.
+    /// </summary>
+    internal sealed partial class QueryContinuation : BaseQueryContinuation, IQueryContinuation
+    {
+        public QueryContinuation(IOperation queryBody, IRangeVariableSymbol definedSymbol, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(definedSymbol, syntax, type, constantValue)
+        {
+            QueryBody = queryBody;
+        }
+        /// <summary>
+        /// Query body of the continuation.
+        /// </summary>
+        public override IOperation QueryBody { get; }
+    }
+
+    /// <summary>
+    /// Represents a query continuation in C#.
+    /// </summary>
+    internal sealed partial class LazyQueryContinuation : BaseQueryContinuation, IQueryContinuation
+    {
+        private readonly Lazy<IOperation> _lazyQueryBody;
+
+        public LazyQueryContinuation(Lazy<IOperation> queryBody, IRangeVariableSymbol definedSymbol, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(definedSymbol, syntax, type, constantValue)
+        {
+            _lazyQueryBody = queryBody ?? throw new System.ArgumentNullException(nameof(queryBody));
+        }
+        /// <summary>
+        /// Query body of the continuation.
+        /// </summary>
+        public override IOperation QueryBody => _lazyQueryBody.Value;
+    }
+
+    /// <summary>
+    /// Represents a query clause in C# or VB.
+    /// </summary>
+    internal abstract partial class BaseQueryClause : Operation, IQueryClause
+    {
+        protected BaseQueryClause(QueryClauseKind clauseKind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.QueryClause, syntax, type, constantValue)
+        {
+            ClauseKind = clauseKind;
+        }
+        /// <summary>
+        /// <see cref="QueryClauseKind"/> of the clause.
+        /// </summary>
+        public QueryClauseKind ClauseKind { get; }
+        /// <summary>
+        /// Underlying reduced expression for the query clause. This is normally the invocation expression for the underlying linq call.
+        /// </summary>
+        public abstract IOperation ReducedExpression { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return ReducedExpression;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Represents a query clause in C# or VB.
+    /// </summary>
+    internal abstract partial class QueryClause : BaseQueryClause, IQueryClause
+    {
+        protected QueryClause(IOperation reducedExpression, QueryClauseKind clauseKind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(clauseKind, syntax, type, constantValue)
+        {
+            ReducedExpression = reducedExpression;
+        }
+        /// <summary>
+        /// Underlying reduced expression for the query clause. This is normally the invocation expression for the underlying linq call.
+        /// </summary>
+        public override IOperation ReducedExpression { get; }
+    }
+
+    /// <summary>
+    /// Represents a query clause in C# or VB.
+    /// </summary>
+    internal abstract partial class LazyQueryClause : BaseQueryClause, IQueryClause
+    {
+        private readonly Lazy<IOperation> _lazyReducedExpression;
+
+        protected LazyQueryClause(Lazy<IOperation> reducedExpression, QueryClauseKind clauseKind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(clauseKind, syntax, type, constantValue)
+        {
+            _lazyReducedExpression = reducedExpression ?? throw new System.ArgumentNullException(nameof(reducedExpression));
+        }
+        /// <summary>
+        /// Underlying reduced expression for the query clause. This is normally the invocation expression for the underlying linq call.
+        /// </summary>
+        public override IOperation ReducedExpression => _lazyReducedExpression.Value;
+    }
+
+    /// <summary>
+    /// Represents a from query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class FromQueryClause : QueryClause, IFromQueryClause
+    {
+        public FromQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.FromClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitFromQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitFromQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a from query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class LazyFromQueryClause : LazyQueryClause, IFromQueryClause
+    {
+        public LazyFromQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.FromClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitFromQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitFromQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a select query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class SelectQueryClause : QueryClause, ISelectQueryClause
+    {
+        public SelectQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.SelectClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSelectQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSelectQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a select query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class LazySelectQueryClause : LazyQueryClause, ISelectQueryClause
+    {
+        public LazySelectQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.SelectClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSelectQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSelectQueryClause(this, argument);
+        }
+    }
+    
+    /// <summary>
+    /// Represents a where query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class WhereQueryClause : QueryClause, IWhereQueryClause
+    {
+        public WhereQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.WhereClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitWhereQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitWhereQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a where query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class LazyWhereQueryClause : LazyQueryClause, IWhereQueryClause
+    {
+        public LazyWhereQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.WhereClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitWhereQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitWhereQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a let query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class LetQueryClause : QueryClause, ILetQueryClause
+    {
+        public LetQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.LetClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitLetQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLetQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a let query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class LazyLetQueryClause : LazyQueryClause, ILetQueryClause
+    {
+        public LazyLetQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.LetClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitLetQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLetQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents an order by query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class OrderByQueryClause : QueryClause, IOrderByQueryClause
+    {
+        public OrderByQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.OrderByClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitOrderByQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitOrderByQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents an order by query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class LazyOrderByQueryClause : LazyQueryClause, IOrderByQueryClause
+    {
+        public LazyOrderByQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.OrderByClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitOrderByQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitOrderByQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a group by query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class GroupByQueryClause : QueryClause, IGroupByQueryClause
+    {
+        public GroupByQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.GroupByClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitGroupByQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitGroupByQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a group by query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class LazyGroupByQueryClause : LazyQueryClause, IGroupByQueryClause
+    {
+        public LazyGroupByQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.GroupByClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitGroupByQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitGroupByQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a group join query clause in VB.
+    /// </summary>
+    internal sealed partial class GroupJoinQueryClause : QueryClause, IGroupJoinQueryClause
+    {
+        public GroupJoinQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.GroupJoinClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitGroupJoinQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitGroupJoinQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a group join query clause in VB.
+    /// </summary>
+    internal sealed partial class LazyGroupJoinQueryClause : LazyQueryClause, IGroupJoinQueryClause
+    {
+        public LazyGroupJoinQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.GroupJoinClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitGroupJoinQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitGroupJoinQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a join query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class JoinQueryClause : QueryClause, IJoinQueryClause
+    {
+        public JoinQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.JoinClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitJoinQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitJoinQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a join query clause in C# or VB.
+    /// </summary>
+    internal sealed partial class LazyJoinQueryClause : LazyQueryClause, IJoinQueryClause
+    {
+        public LazyJoinQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.JoinClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitJoinQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitJoinQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a join into query clause in C#.
+    /// </summary>
+    internal sealed partial class JoinIntoQueryClause : QueryClause, IJoinIntoQueryClause
+    {
+        public JoinIntoQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.JoinIntoClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitJoinIntoQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitJoinIntoQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a join into query clause in C#.
+    /// </summary>
+    internal sealed partial class LazyJoinIntoQueryClause : LazyQueryClause, IJoinIntoQueryClause
+    {
+        public LazyJoinIntoQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.JoinIntoClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitJoinIntoQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitJoinIntoQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a distinct query clause in VB.
+    /// </summary>
+    internal sealed partial class DistinctQueryClause : QueryClause, IDistinctQueryClause
+    {
+        public DistinctQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.DistinctClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDistinctQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDistinctQueryClause(this, argument);
+        }
+    }
+    
+    /// <summary>
+    /// Represents a distinct query clause in VB.
+    /// </summary>
+    internal sealed partial class LazyDistinctQueryClause : LazyQueryClause, IDistinctQueryClause
+    {
+        public LazyDistinctQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.DistinctClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDistinctQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDistinctQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents an aggregate query clause in VB.
+    /// </summary>
+    internal sealed partial class AggregateQueryClause : QueryClause, IAggregateQueryClause
+    {
+        public AggregateQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.AggregateClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitAggregateQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitAggregateQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents an aggregate query clause in VB.
+    /// </summary>
+    internal sealed partial class LazyAggregateQueryClause : LazyQueryClause, IAggregateQueryClause
+    {
+        public LazyAggregateQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.AggregateClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitAggregateQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitAggregateQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a skip query clause in VB.
+    /// </summary>
+    internal sealed partial class SkipQueryClause : QueryClause, ISkipQueryClause
+    {
+        public SkipQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.SkipClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSkipQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSkipQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a skip query clause in VB.
+    /// </summary>
+    internal sealed partial class LazySkipQueryClause : LazyQueryClause, ISkipQueryClause
+    {
+        public LazySkipQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.SkipClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSkipQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSkipQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a skip while query clause in VB.
+    /// </summary>
+    internal sealed partial class SkipWhileQueryClause : QueryClause, ISkipWhileQueryClause
+    {
+        public SkipWhileQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.SkipWhileClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSkipWhileQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSkipWhileQueryClause(this, argument);
+        }
+    }
+    
+    /// <summary>
+    /// Represents a skip while query clause in VB.
+    /// </summary>
+    internal sealed partial class LazySkipWhileQueryClause : LazyQueryClause, ISkipWhileQueryClause
+    {
+        public LazySkipWhileQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.SkipWhileClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSkipWhileQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSkipWhileQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a take query clause in VB.
+    /// </summary>
+    internal sealed partial class TakeQueryClause : QueryClause, ITakeQueryClause
+    {
+        public TakeQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.TakeClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitTakeQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitTakeQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a take query clause in VB.
+    /// </summary>
+    internal sealed partial class LazyTakeQueryClause : LazyQueryClause, ITakeQueryClause
+    {
+        public LazyTakeQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.TakeClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitTakeQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitTakeQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a take while query clause in VB.
+    /// </summary>
+    internal sealed partial class TakeWhileQueryClause : QueryClause, ITakeWhileQueryClause
+    {
+        public TakeWhileQueryClause(IOperation reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.TakeWhileClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitTakeWhileQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitTakeWhileQueryClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a take while query clause in VB.
+    /// </summary>
+    internal sealed partial class LazyTakeWhileQueryClause : LazyQueryClause, ITakeWhileQueryClause
+    {
+        public LazyTakeWhileQueryClause(Lazy<IOperation> reducedExpression, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(reducedExpression, QueryClauseKind.TakeWhileClause, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitTakeWhileQueryClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitTakeWhileQueryClause(this, argument);
+        }
+    }
 }
