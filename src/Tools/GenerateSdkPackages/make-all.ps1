@@ -28,10 +28,14 @@ function Package-Normal() {
 # The debugger DLLs have a more complex structure and it's easier to special case
 # copying them over.
 function Copy-Debugger() { 
-    $refRootPath = [IO.Path]::GetFullPath((Join-Path $dropPath "..\..\Debugger\ReferenceDLL"))
-    $debuggerDllPath = Join-Path $dllPath "debugger"
-    Create-Directory $debuggerDllPath
-    Copy-Item -re -fo "$refRootPath\*" $debuggerDllPath
+    $debuggerRefDir = Join-Path $dllPath "debugger\ref"
+    $debuggerImplDir = Join-Path $dllPath "debugger\lib\net45"
+    Create-Directory $debuggerRefDir
+    Create-Directory $debuggerImplDir
+    
+    Copy-Item -re -fo (Join-Path $dropPath "..\..\Debugger\ReferenceDLL\*") $debuggerRefDir
+    Copy-Item -re -fo (Join-Path $dropPath "..\..\Debugger\IDE\Microsoft.VisualStudio.Debugger.Engine.dll") $debuggerImplDir
+    Copy-Item -re -fo (Join-Path $dropPath "Microsoft.VisualStudio.Debugger.Metadata.dll") $debuggerImplDir
 }
 
 # Used to package debugger nugets
