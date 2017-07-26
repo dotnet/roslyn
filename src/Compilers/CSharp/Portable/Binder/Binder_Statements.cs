@@ -647,13 +647,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // There are a number of ways in which a var decl can be illegal, but in these 
                 // cases we should report an error and then keep right on going with the inference.
 
-                if (isConst)
-                {
-                    Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, declarationNode);
-                    // Keep processing it as a non-const local.
-                    isConst = false;
-                }
-
                 // In the dev10 compiler the error recovery semantics for the illegal case
                 // "var x = 10, y = 123.4;" are somewhat undesirable.
                 //
