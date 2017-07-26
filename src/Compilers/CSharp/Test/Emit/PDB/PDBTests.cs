@@ -6795,6 +6795,7 @@ class C
 
         #region Patterns
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
         public void SyntaxOffset_Pattern()
         {
             var source = @"class C { bool F(object o) => o is int i && o is 3 && o is bool; }";
