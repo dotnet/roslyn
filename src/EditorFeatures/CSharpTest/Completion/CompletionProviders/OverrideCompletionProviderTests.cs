@@ -2602,6 +2602,7 @@ class Program : C
         }
 
         [WorkItem(8257, "https://github.com/dotnet/roslyn/issues/8257")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotImplementedQualifiedWhenSystemUsingNotPresent_Method()
         {
             var markupBeforeCommit = @"abstract class C
