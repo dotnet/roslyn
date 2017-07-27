@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -206,6 +207,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetDefaultOfParameter(SyntaxNode node)
             => (node as ParameterSyntax)?.Default;
+
+        public SyntaxNode GetParameterList(SyntaxNode node)
+            => CSharpSyntaxGenerator.GetParameterList(node);
 
         public bool IsSkippedTokensTrivia(SyntaxNode node)
         {
