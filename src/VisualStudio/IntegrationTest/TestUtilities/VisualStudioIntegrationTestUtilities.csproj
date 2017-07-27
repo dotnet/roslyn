@@ -73,6 +73,9 @@
     <ProjectReference Include="..\..\InteractiveServices\VisualStudioInteractiveServices.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Tools\Source\RunTests\ProcDumpUtil.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
   </ItemGroup>
