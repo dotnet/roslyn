@@ -728,5 +728,22 @@ public static class C
     }
 }");
         }
+
+        [WorkItem(21172, "https://github.com/dotnet/roslyn/issues/21172")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingWithDynamic()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [|var|] x = o as dynamic;
+        if (x != null)
+        {
+        }
+    }
+}");
+        }
     }
 }
