@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <Fact>
-        Public Sub TestParentOperations()
+        Public Sub TestClone()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode
 
             Dim fileName = "a.vb"
@@ -17,20 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
             Dim model = compilation.GetSemanticModel(tree)
 
-            ' visit tree top down to gather child to parent map
-            Dim parentMap = GetParentOperationsMap(model)
-
-            ' go through all foundings to see whether parent Is correct
-            For Each kv In parentMap
-                Dim child = kv.Key
-                Dim parent = kv.Value
-
-                ' check parent property returns same parent we gathered by walking down operation tree
-                Assert.Equal(child.Parent, parent)
-
-                ' check SearchparentOperation return same parent
-                Assert.Equal(DirectCast(child, Operation).SearchParentOperation(), parent)
-            Next
+            VerifyClone(model)
         End Sub
     End Class
 End Namespace

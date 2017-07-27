@@ -43,14 +43,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_parentDoNotAccessDirectly == null)
                 {
-                    var parent = SearchParentOperation();
-                    if (Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, null) != null)
-                    {
-#if DEBUG
-                        // someone else actually have set it while searching parent. make sure 2 are same
-                        Debug.Assert(_parentDoNotAccessDirectly == parent);
-#endif
-                    }
+                    SetParentOperation(SearchParentOperation());
                 }
 
                 return _parentDoNotAccessDirectly;
@@ -86,18 +79,12 @@ namespace Microsoft.CodeAnalysis
         protected void SetParentOperation(IOperation parent)
         {
             var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, null);
-#if DEBUG
-            if (result == null)
-            {
-                // tree must belong to same semantic model
-                Debug.Assert(((Operation)parent).SemanticModel == SemanticModel);
-            }
-            else
-            {
-                // make sure given parent and one we already have is same
-                Debug.Assert(result == parent);
-            }
-#endif
+
+            // tree must belong to same semantic model
+            Debug.Assert(((Operation)parent).SemanticModel == SemanticModel);
+
+            // make sure given parent and one we already have is same if we have one already
+            Debug.Assert(result == null || result == parent);
         }
 
         public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
@@ -127,7 +114,7 @@ namespace Microsoft.CodeAnalysis
                 return operations;
             }
 
-            // race is okay. paneltiy is going through a loop one more time
+            // race is okay. penalty is going through a loop one more time
             // explicit cast is not allowed, so using "as" instead
             // invalid expression can have null element in the array
             if ((operations[0] as Operation)?._parentDoNotAccessDirectly != null)
@@ -136,10 +123,10 @@ namespace Microsoft.CodeAnalysis
                 return operations;
             }
 
-            for (var i = 0; i < operations.Length; i++)
+            foreach (var operation in operations)
             {
                 // go through slowest path
-                SetParentOperation(operations[i], parent);
+                SetParentOperation(operation, parent);
             }
 
             return operations;
@@ -256,6 +243,12 @@ namespace Microsoft.CodeAnalysis
             {
                 while (currentCandidate != null)
                 {
+                    if (!SemanticModel.Root.FullSpan.Contains(currentCandidate.FullSpan))
+                    {
+                        // reached top of parent chain
+                        break;
+                    }
+
                     // get operation
                     var tree = SemanticModel.GetOperationInternal(currentCandidate);
                     if (tree != null)

@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.DefaultSeverity == DiagnosticSeverity.Error);
         }
 
-        private static readonly ObjectPool<Stack<IEnumerator<IOperation>>> s_childEnumeratorStackPool =
-            new ObjectPool<Stack<IEnumerator<IOperation>>>(() => new Stack<IEnumerator<IOperation>>(), 10);
-
         public static IEnumerable<IOperation> Descendants(this IOperation operation)
         {
             if (operation == null)
@@ -50,10 +47,10 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             yield return operation;
 
-            var stack = s_childEnumeratorStackPool.Allocate();
+            var stack = ArrayBuilder<IEnumerator<IOperation>>.GetInstance();
             stack.Push(operation.Children.GetEnumerator());
 
-            while (stack.Count > 0)
+            while (stack.Any())
             {
                 var iterator = stack.Pop();
 
@@ -75,8 +72,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
             }
 
-            stack.Clear();
-            s_childEnumeratorStackPool.Free(stack);
+            stack.Free();
         }
 
         public static IOperation GetRootOperation(this ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))

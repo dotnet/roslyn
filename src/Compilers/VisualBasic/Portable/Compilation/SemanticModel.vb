@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' The root node of the syntax tree that this binding is based on.
         ''' </summary> 
-        Friend MustOverride ReadOnly Property Root As SyntaxNode
+        Friend MustOverride Shadows ReadOnly Property Root As SyntaxNode
 
         ''' <summary>
         ''' Gets symbol information about an expression syntax node. This is the worker
@@ -139,11 +139,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Enum
 
         Protected Overrides Function GetOperationCore(node As SyntaxNode, cancellationToken As CancellationToken) As IOperation
-            If Not Root.FullSpan.Contains(node.FullSpan) Then
-                ' given node must be sub node of this root
-                Return Nothing
-            End If
-
             Dim vbnode = DirectCast(node, VisualBasicSyntaxNode)
             CheckSyntaxNode(vbnode)
 
@@ -3064,6 +3059,12 @@ _Default:
         Protected NotOverridable Overrides ReadOnly Property CompilationCore As Compilation
             Get
                 Return Me.Compilation
+            End Get
+        End Property
+
+        Protected NotOverridable Overrides ReadOnly Property RootCore As SyntaxNode
+            Get
+                Return Me.Root
             End Get
         End Property
 

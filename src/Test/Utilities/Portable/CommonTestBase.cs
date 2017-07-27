@@ -13,7 +13,9 @@ using System.Reflection.PortableExecutable;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -525,6 +527,76 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             };
         }
 
+        #endregion
+
+        #region Operation Test Helpers
+        internal static Dictionary<IOperation, IOperation> GetParentOperationsMap(SemanticModel model)
+        {
+            // get top operations first
+            var topOperations = new HashSet<IOperation>();
+            var root = model.SyntaxTree.GetRoot();
+
+            CollectTopOperations(model, root, topOperations);
+
+            // dig down the each operation tree to create the parent operation map
+            var map = new Dictionary<IOperation, IOperation>();
+            foreach (var topOperation in topOperations)
+            {
+                // this is top of the operation tree
+                map.Add(topOperation, null);
+
+                CollectParentOperations(topOperation, map);
+            }
+
+            return map;
+        }
+
+        private static void CollectParentOperations(IOperation operation, Dictionary<IOperation, IOperation> map)
+        {
+            // walk down to collect all parent operation map for this tree
+            foreach (var child in operation.Children.WhereNotNull())
+            {
+                map.Add(child, operation);
+
+                CollectParentOperations(child, map);
+            }
+        }
+
+        private static void CollectTopOperations(SemanticModel model, SyntaxNode node, HashSet<IOperation> topOperations)
+        {
+            foreach (var child in node.ChildNodes())
+            {
+                var operation = model.GetOperationInternal(child);
+                if (operation != null)
+                {
+                    // found top operation
+                    topOperations.Add(operation);
+
+                    // don't dig down anymore
+                    continue;
+                }
+
+                // sub tree might have the top operation
+                CollectTopOperations(model, child, topOperations);
+            }
+        }
+
+        internal static void VerifyClone(SemanticModel model)
+        {
+            foreach (var node in model.SyntaxTree.GetRoot().DescendantNodes())
+            {
+                var operation = model.GetOperationInternal(node);
+                if (operation == null)
+                {
+                    continue;
+                }
+
+                var original = OperationTreeVerifier.GetOperationTree(model.Compilation, operation);
+                var cloned = OperationTreeVerifier.GetOperationTree(model.Compilation, operation.Clone());
+
+                Assert.Equal(original, cloned);
+            }
+        }
         #endregion
     }
 }
