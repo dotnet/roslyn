@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbolExtensions
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.Semantics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -233,14 +234,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Not (left = right)
         End Operator
 
-        Public Shared Widening Operator CType(ByVal vbConversion As Conversion) As Semantics.CommonConversion
-            Return New Semantics.CommonConversion(vbConversion.Exists,
-                                                  vbConversion.IsIdentity,
-                                                  vbConversion.IsNumeric,
-                                                  vbConversion.IsReference,
-                                                  vbConversion.IsUserDefined,
-                                                  vbConversion.MethodSymbol)
-        End Operator
+        ''' <summary>
+        ''' Creates a <seealso cref="CommonConversion"/> from this Visual Basic conversion.
+        ''' </summary>
+        ''' <returns>The <see cref="CommonConversion"/> that represents this conversion.</returns>
+        ''' <remarks>
+        ''' This is a lossy conversion; it is not possible to recover the original <see cref="Conversion"/>
+        ''' from the <see cref="CommonConversion"/> struct.
+        ''' </remarks>
+        Public Function ToCommonConversion() As CommonConversion
+            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, MethodSymbol)
+        End Function
 
         ''' <summary>
         ''' Determines whether the specified object is equal to the current object.

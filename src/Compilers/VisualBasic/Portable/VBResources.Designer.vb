@@ -12235,7 +12235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to {0} &apos;{1}&apos; is not a valid Visual Basic conversion expression.
+        '''  Looks up a localized string similar to {0} is not a valid Visual Basic conversion expression.
         '''</summary>
         Friend ReadOnly Property IConversionExpressionIsNotVisualBasicConversion() As String
             Get

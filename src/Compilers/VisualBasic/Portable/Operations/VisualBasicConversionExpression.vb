@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits BaseConversionExpression
 
         Protected Sub New(conversion As Conversion, isExplicitInCode As Boolean, throwsExceptionOnFailure As Boolean, isChecked As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
-            MyBase.New(conversion, isExplicitInCode, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
+            MyBase.New(conversion.ToCommonConversion(), isExplicitInCode, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
 
             ConversionInternal = conversion
         End Sub
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class LazyVisualBasicConversionExpression
         Inherits BaseVisualBasicConversionExpression
 
-        Private _operandLazy As Lazy(Of IOperation)
+        Private ReadOnly _operandLazy As Lazy(Of IOperation)
 
         Public Sub New(operand As Lazy(Of IOperation), conversion As Conversion, isExplicitInCode As Boolean, throwsExceptionOnFailure As Boolean, isChecked As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
             MyBase.New(conversion, isExplicitInCode, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
@@ -58,8 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return basicConversionExpression.ConversionInternal
             Else
                 Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
-                                                          NameOf(IConversionExpression),
-                                                          conversionExpression))
+                                                          NameOf(IConversionExpression)),
+                                            NameOf(conversionExpression))
             End If
         End Function
     End Module

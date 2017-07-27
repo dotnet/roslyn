@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract class BaseCSharpConversionExpression : BaseConversionExpression
     {
         protected BaseCSharpConversionExpression(Conversion conversion, bool isExplicitInCode, bool throwsExceptionOnFailure, bool isChecked, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(conversion, isExplicitInCode, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
+            base(conversion.ToCommonConversion(), isExplicitInCode, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
         {
             ConversionInternal = conversion;
         }
@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 throw new ArgumentException(string.Format(CSharpResources.IConversionExpressionIsNotCSharpConversion,
-                                                          nameof(IConversionExpression),
-                                                          conversionExpression));
+                                                          nameof(IConversionExpression)),
+                                            nameof(conversionExpression));
             }
         }
     }

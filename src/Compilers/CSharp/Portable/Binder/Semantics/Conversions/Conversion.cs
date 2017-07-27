@@ -845,6 +845,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Creates a <seealso cref="CommonConversion"/> from this C# conversion.
+        /// </summary>
+        /// <returns>The <see cref="CommonConversion"/> that represents this conversion.</returns>
+        /// <remarks>
+        /// This is a lossy conversion; it is not possible to recover the original <see cref="Conversion"/>
+        /// from the <see cref="CommonConversion"/> struct.
+        /// </remarks>
+        public CommonConversion ToCommonConversion()
+        {
+            // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
+            var methodSymbol = IsUserDefined ? MethodSymbol : null;
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, methodSymbol);
+        }
+
+        /// <summary>
         /// Returns a string that represents the <see cref="Kind"/> of the conversion.
         /// </summary>
         /// <returns>A string that represents the <see cref="Kind"/> of the conversion.</returns>
@@ -902,17 +917,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool operator !=(Conversion left, Conversion right)
         {
             return !(left == right);
-        }
-
-        public static implicit operator CommonConversion(Conversion csharpConversion)
-        {
-            var methodSymbol = csharpConversion.IsUserDefined ? csharpConversion.MethodSymbol : null;
-            return new CommonConversion(csharpConversion.Exists,
-                                        csharpConversion.IsIdentity,
-                                        csharpConversion.IsNumeric,
-                                        csharpConversion.IsReference,
-                                        csharpConversion.IsUserDefined,
-                                        methodSymbol);
         }
 
 #if DEBUG
