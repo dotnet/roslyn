@@ -10,7 +10,6 @@
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <GitLinkVersion>3.0.0-unstable0090</GitLinkVersion>
     <LibGit2SharpVersion>0.22.0</LibGit2SharpVersion>
-    <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
     <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>
     <MicroBuildPluginsSwixBuildVersion>1.1.0-g0701ee829f</MicroBuildPluginsSwixBuildVersion>
