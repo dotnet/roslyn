@@ -66,11 +66,6 @@ do
         SKIP_COMMIT_PRINTING=true
         shift 1
         ;;
-        --nocache)
-        # Temporarily ignore this argument until the change to netci.groovy gets merged.
-        # A follow-up PR will be made to remove this ignore.
-        shift 1
-        ;;
         *)
         usage 
         exit 1
