@@ -190,6 +190,7 @@
     <Compile Include="Formatting\Rules\SuppressFormattingRule.cs" />
     <Compile Include="Formatting\Rules\TokenBasedFormattingRule.cs" />
     <Compile Include="Formatting\Rules\WrappingFormattingRule.cs" />
+    <Compile Include="GeneratedCodeRecognition\CSharpGeneratedCodeRecognitionService.cs" />
     <Compile Include="LanguageServices\CSharpCompilationFactoryService.cs" />
     <Compile Include="LanguageServices\CSharpDocumentationCommentService.cs" />
     <Compile Include="LanguageServices\CSharpParseOptionsService.cs" />
