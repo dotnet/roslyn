@@ -29,6 +29,15 @@ CLEAN_RUN=false
 SKIP_TESTS=false
 SKIP_COMMIT_PRINTING=false
 
+# $HOME is unset when running the mac unit tests.
+if [[ -z ${HOME+x} ]]
+then
+    # Note that while ~ usually refers to $HOME, in the case where $HOME is unset,
+    # it looks up the current user's home dir, which is what we want.
+    # https://www.gnu.org/software/bash/manual/html_node/Tilde-Expansion.html
+    export HOME=$(cd ~ && pwd)
+fi
+
 # LTTNG is the logging infrastructure used by coreclr.  Need this variable set 
 # so it doesn't output warnings to the console.
 export LTTNG_HOME=$HOME
