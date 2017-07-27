@@ -10,6 +10,15 @@ def branchName = GithubBranchName
 // Folder that the project jobs reside in (project/branch)
 def projectFoldername = Utilities.getFolderName(projectName) + '/' + Utilities.getFolderName(branchName)
 
+// Based on machine affinity names
+def unixPlatforms = ['RHEL7.2', 'Ubuntu14.04', 'Ubuntu16.04', 'OSX10.12']
+
+def osShortName = ['RHEL7.2': 'rhel_7.2',
+                   'Ubuntu14.04': 'ubuntu_14',
+                   'Ubuntu16.04': 'ubuntu_16',
+                   'OSX10.12': 'mac']
+
+
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
   def archiveSettings = new ArchivalSettings()
   archiveSettings.addFiles('Binaries/**/*.pdb')
@@ -97,56 +106,28 @@ commitPullList.each { isPr ->
   }
 }
 
-// Ubuntu 14.04
-commitPullList.each { isPr -> 
-  def jobName = Utilities.getFullJobName(projectName, "ubuntu_14_debug", isPr)
-  def myJob = job(jobName) {
-    description("Ubuntu 14.04 tests")
-                  steps {
-                    shell("./cibuild.sh --nocache --debug")
-                  }
-                }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = "linux"
-  Utilities.setMachineAffinity(myJob, 'Ubuntu14.04', 'latest-or-auto')
-  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
-// Ubuntu 16.04
-commitPullList.each { isPr -> 
-  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_debug", isPr)
-  def myJob = job(jobName) {
-    description("Ubuntu 16.04 tests")
-                  steps {
-                    shell("./cibuild.sh --nocache --debug")
-                  }
-                }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = "linux"
-  Utilities.setMachineAffinity(myJob, 'Ubuntu16.04', 'latest-or-auto')
-  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
-// Mac
-commitPullList.each { isPr -> 
-  def jobName = Utilities.getFullJobName(projectName, "mac_debug", isPr)
-  def myJob = job(jobName) {
-    description("Mac tests")
-    steps {
-      shell("./cibuild.sh --nocache --debug")
+// Unix
+commitPullList.each { isPr ->
+  unixPlatforms.each { platform ->
+    def shortJobName = osShortName[platform] + '_debug'
+    def jobName = Utilities.getFullJobName(projectName, shortJobName, isPr)
+    // old git versions don't support the --no-patch argument used to print commit version
+    def oldGit = platform.startsWith('RHEL7');
+    def myJob = job(jobName) {
+      description(platform + " tests")
+      steps {
+        shell("./cibuild.sh --nocache --debug" + (oldGit ? " --skipcommitprinting" : ""))
+      }
     }
-  }
 
-  def triggerPhraseOnly = true
-  def triggerPhraseExtra = "mac"
-  Utilities.setMachineAffinity(myJob, 'OSX10.12', 'latest-or-auto')
-  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+    def isMac = (osShortName[platform] == 'mac')
+    def triggerPhraseOnly = isMac ? true : false
+    def triggerPhraseExtra = isMac ? "mac" : "linux"
+    Utilities.setMachineAffinity(myJob, platform, 'latest-or-auto')
+    Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
+}
 
 // Determinism
 commitPullList.each { isPr -> 
