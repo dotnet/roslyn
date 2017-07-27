@@ -364,11 +364,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters)
         {
             MarkupTestFile.GetSpans(
-                expectedMarkup.NormalizeLineEndings(), out var expected, out IDictionary<string, ImmutableArray<TextSpan>> spanMap);
+                expectedMarkup.NormalizeLineEndings(), 
+                out var expected, out IDictionary<string, ImmutableArray<TextSpan>> spanMap);
 
             var conflictSpans = spanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);
             var renameSpans = spanMap.GetOrAdd("Rename", _ => ImmutableArray<TextSpan>.Empty);
             var warningSpans = spanMap.GetOrAdd("Warning", _ => ImmutableArray<TextSpan>.Empty);
+            var navigationSpans = spanMap.GetOrAdd("Navigation", _ => ImmutableArray<TextSpan>.Empty);
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
@@ -380,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 await TestActionsAsync(
                     workspace, expected, index,
                     actions,
-                    conflictSpans, renameSpans, warningSpans,
+                    conflictSpans, renameSpans, warningSpans, navigationSpans,
                     ignoreTrivia: ignoreTrivia,
                     parseOptions: parameters.parseOptions,
                     priority: priority);
@@ -393,12 +395,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<TextSpan> conflictSpans,
             ImmutableArray<TextSpan> renameSpans,
             ImmutableArray<TextSpan> warningSpans,
+            ImmutableArray<TextSpan> navigationSpans,
             bool ignoreTrivia,
             ParseOptions parseOptions = null,
             CodeActionPriority? priority = null)
         {
             var operations = await VerifyInputsAndGetOperationsAsync(index, actions, priority);
-            return await TestOperationsAsync(workspace, expected, operations, conflictSpans, renameSpans, warningSpans, ignoreTrivia, expectedChangedDocumentId: null, parseOptions: parseOptions);
+            return await TestOperationsAsync(
+                workspace, expected, operations, conflictSpans, renameSpans,
+                warningSpans, navigationSpans, ignoreTrivia, expectedChangedDocumentId: null, parseOptions: parseOptions);
         }
 
         protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(
@@ -408,6 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<TextSpan> conflictSpans,
             ImmutableArray<TextSpan> renameSpans,
             ImmutableArray<TextSpan> warningSpans,
+            ImmutableArray<TextSpan> navigationSpans,
             bool ignoreTrivia,
             DocumentId expectedChangedDocumentId,
             ParseOptions parseOptions = null)
@@ -439,6 +445,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestAnnotations(conflictSpans, ConflictAnnotation.Kind);
             TestAnnotations(renameSpans, RenameAnnotation.Kind);
             TestAnnotations(warningSpans, WarningAnnotation.Kind);
+            TestAnnotations(navigationSpans, NavigationAnnotation.Kind);
 
             return Tuple.Create(oldSolution, newSolution);
 
