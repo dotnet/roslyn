@@ -1,10 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.CSharp.GeneratedCodeRecognition
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.GeneratedCodeRecognition
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.GeneratedCodeRecognition
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 
@@ -13,7 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public ReadOnly Catalog As ComposableCatalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                         GetType(MockDocumentNavigationServiceFactory),
                         GetType(DefaultSymbolNavigationServiceFactory),
-                        GetType(GeneratedCodeRecognitionService))
+                        GetType(CSharpGeneratedCodeRecognitionService),
+                        GetType(VisualBasicGeneratedCodeRecognitionService))
 
         Public ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(Catalog)
 
