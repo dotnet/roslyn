@@ -794,8 +794,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+            Dim result = GetBoundNode(node, options)
+
+            Return _operationFactory.Create(result)
+        End Function
+
+        Private Function GetBoundNode(node As VisualBasicSyntaxNode, options As GetOperationOptions) As BoundNode
             Dim summary = GetBoundNodeSummary(node)
             Dim result As BoundNode
+
             Select Case options
                 Case GetOperationOptions.Highest
                     result = summary.HighestBoundNode
@@ -805,7 +812,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = summary.LowestBoundNode
             End Select
 
-            Return _operationFactory.Create(result)
+            Return result
+        End Function
+
+        Friend Overrides Function GetOperationWorker(method As MethodSymbol, bodySyntax As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+            Dim node = GetBoundNode(bodySyntax, GetOperationOptions.Highest)
+            Dim body = DirectCast(node, BoundStatement)
+            Dim loweredBody = LowerMethodBody(method, body)
+
+            Return _operationFactory.Create(loweredBody)
+        End Function
+
+        Private Function LowerMethodBody(method As MethodSymbol, body As BoundStatement) As BoundStatement
+            Throw New NotImplementedException()
         End Function
 
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo

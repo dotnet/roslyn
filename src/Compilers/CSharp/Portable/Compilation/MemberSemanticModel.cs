@@ -961,6 +961,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
         {
+            var result = GetBoundNode(node, options);
+
+            // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory
+            // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
+            // UnboundLambda.BindForErrorRecovery() when it encounters an UnboundLambda node.
+            Debug.Assert(result.Kind != BoundKind.UnboundLambda);
+            return _operationFactory.Create(result);
+        }
+
+        private BoundNode GetBoundNode(CSharpSyntaxNode node, GetOperationOptions options)
+        {
             CSharpSyntaxNode bindableNode;
 
             BoundNode lowestBoundNode;
@@ -983,11 +994,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
+            return result;
+        }
+
+        internal override IOperation GetOperationWorker(MethodSymbol method, CSharpSyntaxNode bodySyntax, CancellationToken cancellationToken)
+        {
+            var node = GetBoundNode(bodySyntax, GetOperationOptions.Highest);
+            var body = (BoundStatement)node;
+            var loweredBody = LowerMethodBody(method, body);
+
             // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory
             // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
             // UnboundLambda.BindForErrorRecovery() when it encounters an UnboundLambda node.
-            Debug.Assert(result.Kind != BoundKind.UnboundLambda);
-            return _operationFactory.Create(result);
+            Debug.Assert(loweredBody.Kind != BoundKind.UnboundLambda);
+            return _operationFactory.Create(loweredBody);
+        }
+
+        private BoundStatement LowerMethodBody(MethodSymbol method, BoundStatement body)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            var compilationState = new TypeCompilationState(method.ContainingType, _compilation, null);
+
+            var dynamicAnalysisSpans = ImmutableArray<CodeAnalysis.CodeGen.SourceSpan>.Empty;
+            //var synthesizedSubmissionFields = method.ContainingType.IsSubmissionClass ? new SynthesizedSubmissionFields(_compilation, method.ContainingType) : null;
+
+            var loweredBody = LocalRewriter.Rewrite(
+                    _compilation,
+                    method,
+                    -1,
+                    method.ContainingType,
+                    body,
+                    compilationState,
+                    previousSubmissionFields: null,
+                    allowOmissionOfConditionalCalls: true,
+                    instrumentForDynamicAnalysis: false,
+                    debugDocumentProvider: null,
+                    dynamicAnalysisSpans: ref dynamicAnalysisSpans,
+                    diagnostics: diagnostics,
+                    sawLambdas: out bool sawLambdas,
+                    sawLocalFunctions: out bool sawLocalFunctions,
+                    sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
+
+            return loweredBody;
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
@@ -1724,7 +1772,9 @@ done:
             return ImmutableArray<BoundNode>.Empty;
         }
 
-        // some nodes don't have direct semantic meaning by themselves and so we need to bind a different node that does
+        /// <summary>
+        /// Some nodes don't have direct semantic meaning by themselves and so we need to bind a different node that does.
+        /// </summary>
         internal protected virtual CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
         {
             switch (node.Kind())

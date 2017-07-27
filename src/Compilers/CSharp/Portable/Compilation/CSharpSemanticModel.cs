@@ -465,11 +465,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion Helpers for speculative binding
 
-        protected override IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken)
+        protected override IOperation GetOperationCore(IMethodSymbol method, SyntaxNode body, CancellationToken cancellationToken)
         {
-            var csnode = (CSharpSyntaxNode)node;
-            CheckSyntaxNode(csnode);
-            return this.GetOperationWorker(csnode, GetOperationOptions.Lowest, cancellationToken);
+            var csbody = (CSharpSyntaxNode)body;
+            var csmethod = (MethodSymbol)method;
+            CheckSyntaxNode(csbody);
+            CheckSymbol(csmethod);
+            return this.GetOperationWorker(csmethod, csbody, cancellationToken);
+        }
+
+        internal virtual IOperation GetOperationWorker(MethodSymbol method, CSharpSyntaxNode body, CancellationToken cancellationToken)
+        {
+            return null;
         }
 
         internal enum GetOperationOptions
@@ -477,6 +484,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Highest,
             Lowest,
             Parent
+        }
+
+        protected override IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var csnode = (CSharpSyntaxNode)node;
+            CheckSyntaxNode(csnode);
+            return this.GetOperationWorker(csnode, GetOperationOptions.Lowest, cancellationToken);
         }
 
         internal virtual IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
@@ -1244,6 +1258,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected void AssertPositionAdjusted(int position)
         {
             Debug.Assert(position == CheckAndAdjustPosition(position), "Expected adjusted position");
+        }
+
+        protected void CheckSymbol(Symbol symbol)
+        {
+            if (symbol == null)
+            {
+                throw new ArgumentNullException(nameof(symbol));
+            }
         }
 
         protected void CheckSyntaxNode(CSharpSyntaxNode syntax)

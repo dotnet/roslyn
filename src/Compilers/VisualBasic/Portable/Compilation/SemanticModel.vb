@@ -132,6 +132,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                  TypeOf (node) Is OrderingSyntax)
         End Function
 
+        Protected Overrides Function GetOperationCore(method As IMethodSymbol, body As SyntaxNode, cancellationToken As CancellationToken) As IOperation
+            Dim vbbody = DirectCast(body, VisualBasicSyntaxNode)
+            Dim vbmethod = DirectCast(method, MethodSymbol)
+            CheckSyntaxNode(vbbody)
+            CheckSymbol(vbmethod)
+            Return GetOperationWorker(vbmethod, vbbody, GetOperationOptions.Highest, cancellationToken)
+        End Function
+
+        Friend Overridable Function GetOperationWorker(method As MethodSymbol, node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+            Return Nothing
+        End Function
+
         Friend Enum GetOperationOptions
             Lowest
             Highest
@@ -576,6 +588,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Throw New ArgumentException(VBResources.PositionIsNotWithinSyntax)
+        End Sub
+
+        Friend Sub CheckSymbol(symbol As Symbol)
+            If symbol Is Nothing Then
+                Throw New ArgumentNullException(NameOf(symbol))
+            End If
         End Sub
 
         Friend Sub CheckSyntaxNode(node As VisualBasicSyntaxNode)

@@ -64,6 +64,40 @@ namespace Microsoft.CodeAnalysis
         protected abstract SyntaxTree SyntaxTreeCore { get; }
 
         /// <summary>
+        /// Gets the operation corresponding to the method body.
+        /// </summary>
+        /// <param name="method">The method symbol.</param>
+        /// <param name="body">The method body syntax node</param>
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns></returns>
+        public IOperation GetOperation(IMethodSymbol method, SyntaxNode body, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (!this.Compilation.IsIOperationFeatureEnabled())
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
+            }
+
+            return GetOperationInternal(method, body, cancellationToken);
+        }
+
+        internal IOperation GetOperationInternal(IMethodSymbol method, SyntaxNode body, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            try
+            {
+                return GetOperationCore(method, body, cancellationToken);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
+                Debug.Assert(false);
+            }
+
+            return null;
+        }
+
+        protected abstract IOperation GetOperationCore(IMethodSymbol method, SyntaxNode body, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Gets the operation corresponding to the expression or statement syntax node.
         /// </summary>
         /// <param name="node">The expression or statement syntax node.</param>
