@@ -10,7 +10,6 @@ usage()
     echo "  --debug               Build Debug (default)"
     echo "  --release             Build Release"
     echo "  --skiptest            Do not run tests"
-    echo "  --skipcrossgen        Do not crossgen the bootstrapped compiler"
     echo "  --skipcommitprinting  Do not print commit information"
     echo "  --nocache       Force download of toolsets"
 }
@@ -18,7 +17,6 @@ usage()
 BUILD_CONFIGURATION=Debug
 USE_CACHE=true
 SKIP_TESTS=false
-SKIP_CROSSGEN=false
 SKIP_COMMIT_PRINTING=false
 
 MAKE="make"
@@ -59,10 +57,6 @@ do
         SKIP_TESTS=true
         shift 1
         ;;
-        --skipcrossgen)
-        SKIP_CROSSGEN=true
-        shift 1
-        ;;
         --skipcommitprinting)
         SKIP_COMMIT_PRINTING=true
         shift 1
@@ -74,8 +68,6 @@ do
     esac
 done
 
-MAKE_ARGS="BUILD_CONFIGURATION=$BUILD_CONFIGURATION SKIP_CROSSGEN=$SKIP_CROSSGEN"
-
 if [ "$CLEAN_RUN" == "true" ]; then
     echo Clean out the enlistment
     git clean -dxf . 
@@ -86,13 +78,10 @@ if [ "$SKIP_COMMIT_PRINTING" == "false" ]; then
     git show --no-patch --pretty=raw HEAD
 fi
 
-echo Building Bootstrap
-$MAKE bootstrap $MAKE_ARGS 
-
-echo Building CrossPlatform.sln
-$MAKE all $MAKE_ARGS BOOTSTRAP=true BUILD_LOG_PATH=Binaries/Build.log
+MAKE_TARGET="all"
 
 if [ "$SKIP_TESTS" == "false" ]; then
-    $MAKE test $MAKE_ARGS
+    MAKE_TARGET="$MAKE_TARGET test"
 fi
 
+$MAKE $MAKE_TARGET BUILD_CONFIGURATION=$BUILD_CONFIGURATION BOOTSTRAP=true BUILD_LOG_PATH=Binaries/Build.log

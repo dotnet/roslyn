@@ -2,9 +2,6 @@
 
 BUILD_CONFIGURATION=$1
 
-# This function will update the PATH variable to put the desired
-# version of Mono ahead of the system one. 
-
 cd Binaries/$BUILD_CONFIGURATION/CoreClrTest
 
 chmod +x ./corerun
