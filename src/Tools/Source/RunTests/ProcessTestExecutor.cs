@@ -95,7 +95,7 @@ namespace RunTests
                 {
                     if (_options.ProcDumpInfo != null)
                     {
-                        ProcDumpUtil.AttachProcDump(_options.ProcDumpInfo.Value, process.Id, process.ProcessName);
+                        ProcDumpUtil.AttachProcDump(_options.ProcDumpInfo.Value, process.Id);
                     }
                 }
 

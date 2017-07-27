@@ -172,7 +172,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
                 if (procDumpInfo != null)
                 {
-                    ProcDumpUtil.AttachProcDump(procDumpInfo.Value, hostProcess.Id, hostProcess.ProcessName);
+                    ProcDumpUtil.AttachProcDump(procDumpInfo.Value, hostProcess.Id);
                 }
 
                 // We wait until the DTE instance is up before we're good

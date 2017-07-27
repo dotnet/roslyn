@@ -9,8 +9,8 @@ namespace RunTests
 {
     internal struct ProcDumpInfo
     {
-        private const string s_KeyProcDumpFilePath = "ProcDumpFilePath";
-        private const string s_KeyDumpDirectory = "ProcDumpOutputPath";
+        private const string KeyProcDumpFilePath = "ProcDumpFilePath";
+        private const string KeyProcDumpDirectory = "ProcDumpOutputPath";
 
         internal string ProcDumpFilePath { get; }
         internal string DumpDirectory { get; }
@@ -25,16 +25,16 @@ namespace RunTests
 
         internal void WriteEnvironmentVariables(Dictionary<string, string> environment)
         {
-            environment[s_KeyProcDumpFilePath] = ProcDumpFilePath;
-            environment[s_KeyDumpDirectory] = DumpDirectory;
+            environment[KeyProcDumpFilePath] = ProcDumpFilePath;
+            environment[KeyProcDumpDirectory] = DumpDirectory;
         }
 
         internal static ProcDumpInfo? ReadFromEnvironment()
         {
             bool validate(string s) => !string.IsNullOrEmpty(s) && Path.IsPathRooted(s);
 
-            var procDumpFilePath = Environment.GetEnvironmentVariable(s_KeyProcDumpFilePath);
-            var dumpDirectory = Environment.GetEnvironmentVariable(s_KeyDumpDirectory);
+            var procDumpFilePath = Environment.GetEnvironmentVariable(KeyProcDumpFilePath);
+            var dumpDirectory = Environment.GetEnvironmentVariable(KeyProcDumpDirectory);
 
             if (!validate(procDumpFilePath) || !validate(dumpDirectory))
             {
@@ -47,9 +47,9 @@ namespace RunTests
 
     internal static class ProcDumpUtil
     {
-        internal static Process AttachProcDump(ProcDumpInfo procDumpInfo, int processId, string processName)
+        internal static Process AttachProcDump(ProcDumpInfo procDumpInfo, int processId)
         {
-            return AttachProcDump(procDumpInfo.ProcDumpFilePath, processId, processName, procDumpInfo.DumpDirectory);
+            return AttachProcDump(procDumpInfo.ProcDumpFilePath, processId, procDumpInfo.DumpDirectory);
         }
 
         /// <summary>
@@ -57,9 +57,8 @@ namespace RunTests
         /// </summary>
         /// <param name="procDumpFilePath">The path to the procdump executable</param>
         /// <param name="processId">process id</param>
-        /// <param name="processName">process name</param>
         /// <param name="dumpDirectory">destination directory for dumps</param>
-        internal static Process AttachProcDump(string procDumpFilePath, int processId, string processName, string dumpDirectory)
+        internal static Process AttachProcDump(string procDumpFilePath, int processId, string dumpDirectory)
         {
             // /accepteula command line option to automatically accept the Sysinternals license agreement.
             // -ma	Write a 'Full' dump file. Includes All the Image, Mapped and Private memory.
