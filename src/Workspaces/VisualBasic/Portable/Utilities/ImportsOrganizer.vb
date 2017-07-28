@@ -19,9 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                     Dim lastImport = [imports](i - 1)
                     Dim currentImport = [imports](i)
 
-                    If NeedsGrouping(lastImport, currentImport) Then
+                    If NeedsGrouping(lastImport, currentImport) AndAlso
+                       Not currentImport.GetLeadingTrivia().Any(Function(t) t.IsEndOfLine()) Then
                         [imports] = [imports].Replace(
-                            currentImport, currentImport.WithPrependedLeadingTrivia(s_newLine))
+                        currentImport, currentImport.WithPrependedLeadingTrivia(s_newLine))
                     End If
                 Next
             End If

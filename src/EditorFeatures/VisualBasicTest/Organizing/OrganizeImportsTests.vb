@@ -723,5 +723,50 @@ Imports <xmlns:zz="http://NextNamespace">
 
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
         End Function
+
+        <WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestGrouping2() As Task
+            ' Make sure we don't insert extra newlines if they're already there.
+            Dim initial =
+<content><![CDATA[' Banner
+
+Imports System.Collections.Generic
+Imports System.Linq
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+
+Imports Roslyn.Utilities
+
+Imports IntList = System.Collections.Generic.List(Of Integer)
+
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Dim final =
+<content><![CDATA[' Banner
+
+Imports System.Collections.Generic
+Imports System.Linq
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+
+Imports Roslyn.Utilities
+
+Imports IntList = System.Collections.Generic.List(Of Integer)
+
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
+        End Function
     End Class
 End Namespace

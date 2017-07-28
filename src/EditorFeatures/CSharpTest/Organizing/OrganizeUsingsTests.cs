@@ -1071,5 +1071,47 @@ using IntList = System.Collections.Generic.List<int>;
 
             await CheckAsync(initial, final, placeSystemNamespaceFirst: true, separateImportGroups: true);
         }
+
+        [WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestGrouping2()
+        {
+            // Make sure we don't insert extra newlines if they're already there.
+            var initial =
+@"// Banner
+
+using System.Collections.Generic;
+using System.Linq;
+
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+
+using Roslyn.Utilities;
+
+using static System.Console;
+
+using IntList = System.Collections.Generic.List<int>;
+";
+
+            var final =
+@"// Banner
+
+using System.Collections.Generic;
+using System.Linq;
+
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+
+using Roslyn.Utilities;
+
+using static System.Console;
+
+using IntList = System.Collections.Generic.List<int>;
+";
+
+            await CheckAsync(initial, final, placeSystemNamespaceFirst: true, separateImportGroups: true);
+        }
     }
 }

@@ -29,8 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 if (organizedExternAliasList.Count > 0 && organizedUsingList.Count > 0)
                 {
                     var firstUsing = organizedUsingList[0];
-                    var newFirstUsing = firstUsing.WithPrependedLeadingTrivia(s_newLine);
-                    organizedUsingList = organizedUsingList.Replace(firstUsing, newFirstUsing);
+
+                    if (!firstUsing.GetLeadingTrivia().Any(t => t.IsEndOfLine()))
+                    {
+                        var newFirstUsing = firstUsing.WithPrependedLeadingTrivia(s_newLine);
+                        organizedUsingList = organizedUsingList.Replace(firstUsing, newFirstUsing);
+                    }
                 }
 
                 for (var i = 1; i < organizedUsingList.Count; i++)
@@ -38,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     var lastUsing = organizedUsingList[i - 1];
                     var currentUsing = organizedUsingList[i];
 
-                    if (NeedsGrouping(lastUsing, currentUsing))
+                    if (NeedsGrouping(lastUsing, currentUsing) &&
+                        !currentUsing.GetLeadingTrivia().Any(t => t.IsEndOfLine()))
                     {
                         var newCurrentUsing = currentUsing.WithPrependedLeadingTrivia(s_newLine);
                         organizedUsingList = organizedUsingList.Replace(currentUsing, newCurrentUsing);
