@@ -27,6 +27,5 @@
     <PackageReference Include="RoslynTools.ReferenceAssemblies" Version="$(RoslynToolsReferenceAssembliesVersion)" />
     <PackageReference Include="GitLink" Version="$(GitLinkVersion)" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="$(MicrosoftVSSDKBuildToolsVersion)" />
-    <PackageReference Include="ManagedEsent" Version="$(ManagedEsentVersion)" />
   </ItemGroup>
 </Project>
