@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public static readonly PerLanguageOption<bool> SeparateImportDirectiveGroups = new PerLanguageOption<bool>(
             nameof(GenerationOptions), nameof(SeparateImportDirectiveGroups), defaultValue: false,
             storageLocations: new OptionStorageLocation[] {
-                EditorConfigStorageLocation.ForBoolOption("dotnet_seperate_import_directive_groups"),
+                EditorConfigStorageLocation.ForBoolOption("dotnet_separate_import_directive_groups"),
                 new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(SeparateImportDirectiveGroups)}")});
     }
 }
