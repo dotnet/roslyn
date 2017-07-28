@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// If a local function is in the set, at some point in the code it is converted to a delegate and should then not be optimized to a struct closure.
             /// Also contains all lambdas (as they are converted to delegates implicitly).
             /// </summary>
-            public readonly HashSet<MethodSymbol> MethodsConvertedToDelegates;
+            public readonly PooledHashSet<MethodSymbol> MethodsConvertedToDelegates;
 
             /// <summary>
             /// True if the method signature can be rewritten to contain ref/out parameters.
@@ -36,19 +33,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Any scope that a method that <see cref="CanTakeRefParameters(MethodSymbol)"/> doesn't close over.
             /// If a scope is in this set, don't use a struct closure.
             /// </summary>
-            public readonly HashSet<BoundNode> ScopesThatCantBeStructs = new HashSet<BoundNode>();
+            public readonly PooledHashSet<BoundNode> ScopesThatCantBeStructs = PooledHashSet<BoundNode>.GetInstance();
 
             /// <summary>
             /// Blocks that are positioned between a block declaring some lifted variables
             /// and a block that contains the lambda that lifts said variables.
             /// If such block itself requires a closure, then it must lift parent frame pointer into the closure
             /// in addition to whatever else needs to be lifted.
-            /// 
-            /// NOTE: This information is computed in addition to the regular analysis of the tree and only needed for rewriting.
-            /// If someone only needs diagnostics or information about captures, this information is not necessary.
             /// <see cref="ComputeLambdaScopesAndFrameCaptures"/> needs to be called to compute this.
             /// </summary>
-            public HashSet<BoundNode> NeedsParentFrame;
+            public readonly PooledHashSet<BoundNode> NeedsParentFrame = PooledHashSet<BoundNode>.GetInstance();
 
             /// <summary>
             /// Optimized locations of lambdas. 
@@ -56,19 +50,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Lambda does not need to be placed in a frame that corresponds to its lexical scope if lambda does not reference any local state in that scope.
             /// It is advantageous to place lambdas higher in the scope tree, ideally in the innermost scope of all scopes that contain variables captured by a given lambda.
             /// Doing so reduces indirections needed when captured locals are accessed. For example locals from the innermost scope can be accessed with no indirection at all.
-            /// 
-            /// NOTE: This information is computed in addition to the regular analysis of the tree and only needed for rewriting.
-            /// If someone only needs diagnostics or information about captures, this information is not necessary.
             /// <see cref="ComputeLambdaScopesAndFrameCaptures"/> needs to be called to compute this.
             /// </summary>
-            public Dictionary<MethodSymbol, BoundNode> LambdaScopes;
+            public readonly SmallDictionary<MethodSymbol, BoundNode> LambdaScopes =
+                new SmallDictionary<MethodSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
 
             /// <summary>
             /// The root of the scope tree for this method.
             /// </summary>
             public readonly Scope ScopeTree;
 
-            private Analysis(Scope scopeTree, HashSet<MethodSymbol> methodsConvertedToDelegates)
+            private Analysis(Scope scopeTree, PooledHashSet<MethodSymbol> methodsConvertedToDelegates)
             {
                 ScopeTree = scopeTree;
                 MethodsConvertedToDelegates = methodsConvertedToDelegates;
@@ -76,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public static Analysis Analyze(BoundNode node, MethodSymbol method, DiagnosticBag diagnostics)
             {
-                var methodsConvertedToDelegates = new HashSet<MethodSymbol>();
+                var methodsConvertedToDelegates = PooledHashSet<MethodSymbol>.GetInstance();
                 var scopeTree = ScopeTreeBuilder.Build(
                     node,
                     method,
@@ -120,9 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal void ComputeLambdaScopesAndFrameCaptures(ParameterSymbol thisParam)
             {
                 RemoveUnneededReferences(thisParam);
-
-                LambdaScopes = new Dictionary<MethodSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
-                NeedsParentFrame = new HashSet<BoundNode>();
 
                 VisitClosures(ScopeTree, (scope, closure) =>
                 {
@@ -353,6 +342,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return null;
                 }
+            }
+
+            public void Free()
+            {
+                MethodsConvertedToDelegates.Free();
+                ScopesThatCantBeStructs.Free();
+                NeedsParentFrame.Free();
+                ScopeTree.Free();
             }
         }
     }
