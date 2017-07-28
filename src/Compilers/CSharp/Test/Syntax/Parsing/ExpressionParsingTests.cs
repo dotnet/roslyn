@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -1852,6 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(qs.Body.Continuation);
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
         public void TestFromGroupBy()
         {
             var text = "from a in A group b by c";
@@ -1891,6 +1892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(qs.Body.Continuation);
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
         public void TestFromGroupByIntoSelect()
         {
             var text = "from a in A group b by c into d select e";

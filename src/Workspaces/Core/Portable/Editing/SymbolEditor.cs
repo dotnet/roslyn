@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Gets the current symbol for a source symbol.
         /// </summary>
-        public async Task<ISymbol> GetCurrentSymbolAsync(ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<ISymbol> GetCurrentSymbolAsync(ISymbol symbol, CancellationToken cancellationToken = default)
         {
             var symbolId = DocumentationCommentId.CreateDeclarationId(symbol);
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Gets the current declarations for the specified symbol.
         /// </summary>
-        public async Task<IReadOnlyList<SyntaxNode>> GetCurrentDeclarationsAsync(ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IReadOnlyList<SyntaxNode>> GetCurrentDeclarationsAsync(ISymbol symbol, CancellationToken cancellationToken = default)
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
             return this.GetDeclarations(currentSymbol).ToImmutableReadOnlyListOrEmpty();
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public async Task<ISymbol> EditOneDeclarationAsync(
             ISymbol symbol,
             AsyncDeclarationEditAction editAction,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
 
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public Task<ISymbol> EditOneDeclarationAsync(
             ISymbol symbol,
             DeclarationEditAction editAction,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return this.EditOneDeclarationAsync(
                 symbol,
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editing
             ISymbol symbol,
             Location location,
             AsyncDeclarationEditAction editAction,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var sourceTree = location.SourceTree;
 
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Editing
             ISymbol symbol,
             Location location,
             DeclarationEditAction editAction,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return this.EditOneDeclarationAsync(
                 symbol,
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editing
             DocumentId documentId,
             int position,
             AsyncDeclarationEditAction editAction,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
             CheckSymbolArgument(currentSymbol, symbol);
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Editing
             ISymbol symbol,
             ISymbol member,
             AsyncDeclarationEditAction editAction,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
             CheckSymbolArgument(currentSymbol, symbol);
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Editing
             ISymbol symbol,
             ISymbol member,
             DeclarationEditAction editAction,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return this.EditOneDeclarationAsync(
                 symbol,
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public async Task<ISymbol> EditAllDeclarationsAsync(
             ISymbol symbol,
             AsyncDeclarationEditAction editAction,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
             CheckSymbolArgument(currentSymbol, symbol);
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public Task<ISymbol> EditAllDeclarationsAsync(
             ISymbol symbol,
             DeclarationEditAction editAction,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return this.EditAllDeclarationsAsync(
                 symbol,

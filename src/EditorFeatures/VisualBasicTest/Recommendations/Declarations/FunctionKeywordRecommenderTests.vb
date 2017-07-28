@@ -250,5 +250,11 @@ End Module
 
 </File>, "Function")
         End Function
+
+        <WorkItem(20837, "https://github.com/dotnet/roslyn/issues/20837")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExtensionAttribute() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>&lt;Extension&gt; |</ClassDeclaration>, "Function")
+        End Function
     End Class
 End Namespace

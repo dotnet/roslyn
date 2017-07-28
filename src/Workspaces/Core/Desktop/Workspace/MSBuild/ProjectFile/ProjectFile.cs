@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             buildManager.BeginBuild(parameters);
 
             // enable cancellation of build
-            CancellationTokenRegistration registration = default(CancellationTokenRegistration);
+            CancellationTokenRegistration registration = default;
             if (cancellationToken.CanBeCanceled)
             {
                 registration = cancellationToken.Register(() =>

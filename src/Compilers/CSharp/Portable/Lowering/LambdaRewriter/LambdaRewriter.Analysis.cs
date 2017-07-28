@@ -3,12 +3,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -18,60 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Perform a first analysis pass in preparation for removing all lambdas from a method body.  The entry point is Analyze.
         /// The results of analysis are placed in the fields seenLambda, blockParent, variableBlock, captured, and captures.
         /// </summary>
-        internal sealed class Analysis : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        internal sealed partial class Analysis
         {
-            private readonly MethodSymbol _topLevelMethod;
-
-            private MethodSymbol _currentParent;
-            private BoundNode _currentScope;
-
-            // Some syntactic forms have an "implicit" receiver.  When we encounter them, we set this to the
-            // syntax.  That way, in case we need to report an error about the receiver, we can use this
-            // syntax for the location when the receiver was implicit.
-            private SyntaxNode _syntaxWithReceiver;
-
-            /// <summary>
-            /// Set to true while we are analyzing the interior of an expression lambda.
-            /// </summary>
-            private bool _inExpressionLambda;
-
-            /// <summary>
-            /// Set to true of any lambda expressions were seen in the analyzed method body.
-            /// </summary>
-            public bool SeenLambda { get; private set; }
-
-            /// <summary>
-            /// For each scope that defines variables, identifies the nearest enclosing scope that defines variables.
-            /// </summary>
-            public readonly Dictionary<BoundNode, BoundNode> ScopeParent = new Dictionary<BoundNode, BoundNode>();
-
-            /// <summary>
-            /// For each captured variable, identifies the scope in which it will be moved to a frame class. This is
-            /// normally the node where the variable is introduced, but method parameters are moved
-            /// to a frame class within the body of the method.
-            /// </summary>
-            public readonly Dictionary<Symbol, BoundNode> VariableScope = new Dictionary<Symbol, BoundNode>();
-
-            /// <summary>
-            /// For each value in variableScope, identifies the closest owning method, lambda, or local function.
-            /// </summary>
-            public readonly Dictionary<BoundNode, MethodSymbol> ScopeOwner = new Dictionary<BoundNode, MethodSymbol>();
-
-            /// <summary>
-            /// The syntax nodes associated with each captured variable.
-            /// </summary>
-            public MultiDictionary<Symbol, SyntaxNode> CapturedVariables = new MultiDictionary<Symbol, SyntaxNode>();
-
-            /// <summary>
-            /// For each lambda in the code, the set of variables that it captures.
-            /// </summary>
-            public OrderedMultiDictionary<MethodSymbol, Symbol> CapturedVariablesByLambda = new OrderedMultiDictionary<MethodSymbol, Symbol>();
-
             /// <summary>
             /// If a local function is in the set, at some point in the code it is converted to a delegate and should then not be optimized to a struct closure.
             /// Also contains all lambdas (as they are converted to delegates implicitly).
             /// </summary>
-            public readonly HashSet<MethodSymbol> MethodsConvertedToDelegates = new HashSet<MethodSymbol>();
+            public readonly HashSet<MethodSymbol> MethodsConvertedToDelegates;
 
             /// <summary>
             /// True if the method signature can be rewritten to contain ref/out parameters.
@@ -112,47 +63,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public Dictionary<MethodSymbol, BoundNode> LambdaScopes;
 
-            private Analysis(MethodSymbol method)
-            {
-                Debug.Assert((object)method != null);
+            /// <summary>
+            /// The root of the scope tree for this method.
+            /// </summary>
+            public readonly Scope ScopeTree;
 
-                _currentParent = _topLevelMethod = method;
+            private Analysis(Scope scopeTree, HashSet<MethodSymbol> methodsConvertedToDelegates)
+            {
+                ScopeTree = scopeTree;
+                MethodsConvertedToDelegates = methodsConvertedToDelegates;
             }
 
-            public static Analysis Analyze(BoundNode node, MethodSymbol method)
+            public static Analysis Analyze(BoundNode node, MethodSymbol method, DiagnosticBag diagnostics)
             {
-                var analysis = new Analysis(method);
-                analysis.Analyze(node);
-                return analysis;
-            }
-
-            private void Analyze(BoundNode node)
-            {
-                _currentScope = FindNodeToAnalyze(node);
-
-                Debug.Assert(!_inExpressionLambda);
-                Debug.Assert((object)_topLevelMethod != null);
-                Debug.Assert((object)_currentParent != null);
-
-                foreach (ParameterSymbol parameter in _topLevelMethod.Parameters)
-                {
-                    // parameters are counted as if they are inside the block
-                    VariableScope[parameter] = _currentScope;
-                }
-
-                Visit(node);
-
-                // scopeOwner may already contain the same key/value if _currentScope is a BoundBlock.
-                MethodSymbol shouldBeCurrentParent;
-                if (ScopeOwner.TryGetValue(_currentScope, out shouldBeCurrentParent))
-                {
-                    // Check to make sure the above comment is right.
-                    Debug.Assert(_currentParent == shouldBeCurrentParent);
-                }
-                else
-                {
-                    ScopeOwner.Add(_currentScope, _currentParent);
-                }
+                var methodsConvertedToDelegates = new HashSet<MethodSymbol>();
+                var scopeTree = ScopeTreeBuilder.Build(
+                    node,
+                    method,
+                    methodsConvertedToDelegates,
+                    diagnostics);
+                return new Analysis(scopeTree, methodsConvertedToDelegates);
             }
 
             private static BoundNode FindNodeToAnalyze(BoundNode node)
@@ -185,86 +115,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Optimizes local functions such that if a local function only references other local functions without closures, it itself doesn't need a closure.
-            /// </summary>
-            private void RemoveUnneededReferences()
-            {
-                // Note: methodGraph is the inverse of the dependency graph
-                var methodGraph = new MultiDictionary<MethodSymbol, MethodSymbol>();
-                var capturesThis = new HashSet<MethodSymbol>();
-                var capturesVariable = new HashSet<MethodSymbol>();
-                var visitStack = new Stack<MethodSymbol>();
-                foreach (var methodKvp in CapturedVariablesByLambda)
-                {
-                    foreach (var value in methodKvp.Value)
-                    {
-                        var method = value as MethodSymbol;
-                        if (method != null)
-                        {
-                            methodGraph.Add(method, methodKvp.Key);
-                        }
-                        else if (value == _topLevelMethod.ThisParameter)
-                        {
-                            if (capturesThis.Add(methodKvp.Key))
-                            {
-                                visitStack.Push(methodKvp.Key);
-                            }
-                        }
-                        else if (capturesVariable.Add(methodKvp.Key) && !capturesThis.Contains(methodKvp.Key)) // if capturesThis contains methodKvp, it's already in the stack.
-                        {
-                            visitStack.Push(methodKvp.Key);
-                        }
-                    }
-                }
-
-                while (visitStack.Count > 0)
-                {
-                    var current = visitStack.Pop();
-                    var setToAddTo = capturesVariable.Contains(current) ? capturesVariable : capturesThis;
-                    foreach (var capturesCurrent in methodGraph[current])
-                    {
-                        if (setToAddTo.Add(capturesCurrent))
-                        {
-                            visitStack.Push(capturesCurrent);
-                        }
-                    }
-                }
-
-                var capturedVariablesByLambdaNew = new OrderedMultiDictionary<MethodSymbol, Symbol>();
-                foreach (var old in CapturedVariablesByLambda)
-                {
-                    if (capturesVariable.Contains(old.Key))
-                    {
-                        foreach (var oldValue in old.Value)
-                        {
-                            capturedVariablesByLambdaNew.Add(old.Key, oldValue);
-                        }
-                    }
-                    else if (capturesThis.Contains(old.Key))
-                    {
-                        capturedVariablesByLambdaNew.Add(old.Key, _topLevelMethod.ThisParameter);
-                    }
-                }
-                CapturedVariablesByLambda = capturedVariablesByLambdaNew;
-            }
-
-            /// <summary>
             /// Create the optimized plan for the location of lambda methods and whether scopes need access to parent scopes
             ///  </summary>
-            internal void ComputeLambdaScopesAndFrameCaptures()
+            internal void ComputeLambdaScopesAndFrameCaptures(ParameterSymbol thisParam)
             {
+                RemoveUnneededReferences(thisParam);
+
                 LambdaScopes = new Dictionary<MethodSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
                 NeedsParentFrame = new HashSet<BoundNode>();
 
-                RemoveUnneededReferences();
-
-                foreach (var kvp in CapturedVariablesByLambda)
+                VisitClosures(ScopeTree, (scope, closure) =>
                 {
-                    var lambda = kvp.Key;
-                    var capturedVars = kvp.Value;
+                    if (closure.CapturedVariables.Count > 0)
+                    {
+                        (Scope innermost, Scope outermost) = FindLambdaScopeRange(closure, scope);
+                        RecordClosureScope(innermost, outermost, closure);
+                    }
+                });
 
-                    var allCapturedVars = ArrayBuilder<Symbol>.GetInstance(capturedVars.Count);
-                    allCapturedVars.AddRange(capturedVars);
+                (Scope innermost, Scope outermost) FindLambdaScopeRange(Closure closure, Scope closureScope)
+                {
+                    Scope innermost = null;
+                    Scope outermost = null;
+
+                    var capturedVars = PooledHashSet<Symbol>.GetInstance();
+                    capturedVars.AddAll(closure.CapturedVariables);
 
                     // If any of the captured variables are local functions we'll need
                     // to add the captured variables of that local function to the current
@@ -272,54 +147,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // captures anything "above" the current scope then parent frame
                     // is itself captured (so that the current lambda can call that
                     // local function).
-                    foreach (var captured in capturedVars)
+                    foreach (var captured in closure.CapturedVariables)
                     {
-                        var capturedLocalFunction = captured as LocalFunctionSymbol;
-                        if (capturedLocalFunction != null)
+                        if (captured is LocalFunctionSymbol localFunc)
                         {
-                            allCapturedVars.AddRange(
-                                CapturedVariablesByLambda[capturedLocalFunction]);
+                            var (found, _) = GetVisibleClosure(closureScope, localFunc);
+                            capturedVars.AddAll(found.CapturedVariables);
                         }
                     }
 
-                    // get innermost and outermost scopes from which a lambda captures
-                    int innermostScopeDepth = -1;
-                    BoundNode innermostScope = null;
-
-                    int outermostScopeDepth = int.MaxValue;
-                    BoundNode outermostScope = null;
-
-                    foreach (var captured in allCapturedVars)
+                    for (var curScope = closureScope;
+                         curScope != null && capturedVars.Count > 0;
+                         curScope = curScope.Parent)
                     {
-                        BoundNode curBlock = null;
-                        int curBlockDepth;
-
-                        if (!VariableScope.TryGetValue(captured, out curBlock))
+                        if (!(capturedVars.Overlaps(curScope.DeclaredVariables) ||
+                              capturedVars.Overlaps(curScope.Closures.Select(c => c.OriginalMethodSymbol))))
                         {
-                            // this is something that is not defined in a block, like "this"
-                            // Since it is defined outside of the method, the depth is -1
-                            curBlockDepth = -1;
-                        }
-                        else
-                        {
-                            curBlockDepth = BlockDepth(curBlock);
+                            continue;
                         }
 
-                        if (curBlockDepth > innermostScopeDepth)
+                        outermost = curScope;
+                        if (innermost == null)
                         {
-                            innermostScopeDepth = curBlockDepth;
-                            innermostScope = curBlock;
+                            innermost = curScope;
                         }
 
-                        if (curBlockDepth < outermostScopeDepth)
-                        {
-                            outermostScopeDepth = curBlockDepth;
-                            outermostScope = curBlock;
-                        }
+                        capturedVars.RemoveAll(curScope.DeclaredVariables);
+                        capturedVars.RemoveAll(curScope.Closures.Select(c => c.OriginalMethodSymbol));
                     }
 
-                    allCapturedVars.Free();
+                    // If any captured variables are left, they're captured above method scope
+                    if (capturedVars.Count > 0)
+                    {
+                        outermost = null;
+                    }
 
+                    capturedVars.Free();
+
+                    return (innermost, outermost);
+                }
+
+                void RecordClosureScope(Scope innermost, Scope outermost, Closure closure)
+                {
                     // 1) if there is innermost scope, lambda goes there as we cannot go any higher.
                     // 2) scopes in [innermostScope, outermostScope) chain need to have access to the parent scope.
                     //
@@ -330,24 +199,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   Such lambda will be placed in a closure frame that corresponds to the method's outer block
                     //   and this frame will also lift original `this` as a field when created by its parent.
                     //   Note that it is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
-                    if (innermostScope != null)
+                    if (innermost != null)
                     {
-                        LambdaScopes.Add(lambda, innermostScope);
+                        LambdaScopes.Add(closure.OriginalMethodSymbol, innermost.BoundNode);
 
                         // Disable struct closures on methods converted to delegates, as well as on async and iterator methods.
-                        var markAsNoStruct = !CanTakeRefParameters(lambda);
+                        var markAsNoStruct = !CanTakeRefParameters(closure.OriginalMethodSymbol);
                         if (markAsNoStruct)
                         {
-                            ScopesThatCantBeStructs.Add(innermostScope);
+                            ScopesThatCantBeStructs.Add(innermost.BoundNode);
                         }
 
-                        while (innermostScope != outermostScope)
+                        while (innermost != outermost)
                         {
-                            NeedsParentFrame.Add(innermostScope);
-                            ScopeParent.TryGetValue(innermostScope, out innermostScope);
-                            if (markAsNoStruct)
+                            NeedsParentFrame.Add(innermost.BoundNode);
+                            innermost = innermost.Parent;
+                            if (markAsNoStruct && innermost != null)
                             {
-                                ScopesThatCantBeStructs.Add(innermostScope);
+                                ScopesThatCantBeStructs.Add(innermost.BoundNode);
                             }
                         }
                     }
@@ -355,293 +224,135 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Compute the nesting depth of a given block.
-            /// Top-most block (where method locals and parameters are defined) are at the depth 0.
+            /// Walk up the scope tree looking for a variable declaration.
             /// </summary>
-            private int BlockDepth(BoundNode node)
+            public static Scope GetVariableDeclarationScope(Scope startingScope, Symbol variable)
             {
-                // TODO: this could be precomputed and stored by analysis phase
-                int result = -1;
-                while (node != null)
+                if (variable is ParameterSymbol p && p.IsThis)
                 {
-                    result = result + 1;
-                    if (!ScopeParent.TryGetValue(node, out node))
+                    return null;
+                }
+
+                var currentScope = startingScope;
+                while (currentScope != null)
+                {
+                    switch (variable.Kind)
                     {
-                        break;
+                        case SymbolKind.Parameter:
+                        case SymbolKind.Local:
+                            if (currentScope.DeclaredVariables.Contains(variable))
+                            {
+                                return currentScope;
+                            }
+                            break;
+
+                        case SymbolKind.Method:
+                            foreach (var closure in currentScope.Closures)
+                            {
+                                if (closure.OriginalMethodSymbol == variable)
+                                {
+                                    return currentScope;
+                                }
+                            }
+                            break;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(variable.Kind);
                     }
+                    currentScope = currentScope.Parent;
                 }
-
-                return result;
+                return null;
             }
 
-            public override BoundNode VisitCatchBlock(BoundCatchBlock node)
+            /// <summary>
+            /// Find the parent <see cref="Scope"/> of the <see cref="Scope"/> corresponding to
+            /// the given <see cref="BoundNode"/>.
+            /// </summary>
+            public static Scope GetScopeParent(Scope treeRoot, BoundNode scopeNode)
             {
-                var locals = node.Locals;
+                var correspondingScope = GetScopeWithMatchingBoundNode(treeRoot, scopeNode);
+                return correspondingScope.Parent;
+            }
 
-                if (locals.IsEmpty)
+            /// <summary>
+            /// Finds a <see cref="Scope" /> with a matching <see cref="BoundNode"/>
+            /// as the one given.
+            /// </summary>
+            public static Scope GetScopeWithMatchingBoundNode(Scope treeRoot, BoundNode node)
+            {
+                return Helper(treeRoot) ?? throw ExceptionUtilities.Unreachable;
+
+                Scope Helper(Scope currentScope)
                 {
-                    return base.VisitCatchBlock(node);
-                }
-
-                var previousBlock = PushBlock(node, locals);
-                var result = base.VisitCatchBlock(node);
-                PopBlock(previousBlock);
-                return node;
-            }
-
-            private BoundNode PushBlock(BoundNode node, ImmutableArray<LocalSymbol> locals)
-            {
-                // blocks are not allowed in expression lambda
-                Debug.Assert(!_inExpressionLambda);
-
-                var previousBlock = _currentScope;
-                _currentScope = node;
-                if (_currentScope != previousBlock) // not top-level node of the method
-                {
-                    // (Except for the top-level block) record the parent-child block structure
-                    ScopeParent[_currentScope] = previousBlock;
-                }
-
-                foreach (var local in locals)
-                {
-                    VariableScope[local] = _currentScope;
-                }
-
-                ScopeOwner.Add(_currentScope, _currentParent);
-
-                return previousBlock;
-            }
-
-            private void PopBlock(BoundNode previousBlock)
-            {
-                _currentScope = previousBlock;
-            }
-
-            public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-            {
-                var locals = node.InnerLocals;
-                if (locals.IsEmpty)
-                {
-                    // no variables declared inside the switch statement.
-                    return base.VisitSwitchStatement(node);
-                }
-
-                var previousBlock = PushBlock(node, locals);
-                var result = base.VisitSwitchStatement(node);
-                PopBlock(previousBlock);
-                return result;
-            }
-
-            public override BoundNode VisitBlock(BoundBlock node)
-            {
-                if (node.Locals.IsEmpty)
-                {
-                    // ignore blocks that declare no variables.
-                    return base.VisitBlock(node);
-                }
-
-                VisitBlockInternal(node);
-                return node;
-            }
-
-            private void VisitBlockInternal(BoundBlock node)
-            {
-                var previousBlock = PushBlock(node, node.Locals);
-                base.VisitBlock(node);
-                PopBlock(previousBlock);
-            }
-
-            public override BoundNode VisitSequence(BoundSequence node)
-            {
-                if (node.Locals.IsDefaultOrEmpty)
-                {
-                    // ignore blocks that declare no variables.
-                    return base.VisitSequence(node);
-                }
-
-                var previousBlock = PushBlock(node, node.Locals);
-                var result = base.VisitSequence(node);
-                PopBlock(previousBlock);
-                return result;
-            }
-
-            public override BoundNode VisitCall(BoundCall node)
-            {
-                if (node.Method.MethodKind == MethodKind.LocalFunction)
-                {
-                    // Use OriginalDefinition to strip generic type parameters
-                    ReferenceVariable(node.Syntax, node.Method.OriginalDefinition);
-                }
-                return base.VisitCall(node);
-            }
-
-            public override BoundNode VisitLambda(BoundLambda node)
-            {
-                MethodsConvertedToDelegates.Add(node.Symbol.OriginalDefinition);
-                return VisitLambdaOrFunction(node);
-            }
-
-            public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
-            {
-                if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
-                {
-                    // Use OriginalDefinition to strip generic type parameters
-                    ReferenceVariable(node.Syntax, node.MethodOpt.OriginalDefinition);
-                    MethodsConvertedToDelegates.Add(node.MethodOpt.OriginalDefinition);
-                }
-                return base.VisitDelegateCreationExpression(node);
-            }
-
-            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
-            {
-                VariableScope[node.Symbol] = _currentScope;
-                return VisitLambdaOrFunction(node);
-            }
-
-            private BoundNode VisitLambdaOrFunction(IBoundLambdaOrFunction node)
-            {
-                Debug.Assert((object)node.Symbol != null);
-                SeenLambda = true;
-                var oldParent = _currentParent;
-                var oldBlock = _currentScope;
-                _currentParent = node.Symbol;
-                _currentScope = node.Body;
-                ScopeParent[_currentScope] = oldBlock;
-                ScopeOwner.Add(_currentScope, _currentParent);
-                var wasInExpressionLambda = _inExpressionLambda;
-                _inExpressionLambda = _inExpressionLambda || ((node as BoundLambda)?.Type.IsExpressionTree() ?? false);
-
-                if (!_inExpressionLambda)
-                {
-                    // for the purpose of constructing frames parameters are scoped as if they are inside the lambda block
-                    foreach (var parameter in node.Symbol.Parameters)
+                    if (currentScope.BoundNode == node)
                     {
-                        VariableScope[parameter] = _currentScope;
+                        return currentScope;
                     }
 
-                    foreach (var local in node.Body.Locals)
+                    foreach (var nestedScope in currentScope.NestedScopes)
                     {
-                        VariableScope[local] = _currentScope;
+                        var found = Helper(nestedScope);
+                        if (found != null)
+                        {
+                            return found;
+                        }
                     }
-                }
 
-                var result = base.VisitBlock(node.Body);
-                _inExpressionLambda = wasInExpressionLambda;
-                _currentParent = oldParent;
-                _currentScope = oldBlock;
-                return result;
+                    return null;
+                }
             }
 
-            private void ReferenceVariable(SyntaxNode syntax, Symbol symbol)
+            /// <summary>
+            /// Walk up the scope tree looking for a closure.
+            /// </summary>
+            /// <returns>
+            /// A tuple of the found <see cref="Closure"/> and the <see cref="Scope"/> it was found in.
+            /// </returns>
+            public static (Closure, Scope) GetVisibleClosure(Scope startingScope, MethodSymbol closureSymbol)
             {
-                if (symbol is LocalSymbol localSymbol && localSymbol.IsConst)
+                var currentScope = startingScope;
+                while (currentScope != null)
                 {
-                    // "constant variables" need not be captured
-                    return;
-                }
-
-                // "symbol == lambda" could happen if we're recursive
-                if (_currentParent is MethodSymbol lambda && symbol != lambda && symbol.ContainingSymbol != lambda)
-                {
-                    CapturedVariables.Add(symbol, syntax);
-
-                    // mark the variable as captured in each enclosing lambda up to the variable's point of declaration.
-                    while ((object)lambda != null &&
-                           symbol != lambda &&
-                           symbol.ContainingSymbol != lambda &&
-                           // Necessary because the EE can insert non-closure synthesized method symbols
-                           IsClosure(lambda))
+                    foreach (var closure in currentScope.Closures)
                     {
-                        CapturedVariablesByLambda.Add(lambda, symbol);
-                        lambda = lambda.ContainingSymbol as MethodSymbol;
+                        if (closure.OriginalMethodSymbol == closureSymbol)
+                        {
+                            return (closure, currentScope);
+                        }
                     }
+                    currentScope = currentScope.Parent;
                 }
-            }
-
-            private static bool IsClosure(MethodSymbol symbol)
-            {
-                switch (symbol.MethodKind)
-                {
-                    case MethodKind.LambdaMethod:
-                    case MethodKind.LocalFunction:
-                        return true;
-
-                    default:
-                        return false;
-                }
-            }
-
-            private BoundNode VisitSyntaxWithReceiver(SyntaxNode syntax, BoundNode receiver)
-            {
-                var previousSyntax = _syntaxWithReceiver;
-                _syntaxWithReceiver = syntax;
-                var result = Visit(receiver);
-                _syntaxWithReceiver = previousSyntax;
-                return result;
-            }
-
-            public override BoundNode VisitMethodGroup(BoundMethodGroup node)
-            {
                 throw ExceptionUtilities.Unreachable;
             }
 
-            public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+            /// <summary>
+            /// Finds a <see cref="Closure"/> with a matching original symbol somewhere in the given scope or nested scopes.
+            /// </summary>
+            public static Closure GetClosureInTree(Scope treeRoot, MethodSymbol closureSymbol)
             {
-                _syntaxWithReceiver = node.Syntax;
-                return base.VisitPropertyAccess(node);
-            }
+                return Helper(treeRoot) ?? throw ExceptionUtilities.Unreachable;
 
-            public override BoundNode VisitFieldAccess(BoundFieldAccess node)
-            {
-                _syntaxWithReceiver = node.Syntax;
-                return base.VisitFieldAccess(node);
-            }
-
-            public override BoundNode VisitEventAccess(BoundEventAccess node)
-            {
-                _syntaxWithReceiver = node.Syntax;
-                return base.VisitEventAccess(node);
-            }
-
-            public override BoundNode VisitThisReference(BoundThisReference node)
-            {
-                var thisParam = _topLevelMethod.ThisParameter;
-                if (thisParam != null)
+                Closure Helper(Scope scope)
                 {
-                    ReferenceVariable(node.Syntax, thisParam);
+                    foreach (var closure in scope.Closures)
+                    {
+                        if (closure.OriginalMethodSymbol == closureSymbol)
+                        {
+                            return closure;
+                        }
+                    }
+
+                    foreach (var nestedScope in scope.NestedScopes)
+                    {
+                        var found = Helper(nestedScope);
+                        if (found != null)
+                        {
+                            return found;
+                        }
+                    }
+
+                    return null;
                 }
-                else
-                {
-                    // This can occur in a delegate creation expression because the method group
-                    // in the argument can have a "this" receiver even when "this"
-                    // is not captured because a static method is selected.  But we do preserve
-                    // the method group and its receiver in the bound tree.
-                    // No need to capture "this" in such case.
-
-                    // TODO: Why don't we drop "this" while lowering if method is static? 
-                    //       Actually, considering that method group expression does not evaluate to a particular value 
-                    //       why do we have it in the lowered tree at all?
-                }
-
-                return base.VisitThisReference(node);
-            }
-
-            public override BoundNode VisitBaseReference(BoundBaseReference node)
-            {
-                ReferenceVariable(node.Syntax, _topLevelMethod.ThisParameter);
-                return base.VisitBaseReference(node);
-            }
-
-            public override BoundNode VisitParameter(BoundParameter node)
-            {
-                ReferenceVariable(node.Syntax, node.ParameterSymbol);
-                return base.VisitParameter(node);
-            }
-
-            public override BoundNode VisitLocal(BoundLocal node)
-            {
-                ReferenceVariable(node.Syntax, node.LocalSymbol);
-                return base.VisitLocal(node);
             }
         }
     }

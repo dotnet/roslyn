@@ -144,5 +144,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             var initializerTypeInfo = semanticModel.GetTypeInfo(initializer, cancellationToken);
             return !initializerTypeInfo.Type.IsErrorType();
         }
+
+        protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!declaration.Type.IsVar)
+            {
+                // If the type is not 'var', this analyze has no work to do
+                return false;
+            }
+
+            // The base analyzer may impose further limitations
+            return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
+        }
     }
 }

@@ -242,9 +242,9 @@ class Test
             }
         }
 
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         /// <remarks>Based on LambdaTests.TestLambdaErrors03</remarks>
         [Fact]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         public void TestVarianceConversionCycle()
         {
             // To determine which overload is better, we have to try to convert D<IIn<I>> to D<I>
@@ -271,9 +271,9 @@ class C
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(D<IIn<I>>)", "C.Foo(D<I>)"));
         }
 
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
         [Fact]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         public void TestVarianceConversionInfiniteExpansion01()
         {
             // IC<double> is convertible to IN<IC<string>> if and only
@@ -296,9 +296,9 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "bar").WithArguments("IC<double>", "IN<IC<string>>"));
         }
 
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
         [Fact]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         public void TestVarianceConversionInfiniteExpansion02()
         {
             var text = @"

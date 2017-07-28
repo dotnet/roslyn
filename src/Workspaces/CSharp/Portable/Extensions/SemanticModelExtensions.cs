@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (!CanBindToken(token))
             {
-                return default(SymbolInfo);
+                return default;
             }
 
             var expression = token.Parent as ExpressionSyntax;
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return semanticModel.GetSymbolInfo(constructorInitializer);
             }
 
-            return default(SymbolInfo);
+            return default;
         }
 
         private static bool CanBindToken(SyntaxToken token)

@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _semanticModel = null;
             _syntaxFacts = null;
             _objectCreationExpression = null;
-            _cancellationToken = default(CancellationToken);
+            _cancellationToken = default;
             _containingStatement = null;
-            _valuePattern = default(SyntaxNodeOrToken);
+            _valuePattern = default;
             _initializedSymbol = null;
         }
 

@@ -2,12 +2,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using StreamJsonRpc;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -18,6 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal abstract class JsonRpcEx : IDisposable
     {
         private readonly JsonRpc _rpc;
+
+        private JsonRpcDisconnectedEventArgs _debuggingLastDisconnectReason;
+        private string _debuggingLastDisconnectCallstack;
 
         public JsonRpcEx(Stream stream, object callbackTarget, bool useThisAsCallback)
         {
@@ -42,12 +48,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 await _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
-            catch
+            catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
+                // if any exception is thrown unrelated to cancellation, then we will rethrow the exception
                 cancellationToken.ThrowIfCancellationRequested();
                 throw;
             }
@@ -61,12 +64,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
-            catch
+            catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
-                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
-                // the exception
+                // if any exception is thrown unrelated to cancellation, then we will rethrow the exception
                 cancellationToken.ThrowIfCancellationRequested();
                 throw;
             }
@@ -84,6 +84,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
         }
 
+        private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return true;
+            }
+
+            // save extra info using NFW
+            ReportExtraInfoAsNFW(ex);
+
+            // make it to explicitly crash to get better info
+            FatalError.Report(ex);
+
+            GC.KeepAlive(_debuggingLastDisconnectReason);
+            GC.KeepAlive(_debuggingLastDisconnectCallstack);
+
+            return Contract.FailWithReturn<bool>("shouldn't be able to reach here");
+        }
+
+        private void ReportExtraInfoAsNFW(Exception ex)
+        {
+            WatsonReporter.Report("RemoteHost Failed", ex, u =>
+            {
+                try
+                {
+                    // we will record dumps for all service hub processes
+                    foreach (var p in Process.GetProcessesByName("ServiceHub.RoslynCodeAnalysisService32"))
+                    {
+                        // include all remote host processes
+                        u.AddProcessDump(p.Id);
+                    }
+
+                    // include all service hub logs as well
+                    var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
+                    if (Directory.Exists(logPath))
+                    {
+                        // attach all log files that are modified less than 1 day before.
+                        var now = DateTime.UtcNow;
+                        var oneDay = TimeSpan.FromDays(1);
+
+                        foreach (var file in Directory.EnumerateFiles(logPath, "*.log"))
+                        {
+                            var lastWrite = File.GetLastWriteTimeUtc(file);
+                            if (now - lastWrite > oneDay)
+                            {
+                                continue;
+                            }
+
+                            u.AddFile(file);
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore issue
+                }
+
+                // 0 means send watson
+                return 0;
+            });
+        }
+
         protected void Disconnect()
         {
             _rpc.Dispose();
@@ -99,6 +161,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         protected virtual void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             // do nothing
+            _debuggingLastDisconnectReason = e;
+            _debuggingLastDisconnectCallstack = new StackTrace().ToString();
         }
 
         public void Dispose()

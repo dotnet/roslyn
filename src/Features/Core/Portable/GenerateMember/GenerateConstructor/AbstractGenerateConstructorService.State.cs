@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             public IList<RefKind> ParameterRefKinds { get; private set; }
             public ImmutableArray<ITypeSymbol> ParameterTypes { get; private set; }
 
-            public IMethodSymbol DelegatedConstructorOpt { get; private set; }
-
             public SyntaxToken Token { get; private set; }
 
             public bool IsConstructorInitializerGeneration { get; private set; }

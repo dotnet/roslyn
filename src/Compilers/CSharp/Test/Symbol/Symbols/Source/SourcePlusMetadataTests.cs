@@ -171,7 +171,7 @@ namespace NS
         }
 
         [WorkItem(527531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527531")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18985")]
+        [Fact]
         public void InterfaceName()
         {
             var text = @"

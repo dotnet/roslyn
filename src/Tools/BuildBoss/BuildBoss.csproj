@@ -1,14 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{9C0660D9-48CA-40E1-BABA-8F6A1F11FE10}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>BuildBoss</RootNamespace>
-    <AssemblyName>BuildBoss</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <UseVSHostingProcess>false</UseVSHostingProcess>
@@ -24,24 +21,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="Microsoft.Build.Logging.StructuredLogger" Version="$(MicrosoftBuildLoggingStructuredLoggerVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ICheckerUtil.cs" />
-    <Compile Include="PackageReference.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="ProjectData.cs" />
-    <Compile Include="ProjectReferenceEntry.cs" />
-    <Compile Include="ProjectUtil.cs" />
-    <Compile Include="ProjectKey.cs" />
-    <Compile Include="ProjectType.cs" />
-    <Compile Include="ProjectCheckerUtil.cs" />
-    <Compile Include="RoslynProjectData.cs" />
-    <Compile Include="SharedUtil.cs" />
-    <Compile Include="ProjectEntry.cs" />
-    <Compile Include="SolutionCheckerUtil.cs" />
-    <Compile Include="SolutionUtil.cs" />
-    <Compile Include="StructuredLoggerCheckerUtil.cs" />
-    <Compile Include="TargetsCheckerUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -3744,7 +3744,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAppropriateDiagnosticOnMissingQualifier()
         {
-            await TestDiagnosticSeverityAndCountAsync(
+            await TestDiagnosticInfoAsync(
 @"class C
 {
     int SomeProperty { get; set; }
@@ -3755,7 +3755,6 @@ class Program
     }
 }",
                 options: Option(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning),
-                diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }

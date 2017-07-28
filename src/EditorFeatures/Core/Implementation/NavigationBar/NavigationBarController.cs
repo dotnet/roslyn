@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _modelTask = Task.FromResult(
                 new NavigationBarModel(
                     SpecializedCollections.EmptyList<NavigationBarItem>(),
-                    default(VersionStamp),
+                    default,
                     null));
 
             _selectedItemInfoTask = Task.FromResult(new NavigationBarSelectedTypeAndMember(null, null));

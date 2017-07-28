@@ -149,6 +149,21 @@ function Ensure-MSBuild([switch]$xcopy = $false) {
     return $p
 }
 
+# Returns the msbuild exe path and directory as a single return. This makes it easy 
+# to do one line MSBuild configuration in scripts
+#   $msbuild, $msbuildDir = Ensure-MSBuildAndDir
+function Ensure-MSBuildAndDir([string]$msbuildDir) {
+    if ($msbuildDir -eq "") {
+        $msbuild = Ensure-MSBuild
+        $msbuildDir = Split-Path -parent $msbuild
+    }
+    else {
+        $msbuild = Join-Path $msbuildDir "msbuild.exe"
+    }
+
+    return $msbuild, $msbuildDir
+}
+
 function Create-Directory([string]$dir) {
     New-Item $dir -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
 }
@@ -314,7 +329,6 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
     else {
         $all = @(
             "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
-            "Closed Toolset:build\ToolsetPackages\ClosedToolset.csproj",
             "Roslyn:Roslyn.sln",
             "Samples:src\Samples\Samples.sln",
             "Templates:src\Setup\Templates\Templates.sln",

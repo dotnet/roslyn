@@ -179,6 +179,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
+        Public ReadOnly Property Option_Report_invalid_placeholders_in_string_dot_format_calls As String
+            Get
+                Return BasicVSResources.Report_invalid_placeholders_in_string_dot_format_calls
+            End Get
+        End Property
+
         Public ReadOnly Property Option_RenameTrackingPreview As String
             Get
                 Return BasicVSResources.Show_preview_for_rename_tracking

@@ -16029,6 +16029,58 @@ BC40001: 'Public Overrides Function M5() As (c As (notA As Integer, notB As Inte
         End Sub
 
         <Fact>
+        Public Sub OverriddenMethodWithNoTupleNamesInReturn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Function M6() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Function M6() As (Integer, Integer)
+        Return (1, 2)
+    End Function
+    Sub M()
+        Dim result = Me.M6()
+        Dim result2 = MyBase.M6()
+        System.Console.Write(result.a)
+        System.Console.Write(result2.a)
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30456: 'a' is not a member of '(Integer, Integer)'.
+        System.Console.Write(result.a)
+                             ~~~~~~~~
+</errors>)
+
+            Dim m6 = comp.GetMember(Of MethodSymbol)("Derived.M6").ReturnType
+            Assert.Equal("(System.Int32, System.Int32)", m6.ToTestDisplayString())
+
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+            Dim invocation = nodes.OfType(Of InvocationExpressionSyntax)().ElementAt(0)
+            Assert.Equal("Me.M6()", invocation.ToString())
+            Assert.Equal("Function Derived.M6() As (System.Int32, System.Int32)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString())
+
+            Dim invocation2 = nodes.OfType(Of InvocationExpressionSyntax)().ElementAt(1)
+            Assert.Equal("MyBase.M6()", invocation2.ToString())
+            Assert.Equal("Function Base.M6() As (a As System.Int32, b As System.Int32)", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
         Public Sub OverriddenMethodWithDifferentTupleNamesInReturnUsingTypeArg()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -17201,9 +17253,6 @@ additionalReferences:=s_valueTupleRefs)
 
             compDifferent2.AssertTheseDiagnostics(
 <errors>
-BC40001: 'Public Overrides Function M() As (Integer, Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
-    Public Overrides Function M() As (Integer, Integer)
-                              ~
 </errors>)
 
         End Sub
@@ -17283,6 +17332,125 @@ BC40001: 'Public Overrides Property P4 As (notA As Integer, notB As Integer)?' c
 BC40001: 'Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Property P5 As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
     Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)
                               ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub OverriddenPropertyWithNoTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Property P6 As (a As Integer, b As Integer)
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Property P6 As (Integer, Integer)
+    Sub M()
+        Dim result = Me.P6
+        Dim result2 = MyBase.P6
+        System.Console.Write(result.a)
+        System.Console.Write(result2.a)
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+            Dim propertyAccess = nodes.OfType(Of MemberAccessExpressionSyntax)().ElementAt(0)
+            Assert.Equal("Me.P6", propertyAccess.ToString())
+            Assert.Equal("Property Derived.P6 As (System.Int32, System.Int32)", model.GetSymbolInfo(propertyAccess).Symbol.ToTestDisplayString())
+
+            Dim propertyAccess2 = nodes.OfType(Of MemberAccessExpressionSyntax)().ElementAt(1)
+            Assert.Equal("MyBase.P6", propertyAccess2.ToString())
+            Assert.Equal("Property Base.P6 As (a As System.Int32, b As System.Int32)", model.GetSymbolInfo(propertyAccess2).Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub OverriddenPropertyWithNoTupleNamesWithValueTuple()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Property P6 As (a As Integer, b As Integer)
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Property P6 As System.ValueTuple(Of Integer, Integer)
+    Sub M()
+        Dim result = Me.P6
+        Dim result2 = MyBase.P6
+        System.Console.Write(result.a)
+        System.Console.Write(result2.a)
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+            Dim propertyAccess = nodes.OfType(Of MemberAccessExpressionSyntax)().ElementAt(0)
+            Assert.Equal("Me.P6", propertyAccess.ToString())
+            Assert.Equal("Property Derived.P6 As (System.Int32, System.Int32)", model.GetSymbolInfo(propertyAccess).Symbol.ToTestDisplayString())
+
+            Dim propertyAccess2 = nodes.OfType(Of MemberAccessExpressionSyntax)().ElementAt(1)
+            Assert.Equal("MyBase.P6", propertyAccess2.ToString())
+            Assert.Equal("Property Base.P6 As (a As System.Int32, b As System.Int32)", model.GetSymbolInfo(propertyAccess2).Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub OverriddenEventWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class Base
+    Public Overridable Event E1 As Action(Of (a As Integer, b As Integer))
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Event E1 As Action(Of (Integer, Integer))
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30243: 'Overridable' is not valid on an event declaration.
+    Public Overridable Event E1 As Action(Of (a As Integer, b As Integer))
+           ~~~~~~~~~~~
+BC30243: 'Overrides' is not valid on an event declaration.
+    Public Overrides Event E1 As Action(Of (Integer, Integer))
+           ~~~~~~~~~
+BC40004: event 'E1' conflicts with event 'E1' in the base class 'Base' and should be declared 'Shadows'.
+    Public Overrides Event E1 As Action(Of (Integer, Integer))
+                           ~~
 </errors>)
 
         End Sub
@@ -17743,6 +17911,125 @@ BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because 
                                                                                              ~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <Fact()>
+        Public Sub ImplementingEventWithNoTupleNames()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Event evtTest1 As Action(Of (A As Integer, B As Integer))
+    Event evtTest2 As Action(Of (A As Integer, notB As Integer))
+End Interface
+Class C1
+    Implements I1
+    Event evtTest3 As Action(Of (Integer, Integer)) Implements I1.evtTest1, I1.evtTest2
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            CompilationUtils.AssertNoDiagnostics(compilation1)
+        End Sub
+
+        <Fact()>
+        Public Sub ImplementingPropertyWithDifferentTupleNames()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Property P(x As (a As Integer, b As Integer)) As Boolean
+End Interface
+Class C1
+    Implements I1
+    Property P(x As (notA As Integer, notB As Integer)) As Boolean Implements I1.P
+        Get
+            Return True
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics(<errors>
+BC30402: 'P' cannot implement property 'P' on interface 'I1' because the tuple element names in 'Public Property P(x As (notA As Integer, notB As Integer)) As Boolean' do not match those in 'Property P(x As (a As Integer, b As Integer)) As Boolean'.
+    Property P(x As (notA As Integer, notB As Integer)) As Boolean Implements I1.P
+                                                                              ~~~~
+                                               </errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub ImplementingPropertyWithNoTupleNames()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Property P(x As (a As Integer, b As Integer)) As Boolean
+End Interface
+Class C1
+    Implements I1
+    Property P(x As (Integer, Integer)) As Boolean Implements I1.P
+        Get
+            Return True
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub ImplementingPropertyWithNoTupleNames2()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Property P As (a As Integer, b As Integer)
+End Interface
+Class C1
+    Implements I1
+    Property P As (Integer, Integer) Implements I1.P
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub ImplementingMethodWithNoTupleNames()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Sub M(x As (a As Integer, b As Integer))
+    Function M2 As (a As Integer, b As Integer)
+End Interface
+Class C1
+    Implements I1
+
+    Sub M(x As (Integer, Integer)) Implements I1.M
+    End Sub
+
+    Function M2 As (Integer, Integer) Implements I1.M2
+        Return (1, 2)
+    End Function
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -20396,6 +20683,134 @@ BC30311: Value of type '(e As Integer?, String)' cannot be converted to '(Intege
             Assert.Equal(ConversionKind.DelegateRelaxationLevelNone, model.GetConversion(node).Kind)
         End Sub
 
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        Public Sub MoreGenericTieBreaker_01()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Module Module1
+    Public Sub Main()
+        Dim a As A(Of A(Of Integer)) = Nothing
+        M1(a) ' ok, selects M1(Of T)(A(Of A(Of T)) a)
+
+        Dim b = New ValueTuple(Of ValueTuple(Of Integer, Integer), Integer)()
+        M2(b) ' ok, should select M2(Of T)(ValueTuple(Of ValueTuple(Of T, Integer), Integer) a)
+    End Sub
+
+    Public Sub M1(Of T)(a As A(Of T))
+        Console.Write(1)
+    End Sub
+    Public Sub M1(Of T)(a As A(Of A(Of T)))
+        Console.Write(2)
+    End Sub
+
+    Public Sub M2(Of T)(a As ValueTuple(Of T, Integer))
+        Console.Write(3)
+    End Sub
+    Public Sub M2(Of T)(a As ValueTuple(Of ValueTuple(Of T, Integer), Integer))
+        Console.Write(4)
+    End Sub
+End Module
+
+Public Class A(Of T)
+End Class
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+24
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        Public Sub MoreGenericTieBreaker_01b()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Module Module1
+    Public Sub Main()
+        Dim b = ((0, 0), 0)
+        M2(b) ' ok, should select M2(Of T)(ValueTuple(Of ValueTuple(Of T, Integer), Integer) a)
+    End Sub
+
+    Public Sub M2(Of T)(a As (T, Integer))
+        Console.Write(3)
+    End Sub
+    Public Sub M2(Of T)(a As ((T, Integer), Integer))
+        Console.Write(4)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+4
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        Public Sub MoreGenericTieBreaker_03()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Module Module1
+    Public Sub Main()
+        Dim b = ((1, 1), 2, 3, 4, 5, 6, 7, 8, 9, (10, 10), (11, 11))
+        M1(b) ' ok, should select M1(Of T, U, V)(a As ((T, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (U, Integer), V))
+    End Sub
+
+    Sub M1(Of T, U, V)(a As ((T, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (U, Integer), V))
+        Console.Write(3)
+    End Sub
+    Sub M1(Of T, U, V)(a As (T, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, U, (V, Integer)))
+        Console.Write(4)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+3
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        Public Sub MoreGenericTieBreaker_04()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Module Module1
+    Public Sub Main()
+        Dim b = ((1, 1), 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, (20, 20))
+        M1(b) ' error: ambiguous
+    End Sub
+
+    Sub M1(Of T, U)(a As (T, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (U, Integer)))
+        Console.Write(3)
+    End Sub
+    Sub M1(Of T, U)(a As ((T, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, U))
+        Console.Write(4)
+    End Sub
+End Module
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=s_valueTupleRefs)
+            comp.VerifyDiagnostics(
+    Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "M1").WithArguments("M1", "
+    'Public Sub M1(Of (Integer, Integer), Integer)(a As ((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer)))': Not most specific.
+    'Public Sub M1(Of Integer, (Integer, Integer))(a As ((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer)))': Not most specific.").WithLocation(7, 9)
+                )
+        End Sub
     End Class
 
 End Namespace

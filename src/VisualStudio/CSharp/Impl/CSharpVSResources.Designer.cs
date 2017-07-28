@@ -934,6 +934,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer &apos;is null&apos; over &apos;object.ReferenceEquals(..., null)&apos;.
+        /// </summary>
+        internal static string Prefer_is_null_over_ReferenceEquals {
+            get {
+                return ResourceManager.GetString("Prefer_is_null_over_ReferenceEquals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer pattern matching over &apos;as&apos; with &apos;null&apos; check.
         /// </summary>
         internal static string Prefer_pattern_matching_over_as_with_null_check {
@@ -1029,6 +1038,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Remove_spaces_before_and_after_binary_operators {
             get {
                 return ResourceManager.GetString("Remove_spaces_before_and_after_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Report invalid placeholders in &apos;string.Format&apos; calls.
+        /// </summary>
+        internal static string Report_invalid_placeholders_in_string_dot_format_calls {
+            get {
+                return ResourceManager.GetString("Report_invalid_placeholders_in_string_dot_format_calls", resourceCulture);
             }
         }
         

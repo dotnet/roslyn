@@ -401,15 +401,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             return solution;
         }
 
-        protected IPersistentStorage GetStorage(Solution solution)
+        internal IPersistentStorage GetStorage(
+            Solution solution, IPersistentStorageFaultInjector faultInjectorOpt = null)
         {
-            var storage = GetStorageService().GetStorage(solution);
+            var storage = GetStorageService(faultInjectorOpt).GetStorage(solution);
 
             Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
             return storage;
         }
 
-        protected abstract IPersistentStorageService GetStorageService();
+        internal abstract IPersistentStorageService GetStorageService(IPersistentStorageFaultInjector faultInjector);
 
         protected Stream EncodeString(string text)
         {

@@ -464,6 +464,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     return ImmutableArray<ISymbol>.Empty;
                 }
 
+                // If the thing on the left is a method name identifier, we shouldn't show anything.
+                var originalExpressionKind = originalExpression.Kind();
+                if (symbol.Kind == SymbolKind.Method &&
+                    (originalExpressionKind == SyntaxKind.IdentifierName || originalExpressionKind == SyntaxKind.GenericName))
+                {
+                    return ImmutableArray<ISymbol>.Empty;
+                }
+
                 // If the thing on the left is an event that can't be used as a field, we shouldn't show anything
                 if (symbol.Kind == SymbolKind.Event &&
                     !context.SemanticModel.IsEventUsableAsField(originalExpression.SpanStart, (IEventSymbol)symbol))

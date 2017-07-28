@@ -398,6 +398,44 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changes are not allowed if the assembly has not been loaded..
+        /// </summary>
+        internal static string ChangesNotAllowedIFAssemblyHasNotBeenLoaded {
+            get {
+                return ResourceManager.GetString("ChangesNotAllowedIFAssemblyHasNotBeenLoaded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes are not allowed if the project wasn&apos;t built when debugging started..
+        /// </summary>
+        internal static string ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted {
+            get {
+                return ResourceManager.GetString("ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes are not allowed if the project wasn&apos;t loaded and built when debugging started.
+        ///
+        ///&apos;Lightweight solution load&apos; is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts..
+        /// </summary>
+        internal static string ChangesNotAllowedIfProjectWasntLoadedWhileDebugging {
+            get {
+                return ResourceManager.GetString("ChangesNotAllowedIfProjectWasntLoadedWhileDebugging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes are not allowed while code is running..
+        /// </summary>
+        internal static string ChangesNotAllowedWhileCodeIsRunning {
+            get {
+                return ResourceManager.GetString("ChangesNotAllowedWhileCodeIsRunning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Choose a Symbol Specification and a Naming Style..
         /// </summary>
         internal static string Choose_a_Symbol_Specification_and_a_Naming_Style {
@@ -1575,11 +1613,38 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer inferred anonymous type member names.
+        /// </summary>
+        internal static string Prefer_inferred_anonymous_type_member_names {
+            get {
+                return ResourceManager.GetString("Prefer_inferred_anonymous_type_member_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer inferred tuple element names.
+        /// </summary>
+        internal static string Prefer_inferred_tuple_names {
+            get {
+                return ResourceManager.GetString("Prefer_inferred_tuple_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer inlined variable declaration.
         /// </summary>
         internal static string Prefer_inlined_variable_declaration {
             get {
                 return ResourceManager.GetString("Prefer_inlined_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefere local function over anonymous function.
+        /// </summary>
+        internal static string Prefer_local_function_over_anonymous_function {
+            get {
+                return ResourceManager.GetString("Prefer_local_function_over_anonymous_function", resourceCulture);
             }
         }
         

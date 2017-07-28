@@ -1482,10 +1482,10 @@ class Program
     }
 }";
             VerifyDiagnostics(source,
-    // (6,14): error CS0501: 'Local(int)' must declare a body because it is not marked abstract, extern, or partial
-    //         void Local(int x);
-    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Local").WithArguments("Local(int)").WithLocation(6, 14)
-    );
+                // (6,14): error CS8112: 'Local(int)' is a local function and must therefore always have a body.
+                //         void Local(int x);
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "Local").WithArguments("Local(int)").WithLocation(6, 14)
+            );
         }
 
         [Fact]
