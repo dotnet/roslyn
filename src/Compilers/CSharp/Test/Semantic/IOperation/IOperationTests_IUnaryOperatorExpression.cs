@@ -2973,7 +2973,7 @@ IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenc
 
             string expectedOperationTree =
 @"IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus-IsLifted) (OperationKind.UnaryOperatorExpression, Type: System.Int32?) (Syntax: '-x')
-  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'x')";
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'x')";
 
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
@@ -2992,7 +2992,7 @@ class C
 
             string expectedOperationTree =
 @"IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-x')
-  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')";
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')";
 
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
@@ -3012,7 +3012,7 @@ struct C
 
             string expectedOperationTree =
 @"IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus-IsLifted) (OperatorMethod: C C.op_UnaryNegation(C c)) (OperationKind.UnaryOperatorExpression, Type: C?) (Syntax: '-x')
-  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C?) (Syntax: 'x')";
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C?) (Syntax: 'x')";
 
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
@@ -3032,7 +3032,7 @@ struct C
 
             string expectedOperationTree =
 @"IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperatorMethod: C C.op_UnaryNegation(C c)) (OperationKind.UnaryOperatorExpression, Type: C) (Syntax: '-x')
-  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')";
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')";
 
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }

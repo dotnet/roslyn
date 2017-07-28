@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string actual = actualOperationTree.Trim(newLineChars);
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
             expectedOperationTree = Regex.Replace(expectedOperationTree, "([^\r])\n", "$1" + Environment.NewLine);
+
             AssertEx.AreEqual(expectedOperationTree, actual);
         }
 
