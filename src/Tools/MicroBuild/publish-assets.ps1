@@ -156,7 +156,7 @@ try {
     }
 
     Write-Host "Downloading PublishData.json"
-    $publishFileContent = (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/roslyn/master/build/config/PublishData.json").Content
+    $publishFileContent = (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/roslyn/master/build/config/PublishData.json" -UseBasicParsing).Content
     $data = ConvertFrom-Json $publishFileContent
 
     if ($branchName -ne "" -and $releaseName -ne "") {
