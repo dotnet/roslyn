@@ -549,9 +549,9 @@ class Class1
     string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'x.M(y)')
   Children(2):
-      IOperation:  (OperationKind.None) (Syntax: 'x.M')
-        Children(1):
-            IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
+      IDynamicMemberReferenceExpression (Member Name: ""M"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'x.M')
+        Type Arguments(0)
+        Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ";
     var expectedDiagnostics = DiagnosticDescription.None;

@@ -187,10 +187,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($"{symbolStr}");
         }
 
-        private void LogType(ITypeSymbol type)
+        private void LogType(ITypeSymbol type, string header = "Type")
         {
             var typeStr = type != null ? type.ToTestDisplayString() : "null";
-            LogString($"Type: {typeStr}");
+            LogString($"{header}: {typeStr}");
         }
 
         #endregion
@@ -1101,11 +1101,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Operand, "Operand");
         }
 
-        public override void VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation)
+        public override void VisitDynamicMemberReferenceExpression(IDynamicMemberReferenceExpression operation)
         {
-            LogString(nameof(ILateBoundMemberReferenceExpression));
-            LogString($" (Member name: {operation.MemberName})");
+            LogString(nameof(IDynamicMemberReferenceExpression));
+            // (Member Name: "quoted name", Containing Type: type)
+            LogString(" (");
+            LogConstant((object)operation.MemberName, "Member Name");
+            LogString(", ");
+            LogType(operation.ContainingType, "Containing Type");
+            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
+
+            VisitArrayCommon(operation.TypeArguments, "Type Arguments", true, VisitSymbolArrayElement);
 
             VisitInstanceExpression(operation.Instance);
         }

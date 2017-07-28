@@ -85,7 +85,7 @@ End Class
 
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IOperation:  (OperationKind.None) (Syntax: 'From cust I ... t cust.Name')
   Children(1):
       IOperation:  (OperationKind.None) (Syntax: 'Select cust.Name')
@@ -132,7 +132,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IOperation:  (OperationKind.None) (Syntax: 'Aggregate y ... nto Count()')
   Children(1):
       IOperation:  (OperationKind.None) (Syntax: 'Aggregate y ... nto Count()')
@@ -178,7 +178,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'From y In x ... By y.Length')
   Operand: IOperation:  (OperationKind.None) (Syntax: 'From y In x ... By y.Length')
       Children(1):
@@ -226,7 +226,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
   Children(1):
       IOperation:  (OperationKind.None) (Syntax: 'Group By w  ... nto Count()')
@@ -298,7 +298,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class]) (Syntax: 'New [Class] ... }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: [Class]) (Syntax: 'With {'BIND ... }')
@@ -360,7 +360,7 @@ Class Class1
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
   Operand: ILambdaExpression (Signature: Function () As System.Object) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function() x')
       IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() x')
@@ -389,7 +389,7 @@ Class Class1
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
   Operand: IOperation:  (OperationKind.None) (Syntax: 'AddressOf Me.M')
       Children(1):
@@ -414,7 +414,7 @@ Class Class1
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'New EventHandler(x)')
   Children(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
@@ -438,7 +438,7 @@ Class Class1
     End Function
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 INameOfExpression (OperationKind.NameOfExpression, Type: System.String, Constant: "x") (Syntax: 'NameOf(x)')
   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ]]>.Value
@@ -485,7 +485,7 @@ Class Class1
 End Class
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IOperation:  (OperationKind.None) (Syntax: 'd(x)')
   Children(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
@@ -513,7 +513,8 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IOperation:  (OperationKind.None) (Syntax: 'x.M(y)')
   Children(2):
-      ILateBoundMemberReferenceExpression (Member name: M) (OperationKind.LateBoundMemberReferenceExpression, Type: System.Object) (Syntax: 'x.M')
+      IDynamicMemberReferenceExpression (Member Name: "M", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'x.M')
+        Type Arguments(0)
         Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ]]>.Value
@@ -535,7 +536,7 @@ Class Class1
 End Class
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IOperation:  (OperationKind.None) (Syntax: 'x(y)')
   Children(2):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
@@ -598,7 +599,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Mid(str, st ... ngth) = str')
   Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void) (Syntax: 'Mid(str, st ... ngth) = str')
       Left: IParameterReferenceExpression: str (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'str')
@@ -627,7 +628,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'Case x')
   Children(1):
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Case x')
@@ -690,7 +691,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IOperation:  (OperationKind.None) (Syntax: 'Erase x')
   Children(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32()) (Syntax: 'x')
@@ -743,7 +744,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IOperation:  (OperationKind.None) (Syntax: 'AddressOf x.Method')
   Children(1):
-      ILateBoundMemberReferenceExpression (Member name: Method) (OperationKind.LateBoundMemberReferenceExpression, Type: System.Object) (Syntax: 'x.Method')
+      IDynamicMemberReferenceExpression (Member Name: "Method", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'x.Method')
+        Type Arguments(0)
         Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
 ]]>.Value
 
