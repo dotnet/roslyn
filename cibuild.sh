@@ -29,6 +29,15 @@ CLEAN_RUN=false
 SKIP_TESTS=false
 SKIP_COMMIT_PRINTING=false
 
+# $HOME is unset when running the mac unit tests.
+if [[ -z ${HOME+x} ]]
+then
+    # Note that while ~ usually refers to $HOME, in the case where $HOME is unset,
+    # it looks up the current user's home dir, which is what we want.
+    # https://www.gnu.org/software/bash/manual/html_node/Tilde-Expansion.html
+    export HOME=$(cd ~ && pwd)
+fi
+
 # LTTNG is the logging infrastructure used by coreclr.  Need this variable set 
 # so it doesn't output warnings to the console.
 export LTTNG_HOME=$HOME
@@ -66,11 +75,6 @@ do
         SKIP_COMMIT_PRINTING=true
         shift 1
         ;;
-        --nocache)
-        # Temporarily ignore this argument until the change to netci.groovy gets merged.
-        # A follow-up PR will be made to remove this ignore.
-        shift 1
-        ;;
         *)
         usage 
         exit 1
@@ -101,7 +105,7 @@ dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/build/ToolsetPackages/BaseToolset.csp
 echo "Restoring CrossPlatform.sln"
 dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/CrossPlatform.sln
 
-BUILD_ARGS="-c ${BUILD_CONFIGURATION} -r ${RUNTIME_ID} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /p:RoslynRuntimeIdentifier=${RUNTIME_ID}"
+BUILD_ARGS="-c ${BUILD_CONFIGURATION} -r ${RUNTIME_ID} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /p:RoslynRuntimeIdentifier=${RUNTIME_ID} /maxcpucount:1"
 
 echo "Building bootstrap CscCore"
 dotnet publish ${SRC_PATH}/Compilers/CSharp/CscCore -o ${BOOTSTRAP_PATH}/csc ${BUILD_ARGS}
