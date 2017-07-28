@@ -143,8 +143,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         /// <summary>
         /// Show info bar and throw its own cancellation exception until 
-        /// we figure out this issue
+        /// we figure out this issue.
         /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/453544
+        /// 
+        /// the issue is basically we are getting unexpected exception from InvokeAsync
+        /// and we don't know exactly why that is happening.
         /// </summary>
         private void ThrowOwnCancellationToken()
         {
@@ -159,10 +162,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
 
             // create its own cancellation token and throw it
-            var ownCancellationSource = new CancellationTokenSource();
-            ownCancellationSource.Cancel();
-
-            ownCancellationSource.Token.ThrowIfCancellationRequested();
+            using (var ownCancellationSource = new CancellationTokenSource())
+            {
+                ownCancellationSource.Cancel();
+                ownCancellationSource.Token.ThrowIfCancellationRequested();
+            }
         }
 
         private void ReportExtraInfoAsNFW(Exception ex)
