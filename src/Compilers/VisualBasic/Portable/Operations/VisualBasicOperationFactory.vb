@@ -45,19 +45,20 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return _cache.GetOrAdd(boundNode, Function(n) CreateInternal(n))
         End Function
 
-        Private Function IsIgnoredNode(boundNode As BoundNode) As Boolean
+        Private Shared Function IsIgnoredNode(boundNode As BoundNode) As Boolean
             ' since boundNode doesn't have parent pointer, it can't just look around using bound node
             ' it needs to use syntax node
-            If TypeOf boundNode Is BoundExpressionStatement Then
-                Return If(boundNode?.Syntax.Kind() = SyntaxKind.SelectStatement, False)
-            ElseIf TypeOf boundNode Is BoundCaseBlock Then
-                Return True
-            ElseIf TypeOf boundNode Is BoundCaseStatement Then
-                Return True
-            ElseIf TypeOf boundNode Is BoundEventAccess Then
-                Return If(boundNode?.Syntax.Parent.Kind() = SyntaxKind.AddHandlerStatement, False) OrElse
-                       If(boundNode?.Syntax.Parent.Kind() = SyntaxKind.RemoveHandlerStatement, False)
-            End If
+            Select Case boundNode.Kind
+                Case BoundKind.ExpressionStatement
+                    Return boundNode.Syntax.Kind() = SyntaxKind.SelectStatement
+                Case BoundKind.CaseBlock
+                    Return True
+                Case BoundKind.CaseStatement
+                    Return True
+                Case BoundKind.EventAccess
+                    Return boundNode.Syntax.Parent.Kind() = SyntaxKind.AddHandlerStatement OrElse
+                           boundNode.Syntax.Parent.Kind() = SyntaxKind.RemoveHandlerStatement
+            End Select
 
             Return False
         End Function
