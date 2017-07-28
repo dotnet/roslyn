@@ -141,6 +141,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private static bool s_reported = false;
 
+        /// <summary>
+        /// Show info bar and throw its own cancellation exception until 
+        /// we figure out this issue
+        /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/453544
+        /// </summary>
         private void ThrowOwnCancellationToken()
         {
             if (CodeAnalysis.PrimaryWorkspace.Workspace != null && !s_reported)
