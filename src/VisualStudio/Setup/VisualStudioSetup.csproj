@@ -217,7 +217,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />
-    <PackageReference Include="ManagedEsent" Version="$(ManagedEsentVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
