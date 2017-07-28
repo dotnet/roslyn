@@ -744,47 +744,6 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
         End Sub
 
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
-        Public Sub IForEachLoopStatement_FuncCall()
-            Dim source = <![CDATA[
-Option Infer On
-
-Class C1
-    Public Function foo() As Integer()
-        Return New Integer() {1, 2, 3}
-    End Function
-End Class
-
-Module M
-    Public Sub Main()
-
-        Dim used1, used2 As Integer
-
-        For Each used1 In New C1().foo()'BIND:"For Each used1 In New C1().foo()"
-            used2 = 23
-        Next used1
-    End Sub
-End Module
-    ]]>.Value
-
-Dim expectedOperationTree = <![CDATA[
-IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each us ... Next used1')
-  Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'New C1().foo()')
-      Operand: IInvocationExpression ( Function C1.foo() As System.Int32()) (OperationKind.InvocationExpression, Type: System.Int32()) (Syntax: 'New C1().foo()')
-          Instance Receiver: IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1) (Syntax: 'New C1()')
-              Arguments(0)
-              Initializer: null
-          Arguments(0)
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each us ... Next used1')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'used2 = 23')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'used2 = 23')
-            Left: ILocalReferenceExpression: used2 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'used2')
-            Right: ILiteralExpression (Text: 23) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23) (Syntax: '23')
-]]>.Value
-
-            VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
-        End Sub
-
-        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithReturn()
             Dim source = <![CDATA[
 Class C
