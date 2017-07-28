@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsNamedParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
+        SyntaxNode GetParameterList(SyntaxNode node);
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
 

@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
-                accessibility: Accessibility.Public,
+                accessibility: containingTypeOpt.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 typeName: typeName,
                 parameters: parameters,

@@ -108,7 +108,6 @@
   ],
 
   "exclude": [
-    "Esent.Interop.dll",
     "Microsoft.CodeAnalysis.Elfie.dll",
     "Microsoft.DiaSymReader.dll",
     "Microsoft.DiaSymReader.Native.amd64.dll",

@@ -556,7 +556,7 @@ Class Derived
 End Class",
 "MustInherit Class Base
     Private x As Integer
-    Public Sub New(x As Integer)
+    Protected Sub New(x As Integer)
         Me.x = x
     End Sub
 End Class
