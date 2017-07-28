@@ -65,6 +65,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SyntaxKind.ElseIfStatement
                     ' ElseIf without a preceding If.
+                    ' re-enable the assert once this issue is fixed
+                    ' https://github.com/dotnet/roslyn/issues/21180
                     ' Debug.Assert(node.ContainsDiagnostics)
                     Dim condition = BindBooleanExpression(DirectCast(node, ElseIfStatementSyntax).Condition, diagnostics)
                     Return New BoundBadStatement(node, ImmutableArray.Create(Of BoundNode)(condition), hasErrors:=True)
@@ -196,6 +198,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '     where only the ones that can appear in a method body have been selected).
                     '
                     '   We simply need to ignore this, the error is already created by the parser.
+                    ' re-enable the assert once this issue is fixed
+                    ' https://github.com/dotnet/roslyn/issues/21180
                     'Debug.Assert(node.ContainsDiagnostics OrElse
                     '             (node.IsMissing AndAlso
                     '              (node.Parent.Kind = SyntaxKind.MultiLineSubLambdaExpression OrElse
@@ -264,6 +268,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' not handling here and then throwing ExceptionUtilities.UnexpectedValue in the else case, but
             ' there are just too many statement SyntaxKinds in VB (e.g. declarations, statements corresponding
             ' to blocks handled above, etc).
+            ' re-enable the assert once this issue is fixed
+            ' https://github.com/dotnet/roslyn/issues/21180
             ' Debug.Assert(node.ContainsDiagnostics)
             Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
         End Function

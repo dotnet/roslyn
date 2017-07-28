@@ -1088,7 +1088,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bindableNode = this.GetBindableSyntaxNode(node);
 
-            // no good node to bind
+            // remove this check once we fix this issue
+            // https://github.com/dotnet/roslyn/issues/21180
             if (!Root.FullSpan.Contains(bindableNode.FullSpan))
             {
                 bindableNode = null;
@@ -1097,6 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundParent = null;
                 return;
             }
+            ////
 
             CSharpSyntaxNode bindableParent = this.GetBindableParentNode(bindableNode);
 
