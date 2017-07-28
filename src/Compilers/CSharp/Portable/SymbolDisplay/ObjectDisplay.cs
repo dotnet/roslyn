@@ -248,8 +248,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (NeedsEscaping(category))
                     {
-                        var unicode = CombineSurrogates(c, value[++i]);
+                        // a surrogate pair that needs to be escaped
+                        var unicode = char.ConvertToUtf32(value, i);
                         builder.Append("\\U" + unicode.ToString("x8"));
+                        i++; // skip the already-encoded second surrogate of the pair
                     }
                     else
                     {
@@ -287,25 +289,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return pooledBuilder.ToStringAndFree();
-        }
-
-        private static bool IsHighSurrogate(char c)
-        {
-            return c >= '\ud800' && c <= '\udbff';
-        }
-
-        private static bool IsLowSurrogate(char c)
-        {
-            return c >= '\udc00' && c <= '\udfff';
-        }
-
-        private static uint CombineSurrogates(char highSurrogate, char lowSurrogate)
-        {
-            Debug.Assert(IsHighSurrogate(highSurrogate));
-            Debug.Assert(IsLowSurrogate(lowSurrogate));
-            return 0x10000U +
-                ((highSurrogate & 0x03ffU) << 10) +
-                (lowSurrogate & 0x03ffU);
         }
 
         private static bool ContainsNewLine(string s)

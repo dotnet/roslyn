@@ -470,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                     Else
                         Yield Character(c)
                         If copyPair Then
-                            ' copy the second character of a unciode surrogate pair
+                            ' copy the second character of a Unicode surrogate pair
                             c = str(i)
                             i += 1
                             Yield Character(c)

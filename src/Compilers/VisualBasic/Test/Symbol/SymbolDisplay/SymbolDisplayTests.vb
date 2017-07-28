@@ -4609,6 +4609,20 @@ class Outer
             Assert.Equal("""x""c", SymbolDisplay.FormatPrimitive("x"c, quoteStrings:=True, useHexadecimalNumbers:=False))
             Assert.Equal("x", SymbolDisplay.FormatPrimitive("x"c, quoteStrings:=False, useHexadecimalNumbers:=False))
 
+            ' Well-ordered surrogate characters
+            Dim footBall = "🏈"
+            Assert.Equal(footBall, SymbolDisplay.FormatPrimitive(footBall, quoteStrings:=False, useHexadecimalNumbers:=True))
+            Assert.Equal(footBall, SymbolDisplay.FormatPrimitive(footBall, quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("""" & footBall & """", SymbolDisplay.FormatPrimitive(footBall, quoteStrings:=True, useHexadecimalNumbers:=True))
+            Assert.Equal("""" & footBall & """", SymbolDisplay.FormatPrimitive(footBall, quoteStrings:=True, useHexadecimalNumbers:=False))
+
+            ' Misordered surrogate characters
+            Dim trash = ChrW(&HDFC8) & ChrW(&HD83C)
+            Assert.Equal(trash, SymbolDisplay.FormatPrimitive(trash, quoteStrings:=False, useHexadecimalNumbers:=True))
+            Assert.Equal(trash, SymbolDisplay.FormatPrimitive(trash, quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("ChrW(&HDFC8) & ChrW(&HD83C)", SymbolDisplay.FormatPrimitive(trash, quoteStrings:=True, useHexadecimalNumbers:=True))
+            Assert.Equal("ChrW(57288) & ChrW(55356)", SymbolDisplay.FormatPrimitive(trash, quoteStrings:=True, useHexadecimalNumbers:=False))
+
             Assert.Equal("x", SymbolDisplay.FormatPrimitive("x", quoteStrings:=False, useHexadecimalNumbers:=False))
             Assert.Equal("""x""", SymbolDisplay.FormatPrimitive("x", quoteStrings:=True, useHexadecimalNumbers:=False))
 
