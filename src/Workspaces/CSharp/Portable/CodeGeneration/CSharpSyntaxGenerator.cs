@@ -2610,7 +2610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private static BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
+        internal static BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
         {
             switch (declaration.Kind())
             {

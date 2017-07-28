@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             await GetAddedFixesAsync(new ErrorCases.ExceptionInGetFixAllProvider());
         }
 
-        public async Task GetDefaultFixesAsync(CodeFixProvider codefix)
+        private async Task GetDefaultFixesAsync(CodeFixProvider codefix)
         {
             var tuple = ServiceSetup(codefix);
             using (var workspace = tuple.Item1)
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        public async Task GetAddedFixesAsync(CodeFixProvider codefix)
+        private async Task GetAddedFixesAsync(CodeFixProvider codefix)
         {
             var tuple = ServiceSetup(codefix);
             using (var workspace = tuple.Item1)
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        public async Task GetFirstDiagnosticWithFixAsync(CodeFixProvider codefix)
+        private async Task GetFirstDiagnosticWithFixAsync(CodeFixProvider codefix)
         {
             var tuple = ServiceSetup(codefix);
             using (var workspace = tuple.Item1)
