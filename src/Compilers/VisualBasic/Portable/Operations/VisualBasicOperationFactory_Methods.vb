@@ -476,7 +476,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
             End Function
 
             Friend Shared Function DeriveUnaryOperationKind(operatorKind As UnaryOperatorKind, operand As BoundExpression) As UnaryOperationKind
-                Select Case operand.Type.SpecialType
+                Dim type = operand.Type.GetNullableUnderlyingTypeOrSelf()
+                Select Case type.SpecialType
                     Case SpecialType.System_Byte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64, SpecialType.System_SByte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64
                         Select Case operatorKind And UnaryOperatorKind.OpMask
                             Case UnaryOperatorKind.Plus
@@ -567,7 +568,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
             End Function
 
             Friend Shared Function DeriveBinaryOperationKind(operatorKind As BinaryOperatorKind, left As BoundExpression) As BinaryOperationKind
-                Select Case left.Type.SpecialType
+                Dim type = left.Type.GetNullableUnderlyingTypeOrSelf()
+                Select Case type.SpecialType
 
                     Case SpecialType.System_SByte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64
                         Select Case operatorKind And BinaryOperatorKind.OpMask
@@ -770,7 +772,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         End Select
                 End Select
 
-                If left.Type.TypeKind = TypeKind.Enum Then
+                If type.TypeKind = TypeKind.Enum Then
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Add
                             Return BinaryOperationKind.EnumAdd
