@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             if (directive1IsNamespace && directive2IsNamespace)
             {
-                // Both normal usings.  Place them in groups if they're first namespace
+                // Both normal usings.  Place them in groups if their first namespace
                 // component differs.
                 var name1 = using1.Name.GetFirstToken().ValueText;
                 var name2 = using2.Name.GetFirstToken().ValueText;
