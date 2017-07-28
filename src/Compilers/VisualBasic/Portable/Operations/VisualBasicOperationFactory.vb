@@ -23,6 +23,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Return Nothing
             End If
 
+            ' this should be removed once this issue is fixed
+            ' https://github.com/dotnet/roslyn/issues/21186
             If TypeOf boundNode Is BoundValuePlaceholderBase Then
                 ' since same place holder bound node appears in multiple places in the tree
                 ' we can't use bound node to operation map.
@@ -31,6 +33,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Return CreateInternal(boundNode).Clone()
             End If
 
+            ' this should be removed once this issue is fixed
+            ' https://github.com/dotnet/roslyn/issues/21187
             If IsIgnoredNode(boundNode) Then
                 ' due to how IOperation is set up, some of VB BoundNode must be ignored
                 ' while generating IOperation. otherwise, 2 different IOperation trees will be created
