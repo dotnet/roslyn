@@ -40,10 +40,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public static IExpressionStatement CreateCompoundAssignmentExpressionStatement(
-            IOperation target, IOperation value, BinaryOperationKind binaryOperationKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
+            IOperation target, IOperation value, BinaryOperationKind binaryOperationKind, bool isLifted, IMethodSymbol operatorMethod, SyntaxNode syntax)
         {
             var expression = new CompoundAssignmentExpression(
                      binaryOperationKind,
+                     isLifted,
                      target,
                      value,
                      operatorMethod != null,

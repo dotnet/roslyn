@@ -315,7 +315,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                             syntax:=value.Syntax,
                                             type:=value.Type,
                                             constantValue:=Nothing))
-                    statements.Add(OperationFactory.CreateCompoundAssignmentExpressionStatement(controlReference, stepOperand, Semantics.Expression.DeriveAdditionKind(controlType), Nothing, stepValue.Syntax))
+                    statements.Add(OperationFactory.CreateCompoundAssignmentExpressionStatement(
+                        controlReference, stepOperand,
+                        Expression.DeriveAdditionKind(controlType.GetNullableUnderlyingTypeOrSelf()), controlType.IsNullableType(),
+                        Nothing, stepValue.Syntax))
                 End If
             End If
 

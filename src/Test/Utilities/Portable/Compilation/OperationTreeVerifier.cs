@@ -1074,7 +1074,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(ICompoundAssignmentExpression));
 
             var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
-            LogString($" ({kindStr})");
+            if (operation.IsLifted)
+            {
+                LogString($" ({kindStr}-IsLifted)");
+            }
+            else
+            {
+                LogString($" ({kindStr})");
+            }
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
