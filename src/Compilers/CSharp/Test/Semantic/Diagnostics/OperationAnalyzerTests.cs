@@ -1125,7 +1125,7 @@ class D : C
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18839")]
+        [Fact]
         public void EventAndMethodReferencesCSharp()
         {
             const string source = @"
@@ -1154,21 +1154,18 @@ class C
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberReferenceAnalyzer() }, null, null, false,
+                // Bug: we are missing diagnostics of "MethodBindingDescriptor" here. https://github.com/dotnet/roslyn/issues/20095
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += new MumbleEventHandler(Mumbler)").WithLocation(10, 9),
-                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(10, 42),
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(10, 9),
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += (s, a) => {}").WithLocation(11, 9),
-                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(11, 9),
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += new MumbleEventHandler((s, a) => {})").WithLocation(12, 9),
-                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "(s, a) => {}").WithLocation(12, 42),   // Bug: this is not a method binding https://github.com/dotnet/roslyn/issues/8347
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 9),
                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(13, 9),
                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(14, 20),
                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(15, 32),
                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "Mumble -= new MumbleEventHandler(Mumbler)").WithLocation(17, 9),
-                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(17, 42)
-                );
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(17, 9));
         }
 
         [Fact]

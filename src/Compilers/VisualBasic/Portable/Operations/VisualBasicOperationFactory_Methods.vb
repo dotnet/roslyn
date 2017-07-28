@@ -409,7 +409,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
             Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
             Dim eventReference = If(eventAccess Is Nothing, Nothing, CreateBoundEventAccessOperation(eventAccess))
-            Dim adds = TypeOf statement Is BoundAddHandlerStatement
+            Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New EventAssignmentExpression(
                 eventReference, Create(statement.Handler), adds:=adds, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
         End Function

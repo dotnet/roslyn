@@ -1060,13 +1060,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      IEventAssignmentExpression eventAssignment = (IEventAssignmentExpression)operationContext.Operation;
                      operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds ? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
 
-                     if (eventAssignment.EventReference?.Event == null)
+                     if (eventAssignment.EventReference?.Event == null && eventAssignment.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                      {
-                         if (eventAssignment.EventReference?.Instance == null && eventAssignment.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
-                         {
-                             // report inside after checking for null to make sure it does't crash.
-                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidEventDescriptor, eventAssignment.Syntax.GetLocation()));
-                         }
+                         operationContext.ReportDiagnostic(Diagnostic.Create(InvalidEventDescriptor, eventAssignment.Syntax.GetLocation()));
                      }
                  },
                  OperationKind.EventAssignmentExpression);
