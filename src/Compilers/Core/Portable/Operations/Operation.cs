@@ -94,14 +94,8 @@ namespace Microsoft.CodeAnalysis
 
         public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation
         {
-            // operation can be null
-            if (operation == null)
-            {
-                return operation;
-            }
-
             // explicit cast is not allowed, so using "as" instead
-            (operation as Operation).SetParentOperation(parent);
+            (operation as Operation)?.SetParentOperation(parent);
             return operation;
         }
 
@@ -182,7 +176,8 @@ namespace Microsoft.CodeAnalysis
         {
             void EnqueueChildOperations(Queue<IOperation> queue, IOperation parent)
             {
-                // children can return null
+                // for now, children can return null. once we fix the issue, children should never return null
+                // https://github.com/dotnet/roslyn/issues/21196
                 foreach (var o in parent.Children.WhereNotNull())
                 {
                     queue.Enqueue(o);
@@ -215,8 +210,8 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // It can't filter visiting children by node span since IOperation
-                    // might have children which belong to completely different sub tree of
-                    // syntax tree
+                    // might have children which belong to sibling but not direct spine
+                    // of sub tree.
 
                     // queue children so that we can do breadth first search
                     EnqueueChildOperations(operationQueue, operation);

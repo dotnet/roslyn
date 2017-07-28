@@ -34,7 +34,36 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return null;
             }
 
+            // this should be removed once this issue is fixed
+            // https://github.com/dotnet/roslyn/issues/21187
+            if (IsIgnoredNode(boundNode))
+            {
+                // due to how IOperation is set up, some of VB BoundNode must be ignored
+                // while generating IOperation. otherwise, 2 different IOperation trees will be created
+                // for nodes under same sub tree
+                return null;
+            }
+
             return _cache.GetOrAdd(boundNode, n => CreateInternal(n));
+        }
+
+        private static bool IsIgnoredNode(BoundNode boundNode)
+        {
+            // since boundNode doesn't have parent pointer, it can't just look around using bound node
+            // it needs to use syntax node
+            switch (boundNode.Kind)
+            {
+                case BoundKind.LocalDeclaration:
+                    return boundNode.Syntax.Kind() == SyntaxKind.VariableDeclarator &&
+                           boundNode.Syntax.Parent?.Kind() == SyntaxKind.VariableDeclaration &&
+                           boundNode.Syntax.Parent?.Parent?.Kind() == SyntaxKind.LocalDeclarationStatement;
+                case BoundKind.EventAccess:
+                    return boundNode.Syntax.Kind() == SyntaxKind.IdentifierName &&
+                           (boundNode.Syntax.Parent?.Kind() == SyntaxKind.AddAssignmentExpression ||
+                            boundNode.Syntax.Parent?.Kind() == SyntaxKind.SubtractAssignmentExpression);
+            }
+
+            return false;
         }
 
         private IOperation CreateInternal(BoundNode boundNode)

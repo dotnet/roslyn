@@ -49,6 +49,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             ' since boundNode doesn't have parent pointer, it can't just look around using bound node
             ' it needs to use syntax node
             Select Case boundNode.Kind
+                Case BoundKind.LocalDeclaration
+                    Return boundNode.Syntax.Kind() = SyntaxKind.ModifiedIdentifier AndAlso
+                           If(boundNode.Syntax.Parent?.Kind() = SyntaxKind.VariableDeclarator, False)
                 Case BoundKind.ExpressionStatement
                     Return boundNode.Syntax.Kind() = SyntaxKind.SelectStatement
                 Case BoundKind.CaseBlock
@@ -57,7 +60,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return True
                 Case BoundKind.EventAccess
                     Return boundNode.Syntax.Parent.Kind() = SyntaxKind.AddHandlerStatement OrElse
-                           boundNode.Syntax.Parent.Kind() = SyntaxKind.RemoveHandlerStatement
+                           boundNode.Syntax.Parent.Kind() = SyntaxKind.RemoveHandlerStatement OrElse
+                           boundNode.Syntax.Parent.Kind() = SyntaxKind.RaiseEventAccessorStatement
             End Select
 
             Return False
