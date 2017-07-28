@@ -161,6 +161,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _binderFactory.GetBinder((CSharpSyntaxNode)token.Parent, position).WithAdditionalFlags(GetSemanticModelBinderFlags());
         }
 
+        internal override IOperation GetOperationWorker(MethodSymbol method, CSharpSyntaxNode node, CancellationToken cancellationToken)
+        {
+            // in case this is right side of a qualified name or member access (or part of a cref)
+            node = SyntaxFactory.GetStandaloneNode(node);
+
+            var model = this.GetMemberModel(node);
+            if (model != null)
+            {
+                return model.GetOperationWorker(method, node, cancellationToken);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
         {
             // in case this is right side of a qualified name or member access (or part of a cref)

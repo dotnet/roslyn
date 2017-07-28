@@ -815,7 +815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Friend Overrides Function GetOperationWorker(method As MethodSymbol, bodySyntax As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+        Friend Overrides Function GetOperationWorker(method As MethodSymbol, bodySyntax As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
             Dim node = GetBoundNode(bodySyntax, GetOperationOptions.Highest)
             Dim body = DirectCast(node, BoundStatement)
             Dim loweredBody = LowerMethodBody(method, body)

@@ -137,10 +137,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbmethod = DirectCast(method, MethodSymbol)
             CheckSyntaxNode(vbbody)
             CheckSymbol(vbmethod)
-            Return GetOperationWorker(vbmethod, vbbody, GetOperationOptions.Highest, cancellationToken)
+            Return GetOperationWorker(vbmethod, vbbody, cancellationToken)
         End Function
 
-        Friend Overridable Function GetOperationWorker(method As MethodSymbol, node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+        Friend Overridable Function GetOperationWorker(method As MethodSymbol, node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
             Return Nothing
         End Function
 
