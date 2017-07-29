@@ -3,6 +3,9 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
+    <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
@@ -47,7 +50,23 @@
     <Compile Include="..\..\..\Compilers\VisualBasic\Portable\Syntax\LambdaUtilities.vb">
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
-    <Compile Update="VBFeaturesResources.Designer.vb">
+    <Compile Include="AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiersCodeFixProvider.vb" />
+    <Compile Include="AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer.vb" />
+    <Compile Include="AddParameter\VisualBasicAddParameterCodeFixProvider.vb" />
+    <Compile Include="CommentSelection\VisualBasicCommentSelectionService.vb" />
+    <Compile Include="MoveDeclarationNearReference\VisualBasicMoveDeclarationNearReferenceCodeRefactoringProvider.vb" />
+    <Compile Include="OrderModifiers\VisualBasicOrderModifiersCodeFixProvider.vb" />
+    <Compile Include="OrderModifiers\VisualBasicOrderModifiersDiagnosticAnalyzer.vb" />
+    <Compile Include="OrderModifiers\VisualBasicOrderModifiersHelper.vb" />
+    <Compile Include="RemoveUnusedVariable\VisualBasicRemoveUnusedVariableCodeFixProvider.vb" />
+    <Compile Include="ReplaceMethodWithProperty\VisualBasicReplaceMethodWithPropertyService.vb" />
+    <Compile Include="Structure\Providers\WithBlockStructureProvider.vb" />
+    <Compile Include="UseInferredMemberName\VisualBasicUseInferredMemberNameCodeFixProvider.vb" />
+    <Compile Include="UseInferredMemberName\VisualBasicUseInferredMemberNameDiagnosticAnalyzer.vb" />
+    <Compile Include="UseIsNullCheck\VisualBasicUseIsNullCheckCodeFixProvider.vb" />
+    <Compile Include="UseIsNullCheck\VisualBasicUseIsNullCheckDiagnosticAnalyzer.vb" />
+    <Compile Include="ValidateFormatString\VisualBasicValidateFormatStringDiagnosticAnalyzer.vb" />
+    <Compile Update="VBFeaturesResources.Designer.vb" />
     <Compile Include="AddPackage\VisualBasicAddSpecificPackageCodeFixProvider.vb" />
     <Compile Include="CodeFixes\UseDefaultOptionalParameter\UseDefaultOptionalParameter.vb" />
     <Compile Include="DocumentHighlighting\VisualBasicDocumentHighlightsService.vb" />
@@ -76,7 +95,6 @@
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateParameterizedMemberCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateType\GenerateTypeCodeFixProvider.vb" />
     <Compile Include="GenerateVariable\VisualBasicGenerateVariableCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\RemoveUnusedVariable\VisualBasicRemoveUnusedVariableCodeFixProvider.vb" />
     <Compile Include="ConvertIfToSwitch\VisualBasicConvertIfToSwitchCodeRefactoringProvider.Pattern.vb" />
     <Compile Include="ConvertIfToSwitch\VisualBasicConvertIfToSwitchCodeRefactoringProvider.vb" />
     <Compile Include="ConvertNumericLiteral\VisualBasicConvertNumericLiteralCodeRefactoringProvider.vb" />
@@ -437,6 +455,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BasicFeatures.sln" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

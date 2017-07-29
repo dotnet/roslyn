@@ -1249,6 +1249,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="DefaultOptionalParameter" xml:space="preserve">
     <value>The type's default value can is implied.</value>
+  </data>
   <data name="Remove_the_default_value" xml:space="preserve">
     <value>Remove the default value</value>
   </data>
