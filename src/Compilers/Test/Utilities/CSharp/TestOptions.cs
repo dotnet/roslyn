@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
@@ -73,37 +72,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options;
         }
 
-        public static CSharpParseOptions WithNullCheckingFeature(this CSharpParseOptions options)
+        internal static CSharpParseOptions WithNullCheckingFeature(
+            this CSharpParseOptions options,
+            NullableReferenceFlags flags = NullableReferenceFlags.IncludeNonNullWarnings | NullableReferenceFlags.AllowMemberOptOut | NullableReferenceFlags.AllowAssemblyOptOut)
         {
-            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("staticNullChecking", "true") }));
+            return options.WithFeature("staticNullChecking", ((int)flags).ToString());
         }
 
-        internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
+        internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, MessageID feature)
         {
-            if (features.Length == 0)
+            var name = feature.RequiredFeature();
+            if (name == null)
             {
-                throw new InvalidOperationException("Need at least one feature to enable");
+                throw new InvalidOperationException($"{feature} is not a valid experimental feature");
             }
-
-            var list = new List<KeyValuePair<string, string>>();
-            foreach (var feature in features)
-            {
-                var name = feature.RequiredFeature();
-                if (name == null)
-                {
-                    throw new InvalidOperationException($"{feature} is not a valid experimental feature");
-                }
-
-
-                list.Add(new KeyValuePair<string, string>(name, "true"));
-            }
-
-            return options.WithFeatures(options.Features.Concat(list));
+            return options.WithFeature(name);
         }
         
         public static CSharpParseOptions WithIOperationsFeature(this CSharpParseOptions options)
         {
-            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("IOperation", "true") }));
+            return options.WithFeature("IOperation");
+        }
+
+        public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));
         }
     }
 }

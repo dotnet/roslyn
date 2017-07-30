@@ -316,6 +316,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     declType = TypeSymbolWithAnnotations.Create(typeBinder.CreateErrorType("var"));
                 }
             }
+            else
+            {
+                // Treat reference types as nullable if inferring nullability.
+                declType = declType.AsNullableReferenceTypeIfInferLocalNullability(_typeSyntax);
+            }
 
             Debug.Assert((object)declType != null);
 

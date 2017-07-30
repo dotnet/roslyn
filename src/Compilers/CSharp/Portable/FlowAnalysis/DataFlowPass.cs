@@ -132,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
-        private bool _performStaticNullChecks;
+        private readonly bool _performStaticNullChecks;
+        private readonly bool _includeNonNullableWarnings;
         private PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal> _placeholderLocals;
         private LocalSymbol _implicitReceiver;
 
@@ -159,7 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             bool trackUnassignments = false,
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
-            bool requireOutParamsAssigned = true)
+            bool requireOutParamsAssigned = true,
+            bool performNullChecks = false,
+            bool includeNonNullableWarnings = false)
             : base(compilation, member, node, trackUnassignments: trackUnassignments)
         {
             this.initiallyAssignedVariables = null;
@@ -169,6 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool strict = compilation.FeatureStrictEnabled; // Compiler flag /features:strict removes the relaxed DA checking we have for backward compatibility
             _emptyStructTypeCache = new EmptyStructTypeCache(compilation, !strict);
             _requireOutParamsAssigned = requireOutParamsAssigned;
+            _performStaticNullChecks = performNullChecks;
+            _includeNonNullableWarnings = includeNonNullableWarnings;
             this.topLevelMethod = member as MethodSymbol;
         }
 
@@ -351,18 +356,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static void Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, DiagnosticBag diagnostics, bool requireOutParamsAssigned = true)
         {
-            var walker = new DataFlowPass(compilation, member, node, requireOutParamsAssigned: requireOutParamsAssigned);
+            Debug.Assert(diagnostics != null);
 
-            if (diagnostics != null)
-            {
-                walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
-
-                if ((node.SyntaxTree.Options as CSharpParseOptions)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
-                    !member.NullableOptOut)
-                {
-                    walker._performStaticNullChecks = true;
-                }
-            }
+            var flags = ((CSharpParseOptions)node.SyntaxTree.Options).GetNullableReferenceFlags();
+            var walker = new DataFlowPass(
+                compilation,
+                member,
+                node,
+                requireOutParamsAssigned: requireOutParamsAssigned,
+                performNullChecks: (flags & NullableReferenceFlags.Enabled) != 0,
+                includeNonNullableWarnings: (flags & NullableReferenceFlags.IncludeNonNullWarnings) != 0);
+            walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
 
             try
             {
@@ -849,8 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void NormalizeNullable(ref LocalState state)
         {
-            state.KnownNullState.EnsureCapacity(nextVariableSlot);
-            state.NotNull.EnsureCapacity(nextVariableSlot);
+            state.EnsureCapacity(nextVariableSlot);
         }
 
         /// <summary>
@@ -927,6 +930,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         goto default;
                     }
+                case BoundKind.AssignmentOperator:
+                    return MakeSlot(((BoundAssignmentOperator)node).Left);
                 default:
                     return -1;
             }
@@ -1283,7 +1288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // requires us to read the reference itself.
                             if (written) VisitRvalue(local);
 
-                            // TODO: StaticNullChecking?
+                            // PROTOTYPE(NullableReferenceTypes): StaticNullChecking?
                         }
                         else
                         {
@@ -1388,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if ((object)_implicitReceiver != null && !memberSymbol.IsStatic)
                             {
-                                // TODO: Do we need to handle events?
+                                // PROTOTYPE(NullableReferenceTypes): Do we need to handle events?
                                 if (memberSymbol.Kind == SymbolKind.Field)
                                 {
                                     slot = GetOrCreateSlot(memberSymbol, GetOrCreateSlot(_implicitReceiver));
@@ -1423,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.RangeVariable:
-                    // TODO: StaticNullChecking?
+                    // PROTOTYPE(NullableReferenceTypes): StaticNullChecking?
                     AssignImpl(((BoundRangeVariable)node).Value, value, valueIsNotNull, refKind, written, read);
                     break;
 
@@ -1465,32 +1470,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (targetType.IsNullable == false)
                     {
-                        if (valueIsNotNull == false)
+                        if (valueIsNotNull == false && (value == null || !CheckNullAsNonNullableReference(value)))
                         {
                             ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceAssignment, (value ?? node).Syntax);
                         }
                     }
                     else if (slot > 0)
                     {
-                        if (slot >= this.State.KnownNullState.Capacity) NormalizeNullable(ref this.State);
+                        if (slot >= this.State.Capacity) NormalizeNullable(ref this.State);
 
-                        if (isByRefTarget)
-                        {
+                        this.State[slot] = isByRefTarget ?
                             // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
                             // regardless of what value is being assigned. 
-                            this.State.KnownNullState[slot] = (targetType.IsNullable == true);
-                            this.State.NotNull[slot] = false;
-                        }
-                        else if (valueIsNotNull.HasValue)
-                        {
-                            this.State.KnownNullState[slot] = true;
-                            this.State.NotNull[slot] = valueIsNotNull.GetValueOrDefault();
-                        }
-                        else
-                        {
-                            this.State.KnownNullState[slot] = false;
-                            this.State.NotNull[slot] = false;
-                        }
+                            (targetType.IsNullable == true) ? (bool?)false : null :
+                            valueIsNotNull;
                     }
 
                     if (slot > 0 && targetType.TypeSymbol.IsAnonymousType && targetType.TypeSymbol.IsClassType() &&
@@ -1571,21 +1564,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (fieldOrPropertyType.IsNullable != false)
                 {
                     int targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
-                    if (targetMemberSlot >= this.State.KnownNullState.Capacity) NormalizeNullable(ref this.State);
+                    if (targetMemberSlot >= this.State.Capacity) NormalizeNullable(ref this.State);
 
                     if (isByRefTarget)
                     {
                         // This is a property/field acesses through a by ref entity and it isn't considered declared as not-nullable. 
                         // Since reference can point to the heap, we cannot assume the property/field doesn't have null value after this assignment,
-                        // regardless of what value is being assigned. 
-                        this.State.KnownNullState[targetMemberSlot] = (fieldOrPropertyType.IsNullable == true);
-                        this.State.NotNull[targetMemberSlot] = false;
+                        // regardless of what value is being assigned.
+                        this.State[targetMemberSlot] = (fieldOrPropertyType.IsNullable == true) ? (bool?)false : null;
                     }
                     else if (valueContainerSlot > 0)
                     {
                         int valueMemberSlot = VariableSlot(fieldOrProperty, valueContainerSlot);
-                        this.State.KnownNullState[targetMemberSlot] = valueMemberSlot > 0 && valueMemberSlot < this.State.KnownNullState.Capacity && this.State.KnownNullState[valueMemberSlot];
-                        this.State.NotNull[targetMemberSlot] = valueMemberSlot > 0 && valueMemberSlot < this.State.NotNull.Capacity && this.State.NotNull[valueMemberSlot];
+                        this.State[targetMemberSlot] = valueMemberSlot > 0 && valueMemberSlot < this.State.Capacity ?
+                            this.State[valueMemberSlot] :
+                            null;
                     }
                     else
                     {
@@ -1593,8 +1586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // with information inferred from the declaration. 
                         Debug.Assert(fieldOrPropertyType.IsNullable != false);
 
-                        this.State.KnownNullState[targetMemberSlot] = (fieldOrPropertyType.IsNullable == true);
-                        this.State.NotNull[targetMemberSlot] = false;
+                        this.State[targetMemberSlot] = (fieldOrPropertyType.IsNullable == true) ? (bool?)false : null;
                     }
                 }
 
@@ -1824,10 +1816,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (paramType.IsNullable != false)
                         {
-                            if (slot >= this.State.KnownNullState.Capacity) NormalizeNullable(ref this.State);
+                            if (slot >= this.State.Capacity) NormalizeNullable(ref this.State);
 
-                            this.State.KnownNullState[slot] = (paramType.IsNullable == true);
-                            this.State.NotNull[slot] = false;
+                            this.State[slot] = (paramType.IsNullable == true) ? (bool?)false : null;
                         }
 
                         if (paramType.TypeSymbol.IsAnonymousType && paramType.TypeSymbol.IsClassType())
@@ -1976,7 +1967,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (this.State.ResultIsNotNull == false)
                 {
-                    if ((object)returnType != null && returnType.IsReferenceType && returnType.IsNullable == false)
+                    if ((object)returnType != null && returnType.IsReferenceType && returnType.IsNullable == false &&
+                        !CheckNullAsNonNullableReference(node.ExpressionOpt))
                     {
                         ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
                     }
@@ -2382,10 +2374,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitArrayAccessTargetAsRvalue(node);
 
             Debug.Assert(!IsConditionalState);
-            if (_performStaticNullChecks && this.State.Reachable && this.State.ResultIsNotNull == false)
-            {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, node.Expression.Syntax);
-            }
+            // No need to check expression type since System.Array is a reference type.
+            Debug.Assert(node.Expression.Type.IsReferenceType);
+            CheckPossibleNullReceiver(node.Expression, checkType: false);
         }
 
         private bool? InferResultNullability(BoundBinaryOperator node, bool? leftIsNotNull, bool? rightIsNotNull)
@@ -2506,19 +2497,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (slot > 0)
                             {
-                                if (slot >= this.State.KnownNullState.Capacity) NormalizeNullable(ref this.State);
+                                if (slot >= this.State.Capacity) NormalizeNullable(ref this.State);
 
                                 Split();
 
                                 if (op == BinaryOperatorKind.Equal)
                                 {
-                                    this.StateWhenFalse.KnownNullState[slot] = true;
-                                    this.StateWhenFalse.NotNull[slot] = true;
+                                    this.StateWhenFalse[slot] = true;
                                 }
                                 else
                                 {
-                                    this.StateWhenTrue.KnownNullState[slot] = true;
-                                    this.StateWhenTrue.NotNull[slot] = true;
+                                    this.StateWhenTrue[slot] = true;
                                 }
                             }
                         }
@@ -2606,10 +2595,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (slot > 0)
             {
-                if (slot >= this.State.KnownNullState.Capacity) NormalizeNullable(ref this.State);
+                if (slot >= this.State.Capacity) NormalizeNullable(ref this.State);
 
-                this.State.KnownNullState[slot] = true;
-                this.State.NotNull[slot] = true;
+                this.State[slot] = true;
             }
 
             VisitRvalue(node.AccessExpression);
@@ -2688,14 +2676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We are supposed to track information for the node. Use whatever we managed to
                     // accumulate so far.
-                    if (slot < this.State.KnownNullState.Capacity && this.State.KnownNullState[slot])
-                    {
-                        return slot < this.State.NotNull.Capacity && this.State.NotNull[slot];
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    return (slot < this.State.Capacity) ? this.State[slot] : null;
                 }
 
                 // The node is not trackable, use information from the declaration.
@@ -2713,11 +2694,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitReceiverBeforeCall(receiverOpt, method);
 
             Debug.Assert(!IsConditionalState);
-            if (_performStaticNullChecks && this.State.Reachable && 
-                receiverOpt != null && (object)receiverOpt.Type != null && receiverOpt.Type.IsReferenceType && this.State.ResultIsNotNull == false &&
-                (object)method != null && !method.IsStatic && method.MethodKind != MethodKind.Constructor)
+            if ((object)method != null && !method.IsStatic && method.MethodKind != MethodKind.Constructor)
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
+                CheckPossibleNullReceiver(receiverOpt);
             }
         }
 
@@ -2726,11 +2705,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitFieldReceiverAsRvalue(receiverOpt, fieldSymbol);
 
             Debug.Assert(!IsConditionalState);
-            if (_performStaticNullChecks && this.State.Reachable &&
-                receiverOpt != null && (object)receiverOpt.Type != null && receiverOpt.Type.IsReferenceType && this.State.ResultIsNotNull == false &&
-                (object)fieldSymbol != null && !fieldSymbol.IsStatic)
+            if ((object)fieldSymbol != null && !fieldSymbol.IsStatic)
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
+                CheckPossibleNullReceiver(receiverOpt);
             }
         }
 
@@ -2778,7 +2755,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
 
-                this.State.ResultIsNotNull = InferResultNullability(node.ConversionKind, node.Operand.Type, node.Type, node.SymbolOpt, this.State.ResultIsNotNull);
+                this.State.ResultIsNotNull = InferResultNullability(
+                    node.Conversion,
+                    node.Operand.Type,
+                    node.Type,
+                    this.State.ResultIsNotNull);
             }
         }
 
@@ -2819,11 +2800,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool? InferResultNullability(ConversionKind conversionKind, TypeSymbol sourceTypeOpt, TypeSymbol targetType, MethodSymbol methodOpt, bool? operandIsNotNull)
+        private bool? InferResultNullability(Conversion conversion, TypeSymbol sourceTypeOpt, TypeSymbol targetType, bool? operandIsNotNull)
         {
             if (targetType.IsReferenceType)
             {
-                switch (conversionKind)
+                switch (conversion.Kind)
                 {
                     case ConversionKind.MethodGroup:
                     case ConversionKind.AnonymousFunction:
@@ -2832,6 +2813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case ConversionKind.ExplicitUserDefined:
                     case ConversionKind.ImplicitUserDefined:
+                        var methodOpt = conversion.Method;
                         if ((object)methodOpt != null && methodOpt.ParameterCount == 1)
                         {
                             return IsResultNotNull(methodOpt);
@@ -2854,7 +2836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (sourceTypeOpt.IsNullableType())
                             {
-                                // TODO: Should we worry about a pathological case of boxing nullable value known to be not null?
+                                // PROTOTYPE(NullableReferenceTypes): Should we worry about a pathological case of boxing nullable value known to be not null?
                                 //       For example, new int?(0)
                                 return false;
                             }
@@ -2919,11 +2901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // An explicit or implicit receiver, for example in an expression such as (x.Foo is Action, or Foo is Action), is considered to be read.
                 VisitRvalue(receiverOpt);
 
-                if (_performStaticNullChecks && this.State.Reachable &&
-                    (object)receiverOpt.Type != null && receiverOpt.Type.IsReferenceType && this.State.ResultIsNotNull == false)
-                {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
-                }
+                CheckPossibleNullReceiver(receiverOpt);
             }
 
             if (_performStaticNullChecks && this.State.Reachable)
@@ -2988,7 +2966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitThisReference(BoundThisReference node)
         {
-            // TODO: in a struct constructor, "this" is not initially assigned.
+            // PROTOTYPE(NullableReferenceTypes): in a struct constructor, "this" is not initially assigned.
             CheckAssigned(MethodThisParameter, node.Syntax);
             SetResultIsNotNull(node);
             return null;
@@ -3076,11 +3054,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)targetTypeOfOperandConversion != null)
                 {
-                    // TODO: Should something special be done for targetTypeOfOperandConversion for lifted case?
-                    resultOfOperandConversionIsNotNull = InferResultNullability(node.OperandConversion.Kind,
+                    // PROTOTYPE(NullableReferenceTypes): Should something special be done for targetTypeOfOperandConversion for lifted case?
+                    resultOfOperandConversionIsNotNull = InferResultNullability(node.OperandConversion,
                                                                                 node.Operand.Type,
                                                                                 targetTypeOfOperandConversion,
-                                                                                node.OperandConversion.Method,
                                                                                 operandIsNotNull);
                 }
                 else
@@ -3106,10 +3083,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WarnOnNullReferenceArgument(node, resultOfIncrementIsNotNull, node.ResultConversion.Method.Parameters[0], expanded: false);
                 }
 
-                resultOfIncrementIsNotNull = InferResultNullability(node.ResultConversion.Kind,
+                resultOfIncrementIsNotNull = InferResultNullability(node.ResultConversion,
                                                                     incrementOperator?.ReturnType.TypeSymbol,
                                                                     node.Type,
-                                                                    node.ResultConversion.Method,
                                                                     resultOfIncrementIsNotNull);
 
                 var op = node.OperatorKind.Operator();
@@ -3160,10 +3136,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)node.Operator.LeftType != null)
                 {
-                    resultOfLeftConversionIsNotNull = InferResultNullability(node.LeftConversion.Kind,
+                    resultOfLeftConversionIsNotNull = InferResultNullability(node.LeftConversion,
                                                                              node.Left.Type,
                                                                              node.Operator.LeftType,
-                                                                             node.LeftConversion.Method,
                                                                              leftIsNotNull);
                 }
                 else
@@ -3191,10 +3166,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WarnOnNullReferenceArgument(node, resultIsNotNull, node.FinalConversion.Method.Parameters[0], expanded: false);
                     }
 
-                    resultIsNotNull = InferResultNullability(node.FinalConversion.Kind,
+                    resultIsNotNull = InferResultNullability(node.FinalConversion,
                                                              node.Operator.ReturnType,
                                                              node.Type,
-                                                             node.FinalConversion.Method,
                                                              resultIsNotNull);
                 }
                 else
@@ -3285,9 +3259,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     paramType = ((ArrayTypeSymbol)parameter.Type.TypeSymbol).ElementType;
                 }
 
-                if (paramType.IsReferenceType && paramType.IsNullable == false)
+                if (paramType.IsReferenceType && paramType.IsNullable == false && !CheckNullAsNonNullableReference(argument))
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceArgument, argument.Syntax, 
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceArgument, argument.Syntax,
                         new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
                         new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
                 }
@@ -3975,7 +3949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
-                if (node.Type.IsReferenceType == true)
+                if ((object)node.Type != null && node.Type.IsReferenceType == true)
                 {
                     this.State.ResultIsNotNull = false;
                 }
@@ -4017,7 +3991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 if (node.Operand.Type.IsNullableType())
                                 {
-                                    // TODO: Should we worry about a pathological case of boxing nullable value known to be not null?
+                                    // PROTOTYPE(NullableReferenceTypes): Should we worry about a pathological case of boxing nullable value known to be not null?
                                     //       For example, new int?(0)
                                     this.State.ResultIsNotNull = false;
                                 }
@@ -4040,7 +4014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    SetUnknownResultNullability();
+                    this.State.ResultIsNotNull = null;
                 }
             }
 
@@ -4119,7 +4093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitRangeVariable(BoundRangeVariable node)
         {
             var result = base.VisitRangeVariable(node);
-            SetUnknownResultNullability(); // TODO
+            SetUnknownResultNullability(); // PROTOTYPE(NullableReferenceTypes)
             return result;
         }
 
@@ -4172,11 +4146,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitReceiverOfEventAssignmentAsRvalue(node);
 
             Debug.Assert(!IsConditionalState);
-            if (_performStaticNullChecks && this.State.Reachable &&
-                node.ReceiverOpt != null && (object)node.ReceiverOpt.Type != null && node.ReceiverOpt.Type.IsReferenceType && this.State.ResultIsNotNull == false &&
-                !node.Event.IsStatic)
+            var receiverOpt = node.ReceiverOpt;
+            if (!node.Event.IsStatic)
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, node.ReceiverOpt.Syntax);
+                CheckPossibleNullReceiver(receiverOpt);
             }
         }
 
@@ -4299,11 +4272,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitReceiverOfDynamicAccessAsRvalue(receiverOpt);
 
             Debug.Assert(!IsConditionalState);
-            if (_performStaticNullChecks && this.State.Reachable &&
-                receiverOpt != null && (object)receiverOpt.Type != null && receiverOpt.Type.IsReferenceType && this.State.ResultIsNotNull == false)
+            CheckPossibleNullReceiver(receiverOpt);
+        }
+
+        private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool checkType = true)
+        {
+            if (_performStaticNullChecks &&
+                receiverOpt != null &&
+                (!checkType || ((object)receiverOpt.Type != null && receiverOpt.Type.IsReferenceType)) &&
+                this.State.Reachable &&
+                this.State.ResultIsNotNull == false)
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
             }
+        }
+
+        private bool CheckNullAsNonNullableReference(BoundExpression value)
+        {
+            if (value.ConstantValue?.IsNull != true)
+            {
+                return false;
+            }
+            if (_includeNonNullableWarnings)
+            {
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullAsNonNullable, value.Syntax);
+            }
+            return true;
         }
 
         private bool? InferResultNullabilityFromApplicableCandidates(ImmutableArray<Symbol> applicableMembers)
@@ -4347,7 +4341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitQueryClause(BoundQueryClause node)
         {
             var result = base.VisitQueryClause(node);
-            SetUnknownResultNullability(); // TODO
+            SetUnknownResultNullability(); // PROTOTYPE(NullableReferenceTypes)
             return result;
         }
 
@@ -4442,20 +4436,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_performStaticNullChecks)
             {
-                if (self.KnownNullState.Capacity != other.KnownNullState.Capacity)
+                if (self.Capacity != other.Capacity)
                 {
                     NormalizeNullable(ref self);
                     NormalizeNullable(ref other);
                 }
 
-                for (int slot = 1; slot < self.KnownNullState.Capacity; slot++)
+                for (int slot = 1; slot < self.Capacity; slot++)
                 {
-                    bool? selfSlotIsNotNull = self.KnownNullState[slot] ? self.NotNull[slot] : (bool?)null;
-                    bool? union = selfSlotIsNotNull | (other.KnownNullState[slot] ? other.NotNull[slot] : (bool?)null);
+                    bool? selfSlotIsNotNull = self[slot];
+                    bool? union = selfSlotIsNotNull | other[slot];
                     if (selfSlotIsNotNull != union)
                     {
-                        self.KnownNullState[slot] = union.HasValue;
-                        self.NotNull[slot] = union.GetValueOrDefault();
+                        self[slot] = union;
                     }
                 }
 
@@ -4478,20 +4471,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (_performStaticNullChecks)
                 {
-                    if (self.KnownNullState.Capacity != other.KnownNullState.Capacity)
+                    if (self.Capacity != other.Capacity)
                     {
                         NormalizeNullable(ref self);
                         NormalizeNullable(ref other);
                     }
 
-                    for (int slot = 1; slot < self.KnownNullState.Capacity; slot++)
+                    for (int slot = 1; slot < self.Capacity; slot++)
                     {
-                        bool? selfSlotIsNotNull = self.KnownNullState[slot] ? self.NotNull[slot] : (bool?)null;
-                        bool? intersection = selfSlotIsNotNull & (other.KnownNullState[slot] ? other.NotNull[slot] : (bool?)null);
+                        bool? selfSlotIsNotNull = self[slot];
+                        bool? intersection = selfSlotIsNotNull & other[slot];
                         if (selfSlotIsNotNull != intersection)
                         {
-                            self.KnownNullState[slot] = intersection.HasValue;
-                            self.NotNull[slot] = intersection.GetValueOrDefault();
+                            self[slot] = intersection;
                             result = true;
                         }
                     }
@@ -4513,9 +4505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (_performStaticNullChecks)
                 {
-                    self.KnownNullState = other.KnownNullState.Clone();
-                    self.NotNull = other.NotNull.Clone();
-                    self.ResultIsNotNull = other.ResultIsNotNull;
+                    self.Clone(other);
                 }
 
                 return true;
@@ -4534,19 +4524,47 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
         {
             internal BitVector Assigned;
-            internal BitVector KnownNullState; // No diagnostics should be derived from a variable with a bit set to 0.
-            internal BitVector NotNull;
+            private BitVector _knownNullState; // No diagnostics should be derived from a variable with a bit set to 0.
+            private BitVector _notNull;
             internal bool? ResultIsNotNull; 
 
             internal LocalState(BitVector assigned, BitVector unknownNullState, BitVector notNull)
             {
                 this.Assigned = assigned;
                 Debug.Assert(!assigned.IsNull);
-                this.KnownNullState = unknownNullState;
+                this._knownNullState = unknownNullState;
                 Debug.Assert(!unknownNullState.IsNull);
-                this.NotNull = notNull;
+                this._notNull = notNull;
                 Debug.Assert(!notNull.IsNull);
                 ResultIsNotNull = null;
+            }
+
+            internal int Capacity => _knownNullState.Capacity;
+
+            internal void EnsureCapacity(int capacity)
+            {
+                _knownNullState.EnsureCapacity(capacity);
+                _notNull.EnsureCapacity(capacity);
+            }
+
+            internal bool? this[int slot]
+            {
+                get
+                {
+                    return _knownNullState[slot] ? _notNull[slot] : (bool?)null;
+                }
+                set
+                {
+                    _knownNullState[slot] = value.HasValue;
+                    _notNull[slot] = value.GetValueOrDefault();
+                }
+            }
+
+            internal void Clone(LocalState other)
+            {
+                _knownNullState = other._knownNullState.Clone();
+                _notNull = other._notNull.Clone();
+                ResultIsNotNull = other.ResultIsNotNull;
             }
 
             /// <summary>
@@ -4555,7 +4573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <returns></returns>
             public LocalState Clone()
             {
-                return new LocalState(Assigned.Clone(), KnownNullState.Clone(), NotNull.Clone()) { ResultIsNotNull = this.ResultIsNotNull };
+                return new LocalState(Assigned.Clone(), _knownNullState.Clone(), _notNull.Clone()) { ResultIsNotNull = this.ResultIsNotNull };
             }
 
             public bool IsAssigned(int slot)

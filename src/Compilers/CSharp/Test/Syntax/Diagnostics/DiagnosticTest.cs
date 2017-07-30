@@ -259,6 +259,7 @@ class X
                         case ErrorCode.WRN_UnreferencedLocalFunction:
                             Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
                             break;
+                        case ErrorCode.WRN_NullAsNonNullable:
                         case ErrorCode.WRN_NullReferenceAssignment:
                         case ErrorCode.WRN_NullReferenceReceiver:
                         case ErrorCode.WRN_NullReferenceReturn:

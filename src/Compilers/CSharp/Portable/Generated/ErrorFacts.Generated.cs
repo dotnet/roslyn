@@ -175,6 +175,7 @@
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_DefaultInSwitch:
+                case ErrorCode.WRN_NullAsNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:
                 case ErrorCode.WRN_NullReferenceReturn:

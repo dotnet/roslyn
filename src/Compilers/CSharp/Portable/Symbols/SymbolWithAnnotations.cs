@@ -229,6 +229,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Return nullable type if the type is a non-nullable
+        /// reference type and local nullability is inferred.
+        /// </summary>
+        public TypeSymbolWithAnnotations AsNullableReferenceTypeIfInferLocalNullability(SyntaxNode syntax)
+        {
+            if (IsReferenceType && IsNullable == false)
+            {
+                var flags = ((CSharpParseOptions)syntax.SyntaxTree.Options).GetNullableReferenceFlags();
+                if ((flags & NullableReferenceFlags.InferLocalNullability) != 0)
+                {
+                    return AsNullableReferenceType();
+                }
+            }
+            return this;
+        }
+
+        /// <summary>
         /// Adjust types in signatures coming from metadata.
         /// </summary>
         public abstract TypeSymbolWithAnnotations AsNullableReferenceType();
