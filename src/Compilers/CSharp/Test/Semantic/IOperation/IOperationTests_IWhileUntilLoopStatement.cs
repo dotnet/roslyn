@@ -500,46 +500,6 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
         }
 
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileMultipleCondition()
-        {
-            string source = @"
-class ContinueTest
-{
-    static void Main()
-    {
-        int i = 0, j = 0 ;
-        /*<bind>*/while((i <= 10) && j<=20)
-        {
-            i++;
-            j = j * i;
-        }/*</bind>*/
-    }
-}
-";
-string expectedOperationTree = @"
-IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while((i <= ... }')
-  Condition: IBinaryOperatorExpression (BinaryOperationKind.BooleanConditionalAnd) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '(i <= 10) && j<=20')
-      Left: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i <= 10')
-          Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-          Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-      Right: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j<=20')
-          Left: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
-          Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-  Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i++;')
-        Expression: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
-            Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'j = j * i;')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j * i')
-            Left: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
-            Right: IBinaryOperatorExpression (BinaryOperationKind.IntegerMultiply) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j * i')
-                Left: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
-                Right: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
-
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithContinue()
         {
             string source = @"
@@ -576,59 +536,6 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
             IBranchStatement (BranchKind.Continue) (OperationKind.BranchStatement) (Syntax: 'continue;')
         IfFalse: null
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... iteLine(i);')
-        Expression: IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
-            Instance Receiver: null
-            Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                  InConversion: null
-                  OutConversion: null
-";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
-
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileContinueInvocationExpression()
-        {
-            string source = @"
-class ContinueTest
-{
-    static void Main()
-    {
-        int i = 0;
-        /*<bind>*/while(IsTrue(i))
-        {
-            i++;
-            System.Console.WriteLine(i);
-        }/*</bind>*/
-    }
-    private static bool IsTrue(int i)
-    {
-        if (i<9)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-}
-";
-string expectedOperationTree = @"
-IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while(IsTru ... }')
-  Condition: IInvocationExpression (System.Boolean ContinueTest.IsTrue(System.Int32 i)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'IsTrue(i)')
-      Instance Receiver: null
-      Arguments(1):
-          IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'i')
-            ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-            InConversion: null
-            OutConversion: null
-  Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i++;')
-        Expression: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
-            Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... iteLine(i);')
         Expression: IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
             Instance Receiver: null
@@ -1218,16 +1125,16 @@ public class MyWhile
 string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (d.Do ... }')
   Condition: IUnaryOperatorExpression (UnaryOperationKind.DynamicTrue) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'd.Done')
-      Operand: IOperation:  (OperationKind.None) (Syntax: 'd.Done')
-          Children(1):
-              ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+      Operand: IDynamicMemberReferenceExpression (Member Name: ""Done"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Done')
+          Type Arguments(0)
+          Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'd.Next();')
         Expression: IOperation:  (OperationKind.None) (Syntax: 'd.Next()')
             Children(1):
-                IOperation:  (OperationKind.None) (Syntax: 'd.Next')
-                  Children(1):
-                      ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+                IDynamicMemberReferenceExpression (Member Name: ""Next"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Next')
+                  Type Arguments(0)
+                  Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
