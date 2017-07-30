@@ -33,6 +33,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
+        [WorkItem(17779, "https://github.com/dotnet/roslyn/issues/17779")]
+        public async Task TestScriptWithConstVar()
+        {
+            try
+            {
+                var script = CSharpScript.Create("string F() => null;").ContinueWith("const var x = F();");
+                await script.RunAsync();
+            }
+            catch (CompilationErrorException ex)
+            {
+                ex.Diagnostics.Verify(
+                    // (1,7): error CS0822: Implicitly-typed variables cannot be constant
+                    // const var x = F();
+                    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var").WithLocation(1, 7),
+                    // (1,15): error CS0120: An object reference is required for the non-static field, method, or property 'F()'
+                    // const var x = F();
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("F()").WithLocation(1, 15)
+                    );
+            }
+        }
+
+        [Fact]
         public void TestCreateScript_CodeIsNull()
         {
             Assert.Throws<ArgumentNullException>(() => CSharpScript.Create((string)null));
