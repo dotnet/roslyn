@@ -935,6 +935,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
+            // Treat reference types as nullable if inferring nullability.
+            declTypeOpt = declTypeOpt.AsNullableReferenceTypeIfInferLocalNullability(declarator);
+
             localSymbol.SetTypeSymbol(declTypeOpt);
 
             if (localSymbol.RefKind != RefKind.None && initializerOpt != null)
@@ -1926,6 +1929,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(valueKind == BindValueKind.Assignment || valueKind == BindValueKind.RefOrOut ||
                                  diagnostics.HasAnyResolvedErrors());
                     return expr;
+
+                case BoundKind.SuppressNullableWarningExpression:
+                    {
+                        var outer = (BoundSuppressNullableWarningExpression)expr;
+                        var inner = CheckValue(outer.Expression, valueKind, diagnostics);
+                        return outer.Update(inner, inner.Type);
+                    }
             }
 
             bool hasResolutionErrors = false;
@@ -2030,6 +2040,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DynamicMemberAccess:
                 case BoundKind.DynamicIndexerAccess:
                     return CheckDynamicValueKind(expr, valueKind, diagnostics);
+                case BoundKind.SuppressNullableWarningExpression:
+                    return CheckValueKind(((BoundSuppressNullableWarningExpression)expr).Expression, valueKind, diagnostics);
                 default:
                     {
                         if (RequiresSettingValue(valueKind))

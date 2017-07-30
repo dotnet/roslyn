@@ -100,6 +100,7 @@
     <Compile Include="Parsing\RoundTrippingTests.cs" />
     <Compile Include="Parsing\SeparatedSyntaxListParsingTests.cs" />
     <Compile Include="Parsing\StatementParsingTests.cs" />
+    <Compile Include="Parsing\SuppressNullableWarningExpressionParsingTests.cs" />
     <Compile Include="Parsing\SyntaxExtensions.cs" />
     <Compile Include="Parsing\ValueTupleTests.cs" />
     <Compile Include="Parsing\VerbatimCrefParsingTests.cs" />

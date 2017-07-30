@@ -411,6 +411,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.PostIncrementExpression;
                 case SyntaxKind.MinusMinusToken:
                     return SyntaxKind.PostDecrementExpression;
+                case SyntaxKind.ExclamationToken:
+                    return SyntaxKind.SuppressNullableWarningExpression;
                 default:
                     return SyntaxKind.None;
             }

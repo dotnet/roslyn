@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class StaticNullChecking : CompilingTestBase
+    public class StaticNullChecking : CSharpTestBase
     {
         // PROTOTYPE(NullableReferenceTypes): Remove
         [Fact]
@@ -14951,6 +14951,466 @@ class Program
                 // (17,35): warning CS8603: Possible null reference return.
                 //     static string F9(Person p) => p.MiddleName ?? null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "p.MiddleName ?? null").WithLocation(17, 35));
+        }
+
+        [Fact]
+        public void SuppressNullableWarning()
+        {
+            var source =
+@"class C
+{
+    static void F(string? s)
+    {
+        G(null!);
+        G((null as string)!);
+        G(default(string)!);
+        G(default!);
+        G(s!);
+    }
+    static void G(string s)
+    {
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyDiagnostics(
+                // (5,11): error CS8058: Feature 'static null checking' is experimental and unsupported; use '/features:staticNullChecking' to enable.
+                //         G(null!);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "null!").WithArguments("static null checking", "staticNullChecking").WithLocation(5, 11),
+                // (6,11): error CS8058: Feature 'static null checking' is experimental and unsupported; use '/features:staticNullChecking' to enable.
+                //         G((null as string)!);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(null as string)!").WithArguments("static null checking", "staticNullChecking").WithLocation(6, 11),
+                // (7,11): error CS8058: Feature 'static null checking' is experimental and unsupported; use '/features:staticNullChecking' to enable.
+                //         G(default(string)!);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "default(string)!").WithArguments("static null checking", "staticNullChecking").WithLocation(7, 11),
+                // (8,11): error CS8058: Feature 'static null checking' is experimental and unsupported; use '/features:staticNullChecking' to enable.
+                //         G(default!);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "default!").WithArguments("static null checking", "staticNullChecking").WithLocation(8, 11),
+                // (9,11): error CS8058: Feature 'static null checking' is experimental and unsupported; use '/features:staticNullChecking' to enable.
+                //         G(s!);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "s!").WithArguments("static null checking", "staticNullChecking").WithLocation(9, 11),
+                // (3,27): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     static void F(string? s)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "s").WithArguments("System.Nullable<T>", "T", "string").WithLocation(3, 27));
+
+            comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyEmitDiagnostics();
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Binder should report an error for `!!`.
+        [Fact]
+        public void SuppressNullableWarning_Multiple()
+        {
+            var source =
+@"class C
+{
+    static void F(string? s)
+    {
+        G(default!!);
+        G(s!!);
+        G((s!)!);
+    }
+    static void G(string s)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyDiagnostics(/* ... */);
+        }
+
+        [Fact]
+        public void SuppressNullableWarning_Nested()
+        {
+            var source =
+@"class C<T> where T : class
+{
+    static T? F(T t) => t;
+    static T? G(T t) => t;
+    static void M(T? t)
+    {
+        F(G(t!));
+        F(G(t)!);
+        F(G(t!)!);
+    }
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyDiagnostics(
+                // (7,11): warning CS8604: Possible null reference argument for parameter 't' in 'T? C<T>.F(T t)'.
+                //         F(G(t!));
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "G(t!)").WithArguments("t", "T? C<T>.F(T t)").WithLocation(7, 11),
+                // (8,13): warning CS8604: Possible null reference argument for parameter 't' in 'T? C<T>.G(T t)'.
+                //         F(G(t)!);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t").WithArguments("t", "T? C<T>.G(T t)").WithLocation(8, 13));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Suppress warnings.
+        [Fact(Skip = "Suppress warnings")]
+        public void SuppressNullableWarning_Array()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        string[] s = new string[] { string.Empty };
+        string?[] t = s;
+        t = s!;
+        s = t;
+        s = t!;
+    }
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyDiagnostics(
+                // (6,23): warning CS8619: Nullability of reference types in value of type 'string[]' doesn't match target type 'string?[]'.
+                //         string?[] t = s;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "s").WithArguments("string[]", "string?[]").WithLocation(6, 23),
+                // (8,13): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'string[]'.
+                //         s = t;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t").WithArguments("string?[]", "string[]").WithLocation(8, 13));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Suppress warnings.
+        [Fact(Skip = "Suppress warnings")]
+        public void SuppressNullableWarning_ConstructedType()
+        {
+            var source =
+@"class C<T>
+{
+    static void Main()
+    {
+        C<string> s = new C<string>();
+        C<string?> t = s;
+        t = s!;
+        s = t;
+        s = t!;
+    }
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyDiagnostics(
+                // (6,24): warning CS8619: Nullability of reference types in value of type 'C<string>' doesn't match target type 'C<string?>'.
+                //         C<string?> t = s;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "s").WithArguments("C<string>", "C<string?>").WithLocation(6, 24),
+                // (8,13): warning CS8619: Nullability of reference types in value of type 'C<string?>' doesn't match target type 'C<string>'.
+                //         s = t;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t").WithArguments("C<string?>", "C<string>").WithLocation(8, 13));
+        }
+
+        [Fact]
+        public void SuppressNullableWarning_RefOut()
+        {
+            var source =
+@"class C
+{
+    static void F<T>(ref T x, T y) where T : class
+    {
+        x = y;
+    }
+    static void G<T>(out T x, T y) where T : class
+    {
+        x = y;
+    }
+    static void Main()
+    {
+        string? s = null;
+        F(ref s!, ""1"");
+        System.Console.Write(s);
+        s = null;
+        G(out s!, ""2"");
+        System.Console.Write(s);
+    }
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1),
+                options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "12");
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): 't! = s' should be an error.
+        [Fact]
+        public void SuppressNullableWarning_Assignment()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        string? s = null;
+        string t = string.Empty;
+        t! = s;
+        t! += s;
+        (t!) = s;
+    }
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1),
+                options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(/* ... */);
+        }
+
+        [Fact]
+        public void SuppressNullableWarning_ExplicitConversion()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator B(A a) => new B();
+}
+class B
+{
+}
+class C
+{
+    static void F(A? a)
+    {
+        G((B)a);
+        G((B)a!);
+    }
+    static void G(B b)
+    {
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyDiagnostics(
+                // (12,14): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator B(A a)'.
+                //         G((B)a);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("a", "A.implicit operator B(A a)").WithLocation(12, 14));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): PreciseAbstractFlowPass.VisitSuppressNullableWarningExpression
+        // should not assume node.Expression is an rvalue.
+        [Fact(Skip = "CS0165: Use of unassigned local variable 'o'")]
+        public void SuppressNullableWarning_Condition()
+        {
+            var source =
+@"class C
+{
+    static object? F(bool b)
+    {
+        return (b && G(out var o))!? o : null;
+    }
+    static bool G(out object o)
+    {
+        o = new object();
+        return true;
+    }
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyDiagnostics(
+                // (5,16): error CS8624: The ! operator can only be applied to reference types.
+                //         return (b && G(out var o))!? o : null;
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "(b && G(out var o))!").WithLocation(5, 16));
+        }
+
+        [Fact]
+        public void SuppressNullableWarning_ValueType()
+        {
+            var source =
+@"struct S
+{
+    static void F()
+    {
+        G(1!);
+        G(((int?)null)!);
+        G(default(S)!);
+    }
+    static void G(object o)
+    {
+    }
+    static void G<T>(T? t) where T : struct
+    {
+    }
+}";
+
+            // Feature enabled.
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+            comp.VerifyDiagnostics(
+                // (5,11): error CS8624: The ! operator can only be applied to reference types.
+                //         G(1!);
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "1!").WithLocation(5, 11),
+                // (6,11): error CS8624: The ! operator can only be applied to reference types.
+                //         G(((int?)null)!);
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
+                // (7,11): error CS8624: The ! operator can only be applied to reference types.
+                //         G(default(S)!);
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(S)!").WithLocation(7, 11));
+
+            // Feature disabled.
+            comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular);
+            comp.VerifyDiagnostics(
+                // (5,11): error CS8058: Feature 'static null checking' is experimental and unsupported; use '/features:staticNullChecking' to enable.
+                //         G(1!);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1!").WithArguments("static null checking", "staticNullChecking").WithLocation(5, 11),
+                // (6,11): error CS8058: Feature 'static null checking' is experimental and unsupported; use '/features:staticNullChecking' to enable.
+                //         G(((int?)null)!);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "((int?)null)!").WithArguments("static null checking", "staticNullChecking").WithLocation(6, 11),
+                // (7,11): error CS8058: Feature 'static null checking' is experimental and unsupported; use '/features:staticNullChecking' to enable.
+                //         G(default(S)!);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "default(S)!").WithArguments("static null checking", "staticNullChecking").WithLocation(7, 11),
+                // (5,11): error CS8624: The ! operator can only be applied to reference types.
+                //         G(1!);
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "1!").WithLocation(5, 11),
+                // (6,11): error CS8624: The ! operator can only be applied to reference types.
+                //         G(((int?)null)!);
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "((int?)null)!").WithLocation(6, 11),
+                // (7,11): error CS8624: The ! operator can only be applied to reference types.
+                //         G(default(S)!);
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(S)!").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void SuppressNullableWarning_ValueType2()
+        {
+            var source =
+@"struct S<T> where T : class
+{
+    static S<object> F(S<object?> s) => s!;
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
+            // PROTOTYPE(NullableReferenceTypes): Suppress warnings.
+            comp.VerifyDiagnostics(
+                // (3,41): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
+                //     static S<object> F(S<object?> s) => s!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "s!").WithArguments("S<object?>", "S<object>").WithLocation(3, 41));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Report error for `!` with value type for F2 and F3.
+        [Fact(Skip = "Untyped value type expression")]
+        public void SuppressNullableWarning_Constraint()
+        {
+            var source =
+@"class C
+{
+    static T F1<T>() where T : class => default!;
+    static T F2<T>() where T : struct => default!;
+    static T F3<T>() => default!;
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyDiagnostics(
+                // ...
+                );
+        }
+
+        [Fact]
+        public void SuppressNullableWarning_NonNullOperand()
+        {
+            var source =
+@"class C
+{
+    static void F(string? s)
+    {
+        G(""""!);
+        G((new string('a', 1))!);
+        G((s ?? """")!);
+    }
+    static void G(string s)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SuppressNullableWarning_InvalidOperand()
+        {
+            var source =
+@"class C
+{
+    static void F(C c)
+    {
+        G(F!);
+        G(c.P!);
+    }
+    static void G(object o)
+    {
+    }
+    object P { set { } }
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyDiagnostics(
+                // (5,11): error CS1503: Argument 1: cannot convert from 'method group!' to 'object'
+                //         G(F!);
+                Diagnostic(ErrorCode.ERR_BadArgType, "F!").WithArguments("1", "method group!", "object").WithLocation(5, 11),
+                // (6,11): error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor
+                //         G(c.P!);
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.P").WithArguments("C.P").WithLocation(6, 11));
+        }
+
+        [Fact]
+        public void SuppressNullableWarning_IndexedProperty()
+        {
+            var source0 =
+@"Imports System
+Imports System.Runtime.InteropServices
+<Assembly: PrimaryInteropAssembly(0, 0)> 
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
+<ComImport()>
+<Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
+Public Class A
+    Public ReadOnly Property P(i As Integer) As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Public ReadOnly Property Q(Optional i As Integer = 0) As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+End Class";
+            var ref0 = BasicCompilationUtils.CompileToMetadata(source0);
+            var source =
+@"class B
+{
+    static object F(A a, int i)
+    {
+        if (i > 0)
+        {
+            return a.P!;
+        }
+        return a.Q!;
+    }
+}";
+            var comp = CreateStandardCompilation(
+                new[] { source, attributesDefinitions },
+                new[] { ref0 },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyDiagnostics(
+                // (7,20): error CS0856: Indexed property 'A.P' has non-optional arguments which must be provided
+                //             return a.P!;
+                Diagnostic(ErrorCode.ERR_IndexedPropertyRequiresParams, "a.P").WithArguments("A.P").WithLocation(7, 20));
         }
 
         // PROTOTYPE(NullableReferenceTypes)

@@ -143,6 +143,8 @@ namespace Microsoft.CodeAnalysis
         UnboundLambdaExpression = 0x205,
         /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>
         IncrementExpression = 0x206,
+        /// <summary>Indicates an <see cref="ISuppressNullableWarningExpression"/>.</summary>
+        SuppressNullableWarningExpression = 0x207,
 
         // Expressions that occur only in Visual Basic.
 

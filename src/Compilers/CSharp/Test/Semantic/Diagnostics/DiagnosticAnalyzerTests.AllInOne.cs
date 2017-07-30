@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             syntaxKindsMissing.Add(SyntaxKind.DeclarationExpression);
             syntaxKindsMissing.Add(SyntaxKind.DiscardDesignation);
 
+            // AllInOneCSharpCode has no ! operator.
+            syntaxKindsMissing.Add(SyntaxKind.SuppressNullableWarningExpression);
+
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllAnalyzerMembersWereCalled();

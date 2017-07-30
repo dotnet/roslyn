@@ -7037,6 +7037,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The ! operator can only be applied to reference types..
+        /// </summary>
+        internal static string ERR_NotNullableOperatorNotReferenceType {
+            get {
+                return ResourceManager.GetString("ERR_NotNullableOperatorNotReferenceType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is of type &apos;{1}&apos;. A const field of a reference type other than string can only be initialized with null..
         /// </summary>
         internal static string ERR_NotNullConstRefField {

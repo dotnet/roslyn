@@ -5234,6 +5234,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExplicitNullableAttribute" xml:space="preserve">
     <value>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</value>
   </data>
+  <data name="ERR_NotNullableOperatorNotReferenceType" xml:space="preserve">
+    <value>The ! operator can only be applied to reference types.</value>
+  </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
     <value>A void or int returning entry point cannot be async</value>
   </data>

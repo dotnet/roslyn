@@ -2002,6 +2002,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
+        private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            var expr = BindExpression(node.Operand, diagnostics);
+            var type = expr.Type;
+            // Report an error if there are no reference types.
+            if ((object)type != null &&
+                (object)type.VisitType((t, a, c) => t.IsErrorType() || t.IsReferenceType, (object)null, canDigThroughNullable: true) == null)
+            {
+                // PROTOTYPE(NullableReferenceTypes): Should be a warning, not an error.
+                Error(diagnostics, ErrorCode.ERR_NotNullableOperatorNotReferenceType, node);
+            }
+            return new BoundSuppressNullableWarningExpression(node, expr, type);
+        }
+
         // Based on ExpressionBinder::bindPtrIndirection.
         private BoundExpression BindPointerIndirectionExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {

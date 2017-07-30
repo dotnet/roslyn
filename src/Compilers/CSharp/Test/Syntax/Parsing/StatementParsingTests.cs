@@ -144,10 +144,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(es.SemicolonToken.IsMissing);
         }
 
-        private void TestPostfixUnaryOperator(SyntaxKind kind)
+        private void TestPostfixUnaryOperator(SyntaxKind kind, ParseOptions options = null)
         {
             var text = "a" + SyntaxFacts.GetText(kind) + ";";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: options);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
@@ -171,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestPostfixUnaryOperator(SyntaxKind.PlusPlusToken);
             TestPostfixUnaryOperator(SyntaxKind.MinusMinusToken);
+            TestPostfixUnaryOperator(SyntaxKind.ExclamationToken, TestOptions.Regular.WithNullCheckingFeature());
         }
 
         [Fact]

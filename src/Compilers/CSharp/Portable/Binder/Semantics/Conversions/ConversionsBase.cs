@@ -806,6 +806,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.SuppressNullableWarningExpression:
+                    var notNullConversion = ClassifyImplicitBuiltInConversionFromExpression(((BoundSuppressNullableWarningExpression)sourceExpression).Expression, source, destination, ref useSiteDiagnostics);
+                    if (notNullConversion.Exists)
+                    {
+                        return notNullConversion;
+                    }
+                    break;
+
                 case BoundKind.TupleLiteral:
                     var tupleConversion = ClassifyImplicitTupleLiteralConversion((BoundTupleLiteral)sourceExpression, destination, ref useSiteDiagnostics);
                     if (tupleConversion.Exists)

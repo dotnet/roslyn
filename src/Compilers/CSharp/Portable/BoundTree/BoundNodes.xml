@@ -238,7 +238,12 @@
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
-  
+
+  <Node Name="BoundSuppressNullableWarningExpression" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="Expression" Type="BoundExpression"/>
+  </Node>
+
   <Node Name="BoundIncrementOperator" Base="BoundExpression">
     <!-- x++ might need a conversion from the type of x to the operand type
          of the ++ operator (that produces the incremented value) and a 
