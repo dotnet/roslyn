@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             return SyntaxFactory.ParseSyntaxTree(code);
         }
 
-        public async Task GenerateBaseline()
+        private async Task GenerateBaseline()
         {
             Console.WriteLine(typeof(FactAttribute));
 

@@ -22,7 +22,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void AlignOpenBraceWithMethodDeclaration()
         {
-            SetUpEditor(@"
+            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
+            {
+                SetUpEditor(@"
 $$class C
 {
     void Main()
@@ -30,14 +32,16 @@ $$class C
     }
 }");
 
-            VisualStudio.Editor.FormatDocument();
-            VisualStudio.Editor.Verify.TextContains(@"
+                VisualStudio.Editor.FormatDocument();
+                VisualStudio.Editor.Verify.TextContains(@"
 class C
 {
     void Main()
     {
     }
 }");
+                telemetry.VerifyFired("vs/ide/vbcs/commandhandler/formatcommand");
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]

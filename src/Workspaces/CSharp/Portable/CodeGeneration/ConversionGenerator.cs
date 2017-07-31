@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             ParseOptions parseOptions)
         {
             var declaration = GenerateConversionDeclarationWorker(method, destination, workspace, options, parseOptions);
-            return AddCleanupAnnotationsTo(AddAnnotationsTo(method,
+            return AddFormatterAndCodeGeneratorAnnotationsTo(AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options)));
         }
 
