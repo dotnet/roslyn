@@ -47,15 +47,17 @@ class Program
 
     }
 }";
-            SetUpEditor(markup);
-            InlineRenameDialog.Invoke();
+            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
+            {
+                SetUpEditor(markup);
+                InlineRenameDialog.Invoke();
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
-            AssertEx.SetEqual(renameSpans, tags);
+                MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+                var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+                AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"
+                VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+                VisualStudio.Editor.Verify.TextContains(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,6 +76,8 @@ class Program
 
     }
 }");
+                telemetry.VerifyFired("vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore");
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Rename)]

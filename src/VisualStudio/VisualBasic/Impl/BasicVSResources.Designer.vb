@@ -380,6 +380,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Prefer &apos;Is Nothing&apos; over &apos;Object.ReferenceEquals(..., Nothing)&apos;.
+        '''</summary>
+        Friend Shared ReadOnly Property Prefer_Is_Nothing_over_ReferenceEquals() As String
+            Get
+                Return ResourceManager.GetString("Prefer_Is_Nothing_over_ReferenceEquals", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Prefer &apos;Me.&apos;.
         '''</summary>
         Friend Shared ReadOnly Property Prefer_Me() As String

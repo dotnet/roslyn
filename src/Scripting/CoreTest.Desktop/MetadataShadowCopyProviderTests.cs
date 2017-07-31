@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
     // TODO: clean up and move to portable tests
 
-    public class MetadataShadowCopyProviderTests : TestBase, IDisposable
+    public class MetadataShadowCopyProviderTests : TestBase
     {
         private readonly MetadataShadowCopyProvider _provider;
 
