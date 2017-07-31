@@ -283,9 +283,9 @@ function Get-VisualStudioDirAndId() {
         # set of SDK fixes. Parsing the installationName is the only place where this is 
         # recorded in that form.
         $name = $obj.installationName
-        if ($name -match "VisualStudio(Preview)?/([\d.]+)\+.*") { 
+        if ($name -match "VisualStudio(Preview)?/([\d.]+)(\+|-).*") { 
             $minVersion = New-Object System.Version "15.1.0"
-            $version = New-Object System.Version $matches[1]
+            $version = New-Object System.Version $matches[2]
             if ($version -ge $minVersion) {
                 Write-Output $obj.installationPath
                 Write-Output $obj.instanceId
