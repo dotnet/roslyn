@@ -352,16 +352,14 @@ class Program
 
             comp.VerifyIL("Program.Main()", @"
 {
-  // Code size       18 (0x12)
-  .maxstack  1
+  // Code size       15 (0xf)
+  .maxstack  2
   .locals init (Program.S1 V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""Program.S1""
-  IL_0008:  ldloc.0
-  IL_0009:  stloc.0
-  IL_000a:  ldloca.s   V_0
-  IL_000c:  call       ""void Program.S1.Test()""
-  IL_0011:  ret
+  IL_0002:  dup
+  IL_0003:  initobj    ""Program.S1""
+  IL_0009:  call       ""void Program.S1.Test()""
+  IL_000e:  ret
 }");
 
         }

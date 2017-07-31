@@ -111,18 +111,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     goto default;
 
-                //PROTOTYPE(readonly-ref): the following is more efficient codegen
-                //                         not enabling in this change since results in too much of test churn and is not required for the current change
-                //                         should be enabled together with other similar "PROTOTYPE" in codegen.
-                //case BoundKind.DefaultOperator:
-                //    var type = expression.Type;
+                case BoundKind.DefaultExpression:
+                    var type = expression.Type;
 
-                //    var temp = this.AllocateTemp(type, expression.Syntax);
-                //    _builder.EmitLocalAddress(temp);                  //  ldloca temp
-                //    _builder.EmitOpCode(ILOpCode.Dup);                //  dup
-                //    _builder.EmitOpCode(ILOpCode.Initobj);            //  initobj  <type>
-                //    EmitSymbolToken(type, expression.Syntax);
-                //    return temp;
+                    var temp = this.AllocateTemp(type, expression.Syntax);
+                    _builder.EmitLocalAddress(temp);                  //  ldloca temp
+                    _builder.EmitOpCode(ILOpCode.Dup);                //  dup
+                    _builder.EmitOpCode(ILOpCode.Initobj);            //  initobj  <type>
+                    EmitSymbolToken(type, expression.Syntax);
+                    return temp;
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expression;

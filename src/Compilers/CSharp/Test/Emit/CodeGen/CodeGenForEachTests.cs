@@ -879,43 +879,42 @@ struct Enumerable : IEnumerable
 2
 3");
 
-            compilation.VerifyIL("C.Main", @"{
-  // Code size       65 (0x41)
-  .maxstack  1
+            compilation.VerifyIL("C.Main", @"
+{
+  // Code size       62 (0x3e)
+  .maxstack  2
   .locals init (System.Collections.IEnumerator V_0,
-  Enumerable V_1,
-  System.IDisposable V_2)
+                Enumerable V_1,
+                System.IDisposable V_2)
   IL_0000:  ldloca.s   V_1
-  IL_0002:  initobj    ""Enumerable""
-  IL_0008:  ldloc.1
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  constrained. ""Enumerable""
-  IL_0012:  callvirt   ""System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()""
-  IL_0017:  stloc.0
+  IL_0002:  dup
+  IL_0003:  initobj    ""Enumerable""
+  IL_0009:  constrained. ""Enumerable""
+  IL_000f:  callvirt   ""System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()""
+  IL_0014:  stloc.0
   .try
-{
-  IL_0018:  br.s       IL_0025
-  IL_001a:  ldloc.0
-  IL_001b:  callvirt   ""object System.Collections.IEnumerator.Current.get""
-  IL_0020:  call       ""void System.Console.WriteLine(object)""
-  IL_0025:  ldloc.0
-  IL_0026:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-  IL_002b:  brtrue.s   IL_001a
-  IL_002d:  leave.s    IL_0040
-}
+  {
+    IL_0015:  br.s       IL_0022
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_001d:  call       ""void System.Console.WriteLine(object)""
+    IL_0022:  ldloc.0
+    IL_0023:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0028:  brtrue.s   IL_0017
+    IL_002a:  leave.s    IL_003d
+  }
   finally
-{
-  IL_002f:  ldloc.0
-  IL_0030:  isinst     ""System.IDisposable""
-  IL_0035:  stloc.2
-  IL_0036:  ldloc.2
-  IL_0037:  brfalse.s  IL_003f
-  IL_0039:  ldloc.2
-  IL_003a:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_003f:  endfinally
-}
-  IL_0040:  ret
+  {
+    IL_002c:  ldloc.0
+    IL_002d:  isinst     ""System.IDisposable""
+    IL_0032:  stloc.2
+    IL_0033:  ldloc.2
+    IL_0034:  brfalse.s  IL_003c
+    IL_0036:  ldloc.2
+    IL_0037:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_003c:  endfinally
+  }
+  IL_003d:  ret
 }");
         }
 
@@ -945,42 +944,41 @@ struct Enumerable : IEnumerable
 2
 3");
 
-            compilation.VerifyIL("C.Main", @"{
-  // Code size       59 (0x3b)
-  .maxstack  1
+            compilation.VerifyIL("C.Main", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
   .locals init (System.Collections.IEnumerator V_0,
-  Enumerable V_1,
-  System.IDisposable V_2)
+                Enumerable V_1,
+                System.IDisposable V_2)
   IL_0000:  ldloca.s   V_1
-  IL_0002:  initobj    ""Enumerable""
-  IL_0008:  ldloc.1
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  call       ""System.Collections.IEnumerator Enumerable.GetEnumerator()""
-  IL_0011:  stloc.0
+  IL_0002:  dup
+  IL_0003:  initobj    ""Enumerable""
+  IL_0009:  call       ""System.Collections.IEnumerator Enumerable.GetEnumerator()""
+  IL_000e:  stloc.0
   .try
-{
-  IL_0012:  br.s       IL_001f
-  IL_0014:  ldloc.0
-  IL_0015:  callvirt   ""object System.Collections.IEnumerator.Current.get""
-  IL_001a:  call       ""void System.Console.WriteLine(object)""
-  IL_001f:  ldloc.0
-  IL_0020:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-  IL_0025:  brtrue.s   IL_0014
-  IL_0027:  leave.s    IL_003a
-}
+  {
+    IL_000f:  br.s       IL_001c
+    IL_0011:  ldloc.0
+    IL_0012:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_0017:  call       ""void System.Console.WriteLine(object)""
+    IL_001c:  ldloc.0
+    IL_001d:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0022:  brtrue.s   IL_0011
+    IL_0024:  leave.s    IL_0037
+  }
   finally
-{
-  IL_0029:  ldloc.0
-  IL_002a:  isinst     ""System.IDisposable""
-  IL_002f:  stloc.2
-  IL_0030:  ldloc.2
-  IL_0031:  brfalse.s  IL_0039
-  IL_0033:  ldloc.2
-  IL_0034:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0039:  endfinally
-}
-  IL_003a:  ret
+  {
+    IL_0026:  ldloc.0
+    IL_0027:  isinst     ""System.IDisposable""
+    IL_002c:  stloc.2
+    IL_002d:  ldloc.2
+    IL_002e:  brfalse.s  IL_0036
+    IL_0030:  ldloc.2
+    IL_0031:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0036:  endfinally
+  }
+  IL_0037:  ret
 }");
         }
 
@@ -1010,42 +1008,41 @@ struct Enumerable
 2
 3");
 
-            compilation.VerifyIL("C.Main", @"{
-  // Code size       59 (0x3b)
-  .maxstack  1
+            compilation.VerifyIL("C.Main", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
   .locals init (System.Collections.IEnumerator V_0,
-  Enumerable V_1,
-  System.IDisposable V_2)
+                Enumerable V_1,
+                System.IDisposable V_2)
   IL_0000:  ldloca.s   V_1
-  IL_0002:  initobj    ""Enumerable""
-  IL_0008:  ldloc.1
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  call       ""System.Collections.IEnumerator Enumerable.GetEnumerator()""
-  IL_0011:  stloc.0
+  IL_0002:  dup
+  IL_0003:  initobj    ""Enumerable""
+  IL_0009:  call       ""System.Collections.IEnumerator Enumerable.GetEnumerator()""
+  IL_000e:  stloc.0
   .try
-{
-  IL_0012:  br.s       IL_001f
-  IL_0014:  ldloc.0
-  IL_0015:  callvirt   ""object System.Collections.IEnumerator.Current.get""
-  IL_001a:  call       ""void System.Console.WriteLine(object)""
-  IL_001f:  ldloc.0
-  IL_0020:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-  IL_0025:  brtrue.s   IL_0014
-  IL_0027:  leave.s    IL_003a
-}
+  {
+    IL_000f:  br.s       IL_001c
+    IL_0011:  ldloc.0
+    IL_0012:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_0017:  call       ""void System.Console.WriteLine(object)""
+    IL_001c:  ldloc.0
+    IL_001d:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0022:  brtrue.s   IL_0011
+    IL_0024:  leave.s    IL_0037
+  }
   finally
-{
-  IL_0029:  ldloc.0
-  IL_002a:  isinst     ""System.IDisposable""
-  IL_002f:  stloc.2
-  IL_0030:  ldloc.2
-  IL_0031:  brfalse.s  IL_0039
-  IL_0033:  ldloc.2
-  IL_0034:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0039:  endfinally
-}
-  IL_003a:  ret
+  {
+    IL_0026:  ldloc.0
+    IL_0027:  isinst     ""System.IDisposable""
+    IL_002c:  stloc.2
+    IL_002d:  ldloc.2
+    IL_002e:  brfalse.s  IL_0036
+    IL_0030:  ldloc.2
+    IL_0031:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0036:  endfinally
+  }
+  IL_0037:  ret
 }");
         }
 
@@ -1081,39 +1078,38 @@ struct Enumerable : IEnumerable<int>
 2
 3");
 
-            compilation.VerifyIL("C.Main", @"{
-  // Code size       58 (0x3a)
-  .maxstack  1
+            compilation.VerifyIL("C.Main", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
   .locals init (System.Collections.Generic.IEnumerator<int> V_0,
-  Enumerable V_1)
+                Enumerable V_1)
   IL_0000:  ldloca.s   V_1
-  IL_0002:  initobj    ""Enumerable""
-  IL_0008:  ldloc.1
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  constrained. ""Enumerable""
-  IL_0012:  callvirt   ""System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()""
-  IL_0017:  stloc.0
+  IL_0002:  dup
+  IL_0003:  initobj    ""Enumerable""
+  IL_0009:  constrained. ""Enumerable""
+  IL_000f:  callvirt   ""System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()""
+  IL_0014:  stloc.0
   .try
-{
-  IL_0018:  br.s       IL_0025
-  IL_001a:  ldloc.0
-  IL_001b:  callvirt   ""int System.Collections.Generic.IEnumerator<int>.Current.get""
-  IL_0020:  call       ""void System.Console.WriteLine(int)""
-  IL_0025:  ldloc.0
-  IL_0026:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-  IL_002b:  brtrue.s   IL_001a
-  IL_002d:  leave.s    IL_0039
-}
+  {
+    IL_0015:  br.s       IL_0022
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   ""int System.Collections.Generic.IEnumerator<int>.Current.get""
+    IL_001d:  call       ""void System.Console.WriteLine(int)""
+    IL_0022:  ldloc.0
+    IL_0023:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0028:  brtrue.s   IL_0017
+    IL_002a:  leave.s    IL_0036
+  }
   finally
-{
-  IL_002f:  ldloc.0
-  IL_0030:  brfalse.s  IL_0038
-  IL_0032:  ldloc.0
-  IL_0033:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0038:  endfinally
-}
-  IL_0039:  ret
+  {
+    IL_002c:  ldloc.0
+    IL_002d:  brfalse.s  IL_0035
+    IL_002f:  ldloc.0
+    IL_0030:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0035:  endfinally
+  }
+  IL_0036:  ret
 }");
         }
 
@@ -1143,42 +1139,41 @@ struct Enumerable : IEnumerable
 2
 3");
 
-            compilation.VerifyIL("C.Main", @"{
-  // Code size       59 (0x3b)
-  .maxstack  1
+            compilation.VerifyIL("C.Main", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
   .locals init (System.Collections.IEnumerator V_0,
-  Enumerable V_1,
-  System.IDisposable V_2)
+                Enumerable V_1,
+                System.IDisposable V_2)
   IL_0000:  ldloca.s   V_1
-  IL_0002:  initobj    ""Enumerable""
-  IL_0008:  ldloc.1
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  call       ""System.Collections.IEnumerator Enumerable.GetEnumerator()""
-  IL_0011:  stloc.0
+  IL_0002:  dup
+  IL_0003:  initobj    ""Enumerable""
+  IL_0009:  call       ""System.Collections.IEnumerator Enumerable.GetEnumerator()""
+  IL_000e:  stloc.0
   .try
-{
-  IL_0012:  br.s       IL_001f
-  IL_0014:  ldloc.0
-  IL_0015:  callvirt   ""object System.Collections.IEnumerator.Current.get""
-  IL_001a:  call       ""void System.Console.WriteLine(object)""
-  IL_001f:  ldloc.0
-  IL_0020:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-  IL_0025:  brtrue.s   IL_0014
-  IL_0027:  leave.s    IL_003a
-}
+  {
+    IL_000f:  br.s       IL_001c
+    IL_0011:  ldloc.0
+    IL_0012:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_0017:  call       ""void System.Console.WriteLine(object)""
+    IL_001c:  ldloc.0
+    IL_001d:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0022:  brtrue.s   IL_0011
+    IL_0024:  leave.s    IL_0037
+  }
   finally
-{
-  IL_0029:  ldloc.0
-  IL_002a:  isinst     ""System.IDisposable""
-  IL_002f:  stloc.2
-  IL_0030:  ldloc.2
-  IL_0031:  brfalse.s  IL_0039
-  IL_0033:  ldloc.2
-  IL_0034:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0039:  endfinally
-}
-  IL_003a:  ret
+  {
+    IL_0026:  ldloc.0
+    IL_0027:  isinst     ""System.IDisposable""
+    IL_002c:  stloc.2
+    IL_002d:  ldloc.2
+    IL_002e:  brfalse.s  IL_0036
+    IL_0030:  ldloc.2
+    IL_0031:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0036:  endfinally
+  }
+  IL_0037:  ret
 }");
         }
 
@@ -1634,43 +1629,42 @@ struct Enumerable : IEnumerable
 3");
 
             // Confirm that GetEnumerator is a constrained call
-            compilation.VerifyIL("C.Main", @"{
-  // Code size       65 (0x41)
-  .maxstack  1
+            compilation.VerifyIL("C.Main", @"
+{
+  // Code size       62 (0x3e)
+  .maxstack  2
   .locals init (System.Collections.IEnumerator V_0,
-  Enumerable V_1,
-  System.IDisposable V_2)
+                Enumerable V_1,
+                System.IDisposable V_2)
   IL_0000:  ldloca.s   V_1
-  IL_0002:  initobj    ""Enumerable""
-  IL_0008:  ldloc.1
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  constrained. ""Enumerable""
-  IL_0012:  callvirt   ""System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()""
-  IL_0017:  stloc.0
+  IL_0002:  dup
+  IL_0003:  initobj    ""Enumerable""
+  IL_0009:  constrained. ""Enumerable""
+  IL_000f:  callvirt   ""System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()""
+  IL_0014:  stloc.0
   .try
-{
-  IL_0018:  br.s       IL_0025
-  IL_001a:  ldloc.0
-  IL_001b:  callvirt   ""object System.Collections.IEnumerator.Current.get""
-  IL_0020:  call       ""void System.Console.WriteLine(object)""
-  IL_0025:  ldloc.0
-  IL_0026:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-  IL_002b:  brtrue.s   IL_001a
-  IL_002d:  leave.s    IL_0040
-}
+  {
+    IL_0015:  br.s       IL_0022
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_001d:  call       ""void System.Console.WriteLine(object)""
+    IL_0022:  ldloc.0
+    IL_0023:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0028:  brtrue.s   IL_0017
+    IL_002a:  leave.s    IL_003d
+  }
   finally
-{
-  IL_002f:  ldloc.0
-  IL_0030:  isinst     ""System.IDisposable""
-  IL_0035:  stloc.2
-  IL_0036:  ldloc.2
-  IL_0037:  brfalse.s  IL_003f
-  IL_0039:  ldloc.2
-  IL_003a:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_003f:  endfinally
-}
-  IL_0040:  ret
+  {
+    IL_002c:  ldloc.0
+    IL_002d:  isinst     ""System.IDisposable""
+    IL_0032:  stloc.2
+    IL_0033:  ldloc.2
+    IL_0034:  brfalse.s  IL_003c
+    IL_0036:  ldloc.2
+    IL_0037:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_003c:  endfinally
+  }
+  IL_003d:  ret
 }");
         }
 
