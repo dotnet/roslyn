@@ -221,5 +221,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IConditionalGotoStatement"/>.</summary>
         ConditionalGotoStatement = 0x413,
+
+        /// <summary>Indicates an <see cref="ISequenceExpression"/>.</summary>
+        SequenceExpression = 0x414
     }
 }

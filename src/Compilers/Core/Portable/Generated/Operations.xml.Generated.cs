@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseSequenceExpression : Operation, ISequenceExpression
     {
         protected BaseSequenceExpression(ImmutableArray<ILocalSymbol> locals, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.BlockStatement, syntax, type, constantValue)
+                    base(OperationKind.SequenceExpression, syntax, type, constantValue)
         {
             Locals = locals;
         }
