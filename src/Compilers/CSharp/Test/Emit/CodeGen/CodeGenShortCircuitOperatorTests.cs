@@ -6924,8 +6924,8 @@ class Program
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
-  // Code size       48 (0x30)
-  .maxstack  1
+  // Code size       45 (0x2d)
+  .maxstack  2
   .locals init (T V_0,
                 string V_1)
   IL_0000:  nop
@@ -6935,18 +6935,16 @@ class Program
   IL_000a:  box        ""T""
   IL_000f:  brtrue.s   IL_0014
   IL_0011:  ldnull
-  IL_0012:  br.s       IL_002b
+  IL_0012:  br.s       IL_0028
   IL_0014:  ldloca.s   V_0
-  IL_0016:  initobj    ""T""
-  IL_001c:  ldloc.0
-  IL_001d:  stloc.0
-  IL_001e:  ldloca.s   V_0
-  IL_0020:  constrained. ""T""
-  IL_0026:  callvirt   ""string object.ToString()""
-  IL_002b:  stloc.1
-  IL_002c:  br.s       IL_002e
-  IL_002e:  ldloc.1
-  IL_002f:  ret
+  IL_0016:  dup
+  IL_0017:  initobj    ""T""
+  IL_001d:  constrained. ""T""
+  IL_0023:  callvirt   ""string object.ToString()""
+  IL_0028:  stloc.1
+  IL_0029:  br.s       IL_002b
+  IL_002b:  ldloc.1
+  IL_002c:  ret
 }");
         }
 
@@ -7043,8 +7041,8 @@ class Program
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
-  // Code size       48 (0x30)
-  .maxstack  1
+  // Code size       45 (0x2d)
+  .maxstack  2
   .locals init (T V_0,
                 string V_1)
   IL_0000:  nop
@@ -7054,18 +7052,16 @@ class Program
   IL_000a:  box        ""T""
   IL_000f:  brtrue.s   IL_0014
   IL_0011:  ldnull
-  IL_0012:  br.s       IL_002b
+  IL_0012:  br.s       IL_0028
   IL_0014:  ldloca.s   V_0
-  IL_0016:  initobj    ""T""
-  IL_001c:  ldloc.0
-  IL_001d:  stloc.0
-  IL_001e:  ldloca.s   V_0
-  IL_0020:  constrained. ""T""
-  IL_0026:  callvirt   ""string object.ToString()""
-  IL_002b:  stloc.1
-  IL_002c:  br.s       IL_002e
-  IL_002e:  ldloc.1
-  IL_002f:  ret
+  IL_0016:  dup
+  IL_0017:  initobj    ""T""
+  IL_001d:  constrained. ""T""
+  IL_0023:  callvirt   ""string object.ToString()""
+  IL_0028:  stloc.1
+  IL_0029:  br.s       IL_002b
+  IL_002b:  ldloc.1
+  IL_002c:  ret
 }");
         }
 
@@ -7287,33 +7283,29 @@ class Program
 
             verifier.VerifyIL("Program.Main", @"
 {
-  // Code size       61 (0x3d)
-  .maxstack  1
+  // Code size       55 (0x37)
+  .maxstack  2
   .locals init (System.Guid? V_0,
                 System.Guid V_1)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_0
-  IL_0003:  initobj    ""System.Guid?""
-  IL_0009:  ldloc.0
-  IL_000a:  stloc.0
-  IL_000b:  ldloca.s   V_0
-  IL_000d:  call       ""bool System.Guid?.HasValue.get""
-  IL_0012:  brtrue.s   IL_0017
-  IL_0014:  ldnull
-  IL_0015:  br.s       IL_0036
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  initobj    ""System.Guid?""
-  IL_001f:  ldloc.0
-  IL_0020:  stloc.0
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
-  IL_0028:  stloc.1
-  IL_0029:  ldloca.s   V_1
-  IL_002b:  constrained. ""System.Guid""
-  IL_0031:  callvirt   ""string object.ToString()""
-  IL_0036:  call       ""void System.Console.WriteLine(string)""
-  IL_003b:  nop
-  IL_003c:  ret
+  IL_0003:  dup
+  IL_0004:  initobj    ""System.Guid?""
+  IL_000a:  call       ""bool System.Guid?.HasValue.get""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_0030
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  dup
+  IL_0017:  initobj    ""System.Guid?""
+  IL_001d:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
+  IL_0022:  stloc.1
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  constrained. ""System.Guid""
+  IL_002b:  callvirt   ""string object.ToString()""
+  IL_0030:  call       ""void System.Console.WriteLine(string)""
+  IL_0035:  nop
+  IL_0036:  ret
 }");
         }
     }
