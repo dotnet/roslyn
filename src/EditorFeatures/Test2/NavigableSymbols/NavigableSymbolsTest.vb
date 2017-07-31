@@ -60,7 +60,6 @@ End Class"
         End Function
 
         Private Async Function TestNavigated(workspace As TestWorkspace, position As Integer, span As TextSpan) As Task
-
             Dim presenter = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() New MockStreamingFindUsagesPresenter(Sub() Return))}
             Dim service = New NavigableSymbolService(TestWaitIndicator.Default, presenter)
             Dim view = workspace.Documents.First().GetTextView()
