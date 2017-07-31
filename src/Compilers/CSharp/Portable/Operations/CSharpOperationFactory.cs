@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 //  2. the constant value of BoundEventAccess is always null.
                 //  3. the syntax of the boundEventAssignmentOperator is always AssignmentExpressionSyntax, so the syntax for the event reference would be the LHS of the assignment.
                 IEventSymbol @event = boundEventAssignmentOperator.Event;
-                Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Event.IsStatic ? null : boundEventAssignmentOperator.ReceiverOpt));
+                Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.ReceiverOpt));
                 SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
 
                 return new LazyEventReferenceExpression(@event, instance, @event, eventAccessSyntax, @event.Type, ConvertToOptional(null));

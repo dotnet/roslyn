@@ -203,5 +203,48 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact]
+        public void AddEventHandler_AssignToStaticEventOnInstance()
+        {
+            string source = @"
+using System;
+
+class Test
+{
+    public static event EventHandler MyEvent;    
+}
+
+class C
+{
+    void Handler(object sender, EventArgs e)
+    {
+    } 
+
+    void M()
+    {
+        var t = new Test();
+        /*<bind>*/t.MyEvent += Handler/*<bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: 't.MyEvent += Handler')
+  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 't.MyEvent')
+      Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test, IsInvalid) (Syntax: 't')
+  Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
+      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
+";
+            var expectedDiagnostics = new[] {                  
+                // file.cs(18,19): error CS0176: Member 'Test.MyEvent' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         /*<bind>*/t.MyEvent += Handler/*<bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "t.MyEvent").WithArguments("Test.MyEvent").WithLocation(18, 19),
+                // file.cs(6,38): warning CS0067: The event 'Test.MyEvent' is never used
+                //     public static event EventHandler MyEvent;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "MyEvent").WithArguments("Test.MyEvent").WithLocation(6, 38)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

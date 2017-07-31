@@ -169,5 +169,39 @@ BC31143: Method 'Public Sub M(x As Integer)' does not have a signature compatibl
             VerifyOperationTreeAndDiagnosticsForTest(Of AddRemoveHandlerStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <Fact>
+        Public Sub AddEventHandler_AssignToSharedEventOnInstance()
+            Dim source = <![CDATA[
+Imports System
+
+Class TestClass
+
+    Shared Event TestEvent As Action
+
+    Sub Remove()
+        AddHandler Me.TestEvent, AddressOf M 'BIND:"AddHandler Me.TestEvent, AddressOf M"
+    End Sub
+
+    Sub M()
+    End Sub
+End Class]]>.Value
+            Dim expectedOperationTree = <![CDATA[
+IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  ... AddressOf M')
+  Expression: IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
+      Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'Me.TestEvent')
+          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'Me')
+      Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
+          Children(1):
+              IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        AddHandler Me.TestEvent, AddressOf M 'BIND:"AddHandler Me.TestEvent, AddressOf M"
+                   ~~~~~~~~~~~~
+]]>.Value
+            VerifyOperationTreeAndDiagnosticsForTest(Of AddRemoveHandlerStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
     End Class
 End Namespace
