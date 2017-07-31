@@ -4,6 +4,7 @@ Imports System
 Imports System.Linq
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.NavigableSymbols
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching
@@ -27,39 +28,46 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigableSymbols
 
         <WpfFact>
         Public Async Function TestCharp() As Task
-            Using workspace = TestWorkspace.CreateCSharp("
-class C
+            Dim markup = "
+class [|C|]
 {
     C$$ c
-}", exportProvider:=s_exportProvider)
+}"
+            Dim text As String = Nothing
+            Dim position As Integer
+            Dim span As TextSpan
+            MarkupTestFile.GetPositionAndSpan(markup, text, position, span)
 
-
-                Await TestNavigated(workspace)
+            Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=s_exportProvider)
+                Await TestNavigated(workspace, position, span)
             End Using
         End Function
 
         <WpfFact>
         Public Async Function TestVB() As Task
-            Using workspace = TestWorkspace.CreateVisualBasic("
-Class C
+            Dim markup = "
+Class [|C|]
     Dim c as C$$
-End Class", exportProvider:=s_exportProvider)
+End Class"
+            Dim text As String = Nothing
+            Dim position As Integer
+            Dim span As TextSpan
+            MarkupTestFile.GetPositionAndSpan(markup, text, position, span)
 
-
-                Await TestNavigated(workspace)
+            Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=s_exportProvider)
+                Await TestNavigated(workspace, position, span)
             End Using
         End Function
 
-        Private Async Function TestNavigated(workspace As TestWorkspace) As Task
+        Private Async Function TestNavigated(workspace As TestWorkspace, position As Integer, span As TextSpan) As Task
 
             Dim presenter = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() New MockStreamingFindUsagesPresenter(Sub() Return))}
             Dim service = New NavigableSymbolService(TestWaitIndicator.Default, presenter)
             Dim view = workspace.Documents.First().GetTextView()
-            Dim Buffer = workspace.Documents.First().GetTextBuffer()
-            Dim caretPosition = view.Caret.Position.BufferPosition.Position
-            Dim Span = New SnapshotSpan(Buffer.CurrentSnapshot, New Span(caretPosition, 0))
-            Dim source = service.TryCreateNavigableSymbolSource(view, Buffer)
-            Dim symbol = Await source.GetNavigableSymbolAsync(Span, CancellationToken.None)
+            Dim buffer = workspace.Documents.First().GetTextBuffer()
+            Dim triggerSpan = New SnapshotSpan(buffer.CurrentSnapshot, New Span(position, 0))
+            Dim source = service.TryCreateNavigableSymbolSource(view, buffer)
+            Dim symbol = Await source.GetNavigableSymbolAsync(triggerSpan, CancellationToken.None)
 
             Assert.NotNull(symbol)
             symbol.Navigate(symbol.Relationships.First())
@@ -68,6 +76,7 @@ End Class", exportProvider:=s_exportProvider)
             Assert.Equal(True, navigationService.TryNavigateToLineAndOffsetReturnValue)
             Assert.Equal(True, navigationService.TryNavigateToPositionReturnValue)
             Assert.Equal(True, navigationService.TryNavigateToSpanReturnValue)
+            Assert.Equal(span, navigationService.ProvidedTextSpan)
         End Function
     End Class
 End Namespace
