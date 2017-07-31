@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
         }
 
-        public void TaskMethod()
+        private void TaskMethod()
         {
         }
 

@@ -12,7 +12,7 @@ if ( -not $? )
     exit 1
 }
 
-Invoke-WebRequest -Uri http://dotnetci.blob.core.windows.net/roslyn-perf/cpc.zip -OutFile cpc.zip
+Invoke-WebRequest -Uri http://dotnetci.blob.core.windows.net/roslyn-perf/cpc.zip -OutFile cpc.zip -UseBasicParsing
 [Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem') | Out-Null
 [IO.Compression.ZipFile]::ExtractToDirectory('cpc.zip', $CPCLocation)
 

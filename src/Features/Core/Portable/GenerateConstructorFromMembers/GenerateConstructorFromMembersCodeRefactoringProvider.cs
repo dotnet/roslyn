@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -164,6 +165,27 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             return result.ToImmutableAndFree();
+        }
+
+        private static async Task<Document> AddNavigationAnnotationAsync(Document document, CancellationToken cancellationToken)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var nodes = root.GetAnnotatedNodes(CodeGenerator.Annotation);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            foreach (var node in nodes)
+            {
+                var parameterList = syntaxFacts.GetParameterList(node);
+                if (parameterList != null)
+                {
+                    var closeParen = parameterList.GetLastToken();
+                    var newRoot = root.ReplaceToken(closeParen, closeParen.WithAdditionalAnnotations(NavigationAnnotation.Create()));
+                    return document.WithSyntaxRoot(newRoot);
+                }
+            }
+
+            return document;
         }
     }
 }
