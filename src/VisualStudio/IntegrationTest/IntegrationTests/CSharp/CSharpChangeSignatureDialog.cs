@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
@@ -23,7 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17393"),
          Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void VerifyCodeRefactoringOffered()
+        public async Task VerifyCodeRefactoringOfferedAsync()
         {
             SetUpEditor(@"
 class C
@@ -32,7 +33,7 @@ class C
 }");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Change signature...", applyFix: false);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Change signature...", applyFix: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]

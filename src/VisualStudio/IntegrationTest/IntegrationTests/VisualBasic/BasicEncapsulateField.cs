@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -53,11 +54,11 @@ End Module";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulateThroughLightbulbIncludingReferences()
+        public async Task EncapsulateThroughLightbulbIncludingReferences()
         {
             SetUpEditor(TestSource);
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'name' (and use property)", applyFix: true, blockUntilComplete: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'name' (and use property)", applyFix: true, blockUntilComplete: true);
             VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Private _name As Integer? = 0
@@ -78,11 +79,11 @@ End Module");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulateThroughLightbulbDefinitionsOnly()
+        public async Task EncapsulateThroughLightbulbDefinitionsOnlyAsync()
         {
             SetUpEditor(TestSource);
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'name' (but still use field)", applyFix: true, blockUntilComplete: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'name' (but still use field)", applyFix: true, blockUntilComplete: true);
             VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Private _name As Integer? = 0

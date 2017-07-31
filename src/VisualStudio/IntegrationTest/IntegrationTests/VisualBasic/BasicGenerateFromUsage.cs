@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -19,7 +20,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
-        public void GenerateLocal()
+        public async Task GenerateLocalAsync()
         {
             SetUpEditor(
 @"Module Program
@@ -27,7 +28,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         Dim x As String = $$xyz
     End Sub
 End Module");
-            VisualStudio.Editor.Verify.CodeAction("Generate local 'xyz'", applyFix: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate local 'xyz'", applyFix: true);
             VisualStudio.Editor.Verify.TextContains(
 @"Module Program
     Sub Main(args As String())
@@ -38,7 +39,7 @@ End Module");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GenerateTypeInNewFile()
+        public async Task GenerateTypeInNewFileAsync()
         {
             SetUpEditor(
 @"Module Program
@@ -46,7 +47,7 @@ End Module");
         Dim x As New $$ClassInNewFile()
     End Sub
 End Module");
-            VisualStudio.Editor.Verify.CodeAction("Generate class 'ClassInNewFile' in new file", applyFix: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate class 'ClassInNewFile' in new file", applyFix: true);
             VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "ClassInNewFile.vb");
             VisualStudio.Editor.Verify.TextContains(
 @"Friend Class ClassInNewFile

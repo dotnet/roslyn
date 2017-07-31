@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
@@ -22,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
-        public void VerifyCancellation()
+        public async Task VerifyCancellationAsync()
         {
             SetUpEditor(@"class C$$
 {
@@ -30,7 +31,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            await VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -46,7 +47,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
-        public void CheckFileName()
+        public async Task CheckFileNameAsync()
         {
             SetUpEditor(@"class C$$
 {
@@ -54,7 +55,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            await VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -68,7 +69,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
-        public void VerifySelectAndDeselectAllButtons()
+        public async Task VerifySelectAndDeselectAllButtonsAsync()
         {
             SetUpEditor(@"class C$$
 {
@@ -78,7 +79,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 ");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            await VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -106,7 +107,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
-        public void OnlySelectedItemsAreGenerated()
+        public async Task OnlySelectedItemsAreGeneratedAsync()
         {
             SetUpEditor(@"class C$$
 {
@@ -116,7 +117,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 ");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            await VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 

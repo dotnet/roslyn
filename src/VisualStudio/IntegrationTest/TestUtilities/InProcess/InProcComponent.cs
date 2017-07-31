@@ -28,8 +28,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private static Dispatcher CurrentApplicationDispatcher
             => Application.Current.Dispatcher;
 
-        protected static void BeginInvokeOnUIThread(Action action)
-            => CurrentApplicationDispatcher.BeginInvoke(action);
+        protected static System.Threading.Tasks.Task BeginInvokeOnUIThreadAsync(Action action)
+            => CurrentApplicationDispatcher.BeginInvoke(action).Task;
 
         protected static void InvokeOnUIThread(Action action)
             => CurrentApplicationDispatcher.Invoke(action);

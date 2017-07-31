@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
@@ -21,8 +22,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21154"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void BasicToCSharp()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task BasicToCSharp()
         {
             var csProj = new ProjectUtils.Project("CSProj");
             VisualStudio.SolutionExplorer.AddProject(csProj, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
@@ -37,7 +38,7 @@ Class C
     End Sub
 End Class
 ");
-            VisualStudio.Editor.Verify.CodeAction("Generate new type...",
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate new type...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -68,8 +69,8 @@ End Class
 }", actualText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21154"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void SameProject()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task SameProject()
         {
             SetUpEditor(@"
 Class C
@@ -79,7 +80,7 @@ Class C
 End Class
 ");
 
-            VisualStudio.Editor.Verify.CodeAction("Generate new type...",
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate new type...",
                 applyFix: true,
                 blockUntilComplete: false);
             var project = new ProjectUtils.Project(ProjectName);
@@ -107,9 +108,8 @@ End Class
 ", actualText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
-         Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void CheckFoldersPopulateComboBox()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task CheckFoldersPopulateComboBox()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, @"folder1\folder2\GenerateTypeTests.vb", open: true);
@@ -120,7 +120,7 @@ End Class
     End Sub
 End Class
 ");
-            VisualStudio.Editor.Verify.CodeAction("Generate new type...",
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate new type...",
                 applyFix: true,
                 blockUntilComplete: false);
 

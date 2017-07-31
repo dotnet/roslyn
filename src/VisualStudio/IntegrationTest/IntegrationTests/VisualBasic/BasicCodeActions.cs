@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -18,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20371"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public void GenerateMethodInClosedFile()
+        public async Task GenerateMethodInClosedFileAsync()
         {
             var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "Foo.vb", @"
@@ -38,7 +39,7 @@ End Class
 ");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate method 'Foo.Bar'", applyFix: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate method 'Foo.Bar'", applyFix: true);
             VisualStudio.SolutionExplorer.Verify.FileContents(project, "Foo.vb", @"
 Class Foo
     Friend Sub Bar()
