@@ -1266,6 +1266,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (d.
                   Type Arguments(0)
                   Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')";
+
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
