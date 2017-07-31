@@ -173,6 +173,9 @@
     <Compile Include="Implementation\Intellisense\QuickInfo\Providers\LinkedFileDiscrepancyException.cs" />
     <Compile Include="Implementation\Intellisense\Completion\CompletionFilterReason.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FilterResult.cs" />
+    <Compile Include="NavigableSymbols\NavigableSymbolService.cs" />
+    <Compile Include="NavigableSymbols\NavigableSymbolService.NavigableSymbol.cs" />
+    <Compile Include="NavigableSymbols\NavigableSymbolService.NavigableSymbolSource.cs" />
     <Compile Include="ReferenceHighlighting\IDocumentHighlightsService.cs" />
     <Compile Include="Implementation\Structure\BlockTagState.cs" />
     <Compile Include="Implementation\Suggestions\ISuggestedActionCallback.cs" />
