@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<SyntaxTreeIndex>";
-        private const string SerializationFormat = "9";
+        private const string SerializationFormat = "10";
 
         public readonly Checksum Checksum;
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         if (FormatAndChecksumMatches(reader, SerializationFormat, checksum))
                         {
-                            return ReadFrom(reader, checksum);
+                            return ReadFrom(GetStringTable(document.Project), reader, checksum);
                         }
                     }
                 }
@@ -80,16 +80,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // any time the SyntaxTree could have changed.  Right now, that can only happen if the
             // text of the document changes, or the ParseOptions change.  So we get the checksums
             // for both of those, and merge them together to make the final checksum.
+            var projectChecksumState = await document.Project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var parseOptionsChecksum = projectChecksumState.ParseOptions;
 
             var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             var textChecksum = documentChecksumState.Text;
 
-            var parseOptions = document.Project.ParseOptions;
-            var serializer = new Serializer(document.Project.Solution.Workspace);
-            var parseOptionsChecksum = ChecksumCache.GetOrCreate(
-                parseOptions, _ => serializer.CreateChecksum(parseOptions, cancellationToken));
-
-            return Checksum.Create(nameof(SyntaxTreeIndex), new[] { textChecksum, parseOptionsChecksum });
+            return Checksum.Create(WellKnownSynchronizationKind.SyntaxTreeIndex, new[] { textChecksum, parseOptionsChecksum });
         }
 
         private async Task<bool> SaveAsync(
@@ -155,12 +152,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SyntaxTreeIndex ReadFrom(
-            ObjectReader reader, Checksum checksum)
+            StringTable stringTable, ObjectReader reader, Checksum checksum)
         {
             var literalInfo = LiteralInfo.TryReadFrom(reader);
             var identifierInfo = IdentifierInfo.TryReadFrom(reader);
             var contextInfo = ContextInfo.TryReadFrom(reader);
-            var declarationInfo = DeclarationInfo.TryReadFrom(reader);
+            var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
 
             if (literalInfo == null || identifierInfo == null || contextInfo == null || declarationInfo == null)
             {

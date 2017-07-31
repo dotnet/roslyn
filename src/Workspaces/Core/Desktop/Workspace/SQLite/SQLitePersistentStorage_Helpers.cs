@@ -72,10 +72,10 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         /// <summary>
-        /// Amount of time to wait between flushing writes to disk.  250ms means we can flush
-        /// writes to disk four times a second.
+        /// Amount of time to wait between flushing writes to disk.  500ms means we can flush
+        /// writes to disk two times a second.
         /// </summary>
-        private const int FlushAllDelayMS = 250;
+        private const int FlushAllDelayMS = 500;
 
         /// <summary>
         /// We use a pool to cache reads/writes that are less than 4k.  Testing with Roslyn,
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// <summary>
         /// The max amount of byte[]s we cache.  This caps our cache at 4MB while allowing
         /// us to massively speed up writing (by batching writes).  Because we can write to
-        /// disk 4 times a second.  That means a total of 16MB/s that can be written to disk
+        /// disk two times a second.  That means a total of 8MB/s that can be written to disk
         /// using only our cache.  Given that Roslyn itself only writes about 50MB to disk
         /// after several minutes of analysis, this amount of bandwidth is more than sufficient.
         /// </summary>

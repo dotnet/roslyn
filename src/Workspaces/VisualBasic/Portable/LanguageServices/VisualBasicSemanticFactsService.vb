@@ -124,8 +124,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GenerateNameForExpression(semanticModel As SemanticModel,
                                                   expression As SyntaxNode,
-                                                  Optional capitalize As Boolean = False) As String Implements ISemanticFactsService.GenerateNameForExpression
-            Return semanticModel.GenerateNameForExpression(DirectCast(expression, ExpressionSyntax), capitalize)
+                                                  capitalize As Boolean,
+                                                  cancellationToken As CancellationToken) As String Implements ISemanticFactsService.GenerateNameForExpression
+            Return semanticModel.GenerateNameForExpression(
+                DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
         End Function
 
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, token As SyntaxToken, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFactsService.GetDeclaredSymbol

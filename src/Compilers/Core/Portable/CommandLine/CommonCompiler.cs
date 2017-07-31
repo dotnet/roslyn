@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis
         public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLoggerOpt);
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
+        public abstract void PrintLangVersions(TextWriter consoleOutput);
 
         /// <summary>
         /// Print compiler version
@@ -250,7 +251,7 @@ namespace Microsoft.CodeAnalysis
             // size, FileStream.Read still allocates the internal buffer.
             return new FileStream(
                 filePath,
-                FileMode.Open, 
+                FileMode.Open,
                 FileAccess.Read,
                 FileShare.ReadWrite,
                 bufferSize: 1,
@@ -520,6 +521,12 @@ namespace Microsoft.CodeAnalysis
                 return Succeeded;
             }
 
+            if (Arguments.DisplayLangVersions)
+            {
+                PrintLangVersions(consoleOutput);
+                return Succeeded;
+            }
+
             if (Arguments.DisplayLogo)
             {
                 PrintLogo(consoleOutput);
@@ -558,7 +565,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return Failed;
             }
-            
+
             bool reportAnalyzer = false;
             CancellationTokenSource analyzerCts = null;
             AnalyzerManager analyzerManager = null;
@@ -577,7 +584,7 @@ namespace Microsoft.CodeAnalysis
                 if (!analyzers.IsEmpty)
                 {
                     analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    analyzerManager = new AnalyzerManager();
+                    analyzerManager = new AnalyzerManager(analyzers);
                     analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                     Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
@@ -606,16 +613,10 @@ namespace Microsoft.CodeAnalysis
                     // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
                     var emitOptions = Arguments.EmitOptions.
                         WithOutputNameOverride(outputName).
-                        WithPdbFilePath(finalPdbFilePath);
+                        WithPdbFilePath(PathUtilities.NormalizePathPrefix(finalPdbFilePath, Arguments.PathMap));
 
-                    // The PDB path is emitted in it's entirety into the PE.  This makes it impossible to have deterministic
-                    // builds that occur in different source directories.  To enable this we shave all path information from
-                    // the PDB when specified by the user.  
-                    //
-                    // This is a temporary work around to allow us to make progress with determinism.  The following issue 
-                    // tracks getting an official solution here.
-                    //
-                    // https://github.com/dotnet/roslyn/issues/9813
+                    // This feature flag is being maintained until our next major release to avoid unnecessary 
+                    // compat breaks with customers.
                     if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
                     {
                         emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
@@ -659,6 +660,8 @@ namespace Microsoft.CodeAnalysis
                             success = compilation.CompileMethods(
                                 moduleBeingBuilt,
                                 Arguments.EmitPdb,
+                                emitOptions.EmitMetadataOnly,
+                                emitOptions.EmitTestCoverageData,
                                 diagnosticBag,
                                 filterOpt: null,
                                 cancellationToken: cancellationToken);
@@ -704,6 +707,7 @@ namespace Microsoft.CodeAnalysis
                                             moduleBeingBuilt,
                                             xmlStreamDisposerOpt?.Stream,
                                             win32ResourceStreamOpt,
+                                            emitOptions.OutputNameOverride,
                                             diagnosticBag,
                                             cancellationToken);
                                     }
@@ -748,20 +752,28 @@ namespace Microsoft.CodeAnalysis
                             var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath);
                             var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
 
+                            string finalRefPeFilePath = Arguments.OutputRefFilePath;
+                            var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;
+
                             try
                             {
                                 success = compilation.SerializeToPeStream(
                                     moduleBeingBuilt,
                                     peStreamProvider,
+                                    refPeStreamProviderOpt,
                                     pdbStreamProviderOpt,
                                     testSymWriterFactory: null,
                                     diagnostics: diagnosticBag,
                                     metadataOnly: emitOptions.EmitMetadataOnly,
+                                    includePrivateMembers: emitOptions.IncludePrivateMembers,
+                                    emitTestCoverageData: emitOptions.EmitTestCoverageData,
+                                    pePdbFilePath: emitOptions.PdbFilePath,
                                     cancellationToken: cancellationToken);
                             }
                             finally
                             {
                                 peStreamProvider.Close(diagnosticBag);
+                                refPeStreamProviderOpt?.Close(diagnosticBag);
                                 pdbStreamProviderOpt?.Close(diagnosticBag);
                             }
 
@@ -770,6 +782,10 @@ namespace Microsoft.CodeAnalysis
                                 if (pdbStreamProviderOpt != null)
                                 {
                                     touchedFilesLogger.AddWritten(finalPdbFilePath);
+                                }
+                                if (refPeStreamProviderOpt != null)
+                                {
+                                    touchedFilesLogger.AddWritten(finalRefPeFilePath);
                                 }
                                 touchedFilesLogger.AddWritten(finalPeFilePath);
                             }
@@ -815,48 +831,9 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
-
-                if (Arguments.TouchedFilesPath != null)
+                if (!WriteTouchedFiles(consoleOutput, touchedFilesLogger, finalXmlFilePath))
                 {
-                    Debug.Assert(touchedFilesLogger != null);
-
-                    if (finalXmlFilePath != null)
-                    {
-                        touchedFilesLogger.AddWritten(finalXmlFilePath);
-                    }
-
-                    string readFilesPath = Arguments.TouchedFilesPath + ".read";
-                    string writtenFilesPath = Arguments.TouchedFilesPath + ".write";
-
-                    var readStream = OpenFile(readFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
-                    var writtenStream = OpenFile(writtenFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
-
-                    if (readStream == null || writtenStream == null)
-                    {
-                        return Failed;
-                    }
-
-                    string filePath = null;
-                    try
-                    {
-                        filePath = readFilesPath;
-                        using (var writer = new StreamWriter(readStream))
-                        {
-                            touchedFilesLogger.WriteReadPaths(writer);
-                        }
-
-                        filePath = writtenFilesPath;
-                        using (var writer = new StreamWriter(writtenStream))
-                        {
-                            touchedFilesLogger.WriteWrittenPaths(writer);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.Assert(filePath != null);
-                        MessageProvider.ReportStreamWriteException(e, filePath, consoleOutput);
-                        return Failed;
-                    }
+                    return Failed;
                 }
             }
             finally
@@ -869,12 +846,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     analyzerCts.Cancel();
 
-                    if (analyzerManager != null)
-                    {
-                        // Clear cached analyzer descriptors and unregister exception handlers hooked up to the LocalizableString fields of the associated descriptors.
-                        analyzerManager.ClearAnalyzerState(analyzers);
-                    }
-
                     if (reportAnalyzer)
                     {
                         ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, Culture, compilation.Options.ConcurrentBuild);
@@ -883,6 +854,54 @@ namespace Microsoft.CodeAnalysis
             }
 
             return Succeeded;
+        }
+
+        private bool WriteTouchedFiles(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, string finalXmlFilePath)
+        {
+            if (Arguments.TouchedFilesPath != null)
+            {
+                Debug.Assert(touchedFilesLogger != null);
+
+                if (finalXmlFilePath != null)
+                {
+                    touchedFilesLogger.AddWritten(finalXmlFilePath);
+                }
+
+                string readFilesPath = Arguments.TouchedFilesPath + ".read";
+                string writtenFilesPath = Arguments.TouchedFilesPath + ".write";
+
+                var readStream = OpenFile(readFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
+                var writtenStream = OpenFile(writtenFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
+
+                if (readStream == null || writtenStream == null)
+                {
+                    return false;
+                }
+
+                string filePath = null;
+                try
+                {
+                    filePath = readFilesPath;
+                    using (var writer = new StreamWriter(readStream))
+                    {
+                        touchedFilesLogger.WriteReadPaths(writer);
+                    }
+
+                    filePath = writtenFilesPath;
+                    using (var writer = new StreamWriter(writtenStream))
+                    {
+                        touchedFilesLogger.WriteWrittenPaths(writer);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.Assert(filePath != null);
+                    MessageProvider.ReportStreamWriteException(e, filePath, consoleOutput);
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFilesLogger)

@@ -19,26 +19,28 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
         {
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var numericToken = await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start,
+                token => syntaxFacts.IsNumericLiteralExpression(token.Parent), cancellationToken).ConfigureAwait(false);
 
-            var numericToken = root.FindToken(context.Span.Start);
+            if (numericToken == default)
+            {
+                return;
+            }
+
             if (numericToken.ContainsDiagnostics)
             {
                 return;
             }
 
-            if (!numericToken.Span.Contains(context.Span))
+            if (context.Span.Length > 0 && 
+                context.Span != numericToken.Span)
             {
                 return;
             }
 
             var syntaxNode = numericToken.Parent;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!syntaxFacts.IsNumericLiteralExpression(syntaxNode))
-            {
-                return;
-            }
-
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetTypeInfo(syntaxNode, cancellationToken).Type;
             if (symbol == null)
@@ -114,7 +116,8 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
                 context.RegisterRefactoring(new MyCodeAction(title, c =>
                 {
                     var generator = SyntaxGenerator.GetGenerator(document);
-                    var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value);
+                    var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)
+                        .WithTriviaFrom(numericToken);
                     var updatedRoot = root.ReplaceToken(numericToken, updatedToken);
                     return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
                 }));

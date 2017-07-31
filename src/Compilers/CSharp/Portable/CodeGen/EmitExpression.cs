@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var temp = EmitAddress(expression.Operand, AddressKind.Writeable);
             Debug.Assert(temp == null, "If the operand is addressable, then a temp shouldn't be required.");
-            if (used && !expression.IsFixedStatementAddressOf)
+            if (used)
             {
                 // When computing an address to be used to initialize a fixed-statement variable, we have to be careful
                 // not to convert the managed reference to an unmanaged pointer before storing it.  Otherwise the GC might
@@ -1923,12 +1923,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 // It is desirable to do in-place ctor call if possible.
                 // we could do newobj/stloc, but in-place call 
-                // produces same or better code in current JITs 
+                // produces the same or better code in current JITs 
                 if (PartialCtorResultCannotEscape(left))
                 {
                     var objCreation = (BoundObjectCreationExpression)right;
-                    InPlaceCtorCall(left, objCreation, used);
-                    return true;
+                    var ctor = objCreation.Constructor;
+
+                    // ctor can possibly see its own assignments indirectly if there are ref parameters or __arglist
+                    if (System.Linq.ImmutableArrayExtensions.All(ctor.Parameters, p => p.RefKind == RefKind.None) &&
+                        !ctor.IsVararg)
+                    {
+                        InPlaceCtorCall(left, objCreation, used);
+                        return true;
+                    }
                 }
             }
 
@@ -2719,7 +2726,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(node.Method.IsDefinition);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
             _builder.EmitOpCode(ILOpCode.Ldtoken);
-            EmitSymbolToken(node.Method, node.Syntax, null, encodeAsRawDefinitionToken: true);
+
+            // For partial methods, we emit pseudo token based on the symbol for the partial
+            // definition part as opposed to the symbol for the partial implementation part.
+            // We will need to resolve the symbol associated with each pseudo token in order
+            // to compute the real method definition tokens later. For partial methods, this
+            // resolution can only succeed if the associated symbol is the symbol for the
+            // partial definition and not the symbol for the partial implementation (see
+            // MethodSymbol.ResolvedMethodImpl()).
+            var symbol = node.Method.PartialDefinitionPart ?? node.Method;
+
+            EmitSymbolToken(symbol, node.Syntax, null, encodeAsRawDefinitionToken: true);
         }
 
         private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)

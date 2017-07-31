@@ -3,12 +3,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private partial class SymbolReferenceFinder
         {
@@ -23,12 +24,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return;
                 }
 
-                if (!_owner.CanAddImportForType(_diagnostic, _node, out var nameNode))
+                if (!_owner.CanAddImportForType(_diagnosticId, _node, out var nameNode))
                 {
                     return;
                 }
 
-                CalculateContext(nameNode, _syntaxFacts, out var name, out var arity, out var inAttributeContext, out var hasIncompleteParentMember);
+                CalculateContext(
+                    nameNode, _syntaxFacts,
+                    out var name, out var arity, out var inAttributeContext, out _, out _);
 
                 if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: cancellationToken))
                 {
@@ -60,44 +63,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 ArrayBuilder<Reference> allReferences, TSimpleNameSyntax nameNode,
                 string name, int arity, bool isAttributeSearch, CancellationToken cancellationToken)
             {
-                var workspaceServices = _document.Project.Solution.Workspace.Services;
-
-                var symbolSearchService = _owner._symbolSearchService ?? workspaceServices.GetService<ISymbolSearchService>();
-                var installerService = _owner._packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
-
-                var language = _document.Project.Language;
-
-                var options = workspaceServices.Workspace.Options;
-                var searchReferenceAssemblies = options.GetOption(
-                    SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, language);
-                var searchNugetPackages = options.GetOption(
-                    SymbolSearchOptions.SuggestForTypesInNuGetPackages, language);
-
-                if (symbolSearchService != null &&
-                    searchReferenceAssemblies)
+                if (_searchReferenceAssemblies)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindReferenceAssemblyTypeReferencesAsync(
-                        symbolSearchService, allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                        allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
 
-                if (symbolSearchService != null &&
-                    installerService != null &&
-                    searchNugetPackages && 
-                    installerService.IsEnabled(_document.Project.Id))
+                foreach (var packageSource in _packageSources)
                 {
-                    foreach (var packageSource in installerService.PackageSources)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        await FindNugetTypeReferencesAsync(
-                            packageSource, symbolSearchService, installerService, allReferences,
-                            nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
-                    }
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await FindNugetTypeReferencesAsync(
+                        packageSource, allReferences,
+                        nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             private async Task FindReferenceAssemblyTypeReferencesAsync(
-                ISymbolSearchService searchService,
                 ArrayBuilder<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 string name,
@@ -106,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var results = await searchService.FindReferenceAssembliesWithTypeAsync(
+                var results = await _symbolSearchService.FindReferenceAssembliesWithTypeAsync(
                     name, arity, cancellationToken).ConfigureAwait(false);
                 if (results.IsDefault)
                 {
@@ -129,8 +111,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private async Task FindNugetTypeReferencesAsync(
                 PackageSource source,
-                ISymbolSearchService searchService,
-                IPackageInstallerService installerService,
                 ArrayBuilder<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 string name,
@@ -139,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var results = await searchService.FindPackagesWithTypeAsync(
+                var results = await _symbolSearchService.FindPackagesWithTypeAsync(
                     source.Name, name, arity, cancellationToken).ConfigureAwait(false);
                 if (results.IsDefault)
                 {
@@ -153,10 +133,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 foreach (var result in results)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    await HandleNugetReferenceAsync(
-                        source.Source, installerService, allReferences, nameNode,
-                        project, isAttributeSearch, result, 
-                        weight: allReferences.Count).ConfigureAwait(false);
+                    HandleNugetReference(
+                        source.Source, allReferences, nameNode,
+                        project, isAttributeSearch, result,
+                        weight: allReferences.Count);
                 }
             }
 
@@ -186,9 +166,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     _owner, new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), result));
             }
 
-            private Task HandleNugetReferenceAsync(
+            private void HandleNugetReference(
                 string source,
-                IPackageInstallerService installerService,
                 ArrayBuilder<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 Project project,
@@ -196,15 +175,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 PackageWithTypeResult result,
                 int weight)
             {
-                if (!installerService.IsInstalled(project.Solution.Workspace, project.Id, result.PackageName))
-                {
-                    var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
-                    allReferences.Add(new PackageReference(_owner, installerService,
-                        new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), 
-                        source, result.PackageName, result.Version));
-                }
-
-                return SpecializedTasks.EmptyTask;
+                var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
+                allReferences.Add(new PackageReference(_owner,
+                    new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight),
+                    source, result.PackageName, result.Version));
             }
 
             private static string GetDesiredName(bool isAttributeSearch, string typeName)

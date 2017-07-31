@@ -26,6 +26,25 @@ namespace RunTests
             }
         }
 
+        internal static void Log(string message, Exception ex)
+        {
+            lock (s_lines)
+            {
+                s_lines.Add(message);
+                s_lines.Add(ex.Message);
+                s_lines.Add(ex.StackTrace);
+            }
+        }
+
+        internal static void Log(Exception ex)
+        {
+            lock (s_lines)
+            {
+                s_lines.Add(ex.Message);
+                s_lines.Add(ex.StackTrace);
+            }
+        }
+
         internal static void Log(string line)
         {
             lock (s_lines)

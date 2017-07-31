@@ -7,6 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
+    [Trait(Traits.Feature, Traits.Features.Classification)]
     public partial class SyntacticClassifierTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -924,6 +925,80 @@ aeu";
                 Number("101"),
                 Punctuation.Comma,
                 Number("102"));
+        }
+
+        [Fact]
+        public async Task DiscardInOutDeclaration()
+        {
+            await TestInMethodAsync(
+                code: @"M2(out var _);",
+                expected: Classifications(Identifier("M2"), Punctuation.OpenParen, Keyword("out"), Identifier("var"),
+                    Identifier("_"), Punctuation.CloseParen, Punctuation.Semicolon));
+        }
+
+        [Fact]
+        public async Task DiscardInCasePattern()
+        {
+            await TestInMethodAsync(
+                code: @"switch (1) { case int _: }",
+                expected: Classifications(Keyword("switch"), Punctuation.OpenParen, Number("1"), Punctuation.CloseParen,
+                    Punctuation.OpenCurly, Keyword("case"), Keyword("int"), Identifier("_"), Punctuation.Colon, Punctuation.CloseCurly));
+        }
+
+        [Fact]
+        public async Task DiscardInDeconstruction()
+        {
+            await TestInMethodAsync(
+                code: @"var (x, _) = (1, 2);",
+                expected: Classifications(Identifier("var"), Punctuation.OpenParen, Identifier("x"), Punctuation.Comma,
+                    Identifier("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen, Number("1"),
+                    Punctuation.Comma, Number("2"), Punctuation.CloseParen, Punctuation.Semicolon));
+        }
+
+        [Fact]
+        public async Task DiscardInDeconstruction2()
+        {
+            await TestInMethodAsync(
+                code: @"(var _, var _) = (1, 2);",
+                expected: Classifications(Punctuation.OpenParen, Identifier("var"), Identifier("_"), Punctuation.Comma,
+                    Identifier("var"), Identifier("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen,
+                    Number("1"), Punctuation.Comma, Number("2"), Punctuation.CloseParen, Punctuation.Semicolon));
+        }
+
+        [Fact]
+        public async Task ShortDiscardInDeconstruction()
+        {
+            await TestInMethodAsync(
+                code: @"int x; (_, x) = (1, 2);",
+                expected: Classifications(Keyword("int"), Identifier("x"), Punctuation.Semicolon, Punctuation.OpenParen,
+                    Identifier("_"), Punctuation.Comma, Identifier("x"), Punctuation.CloseParen, Operators.Equals,
+                    Punctuation.OpenParen, Number("1"), Punctuation.Comma, Number("2"), Punctuation.CloseParen,
+                    Punctuation.Semicolon));
+        }
+
+        [Fact]
+        public async Task ShortDiscardInOutDeclaration()
+        {
+            await TestInMethodAsync(
+                code: @"M2(out _);",
+                expected: Classifications(Identifier("M2"), Punctuation.OpenParen, Keyword("out"), Identifier("_"), Punctuation.CloseParen,
+                    Punctuation.Semicolon));
+        }
+
+        [Fact]
+        public async Task ShortDiscardInAssignment()
+        {
+            await TestInMethodAsync(
+                code: @"_ = 1;",
+                expected: Classifications(Identifier("_"), Operators.Equals, Number("1"), Punctuation.Semicolon));
+        }
+
+        [Fact]
+        public async Task UnderscoreInAssignment()
+        {
+            await TestInMethodAsync(code: @"int _; _ = 1;" ,
+                expected: Classifications(Keyword("int"), Identifier("_"), Punctuation.Semicolon, Identifier("_"), Operators.Equals,
+                    Number("1"), Punctuation.Semicolon));
         }
     }
 }

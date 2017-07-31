@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.RuntimeMembers;
@@ -1195,6 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(
                 syntax,
                 UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
+                null, 
                 unliftedOp);
         }
 
@@ -1484,6 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(
                 syntax,
                 UnsafeGetNullableMethod(syntax, nullableBoolType, SpecialMember.System_Nullable_T__ctor),
+                null,
                 MakeBooleanConstant(syntax, value.GetValueOrDefault()));
         }
 
@@ -1720,9 +1723,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member)
         {
+            return UnsafeGetNullableMethod(syntax, nullableType, member, _compilation, _diagnostics);
+        }
+
+        /// <summary>
+        /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
+        /// Recommendation: Do not use, use <see cref="TryGetNullableMethod"/> instead! 
+        /// If used, a unit-test with a missing member is absolutely a must have.
+        /// </summary>
+        private static MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
             var nullableType2 = nullableType as NamedTypeSymbol;
             Debug.Assert((object)nullableType2 != null);
-            return UnsafeGetSpecialTypeMethod(syntax, member).AsMember(nullableType2);
+            return UnsafeGetSpecialTypeMethod(syntax, member, compilation, diagnostics).AsMember(nullableType2);
         }
 
         private bool TryGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, out MethodSymbol result)

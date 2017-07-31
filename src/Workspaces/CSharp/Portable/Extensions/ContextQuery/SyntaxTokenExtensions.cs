@@ -101,89 +101,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // for ( ; ; Foo(), |
 
-            if (token.Kind() == SyntaxKind.OpenBraceToken &&
-                token.Parent.IsKind(SyntaxKind.Block))
+            switch (token.Kind())
             {
-                return true;
-            }
-
-            if (token.Kind() == SyntaxKind.SemicolonToken)
-            {
-                var statement = token.GetAncestor<StatementSyntax>();
-                if (statement != null && !statement.IsParentKind(SyntaxKind.GlobalStatement) &&
-                    statement.GetLastToken(includeZeroWidth: true) == token)
-                {
+                case SyntaxKind.OpenBraceToken when token.Parent.IsKind(SyntaxKind.Block):
                     return true;
-                }
-            }
 
-            if (token.Kind() == SyntaxKind.CloseBraceToken &&
-                token.Parent.IsKind(SyntaxKind.Block))
-            {
-                if (token.Parent.Parent is StatementSyntax)
-                {
-                    // Most blocks that are the child of statement are places
-                    // that we can follow with another statement.  i.e.:
-                    // if { }
-                    // while () { }
-                    // There are two exceptions.
-                    // try {}
-                    // do {}
-                    if (!token.Parent.IsParentKind(SyntaxKind.TryStatement) &&
-                        !token.Parent.IsParentKind(SyntaxKind.DoStatement))
+                case SyntaxKind.SemicolonToken:
+                    var statement = token.GetAncestor<StatementSyntax>();
+                    return statement != null && !statement.IsParentKind(SyntaxKind.GlobalStatement) &&
+                           statement.GetLastToken(includeZeroWidth: true) == token;
+
+                case SyntaxKind.CloseBraceToken:
+                    if (token.Parent.IsKind(SyntaxKind.Block))
+                    {
+                        if (token.Parent.Parent is StatementSyntax)
+                        {
+                            // Most blocks that are the child of statement are places
+                            // that we can follow with another statement.  i.e.:
+                            // if { }
+                            // while () { }
+                            // There are two exceptions.
+                            // try {}
+                            // do {}
+                            if (!token.Parent.IsParentKind(SyntaxKind.TryStatement) &&
+                                !token.Parent.IsParentKind(SyntaxKind.DoStatement))
+                            {
+                                return true;
+                            }
+                        }
+                        else if (
+                            token.Parent.IsParentKind(SyntaxKind.ElseClause) ||
+                            token.Parent.IsParentKind(SyntaxKind.FinallyClause) ||
+                            token.Parent.IsParentKind(SyntaxKind.CatchClause) ||
+                            token.Parent.IsParentKind(SyntaxKind.SwitchSection))
+                        {
+                            return true;
+                        }
+                    }
+
+                    if (token.Parent.IsKind(SyntaxKind.SwitchStatement))
                     {
                         return true;
                     }
-                }
-                else if (
-                    token.Parent.IsParentKind(SyntaxKind.ElseClause) ||
-                    token.Parent.IsParentKind(SyntaxKind.FinallyClause) ||
-                    token.Parent.IsParentKind(SyntaxKind.CatchClause) ||
-                    token.Parent.IsParentKind(SyntaxKind.SwitchSection))
-                {
+
+                    return false;
+
+                case SyntaxKind.ColonToken:
+                    return token.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
+                                               SyntaxKind.DefaultSwitchLabel,
+                                               SyntaxKind.CasePatternSwitchLabel,
+                                               SyntaxKind.LabeledStatement);
+
+                case SyntaxKind.DoKeyword when token.Parent.IsKind(SyntaxKind.DoStatement):
                     return true;
-                }
-            }
 
-            if (token.Kind() == SyntaxKind.CloseBraceToken &&
-                token.Parent.IsKind(SyntaxKind.SwitchStatement))
-            {
-                return true;
-            }
+                case SyntaxKind.CloseParenToken:
+                    var parent = token.Parent;
+                    return parent.IsKind(SyntaxKind.ForStatement) ||
+                           parent.IsKind(SyntaxKind.ForEachStatement) ||
+                           parent.IsKind(SyntaxKind.ForEachVariableStatement) ||
+                           parent.IsKind(SyntaxKind.WhileStatement) ||
+                           parent.IsKind(SyntaxKind.IfStatement) ||
+                           parent.IsKind(SyntaxKind.LockStatement) ||
+                           parent.IsKind(SyntaxKind.UsingStatement) ||
+                           parent.IsKind(SyntaxKind.FixedStatement);
 
-            if (token.Kind() == SyntaxKind.ColonToken)
-            {
-                if (token.Parent.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.DefaultSwitchLabel, SyntaxKind.LabeledStatement))
-                {
+                case SyntaxKind.ElseKeyword:
                     return true;
-                }
-            }
-
-            if (token.Kind() == SyntaxKind.DoKeyword &&
-                token.Parent.IsKind(SyntaxKind.DoStatement))
-            {
-                return true;
-            }
-
-            if (token.Kind() == SyntaxKind.CloseParenToken)
-            {
-                var parent = token.Parent;
-                if (parent.IsKind(SyntaxKind.ForStatement) ||
-                    parent.IsKind(SyntaxKind.ForEachStatement) ||
-                    parent.IsKind(SyntaxKind.ForEachVariableStatement) ||
-                    parent.IsKind(SyntaxKind.WhileStatement) ||
-                    parent.IsKind(SyntaxKind.IfStatement) ||
-                    parent.IsKind(SyntaxKind.LockStatement) ||
-                    parent.IsKind(SyntaxKind.UsingStatement) ||
-                    parent.IsKind(SyntaxKind.FixedStatement))
-                {
-                    return true;
-                }
-            }
-
-            if (token.Kind() == SyntaxKind.ElseKeyword)
-            {
-                return true;
             }
 
             return false;

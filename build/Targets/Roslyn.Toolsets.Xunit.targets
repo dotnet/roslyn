@@ -1,18 +1,22 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    <!-- xUnit.net Console Runner -->
     <XUnitPath>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools\xunit.console.x86.exe</XUnitPath>
     <XUnitTestResultsDirectory>$(OutDir)\xUnitResults</XUnitTestResultsDirectory>
     <XUnitArguments>"$(OutDir)\$(AssemblyName).dll" -html "$(XUnitTestResultsDirectory)\$(AssemblyName).html" -noshadow</XUnitArguments>
-
-    <StartAction Condition="'$(StartActions)' == ''">Program</StartAction>
-    <StartProgram Condition="'$(StartProgram)' == ''">$(XUnitPath)</StartProgram>
-    <StartArguments Condition="'$(StartArguments)' == ''">$(XUnitArguments)</StartArguments>
-
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
+
+    <!-- xUnit.net WPF Runner -->
+    <XUnitWpfPath>$(NuGetPackageRoot)\xunit.runner.wpf\$(xunitrunnerwpfVersion)\tools\xunit.runner.wpf.exe</XUnitWpfPath>
+    <XUnitWpfArguments>"$(OutDir)\$(AssemblyName).dll"</XUnitWpfArguments>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.runner.wpf" Version="$(xunitrunnerwpfVersion)" PrivateAssets="all" />
+  </ItemGroup>
 
   <Target Name="Test" DependsOnTargets="Build">
     <MakeDir Directories="$(XUnitTestResultsDirectory)" />

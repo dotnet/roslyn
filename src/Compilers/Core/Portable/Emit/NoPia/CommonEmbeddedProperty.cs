@@ -81,19 +81,16 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get { return _setter; }
             }
 
-            IEnumerable<Cci.IMethodReference> Cci.IPropertyDefinition.Accessors
+            IEnumerable<Cci.IMethodReference> Cci.IPropertyDefinition.GetAccessors(EmitContext context)
             {
-                get
+                if (_getter != null)
                 {
-                    if (_getter != null)
-                    {
-                        yield return _getter;
-                    }
+                    yield return _getter;
+                }
 
-                    if (_setter != null)
-                    {
-                        yield return _setter;
-                    }
+                if (_setter != null)
+                {
+                    yield return _setter;
                 }
             }
 

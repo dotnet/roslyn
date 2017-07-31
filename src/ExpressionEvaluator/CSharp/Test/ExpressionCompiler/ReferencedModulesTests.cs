@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -755,7 +756,7 @@ namespace System
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 null,
-                moduleBuilder => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, objectType),
+                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
                 out peBytes,
                 out pdbBytes);
 
@@ -874,7 +875,7 @@ namespace System
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 pdbPath,
-                moduleBuilder => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, objectType),
+                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
                 out peBytes,
                 out pdbBytes);
             var symReader = SymReaderFactory.CreateReader(pdbBytes);
@@ -994,8 +995,8 @@ namespace System
             private readonly CommonPEModuleBuilder _builder;
             private readonly NamespaceTypeDefinitionNoBase _objectType;
 
-            internal PEAssemblyBuilderWithAdditionalReferences(CommonPEModuleBuilder builder, INamespaceTypeDefinition objectType) :
-                base((SourceModuleSymbol)builder.CommonSourceModule, builder.EmitOptions, builder.OutputKind, builder.SerializationProperties, builder.ManifestResources)
+            internal PEAssemblyBuilderWithAdditionalReferences(CommonPEModuleBuilder builder, EmitOptions emitOptions, INamespaceTypeDefinition objectType) :
+                base((SourceModuleSymbol)builder.CommonSourceModule, emitOptions, builder.OutputKind, builder.SerializationProperties, builder.ManifestResources)
             {
                 _builder = builder;
                 _objectType = new NamespaceTypeDefinitionNoBase(objectType);

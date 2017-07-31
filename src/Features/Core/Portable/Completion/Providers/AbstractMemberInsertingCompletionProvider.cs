@@ -30,11 +30,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default, CancellationToken cancellationToken = default)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newDocument = await DetermineNewDocumentAsync(item, text, cancellationToken).ConfigureAwait(false);
-
+            var newDocument = await DetermineNewDocumentAsync(document, item, cancellationToken).ConfigureAwait(false);
             var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -90,14 +88,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return new TextChange(totalOldSpan, newText.ToString(totalNewSpan));
         }
 
-        private async Task<Document> DetermineNewDocumentAsync(CompletionItem completionItem, SourceText sourceText, CancellationToken cancellationToken)
+        private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
         {
-            // The span we're going to replace
-            var line = sourceText.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            //var sourceText = textSnapshot.AsText();
-            var document = sourceText.GetOpenDocumentInCurrentContextWithChanges();
-            Contract.ThrowIfNull(document);
+            // The span we're going to replace
+            var line = text.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];
 
             // Annotate the line we care about so we can find it after adding usings
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -112,7 +108,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var destinationSpan = ComputeDestinationSpan(insertionRoot, insertionText);
 
-            var finalText = insertionRoot.GetText(sourceText.Encoding).Replace(destinationSpan, insertionText.Trim());
+            var finalText = insertionRoot.GetText(text.Encoding)
+                .Replace(destinationSpan, insertionText.Trim());
 
             document = document.WithText(finalText);
             var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -90,6 +90,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
+            var service = project.LanguageServices.GetService<IDesignerAttributeService>();
+            if (service == null)
+            {
+                // project doesn't support designer attribute service.
+                return;
+            }
+
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var designerAttribute = compilation.DesignerCategoryAttributeType();
+            if (designerAttribute == null)
+            {
+                // Project doesn't know about the System.ComponentModel.DesignerCategoryAttribute type.
+                // Don't bother running the analysis.
+                return;
+            }
+
             // Try to compute this data in the remote process.  If that fails, then compute
             // the results in the local process.
             var pathToResult = await TryAnalyzeProjectInRemoteProcessAsync(project, cancellationToken).ConfigureAwait(false);
@@ -114,15 +130,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     return null;
                 }
 
-                var serializedResults = await session.InvokeAsync<DesignerAttributeDocumentData[]>(
-                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync), project.Id).ConfigureAwait(false);
+                var serializedResults = await session.InvokeAsync<ImmutableArray<DesignerAttributeDocumentData>>(
+                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync), new object[] { project.Id }, cancellationToken).ConfigureAwait(false);
 
                 var data = serializedResults.ToImmutableDictionary(kvp => kvp.FilePath);
                 return data;
             }
         }
 
-        private static async Task<RemoteHostClient.Session> TryGetRemoteSessionAsync(
+        private static async Task<SessionWithSolution> TryGetRemoteSessionAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
@@ -131,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return null;
             }
 
-            return await client.TryCreateCodeAnalysisServiceSessionAsync(
+            return await client.TryCreateCodeAnalysisSessionAsync(
                 solution, cancellationToken).ConfigureAwait(false);
         }
 
@@ -244,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return _dotNotAccessDirectlyDesigner;
         }
 
-#region unused
+        #region unused
 
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             => SpecializedTasks.EmptyTask;
@@ -272,6 +288,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
         }
 
-#endregion
+        #endregion
     }
 }

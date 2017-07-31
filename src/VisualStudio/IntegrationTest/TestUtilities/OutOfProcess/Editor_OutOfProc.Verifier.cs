@@ -194,6 +194,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 var actualTags = _textViewWindow.GetErrorTags();
                 Assert.Equal(expectedTags, actualTags);
             }
+
+            public void IsProjectItemDirty(bool expectedValue)
+            {
+                Assert.Equal(expectedValue, _textViewWindow._editorInProc.IsProjectItemDirty());
+            }
         }
     }
 }

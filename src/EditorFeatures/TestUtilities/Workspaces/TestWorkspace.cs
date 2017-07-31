@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -25,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public partial class TestWorkspace : Workspace
     {
-        public const string WorkspaceName = TestWorkspaceName.Name;
-
         public ExportProvider ExportProvider { get; }
 
         public bool CanApplyChangeDocument { get; set; }
@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly BackgroundParser _backgroundParser;
 
         public TestWorkspace()
-            : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceName)
+            : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
         {
         }
 
         public TestWorkspace(ExportProvider exportProvider, string workspaceKind = null, bool disablePartialSolutions = true)
-            : base(MefV1HostServices.Create(exportProvider.AsExportProvider()), workspaceKind ?? WorkspaceName)
+            : base(MefV1HostServices.Create(exportProvider.AsExportProvider()), workspaceKind ?? WorkspaceKind.Test)
         {
             ResetThreadAffinity();
 
@@ -143,15 +143,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 document.CloseTextView();
             }
 
-            var exceptions = ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions();
+            var exceptions = Flatten(ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions());
 
-            if (exceptions.Count == 1)
+            if (exceptions.Count > 0)
             {
-                throw exceptions.Single();
-            }
-            else if (exceptions.Count > 1)
-            {
-                throw new AggregateException(exceptions);
+                var messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine(
+$@"{exceptions.Count} exception(s) were thrown during test.
+Note: exceptions may have been thrown by another test running concurrently with
+this test.  This can happen with any tests that share the same ExportProvider.
+Examining individual exception stacks may help reveal the original test and source 
+of the problem.");
+
+                messageBuilder.AppendLine();
+                for (int i = 0; i < exceptions.Count; i++)
+                {
+                    var exception = exceptions[i];
+                    messageBuilder.AppendLine($"Exception {i}:");
+                    messageBuilder.AppendLine(exception.ToString());
+                    messageBuilder.AppendLine();
+                }
+
+                var message = messageBuilder.ToString();
+                if (exceptions.Count == 1)
+                {
+                    throw new Exception(message, exceptions[0]);
+                }
+                else
+                {
+                    throw new AggregateException(message, exceptions);
+                }
             }
 
             if (SynchronizationContext.Current != null)
@@ -166,6 +187,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             base.Dispose(finalize);
         }
+
+        private static IList<Exception> Flatten(ICollection<Exception> exceptions)
+        {
+            var aggregate = new AggregateException(exceptions);
+            return aggregate.Flatten().InnerExceptions
+                .Select(UnwrapException)
+                .ToList();
+        }
+
+        private static Exception UnwrapException(Exception ex)
+            => ex is TargetInvocationException targetEx ? (targetEx.InnerException ?? targetEx) : ex;
 
         internal void AddTestSolution(TestHostSolution solution)
         {

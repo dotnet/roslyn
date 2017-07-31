@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             VisitArguments(operation);
-            VisitArray(operation.MemberInitializers, "Member Initializers", logElementCount: true);
+            VisitArray(operation.Initializers, "Initializers", logElementCount: true);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)
@@ -1056,12 +1056,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Condition, "Condition");
             Visit(operation.IfTrueStatement, "IfTrue");
             Visit(operation.IfFalseStatement, "IfFalse");
-        }
-
-        public override void VisitLocalFunctionStatement(IOperation operation)
-        {
-            LogString(nameof(VisitLocalFunctionStatement));
-            LogCommonPropertiesAndNewLine(operation);
         }
 
         private void LogCaseClauseCommon(ICaseClause operation)

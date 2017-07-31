@@ -1,10 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         private struct MetadataInfo
         {
             /// <summary>
-            /// Note: can be <code>null</code> if were unable to create a SymbolTreeInfo
-            /// (for example, if the metadata was bogus and we couldn't read it in).
+            /// Can't be null.  Even if we weren't able to read in metadata, we'll still create an empty
+            /// index.
             /// </summary>
             public readonly SymbolTreeInfo SymbolTreeInfo;
 
@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public MetadataInfo(SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
             {
+                Contract.ThrowIfNull(info);
                 SymbolTreeInfo = info;
                 ReferencingProjects = referencingProjects;
             }
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // If we didn't have it in our cache, see if we can load it from disk.
                 // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
                 // try to create the metadata.
-                var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
+                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                     solution, reference, checksum, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return info;
             }
@@ -156,22 +157,32 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!document.SupportsSyntaxTree)
                 {
                     // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
-                    return SpecializedTasks.EmptyTask;
+                    return;
                 }
 
                 if (bodyOpt != null)
                 {
-                    // This was a method level edit.  This can't change the symbol tree info
-                    // for this project.  Bail immediately.
-                    return SpecializedTasks.EmptyTask;
+                    // This was a method body edit.  We can reuse the existing SymbolTreeInfo if
+                    // we have one.  We can't just bail out here as the change in the document means
+                    // we'll have a new checksum.  We need to get that new checksum so that our
+                    // cached information is valid.
+                    if (_projectToInfo.TryGetValue(document.Project.Id, out var cachedInfo))
+                    {
+                        var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(
+                            document.Project, cancellationToken).ConfigureAwait(false);
+
+                        var newInfo = cachedInfo.WithChecksum(checksum);
+                        _projectToInfo.AddOrUpdate(document.Project.Id, newInfo, (_1, _2) => newInfo);
+                        return;
+                    }
                 }
 
-                return UpdateSymbolTreeInfoAsync(document.Project, cancellationToken);
+                await UpdateSymbolTreeInfoAsync(document.Project, cancellationToken).ConfigureAwait(false);
             }
 
             public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -181,25 +192,25 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
-                if (project.Solution.Workspace.Kind != "Test" &&
-                    project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
-                    project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed))
+                if (!project.SupportsCompilation)
                 {
-                    // if GoTo feature is set to run on remote host, then we don't need to build inproc cache.
-                    // remote host will build this cache in remote host.
+                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
                     return;
                 }
 
-                if (!project.SupportsCompilation)
+                if (!RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace))
                 {
                     return;
                 }
 
                 // Produce the indices for the source and metadata symbols in parallel.
-                var projectTask = UpdateSourceSymbolTreeInfoAsync(project, cancellationToken);
-                var referencesTask = UpdateReferencesAync(project, cancellationToken);
+                var tasks = new List<Task>
+                {
+                    GetTask(project, () => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
+                    GetTask(project, () => UpdateReferencesAync(project, cancellationToken), cancellationToken)
+                };
 
-                await Task.WhenAll(projectTask, referencesTask).ConfigureAwait(false);
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             private async Task UpdateSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
@@ -211,18 +222,33 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
                         project, checksum, cancellationToken).ConfigureAwait(false);
 
+                    Contract.ThrowIfNull(projectInfo);
+                    Contract.ThrowIfTrue(projectInfo.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
+
                     // Mark that we're up to date with this project.  Future calls with the same 
                     // semantic version can bail out immediately.
                     _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
                 }
             }
 
+            private Task GetTask(Project project, Func<Task> func, CancellationToken cancellationToken)
+            {
+                var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
+                return isRemoteWorkspace
+                    ? Task.Run(func, cancellationToken)
+                    : func();
+            }
+
             private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
             {
-                // Process all metadata references in parallel.
-                var tasks = project.MetadataReferences.OfType<PortableExecutableReference>()
-                                   .Select(r => UpdateReferenceAsync(project, r, cancellationToken))
-                                   .ToArray();
+                // Process all metadata references. If it remote workspace, do this in parallel.
+                var tasks = new List<Task>();
+
+                foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                {
+                    tasks.Add(
+                        GetTask(project, () => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken));
+                }
 
                 return Task.WhenAll(tasks);
             }
@@ -240,8 +266,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 if (!_metadataPathToInfo.TryGetValue(key, out var metadataInfo) ||
                     metadataInfo.SymbolTreeInfo.Checksum != checksum)
                 {
-                    var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
+                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                         project.Solution, reference, checksum, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                    Contract.ThrowIfNull(info);
+                    Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
 
                     // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
                     // We still want to cache that result so that don't try to continuously produce

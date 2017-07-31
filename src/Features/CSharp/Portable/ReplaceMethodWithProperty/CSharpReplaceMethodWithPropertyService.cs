@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                     }
                     else if (getAccessor.Body != null &&
                              getAccessor.Body.TryConvertToExpressionBody(
-                                 parseOptions, expressionBodyPreference, 
+                                 propertyDeclaration.Kind(), parseOptions, expressionBodyPreference,
                                  out var arrowExpression, out var semicolonToken))
                     {
                         return propertyDeclaration.WithExpressionBody(arrowExpression)
@@ -106,10 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             }
             else
             {
-                if (propertyDeclaration.ExpressionBody != null)
+                if (propertyDeclaration.ExpressionBody != null &&
+                    propertyDeclaration.ExpressionBody.TryConvertToBlock(
+                        propertyDeclaration.SemicolonToken,
+                        createReturnStatementForExpression: true,
+                        block: out var block))
                 {
-                    var block = propertyDeclaration.ExpressionBody.ConvertToBlock(
-                        propertyDeclaration.SemicolonToken, createReturnStatementForExpression: true);
                     var accessor =
                         SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                      .WithBody(block);
@@ -181,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             if (accessorDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (accessorDeclaration.Body.TryConvertToExpressionBody(
-                        parseOptions, expressionBodyPreference, 
+                        accessorDeclaration.Kind(), parseOptions, expressionBodyPreference,
                         out var arrowExpression, out var semicolonToken))
                 {
                     return accessorDeclaration.WithBody(null)
@@ -192,13 +194,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             }
             else if (accessorDeclaration?.ExpressionBody != null && expressionBodyPreference == ExpressionBodyPreference.Never)
             {
-                var block = accessorDeclaration.ExpressionBody.ConvertToBlock(
-                    accessorDeclaration.SemicolonToken,
-                    createReturnStatementForExpression: accessorDeclaration.Kind() == SyntaxKind.GetAccessorDeclaration);
-                return accessorDeclaration.WithExpressionBody(null)
-                                          .WithSemicolonToken(default(SyntaxToken))
-                                          .WithBody(block)
-                                          .WithAdditionalAnnotations(Formatter.Annotation);
+                if (accessorDeclaration.ExpressionBody.TryConvertToBlock(
+                        accessorDeclaration.SemicolonToken,
+                        createReturnStatementForExpression: accessorDeclaration.Kind() == SyntaxKind.GetAccessorDeclaration,
+                        block: out var block))
+                {
+                    return accessorDeclaration.WithExpressionBody(null)
+                                              .WithSemicolonToken(default(SyntaxToken))
+                                              .WithBody(block)
+                                              .WithAdditionalAnnotations(Formatter.Annotation);
+                }
             }
 
             return accessorDeclaration;

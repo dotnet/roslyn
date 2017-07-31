@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.Script);
         }
 
-        public void ParseAndValidate(string text, params ErrorDescription[] errors)
+        private void ParseAndValidate(string text, params ErrorDescription[] errors)
         {
             ParseAndValidate(text, null, errors);
         }
 
-        public SyntaxTree ParseAndValidate(string text, CSharpParseOptions options, params ErrorDescription[] errors)
+        private SyntaxTree ParseAndValidate(string text, CSharpParseOptions options, params ErrorDescription[] errors)
         {
             var parsedTree = ParseTree(text, options);
             var parsedText = parsedTree.GetCompilationUnitRoot();
@@ -1841,7 +1841,10 @@ partial void Foo(){};
             var test = @"
 partial enum en {};
 ";
-            ParseAndValidate(test, new ErrorDescription { Code = 267, Line = 2, Column = 1 });
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum en {};
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "en").WithLocation(2, 14));
         }
 
         [Fact]

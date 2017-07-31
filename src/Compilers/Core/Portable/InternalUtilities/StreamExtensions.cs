@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.IO;
 
@@ -46,6 +47,30 @@ namespace Roslyn.Utilities
                 }
             }
             return totalBytesRead;
+        }
+
+        /// <summary>
+        /// Reads all bytes from the current postion of the given stream to its end.
+        /// </summary>
+        public static byte[] ReadAllBytes(this Stream stream)
+        {
+            if (stream.CanSeek)
+            {
+                long length = stream.Length - stream.Position;
+                if (length == 0)
+                {
+                    return Array.Empty<byte>();
+                }
+
+                var buffer = new byte[length];
+                int actualLength = TryReadAll(stream, buffer, 0, buffer.Length);
+                Array.Resize(ref buffer, actualLength);
+                return buffer;
+            }
+
+            var memoryStream = new MemoryStream();
+            stream.CopyTo(memoryStream);
+            return memoryStream.ToArray();
         }
     }
 }

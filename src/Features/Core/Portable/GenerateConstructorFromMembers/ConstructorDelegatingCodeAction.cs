@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     _document.Project.Solution,
                     _state.ContainingType,
                     CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: Accessibility.Public,
                         modifiers: new DeclarationModifiers(),
                         typeName: _state.ContainingType.Name,
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         afterThisLocation: afterThisLocation),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                return result;
+                return await AddNavigationAnnotationAsync(result, cancellationToken).ConfigureAwait(false);
             }
 
             public override string Title

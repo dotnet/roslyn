@@ -3682,9 +3682,9 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,19): error CS1001: Identifier expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 19),
-                // (2,20): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (2,20): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(System.Linq.Expressions.Expression<System.Func<B>>)").WithArguments("tuples", "7").WithLocation(2, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(System.Linq.Expressions.Expression<System.Func<B>>)").WithArguments("tuples", "7.0").WithLocation(2, 20),
                 // (2,76): error CS1026: ) expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "=>").WithLocation(2, 76),
@@ -3703,9 +3703,9 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,93): error CS1002: ; expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 93),
-                // (2,93): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (2,93): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(2, 93),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(2, 93),
                 // (2,94): error CS8124: Tuple must contain at least two elements.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 94),

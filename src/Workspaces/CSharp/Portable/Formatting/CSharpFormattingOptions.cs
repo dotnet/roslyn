@@ -146,6 +146,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 EditorConfigStorageLocation.ForBoolOption("csharp_indent_case_contents"),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentSwitchCaseSection")});
 
+        public static Option<bool> IndentSwitchCaseSectionWhenBlock { get; } = new Option<bool>(
+            nameof(CSharpFormattingOptions),
+            nameof(IndentSwitchCaseSectionWhenBlock), defaultValue: true,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolOption("csharp_indent_case_contents_when_block"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentSwitchCaseSectionWhenBlock")});
+
         public static Option<LabelPositionOptions> LabelPositioning { get; } = new Option<LabelPositionOptions>(nameof(CSharpFormattingOptions), nameof(LabelPositioning), defaultValue: LabelPositionOptions.OneLess,
             storageLocations: new OptionStorageLocation[] {
                 new EditorConfigStorageLocation<LabelPositionOptions>("csharp_indent_labels", s => ParseEditorConfigLablePositioning(s)),

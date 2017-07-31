@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
-            foreach (var doc in documentStates.Values)
+            foreach (var (_, doc) in documentStates)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            foreach (var additionalDoc in additionalDocumentStates.Values)
+            foreach (var (_, additionalDoc) in additionalDocumentStates)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
-            foreach (var doc in documentStates.Values)
+            foreach (var (_, doc) in documentStates)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
                 latestVersion = version.GetNewerVersion(latestVersion);
             }
 
-            foreach (var additionalDoc in additionalDocumentStates.Values)
+            foreach (var (_, additionalDoc) in additionalDocumentStates)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis
             return _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken);
         }
 
-        public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
         {
             var docVersion = await this.GetLatestDocumentTopLevelChangeVersionAsync(cancellationToken).ConfigureAwait(false);
             return docVersion.GetNewerVersion(this.Version);
@@ -341,8 +341,8 @@ namespace Microsoft.CodeAnalysis
 
         private ProjectState With(
             ProjectInfo projectInfo = null,
-            ImmutableArray<DocumentId> documentIds = default(ImmutableArray<DocumentId>),
-            ImmutableArray<DocumentId> additionalDocumentIds = default(ImmutableArray<DocumentId>),
+            ImmutableArray<DocumentId> documentIds = default,
+            ImmutableArray<DocumentId> additionalDocumentIds = default,
             ImmutableDictionary<DocumentId, DocumentState> documentStates = null,
             ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates = null,
             AsyncLazy<VersionStamp> latestDocumentVersion = null,
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis
             // update parse options for all documents too
             var docMap = _documentStates;
 
-            foreach (var docId in _documentStates.Keys)
+            foreach (var (docId, _) in _documentStates)
             {
                 var oldDocState = this.GetDocumentState(docId);
                 var newDocState = oldDocState.UpdateParseOptions(options);

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -4395,6 +4395,29 @@ Class C
             .i = 1 + 2, 'comment
             .k = 3 'comment
             }
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact(Skip:="InvalidCastException"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <WorkItem(16697, "https://github.com/dotnet/roslyn/issues/16697")>
+        Public Async Function TupleElementNameIsNotReplaced() As Task
+            ' The name of the named element has bad symbol info and gets replaced with (1 + 2)
+            Dim code = "
+Class C
+    Sub M()
+        Dim [||]i = 1 + 2
+        Dim t = (i, i:=3)
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Class C
+    Sub M()
+        Dim t = (1 + 2, i:=3)
     End Sub
 End Class
 "

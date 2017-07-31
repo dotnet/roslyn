@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -88,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             using (var edit = TextView.TextBuffer.CreateEdit())
             {
                 edit.Replace(new Span(0, TextView.TextBuffer.CurrentSnapshot.Length), documentText);
-                edit.Apply();
+                edit.ApplyAndLogExceptions();
             }
 
             container = TextView.TextBuffer.AsTextContainer();

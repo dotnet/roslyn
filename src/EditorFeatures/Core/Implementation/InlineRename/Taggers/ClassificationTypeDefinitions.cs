@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
 using System.Windows.Media;
@@ -8,12 +8,10 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    // This class is necessary so that our rename colors work on the
-    // dark theme as well.  Otherwise the default white identifier 
-    // foreground color clashes with our light green background.
     internal sealed class ClassificationTypeDefinitions
     {
-        public const string InlineRenameField = "inline rename field";
+        // Only used for theming, does not need localized
+        public const string InlineRenameField = "Inline Rename Field Text";
 
         [Export]
         [Name(InlineRenameField)]
@@ -24,13 +22,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         [ClassificationType(ClassificationTypeNames = InlineRenameField)]
         [Name(InlineRenameField)]
         [Order(After = Priority.High)]
-        [UserVisible(false)]
+        [UserVisible(true)]
         private class InlineRenameFieldFormatDefinition : ClassificationFormatDefinition
         {
             private InlineRenameFieldFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.Inline_Rename;
-                this.ForegroundColor = Color.FromRgb(0, 100, 0);
+                this.DisplayName = EditorFeaturesResources.Inline_Rename_Field_Text;
+                this.ForegroundColor = Color.FromRgb(0x00, 0x64, 0x00);
             }
         }
     }

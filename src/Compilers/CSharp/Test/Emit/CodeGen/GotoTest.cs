@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -701,14 +702,6 @@ finally
 label
 ";
             CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
-
-        // When ReflectionEmit supports writing exception handler info, this method
-        // can be removed and CompileAndVerify references above will resolve to
-        // the overload that emits with both CCI and ReflectionEmit. (Bug #7012)
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null)
-        {
-            return base.CompileAndVerify(source: source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(540719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540719")]

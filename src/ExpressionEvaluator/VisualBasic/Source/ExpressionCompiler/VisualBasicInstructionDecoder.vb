@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides Function GetCompilation(moduleInstance As DkmClrModuleInstance) As VisualBasicCompilation
             Dim appDomain = moduleInstance.AppDomain
             Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
-            Dim metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain)
+            Dim metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks)
 
             Dim compilation As VisualBasicCompilation
             If previous.Matches(metadataBlocks) Then

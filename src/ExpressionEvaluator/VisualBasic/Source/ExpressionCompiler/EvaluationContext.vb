@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -399,14 +400,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Using stream As New MemoryStream()
                 Cci.PeWriter.WritePeToStream(
-                        New EmitContext(moduleBuilder, Nothing, diagnostics),
+                        New EmitContext(moduleBuilder, Nothing, diagnostics, metadataOnly:=False, includePrivateMembers:=True),
                         context.MessageProvider,
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
-                        allowMissingMethodBodies:=False,
+                        metadataOnly:=False,
                         isDeterministic:=False,
+                        emitTestCoverageData:=False,
                         cancellationToken:=Nothing)
 
                 If diagnostics.HasAnyErrors() Then
@@ -446,14 +448,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Using stream As New MemoryStream()
                 Cci.PeWriter.WritePeToStream(
-                        New EmitContext(modulebuilder, Nothing, diagnostics),
+                        New EmitContext(modulebuilder, Nothing, diagnostics, metadataOnly:=False, includePrivateMembers:=True),
                         context.MessageProvider,
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
-                        allowMissingMethodBodies:=False,
+                        metadataOnly:=False,
                         isDeterministic:=False,
+                        emitTestCoverageData:=False,
                         cancellationToken:=Nothing)
 
                 If diagnostics.HasAnyErrors() Then
@@ -494,14 +497,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If modulebuilder IsNot Nothing AndAlso locals.Count > 0 Then
                 Using stream As New MemoryStream()
                     Cci.PeWriter.WritePeToStream(
-                        New EmitContext(modulebuilder, Nothing, diagnostics),
+                        New EmitContext(modulebuilder, Nothing, diagnostics, metadataOnly:=False, includePrivateMembers:=True),
                         context.MessageProvider,
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
-                        allowMissingMethodBodies:=False,
+                        metadataOnly:=False,
                         isDeterministic:=False,
+                        emitTestCoverageData:=False,
                         cancellationToken:=Nothing)
 
                     If Not diagnostics.HasAnyErrors() Then

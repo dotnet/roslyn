@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// Base for object that will use ISolutionSynchronizationService framework to synchronize data to remote host
+    /// Base for object that will use <see cref="IRemotableDataService"/> framework to synchronize data to remote host
     /// </summary>
     internal abstract partial class RemotableData
     {
@@ -16,19 +16,19 @@ namespace Microsoft.CodeAnalysis.Execution
 
         /// <summary>
         /// Indicates what kind of object it is
-        /// <see cref="WellKnownSynchronizationKinds"/> for examples.
+        /// <see cref="WellKnownSynchronizationKind"/> for examples.
         /// 
         /// this will be used in tranportation framework and deserialization service
         /// to hand shake how to send over data and deserialize serialized data
         /// </summary>
-        public readonly string Kind;
+        public readonly WellKnownSynchronizationKind Kind;
 
         /// <summary>
         /// Checksum of this object
         /// </summary>
         public readonly Checksum Checksum;
 
-        public RemotableData(Checksum checksum, string kind)
+        public RemotableData(Checksum checksum, WellKnownSynchronizationKind kind)
         {
             Checksum = checksum;
             Kind = kind;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private sealed class NullRemotableData : RemotableData
         {
             public NullRemotableData() :
-                base(Checksum.Null, WellKnownSynchronizationKinds.Null)
+                base(Checksum.Null, WellKnownSynchronizationKind.Null)
             {
                 // null object has null kind and null checksum. 
                 // this null object is known to checksum framework and transportation framework to handle null case

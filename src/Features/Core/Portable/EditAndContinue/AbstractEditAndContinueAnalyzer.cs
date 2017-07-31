@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -22,8 +23,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyzer
     {
         internal abstract bool ExperimentalFeaturesEnabled(SyntaxTree tree);
-
-        internal abstract void ReportSemanticRudeEdits(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, List<RudeEditDiagnostic> diagnostics);
 
         /// <summary>
         /// Finds a member declaration node containing given active statement node.
@@ -337,7 +336,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var trackingService = baseSolution.Workspace.Services.GetService<IActiveStatementTrackingService>();
 
                 cancellationToken.ThrowIfCancellationRequested();
-
+                
                 // TODO: newTree.HasErrors?
                 var syntaxDiagnostics = newRoot.GetDiagnostics();
                 var syntaxErrorCount = syntaxDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Error);
@@ -389,7 +388,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     DocumentAnalysisResults.Log.Write("{0}: experimental features enabled", document.Name);
 
                     return DocumentAnalysisResults.SyntaxErrors(ImmutableArray.Create(
-                        new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default(TextSpan))));
+                        new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)));
                 }
 
                 // We do calculate diffs even if there are semantic errors for the following reasons: 
@@ -433,20 +432,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     DocumentAnalysisResults.Log.Write("A new file added: {0}", document.Name);
                     return DocumentAnalysisResults.SyntaxErrors(ImmutableArray.Create(
-                        new RudeEditDiagnostic(RudeEditKind.InsertFile, default(TextSpan))));
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Bail if there were any semantic errors in the compilation.
-                var newCompilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var firstError = newCompilation.GetDiagnostics(cancellationToken).FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
-                if (firstError != null)
-                {
-                    var location = firstError.Location;
-                    DocumentAnalysisResults.Log.Write("Semantic errors, first: {0}", location.IsInSource ? location.SourceTree.FilePath : location.MetadataModule.Name);
-
-                    return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), ImmutableArray.Create<RudeEditDiagnostic>(), hasSemanticErrors: true);
+                        new RudeEditDiagnostic(RudeEditKind.InsertFile, default)));
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -472,6 +458,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
+
                 List<SemanticEdit> semanticEdits = null;
                 if (syntacticEdits.Edits.Length > 0 || triviaEdits.Count > 0)
                 {
@@ -490,9 +478,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         newModel,
                         semanticEdits,
                         diagnostics,
+                        out var firstDeclaratingErrorOpt,
                         cancellationToken);
 
                     cancellationToken.ThrowIfCancellationRequested();
+
+                    if (firstDeclaratingErrorOpt != null)
+                    {
+                        var location = firstDeclaratingErrorOpt.Location;
+                        DocumentAnalysisResults.Log.Write("Declaration errors, first: {0}", location.IsInSource ? location.SourceTree.FilePath : location.MetadataModule.Name);
+
+                        return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), ImmutableArray.Create<RudeEditDiagnostic>(), hasSemanticErrors: true);
+                    }
 
                     if (diagnostics.Count > 0)
                     {
@@ -616,7 +613,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (!editedActiveStatements[i])
                 {
                     Contract.ThrowIfFalse(newExceptionRegions[i].IsDefault);
-                    TextSpan trackedSpan = default(TextSpan);
+                    TextSpan trackedSpan = default;
                     bool isTracked = trackingService != null &&
                                      trackingService.TryGetSpan(new ActiveStatementId(documentId, i), newText, out trackedSpan);
                     if (!TryGetTextSpan(oldText.Lines, oldActiveStatements[i].Span, out var oldStatementSpan))
@@ -743,7 +740,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 newActiveStatements[i] = newText.Lines.GetLinePositionSpan(newStatementSpan);
                 // Update tracking span if we found a matching active statement whose span is different.
-                TextSpan trackedSpan = default(TextSpan);
+                TextSpan trackedSpan = default;
                 bool isTracked = trackingService != null &&
                                  trackingService.TryGetSpan(new ActiveStatementId(documentId, i), newText, out trackedSpan);
 
@@ -928,7 +925,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var newSpan = FindClosestActiveSpan(edit.NewNode, 0);
                     for (int i = start; i < end; i++)
                     {
-                        Debug.Assert(newActiveStatements[i] == default(LinePositionSpan) && newSpan != default(TextSpan));
+                        Debug.Assert(newActiveStatements[i] == default && newSpan != default);
                         newActiveStatements[i] = newText.Lines.GetLinePositionSpan(newSpan);
                         editedActiveStatements[i] = true;
                         newExceptionRegions[i] = ImmutableArray.Create<LinePositionSpan>();
@@ -976,7 +973,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Tracking spans corresponding to the active statements from the tracking service.
                 // We seed the method body matching algorithm with tracking spans (unless they were deleted)
                 // to get precise matching.
-                TextSpan trackedSpan = default(TextSpan);
+                TextSpan trackedSpan = default;
                 bool isTracked = trackingService?.TryGetSpan(new ActiveStatementId(documentId, ordinal), newText, out trackedSpan) ?? false;
 
                 if (isTracked)
@@ -1107,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newExceptionRegions,
                     diagnostics);
 
-                Debug.Assert(newActiveStatements[ordinal] == default(LinePositionSpan) && newSpan != default(TextSpan));
+                Debug.Assert(newActiveStatements[ordinal] == default && newSpan != default);
                 newActiveStatements[ordinal] = newText.Lines.GetLinePositionSpan(newSpan);
                 editedActiveStatements[ordinal] = true;
 
@@ -1919,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 bool requiresUpdate = false;
                 bool isFirstToken = true;
                 int firstTokenLineDelta = 0;
-                LineChange firstTokenLineChange = default(LineChange);
+                LineChange firstTokenLineChange = default;
                 bool oldHasToken;
                 bool newHasToken;
                 while (true)
@@ -1952,7 +1949,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         isFirstToken = false;
                         firstTokenLineDelta = lineDelta;
-                        firstTokenLineChange = (lineDelta != 0) ? new LineChange(oldPosition.Line, newPosition.Line) : default(LineChange);
+                        firstTokenLineChange = (lineDelta != 0) ? new LineChange(oldPosition.Line, newPosition.Line) : default;
                     }
                     else if (firstTokenLineDelta != lineDelta)
                     {
@@ -2095,6 +2092,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel newModel,
             [Out]List<SemanticEdit> semanticEdits,
             [Out]List<RudeEditDiagnostic> diagnostics,
+            out Diagnostic firstDeclarationErrorOpt,
             CancellationToken cancellationToken)
         {
             // { new type -> constructor update }
@@ -2104,6 +2102,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             INamedTypeSymbol layoutAttribute = null;
             var newSymbolsWithEdit = new HashSet<ISymbol>();
             int updatedMemberIndex = 0;
+            firstDeclarationErrorOpt = null;
             for (int i = 0; i < editScript.Edits.Length; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -2135,7 +2134,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 continue;
                             }
 
-                            // Deleting an parameterless constructor needs special handling:
+                            // The only member that is allowed to be deleted is a parameterless constructor. 
+                            // For any other member a rude edit is reported earlier during syntax edit classification.
+                            // Deleting a parameterless constructor needs special handling.
                             // If the new type has a parameterless ctor of the same accessibility then UPDATE.
                             // Error otherwise.
 
@@ -2208,12 +2209,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             Debug.Assert(oldType != null);
                             Debug.Assert(newType != null);
 
+                            // Validate that the type declarations are correct. If not we can't reason about their members.
+                            // Declaration diagnostics are cached on compilation, so we don't need to cache them here.
+                            firstDeclarationErrorOpt = 
+                                GetFirstDeclarationError(oldModel, oldType, cancellationToken) ??
+                                GetFirstDeclarationError(newModel, newType, cancellationToken);
+
+                            if (firstDeclarationErrorOpt != null)
+                            {
+                                continue;
+                            }
+
                             // Inserting a parameterless constructor needs special handling:
                             // 1) static ctor
                             //    a) old type has an implicit static ctor
                             //       UPDATE of the implicit static ctor
                             //    b) otherwise
                             //       INSERT of a static parameterless ctor
+                            // 
                             // 2) public instance ctor
                             //    a) old type has an implicit instance ctor
                             //       UPDATE of the implicit instance ctor
@@ -2305,16 +2318,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 continue;
                             }
 
-                            ReportSemanticRudeEdits(oldModel, edit.OldNode, newModel, edit.NewNode, diagnostics);
-
                             oldSymbol = GetSymbolForEdit(oldModel, edit.OldNode, edit.Kind, editMap, cancellationToken);
                             Debug.Assert((newSymbol == null) == (oldSymbol == null));
+
+                            var oldContainingType = oldSymbol.ContainingType;
+                            var newContainingType = newSymbol.ContainingType;
+
+                            // Validate that the type declarations are correct to avoid issues with invalid partial declarations, etc.
+                            // Declaration diagnostics are cached on compilation, so we don't need to cache them here.
+                            firstDeclarationErrorOpt =
+                                GetFirstDeclarationError(oldModel, oldContainingType, cancellationToken) ??
+                                GetFirstDeclarationError(newModel, newContainingType, cancellationToken);
+
+                            if (firstDeclarationErrorOpt != null)
+                            {
+                                continue;
+                            }
 
                             if (updatedMemberIndex < updatedMembers.Count && updatedMembers[updatedMemberIndex].EditOrdinal == i)
                             {
                                 var updatedMember = updatedMembers[updatedMemberIndex];
 
                                 ReportStateMachineRudeEdits(oldModel.Compilation, updatedMember, oldSymbol, diagnostics);
+
                                 ReportLambdaAndClosureRudeEdits(
                                     oldModel,
                                     updatedMember.OldBody,
@@ -2360,8 +2386,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 IsDeclarationWithInitializer(edit.NewNode))
                             {
                                 if (DeferConstructorEdit(
-                                    oldSymbol.ContainingType,
-                                    newSymbol.ContainingType,
+                                    oldContainingType,
+                                    newContainingType,
                                     editKind,
                                     edit.NewNode,
                                     newSymbol,
@@ -2394,6 +2420,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var oldSymbol = GetSymbolForEdit(oldModel, edit.Key, EditKind.Update, editMap, cancellationToken);
                 var newSymbol = GetSymbolForEdit(newModel, edit.Value, EditKind.Update, editMap, cancellationToken);
+                var oldContainingType = oldSymbol.ContainingType;
+                var newContainingType = newSymbol.ContainingType;
+
+                // Validate that the type declarations are correct to avoid issues with invalid partial declarations, etc.
+                // Declaration diagnostics are cached on compilation, so we don't need to cache them here.
+                firstDeclarationErrorOpt =
+                    GetFirstDeclarationError(oldModel, oldContainingType, cancellationToken) ??
+                    GetFirstDeclarationError(newModel, newContainingType, cancellationToken);
+
+                if (firstDeclarationErrorOpt != null)
+                {
+                    continue;
+                }
 
                 // We need to provide syntax map to the compiler if the member is active (see member update above):
                 bool isActiveMember =
@@ -2412,8 +2451,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     IsDeclarationWithInitializer(edit.Value))
                 {
                     if (DeferConstructorEdit(
-                        oldSymbol.ContainingType,
-                        newSymbol.ContainingType,
+                        oldContainingType,
+                        newContainingType,
                         SemanticEditKind.Update,
                         edit.Value,
                         newSymbol,
@@ -2464,6 +2503,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     diagnostics: diagnostics,
                     cancellationToken: cancellationToken);
             }
+        }
+
+        private Diagnostic GetFirstDeclarationError(SemanticModel primaryModel, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
+            {
+                SemanticModel model;
+                if (primaryModel.SyntaxTree == syntaxReference.SyntaxTree)
+                {
+                    model = primaryModel;
+                }
+                else
+                {
+                    model = primaryModel.Compilation.GetSemanticModel(syntaxReference.SyntaxTree, ignoreAccessibility: false);
+                }
+
+                var diagnostics = model.GetDeclarationDiagnostics(syntaxReference.Span, cancellationToken);
+                var firstError = diagnostics.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
+                if (firstError != null)
+                {
+                    return firstError;
+                }
+            }
+
+            return null;
         }
 
         #region Type Layout Update Validation 
@@ -2624,7 +2688,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel newModel,
             Func<SyntaxNode, SyntaxNode> ctorSyntaxMapOpt)
         {
-            return newNode => ctorSyntaxMapOpt?.Invoke(newNode) ?? FindPartnerInMemberInitializer(newModel, newType, newNode, oldType, default(CancellationToken));
+            return newNode => ctorSyntaxMapOpt?.Invoke(newNode) ?? FindPartnerInMemberInitializer(newModel, newType, newNode, oldType, default);
         }
 
         private Func<SyntaxNode, SyntaxNode> CreateAggregateSyntaxMap(
@@ -3285,7 +3349,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // no mapping
-            mappedParameterKey = default(ValueTuple<SyntaxNode, int>);
+            mappedParameterKey = default;
             return false;
         }
 
@@ -3684,8 +3748,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            // only methods and anonymous functions may be async/iterators machines:
-            var stateMachineAttributeQualifiedName = ((IMethodSymbol)oldMember).IsAsync ?
+            // Only methods and anonymous functions can be async/iterators machines, 
+            // but don't assume so to be resiliant against errors in code.
+            if (!(oldMember is IMethodSymbol oldMethod))
+            {
+                return;
+            }
+
+            var stateMachineAttributeQualifiedName = oldMethod.IsAsync ?
                 "System.Runtime.CompilerServices.AsyncStateMachineAttribute" :
                 "System.Runtime.CompilerServices.IteratorStateMachineAttribute";
 
@@ -3716,7 +3786,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             if (lineSpan.Start.Line >= lines.Count || lineSpan.End.Line >= lines.Count)
             {
-                span = default(TextSpan);
+                span = default;
                 return false;
             }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -385,6 +385,48 @@ class C
         }
 
         _x = x;
+    }
+}");
+        }
+
+        [WorkItem(19377, "https://github.com/dotnet/roslyn/issues/19377")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWithMultipleStatementsInIf1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (s == null)
+        {
+            Console.WriteLine();
+            [|throw|] new ArgumentNullException(nameof(s));
+        }
+        _s = s;
+    }
+}");
+        }
+
+        [WorkItem(19377, "https://github.com/dotnet/roslyn/issues/19377")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWithMultipleStatementsInIf2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (s == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(s));
+            Console.WriteLine();
+        }
+        _s = s;
     }
 }");
         }

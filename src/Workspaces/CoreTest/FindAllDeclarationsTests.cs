@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task FindDeclarationsAsync_Test_Cancellation()
         {
-            await Assert.ThrowsAnyAsync<TaskCanceledException>(async () =>
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
                 var cts = new CancellationTokenSource();
                 cts.Cancel();
@@ -278,7 +278,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Project_Test_Cancellation()
         {
-            await Assert.ThrowsAnyAsync<TaskCanceledException>(async () =>
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
                 var cts = new CancellationTokenSource();
                 var project = GetProject(WorkspaceKind.SingleClass);
@@ -537,13 +537,11 @@ Inner i;
         public async Task TestSymbolTreeInfoSerialization()
         {
             var solution = GetSolution(WorkspaceKind.SingleClass);
-            var compilation = await solution.Projects.First().GetCompilationAsync();
-            var assembly = compilation.GetSpecialType(SpecialType.System_Byte).ContainingAssembly;
-            ////var assembly = compilation.Assembly;
+            var project = solution.Projects.First();
 
             // create symbol tree info from assembly
-            var info = SymbolTreeInfo.CreateSourceSymbolTreeInfo(
-                solution, Checksum.Null, assembly, "", cancellationToken: CancellationToken.None);
+            var info = await SymbolTreeInfo.CreateSourceSymbolTreeInfoAsync(
+                project, Checksum.Null, cancellationToken: CancellationToken.None);
 
             using (var writerStream = new MemoryStream())
             {

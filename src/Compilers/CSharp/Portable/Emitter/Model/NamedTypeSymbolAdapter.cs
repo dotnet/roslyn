@@ -10,6 +10,7 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -287,12 +288,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                    diagnostics: context.Diagnostics) : null;
         }
 
-        IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.Events
+        IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.GetEvents(EmitContext context)
         {
-            get
+            CheckDefinitionInvariant();
+            foreach (IEventDefinition e in GetEventsToEmit())
             {
-                CheckDefinitionInvariant();
-                return GetEventsToEmit();
+                // If any accessor should be included, then the event should be included too
+                if (e.ShouldInclude(context) || !e.GetAccessors(context).IsEmpty())
+                {
+                    yield return e;
+                }
             }
         }
 
@@ -389,9 +394,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
+            // All fields in a struct should be emitted
+            bool isStruct = this.IsStructType();
+
             foreach (var f in GetFieldsToEmit())
             {
-                yield return f;
+                if (isStruct || f.ShouldInclude(context))
+                {
+                    yield return f;
+                }
             }
 
             IEnumerable<Cci.IFieldDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedFields(this);
@@ -400,7 +411,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var f in generated)
                 {
-                    yield return f;
+                    if (isStruct || f.ShouldInclude(context))
+                    {
+                        yield return f;
+                    }
                 }
             }
         }
@@ -630,7 +644,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var method in this.GetMethodsToEmit())
             {
                 Debug.Assert((object)method != null);
-                yield return method;
+                if (method.ShouldInclude(context))
+                {
+                    yield return method;
+                }
             }
 
             IEnumerable<Cci.IMethodDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedMethods(this);
@@ -639,7 +656,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var m in generated)
                 {
-                    yield return m;
+                    if (m.ShouldInclude(context))
+                    {
+                        yield return m;
+                    }
                 }
             }
         }
@@ -701,19 +721,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            foreach (var property in this.GetPropertiesToEmit())
+            foreach (IPropertyDefinition property in this.GetPropertiesToEmit())
             {
                 Debug.Assert((object)property != null);
-                yield return property;
+                // If any accessor should be included, then the property should be included too
+                if (property.ShouldInclude(context) || !property.GetAccessors(context).IsEmpty())
+                {
+                    yield return property;
+                }
             }
 
             IEnumerable<Cci.IPropertyDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedProperties(this);
 
             if (generated != null)
             {
-                foreach (var m in generated)
+                foreach (IPropertyDefinition m in generated)
                 {
-                    yield return m;
+                    if (m.ShouldInclude(context) || !m.GetAccessors(context).IsEmpty())
+                    {
+                        yield return m;
+                    }
                 }
             }
         }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -677,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (expression.ContainsInterleavedDirective(cancellationToken))
             {
@@ -710,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (memberAccess.Name == null || memberAccess.Expression == null)
             {
@@ -799,6 +800,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            // Try to eliminate cases without actually calling CanReplaceWithReducedName. For expressions of the form
+            // 'this.Name' or 'base.Name', no additional check here is required.
+            if (!memberAccess.Expression.IsKind(SyntaxKind.ThisExpression, SyntaxKind.BaseExpression))
+            {
+                var actualSymbol = semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken);
+                if (!TryGetReplacementCandidates(
+                    semanticModel,
+                    memberAccess,
+                    actualSymbol,
+                    out var speculativeSymbols,
+                    out var speculativeNamespacesAndTypes))
+                {
+                    return false;
+                }
+
+                if (!IsReplacementCandidate(actualSymbol, speculativeSymbols, speculativeNamespacesAndTypes))
+                {
+                    return false;
+                }
+            }
+
             replacementNode = memberAccess.Name
                 .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
                 .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
@@ -810,6 +832,97 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+        }
+
+        private static bool TryGetReplacementCandidates(
+            SemanticModel semanticModel,
+            MemberAccessExpressionSyntax memberAccess,
+            SymbolInfo actualSymbol,
+            out ImmutableArray<ISymbol> speculativeSymbols,
+            out ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
+        {
+            bool containsNamespaceOrTypeSymbol;
+            bool containsOtherSymbol;
+            if (!(actualSymbol.Symbol is null))
+            {
+                containsNamespaceOrTypeSymbol = actualSymbol.Symbol is INamespaceOrTypeSymbol;
+                containsOtherSymbol = !containsNamespaceOrTypeSymbol;
+            }
+            else if (!actualSymbol.CandidateSymbols.IsDefaultOrEmpty)
+            {
+                containsNamespaceOrTypeSymbol = actualSymbol.CandidateSymbols.Any(symbol => symbol is INamespaceOrTypeSymbol);
+                containsOtherSymbol = actualSymbol.CandidateSymbols.Any(symbol => !(symbol is INamespaceOrTypeSymbol));
+            }
+            else
+            {
+                speculativeSymbols = ImmutableArray<ISymbol>.Empty;
+                speculativeNamespacesAndTypes = ImmutableArray<ISymbol>.Empty;
+                return false;
+            }
+
+            speculativeSymbols = containsOtherSymbol
+                ? semanticModel.LookupSymbols(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
+                : ImmutableArray<ISymbol>.Empty;
+            speculativeNamespacesAndTypes = containsNamespaceOrTypeSymbol
+                ? semanticModel.LookupNamespacesAndTypes(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
+                : ImmutableArray<ISymbol>.Empty;
+            return true;
+        }
+
+        /// <summary>
+        /// Determines if <paramref name="speculativeSymbols"/> and <paramref name="speculativeNamespacesAndTypes"/>
+        /// together contain a superset of the symbols in <paramref name="actualSymbol"/>.
+        /// </summary>
+        private static bool IsReplacementCandidate(SymbolInfo actualSymbol, ImmutableArray<ISymbol> speculativeSymbols, ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
+        {
+            if (speculativeSymbols.IsEmpty && speculativeNamespacesAndTypes.IsEmpty)
+            {
+                return false;
+            }
+
+            if (!(actualSymbol.Symbol is null))
+            {
+                return speculativeSymbols.Contains(actualSymbol.Symbol, CandidateSymbolEqualityComparer.Instance)
+                    || speculativeNamespacesAndTypes.Contains(actualSymbol.Symbol, CandidateSymbolEqualityComparer.Instance);
+            }
+
+            foreach (var symbol in actualSymbol.CandidateSymbols)
+            {
+                if (!speculativeSymbols.Contains(symbol, CandidateSymbolEqualityComparer.Instance)
+                    && !speculativeNamespacesAndTypes.Contains(symbol, CandidateSymbolEqualityComparer.Instance))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Compares symbols by their original definition.
+        /// </summary>
+        private sealed class CandidateSymbolEqualityComparer : IEqualityComparer<ISymbol>
+        {
+            public static CandidateSymbolEqualityComparer Instance { get; } = new CandidateSymbolEqualityComparer();
+
+            private CandidateSymbolEqualityComparer()
+            {
+            }
+
+            public bool Equals(ISymbol x, ISymbol y)
+            {
+                if (x is null || y is null)
+                {
+                    return x == y;
+                }
+
+                return x.OriginalDefinition.Equals(y.OriginalDefinition);
+            }
+
+            public int GetHashCode(ISymbol obj)
+            {
+                return obj?.OriginalDefinition.GetHashCode() ?? 0;
+            }
         }
 
         private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(this MemberAccessExpressionSyntax memberAccess)
@@ -1143,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (name.IsVar)
             {
@@ -1556,8 +1669,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
         {
-            issueSpan = default(TextSpan);
-            replacementNode = default(TypeSyntax);
+            issueSpan = default;
+            replacementNode = default;
 
             // we can try to remove the Attribute suffix if this is the attribute name
             if (SyntaxFacts.IsAttributeName(name))
@@ -1642,7 +1755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out TextSpan issueSpan)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             switch (expression.Kind())
             {
@@ -1703,7 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out TextSpan issueSpan)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (left != null && right != null)
             {
@@ -2072,7 +2185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
             {
@@ -2450,6 +2563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.GreaterThanOrEqualExpression:
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
+                case SyntaxKind.IsPatternExpression:
                     // From C# spec, 7.3.1:
                     // Relational and type testing: <  >  <=  >=  is  as
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -472,14 +472,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(QueueApplyReplacements));
-            _conflictResolutionTask.SafeContinueWith(
-                t => ApplyReplacements(t.Result, _conflictResolutionTaskCancellationSource.Token),
-                _conflictResolutionTaskCancellationSource.Token,
-                TaskContinuationOptions.OnlyOnRanToCompletion,
-                ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
+            _conflictResolutionTask
+                .SafeContinueWith(
+                    t => ComputeMergeResultAsync(t.Result, _conflictResolutionTaskCancellationSource.Token),
+                    _conflictResolutionTaskCancellationSource.Token,
+                    TaskContinuationOptions.OnlyOnRanToCompletion,
+                    TaskScheduler.Default)
+                .Unwrap()
+                .SafeContinueWith(
+                    t => ApplyReplacements(t.Result.replacementInfo, t.Result.mergeResult, _conflictResolutionTaskCancellationSource.Token),
+                    _conflictResolutionTaskCancellationSource.Token,
+                    TaskContinuationOptions.OnlyOnRanToCompletion,
+                    ForegroundTaskScheduler)
+                .CompletesAsyncOperation(asyncToken);
         }
 
-        private void ApplyReplacements(IInlineRenameReplacementInfo replacementInfo, CancellationToken cancellationToken)
+        private async Task<(IInlineRenameReplacementInfo replacementInfo, LinkedFileMergeSessionResult mergeResult)> ComputeMergeResultAsync(IInlineRenameReplacementInfo replacementInfo, CancellationToken cancellationToken)
+        {
+            var diffMergingSession = new LinkedFileDiffMergingSession(_baseSolution, replacementInfo.NewSolution, replacementInfo.NewSolution.GetChanges(_baseSolution), logSessionInfo: true);
+            var mergeResult = await diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return (replacementInfo, mergeResult);
+        }
+
+        private void ApplyReplacements(IInlineRenameReplacementInfo replacementInfo, LinkedFileMergeSessionResult mergeResult, CancellationToken cancellationToken)
         {
             AssertIsForeground();
             cancellationToken.ThrowIfCancellationRequested();
@@ -493,7 +508,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 if (documents.Any())
                 {
                     var textBufferManager = _openTextBuffers[textBuffer];
-                    textBufferManager.ApplyConflictResolutionEdits(replacementInfo, documents, cancellationToken);
+                    textBufferManager.ApplyConflictResolutionEdits(replacementInfo, mergeResult, documents, cancellationToken);
                 }
             }
 
@@ -695,7 +710,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         internal bool TryGetContainingEditableSpan(SnapshotPoint point, out SnapshotSpan editableSpan)
         {
-            editableSpan = default(SnapshotSpan);
+            editableSpan = default;
             if (!_openTextBuffers.TryGetValue(point.Snapshot.TextBuffer, out var bufferManager))
             {
                 return false;

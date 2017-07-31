@@ -210,18 +210,6 @@ namespace A.B {
                 options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream: new TestStream(canRead: false, canWrite: true, canSeek: true)));
 
-            Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
-               peStream: new MemoryStream(),
-               pdbStream: new MemoryStream(),
-               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
-               sourceLinkStream: new MemoryStream()));
-
-            Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
-               peStream: new MemoryStream(),
-               pdbStream: null,
-               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
-               sourceLinkStream: new MemoryStream()));
-
             Assert.Throws<ArgumentException>("embeddedTexts", () => comp.Emit(
                 peStream: new MemoryStream(),
                 pdbStream: new MemoryStream(),
@@ -489,9 +477,9 @@ namespace A.B {
                 // (1,19): error CS1002: ; expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
-                // (1,19): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (1,19): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "7").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "7.0").WithLocation(1, 19),
                 // (1,20): error CS1031: Type expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),

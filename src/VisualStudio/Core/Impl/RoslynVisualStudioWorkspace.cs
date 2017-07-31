@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
-            return new InvisibleEditor(DeferredState.ServiceProvider, hostDocument.FilePath, needsSave, needsUndoDisabled);
+            return new InvisibleEditor(DeferredState.ServiceProvider, hostDocument.FilePath, hostDocument.Project, needsSave, needsUndoDisabled);
         }
 
         private static bool TryResolveSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, out ISymbol resolvedSymbol, out Project resolvedProject)

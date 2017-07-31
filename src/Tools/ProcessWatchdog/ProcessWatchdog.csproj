@@ -1,16 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>True</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{1553DE60-A2B0-4FAF-B1B8-C0A7313781CC}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>ProcessWatchdog</RootNamespace>
-    <AssemblyName>ProcessWatchdog</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SignAssembly>false</SignAssembly>
@@ -26,33 +23,19 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
-    <PackageReference Include="CommandLineParser">
-      <Version>$(CommandLineParserVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="System.Collections.Immutable">
-      <Version>$(SystemCollectionsImmutableVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="System.Reflection.Metadata">
-      <Version>$(SystemReflectionMetadataVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="CommandLineParser" Version="$(CommandLineParserVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConsoleUtils.cs" />
-    <Compile Include="ErrorCode.cs" />
-    <Compile Include="ProcDump.cs" />
-    <Compile Include="Options.cs" />
-    <Compile Include="ProcessTracker.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Resources.Designer.cs">
+    <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ScreenshotSaver.cs" />
-    <Compile Include="UniqueProcess.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
+    <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>

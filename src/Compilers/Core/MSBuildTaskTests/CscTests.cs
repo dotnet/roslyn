@@ -91,6 +91,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void LangVersionFlag()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.LangVersion = "iso-1";
+            Assert.Equal("/out:test.exe /langversion:iso-1 test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void ChecksumAlgorithmOption()
         {
             var csc = new Csc();
@@ -285,6 +294,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.DebugType = "portable";
             csc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
             Assert.Equal(@"/debug:portable /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void RefOut()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.OutputRefAssembly = MSBuildUtil.CreateTaskItem("ref\\test.dll");
+            Assert.Equal("/out:test.exe /refout:ref\\test.dll test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void RefOnly()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.RefOnly = true;
+            Assert.Equal("/out:test.exe /refonly test.cs", csc.GenerateResponseFileContents());
         }
     }
 }

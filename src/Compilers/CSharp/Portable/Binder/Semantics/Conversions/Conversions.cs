@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -52,67 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, (NamedTypeSymbol)destination);
             resolution.Free();
             return conversion;
-        }
-
-        protected override Conversion GetImplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            var arguments = source.Arguments;
-
-            // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
-            {
-                return Conversion.NoConversion;
-            }
-
-            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
-            Debug.Assert(arguments.Length == targetElementTypes.Length);
-
-            // check arguments against flattened list of target element types 
-            var argumentConversions = ArrayBuilder<Conversion>.GetInstance(arguments.Length);
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                var argument = arguments[i];
-                var result = ClassifyImplicitConversionFromExpression(argument, targetElementTypes[i], ref useSiteDiagnostics);
-                if (!result.Exists)
-                {
-                    argumentConversions.Free();
-                    return Conversion.NoConversion;
-                }
-
-                argumentConversions.Add(result);
-            }
-
-            return new Conversion(ConversionKind.ImplicitTupleLiteral, argumentConversions.ToImmutableAndFree());
-        }
-
-        protected override Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
-        {
-            var arguments = source.Arguments;
-
-            // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
-            {
-                return Conversion.NoConversion;
-            }
-
-            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
-            Debug.Assert(arguments.Length == targetElementTypes.Length);
-
-            // check arguments against flattened list of target element types 
-            var argumentConversions = ArrayBuilder<Conversion>.GetInstance(arguments.Length);
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                var result = ClassifyConversionFromExpression(arguments[i], targetElementTypes[i], ref useSiteDiagnostics, forCast);
-                if (!result.Exists)
-                {
-                    argumentConversions.Free();
-                    return Conversion.NoConversion;
-                }
-
-                argumentConversions.Add(result);
-            }
-
-            return new Conversion(ConversionKind.ExplicitTupleLiteral, argumentConversions.ToImmutableAndFree());
         }
 
         protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

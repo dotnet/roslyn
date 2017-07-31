@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services.CSharp.Utilities;
 using Roslyn.Services.Internal.Extensions;

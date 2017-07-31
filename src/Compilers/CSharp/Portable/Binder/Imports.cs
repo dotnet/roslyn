@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -564,13 +565,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check constraints within named aliases.
 
             // Force resolution of named aliases.
-            foreach (var alias in UsingAliases.Values)
+            foreach (var (_, alias) in UsingAliases)
             {
                 alias.Alias.GetAliasTarget(basesBeingResolved: null);
                 semanticDiagnostics.AddRange(alias.Alias.AliasTargetDiagnostics);
             }
 
-            foreach (var alias in UsingAliases.Values)
+            foreach (var (_, alias) in UsingAliases)
             {
                 alias.Alias.CheckConstraints(semanticDiagnostics);
             }
@@ -823,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void AddLookupSymbolsInfoInAliases(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
-            foreach (var usingAlias in this.UsingAliases.Values)
+            foreach (var (_, usingAlias) in this.UsingAliases)
             {
                 AddAliasSymbolToResult(result, usingAlias.Alias, options, originalBinder);
             }

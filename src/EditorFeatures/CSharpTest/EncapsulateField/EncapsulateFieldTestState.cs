@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text.Operations;
 using Xunit;
@@ -56,7 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         public void Encapsulate()
         {
             var args = new EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer());
-            var commandHandler = new EncapsulateFieldCommandHandler(TestWaitIndicator.Default, Workspace.GetService<ITextBufferUndoManagerProvider>());
+            var commandHandler = new EncapsulateFieldCommandHandler(TestWaitIndicator.Default, Workspace.GetService<ITextBufferUndoManagerProvider>(),
+                Workspace.ExportProvider.GetExportedValues<Lazy<IAsynchronousOperationListener, FeatureMetadata>>());
             commandHandler.ExecuteCommand(args, () => { });
         }
 

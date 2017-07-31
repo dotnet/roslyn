@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
@@ -273,7 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
 
                 var classifiedSpansAndHighlightSpan =
-                    await ClassifiedSpansAndHighlightSpan.ClassifyAsync(documentSpan, CancellationToken).ConfigureAwait(false);
+                    await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, CancellationToken).ConfigureAwait(false);
 
                 return new DocumentSpanEntry(
                     this, definitionBucket, documentSpan, spanKind,

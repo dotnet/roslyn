@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 {
     internal abstract class AbstractMakeMethodAsynchronousCodeFixProvider : CodeFixProvider
     {
-        protected abstract bool IsMethodOrAnonymousFunction(SyntaxNode node);
+        protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
             INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType);
@@ -51,8 +50,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
             // If it's a void returning method, offer to keep the void return type, or convert to 
             // a Task return type.
-            if (symbol?.MethodKind == MethodKind.Ordinary &&
-                symbol.ReturnsVoid)
+            bool isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
+            if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid)
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
@@ -100,8 +99,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
 
-            if (methodSymbolOpt?.MethodKind == MethodKind.Ordinary &&
-                !methodSymbolOpt.Name.EndsWith(AsyncSuffix))
+            bool isOrdinaryOrLocalFunction = methodSymbolOpt.IsOrdinaryMethodOrLocalFunction();
+            if (isOrdinaryOrLocalFunction && !methodSymbolOpt.Name.EndsWith(AsyncSuffix))
             {
                 return await RenameThenAddAsyncTokenAsync(
                     keepVoid, document, node, methodSymbolOpt, cancellationToken).ConfigureAwait(false);
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         private SyntaxNode GetContainingFunction(Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var token = diagnostic.Location.FindToken(cancellationToken);
-            var node = token.GetAncestor(IsMethodOrAnonymousFunction);
+            var node = token.GetAncestor(IsAsyncSupportingFunctionSyntax);
             return node;
         }
 
@@ -152,8 +151,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var (taskType, taskOfTType, valueTaskOfTType) = GetTaskTypes(compilation);
 
-            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, taskType, taskOfTType, valueTaskOfTType)
-                .WithAdditionalAnnotations(Formatter.Annotation);
+            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, taskType, taskOfTType, valueTaskOfTType);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(node, newNode);

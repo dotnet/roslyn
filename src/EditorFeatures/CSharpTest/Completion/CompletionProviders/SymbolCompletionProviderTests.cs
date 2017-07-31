@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -9105,6 +9105,49 @@ class C
             // VerifyItemExistsAsync also tests with the item typed.
             await VerifyItemExistsAsync(markup, "A");
             await VerifyItemExistsAsync(markup, "B");
+        }
+
+        [WorkItem(8321, "https://github.com/dotnet/roslyn/issues/8321")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task NotOnMethodGroup1()
+        {
+            var markup =
+@"namespace ConsoleApp
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Main.$$
+        }
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(8321, "https://github.com/dotnet/roslyn/issues/8321")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task NotOnMethodGroup2()
+        {
+            var markup =
+@"class C {
+    void M<T>() {M<C>.$$ }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(8321, "https://github.com/dotnet/roslyn/issues/8321")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task NotOnMethodGroup3()
+        {
+            var markup =
+@"class C {
+    void M() {M.$$}
+}
+";
+            await VerifyNoItemsExistAsync(markup);
         }
     }
 }

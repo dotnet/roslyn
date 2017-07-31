@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -1155,8 +1156,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundObjectCreationExpression
         Implements IObjectCreationExpression
 
-        Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
-
         Private ReadOnly Property IObjectCreationExpression_Constructor As IMethodSymbol Implements IObjectCreationExpression.Constructor
             Get
                 Return Me.ConstructorOpt
@@ -1170,31 +1169,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IObjectCreationExpression_MemberInitializers As ImmutableArray(Of ISymbolInitializer) Implements IObjectCreationExpression.MemberInitializers
+        Private ReadOnly Property IObjectCreationExpression_Initializers As ImmutableArray(Of IOperation) Implements IObjectCreationExpression.Initializers
             Get
-                Dim initializer = s_memberInitializersMappings.GetValue(Me, Function(objectCreationStatement)
-                                                                                Dim objectInitializerExpression As BoundObjectInitializerExpressionBase = Me.InitializerOpt
-                                                                                If objectInitializerExpression IsNot Nothing Then
-                                                                                    Dim builder = ArrayBuilder(Of ISymbolInitializer).GetInstance(objectInitializerExpression.Initializers.Length)
-                                                                                    For Each memberAssignment In objectInitializerExpression.Initializers
-                                                                                        Dim assignment = TryCast(memberAssignment, BoundAssignmentOperator)
-                                                                                        Dim left = assignment?.Left
-                                                                                        If left IsNot Nothing Then
-                                                                                            Select Case left.Kind
-                                                                                                Case BoundKind.FieldAccess
-                                                                                                    builder.Add(New FieldInitializer(assignment.Syntax, DirectCast(left, BoundFieldAccess).FieldSymbol, assignment.Right))
-                                                                                                Case BoundKind.PropertyAccess
-                                                                                                    builder.Add(New PropertyInitializer(assignment.Syntax, DirectCast(left, BoundPropertyAccess).PropertySymbol, assignment.Right))
-                                                                                            End Select
-                                                                                        End If
-                                                                                    Next
-                                                                                    Return builder.ToImmutableAndFree()
-                                                                                End If
-
-                                                                                Return ImmutableArray(Of ISymbolInitializer).Empty
-                                                                            End Function)
-
-                Return DirectCast(initializer, ImmutableArray(Of ISymbolInitializer))
+                Return If(Me.InitializerOpt IsNot Nothing, Me.InitializerOpt.Initializers.As(Of IOperation), ImmutableArray(Of IOperation).Empty)
             End Get
         End Property
 
@@ -1500,46 +1477,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Partial Class BoundDelegateCreationExpression
-        Implements IMethodBindingExpression
-
-        Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
-            Get
-                If Me.Method.IsShared Then
-                    Return Nothing
-                Else
-                    Return Me.ReceiverOpt
-                End If
-            End Get
-        End Property
-
-        Private ReadOnly Property IMethodBindingExpression_IsVirtual As Boolean Implements IMethodBindingExpression.IsVirtual
-            Get
-                Return Me.Method IsNot Nothing AndAlso (Me.Method.IsOverridable OrElse Me.Method.IsOverrides OrElse Me.Method.IsMustOverride) AndAlso Not Me.SuppressVirtualCalls
-            End Get
-        End Property
-
-        Private ReadOnly Property IMemberReferenceExpression_Member As ISymbol Implements IMemberReferenceExpression.Member
-            Get
-                Return Me.Method
-            End Get
-        End Property
-
-        Private ReadOnly Property IMethodBindingExpression_Method As IMethodSymbol Implements IMethodBindingExpression.Method
-            Get
-                Return Me.Method
-            End Get
-        End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.MethodBindingExpression
+            Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.ReceiverOpt)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitMethodBindingExpression(Me)
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitMethodBindingExpression(Me, argument)
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 

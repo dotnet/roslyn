@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -136,6 +136,7 @@ public class C
             {
                 var result = compilation.Emit(
                     peStream: peStream,
+                    metadataPEStream: null,
                     pdbStream: pdbStream,
                     xmlDocumentationStream: null,
                     cancellationToken: default(CancellationToken),
@@ -169,6 +170,7 @@ public class C
             {
                 var result = compilation.Emit(
                     peStream: peStream,
+                    metadataPEStream: null,
                     pdbStream: pdbStream,
                     xmlDocumentationStream: null,
                     cancellationToken: default(CancellationToken),
@@ -180,9 +182,11 @@ public class C
                     embeddedTexts: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new object() });
 
+                var libName = $"Microsoft.DiaSymReader.Native.{(IntPtr.Size == 4 ? "x86" : "amd64")}.dll";
+
                 result.Diagnostics.Verify(
-                    // error CS0041: Unexpected error writing debug information -- 'Windows PDB writer is not available -- could not find Microsoft.DiaSymReader.Native.{0}.dll'
-                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterNotAvailable, (IntPtr.Size == 4) ? "x86" : "amd64")));
+                    // error CS0041: Unexpected error writing debug information -- 'The version of Windows PDB writer is older than required: 'Microsoft.DiaSymReader.Native.x86.dll''
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterOlderVersionThanRequired, libName)));
 
                 Assert.False(result.Success);
             }
@@ -202,6 +206,7 @@ public class C
             {
                 var result = compilation.Emit(
                     peStream: peStream,
+                    metadataPEStream: null,
                     pdbStream: pdbStream,
                     xmlDocumentationStream: null,
                     cancellationToken: default(CancellationToken),
@@ -213,9 +218,11 @@ public class C
                     embeddedTexts: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
+                var libName = $"Microsoft.DiaSymReader.Native.{(IntPtr.Size == 4 ? "x86" : "amd64")}.dll";
+
                 result.Diagnostics.Verify(
-                    // error CS0041: Unexpected error writing debug information -- 'Windows PDB writer doesn't support deterministic compilation -- could not find Microsoft.DiaSymReader.Native.{0}.dll'
-                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, (IntPtr.Size == 4) ? "x86" : "amd64")));
+                    // error CS0041: Unexpected error writing debug information -- 'Windows PDB writer doesn't support deterministic compilation -- could not find {0}'
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, libName)));
 
                 Assert.False(result.Success);
             }
@@ -2642,6 +2649,7 @@ class Program
         <entry offset=""0x3c"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""14"" />
         <entry offset=""0x3d"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""30"" />
         <entry offset=""0x47"" hidden=""true"" />
+        <entry offset=""0x51"" hidden=""true"" />
         <entry offset=""0x52"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""10"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x53"">
@@ -2680,7 +2688,7 @@ public class C
 
             v.VerifyIL("C.Main", @"
 {
-  // Code size       72 (0x48)
+  // Code size       70 (0x46)
   .maxstack  2
   .locals init ((int, (bool, double))[] V_0,
                 int V_1,
@@ -2698,7 +2706,7 @@ public class C
   IL_0008:  ldc.i4.0
   IL_0009:  stloc.1
   // sequence point: <hidden>
-  IL_000a:  br.s       IL_0041
+  IL_000a:  br.s       IL_003f
   // sequence point: var (c, (d, e))
   IL_000c:  ldloc.0
   IL_000d:  ldloc.1
@@ -2706,37 +2714,35 @@ public class C
   IL_0013:  dup
   IL_0014:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
   IL_0019:  stloc.s    V_5
-  IL_001b:  dup
-  IL_001c:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
-  IL_0021:  stloc.2
-  IL_0022:  ldloc.s    V_5
-  IL_0024:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
-  IL_0029:  stloc.3
-  IL_002a:  ldloc.s    V_5
-  IL_002c:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
-  IL_0031:  stloc.s    V_4
-  IL_0033:  pop
+  IL_001b:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.s    V_5
+  IL_0023:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_0028:  stloc.3
+  IL_0029:  ldloc.s    V_5
+  IL_002b:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0030:  stloc.s    V_4
   // sequence point: {
-  IL_0034:  nop
+  IL_0032:  nop
   // sequence point: System.Console.WriteLine(c);
-  IL_0035:  ldloc.2
-  IL_0036:  call       ""void System.Console.WriteLine(int)""
-  IL_003b:  nop
+  IL_0033:  ldloc.2
+  IL_0034:  call       ""void System.Console.WriteLine(int)""
+  IL_0039:  nop
   // sequence point: }
-  IL_003c:  nop
+  IL_003a:  nop
   // sequence point: <hidden>
-  IL_003d:  ldloc.1
-  IL_003e:  ldc.i4.1
-  IL_003f:  add
-  IL_0040:  stloc.1
+  IL_003b:  ldloc.1
+  IL_003c:  ldc.i4.1
+  IL_003d:  add
+  IL_003e:  stloc.1
   // sequence point: in
-  IL_0041:  ldloc.1
-  IL_0042:  ldloc.0
-  IL_0043:  ldlen
-  IL_0044:  conv.i4
-  IL_0045:  blt.s      IL_000c
+  IL_003f:  ldloc.1
+  IL_0040:  ldloc.0
+  IL_0041:  ldlen
+  IL_0042:  conv.i4
+  IL_0043:  blt.s      IL_000c
   // sequence point: }
-  IL_0047:  ret
+  IL_0045:  ret
 }
 ", sequencePoints: "C.Main", source: source);
 
@@ -2771,18 +2777,18 @@ public class C
         <entry offset=""0x2"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""40"" />
         <entry offset=""0xa"" hidden=""true"" />
         <entry offset=""0xc"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""33"" />
-        <entry offset=""0x34"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x35"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
-        <entry offset=""0x3c"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x3d"" hidden=""true"" />
-        <entry offset=""0x41"" startLine=""8"" startColumn=""34"" endLine=""8"" endColumn=""36"" />
-        <entry offset=""0x47"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x32"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x33"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
+        <entry offset=""0x3a"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0x3b"" hidden=""true"" />
+        <entry offset=""0x3f"" startLine=""8"" startColumn=""34"" endLine=""8"" endColumn=""36"" />
+        <entry offset=""0x45"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x48"">
-        <scope startOffset=""0xc"" endOffset=""0x3d"">
-          <local name=""c"" il_index=""2"" il_start=""0xc"" il_end=""0x3d"" attributes=""0"" />
-          <local name=""d"" il_index=""3"" il_start=""0xc"" il_end=""0x3d"" attributes=""0"" />
-          <local name=""e"" il_index=""4"" il_start=""0xc"" il_end=""0x3d"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x46"">
+        <scope startOffset=""0xc"" endOffset=""0x3b"">
+          <local name=""c"" il_index=""2"" il_start=""0xc"" il_end=""0x3b"" attributes=""0"" />
+          <local name=""d"" il_index=""3"" il_start=""0xc"" il_end=""0x3b"" attributes=""0"" />
+          <local name=""e"" il_index=""4"" il_start=""0xc"" il_end=""0x3b"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -2844,9 +2850,8 @@ class Student : Person { public double GPA; }
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
         <encLocalSlotMap>
           <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""46"" />
-          <slot kind=""35"" offset=""237"" />
-          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""0"" offset=""59"" />
           <slot kind=""0"" offset=""163"" />
           <slot kind=""0"" offset=""250"" />
@@ -2857,32 +2862,31 @@ class Student : Person { public double GPA; }
       <sequencePoints>
         <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
         <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
-        <entry offset=""0x6"" hidden=""true"" />
-        <entry offset=""0x2a"" hidden=""true"" />
-        <entry offset=""0x2d"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
-        <entry offset=""0x41"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" />
-        <entry offset=""0x62"" hidden=""true"" />
-        <entry offset=""0x67"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" />
-        <entry offset=""0x88"" hidden=""true"" />
-        <entry offset=""0x8d"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" />
-        <entry offset=""0xa9"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" />
-        <entry offset=""0xbd"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
+        <entry offset=""0x4"" hidden=""true"" />
+        <entry offset=""0x28"" hidden=""true"" />
+        <entry offset=""0x2a"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
+        <entry offset=""0x3d"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" />
+        <entry offset=""0x5c"" hidden=""true"" />
+        <entry offset=""0x61"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" />
+        <entry offset=""0x82"" hidden=""true"" />
+        <entry offset=""0x87"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" />
+        <entry offset=""0xa3"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" />
+        <entry offset=""0xb7"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xc0"">
-        <scope startOffset=""0x2a"" endOffset=""0x62"">
-          <local name=""s"" il_index=""4"" il_start=""0x2a"" il_end=""0x62"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xba"">
+        <scope startOffset=""0x28"" endOffset=""0x5c"">
+          <local name=""s"" il_index=""3"" il_start=""0x28"" il_end=""0x5c"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x62"" endOffset=""0x88"">
-          <local name=""s"" il_index=""5"" il_start=""0x62"" il_end=""0x88"" attributes=""0"" />
+        <scope startOffset=""0x5c"" endOffset=""0x82"">
+          <local name=""s"" il_index=""4"" il_start=""0x5c"" il_end=""0x82"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x88"" endOffset=""0xa9"">
-          <local name=""t"" il_index=""6"" il_start=""0x88"" il_end=""0xa9"" attributes=""0"" />
+        <scope startOffset=""0x82"" endOffset=""0xa3"">
+          <local name=""t"" il_index=""5"" il_start=""0x82"" il_end=""0xa3"" attributes=""0"" />
         </scope>
       </scope>
     </method>
   </methods>
-</symbols>"
-);
+</symbols>");
         }
 
         [Fact]
@@ -2937,9 +2941,8 @@ class Student : Person { public double GPA; }
           <slot kind=""30"" offset=""0"" />
           <slot kind=""30"" offset=""383"" />
           <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""46"" />
-          <slot kind=""35"" offset=""249"" />
-          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
@@ -2957,27 +2960,456 @@ class Student : Person { public double GPA; }
         <entry offset=""0x0"" hidden=""true"" />
         <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
         <entry offset=""0xe"" hidden=""true"" />
-        <entry offset=""0x20"" hidden=""true"" />
-        <entry offset=""0x45"" hidden=""true"" />
-        <entry offset=""0x4c"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
-        <entry offset=""0x64"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""63"" />
-        <entry offset=""0x74"" hidden=""true"" />
-        <entry offset=""0x7d"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""63"" />
-        <entry offset=""0x8d"" hidden=""true"" />
-        <entry offset=""0x97"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""65"" />
-        <entry offset=""0xa7"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""49"" />
-        <entry offset=""0xb7"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
+        <entry offset=""0x1c"" hidden=""true"" />
+        <entry offset=""0x41"" hidden=""true"" />
+        <entry offset=""0x48"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
+        <entry offset=""0x60"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""63"" />
+        <entry offset=""0x70"" hidden=""true"" />
+        <entry offset=""0x79"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""63"" />
+        <entry offset=""0x89"" hidden=""true"" />
+        <entry offset=""0x93"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""65"" />
+        <entry offset=""0xa3"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""49"" />
+        <entry offset=""0xb3"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xba"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xba"" attributes=""0"" />
-        <scope startOffset=""0xe"" endOffset=""0xb7"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xb7"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xb6"">
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xb6"" attributes=""0"" />
+        <scope startOffset=""0xe"" endOffset=""0xb3"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xb3"" attributes=""0"" />
         </scope>
       </scope>
     </method>
   </methods>
-</symbols>"
-);
+</symbols>");
+        }
+
+        [Fact, WorkItem(17090, "https://github.com/dotnet/roslyn/issues/17090"), WorkItem(19731, "https://github.com/dotnet/roslyn/issues/19731")]
+        public void SwitchWithConstantPattern()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        M1();
+        M2();
+    }
+
+    static void M1()
+    {
+        switch
+            (1)
+        {
+            case 0 when true:
+                ;
+            case 1:
+                Console.Write(1);
+                break;
+            case 2:
+                ;
+        }
+    }
+
+    static void M2()
+    {
+        switch
+            (nameof(M2))
+        {
+            case nameof(M1) when true:
+                ;
+            case nameof(M2):
+                Console.Write(nameof(M2));
+                break;
+            case nameof(Main):
+                ;
+        }
+    }
+}
+";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            c.VerifyDiagnostics();
+            var verifier = CompileAndVerify(c, expectedOutput: "1M2");
+
+            verifier.VerifyIL(qualifiedMethodName: "Program.M1", sequencePoints: "Program.M1", source: source,
+expectedIL: @"{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (int V_0)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch ...           (1
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  // sequence point: Console.Write(1);
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  nop
+  // sequence point: break;
+  IL_000c:  br.s       IL_000e
+  // sequence point: }
+  IL_000e:  ret
+}");
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2", sequencePoints: "Program.M2", source: source,
+expectedIL: @"{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (string V_0)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch ...  (nameof(M2)
+  IL_0001:  ldstr      ""M2""
+  IL_0006:  stloc.0
+  IL_0007:  br.s       IL_0009
+  // sequence point: Console.Write(nameof(M2));
+  IL_0009:  ldstr      ""M2""
+  IL_000e:  call       ""void System.Console.Write(string)""
+  IL_0013:  nop
+  // sequence point: break;
+  IL_0014:  br.s       IL_0016
+  // sequence point: }
+  IL_0016:  ret
+}");
+
+            // Check the release code generation too.
+            c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            c.VerifyDiagnostics();
+            verifier = CompileAndVerify(c, expectedOutput: "1M2");
+
+            verifier.VerifyIL("Program.M1",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(int)""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("Program.M2",
+@"{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      ""M2""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ret
+}");
+        }
+
+        [Fact, WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
+        public void SwitchWithConstantGenericPattern_01()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        M1<int>();    // 1
+        M1<long>();   // 2
+        M2<string>(); // 3
+        M2<int>();    // 4
+    }
+
+    static void M1<T>()
+    {
+        switch (1)
+        {
+            case T t:
+                Console.Write(1);
+                break;
+            case int i:
+                Console.Write(2);
+                break;
+        }
+    }
+
+    static void M2<T>()
+    {
+        switch (nameof(M2))
+        {
+            case T t:
+                Console.Write(3);
+                break;
+            case string s:
+                Console.Write(4);
+                break;
+            case null:
+                ;
+        }
+    }
+}
+";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            c.VerifyDiagnostics();
+            var verifier = CompileAndVerify(c, expectedOutput: "1234");
+
+            verifier.VerifyIL(qualifiedMethodName: "Program.M1<T>", sequencePoints: "Program.M1", source: source,
+expectedIL: @"{
+  // Code size       80 (0x50)
+  .maxstack  2
+  .locals init (T V_0,
+                int V_1,
+                T V_2, //t
+                int V_3, //i
+                int V_4,
+                object V_5,
+                T V_6)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch (1)
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldc.i4.1
+  IL_0005:  box        ""int""
+  IL_000a:  stloc.s    V_5
+  IL_000c:  ldloc.s    V_5
+  IL_000e:  isinst     ""T""
+  IL_0013:  ldnull
+  IL_0014:  cgt.un
+  IL_0016:  dup
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloca.s   V_6
+  IL_001b:  initobj    ""T""
+  IL_0021:  ldloc.s    V_6
+  IL_0023:  br.s       IL_002c
+  IL_0025:  ldloc.s    V_5
+  IL_0027:  unbox.any  ""T""
+  IL_002c:  stloc.0
+  IL_002d:  brfalse.s  IL_0031
+  IL_002f:  br.s       IL_0035
+  IL_0031:  ldc.i4.1
+  IL_0032:  stloc.1
+  IL_0033:  br.s       IL_0042
+  // sequence point: <hidden>
+  IL_0035:  ldloc.0
+  IL_0036:  stloc.2
+  IL_0037:  br.s       IL_0039
+  // sequence point: Console.Write(1);
+  IL_0039:  ldc.i4.1
+  IL_003a:  call       ""void System.Console.Write(int)""
+  IL_003f:  nop
+  // sequence point: break;
+  IL_0040:  br.s       IL_004f
+  // sequence point: <hidden>
+  IL_0042:  ldloc.1
+  IL_0043:  stloc.3
+  IL_0044:  br.s       IL_0046
+  // sequence point: Console.Write(2);
+  IL_0046:  ldc.i4.2
+  IL_0047:  call       ""void System.Console.Write(int)""
+  IL_004c:  nop
+  // sequence point: break;
+  IL_004d:  br.s       IL_004f
+  // sequence point: }
+  IL_004f:  ret
+}");
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
+expectedIL: @"{
+  // Code size       87 (0x57)
+  .maxstack  2
+  .locals init (T V_0,
+                string V_1,
+                T V_2, //t
+                string V_3, //s
+                string V_4,
+                object V_5,
+                T V_6)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch (nameof(M2))
+  IL_0001:  ldstr      ""M2""
+  IL_0006:  stloc.s    V_4
+  IL_0008:  ldstr      ""M2""
+  IL_000d:  stloc.s    V_5
+  IL_000f:  ldloc.s    V_5
+  IL_0011:  isinst     ""T""
+  IL_0016:  ldnull
+  IL_0017:  cgt.un
+  IL_0019:  dup
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloca.s   V_6
+  IL_001e:  initobj    ""T""
+  IL_0024:  ldloc.s    V_6
+  IL_0026:  br.s       IL_002f
+  IL_0028:  ldloc.s    V_5
+  IL_002a:  unbox.any  ""T""
+  IL_002f:  stloc.0
+  IL_0030:  brfalse.s  IL_0034
+  IL_0032:  br.s       IL_003c
+  IL_0034:  ldstr      ""M2""
+  IL_0039:  stloc.1
+  IL_003a:  br.s       IL_0049
+  // sequence point: <hidden>
+  IL_003c:  ldloc.0
+  IL_003d:  stloc.2
+  IL_003e:  br.s       IL_0040
+  // sequence point: Console.Write(3);
+  IL_0040:  ldc.i4.3
+  IL_0041:  call       ""void System.Console.Write(int)""
+  IL_0046:  nop
+  // sequence point: break;
+  IL_0047:  br.s       IL_0056
+  // sequence point: <hidden>
+  IL_0049:  ldloc.1
+  IL_004a:  stloc.3
+  IL_004b:  br.s       IL_004d
+  // sequence point: Console.Write(4);
+  IL_004d:  ldc.i4.4
+  IL_004e:  call       ""void System.Console.Write(int)""
+  IL_0053:  nop
+  // sequence point: break;
+  IL_0054:  br.s       IL_0056
+  // sequence point: }
+  IL_0056:  ret
+}");
+
+            // Check the release code generation too.
+            c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            c.VerifyDiagnostics();
+            verifier = CompileAndVerify(c, expectedOutput: "1234");
+
+            verifier.VerifyIL("Program.M1<T>",
+@"{
+  // Code size       57 (0x39)
+  .maxstack  2
+  .locals init (T V_0,
+                int V_1,
+                object V_2,
+                T V_3)
+  IL_0000:  ldc.i4.1
+  IL_0001:  box        ""int""
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  isinst     ""T""
+  IL_000d:  ldnull
+  IL_000e:  cgt.un
+  IL_0010:  dup
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloca.s   V_3
+  IL_0015:  initobj    ""T""
+  IL_001b:  ldloc.3
+  IL_001c:  br.s       IL_0024
+  IL_001e:  ldloc.2
+  IL_001f:  unbox.any  ""T""
+  IL_0024:  stloc.0
+  IL_0025:  brtrue.s   IL_002b
+  IL_0027:  ldc.i4.1
+  IL_0028:  stloc.1
+  IL_0029:  br.s       IL_0032
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       ""void System.Console.Write(int)""
+  IL_0031:  ret
+  IL_0032:  ldc.i4.2
+  IL_0033:  call       ""void System.Console.Write(int)""
+  IL_0038:  ret
+}");
+            verifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (T V_0,
+                string V_1,
+                object V_2,
+                T V_3)
+  IL_0000:  ldstr      ""M2""
+  IL_0005:  stloc.2
+  IL_0006:  ldloc.2
+  IL_0007:  isinst     ""T""
+  IL_000c:  ldnull
+  IL_000d:  cgt.un
+  IL_000f:  dup
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloca.s   V_3
+  IL_0014:  initobj    ""T""
+  IL_001a:  ldloc.3
+  IL_001b:  br.s       IL_0023
+  IL_001d:  ldloc.2
+  IL_001e:  unbox.any  ""T""
+  IL_0023:  stloc.0
+  IL_0024:  brtrue.s   IL_002e
+  IL_0026:  ldstr      ""M2""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_0035
+  IL_002e:  ldc.i4.3
+  IL_002f:  call       ""void System.Console.Write(int)""
+  IL_0034:  ret
+  IL_0035:  ldc.i4.4
+  IL_0036:  call       ""void System.Console.Write(int)""
+  IL_003b:  ret
+}");
+        }
+
+        [Fact, WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
+        public void SwitchWithConstantGenericPattern_02()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        M2<string>(); // 6
+        M2<int>();    // 6
+    }
+
+    static void M2<T>()
+    {
+        const string x = null;
+        switch (x)
+        {
+            case T t:
+                ;
+            case string s:
+                ;
+            case null:
+                Console.Write(6);
+                break;
+        }
+    }
+}
+";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            c.VerifyDiagnostics();
+            var verifier = CompileAndVerify(c, expectedOutput: "66");
+
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
+expectedIL: @"{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (T V_0, //t
+                string V_1, //s
+                string V_2)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch (x)
+  IL_0001:  ldnull
+  IL_0002:  stloc.2
+  IL_0003:  br.s       IL_0005
+  // sequence point: Console.Write(6);
+  IL_0005:  ldc.i4.6
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  nop
+  // sequence point: break;
+  IL_000c:  br.s       IL_000e
+  // sequence point: }
+  IL_000e:  ret
+}");
+
+            // Check the release code generation too.
+            c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            c.VerifyDiagnostics();
+            verifier = CompileAndVerify(c, expectedOutput: "66");
+
+            verifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.6
+  IL_0001:  call       ""void System.Console.Write(int)""
+  IL_0006:  ret
+}");
         }
 
         #endregion
@@ -4483,16 +4915,20 @@ class C
         <entry offset=""0xc"" startLine=""22"" startColumn=""62"" endLine=""22"" endColumn=""90"" />
         <entry offset=""0x17"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""47"" />
         <entry offset=""0x24"" hidden=""true"" />
+        <entry offset=""0x2e"" hidden=""true"" />
         <entry offset=""0x2f"" hidden=""true"" />
         <entry offset=""0x31"" hidden=""true"" />
+        <entry offset=""0x3b"" hidden=""true"" />
         <entry offset=""0x3c"" startLine=""25"" startColumn=""16"" endLine=""25"" endColumn=""60"" />
         <entry offset=""0x47"" startLine=""25"" startColumn=""62"" endLine=""25"" endColumn=""90"" />
         <entry offset=""0x52"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""10"" />
         <entry offset=""0x53"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""48"" />
         <entry offset=""0x5e"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" />
         <entry offset=""0x61"" hidden=""true"" />
+        <entry offset=""0x6b"" hidden=""true"" />
         <entry offset=""0x6c"" hidden=""true"" />
         <entry offset=""0x6e"" hidden=""true"" />
+        <entry offset=""0x78"" hidden=""true"" />
         <entry offset=""0x79"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" />
         <entry offset=""0x7a"" startLine=""33"" startColumn=""9"" endLine=""33"" endColumn=""10"" />
         <entry offset=""0x7b"" startLine=""34"" startColumn=""5"" endLine=""34"" endColumn=""6"" />
@@ -4512,8 +4948,8 @@ class C
 </symbols>");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18844"), WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
-        public void UsingStatement_Embedded()
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void UsingStatement_EmbeddedConditional()
         {
             var source = @"
 class C
@@ -4587,6 +5023,7 @@ class C
     IL_001d:  ldloc.2
     IL_001e:  callvirt   ""void System.IDisposable.Dispose()""
     IL_0023:  nop
+    // sequence point: <hidden>
     IL_0024:  endfinally
   }
   // sequence point: return value;
@@ -4596,6 +5033,302 @@ class C
   // sequence point: }
   IL_002a:  ldloc.s    V_4
   IL_002c:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void UsingStatement_EmbeddedConditional2()
+        {
+            var source = @"
+class C
+{
+    bool F()
+    {
+        bool x = true;
+        bool value = false;
+        using (var stream = new System.IO.MemoryStream())
+            if (x)
+            {
+                value = true;
+            }
+            else
+            {
+                value = false;
+            }
+
+        return value;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       47 (0x2f)
+  .maxstack  1
+  .locals init (bool V_0, //x
+                bool V_1, //value
+                System.IO.MemoryStream V_2, //stream
+                bool V_3,
+                bool V_4)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: bool x = true;
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  // sequence point: bool value = false;
+  IL_0003:  ldc.i4.0
+  IL_0004:  stloc.1
+  // sequence point: var stream = new System.IO.MemoryStream()
+  IL_0005:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_000a:  stloc.2
+  .try
+  {
+    // sequence point: if (x)
+    IL_000b:  ldloc.0
+    IL_000c:  stloc.3
+    // sequence point: <hidden>
+    IL_000d:  ldloc.3
+    IL_000e:  brfalse.s  IL_0016
+    // sequence point: {
+    IL_0010:  nop
+    // sequence point: value = true;
+    IL_0011:  ldc.i4.1
+    IL_0012:  stloc.1
+    // sequence point: }
+    IL_0013:  nop
+    IL_0014:  br.s       IL_001a
+    // sequence point: {
+    IL_0016:  nop
+    // sequence point: value = false;
+    IL_0017:  ldc.i4.0
+    IL_0018:  stloc.1
+    // sequence point: }
+    IL_0019:  nop
+    // sequence point: <hidden>
+    IL_001a:  leave.s    IL_0027
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_001c:  ldloc.2
+    IL_001d:  brfalse.s  IL_0026
+    IL_001f:  ldloc.2
+    IL_0020:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0025:  nop
+    // sequence point: <hidden>
+    IL_0026:  endfinally
+  }
+  // sequence point: return value;
+  IL_0027:  ldloc.1
+  IL_0028:  stloc.s    V_4
+  IL_002a:  br.s       IL_002c
+  // sequence point: }
+  IL_002c:  ldloc.s    V_4
+  IL_002e:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void UsingStatement_EmbeddedWhile()
+        {
+            var source = @"
+class C
+{
+    void F(bool x)
+    {
+        using (var stream = new System.IO.MemoryStream())
+            while (x)
+                x = false;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (System.IO.MemoryStream V_0, //stream
+                bool V_1)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: var stream = new System.IO.MemoryStream()
+  IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: <hidden>
+    IL_0007:  br.s       IL_000c
+    // sequence point: x = false;
+    IL_0009:  ldc.i4.0
+    IL_000a:  starg.s    V_1
+    // sequence point: while (x)
+    IL_000c:  ldarg.1
+    IL_000d:  stloc.1
+    // sequence point: <hidden>
+    IL_000e:  ldloc.1
+    IL_000f:  brtrue.s   IL_0009
+    IL_0011:  leave.s    IL_001e
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0013:  ldloc.0
+    IL_0014:  brfalse.s  IL_001d
+    IL_0016:  ldloc.0
+    IL_0017:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001c:  nop
+    // sequence point: <hidden>
+    IL_001d:  endfinally
+  }
+  // sequence point: }
+  IL_001e:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void UsingStatement_EmbeddedFor()
+        {
+            var source = @"
+class C
+{
+    void F(bool x)
+    {
+        using (var stream = new System.IO.MemoryStream())
+            for ( ; x == true; )
+                x = false;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (System.IO.MemoryStream V_0, //stream
+                bool V_1)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: var stream = new System.IO.MemoryStream()
+  IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: <hidden>
+    IL_0007:  br.s       IL_000c
+    // sequence point: x = false;
+    IL_0009:  ldc.i4.0
+    IL_000a:  starg.s    V_1
+    // sequence point: x == true
+    IL_000c:  ldarg.1
+    IL_000d:  stloc.1
+    // sequence point: <hidden>
+    IL_000e:  ldloc.1
+    IL_000f:  brtrue.s   IL_0009
+    IL_0011:  leave.s    IL_001e
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0013:  ldloc.0
+    IL_0014:  brfalse.s  IL_001d
+    IL_0016:  ldloc.0
+    IL_0017:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001c:  nop
+    // sequence point: <hidden>
+    IL_001d:  endfinally
+  }
+  // sequence point: }
+  IL_001e:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void LockStatement_EmbeddedIf()
+        {
+            var source = @"
+class C
+{
+    void F(bool x)
+    {
+        string y = """";
+        lock (y)
+            if (!x)
+                System.Console.Write(1);
+            else
+                System.Console.Write(2);
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  .locals init (string V_0, //y
+                string V_1,
+                bool V_2,
+                bool V_3)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: string y = """";
+  IL_0001:  ldstr      """"
+  IL_0006:  stloc.0
+  // sequence point: lock (y)
+  IL_0007:  ldloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  stloc.2
+  .try
+  {
+    IL_000b:  ldloc.1
+    IL_000c:  ldloca.s   V_2
+    IL_000e:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0013:  nop
+    // sequence point: if (!x)
+    IL_0014:  ldarg.1
+    IL_0015:  ldc.i4.0
+    IL_0016:  ceq
+    IL_0018:  stloc.3
+    // sequence point: <hidden>
+    IL_0019:  ldloc.3
+    IL_001a:  brfalse.s  IL_0025
+    // sequence point: System.Console.Write(1);
+    IL_001c:  ldc.i4.1
+    IL_001d:  call       ""void System.Console.Write(int)""
+    IL_0022:  nop
+    IL_0023:  br.s       IL_002c
+    // sequence point: System.Console.Write(2);
+    IL_0025:  ldc.i4.2
+    IL_0026:  call       ""void System.Console.Write(int)""
+    IL_002b:  nop
+    // sequence point: <hidden>
+    IL_002c:  leave.s    IL_0039
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_002e:  ldloc.2
+    IL_002f:  brfalse.s  IL_0038
+    IL_0031:  ldloc.1
+    IL_0032:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0037:  nop
+    // sequence point: <hidden>
+    IL_0038:  endfinally
+  }
+  // sequence point: }
+  IL_0039:  ret
 }
 ", sequencePoints: "C.F", source: source);
         }
@@ -4708,8 +5441,7 @@ unsafe class C
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -4720,24 +5452,25 @@ unsafe class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
           <slot kind=""0"" offset=""47"" />
+          <slot kind=""9"" offset=""47"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""23"" />
-        <entry offset=""0x7"" startLine=""11"" startColumn=""16"" endLine=""11"" endColumn=""29"" />
-        <entry offset=""0xe"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" />
-        <entry offset=""0xf"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""20"" />
-        <entry offset=""0x13"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
-        <entry offset=""0x14"" hidden=""true"" />
-        <entry offset=""0x17"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""32"" />
-        <entry offset=""0x23"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+        <entry offset=""0xe"" startLine=""11"" startColumn=""16"" endLine=""11"" endColumn=""29"" />
+        <entry offset=""0x11"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" />
+        <entry offset=""0x12"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""20"" />
+        <entry offset=""0x15"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
+        <entry offset=""0x16"" hidden=""true"" />
+        <entry offset=""0x19"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""32"" />
+        <entry offset=""0x25"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x24"">
+      <scope startOffset=""0x0"" endOffset=""0x26"">
         <namespace name=""System"" />
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x24"" attributes=""0"" />
-        <scope startOffset=""0x7"" endOffset=""0x17"">
-          <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x17"" attributes=""0"" />
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x26"" attributes=""0"" />
+        <scope startOffset=""0x7"" endOffset=""0x19"">
+          <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x19"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -4838,18 +5571,18 @@ unsafe class C
         <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""23"" />
         <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""31"" />
         <entry offset=""0x15"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""28"" />
-        <entry offset=""0x31"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x32"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" />
+        <entry offset=""0x32"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
+        <entry offset=""0x33"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" />
         <entry offset=""0x39"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
         <entry offset=""0x3a"" hidden=""true"" />
-        <entry offset=""0x3d"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" />
-        <entry offset=""0x4b"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
+        <entry offset=""0x3c"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" />
+        <entry offset=""0x4a"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x4c"">
+      <scope startOffset=""0x0"" endOffset=""0x4b"">
         <namespace name=""System"" />
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x4c"" attributes=""0"" />
-        <scope startOffset=""0x15"" endOffset=""0x3d"">
-          <local name=""p"" il_index=""1"" il_start=""0x15"" il_end=""0x3d"" attributes=""0"" />
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x4b"" attributes=""0"" />
+        <scope startOffset=""0x15"" endOffset=""0x3c"">
+          <local name=""p"" il_index=""1"" il_start=""0x15"" il_end=""0x3c"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -4890,8 +5623,7 @@ unsafe class C
 ";
             // NOTE: stop on each declarator.
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -4903,27 +5635,29 @@ unsafe class C
           <slot kind=""0"" offset=""13"" />
           <slot kind=""0"" offset=""47"" />
           <slot kind=""0"" offset=""57"" />
+          <slot kind=""9"" offset=""47"" />
+          <slot kind=""9"" offset=""57"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
         <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""23"" />
-        <entry offset=""0x7"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""29"" />
-        <entry offset=""0xe"" startLine=""12"" startColumn=""31"" endLine=""12"" endColumn=""39"" />
-        <entry offset=""0x15"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x16"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" />
-        <entry offset=""0x1a"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""20"" />
-        <entry offset=""0x1e"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" />
-        <entry offset=""0x1f"" hidden=""true"" />
-        <entry offset=""0x25"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""38"" />
-        <entry offset=""0x38"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
+        <entry offset=""0xe"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""29"" />
+        <entry offset=""0x19"" startLine=""12"" startColumn=""31"" endLine=""12"" endColumn=""39"" />
+        <entry offset=""0x1d"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
+        <entry offset=""0x1e"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" />
+        <entry offset=""0x21"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""20"" />
+        <entry offset=""0x24"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" />
+        <entry offset=""0x25"" hidden=""true"" />
+        <entry offset=""0x2c"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""38"" />
+        <entry offset=""0x3f"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x39"">
+      <scope startOffset=""0x0"" endOffset=""0x40"">
         <namespace name=""System"" />
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x39"" attributes=""0"" />
-        <scope startOffset=""0x7"" endOffset=""0x25"">
-          <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x25"" attributes=""0"" />
-          <local name=""q"" il_index=""2"" il_start=""0x7"" il_end=""0x25"" attributes=""0"" />
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x40"" attributes=""0"" />
+        <scope startOffset=""0x7"" endOffset=""0x2c"">
+          <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x2c"" attributes=""0"" />
+          <local name=""q"" il_index=""2"" il_start=""0x7"" il_end=""0x2c"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -5016,8 +5750,7 @@ unsafe class C
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -5039,22 +5772,22 @@ unsafe class C
         <entry offset=""0x7"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""31"" />
         <entry offset=""0x15"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""31"" />
         <entry offset=""0x23"" startLine=""14"" startColumn=""16"" endLine=""14"" endColumn=""28"" />
-        <entry offset=""0x3f"" startLine=""14"" startColumn=""30"" endLine=""14"" endColumn=""37"" />
-        <entry offset=""0x5e"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x5f"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""20"" />
-        <entry offset=""0x63"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""20"" />
+        <entry offset=""0x40"" startLine=""14"" startColumn=""30"" endLine=""14"" endColumn=""37"" />
+        <entry offset=""0x60"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
+        <entry offset=""0x61"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""20"" />
+        <entry offset=""0x64"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""20"" />
         <entry offset=""0x67"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" />
         <entry offset=""0x68"" hidden=""true"" />
-        <entry offset=""0x6e"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""31"" />
-        <entry offset=""0x7c"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""31"" />
-        <entry offset=""0x8a"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
+        <entry offset=""0x6d"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""31"" />
+        <entry offset=""0x7b"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""31"" />
+        <entry offset=""0x89"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x8b"">
+      <scope startOffset=""0x0"" endOffset=""0x8a"">
         <namespace name=""System"" />
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x8b"" attributes=""0"" />
-        <scope startOffset=""0x23"" endOffset=""0x6e"">
-          <local name=""p"" il_index=""1"" il_start=""0x23"" il_end=""0x6e"" attributes=""0"" />
-          <local name=""q"" il_index=""2"" il_start=""0x23"" il_end=""0x6e"" attributes=""0"" />
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x8a"" attributes=""0"" />
+        <scope startOffset=""0x23"" endOffset=""0x6d"">
+          <local name=""p"" il_index=""1"" il_start=""0x23"" il_end=""0x6d"" attributes=""0"" />
+          <local name=""q"" il_index=""2"" il_start=""0x23"" il_end=""0x6d"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -5095,8 +5828,7 @@ unsafe class C
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <methods>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -5108,6 +5840,7 @@ unsafe class C
           <slot kind=""0"" offset=""48"" />
           <slot kind=""0"" offset=""58"" />
           <slot kind=""0"" offset=""67"" />
+          <slot kind=""9"" offset=""48"" />
           <slot kind=""temp"" />
           <slot kind=""9"" offset=""67"" />
         </encLocalSlotMap>
@@ -5115,24 +5848,24 @@ unsafe class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
         <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""23"" />
-        <entry offset=""0x7"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""30"" />
-        <entry offset=""0xe"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""39"" />
-        <entry offset=""0x34"" startLine=""12"" startColumn=""41"" endLine=""12"" endColumn=""52"" />
-        <entry offset=""0x43"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x44"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""36"" />
-        <entry offset=""0x4d"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""36"" />
-        <entry offset=""0x56"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""36"" />
-        <entry offset=""0x5e"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
-        <entry offset=""0x5f"" hidden=""true"" />
-        <entry offset=""0x68"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
+        <entry offset=""0xf"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""30"" />
+        <entry offset=""0x13"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""39"" />
+        <entry offset=""0x3a"" startLine=""12"" startColumn=""41"" endLine=""12"" endColumn=""52"" />
+        <entry offset=""0x49"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
+        <entry offset=""0x4a"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""36"" />
+        <entry offset=""0x52"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""36"" />
+        <entry offset=""0x5a"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""36"" />
+        <entry offset=""0x62"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
+        <entry offset=""0x63"" hidden=""true"" />
+        <entry offset=""0x6d"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x69"">
+      <scope startOffset=""0x0"" endOffset=""0x6e"">
         <namespace name=""System"" />
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x69"" attributes=""0"" />
-        <scope startOffset=""0x7"" endOffset=""0x68"">
-          <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x68"" attributes=""0"" />
-          <local name=""q"" il_index=""2"" il_start=""0x7"" il_end=""0x68"" attributes=""0"" />
-          <local name=""r"" il_index=""3"" il_start=""0x7"" il_end=""0x68"" attributes=""0"" />
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x6e"" attributes=""0"" />
+        <scope startOffset=""0x7"" endOffset=""0x6d"">
+          <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x6d"" attributes=""0"" />
+          <local name=""q"" il_index=""2"" il_start=""0x7"" il_end=""0x6d"" attributes=""0"" />
+          <local name=""r"" il_index=""3"" il_start=""0x7"" il_end=""0x6d"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -5983,7 +6716,6 @@ class C
         <entry offset=""0x7"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
         <entry offset=""0x8"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" />
         <entry offset=""0x1f"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" />
-        <entry offset=""0x4a"" hidden=""true"" />
         <entry offset=""0x4c"" hidden=""true"" />
         <entry offset=""0x64"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
         <entry offset=""0x6c"" hidden=""true"" />
@@ -6046,7 +6778,6 @@ class C
         <entry offset=""0x7"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" />
         <entry offset=""0x8"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""39"" />
         <entry offset=""0x1f"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""30"" />
-        <entry offset=""0x4a"" hidden=""true"" />
         <entry offset=""0x4c"" hidden=""true"" />
         <entry offset=""0x64"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
         <entry offset=""0x6c"" hidden=""true"" />
@@ -6064,6 +6795,7 @@ class C
 
         #region Patterns
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
         public void SyntaxOffset_Pattern()
         {
             var source = @"class C { bool F(object o) => o is int i && o is 3 && o is bool; }";
@@ -6364,7 +7096,6 @@ public class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x8"" hidden=""true"" document=""1"" />
         <entry offset=""0xa"" hidden=""true"" document=""1"" />
         <entry offset=""0x22"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
         <entry offset=""0x2a"" hidden=""true"" document=""1"" />
@@ -6472,120 +7203,115 @@ partial class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             CompileAndVerify(c).VerifyIL("Program.M",
 @"{
-  // Code size      210 (0xd2)
+  // Code size      188 (0xbc)
   .maxstack  2
   .locals init (object V_0,
                 int V_1,
                 object V_2,
                 object V_3,
-                int? V_4,
+                object V_4,
                 int V_5,
                 object V_6,
-                int V_7,
-                object V_8,
-                object V_9,
-                object V_10)
+                object V_7,
+                object V_8)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.2
   IL_0003:  ldloc.2
-  IL_0004:  stloc.3
-  IL_0005:  ldloc.3
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brtrue.s   IL_000c
-  IL_000a:  br.s       IL_005e
-  IL_000c:  ldloc.0
-  IL_000d:  isinst     ""int?""
-  IL_0012:  unbox.any  ""int?""
-  IL_0017:  stloc.s    V_4
-  IL_0019:  ldloca.s   V_4
-  IL_001b:  call       ""int int?.GetValueOrDefault()""
-  IL_0020:  stloc.1
-  IL_0021:  ldloca.s   V_4
-  IL_0023:  call       ""bool int?.HasValue.get""
-  IL_0028:  brfalse.s  IL_005e
-  IL_002a:  ldloc.1
-  IL_002b:  stloc.s    V_5
-  IL_002d:  ldloc.s    V_5
-  IL_002f:  ldc.i4.1
-  IL_0030:  sub
-  IL_0031:  switch    (
-        IL_004c,
-        IL_0054,
-        IL_005a,
-        IL_0052,
-        IL_0058)
-  IL_004a:  br.s       IL_005e
-  IL_004c:  br.s       IL_0060
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  br.s       IL_0054
+  IL_000a:  ldloc.0
+  IL_000b:  stloc.3
+  IL_000c:  ldloc.3
+  IL_000d:  isinst     ""int""
+  IL_0012:  ldnull
+  IL_0013:  cgt.un
+  IL_0015:  dup
+  IL_0016:  brtrue.s   IL_001b
+  IL_0018:  ldc.i4.0
+  IL_0019:  br.s       IL_0021
+  IL_001b:  ldloc.3
+  IL_001c:  unbox.any  ""int""
+  IL_0021:  stloc.1
+  IL_0022:  brfalse.s  IL_0054
+  IL_0024:  ldloc.1
+  IL_0025:  ldc.i4.1
+  IL_0026:  sub
+  IL_0027:  switch    (
+        IL_0042,
+        IL_004a,
+        IL_0050,
+        IL_0048,
+        IL_004e)
+  IL_0040:  br.s       IL_0054
+  IL_0042:  br.s       IL_0056
+  IL_0044:  br.s       IL_0062
+  IL_0046:  br.s       IL_0070
+  IL_0048:  br.s       IL_0060
+  IL_004a:  br.s       IL_005b
+  IL_004c:  br.s       IL_0054
   IL_004e:  br.s       IL_006c
-  IL_0050:  br.s       IL_007a
-  IL_0052:  br.s       IL_006a
-  IL_0054:  br.s       IL_0065
-  IL_0056:  br.s       IL_005e
-  IL_0058:  br.s       IL_0076
-  IL_005a:  br.s       IL_0071
-  IL_005c:  br.s       IL_005e
-  IL_005e:  br.s       IL_0078
-  IL_0060:  ldarg.0
-  IL_0061:  brfalse.s  IL_006a
-  IL_0063:  br.s       IL_004e
-  IL_0065:  ldarg.0
-  IL_0066:  brfalse.s  IL_006a
-  IL_0068:  br.s       IL_0056
-  IL_006a:  br.s       IL_007c
-  IL_006c:  ldarg.0
-  IL_006d:  brtrue.s   IL_0076
-  IL_006f:  br.s       IL_0050
-  IL_0071:  ldarg.0
-  IL_0072:  brtrue.s   IL_0076
-  IL_0074:  br.s       IL_005c
-  IL_0076:  br.s       IL_007c
-  IL_0078:  br.s       IL_007c
-  IL_007a:  br.s       IL_007c
-  IL_007c:  ldarg.0
-  IL_007d:  stloc.2
-  IL_007e:  ldloc.2
-  IL_007f:  stloc.s    V_8
-  IL_0081:  ldloc.s    V_8
-  IL_0083:  stloc.s    V_6
-  IL_0085:  ldloc.s    V_6
-  IL_0087:  brtrue.s   IL_008b
-  IL_0089:  br.s       IL_00b8
-  IL_008b:  ldloc.s    V_6
-  IL_008d:  isinst     ""int?""
-  IL_0092:  unbox.any  ""int?""
-  IL_0097:  stloc.s    V_4
-  IL_0099:  ldloca.s   V_4
-  IL_009b:  call       ""int int?.GetValueOrDefault()""
-  IL_00a0:  stloc.s    V_7
-  IL_00a2:  ldloca.s   V_4
-  IL_00a4:  call       ""bool int?.HasValue.get""
-  IL_00a9:  brfalse.s  IL_00b8
-  IL_00ab:  ldloc.s    V_7
-  IL_00ad:  stloc.s    V_5
-  IL_00af:  ldloc.s    V_5
-  IL_00b1:  ldc.i4.1
-  IL_00b2:  beq.s      IL_00b6
-  IL_00b4:  br.s       IL_00b8
-  IL_00b6:  br.s       IL_00ba
-  IL_00b8:  br.s       IL_00bc
-  IL_00ba:  br.s       IL_00be
-  IL_00bc:  br.s       IL_00be
-  IL_00be:  ldarg.0
-  IL_00bf:  stloc.2
-  IL_00c0:  ldloc.2
-  IL_00c1:  stloc.s    V_10
-  IL_00c3:  ldloc.s    V_10
-  IL_00c5:  stloc.s    V_9
-  IL_00c7:  ldloc.s    V_9
-  IL_00c9:  brtrue.s   IL_00cd
-  IL_00cb:  br.s       IL_00cd
-  IL_00cd:  br.s       IL_00cf
-  IL_00cf:  br.s       IL_00d1
-  IL_00d1:  ret
-}
-");
+  IL_0050:  br.s       IL_0067
+  IL_0052:  br.s       IL_0054
+  IL_0054:  br.s       IL_006e
+  IL_0056:  ldarg.0
+  IL_0057:  brfalse.s  IL_0060
+  IL_0059:  br.s       IL_0044
+  IL_005b:  ldarg.0
+  IL_005c:  brfalse.s  IL_0060
+  IL_005e:  br.s       IL_004c
+  IL_0060:  br.s       IL_0072
+  IL_0062:  ldarg.0
+  IL_0063:  brtrue.s   IL_006c
+  IL_0065:  br.s       IL_0046
+  IL_0067:  ldarg.0
+  IL_0068:  brtrue.s   IL_006c
+  IL_006a:  br.s       IL_0052
+  IL_006c:  br.s       IL_0072
+  IL_006e:  br.s       IL_0072
+  IL_0070:  br.s       IL_0072
+  IL_0072:  ldarg.0
+  IL_0073:  stloc.s    V_6
+  IL_0075:  ldloc.s    V_6
+  IL_0077:  stloc.s    V_4
+  IL_0079:  ldloc.s    V_4
+  IL_007b:  brtrue.s   IL_007f
+  IL_007d:  br.s       IL_00a4
+  IL_007f:  ldloc.s    V_4
+  IL_0081:  stloc.3
+  IL_0082:  ldloc.3
+  IL_0083:  isinst     ""int""
+  IL_0088:  ldnull
+  IL_0089:  cgt.un
+  IL_008b:  dup
+  IL_008c:  brtrue.s   IL_0091
+  IL_008e:  ldc.i4.0
+  IL_008f:  br.s       IL_0097
+  IL_0091:  ldloc.3
+  IL_0092:  unbox.any  ""int""
+  IL_0097:  stloc.s    V_5
+  IL_0099:  brfalse.s  IL_00a4
+  IL_009b:  ldloc.s    V_5
+  IL_009d:  ldc.i4.1
+  IL_009e:  beq.s      IL_00a2
+  IL_00a0:  br.s       IL_00a4
+  IL_00a2:  br.s       IL_00a6
+  IL_00a4:  br.s       IL_00a8
+  IL_00a6:  br.s       IL_00aa
+  IL_00a8:  br.s       IL_00aa
+  IL_00aa:  ldarg.0
+  IL_00ab:  stloc.s    V_8
+  IL_00ad:  ldloc.s    V_8
+  IL_00af:  stloc.s    V_7
+  IL_00b1:  ldloc.s    V_7
+  IL_00b3:  brtrue.s   IL_00b7
+  IL_00b5:  br.s       IL_00b7
+  IL_00b7:  br.s       IL_00b9
+  IL_00b9:  br.s       IL_00bb
+  IL_00bb:  ret
+}");
             c.VerifyPdb(
 @"<symbols>
   <methods>
@@ -6596,13 +7322,11 @@ partial class C
         </using>
         <encLocalSlotMap>
           <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""46"" />
-          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""temp"" />
-          <slot kind=""temp"" />
           <slot kind=""35"" offset=""378"" />
-          <slot kind=""35"" offset=""413"" />
+          <slot kind=""35"" offset=""378"" />
           <slot kind=""1"" offset=""378"" />
           <slot kind=""35"" offset=""511"" />
           <slot kind=""1"" offset=""511"" />
@@ -6611,23 +7335,23 @@ partial class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
         <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" />
-        <entry offset=""0x5"" hidden=""true"" />
-        <entry offset=""0x60"" startLine=""7"" startColumn=""20"" endLine=""7"" endColumn=""34"" />
-        <entry offset=""0x65"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""34"" />
-        <entry offset=""0x6a"" startLine=""10"" startColumn=""17"" endLine=""10"" endColumn=""23"" />
-        <entry offset=""0x6c"" startLine=""11"" startColumn=""20"" endLine=""11"" endColumn=""34"" />
-        <entry offset=""0x71"" startLine=""13"" startColumn=""20"" endLine=""13"" endColumn=""34"" />
-        <entry offset=""0x76"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""23"" />
-        <entry offset=""0x78"" startLine=""16"" startColumn=""17"" endLine=""16"" endColumn=""23"" />
-        <entry offset=""0x7a"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""23"" />
-        <entry offset=""0x7c"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
-        <entry offset=""0x81"" hidden=""true"" />
-        <entry offset=""0xba"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" />
-        <entry offset=""0xbc"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" />
-        <entry offset=""0xbe"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" />
-        <entry offset=""0xc3"" hidden=""true"" />
-        <entry offset=""0xcf"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" />
-        <entry offset=""0xd1"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" />
+        <entry offset=""0x3"" hidden=""true"" />
+        <entry offset=""0x56"" startLine=""7"" startColumn=""20"" endLine=""7"" endColumn=""34"" />
+        <entry offset=""0x5b"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""34"" />
+        <entry offset=""0x60"" startLine=""10"" startColumn=""17"" endLine=""10"" endColumn=""23"" />
+        <entry offset=""0x62"" startLine=""11"" startColumn=""20"" endLine=""11"" endColumn=""34"" />
+        <entry offset=""0x67"" startLine=""13"" startColumn=""20"" endLine=""13"" endColumn=""34"" />
+        <entry offset=""0x6c"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""23"" />
+        <entry offset=""0x6e"" startLine=""16"" startColumn=""17"" endLine=""16"" endColumn=""23"" />
+        <entry offset=""0x70"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""23"" />
+        <entry offset=""0x72"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
+        <entry offset=""0x75"" hidden=""true"" />
+        <entry offset=""0xa6"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" />
+        <entry offset=""0xa8"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" />
+        <entry offset=""0xaa"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" />
+        <entry offset=""0xad"" hidden=""true"" />
+        <entry offset=""0xb9"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" />
+        <entry offset=""0xbb"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>
@@ -6755,7 +7479,6 @@ class Program
     IL_001a:  br.s       IL_001e
     // sequence point: break;
     IL_001c:  br.s       IL_001e
-    // sequence point: <hidden>
     IL_001e:  leave.s    IL_0038
   }
   catch System.Exception
@@ -6838,7 +7561,6 @@ class Program
     // sequence point: <hidden>
     IL_0021:  ldloc.1
     IL_0022:  brtrue.s   IL_0011
-    // sequence point: <hidden>
     IL_0024:  leave.s    IL_003e
   }
   catch System.Exception
@@ -6930,7 +7652,6 @@ class Program
     // sequence point: <hidden>
     IL_0031:  ldloc.2
     IL_0032:  brtrue.s   IL_0011
-    // sequence point: <hidden>
     IL_0034:  leave.s    IL_004e
   }
   catch System.Exception
@@ -7025,7 +7746,6 @@ class Program
     // sequence point: <hidden>
     IL_003b:  ldloc.2
     IL_003c:  brtrue.s   IL_001b
-    // sequence point: <hidden>
     IL_003e:  leave.s    IL_0058
   }
   catch System.Exception

@@ -1,13 +1,13 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports System.Collections.Immutable
+Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.GenerateMember
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
-Imports System.Composition
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     Friend Class GenerateConstructorDiagnosticIds
@@ -60,19 +60,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         End Function
 
         Protected Overrides Function IsCandidate(node As SyntaxNode, token As SyntaxToken, diagnostic As Diagnostic) As Boolean
-            If TypeOf node Is InvocationExpressionSyntax OrElse
-               TypeOf node Is ObjectCreationExpressionSyntax OrElse
-               TypeOf node Is AttributeSyntax Then
-                Return True
-            End If
-
-            Return diagnostic.Id = GenerateConstructorDiagnosticIds.BC30387 AndAlso
-                TypeOf node Is ClassBlockSyntax AndAlso
-                IsInClassDeclarationHeader(DirectCast(node, ClassBlockSyntax), token)
-        End Function
-
-        Private Function IsInClassDeclarationHeader(node As ClassBlockSyntax, token As SyntaxToken) As Boolean
-            Return node.ClassStatement.Span.Contains(token.Span)
+            Return TypeOf node Is InvocationExpressionSyntax OrElse
+                   TypeOf node Is ObjectCreationExpressionSyntax OrElse
+                   TypeOf node Is AttributeSyntax
         End Function
     End Class
 End Namespace

@@ -5,6 +5,7 @@ using System.Windows.Automation;
 using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -127,11 +128,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
 
+        public int GetLine() => _editorInProc.GetLine();
+
+        public int GetColumn() => _editorInProc.GetColumn();
+
         public void DeleteText(string text)
         {
             SelectTextInCurrentDocument(text);
             SendKeys(VirtualKey.Delete);
         }
+
+        public void ReplaceText(string oldText, string newText)
+            => _editorInProc.ReplaceText(oldText, newText);
 
         public bool IsCaretOnScreen()
             => _editorInProc.IsCaretOnScreen();
@@ -324,5 +332,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void GoToImplementation()
             => _editorInProc.GoToImplementation();
+
+        public void SendExplicitFocus()
+            => _editorInProc.SendExplicitFocus();
     }
 }

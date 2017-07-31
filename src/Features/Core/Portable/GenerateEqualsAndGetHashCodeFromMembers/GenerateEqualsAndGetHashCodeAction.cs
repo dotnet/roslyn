@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                         generator.IdentifierName(right));
 
                 return CodeGenerationSymbolFactory.CreateOperatorSymbol(
-                    default(ImmutableArray<AttributeData>),
+                    default,
                     Accessibility.Public,
                     new DeclarationModifiers(isStatic: true),
                     compilation.GetSpecialType(SpecialType.System_Boolean),
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                         generator.IdentifierName(right)));
 
                 return CodeGenerationSymbolFactory.CreateOperatorSymbol(
-                    default(ImmutableArray<AttributeData>),
+                    default,
                     Accessibility.Public,
                     new DeclarationModifiers(isStatic: true),
                     compilation.GetSpecialType(SpecialType.System_Boolean),

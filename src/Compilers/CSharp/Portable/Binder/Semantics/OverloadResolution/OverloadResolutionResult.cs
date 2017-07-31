@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 #if DEBUG
@@ -87,16 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(_bestResultState == ThreeState.True);
                 return _bestResult;
-            }
-        }
-
-        private bool HasBestResult
-        {
-            get
-            {
-                EnsureBestResultLoaded();
-
-                return _bestResultState.Value();
             }
         }
 
@@ -922,6 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ParameterSymbol parameter = method.GetParameters()[parm];
+            bool isLastParameter = method.GetParameterCount() == parm + 1; // This is used to later decide if we need to try to unwrap a params array
             RefKind refArg = arguments.RefKind(arg);
             RefKind refParm = parameter.RefKind;
 
@@ -950,7 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbols,
                         arg + 1,
                         argument.Display, //'<null>' doesn't need refkind
-                        UnwrapIfParamsArray(parameter));
+                        UnwrapIfParamsArray(parameter, isLastParameter));
                 }
             }
             else if (refArg != refParm)
@@ -986,32 +978,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (arguments.IsExtensionMethodThisArgument(arg))
                 {
                     Debug.Assert((arg == 0) && (parm == arg));
-                    var conversion = badArg.Result.ConversionForArg(parm);
+                    Debug.Assert(!badArg.Result.ConversionForArg(parm).IsImplicit);
 
-                    if (conversion.IsImplicit)
-                    {
-                        // CS1928: '{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' has some invalid arguments
-                        diagnostics.Add(
-                            ErrorCode.ERR_BadExtensionArgTypes,
-                            location,
-                            symbols,
-                            argument.Display,
-                            name,
-                            method);
-                    }
-                    else
-                    {
-                        // CS1929: '{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'
-                        diagnostics.Add(
-                            ErrorCode.ERR_BadInstanceArgType,
-                            sourceLocation,
-                            symbols,
-                            argument.Display,
-                            name,
-                            method,
-                            parameter);
-                        Debug.Assert((object)parameter == UnwrapIfParamsArray(parameter), "If they ever differ, just call the method when constructing the diagnostic.");
-                    }
+                    // CS1929: '{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'
+                    diagnostics.Add(
+                        ErrorCode.ERR_BadInstanceArgType,
+                        sourceLocation,
+                        symbols,
+                        argument.Display,
+                        name,
+                        method,
+                        parameter);
+                    Debug.Assert((object)parameter == UnwrapIfParamsArray(parameter, isLastParameter), "If they ever differ, just call the method when constructing the diagnostic.");
                 }
                 else
                 {
@@ -1019,8 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // object that contains both values, so we have to construct our own.
                     // NOTE: since this is a symbol, it will use the SymbolDisplay options for parameters (i.e. will
                     // have the same format as the display value of the parameter).
-                    var argType = argument.Display as TypeSymbol;
-                    if (argType != null)
+                    if (argument.Display is TypeSymbol argType)
                     {
                         SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
                             argType,
@@ -1029,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isParams: false,
                             refKind: refArg);
 
-                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, UnwrapIfParamsArray(parameter));
+                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, UnwrapIfParamsArray(parameter, isLastParameter));
 
                         // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
                         diagnostics.Add(
@@ -1048,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             symbols,
                             arg + 1,
                             argument.Display,
-                            UnwrapIfParamsArray(parameter));
+                            UnwrapIfParamsArray(parameter, isLastParameter));
                     }
                 }
             }
@@ -1059,9 +1036,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// parameter is a params array, then the error message should reflect the element type
         /// of the params array - not the array type.
         /// </summary>
-        private static Symbol UnwrapIfParamsArray(ParameterSymbol parameter)
+        private static Symbol UnwrapIfParamsArray(ParameterSymbol parameter, bool isLastParameter)
         {
-            if (parameter.IsParams)
+            // We only try to unwrap parameters if they are a parameter array and are on the last position
+            if (parameter.IsParams && isLastParameter)
             {
                 ArrayTypeSymbol arrayType = parameter.Type as ArrayTypeSymbol;
                 if ((object)arrayType != null && arrayType.IsSZArray)

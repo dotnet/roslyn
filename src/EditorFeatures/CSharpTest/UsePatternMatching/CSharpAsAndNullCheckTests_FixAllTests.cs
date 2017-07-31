@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
     void M()
     {
+        string a;
+        int[] b;
         {|FixAllInDocument:var|} x = o as string;
         if (x != null)
         {
@@ -23,6 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 
         var y = o as string;
         if (y != null)
+        {
+        }
+
+        if ((a = o as string) != null)
+        {
+        }
+
+        if ((b = o as int[]) != null)
         {
         }
     }
@@ -36,6 +46,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         }
 
         if (o is string y)
+        {
+        }
+
+        if (o is string a)
+        {
+        }
+
+        if (o is int[] b)
         {
         }
     }

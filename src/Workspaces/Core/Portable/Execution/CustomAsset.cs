@@ -10,11 +10,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// Asset that is not part of solution, but want to participate in ISolutionSynchronizationService
+    /// Asset that is not part of solution, but want to participate in <see cref="IRemotableDataService"/>
     /// </summary>
     internal abstract class CustomAsset : RemotableData
     {
-        public CustomAsset(Checksum checksum, string kind) : base(checksum, kind)
+        public CustomAsset(Checksum checksum, WellKnownSynchronizationKind kind) : base(checksum, kind)
         {
         }
     }
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private readonly Action<ObjectWriter, CancellationToken> _writer;
 
-        public SimpleCustomAsset(string kind, Action<ObjectWriter, CancellationToken> writer) :
+        public SimpleCustomAsset(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer) :
             base(CreateChecksumFromStreamWriter(kind, writer), kind)
         {
             // unlike SolutionAsset which gets checksum from solution states, this one build one by itself.
@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis.Execution
             return SpecializedTasks.EmptyTask;
         }
 
-        private static Checksum CreateChecksumFromStreamWriter(string kind, Action<ObjectWriter, CancellationToken> writer)
+        private static Checksum CreateChecksumFromStreamWriter(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var objectWriter = new ObjectWriter(stream))
             {
-                objectWriter.WriteString(kind);
+                objectWriter.WriteInt32((int)kind);
                 writer(objectWriter, CancellationToken.None);
                 return Checksum.Create(stream);
             }
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, Serializer serializer) :
             base(
                 serializer.CreateChecksum(reference, CancellationToken.None),
-                WellKnownSynchronizationKinds.AnalyzerReference)
+                WellKnownSynchronizationKind.AnalyzerReference)
         {
             _reference = reference;
             _serializer = serializer;

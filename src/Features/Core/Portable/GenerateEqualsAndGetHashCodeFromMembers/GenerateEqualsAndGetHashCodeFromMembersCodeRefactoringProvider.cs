@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PickMembers;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -107,21 +108,24 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             var pickMembersOptions = ArrayBuilder<PickMembersOption>.GetInstance();
 
-            var equatableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
-            var constructedType = equatableType.Construct(containingType);
-            if (!containingType.AllInterfaces.Contains(constructedType))
+            var equatableTypeOpt = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+            if (equatableTypeOpt != null)
             {
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);
+                var constructedType = equatableTypeOpt.Construct(containingType);
+                if (!containingType.AllInterfaces.Contains(constructedType))
+                {
+                    var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                    var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);
 
-                var displayName = constructedType.ToDisplayString(new SymbolDisplayFormat(
-                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters));
+                    var displayName = constructedType.ToDisplayString(new SymbolDisplayFormat(
+                        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters));
 
-                pickMembersOptions.Add(new PickMembersOption(
-                    ImplementIEquatableId,
-                    string.Format(FeaturesResources.Implement_0, displayName),
-                    value));
+                    pickMembersOptions.Add(new PickMembersOption(
+                        ImplementIEquatableId,
+                        string.Format(FeaturesResources.Implement_0, displayName),
+                        value));
+                }
             }
 
             if (!HasOperators(containingType))
@@ -189,7 +193,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
+                return default;
             }
         }
 

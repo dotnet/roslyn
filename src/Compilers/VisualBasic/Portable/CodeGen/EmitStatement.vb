@@ -6,6 +6,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
@@ -1433,7 +1434,7 @@ OtherExpressions:
         Private Sub DefineUserDefinedStateMachineHoistedLocal(field As StateMachineFieldSymbol)
             Debug.Assert(field.SlotIndex >= 0)
 
-            If _module.EmitOptions.DebugInformationFormat = DebugInformationFormat.Pdb Then
+            If _module.debugInformationFormat = DebugInformationFormat.Pdb Then
                 'Native PDBs: VB EE uses name mangling to match up original locals and the fields where they are hoisted
                 'The scoping information is passed by recording PDB scopes of "fake" locals named the same 
                 'as the fields. These locals are not emitted to IL.

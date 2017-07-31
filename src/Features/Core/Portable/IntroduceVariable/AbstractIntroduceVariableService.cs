@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
+                return default;
             }
         }
 
@@ -199,11 +199,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
 
             var semanticModel = document.SemanticModel;
-            var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, isConstant);
+            var baseName = semanticFacts.GenerateNameForExpression(
+                semanticModel, expression, isConstant, cancellationToken);
 
             // A field can't conflict with any existing member names.
             var declaringType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken);
@@ -226,7 +227,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var semanticModel = document.SemanticModel;
             var existingSymbols = GetExistingSymbols(semanticModel, container, cancellationToken);
 
-            var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize: isConstant);
+            var baseName = semanticFacts.GenerateNameForExpression(
+                semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
             var reservedNames = semanticModel.LookupSymbols(expression.SpanStart)
                                              .Select(s => s.Name)
                                              .Concat(existingSymbols.Select(s => s.Name));
@@ -235,43 +237,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 NameGenerator.EnsureUniqueness(baseName, reservedNames, syntaxFacts.IsCaseSensitive));
         }
 
-        private static HashSet<ISymbol> GetExistingSymbols(
+        private static IEnumerable<ISymbol> GetExistingSymbols(
             SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
         {
-            var symbols = new HashSet<ISymbol>();
-            if (container != null)
-            {
-                GetExistingSymbols(semanticModel, container, symbols, cancellationToken);
-            }
-
-            return symbols;
-        }
-
-        private static void GetExistingSymbols(
-            SemanticModel semanticModel, SyntaxNode node, 
-            HashSet<ISymbol> symbols, CancellationToken cancellationToken)
-        {
-            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-
             // Ignore an annonymous type property.  It's ok if they have a name that 
             // matches the name of the local we're introducing.
-            if (symbol != null &&
-                !IsAnonymousTypeProperty(symbol))
-            {
-                symbols.Add(symbol);
-            }
-
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
-                {
-                    GetExistingSymbols(semanticModel, child.AsNode(), symbols, cancellationToken);
-                }
-            }
+            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
+                                .Where(s => !s.IsAnonymousTypeProperty());
         }
-
-        private static bool IsAnonymousTypeProperty(ISymbol symbol)
-            => symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType;
 
         protected ISet<TExpressionSyntax> FindMatches(
             SemanticDocument originalDocument,

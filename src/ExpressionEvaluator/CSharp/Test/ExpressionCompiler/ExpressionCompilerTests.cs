@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -1156,15 +1157,15 @@ class B : A
             var testData = new CompilationTestData();
             context.CompileExpression("s", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
-  // Code size        3 (0x3)
+@"
+{
+  // Code size        2 (0x2)
   .maxstack  1
   .locals init (pinned string V_0, //s
                 pinned int& V_1, //f
                 int& V_2) //i
   IL_0000:  ldloc.0
-  IL_0001:  conv.i
-  IL_0002:  ret
+  IL_0001:  ret
 }");
             testData = new CompilationTestData();
             context.CompileAssignment("s", "\"hello\"", out error, testData);
@@ -1182,15 +1183,15 @@ class B : A
             testData = new CompilationTestData();
             context.CompileExpression("f", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
-  // Code size        3 (0x3)
+@"
+{
+  // Code size        2 (0x2)
   .maxstack  1
   .locals init (pinned string V_0, //s
                 pinned int& V_1, //f
                 int& V_2) //i
   IL_0000:  ldloc.1
-  IL_0001:  conv.i
-  IL_0002:  ret
+  IL_0001:  ret
 }");
             testData = new CompilationTestData();
             context.CompileAssignment("f", "1", out error, testData);
@@ -1259,25 +1260,24 @@ class B : A
 
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       11 (0xb)
+  // Code size       10 (0xa)
   .maxstack  2
   .locals init (char* V_0, //p1
                 pinned string V_1,
-                pinned int& V_2, //p2
-                pinned System.IntPtr& V_3, //p3
-                int[] V_4,
-                int V_5) //y
+                int* V_2, //p2
+                pinned int& V_3,
+                void* V_4, //p3
+                pinned int[] V_5,
+                int V_6) //y
   IL_0000:  ldloc.0
   IL_0001:  ldind.u2
   IL_0002:  ldloc.2
-  IL_0003:  conv.i
-  IL_0004:  ldind.i4
-  IL_0005:  add
-  IL_0006:  ldloc.3
-  IL_0007:  conv.i
-  IL_0008:  ldind.i4
-  IL_0009:  add
-  IL_000a:  ret
+  IL_0003:  ldind.i4
+  IL_0004:  add
+  IL_0005:  ldloc.s    V_4
+  IL_0007:  ldind.i4
+  IL_0008:  add
+  IL_0009:  ret
 }");
             });
         }

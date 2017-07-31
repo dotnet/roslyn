@@ -1291,7 +1291,7 @@ partial class C
     partial void Foo4([Optional][DefaultParameterValue(0)] int x) { }
 }
 ";
-            Action<SourceMemberMethodSymbol> partialValidator = (SourceMemberMethodSymbol sourceMethod) =>
+            Action<SourceOrdinaryMethodSymbol> partialValidator = (SourceOrdinaryMethodSymbol sourceMethod) =>
             {
                 Assert.True(sourceMethod.IsPartial, "Not a partial method?");
 
@@ -1308,16 +1308,16 @@ partial class C
             {
                 var typeC = m.GlobalNamespace.GetTypeMember("C");
 
-                var sourceMethod = typeC.GetMember<SourceMemberMethodSymbol>("Foo");
+                var sourceMethod = typeC.GetMember<SourceOrdinaryMethodSymbol>("Foo");
                 partialValidator(sourceMethod);
 
-                sourceMethod = typeC.GetMember<SourceMemberMethodSymbol>("Foo2");
+                sourceMethod = typeC.GetMember<SourceOrdinaryMethodSymbol>("Foo2");
                 partialValidator(sourceMethod);
 
-                sourceMethod = typeC.GetMember<SourceMemberMethodSymbol>("Foo3");
+                sourceMethod = typeC.GetMember<SourceOrdinaryMethodSymbol>("Foo3");
                 partialValidator(sourceMethod);
 
-                sourceMethod = typeC.GetMember<SourceMemberMethodSymbol>("Foo4");
+                sourceMethod = typeC.GetMember<SourceOrdinaryMethodSymbol>("Foo4");
                 partialValidator(sourceMethod);
             };
 

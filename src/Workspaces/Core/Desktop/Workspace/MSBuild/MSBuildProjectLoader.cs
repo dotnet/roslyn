@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public async Task<SolutionInfo> LoadSolutionInfoAsync(
             string solutionFilePath,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (solutionFilePath == null)
             {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 this.SetSolutionProperties(absoluteSolutionPath);
             }
 
-            VersionStamp version = default(VersionStamp);
+            VersionStamp version = default;
 
             Microsoft.Build.Construction.SolutionFile solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(absoluteSolutionPath);
             var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
             string projectFilePath,
             ImmutableDictionary<string, ProjectId> projectPathToProjectIdMap = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
             {

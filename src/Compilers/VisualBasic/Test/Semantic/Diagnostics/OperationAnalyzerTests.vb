@@ -794,7 +794,7 @@ End Class
                                            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(20, 26))
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19300")>
         Public Sub MemberInitializerVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -877,9 +877,17 @@ End Class
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New AssignmentTestAnalyzer}, Nothing, Nothing, False,
-                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Field = 0").WithLocation(22, 9),
-                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Prop1 = Nothing").WithLocation(23, 9),
-                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f2.Field = True").WithLocation(26, 9))
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Prop2 = New Bar() With {.Field = True}").WithLocation(21, 32),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Field = 10").WithLocation(14, 34),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Prop1 = Nothing").WithLocation(15, 32),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Field = 10").WithLocation(16, 32),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Prop1 = Nothing").WithLocation(16, 45),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Prop2 = New Bar() With {.Field = True}").WithLocation(17, 32),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Field = True").WithLocation(17, 57),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Field = True").WithLocation(21, 57),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Field = 0").WithLocation(22, 9),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Prop1 = Nothing").WithLocation(23, 9),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f2.Field = True").WithLocation(26, 9))
         End Sub
 
         <Fact>
@@ -1138,7 +1146,7 @@ End Class
                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M2").WithLocation(15, 9))
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18839")>
         Public Sub EventAndMethodReferencesVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1411,7 +1419,7 @@ End Class
         End Sub
 
         <WorkItem(8385, "https://github.com/dotnet/roslyn/issues/8385")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18839")>
         Public Sub StaticMemberReferenceVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">

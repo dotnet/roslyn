@@ -368,11 +368,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(new List<Exception>(), exceptions);
         }
 
-        private Solution CreateOrOpenSolution()
+        protected Solution CreateOrOpenSolution(bool nullPaths = false)
         {
-            string solutionFile = Path.Combine(_persistentFolder, "Solution1.sln");
-            bool newSolution;
-            if (newSolution = !File.Exists(solutionFile))
+            var solutionFile = Path.Combine(_persistentFolder, "Solution1.sln");
+            var newSolution = !File.Exists(solutionFile);
+            if (newSolution)
             {
                 File.WriteAllText(solutionFile, "");
             }
@@ -386,30 +386,33 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             if (newSolution)
             {
-                string projectFile = Path.Combine(Path.GetDirectoryName(solutionFile), "Project1.csproj");
+                var projectFile = Path.Combine(Path.GetDirectoryName(solutionFile), "Project1.csproj");
                 File.WriteAllText(projectFile, "");
-                solution = solution.AddProject(ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "Project1", "Project1", LanguageNames.CSharp, projectFile));
+                solution = solution.AddProject(ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "Project1", "Project1", LanguageNames.CSharp, 
+                    filePath: nullPaths ? null : projectFile));
                 var project = solution.Projects.Single();
 
-                string documentFile = Path.Combine(Path.GetDirectoryName(projectFile), "Document1.cs");
+                var documentFile = Path.Combine(Path.GetDirectoryName(projectFile), "Document1.cs");
                 File.WriteAllText(documentFile, "");
-                solution = solution.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "Document1", filePath: documentFile));
+                solution = solution.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "Document1", 
+                    filePath: nullPaths ? null : documentFile));
             }
 
             return solution;
         }
 
-        private IPersistentStorage GetStorage(Solution solution)
+        internal IPersistentStorage GetStorage(
+            Solution solution, IPersistentStorageFaultInjector faultInjectorOpt = null)
         {
-            var storage = GetStorageService().GetStorage(solution);
+            var storage = GetStorageService(faultInjectorOpt).GetStorage(solution);
 
             Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
             return storage;
         }
 
-        protected abstract IPersistentStorageService GetStorageService();
+        internal abstract IPersistentStorageService GetStorageService(IPersistentStorageFaultInjector faultInjector);
 
-        private Stream EncodeString(string text)
+        protected Stream EncodeString(string text)
         {
             var bytes = _encoding.GetBytes(text);
             var stream = new MemoryStream(bytes);

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis
 
         private DocumentInfo With(
             DocumentAttributes attributes = null,
-            Optional<TextLoader> loader = default(Optional<TextLoader>))
+            Optional<TextLoader> loader = default)
         {
             var newAttributes = attributes ?? Attributes;
             var newLoader = loader.HasValue ? loader.Value : TextLoader;
@@ -179,9 +180,9 @@ namespace Microsoft.CodeAnalysis
                 DocumentId id = null,
                 string name = null,
                 IEnumerable<string> folders = null,
-                Optional<SourceCodeKind> sourceCodeKind = default(Optional<SourceCodeKind>),
-                Optional<string> filePath = default(Optional<string>),
-                Optional<bool> isGenerated = default(Optional<bool>))
+                Optional<SourceCodeKind> sourceCodeKind = default,
+                Optional<string> filePath = default,
+                Optional<bool> isGenerated = default)
             {
                 var newId = id ?? Id;
                 var newName = name ?? Name;
@@ -234,7 +235,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_lazyChecksum == null)
                     {
-                        _lazyChecksum = Checksum.Create(nameof(DocumentAttributes), this);
+                        _lazyChecksum = Checksum.Create(WellKnownSynchronizationKind.DocumentAttributes, this);
                     }
 
                     return _lazyChecksum;

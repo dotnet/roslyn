@@ -5324,6 +5324,109 @@ class C
 }");
             Assert.True(results.Succeeded);
         }
+
+        [Fact]
+        public void LocalFuncCapture1()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+public static class SomeClass
+{
+    private static void Repro( int arg )
+    {
+        /*<bind>*/int localValue = arg;/*</bind>*/
+
+        int LocalCapture() => arg;
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Equal("arg", GetSymbolNamesJoined(results.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("localValue", GetSymbolNamesJoined(results.AlwaysAssigned));
+            Assert.Equal("arg", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("arg", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("arg", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("localValue", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.UnsafeAddressTaken));
+        }
+
+        [Fact]
+        public void LocalFuncCapture2()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    void M()
+    {
+        int x;
+        Local();
+        /*<bind>*/int y = x;/*</bind>*/
+
+        int Local() { x = 0; }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Equal("x", GetSymbolNamesJoined(results.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("y", GetSymbolNamesJoined(results.AlwaysAssigned));
+            Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("y", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.UnsafeAddressTaken));
+        }
+
+        [Fact]
+        public void LocalFuncCapture3()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    void M()
+    {
+        int x;
+        /*<bind>*/int y = x;/*</bind>*/
+        Local();
+
+        int Local() => x;
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Equal("x", GetSymbolNamesJoined(results.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("y", GetSymbolNamesJoined(results.AlwaysAssigned));
+            Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("y", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.UnsafeAddressTaken));
+        }
+
+        [Fact]
+        public void LocalFuncCapture4()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    void M()
+    {
+        int x, y = 0;
+        /*<bind>*/x = y;/*</bind>*/
+        Local();
+
+        int Local() => x;
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Equal("y", GetSymbolNamesJoined(results.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("x", GetSymbolNamesJoined(results.AlwaysAssigned));
+            Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("y", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.UnsafeAddressTaken));
+        }
+
         #endregion
     }
 }

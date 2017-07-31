@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Concurrent
@@ -8,6 +8,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -21,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _compilation As VisualBasicCompilation
         Private ReadOnly _cancellationToken As CancellationToken
         Private ReadOnly _emittingPdb As Boolean
+        Private ReadOnly _emitTestCoverageData As Boolean
         Private ReadOnly _diagnostics As DiagnosticBag
         Private ReadOnly _hasDeclarationErrors As Boolean
         Private ReadOnly _moduleBeingBuiltOpt As PEModuleBuilder ' Nothing if compiling for diagnostics
@@ -78,6 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub New(compilation As VisualBasicCompilation,
                        moduleBeingBuiltOpt As PEModuleBuilder,
                        emittingPdb As Boolean,
+                       emitTestCoverageData As Boolean,
                        doEmitPhase As Boolean,
                        hasDeclarationErrors As Boolean,
                        diagnostics As DiagnosticBag,
@@ -91,9 +94,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _cancellationToken = cancellationToken
             _doEmitPhase = doEmitPhase
             _emittingPdb = emittingPdb
+            _emitTestCoverageData = emitTestCoverageData
             _filterOpt = filter
 
-            If emittingPdb OrElse moduleBeingBuiltOpt?.EmitOptions.EmitTestCoverageData Then
+            If emittingPdb OrElse emitTestCoverageData Then
                 _debugDocumentProvider = Function(path As String, basePath As String) moduleBeingBuiltOpt.DebugDocumentsBuilder.GetOrAddDebugDocument(path, basePath, AddressOf CreateDebugDocumentForFile)
             End If
 
@@ -155,6 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim compiler = New MethodCompiler(compilation,
                                               moduleBeingBuiltOpt:=Nothing,
                                               emittingPdb:=False,
+                                              emitTestCoverageData:=False,
                                               doEmitPhase:=doEmitPhase,
                                               hasDeclarationErrors:=hasDeclarationErrors,
                                               diagnostics:=diagnostics,
@@ -187,6 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Sub CompileMethodBodies(compilation As VisualBasicCompilation,
                                               moduleBeingBuiltOpt As PEModuleBuilder,
                                               emittingPdb As Boolean,
+                                              emitTestCoverageData As Boolean,
                                               hasDeclarationErrors As Boolean,
                                               filter As Predicate(Of Symbol),
                                               diagnostics As DiagnosticBag,
@@ -209,6 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim compiler = New MethodCompiler(compilation,
                                               moduleBeingBuiltOpt,
                                               emittingPdb,
+                                              emitTestCoverageData,
                                               doEmitPhase:=True,
                                               hasDeclarationErrors:=hasDeclarationErrors,
                                               diagnostics:=diagnostics,
@@ -286,6 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  debugDocumentProvider:=Nothing,
                                                  diagnostics:=diagnostics,
                                                  emittingPdb:=False,
+                                                 emitTestCoverageData:=False,
                                                  dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody)
             End If
@@ -847,9 +855,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
                                                          stateMachineTypeOpt:=Nothing,
                                                          variableSlotAllocatorOpt:=Nothing,
-                                                         debugDocumentProvider:=If(_moduleBeingBuiltOpt?.EmitOptions.EmitTestCoverageData, _debugDocumentProvider, Nothing),
+                                                         debugDocumentProvider:=If(_emitTestCoverageData, _debugDocumentProvider, Nothing),
                                                          diagnostics:=diagnosticsThisMethod,
                                                          emittingPdb:=False,
+                                                         emitTestCoverageData:=_emitTestCoverageData,
                                                          dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
 
                     _diagnostics.AddRange(diagnosticsThisMethod)
@@ -923,6 +932,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              debugDocumentProvider:=Nothing,
                                                              diagnostics:=diagnosticsThisMethod,
                                                              emittingPdb:=False,
+                                                             emitTestCoverageData:=False,
                                                              dynamicAnalysisSpans:=dynamicAnalysisSpans)
                         End If
 
@@ -973,6 +983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          debugDocumentProvider:=_debugDocumentProvider,
                                                          diagnostics:=diagnosticsThisMethod,
                                                          emittingPdb:=_emittingPdb,
+                                                         emitTestCoverageData:=_emitTestCoverageData,
                                                          dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
 
                     _diagnostics.AddRange(diagnosticsThisMethod)
@@ -1405,14 +1416,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
             Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
             Dim dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
-            Dim emitDynamicAnalysisData As Boolean? = _moduleBeingBuiltOpt?.EmitOptions.EmitTestCoverageData
 
             body = Rewriter.LowerBodyOrInitializer(method,
                                                    methodOrdinal,
                                                    body,
                                                    previousSubmissionFields,
                                                    compilationState,
-                                                   emitDynamicAnalysisData.HasValue AndAlso emitDynamicAnalysisData.Value,
+                                                   _emitTestCoverageData,
                                                    dynamicAnalysisSpans,
                                                    _debugDocumentProvider,
                                                    diagnostics,
@@ -1462,6 +1472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                               _debugDocumentProvider,
                                                               diagnostics,
                                                               emittingPdb:=_emittingPdb,
+                                                              emitTestCoverageData:=_emitTestCoverageData,
                                                               dynamicAnalysisSpans:=dynamicAnalysisSpans)
 
             If diagnostics IsNot diagsForCurrentMethod Then
@@ -1486,6 +1497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   debugDocumentProvider As DebugDocumentProvider,
                                                   diagnostics As DiagnosticBag,
                                                   emittingPdb As Boolean,
+                                                  emitTestCoverageData As Boolean,
                                                   dynamicAnalysisSpans As ImmutableArray(Of SourceSpan)) As MethodBody
 
             Dim compilation = moduleBuilder.Compilation
@@ -1556,7 +1568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Compiler-generated MoveNext methods have hoisted local scopes.
                 ' These are built by call to CodeGen.Generate.
                 ' This information is not emitted to Windows PDBs.
-                Dim stateMachineHoistedLocalScopes = If(kickoffMethod Is Nothing OrElse moduleBuilder.EmitOptions.DebugInformationFormat = DebugInformationFormat.Pdb,
+                Dim stateMachineHoistedLocalScopes = If(kickoffMethod Is Nothing OrElse moduleBuilder.DebugInformationFormat = DebugInformationFormat.Pdb,
                     Nothing, builder.GetHoistedLocalScopes())
 
                 ' Translate the imports even if we are not writing PDBs. The translation has an impact on generated metadata 
@@ -1586,7 +1598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim localScopes = builder.GetAllScopes()
 
                 Dim dynamicAnalysisDataOpt As DynamicAnalysisMethodBodyData = Nothing
-                If moduleBuilder.EmitOptions.EmitTestCoverageData Then
+                If emitTestCoverageData Then
                     Debug.Assert(debugDocumentProvider IsNot Nothing)
                     dynamicAnalysisDataOpt = New DynamicAnalysisMethodBodyData(dynamicAnalysisSpans)
                 End If

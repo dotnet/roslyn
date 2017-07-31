@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public const string SnapshotService = "snapshotService";
         public const string CodeAnalysisService = "codeAnalysisService";
-        public const string CodeAnalysisService_CalculateDiagnosticsAsync = "CalculateDiagnosticsAsync";
+        public const string RemoteSymbolSearchUpdateEngine = "remoteSymbolSearchUpdateEngine";
 
         // CodeLens methods.
         public const string CodeAnalysisService_GetReferenceCountAsync = "GetReferenceCountAsync";
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public const string CodeAnalysisService_FindReferenceMethodsAsync = "FindReferenceMethodsAsync";
         public const string CodeAnalysisService_GetFullyQualifiedName = "GetFullyQualifiedName";
 
-        public const string RemoteSymbolSearchUpdateEngine = "remoteSymbolSearchUpdateEngine";
+        public const string CodeAnalysisService_CalculateDiagnosticsAsync = "CalculateDiagnosticsAsync";
 
         public const string AssetService_RequestAssetAsync = "RequestAssetAsync";
     }
