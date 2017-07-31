@@ -13,7 +13,7 @@
     Example:
     
     ... ado.net/XML headers & schema ...
-    <resheader name="resmimetype">text/microsoft-resx</resheader
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
     <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
     <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
@@ -275,5 +275,8 @@
   </data>
   <data name="Report_invalid_placeholders_in_string_dot_format_calls" xml:space="preserve">
     <value>Report invalid placeholders in 'String.Format' calls</value>
+  </data>
+  <data name="Separate_import_directive_groups" xml:space="preserve">
+    <value>Separate import directive groups</value>
   </data>
 </root>
