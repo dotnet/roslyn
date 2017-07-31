@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -193,6 +194,7 @@ of the problem.");
             var aggregate = new AggregateException(exceptions);
             return aggregate.Flatten().InnerExceptions
                 .Select(UnwrapException)
+                .Where(ex => !(ex is JoinableTaskContextException))
                 .ToList();
         }
 
