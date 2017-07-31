@@ -1116,6 +1116,7 @@ End Class";
             Assert.Equal(@"C:\ProjectDirectory\subdir\bar.cs", barDoc.FilePath);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCommandLineProjectWithRelativePathOutsideProjectCone()
         {
             string commandLine = @"..\foo.cs";

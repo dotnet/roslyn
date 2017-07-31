@@ -155,9 +155,9 @@ try {
         exit 1
     }
 
-    # TODO: use the live file 
-    $publishFilePath = Join-Path $repoDir "build\config\PublishData.json"
-    $data = ConvertFrom-Json (Get-Content -raw $publishFilePath)
+    Write-Host "Downloading PublishData.json"
+    $publishFileContent = (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/roslyn/master/build/config/PublishData.json" -UseBasicParsing).Content
+    $data = ConvertFrom-Json $publishFileContent
 
     if ($branchName -ne "" -and $releaseName -ne "") {
         Write-Host "Can only specify -branchName or -releaseName, not both"

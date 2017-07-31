@@ -158,7 +158,6 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly IntegrationTestFiles As String() = {
         "xunit.*.dll",
         "*.UnitTests.dll.config",
-        "Esent.Interop.dll",
         "InteractiveHost.exe",
         "Microsoft.CodeAnalysis.CSharp.dll",
         "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
@@ -293,7 +292,6 @@ Public Class BuildDevDivInsertionFiles
         "xunit.*.dll",
         "PerfTests",
         "BasicUndo.dll",
-        "Esent.Interop.dll",
         "InteractiveHost.exe",
         "Microsoft.CodeAnalysis.CSharp.dll",
         "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
@@ -862,7 +860,6 @@ Public Class BuildDevDivInsertionFiles
         add("Dlls\TestUtilities.Desktop\Roslyn.Test.Utilities.Desktop.dll")
         add("Dlls\TestUtilities\Roslyn.Test.Utilities.dll")
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
-        add("UnitTests\EditorServicesTest\Esent.Interop.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
         add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.PortablePdb.dll")
