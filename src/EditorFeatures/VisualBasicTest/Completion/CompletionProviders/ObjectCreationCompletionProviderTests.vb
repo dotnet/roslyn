@@ -102,7 +102,7 @@ End Namespace
 
         <WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function DoNotIncludeTypeParameters() As Task
+        Public Async Function DoNotIncludeTypeParametersFromDifferentMethod() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Threading.Tasks
 Module Module1
@@ -121,6 +121,25 @@ End Module
 ]]></Text>.Value
 
             Await VerifyItemExistsAsync(markup, "Task(Of …)")
+        End Function
+
+        <WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function IncludeTypeParametersFromSameMethod() As Task
+            Dim markup = <Text><![CDATA[
+Imports System.Threading.Tasks
+Module Module1
+
+    Sub Foo(Of T)(task As Task(Of T))
+        Foo(new $$
+    End Sub
+
+End Module
+
+
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Task(Of T)")
         End Function
 
         <WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")>

@@ -504,7 +504,29 @@ class C
 
         [WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task DoNotIncludeTypeParameters()
+        public async Task DoNotIncludeTypeParametersFromOtherMethod()
+        {
+            var markup =
+@"using System.Threading.Tasks;
+
+class C
+{
+    static void Foo<T> (Task<T> t)
+    {
+    }
+
+    void Bar()
+    {
+        Foo(new  $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Task<>");
+        }
+
+        [WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task IncludeTypeParametersFromSameMethod()
         {
             var markup =
 @"using System.Threading.Tasks;
@@ -522,7 +544,7 @@ class C
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "Task<>");
+            await VerifyItemExistsAsync(markup, "Task<T>");
         }
 
         [WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")]

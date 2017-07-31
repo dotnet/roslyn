@@ -6,13 +6,13 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 
@@ -82,13 +82,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // If not all  of the type arguments are concrete types, eg
             // we've inferred something like `Task<T>`, just suggest the
             // generic type `Task<>`
+            var enclosingSymbol = context.SemanticModel.GetEnclosingSymbol(context.Position);
             if (symbol is INamedTypeSymbol nt &&
-                nt.TypeArguments.Any(t => t.TypeKind == TypeKind.TypeParameter))
+                nt.TypeArguments.Any(t => t is ITypeParameterSymbol typeParameter
+                    && !typeParameter.IsAccessibleFromSymbolOrEnclosingType(enclosingSymbol)))
             {
                 return CompletionUtilities.GetDisplayAndInsertionText(symbol, context);
             }
 
             return base.GetDisplayAndInsertionText(symbol, context);
+        }
+
+        private bool IsApplicable(ITypeSymbol t, ISymbol enclosingSymbol)
+        {
+            var tp = (ITypeParameterSymbol)t;
+            if (tp.DeclaringMethod != null)
+            {
+                return tp.DeclaringMethod == enclosingSymbol;
+            }
+
+            return tp.DeclaringType == enclosingSymbol.ContainingType;
         }
 
         private static readonly CompletionItemRules s_objectRules =

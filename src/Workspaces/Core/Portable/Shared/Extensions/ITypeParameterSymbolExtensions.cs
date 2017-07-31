@@ -20,5 +20,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     ? GetNamedTypeSymbolConstraint((ITypeParameterSymbol)type)
                     : null;
         }
+
+        public static bool IsAccessibleFromSymbolOrEnclosingType(this ITypeParameterSymbol typeParameter, ISymbol within)
+        {
+            if (typeParameter.DeclaringMethod != null)
+            {
+                return typeParameter.DeclaringMethod == within;
+            }
+
+            return typeParameter.IsAccessibleWithin(within.ContainingType);
+        }
     }
 }

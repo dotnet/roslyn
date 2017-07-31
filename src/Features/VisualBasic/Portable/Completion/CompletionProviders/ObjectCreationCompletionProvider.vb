@@ -56,8 +56,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' If not all  of the type arguments are concrete types, eg
             ' we've inferred something like `Task(Of T)`, just suggest the
             ' generic `Task(Of ...)`
+            Dim enclosingSymbol = context.SemanticModel.GetEnclosingSymbol(context.Position)
             Dim nt = TryCast(symbol, INamedTypeSymbol)
-            If nt.TypeArguments.Any(Function(t) t.TypeKind = TypeKind.TypeParameter) Then
+            If nt.TypeArguments.Any(Function(t) t.TypeKind = TypeKind.TypeParameter AndAlso
+                                            Not DirectCast(t, ITypeParameterSymbol).IsAccessibleFromSymbolOrEnclosingType(enclosingSymbol)) Then
+
                 Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
             End If
 
