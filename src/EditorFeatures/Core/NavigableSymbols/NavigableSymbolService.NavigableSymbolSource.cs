@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -64,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                     return null;
                 }
 
-                var span = context.Span;
-                var snapshotSpan = new SnapshotSpan(snapshot, span.Start, span.Length);
+                var snapshotSpan = new SnapshotSpan(snapshot, context.Span.ToSpan());
                 return new NavigableSymbol(definitions.ToImmutableArray(), snapshotSpan, document, _presenters, _waitIndicator);
             }
         }
