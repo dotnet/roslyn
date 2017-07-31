@@ -249,6 +249,7 @@
     <Compile Include="IntelliSense\CompletionRulesTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
     <Compile Include="NamingStyles\NamingStylesTests.vb" />
+    <Compile Include="NavigableSymbols\NavigableSymbolsTest.vb" />
     <Compile Include="ReferenceHighlighting\DocumentHighlightsServiceTests.vb" />
     <Compile Include="Simplification\BlockSimplificationTests.vb" />
     <Compile Include="Simplification\SimplifierAPITests.vb" />
