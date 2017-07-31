@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         IOperation RightOperand { get; }
         /// <summary>
-        /// <code>true</code> if this is a 'Lifted' binary operator.  When there is an 
+        /// <code>true</code> if this is a 'lifted' binary operator.  When there is an 
         /// operator that is defined to work on a value type, 'lifted' operators are 
         /// created to work on the <see cref="System.Nullable{T}"/> versions of those
         /// value types.

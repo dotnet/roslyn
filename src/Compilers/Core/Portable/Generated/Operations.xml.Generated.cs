@@ -1022,10 +1022,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public BinaryOperationKind BinaryOperationKind { get; }
         /// <summary>
-        /// <code>true</code> if this is a 'Lifted' compound assignment.  When there is an 
-        /// operator that is defined to work on a value type, 'lifted' operators are 
-        /// created to work on the <see cref="System.Nullable{T}"/> versions of those
-        /// value types.
+        /// <code>true</code> if this assignment contains a 'lifted' binary operation.
         /// </summary>
         public bool IsLifted { get; }
         /// <summary>
