@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 
                 await service.GetDefinitionsAsync(context).ConfigureAwait(false);
 
-                if (!context.Items.TryGetValue(WellKnownDefinitionTypes.Definition, out var definitions))
+                if (!context.TryGetItems(WellKnownDefinitionTypes.Definition, out var definitions))
                 {
                     return null;
                 }

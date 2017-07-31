@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     {
         private readonly object _gate = new object();
 
-        private readonly Dictionary<string, List<DefinitionItem>> _items = new Dictionary<string, List<DefinitionItem>>();
+        private readonly MultiDictionary<string, DefinitionItem> _items = new MultiDictionary<string, DefinitionItem>();
 
         public GoToDefinitionContext(Document document, int position, CancellationToken cancellationToken)
         {
@@ -24,19 +25,20 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         public int Position { get; }
         public CancellationToken CancellationToken { get; }
 
-        public IReadOnlyDictionary<string, List<DefinitionItem>> Items => _items;
+        public IReadOnlyDictionary<string, List<DefinitionItem>> Items => null;// _items;
         public TextSpan Span { get; set; }
+
+        public bool TryGetItems(string key, out IEnumerable<DefinitionItem> items)
+        {
+            items = _items[key];
+            return items != null;
+        }
 
         public void AddItem(string key, DefinitionItem item)
         {
             lock (_gate)
             {
-                if (!_items.ContainsKey(key))
-                {
-                    _items[key] = new List<DefinitionItem>();
-                }
-
-                _items[key].Add(item);
+                _items.Add(key, item);
             }
         }
     }
