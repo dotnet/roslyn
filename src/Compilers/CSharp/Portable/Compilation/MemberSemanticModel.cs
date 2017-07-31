@@ -999,15 +999,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override IOperation GetOperationWorker(MethodSymbol method, CSharpSyntaxNode bodySyntax, CancellationToken cancellationToken)
         {
+            IOperation result = null;
             var node = GetBoundNode(bodySyntax, GetOperationOptions.Highest);
-            var body = (BoundStatement)node;
-            var loweredBody = LowerMethodBody(method, body);
 
-            // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory
-            // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
-            // UnboundLambda.BindForErrorRecovery() when it encounters an UnboundLambda node.
-            Debug.Assert(loweredBody.Kind != BoundKind.UnboundLambda);
-            return _operationFactory.Create(loweredBody);
+            if (!node.HasErrors)
+            {
+                var body = (BoundStatement)node;
+                var loweredBody = LowerMethodBody(method, body);
+
+                // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory
+                // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
+                // UnboundLambda.BindForErrorRecovery() when it encounters an UnboundLambda node.
+                Debug.Assert(loweredBody.Kind != BoundKind.UnboundLambda);
+                result = _operationFactory.Create(loweredBody);
+            }
+
+            return result;
         }
 
         private BoundStatement LowerMethodBody(MethodSymbol method, BoundStatement body)
