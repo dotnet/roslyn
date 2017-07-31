@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // XAML, etc. That call has to be done on the UI thread.
             var definitions = await Task.Factory.StartNew(() =>
                 GoToDefinitionHelpers.GetDefinitions(symbol, document.Project, thirdPartyNavigationAllowed: true, cancellationToken: cancellationToken)
-                .WhereAsArray(d => d.CanNavigateTo(document.Project.Solution.Workspace)),
-                cancellationToken,
-                TaskCreationOptions.None,
-                ForegroundTaskScheduler).ConfigureAwait(false);
+                    .WhereAsArray(d => d.CanNavigateTo(document.Project.Solution.Workspace)),
+                        cancellationToken,
+                        TaskCreationOptions.None,
+                        ForegroundTaskScheduler).ConfigureAwait(false);
 
             foreach (var definition in definitions)
             {
