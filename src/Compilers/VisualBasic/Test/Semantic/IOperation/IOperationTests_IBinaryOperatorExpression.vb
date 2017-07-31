@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Public Sub VerifyLiftedBinaryOperators1()
             Dim source = <![CDATA[
 Class C
-    Sub Foo(x as Integer?, y as Integer?)
+    Sub F(x as Integer?, y as Integer?)
         dim z = x + y 'BIND:"x + y"
     End Sub
 End Class
@@ -30,7 +30,7 @@ IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd-IsLifted) (OperationKi
         Public Sub VerifyNonLiftedBinaryOperators1()
             Dim source = <![CDATA[
 Class C
-    Sub Foo(x as Integer, y as Integer)
+    Sub F(x as Integer, y as Integer)
         dim z = x + y 'BIND:"x + y"
     End Sub
 End Class
@@ -55,7 +55,7 @@ Structure C
     Public Shared Operator IsFalse(c1 as C) as Boolean
     End Operator
 
-    Sub Foo(x as C?, y as C?)
+    Sub F(x as C?, y as C?)
         dim z = x And y 'BIND:"x And y"
     End Sub
 End Structure
@@ -80,7 +80,7 @@ Structure C
     Public Shared Operator IsFalse(c1 as C) as Boolean
     End Operator
 
-    Sub Foo(x as C?, y as C?)
+    Sub F(x as C?, y as C?)
         dim z = x AndAlso y 'BIND:"x AndAlso y"
     End Sub
 End Structure
@@ -105,7 +105,7 @@ Structure C
     Public Shared Operator IsFalse(c1 as C) as Boolean
     End Operator
 
-    Sub Foo(x as C, y as C)
+    Sub F(x as C, y as C)
         dim z = x And y 'BIND:"x And y"
     End Sub
 End Structure
@@ -130,7 +130,7 @@ Structure C
     Public Shared Operator IsFalse(c1 as C) as Boolean
     End Operator
 
-    Sub Foo(x as C, y as C)
+    Sub F(x as C, y as C)
         dim z = x AndAlso y 'BIND:"x AndAlso y"
     End Sub
 End Structure
@@ -151,7 +151,7 @@ Structure C
     Public Shared Operator + (c1 as C, c2 as C) as C
     End Operator
 
-    Sub Foo(x as C?, y as C?)
+    Sub F(x as C?, y as C?)
         dim z = x + y 'BIND:"x + y"
     End Sub
 End Structure
@@ -173,7 +173,7 @@ Structure C
     Public Shared Operator + (c1 as C, c2 as C) as C
     End Operator
 
-    Sub Foo(x as C, y as C)
+    Sub F(x as C, y as C)
         dim z = x + y 'BIND:"x + y"
     End Sub
 End Structure

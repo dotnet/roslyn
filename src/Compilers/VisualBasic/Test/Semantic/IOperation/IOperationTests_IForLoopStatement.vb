@@ -601,14 +601,14 @@ Public Class MyClass1
     End Property
     Public Shared Sub Main()
     End Sub
-    Public Sub Foo()
+    Public Sub F()
         For i As Integer = P1(30 + i) To 30'BIND:"For i As Integer = P1(30 + i) To 30"
         Next
     End Sub
 End Class
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i As In ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '30')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
@@ -656,7 +656,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For global_ ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '10')
       Left: ILocalReferenceExpression: global_x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'global_x As Integer')
@@ -692,7 +692,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x As In ... o 10 : Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '10')
       Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x As Integer')
@@ -730,7 +730,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For Y = 1 T ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '2')
       Left: ILocalReferenceExpression: Y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'Y')
@@ -773,7 +773,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For element ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '42')
       Left: ILocalReferenceExpression: element1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'element1')
@@ -816,7 +816,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i As In ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
@@ -997,7 +997,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For A =
         Public Sub VerifyForToLoop1()
             Dim source = <![CDATA[
 Structure C
-    Sub Foo()
+    Sub F()
         Dim x As Integer
         Dim y As Integer = 16
         For x = 12 To y 'BIND:"For x = 12 To y"
@@ -1035,7 +1035,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
         Public Sub VerifyForToLoop2()
             Dim source = <![CDATA[
 Structure C
-    Sub Foo()
+    Sub F()
         Dim x As Integer?
         Dim y As Integer = 16
         For x = 12 To y 'BIND:"For x = 12 To y"
@@ -1086,7 +1086,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
         Public Sub VerifyForToLoop3()
             Dim source = <![CDATA[
 Structure C
-    Sub Foo()
+    Sub F()
         Dim x As Integer
         Dim y As Integer? = 16
         For x = 12 To y 'BIND:"For x = 12 To y"
@@ -1125,7 +1125,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
         Public Sub VerifyForToLoop4()
             Dim source = <![CDATA[
 Structure C
-    Sub Foo()
+    Sub F()
         Dim x As Integer?
         Dim y As Integer? = 16
         For x = 12 To y 'BIND:"For x = 12 To y"
@@ -1175,7 +1175,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
         Public Sub VerifyForToLoop5()
             Dim source = <![CDATA[
 Structure C
-    Sub Foo()
+    Sub F()
         Dim x As Integer
         Dim y As Integer = 16
         Dim s As Integer? = nothing
@@ -1225,7 +1225,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
         Public Sub VerifyForToLoop6()
             Dim source = <![CDATA[
 Structure C
-    Sub Foo()
+    Sub F()
         Dim x As Integer?
         Dim y As Integer = 16
         Dim s As Integer? = nothing
@@ -1276,7 +1276,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
         Public Sub VerifyForToLoop7()
             Dim source = <![CDATA[
 Structure C
-    Sub Foo()
+    Sub F()
         Dim x As Integer
         Dim y As Integer? = 16
         Dim s As Integer? = nothing
@@ -1327,7 +1327,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
         Public Sub VerifyForToLoop8()
             Dim source = <![CDATA[
 Structure C
-    Sub Foo()
+    Sub F()
         Dim x As Integer?
         Dim y As Integer? = 16
         Dim s As Integer? = nothing

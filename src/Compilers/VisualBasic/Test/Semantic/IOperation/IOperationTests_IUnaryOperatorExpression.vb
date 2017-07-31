@@ -1866,7 +1866,7 @@ IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.Conversi
         Public Sub VerifyLiftedUnaryOperators1()
             Dim source = <![CDATA[
 Class C
-    Sub Foo(x as Integer?)
+    Sub F(x as Integer?)
         dim y = -x 'BIND:"-x"
     End Sub
 End Class
@@ -1883,7 +1883,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus-IsLifted) (OperationKi
         Public Sub VerifyNonLiftedUnaryOperators1()
             Dim source = <![CDATA[
 Class C
-    Sub Foo(x as Integer)
+    Sub F(x as Integer)
         dim y = -x 'BIND:"-x"
     End Sub
 End Class
@@ -1903,7 +1903,7 @@ Structure C
     Public Shared Operator -(c as C) as C
     End Operator
 
-    Sub Foo(x as C?)
+    Sub F(x as C?)
         dim y = -x 'BIND:"-x"
     End Sub
 End Structure
@@ -1923,7 +1923,7 @@ Structure C
     Public Shared Operator -(c as C) as C
     End Operator
 
-    Sub Foo(x as C)
+    Sub F(x as C)
         dim y = -x 'BIND:"-x"
     End Sub
 End Structure
