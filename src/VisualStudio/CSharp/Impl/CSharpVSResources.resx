@@ -525,4 +525,7 @@
   <data name="Report_invalid_placeholders_in_string_dot_format_calls" xml:space="preserve">
     <value>Report invalid placeholders in 'string.Format' calls</value>
   </data>
+  <data name="Separate_using_directive_groups" xml:space="preserve">
+    <value>Separate using directive groups</value>
+  </data>
 </root>
