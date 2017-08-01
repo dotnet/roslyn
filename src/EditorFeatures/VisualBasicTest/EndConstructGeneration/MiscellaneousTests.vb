@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub DoesNothingOnFileWithNoStatement()
             VerifyStatementEndConstructNotApplied(
-                text:="'Foo
+                text:="'Goo
 ",
                 caret:={0, -1})
         End Sub
@@ -125,7 +125,7 @@ End Class",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(539727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539727")>
         Public Sub DeletesSelectedText()
-            Using workspace = TestWorkspace.CreateVisualBasic("Interface IFoo ~~")
+            Using workspace = TestWorkspace.CreateVisualBasic("Interface IGoo ~~")
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
 

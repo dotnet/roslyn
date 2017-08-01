@@ -191,17 +191,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
-        Public ReadOnly Property Option_Import_Directives As String
-            Get
-                Return BasicVSResources.Import_Directives
-            End Get
-        End Property
+        Public ReadOnly Property Option_Import_Directives As String =
+            BasicVSResources.Import_Directives
 
-        Public ReadOnly Property Option_PlaceSystemNamespaceFirst As String
-            Get
-                Return BasicVSResources.Place_System_directives_first_when_sorting_imports
-            End Get
-        End Property
+        Public ReadOnly Property Option_PlaceSystemNamespaceFirst As String =
+            BasicVSResources.Place_System_directives_first_when_sorting_imports
+
+        Public ReadOnly Property Option_SeparateImportGroups As String =
+            BasicVSResources.Separate_import_directive_groups
 
         Public ReadOnly Property Option_Suggest_imports_for_types_in_reference_assemblies As String
             Get

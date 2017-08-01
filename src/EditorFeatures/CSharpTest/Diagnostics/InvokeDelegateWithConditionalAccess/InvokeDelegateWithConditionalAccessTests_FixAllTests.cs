@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         {|FixAllInDocument:var|} v = a;
         if (v != null)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
         a?.Invoke();
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         {|FixAllInDocument:if|} (v != null)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
         a?.Invoke();
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         if (v != null)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
         a?.Invoke();
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         if (v != null)
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
         a?.Invoke();
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         if (v != null)
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
         a?.Invoke();
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         if (v != null)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
         a?.Invoke();

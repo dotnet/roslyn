@@ -538,5 +538,25 @@ class C
     }
 }");
         }
+
+        [WorkItem(21172, "https://github.com/dotnet/roslyn/issues/21172")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingWithDynamic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public object Convert(object value)
+    {
+        if (value is dynamic)
+        {
+            [|dynamic|] tmp = (dynamic)value;
+        }
+
+        return null;
+    }
+}");
+        }
     }
 }

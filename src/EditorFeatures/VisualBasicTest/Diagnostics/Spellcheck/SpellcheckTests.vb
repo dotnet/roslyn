@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Spellc
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestNoSpellcheckForIfOnly2Characters() As Task
-            Dim text = <File>Class Foo
+            Dim text = <File>Class Goo
     Sub Bar()
         Dim a = new [|Fo|]
     End Sub
@@ -32,44 +32,44 @@ End Class</File>
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestAfterNewExpression() As Task
-            Dim text = <File>Class Foo
+            Dim text = <File>Class Goo
     Sub Bar()
-        Dim a = new [|Fooa|].ToString()
+        Dim a = new [|Gooa|].ToString()
     End Sub
 End Class</File>
-            Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.Change_0_to_1, "Fooa", "Foo")})
+            Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.Change_0_to_1, "Gooa", "Goo")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestInAsClause() As Task
-            Dim text = <File>Class Foo
+            Dim text = <File>Class Goo
     Sub Bar()
-        Dim a as [|Foa|]
+        Dim a as [|Goa|]
     End Sub
 End Class</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue,
-                {String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo")})
+                {String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestInSimpleAsClause() As Task
-            Dim text = <File>Class Foo
+            Dim text = <File>Class Goo
     Sub Bar()
-        Dim a as [|Foa|]
+        Dim a as [|Goa|]
     End Sub
 End Class</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue,
-                {String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo")})
+                {String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestInFunc() As Task
-            Dim text = <File>Class Foo
-    Sub Bar(a as Func(Of [|Foa|]))
+            Dim text = <File>Class Goo
+    Sub Bar(a as Func(Of [|Goa|]))
     End Sub
 End Class</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue,
-                {String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo")})
+                {String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -166,12 +166,12 @@ End Class</File>
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestGenericName1() As Task
-            Dim text = <File>Class Foo(Of T)
-    Dim x As [|Foo2(Of T)|]
+            Dim text = <File>Class Goo(Of T)
+    Dim x As [|Goo2(Of T)|]
 End Class</File>
 
-            Dim expected = <File>Class Foo(Of T)
-    Dim x As [|Foo(Of T)|]
+            Dim expected = <File>Class Goo(Of T)
+    Dim x As [|Goo(Of T)|]
 End Class</File>
 
             Await TestAsync(text, expected)
@@ -179,12 +179,12 @@ End Class</File>
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestGenericName2() As Task
-            Dim text = <File>Class Foo(Of T)
-    Dim x As [|Foo2|]
+            Dim text = <File>Class Goo(Of T)
+    Dim x As [|Goo2|]
 End Class</File>
 
-            Dim expected = <File>Class Foo(Of T)
-    Dim x As [|Foo|]
+            Dim expected = <File>Class Goo(Of T)
+    Dim x As [|Goo|]
 End Class</File>
 
             Await TestAsync(text, expected)
@@ -193,20 +193,20 @@ End Class</File>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestQualifiedName1() As Task
             Dim text = <File>Module Program
-    Dim x As New [|Foo2.Bar|]
+    Dim x As New [|Goo2.Bar|]
 End Module
 
-Class Foo
+Class Goo
     Class Bar
 
     End Class
 End Class</File>
 
             Dim expected = <File>Module Program
-    Dim x As New Foo.Bar
+    Dim x As New Goo.Bar
 End Module
 
-Class Foo
+Class Goo
     Class Bar
 
     End Class
@@ -218,20 +218,20 @@ End Class</File>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestQualifiedName2() As Task
             Dim text = <File>Module Program
-    Dim x As New [|Foo.Ba2|]
+    Dim x As New [|Goo.Ba2|]
 End Module
 
-Class Foo
+Class Goo
     Class Bar
 
     End Class
 End Class</File>
 
             Dim expected = <File>Module Program
-    Dim x As New Foo.Bar
+    Dim x As New Goo.Bar
 End Module
 
-Class Foo
+Class Goo
     Class Bar
 
     End Class
@@ -280,7 +280,7 @@ End Class</File>
     Sub Main(args As String())
 
     End Sub
-    Sub Foo()
+    Sub Goo()
         [|Method|]()
     End Sub
 
@@ -470,12 +470,12 @@ End Class</File>
             Await TestInRegularAndScriptAsync(
 "Class AwesomeClass
     Sub M()
-        Dim foo = New [|AwesomeClas()|]
+        Dim goo = New [|AwesomeClas()|]
     End Sub
 End Class",
 "Class AwesomeClass
     Sub M()
-        Dim foo = New AwesomeClass()
+        Dim goo = New AwesomeClass()
     End Sub
 End Class")
         End Function
@@ -492,12 +492,12 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class AwesomeClass
     Sub M()
-        Dim foo = New [|AwesomeClas|] ' trailing trivia
+        Dim goo = New [|AwesomeClas|] ' trailing trivia
     End Sub
 End Class",
 "Class AwesomeClass
     Sub M()
-        Dim foo = New AwesomeClass ' trailing trivia
+        Dim goo = New AwesomeClass ' trailing trivia
     End Sub
 End Class",
 ignoreTrivia:=False)

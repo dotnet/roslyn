@@ -2657,7 +2657,7 @@ Done:
         ''' 
         ''' Assumptions: 
         '''    1) This function is never called for a candidate that should be rejected due to parameter count.
-        '''    2) Omitted arguments [ Call Foo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
+        '''    2) Omitted arguments [ Call Goo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
         '''    3) Omitted argument never has name.
         '''    4) argumentNames contains Nothing for all positional arguments.
         ''' 
@@ -2821,7 +2821,7 @@ Bailout:
         ''' 
         ''' Assumptions: 
         '''    1) This function is never called for a candidate that should be rejected due to parameter count.
-        '''    2) Omitted arguments [ Call Foo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
+        '''    2) Omitted arguments [ Call Goo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
         '''    3) Omitted argument never has name.
         '''    4) argumentNames contains Nothing for all positional arguments.
         ''' 

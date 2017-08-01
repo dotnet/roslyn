@@ -1240,7 +1240,7 @@ public class Class1
     int i;
     [||]
 
-    public void Foo()
+    public void F()
     {
     }
 }
@@ -1258,7 +1258,7 @@ public class Class1
         return @class != null;
     }
 
-    public void Foo()
+    public void F()
     {
     }
 

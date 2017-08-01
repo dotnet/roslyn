@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         Public Async Function ReturnInPropertyGetTest() As Task
             ' We can always exit a Sub/Function, so it should be there
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>
-ReadOnly Property Foo
+ReadOnly Property Goo
 Get
 |
 End Get
@@ -25,7 +25,7 @@ End Property
         Public Async Function ReturnInPropertySetTest() As Task
             ' We can always exit a Sub/Function, so it should be there
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>
-WriteOnly Property Foo
+WriteOnly Property Goo
 Set
 |
 End Set

@@ -1256,19 +1256,19 @@ class C
 {
     static dynamic x;
 
-    static void Foo(dynamic y)
+    static void Goo(dynamic y)
     {
-        System.Action a = () => Foo(x);
+        System.Action a = () => Goo(x);
     }
 }
 ";
             var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
-                var context = CreateMethodContext(runtime, "C.Foo");
+                var context = CreateMethodContext(runtime, "C.Goo");
                 var testData = new CompilationTestData();
                 string error;
-                var result = context.CompileAssignment("a", "() => Foo(x)", out error, testData);
+                var result = context.CompileAssignment("a", "() => Goo(x)", out error, testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, null);
                 testData.GetMethodData("<>x.<>c.<<>m0>b__0_0").VerifyIL(@"
@@ -1278,7 +1278,7 @@ class C
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0046
   IL_0007:  ldc.i4     0x100
-  IL_000c:  ldstr      ""Foo""
+  IL_000c:  ldstr      ""Goo""
   IL_0011:  ldnull
   IL_0012:  ldtoken    ""C""
   IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1309,9 +1309,9 @@ class C
   IL_0069:  ret
 }");
 
-                context = CreateMethodContext(runtime, "C.<>c.<Foo>b__1_0");
+                context = CreateMethodContext(runtime, "C.<>c.<Goo>b__1_0");
                 testData = new CompilationTestData();
-                result = context.CompileExpression("Foo(x)", out error, testData);
+                result = context.CompileExpression("Goo(x)", out error, testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, 0x01);
                 var methodData = testData.GetMethodData("<>x.<>m0");
@@ -1322,7 +1322,7 @@ class C
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0042
   IL_0007:  ldc.i4.0
-  IL_0008:  ldstr      ""Foo""
+  IL_0008:  ldstr      ""Goo""
   IL_000d:  ldnull
   IL_000e:  ldtoken    ""C""
   IL_0013:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1368,7 +1368,7 @@ class C
         System.Func<dynamic> a = () => x + y;
     }
 
-    static void Foo(int x)
+    static void Goo(int x)
     {
         M(x);
     }
@@ -1380,7 +1380,7 @@ class C
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
                 string error;
-                var result = context.CompileExpression("Foo(x)", out error, testData);
+                var result = context.CompileExpression("Goo(x)", out error, testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, 0x01);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -1392,7 +1392,7 @@ class C
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0042
   IL_0007:  ldc.i4.0
-  IL_0008:  ldstr      ""Foo""
+  IL_0008:  ldstr      ""Goo""
   IL_000d:  ldnull
   IL_000e:  ldtoken    ""C""
   IL_0013:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1424,7 +1424,7 @@ class C
   IL_0066:  ret
 }");
                 testData = new CompilationTestData();
-                result = context.CompileExpression("Foo(y)", out error, testData);
+                result = context.CompileExpression("Goo(y)", out error, testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, 0x01);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -1436,7 +1436,7 @@ class C
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0042
   IL_0007:  ldc.i4.0
-  IL_0008:  ldstr      ""Foo""
+  IL_0008:  ldstr      ""Goo""
   IL_000d:  ldnull
   IL_000e:  ldtoken    ""C""
   IL_0013:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""

@@ -219,13 +219,13 @@ Public Class SyntaxFactsTests
 
 Namespace NS1
     Module Module1
-        Delegate Sub DelFoo(xx As Integer)
-        Sub Foo(xx As Integer)
+        Delegate Sub DelGoo(xx As Integer)
+        Sub Goo(xx As Integer)
         End Sub
 
         Sub Main()
             Dim a1 = GetType(Integer)
-            Dim d As DelFoo = AddressOf Foo
+            Dim d As DelGoo = AddressOf Goo
             d.Invoke(xx:=1)
             Dim Obj Gen As New genClass(Of Integer)
         End Sub
@@ -1196,7 +1196,7 @@ Module Program
     Sub Main()
         Dim x As New Hashtable
         Dim y = x ! _
-        Foo
+        Goo
     End Sub
 End Module
 ]]>)

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var text = @"
 class Program
 {
-    System.Collections.Generic.IEnumerable<int> Foo()
+    System.Collections.Generic.IEnumerable<int> Goo()
     {
         yield break;
     }
@@ -32,12 +32,12 @@ class Program
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Program"" name=""Foo"">
+    <method containingType=""Program"" name=""Goo"">
       <customDebugInfo>
-        <forwardIterator name=""&lt;Foo&gt;d__0"" />
+        <forwardIterator name=""&lt;Goo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
+    <method containingType=""Program+&lt;Goo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -63,7 +63,7 @@ class Program
             var text = @"
 class Program
 {
-    System.Collections.Generic.IEnumerable<int> Foo()
+    System.Collections.Generic.IEnumerable<int> Goo()
     {
         yield break;
     }
@@ -74,12 +74,12 @@ class Program
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Program"" name=""Foo"">
+    <method containingType=""Program"" name=""Goo"">
       <customDebugInfo>
-        <forwardIterator name=""&lt;Foo&gt;d__0"" />
+        <forwardIterator name=""&lt;Goo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
+    <method containingType=""Program+&lt;Goo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -105,7 +105,7 @@ class Program
             var text = @"
 class Program
 {
-    System.Collections.Generic.IEnumerable<int> Foo()
+    System.Collections.Generic.IEnumerable<int> Goo()
     {
         yield return 1; //hidden sequence point after this.
     }
@@ -116,12 +116,12 @@ class Program
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Program"" name=""Foo"">
+    <method containingType=""Program"" name=""Goo"">
       <customDebugInfo>
-        <forwardIterator name=""&lt;Foo&gt;d__0"" />
+        <forwardIterator name=""&lt;Goo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
+    <method containingType=""Program+&lt;Goo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />

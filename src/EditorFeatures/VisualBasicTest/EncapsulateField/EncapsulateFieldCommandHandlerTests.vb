@@ -14,28 +14,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
         Public Sub PrivateField()
             Dim text = <File>
 Class C
-    Private foo$$ As Integer
+    Private goo$$ As Integer
 
     Sub bar()
-        foo = 3
+        goo = 3
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
             Dim expected = <File>
 Class C
-    Private foo As Integer
+    Private goo As Integer
 
-    Public Property Foo1 As Integer
+    Public Property Goo1 As Integer
         Get
-            Return foo
+            Return goo
         End Get
         Set(value As Integer)
-            foo = value
+            goo = value
         End Set
     End Property
 
     Sub bar()
-        Foo1 = 3
+        Goo1 = 3
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
@@ -48,28 +48,28 @@ End Class</File>.ConvertTestSourceTag()
         Public Sub NonPrivateField()
             Dim text = <File>
 Class C
-    Protected foo$$ As Integer
+    Protected goo$$ As Integer
 
     Sub bar()
-        foo = 3
+        goo = 3
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
             Dim expected = <File>
 Class C
-    Private _foo As Integer
+    Private _goo As Integer
 
-    Protected Property Foo As Integer
+    Protected Property Goo As Integer
         Get
-            Return _foo
+            Return _goo
         End Get
         Set(value As Integer)
-            _foo = value
+            _goo = value
         End Set
     End Property
 
     Sub bar()
-        Foo = 3
+        Goo = 3
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
@@ -138,7 +138,7 @@ End Class
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C
-                            Private $foo As Object
+                            Private $goo As Object
                         End Class
                     </Submission>
                 </Workspace>,

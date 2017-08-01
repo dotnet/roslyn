@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
             return
 @"class A
 {
-  void Foo()
+  void Goo()
   {
 " + initial + @"
   }
@@ -108,16 +108,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         public async Task TestIs()
         {
             await TestFixOneAsync(
-@"[||]if (a is Foo) { a(); } else { b(); }",
-@"if (!(a is Foo)) { b(); } else { a(); }");
+@"[||]if (a is Goo) { a(); } else { b(); }",
+@"if (!(a is Goo)) { b(); } else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestCall()
         {
             await TestFixOneAsync(
-@"[||]if (a.Foo()) { a(); } else { b(); }",
-@"if (!a.Foo()) { b(); } else { a(); }");
+@"[||]if (a.Goo()) { a(); } else { b(); }",
+@"if (!a.Goo()) { b(); } else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]

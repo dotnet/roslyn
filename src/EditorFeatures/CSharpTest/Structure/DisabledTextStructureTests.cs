@@ -106,7 +106,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
 {|span:    void $$M()
     {
 #if Bar
@@ -127,7 +127,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
     void M()
     {
 #if Bar
@@ -149,7 +149,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
 {|span:    void $$M()
     {|}
 #if Bar
@@ -170,7 +170,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
 {|span:    void $$M()
     {
 #if Bar
@@ -200,7 +200,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
 {|span:    void $$M()
     {
 #if Bar

@@ -14,7 +14,7 @@ Public Class MetadataFileReferenceCompilationTests
     <WorkItem(1037628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=1037628")>
     <Fact>
     Public Sub BC31011ERR_BadRefLib1()
-        Dim ref = MetadataReference.CreateFromImage({}, filePath:="Foo.dll")
+        Dim ref = MetadataReference.CreateFromImage({}, filePath:="Goo.dll")
         Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BadRefLib1">
     <file name="a.vb">
@@ -24,7 +24,7 @@ End Class
 </compilation>)
         compilation1 = compilation1.AddReferences(ref)
         Dim expectedErrors1 = <errors>
-BC31519: 'Foo.dll' cannot be referenced because it is not a valid assembly.
+BC31519: 'Goo.dll' cannot be referenced because it is not a valid assembly.
                  </errors>
         CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
     End Sub
@@ -32,7 +32,7 @@ BC31519: 'Foo.dll' cannot be referenced because it is not a valid assembly.
     <WorkItem(1037628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=1037628")>
     <Fact>
     Public Sub BC31007ERR_BadModuleFile1()
-        Dim ref = ModuleMetadata.CreateFromImage({}).GetReference(filePath:="Foo.dll")
+        Dim ref = ModuleMetadata.CreateFromImage({}).GetReference(filePath:="Goo.dll")
         Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BadRefLib1">
     <file name="a.vb">
@@ -42,7 +42,7 @@ End Class
 </compilation>)
         compilation1 = compilation1.AddReferences(ref)
         Dim expectedErrors1 = <errors>
-BC31007: Unable to load module file 'Foo.dll': PE image doesn't contain managed metadata.
+BC31007: Unable to load module file 'Goo.dll': PE image doesn't contain managed metadata.
                  </errors>
         CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
     End Sub

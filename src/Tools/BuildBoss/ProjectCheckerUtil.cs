@@ -64,8 +64,6 @@ namespace BuildBoss
                 allGood &= CheckDeploymentSettings(textWriter);
             }
 
-            allGood &= CheckTestDeploymentProjects(textWriter);
-
             return allGood;
         }
 
@@ -413,61 +411,6 @@ namespace BuildBoss
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Verify our test deployment projects properly reference everything which is labeled as a portable
-        /// unit test.  This ensurse they are properly deployed during build and test.
-        /// </summary>
-        private bool CheckTestDeploymentProjects(TextWriter textWriter)
-        {
-            var fileName = Path.GetFileNameWithoutExtension(_data.FileName);
-            var isDesktop = fileName == "DeployDesktopTestRuntime";
-            if (!isDesktop)
-            {
-                return true;
-            }
-
-            var allGood = true;
-            var data = _projectUtil.TryGetRoslynProjectData();
-            if (data?.DeclaredKind != RoslynProjectKind.DeploymentTest)
-            {
-                textWriter.WriteLine("Test deployment project must be marked as <RoslynProjectKind>DeploymentTest</RoslynProjectKind>");
-                allGood = false;
-            }
-
-            var set = new HashSet<ProjectKey>(_projectUtil.GetDeclaredProjectReferences().Select(x => x.ProjectKey));
-            foreach (var projectData in _solutionMap.Values)
-            {
-                var rosData = projectData.ProjectUtil.TryGetRoslynProjectData();
-                if (rosData == null)
-                {
-                    continue;
-                }
-
-                var kind = rosData.Value.DeclaredKind;
-                bool include;
-                switch (kind)
-                {
-                    case RoslynProjectKind.UnitTestPortable:
-                        include = true;
-                        break;
-                    case RoslynProjectKind.UnitTestDesktop:
-                        include = isDesktop;
-                        break;
-                    default:
-                        include = false;
-                        break;
-                }
-
-                if (include && !set.Contains(projectData.Key))
-                {
-                    textWriter.WriteLine($"Portable unit test {projectData.FileName} must be referenced");
-                    allGood = false;
-                }
-            }
-
-            return allGood;
         }
     }
 }

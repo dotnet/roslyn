@@ -9892,7 +9892,7 @@ class C
         {
             var source = @"
 public interface MyInterface {
-    (int, int) Foo()
+    (int, int) Goo()
 }
 ";
 
@@ -9900,7 +9900,7 @@ public interface MyInterface {
                 references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (3,21): error CS1002: ; expected
-                //     (int, int) Foo()
+                //     (int, int) Goo()
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 21)
                 );
         }
@@ -21488,7 +21488,7 @@ namespace ClassLibrary1
 {
     public class C1
     {
-        public virtual ref (int, dynamic) Foo(int  arg)
+        public virtual ref (int, dynamic) Goo(int  arg)
         {
             return ref new (int, dynamic)[]{(1, arg)}[0];
         }
@@ -21505,7 +21505,7 @@ namespace ConsoleApplication5
     {
         static void Main(string[] args)
         {
-            ref var x = ref new C2().Foo(42);
+            ref var x = ref new C2().Goo(42);
             System.Console.Write(x.Item2);
             x.Item2 = ""qq"";
             System.Console.WriteLine(x.Item2);
@@ -21514,9 +21514,9 @@ namespace ConsoleApplication5
 
     class C2: ClassLibrary1.C1
     {
-        public override ref (int, object) Foo(int arg)
+        public override ref (int, object) Goo(int arg)
         {
-            return ref base.Foo(arg);
+            return ref base.Goo(arg);
         }
     }
 }
@@ -21524,11 +21524,11 @@ namespace ConsoleApplication5
 
             var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libComp.ToMetadataReference() }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
 
-            var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
-            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo(System.Int32 arg)", m.ToTestDisplayString());
+            var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
+            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo(System.Int32 arg)", m.ToTestDisplayString());
 
             var b = m.OverriddenMethod;
-            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo(System.Int32 arg)", b.ToTestDisplayString());
+            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Goo(System.Int32 arg)", b.ToTestDisplayString());
         }
 
         [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
@@ -21542,7 +21542,7 @@ namespace ClassLibrary1
 {
     public class C1
     {
-        public virtual ref (int, dynamic) Foo(int  arg)
+        public virtual ref (int, dynamic) Goo(int  arg)
         {
             return ref new (int, dynamic)[]{(1, arg)}[0];
         }
@@ -21559,7 +21559,7 @@ namespace ConsoleApplication5
     {
         static void Main(string[] args)
         {
-            ref var x = ref new C2().Foo(42);
+            ref var x = ref new C2().Goo(42);
             System.Console.Write(x.Item2);
             x.Item2 = ""qq"";
             System.Console.WriteLine(x.Item2);
@@ -21568,9 +21568,9 @@ namespace ConsoleApplication5
 
     class C2: ClassLibrary1.C1
     {
-        public override ref (int, object) Foo(int arg)
+        public override ref (int, object) Goo(int arg)
         {
-            return ref base.Foo(arg);
+            return ref base.Goo(arg);
         }
     }
 }
@@ -21580,11 +21580,11 @@ namespace ConsoleApplication5
 
             var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
 
-            var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
-            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo(System.Int32 arg)", m.ToTestDisplayString());
+            var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
+            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo(System.Int32 arg)", m.ToTestDisplayString());
 
             var b = m.OverriddenMethod;
-            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo(System.Int32 arg)", b.ToTestDisplayString());
+            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Goo(System.Int32 arg)", b.ToTestDisplayString());
 
         }
 
@@ -21862,7 +21862,7 @@ implicit operator AA
 {
   .method public hidebysig newslot virtual 
           instance valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>& 
-          Foo(int32 arg) cil managed
+          Goo(int32 arg) cil managed
   {
     .param [0]
     // the dynamic flags array is too short - decoder expects a flag matching ""ref"", but it is missing here.
@@ -21888,7 +21888,7 @@ implicit operator AA
 
     IL_0023:  ldloc.0
     IL_0024:  ret
-  } // end of method C1::Foo
+  } // end of method C1::Goo
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -21912,7 +21912,7 @@ namespace ConsoleApplication5
     {
         static void Main(string[] args)
         {
-            ref var x = ref new C2().Foo(42);
+            ref var x = ref new C2().Goo(42);
             System.Console.Write(x.Item2);
             x.Item2 = ""qq"";
             System.Console.WriteLine(x.Item2);
@@ -21921,9 +21921,9 @@ namespace ConsoleApplication5
 
     class C2: ClassLibrary1.C1
     {
-        public override ref (int, dynamic) Foo(int arg)
+        public override ref (int, dynamic) Goo(int arg)
         {
-            return ref base.Foo(arg);
+            return ref base.Goo(arg);
         }
     }
 }
@@ -21933,13 +21933,13 @@ namespace ConsoleApplication5
 
             CompileAndVerify(comp, expectedOutput: "42qq", verify: false);
 
-            var m = (MethodSymbol)(comp.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
-            Assert.Equal("ref (System.Int32, dynamic) ConsoleApplication5.C2.Foo(System.Int32 arg)", m.ToTestDisplayString());
+            var m = (MethodSymbol)(comp.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
+            Assert.Equal("ref (System.Int32, dynamic) ConsoleApplication5.C2.Goo(System.Int32 arg)", m.ToTestDisplayString());
 
             var b = m.OverriddenMethod;
             // not (int, dynamic),
             // since dynamic flags were not aligned, we have ignored the flags
-            Assert.Equal("ref (System.Int32, System.Object) ClassLibrary1.C1.Foo(System.Int32 arg)", b.ToTestDisplayString());
+            Assert.Equal("ref (System.Int32, System.Object) ClassLibrary1.C1.Goo(System.Int32 arg)", b.ToTestDisplayString());
 
         }
 
@@ -21954,7 +21954,7 @@ namespace ClassLibrary1
 {
     public class C1
     {
-        public virtual ref (int, dynamic) Foo => ref new (int, dynamic)[]{(1, 42)}[0];
+        public virtual ref (int, dynamic) Goo => ref new (int, dynamic)[]{(1, 42)}[0];
     }
 }
 ";
@@ -21968,7 +21968,7 @@ namespace ConsoleApplication5
     {
         static void Main(string[] args)
         {
-            ref var x = ref new C2().Foo;
+            ref var x = ref new C2().Goo;
             System.Console.Write(x.Item2);
             x.Item2 = ""qq"";
             System.Console.WriteLine(x.Item2);
@@ -21977,7 +21977,7 @@ namespace ConsoleApplication5
 
     class C2: ClassLibrary1.C1
     {
-        public override ref (int, object) Foo => ref base.Foo;
+        public override ref (int, object) Goo => ref base.Goo;
     }
 }
 ";
@@ -21986,13 +21986,13 @@ namespace ConsoleApplication5
 
             var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
 
-            var m = (PropertySymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
-            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo { get; }", m.ToTestDisplayString());
-            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo.get", m.GetMethod.ToTestDisplayString());
+            var m = (PropertySymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
+            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo { get; }", m.ToTestDisplayString());
+            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo.get", m.GetMethod.ToTestDisplayString());
 
             var b = m.OverriddenProperty;
-            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo { get; }", b.ToTestDisplayString());
-            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo.get", b.GetMethod.ToTestDisplayString());
+            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Goo { get; }", b.ToTestDisplayString());
+            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Goo.get", b.GetMethod.ToTestDisplayString());
         }
 
         [Fact]

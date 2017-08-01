@@ -1415,13 +1415,13 @@ End If]]>.Value,
 
     <Fact>
     Public Sub Scanner_BracketedIdentToken()
-        Dim Str = "[Foo123]"
+        Dim Str = "[Goo123]"
         Dim tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IdentifierToken, tk.Kind)
         Assert.True(tk.IsBracketed)
-        Assert.Equal("Foo123", tk.ValueText)
-        Assert.Equal("Foo123", tk.Value)
-        Assert.Equal("[Foo123]", tk.ToFullString())
+        Assert.Equal("Goo123", tk.ValueText)
+        Assert.Equal("Goo123", tk.Value)
+        Assert.Equal("[Goo123]", tk.ToFullString())
 
         Str = "[__]"
         tk = ScanOnce(Str)
@@ -1430,11 +1430,11 @@ End If]]>.Value,
         Assert.Equal("__", tk.ValueText)
         Assert.Equal("[__]", tk.ToFullString())
 
-        Str = "[Foo ]"
+        Str = "[Goo ]"
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal(30034, tk.GetSyntaxErrorsNoTree()(0).Code)
-        Assert.Equal("[Foo ", tk.ToFullString())
+        Assert.Equal("[Goo ", tk.ToFullString())
 
         Str = "[]"
         tk = ScanOnce(Str)

@@ -245,7 +245,7 @@ public class Test
     // (37,24): error CS8166: Cannot return a parameter by reference 'arg1' because it is not a ref or out parameter
     //             return ref arg1;
     Diagnostic(ErrorCode.ERR_RefReturnParameter, "arg1").WithArguments("arg1").WithLocation(37, 24),
-    // (46,24): error CS8167: Cannot return or a member of parameter 'arg2' by reference because it is not a ref or out parameter
+    // (46,24): error CS8167: Cannot return a member of parameter 'arg2' by reference because it is not a ref or out parameter
     //             return ref arg2.x;
     Diagnostic(ErrorCode.ERR_RefReturnParameter2, "arg2").WithArguments("arg2").WithLocation(46, 24)
             );
@@ -550,23 +550,23 @@ public class Test
     {
         public char x;
 
-        public ref S1 FooS()
+        public ref S1 GooS()
         {
             return ref this;
         }        
 
-        public ref char Foo()
+        public ref char Goo()
         {
             return ref x;
         }
 
-        public ref char Foo1()
+        public ref char Goo1()
         {
             return ref this.x;
         }
     }
 
-    static ref T Foo<T>(ref T arg)
+    static ref T Goo<T>(ref T arg)
     {
         return ref arg;
     }
@@ -578,21 +578,21 @@ public class Test
 
         if (1.ToString() != null)
         {
-            return ref Foo(ref M1);
+            return ref Goo(ref M1);
         }
         
         if (2.ToString() != null)
         {
-            return ref Foo(ref M2.x);
+            return ref Goo(ref M2.x);
         }
 
         if (3.ToString() != null)
         {
-            return ref Foo(ref M2).x;
+            return ref Goo(ref M2).x;
         }
         else
         {
-            return ref M2.Foo();
+            return ref M2.Goo();
         }
     }
   
@@ -616,23 +616,23 @@ public class Test
                 //             return ref this.x;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.x").WithArguments("this").WithLocation(20, 24),
                 // (36,32): error CS8168: Cannot return local 'M1' by reference because it is not a ref local
-                //             return ref Foo(ref M1);
+                //             return ref Goo(ref M1);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "M1").WithArguments("M1").WithLocation(36, 32),
-                // (36,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
-                //             return ref Foo(ref M1);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M1)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(36, 24),
+                // (36,24): error CS8164: Cannot return by reference a result of 'Test.Goo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Goo(ref M1);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "Goo(ref M1)").WithArguments("Test.Goo<char>(ref char)", "arg").WithLocation(36, 24),
                 // (41,32): error CS8169: Cannot return a member of local 'M2' by reference because it is not a ref local
-                //             return ref Foo(ref M2.x);
+                //             return ref Goo(ref M2.x);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal2, "M2").WithArguments("M2").WithLocation(41, 32),
-                // (41,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
-                //             return ref Foo(ref M2.x);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M2.x)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(41, 24),
+                // (41,24): error CS8164: Cannot return by reference a result of 'Test.Goo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Goo(ref M2.x);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "Goo(ref M2.x)").WithArguments("Test.Goo<char>(ref char)", "arg").WithLocation(41, 24),
                 // (46,32): error CS8168: Cannot return local 'M2' by reference because it is not a ref local
-                //             return ref Foo(ref M2).x;
+                //             return ref Goo(ref M2).x;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "M2").WithArguments("M2").WithLocation(46, 32),
-                // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
-                //             return ref Foo(ref M2).x;
-                Diagnostic(ErrorCode.ERR_RefReturnCall2, "Foo(ref M2)").WithArguments("Test.Foo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
+                // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Goo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Goo(ref M2).x;
+                Diagnostic(ErrorCode.ERR_RefReturnCall2, "Goo(ref M2)").WithArguments("Test.Goo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
                 // (58,24): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
                 //             return ref this;
                 Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(58, 24));
@@ -746,7 +746,7 @@ public class Test
         public char x;
     }
 
-    ref char Foo(ref char a, ref char b)
+    ref char Goo(ref char a, ref char b)
     {
         return ref a;
     }
@@ -768,7 +768,7 @@ public class Test
         if (3.ToString() == null)
         {
             ref char a = ref (new char[1])[0];
-            ref char invalid = ref Foo(ref a, ref a);
+            ref char invalid = ref Goo(ref a, ref a);
 
             // valid
             return ref r;
@@ -777,7 +777,7 @@ public class Test
         if (4.ToString() == null)
         {
             ref char a = ref (new char[1])[0];
-            ref char valid = ref Foo(ref a, ref arg1);
+            ref char valid = ref Goo(ref a, ref arg1);
 
             // valid
             return ref valid; //4
@@ -786,7 +786,7 @@ public class Test
         if (5.ToString() == null)
         {
             ref char a = ref (new char[1])[0];
-            ref char r = ref Foo(ref a, ref r);
+            ref char r = ref Goo(ref a, ref r);
 
             // invalid
             return ref r;  //5
@@ -819,7 +819,7 @@ public class Test
     //             ref S1 r = ref r;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "r").WithArguments("r").WithLocation(24, 28),
     // (49,45): error CS0165: Use of unassigned local variable 'r'
-    //             ref char r = ref Foo(ref a, ref r);
+    //             ref char r = ref Goo(ref a, ref r);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "r").WithArguments("r").WithLocation(49, 45)
 
             );
@@ -833,18 +833,18 @@ public class Test
 {
     public static void Main()
     {
-        ref char Foo(ref char a, ref char b)
+        ref char Goo(ref char a, ref char b)
         {
             // valid
             return ref a;
         }
         
-        char Foo1(ref char a, ref char b)
+        char Goo1(ref char a, ref char b)
         {
             return ref b;
         }
 
-        ref char Foo2(ref char c, ref char b)
+        ref char Goo2(ref char c, ref char b)
         {
             return c;
         }
@@ -859,15 +859,15 @@ public class Test
                 // (19,13): error CS8150: By-value returns may only be used in methods that return by value
                 //             return c;
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(19, 13),
-                // (6,18): warning CS8321: The local function 'Foo' is declared but never used
-                //         ref char Foo(ref char a, ref char b)
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(6, 18),
-                // (12,14): warning CS8321: The local function 'Foo1' is declared but never used
-                //         char Foo1(ref char a, ref char b)
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo1").WithArguments("Foo1").WithLocation(12, 14),
-                // (17,18): warning CS8321: The local function 'Foo2' is declared but never used
-                //         ref char Foo2(ref char c, ref char b)
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo2").WithArguments("Foo2").WithLocation(17, 18));
+                // (6,18): warning CS8321: The local function 'Goo' is declared but never used
+                //         ref char Goo(ref char a, ref char b)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo").WithArguments("Goo").WithLocation(6, 18),
+                // (12,14): warning CS8321: The local function 'Goo1' is declared but never used
+                //         char Goo1(ref char a, ref char b)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo1").WithArguments("Goo1").WithLocation(12, 14),
+                // (17,18): warning CS8321: The local function 'Goo2' is declared but never used
+                //         ref char Goo2(ref char c, ref char b)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo2").WithArguments("Goo2").WithLocation(17, 18));
         }
 
         [Fact]
@@ -879,11 +879,11 @@ public class Test
     public static void Main()
     {
         // valid
-        ref char Foo(ref char a, ref char b) => ref a;
+        ref char Goo(ref char a, ref char b) => ref a;
         
-        char Foo1(ref char a, ref char b) => ref b;
+        char Goo1(ref char a, ref char b) => ref b;
 
-        ref char Foo2(ref char c, ref char b) => c;
+        ref char Goo2(ref char c, ref char b) => c;
 
         var arr = new int[1];
         ref var r = ref arr[0];
@@ -896,10 +896,10 @@ public class Test
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
             comp.VerifyDiagnostics(
                 // (9,50): error CS8149: By-reference returns may only be used in methods that return by reference
-                //         char Foo1(ref char a, ref char b) => ref b;
+                //         char Goo1(ref char a, ref char b) => ref b;
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "b").WithLocation(9, 50),
                 // (11,50): error CS8150: By-value returns may only be used in methods that return by value
-                //         ref char Foo2(ref char c, ref char b) => c;
+                //         ref char Goo2(ref char c, ref char b) => c;
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "c").WithLocation(11, 50),
                 // (16,54): error CS8175: Cannot use ref local 'r' inside an anonymous method, lambda expression, or query expression
                 //         ref char Moo1(ref char a, ref char b) => ref r;
@@ -913,15 +913,15 @@ public class Test
                 // (17,46): error CS0266: Cannot implicitly convert type 'int' to 'char'. An explicit conversion exists (are you missing a cast?)
                 //         char Moo3(ref char a, ref char b) => r;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "r").WithArguments("int", "char").WithLocation(17, 46),
-                // (7,18): warning CS8321: The local function 'Foo' is declared but never used
-                //         ref char Foo(ref char a, ref char b) => ref a;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(7, 18),
-                // (9,14): warning CS8321: The local function 'Foo1' is declared but never used
-                //         char Foo1(ref char a, ref char b) => ref b;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo1").WithArguments("Foo1").WithLocation(9, 14),
-                // (11,18): warning CS8321: The local function 'Foo2' is declared but never used
-                //         ref char Foo2(ref char c, ref char b) => c;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo2").WithArguments("Foo2").WithLocation(11, 18),
+                // (7,18): warning CS8321: The local function 'Goo' is declared but never used
+                //         ref char Goo(ref char a, ref char b) => ref a;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo").WithArguments("Goo").WithLocation(7, 18),
+                // (9,14): warning CS8321: The local function 'Goo1' is declared but never used
+                //         char Goo1(ref char a, ref char b) => ref b;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo1").WithArguments("Goo1").WithLocation(9, 14),
+                // (11,18): warning CS8321: The local function 'Goo2' is declared but never used
+                //         ref char Goo2(ref char c, ref char b) => c;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo2").WithArguments("Goo2").WithLocation(11, 18),
                 // (16,18): warning CS8321: The local function 'Moo1' is declared but never used
                 //         ref char Moo1(ref char a, ref char b) => ref r;
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Moo1").WithArguments("Moo1").WithLocation(16, 18),
@@ -1652,7 +1652,7 @@ class Program
 {
     static int field = 0;
 
-    static async void Foo()
+    static async void Goo()
     {
         ref int i = ref field;
     }
@@ -1664,8 +1664,8 @@ class Program
                 //         ref int i = ref field;
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i = ref field").WithLocation(8, 17),
                 // (6,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async void Foo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Foo").WithLocation(6, 23));
+                //     static async void Goo()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo").WithLocation(6, 23));
         }
 
         [Fact]

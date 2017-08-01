@@ -2022,7 +2022,7 @@ using System;
 
 class Program
 {
-    class C1<T> where T : IFoo<T>, new()
+    class C1<T> where T : IGoo<T>, new()
     {
         T inst = new T();
 
@@ -2040,21 +2040,21 @@ class Program
 
     static void Main(string[] args)
     {
-        var v = new C1<Foo>();
+        var v = new C1<Goo>();
         v.Test();
     }
 }
 
-interface IFoo<T>
+interface IGoo<T>
 {
     void Blah(ref T arg);
 }
 
-class Foo : IFoo<Foo>
+class Goo : IGoo<Goo>
 {
     public int disposed;
 
-    public void Blah(ref Foo arg)
+    public void Blah(ref Goo arg)
     {
         arg = null;
         disposed++;
@@ -2089,7 +2089,7 @@ class Foo : IFoo<Foo>
   IL_002f:  ldarg.0
   IL_0030:  ldflda     ""T Program.C1<T>.inst""
   IL_0035:  constrained. ""T""
-  IL_003b:  callvirt   ""void IFoo<T>.Blah(ref T)""
+  IL_003b:  callvirt   ""void IGoo<T>.Blah(ref T)""
   IL_0040:  ldarg.0
   IL_0041:  ldfld      ""T Program.C1<T>.inst""
   IL_0046:  box        ""T""
@@ -2108,7 +2108,7 @@ using System;
 
 class Program
 {
-    class C1<T> where T : IFoo<T>, new()
+    class C1<T> where T : IGoo<T>, new()
     {
         T inst = new T();
 
@@ -2138,21 +2138,21 @@ class Program
 
     static void Main(string[] args)
     {
-        var v = new C1<Foo>();
+        var v = new C1<Goo>();
         v.Test();
     }
 }
 
-interface IFoo<T>
+interface IGoo<T>
 {
     void Blah(ref T arg);
 }
 
-class Foo : IFoo<Foo>
+class Goo : IGoo<Goo>
 {
     public int disposed;
 
-    public void Blah(ref Foo arg)
+    public void Blah(ref Goo arg)
     {
         arg = null;
         disposed++;
@@ -2193,7 +2193,7 @@ class Foo : IFoo<Foo>
   IL_0036:  br.s       IL_0044
   IL_0038:  ldloc.0
   IL_0039:  constrained. ""T""
-  IL_003f:  callvirt   ""void IFoo<T>.Blah(ref T)""
+  IL_003f:  callvirt   ""void IGoo<T>.Blah(ref T)""
   IL_0044:  ldloc.0
   IL_0045:  ldobj      ""T""
   IL_004a:  box        ""T""
@@ -2225,7 +2225,7 @@ class Foo : IFoo<Foo>
   IL_0097:  br.s       IL_00a5
   IL_0099:  ldloc.0
   IL_009a:  constrained. ""T""
-  IL_00a0:  callvirt   ""void IFoo<T>.Blah(ref T)""
+  IL_00a0:  callvirt   ""void IGoo<T>.Blah(ref T)""
   IL_00a5:  ldloc.0
   IL_00a6:  ldobj      ""T""
   IL_00ab:  box        ""T""
@@ -2838,6 +2838,7 @@ class Program
                 );
         }
 
+        [Fact]
         [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic001()
         {
@@ -2867,6 +2868,8 @@ public class C
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d.Length").WithLocation(14, 20)
             );
         }
+
+        [Fact]
         [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic002()
         {
@@ -2897,6 +2900,7 @@ public class C
             );
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
         [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic003()
         {
