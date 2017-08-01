@@ -222,7 +222,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b')
         Public Sub VerifyOperationTree_IfStatement()
             Dim source = <![CDATA[
 Class C
-    Sub Goo(x As Integer)
+    Sub F(x As Integer)
         If x <> 0 Then'BIND:"If x <> 0 Then"
             System.Console.Write(x)
         End If
@@ -230,7 +230,7 @@ Class C
 End Class
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerNotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
       Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -256,7 +256,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
         Public Sub VerifyOperationTree_ForStatement()
             Dim source = <![CDATA[
 Class C
-    Sub Goo()
+    Sub F()
         For i = 0 To 10'BIND:"For i = 0 To 10"
             System.Console.Write(i)
         Next

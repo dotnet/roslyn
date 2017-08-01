@@ -512,7 +512,7 @@ IForEachLoopStatement (Iteration variable: System.Int32 x) (LoopKind.ForEach) (O
             string source = @"
 class C
 {
-    void Foo(int[] a)
+    void F(int[] a)
     {
         /*<bind>*/foreach (int x in a) { x++; }/*</bind>*/
     }
@@ -538,7 +538,7 @@ IForEachLoopStatement (Iteration variable: System.Int32 x) (LoopKind.ForEach) (O
             string source = @"
 class C
 {
-    void Foo(Enumerable e)
+    void F(Enumerable e)
     {
         /*<bind>*/foreach (long x in e) { }/*</bind>*/
     }
@@ -571,7 +571,7 @@ IForEachLoopStatement (Iteration variable: System.Int64 x) (LoopKind.ForEach) (O
             string source = @"
 class C
 {
-    void Foo(string s)
+    void F(string s)
     {
         /*<bind>*/foreach (var x in s) { }/*</bind>*/
     }
@@ -592,7 +592,7 @@ IForEachLoopStatement (Iteration variable: System.Char x) (LoopKind.ForEach) (Op
             string source = @"
 class C
 {
-    void Foo(var[] a)
+    void F(var[] a)
     {
         /*<bind>*/foreach (var x in a) { }/*</bind>*/
     }
@@ -615,7 +615,7 @@ IForEachLoopStatement (Iteration variable: C.var x) (LoopKind.ForEach) (Operatio
             string source = @"
 class C
 {
-    void Foo(dynamic d)
+    void F(dynamic d)
     {
         /*<bind>*/foreach (int x in d) { }/*</bind>*/
     }

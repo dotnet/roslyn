@@ -13,15 +13,15 @@ Option Strict Off
 Module Program
     Sub Main(args As String())
         Dim d = Nothing
-        d.Foo'BIND:"d.Foo"
+        d.F'BIND:"d.F"
     End Sub
 End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'd.Foo')
+IOperation:  (OperationKind.None) (Syntax: 'd.F')
   Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "Foo", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Foo')
+      IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
         Type Arguments(0)
         Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
@@ -38,15 +38,15 @@ Option Strict Off
 Module Program
     Sub Main(args As String())
         Dim d = Nothing
-        d.Foo(Of String)'BIND:"d.Foo(Of String)"
+        d.F(Of String)'BIND:"d.F(Of String)"
     End Sub
 End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'd.Foo(Of String)')
+IOperation:  (OperationKind.None) (Syntax: 'd.F(Of String)')
   Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "Foo", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Foo(Of String)')
+      IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F(Of String)')
         Type Arguments(1):
           Symbol: System.String
         Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
@@ -64,15 +64,15 @@ Option Strict Off
 Module Program
     Sub Main(args As String())
         Dim d = Nothing
-        d.Foo(Of)'BIND:"d.Foo(Of)"
+        d.F(Of)'BIND:"d.F(Of)"
     End Sub
 End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.Foo(Of)')
+IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.F(Of)')
   Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "Foo", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'd.Foo(Of)')
+      IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'd.F(Of)')
         Type Arguments(1):
           Symbol: ?
         Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
@@ -80,8 +80,8 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.Foo(Of)')
 
             Dim expectedDiagnostics = <![CDATA[
 BC30182: Type expected.
-        d.Foo(Of)'BIND:"d.Foo(Of)"
-                ~
+        d.F(Of)'BIND:"d.F(Of)"
+              ~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -94,15 +94,15 @@ Option Strict Off
 Module Program
     Sub Main(args As String())
         Dim d = Nothing
-        d.Foo()'BIND:"d.Foo()"
+        d.F()'BIND:"d.F()"
     End Sub
 End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'd.Foo()')
+IOperation:  (OperationKind.None) (Syntax: 'd.F()')
   Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "Foo", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Foo')
+      IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
         Type Arguments(0)
         Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
@@ -119,15 +119,15 @@ Option Strict Off
 Module Program
     Sub Main(args As String())
         Dim d = Nothing
-        d.Foo('BIND:"d.Foo("
+        d.F('BIND:"d.F("
     End Sub
 End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.Foo(')
+IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.F(')
   Children(2):
-      IDynamicMemberReferenceExpression (Member Name: "Foo", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Foo')
+      IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
         Type Arguments(0)
         Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
       IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
@@ -137,11 +137,11 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.Foo(')
 
             Dim expectedDiagnostics = <![CDATA[
 BC30198: ')' expected.
-        d.Foo('BIND:"d.Foo("
-              ~
+        d.F('BIND:"d.F("
+            ~
 BC30201: Expression expected.
-        d.Foo('BIND:"d.Foo("
-              ~
+        d.F('BIND:"d.F("
+            ~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
