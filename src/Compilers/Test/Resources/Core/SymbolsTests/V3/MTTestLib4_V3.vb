@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 ' vbc /t:Library /out:MTTestLib4.Dll MTTestLib4_V3.vb /r:MTTestLib1.Dll /r:..\V1\MTTestLib2.Dll /r:..\V2\MTTestLib3.Dll
 ' vbc /t:module /out:MTTestModule4.netmodule MTTestLib4_V3.vb /r:MTTestLib1.Dll /r:..\V1\MTTestLib2.Dll /r:..\V2\MTTestLib3.Dll

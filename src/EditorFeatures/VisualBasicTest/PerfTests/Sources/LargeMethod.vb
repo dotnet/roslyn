@@ -1,4 +1,4 @@
-Imports System
+﻿Imports System
 
 Public Class LargeMethodTest
 

@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.Test.Utilities;
+﻿using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 

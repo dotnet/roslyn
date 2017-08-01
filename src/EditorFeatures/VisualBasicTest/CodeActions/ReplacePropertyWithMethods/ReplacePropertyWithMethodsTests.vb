@@ -1,4 +1,4 @@
-Imports Microsoft.CodeAnalysis.CodeRefactorings
+﻿Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 

@@ -1,4 +1,4 @@
-' Additional namespace added to better match LOC of C# scrolling file
+﻿' Additional namespace added to better match LOC of C# scrolling file
 Imports System
 
 Namespace ns1

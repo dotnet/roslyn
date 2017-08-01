@@ -1,4 +1,4 @@
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PopulateSwitch
+﻿Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PopulateSwitch
     Partial Public Class PopulateSwitchTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
