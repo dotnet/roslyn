@@ -788,8 +788,8 @@ Module Module1
 End Module
 
 
-Public Class C1 : Implements Ifoo
-  Sub T1 implements Ifoo.Testmethod
+Public Class C1 : Implements Igoo
+  Sub T1 implements Igoo.Testmethod
     On error resume next
 10:
 	Err.Raise(3)
@@ -804,7 +804,7 @@ Public Class C1 : Implements Ifoo
   End Sub
 End Class
 
-Interface Ifoo
+Interface Igoo
 	Sub Testmethod()
 End Interface
 ]]>

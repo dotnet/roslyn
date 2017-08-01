@@ -105,8 +105,8 @@ class Base
     }
 }
 
-class MemberInitializerTest<T> where T : Base, new()
-{
+public class MemberInitializerTest<T> where T: Base, new()
+{   
     public static void Goo()
     {
         var i = /*<bind>*/new T() { x = 0, y = 0 }/*</bind>*/;
