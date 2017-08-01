@@ -396,7 +396,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInIndexerAfterProtectedAccessibility()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"class C {
     int this[int i] { get { } protected $$");
         }
