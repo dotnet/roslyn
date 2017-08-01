@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             // https://github.com/dotnet/roslyn/issues/21187
             if (IsIgnoredNode(boundNode))
             {
-                // due to how IOperation is set up, some of VB BoundNode must be ignored
+                // due to how IOperation is set up, some of C# BoundNode must be ignored
                 // while generating IOperation. otherwise, 2 different IOperation trees will be created
                 // for nodes under same sub tree
                 return null;
