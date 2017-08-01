@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private bool IsConstructorInitializerContext(CSharpSyntaxContext context)
         {
             // cases:
-            //   Foo() : |
+            //   Goo() : |
 
             var token = context.TargetToken;
 

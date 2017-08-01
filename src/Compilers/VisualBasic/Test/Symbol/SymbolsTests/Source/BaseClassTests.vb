@@ -1602,12 +1602,12 @@ Interface DerivedWithoutAmbiguity
     Inherits Base1
 End Interface
 
-Interface Foo
+Interface Goo
     Inherits DerivedWithAmbiguity, DerivedWithoutAmbiguity
 End Interface
 
 Class Test
-    Dim x as Foo.c1 = Nothing
+    Dim x as Goo.c1 = Nothing
 
 End Class
     </file>
@@ -1615,7 +1615,7 @@ End Class
 
             Dim expectedErrors = <errors>
 BC30685: 'c1' is ambiguous across the inherited interfaces 'Base1' and 'Base2'.
-    Dim x as Foo.c1 = Nothing
+    Dim x as Goo.c1 = Nothing
              ~~~~~~
                                  </errors>
 
@@ -1654,12 +1654,12 @@ Interface DerivedWithoutAmbiguity
     Inherits Base3
 End Interface
 
-Interface Foo
+Interface Goo
     Inherits DerivedWithAmbiguity, DerivedWithoutAmbiguity
 End Interface
 
 Class Test
-    Inherits Foo.c1
+    Inherits Goo.c1
 
 End Class
     </file>
@@ -1694,7 +1694,7 @@ Interface DerivedWithoutAmbiguity
     Inherits Base1
 End Interface
 
-Interface Foo
+Interface Goo
     Inherits DerivedWithAmbiguity, DerivedWithoutAmbiguity
     Shadows Class c1
 
@@ -1702,7 +1702,7 @@ Interface Foo
 End Interface
 
 Class Test
-    Dim x as Foo.c1 = Nothing
+    Dim x as Goo.c1 = Nothing
 
 End Class
     </file>
@@ -1852,12 +1852,12 @@ End Class
 <compilation name="Compilation">
     <file name="a.vb">
 Interface IA(Of T)
-    Function Foo() As T
+    Function Goo() As T
 End Interface
 
 Interface IB
     Inherits IA(Of Integer)
-    Overloads Sub Foo(ByVal x As Integer)
+    Overloads Sub Goo(ByVal x As Integer)
 End Interface
 
 Interface IC
@@ -1867,17 +1867,17 @@ End Interface
 Module M
     Sub Main()
         Dim x As IC = Nothing
-        Dim s As Integer = x.Foo()
+        Dim s As Integer = x.Goo()
     End Sub
 End Module
     </file>
 </compilation>)
 
             Dim expectedErrors = <errors>
-BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    'Function IA(Of String).Foo() As String': Not most specific.
-    'Function IA(Of Integer).Foo() As Integer': Not most specific.
-        Dim s As Integer = x.Foo()
+BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
+    'Function IA(Of String).Goo() As String': Not most specific.
+    'Function IA(Of Integer).Goo() As Integer': Not most specific.
+        Dim s As Integer = x.Goo()
                              ~~~
                                  </errors>
 
@@ -1891,11 +1891,11 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
     <file name="a.vb">
 
 Interface IA(Of T)
-    Function Foo() As T
+    Function Goo() As T
 End Interface
 
 Interface IB
-    Class Foo
+    Class Goo
     End Class
 End Interface
 
@@ -1906,7 +1906,7 @@ End Interface
 Class M
     Sub Main()
         Dim x As IC
-        Dim s As String = x.Foo().ToLower()
+        Dim s As String = x.Goo().ToLower()
     End Sub
 End Class
     </file>
@@ -1914,10 +1914,10 @@ End Class
 
             Dim expectedErrors = <errors>
 BC42104: Variable 'x' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim s As String = x.Foo().ToLower()
+        Dim s As String = x.Goo().ToLower()
                           ~
-BC30685: 'Foo' is ambiguous across the inherited interfaces 'IB' and 'IA(Of String)'.
-        Dim s As String = x.Foo().ToLower()
+BC30685: 'Goo' is ambiguous across the inherited interfaces 'IB' and 'IA(Of String)'.
+        Dim s As String = x.Goo().ToLower()
                           ~~~~~
               </errors>
 
@@ -1958,18 +1958,18 @@ BC30685: 'B' is ambiguous across the inherited interfaces 'A(Of A(Of T).B)' and 
 <compilation name="Compilation">
     <file name="a.vb">
 Interface IA(Of T)
-  Overloads Sub Foo(ByVal x As T)
+  Overloads Sub Goo(ByVal x As T)
 End Interface
  
 Interface IC
   Inherits IA(Of Date), IA(Of Integer)
-  Overloads Sub Foo()
+  Overloads Sub Goo()
 End Interface
  
 Class M
   Sub Main()
     Dim c As IC = Nothing
-    c.Foo()
+    c.Goo()
   End Sub
 End Class
     </file>
@@ -2205,7 +2205,7 @@ End Class
 Imports System.Collections.Generic
 
 Class Z
-  Public Function foo(a As A) As IEnumerable(Of Object)
+  Public Function goo(a As A) As IEnumerable(Of Object)
     Return a
   End Function
 End Class  

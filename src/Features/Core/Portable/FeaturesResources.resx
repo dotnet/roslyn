@@ -1292,4 +1292,7 @@ This version used in: {2}</value>
   <data name="Move_declaration_near_reference" xml:space="preserve">
     <value>Move declaration near reference</value>
   </data>
+  <data name="Generate_constructor_in_0_without_fields" xml:space="preserve">
+    <value>Generate constructor in '{0}' (without fields)</value>
+  </data>
 </root>

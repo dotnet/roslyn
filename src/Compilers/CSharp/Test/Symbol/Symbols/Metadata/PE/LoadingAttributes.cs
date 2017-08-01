@@ -681,37 +681,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var interopNS = (NamespaceSymbol)runtimeNS.GetMember("InteropServices");
 
             var appNS = (NamespaceSymbol)assemblies[0].Modules[0].GlobalNamespace.GetMember("Interop");
-            var ifoo = (NamedTypeSymbol)appNS.GetMember("IFoo");
+            var igoo = (NamedTypeSymbol)appNS.GetMember("IFoo");
             // ComImport is Pseudo attr
-            Assert.Equal(4, ifoo.GetAttributes().Length);
+            Assert.Equal(4, igoo.GetAttributes().Length);
 
             // get attr by NamedTypeSymbol
             var attrObj = (NamedTypeSymbol)interopNS.GetTypeMembers("GuidAttribute").Single();
-            var attrSym = ifoo.GetAttribute(attrObj);
+            var attrSym = igoo.GetAttribute(attrObj);
             //Assert.Null(attrSym.NamedArguments)
             attrSym.VerifyValue(0, TypedConstantKind.Primitive, "ABCDEF5D-2448-447A-B786-64682CBEF123");
 
             attrObj = (NamedTypeSymbol)interopNS.GetTypeMembers("InterfaceTypeAttribute").Single();
             // use first ctor
             var ctor = attrObj.InstanceConstructors.First();
-            attrSym = ifoo.GetAttribute(ctor);
+            attrSym = igoo.GetAttribute(ctor);
             // param in ctor is Int16, but Int32 in MD
             Assert.Equal(typeof(Int32), attrSym.CommonConstructorArguments[0].Value.GetType());
             Assert.Equal(1, attrSym.CommonConstructorArguments[0].Value);
 
             attrObj = (NamedTypeSymbol)interopNS.GetTypeMembers("TypeLibImportClassAttribute").Single();
             var msym = attrObj.InstanceConstructors.First();
-            attrSym = ifoo.GetAttribute(msym);
+            attrSym = igoo.GetAttribute(msym);
             Assert.Equal("object", ((Symbol)attrSym.CommonConstructorArguments[0].Value).ToString());
 
             // =============================
-            var mem = (MethodSymbol)ifoo.GetMember("DoSomething");
+            var mem = (MethodSymbol)igoo.GetMember("DoSomething");
             Assert.Equal(1, mem.GetAttributes().Length);
-            mem = (MethodSymbol)ifoo.GetMember("Register");
+            mem = (MethodSymbol)igoo.GetMember("Register");
             Assert.Equal(1, mem.GetAttributes().Length);
-            mem = (MethodSymbol)ifoo.GetMember("UnRegister");
+            mem = (MethodSymbol)igoo.GetMember("UnRegister");
             Assert.Equal(1, mem.GetAttributes().Length);
-            mem = (MethodSymbol)ifoo.GetMember("LibFunc");
+            mem = (MethodSymbol)igoo.GetMember("LibFunc");
             attrSym = mem.GetAttributes().First();
             Assert.Equal(1, attrSym.CommonConstructorArguments.Length);
             Assert.Equal(32, attrSym.CommonConstructorArguments[0].Value);
@@ -956,9 +956,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             //    V Method([param: DerivedAttribute(new sbyte[] {-1, 0, 1}, ObjectField = typeof(IList<>))]T t);
             //}
             // 
-            var ifoo = (NamedTypeSymbol)appNS.GetMember("IFoo");
+            var igoo = (NamedTypeSymbol)appNS.GetMember("IFoo");
             // attribute on type parameter of interface
-            var tp = ifoo.TypeParameters[0];
+            var tp = igoo.TypeParameters[0];
             var attrSym = tp.GetAttributes().First();
             Assert.Equal("AllInheritMultipleAttribute", attrSym.AttributeClass.Name);
             // p2 is optional
@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             // NYI: default optional
             // Assert.Equal(CByte(1), attrSym.ConstructorArguments[1].Value) 'enum
 
-            tp = ifoo.TypeParameters[1];
+            tp = igoo.TypeParameters[1];
             attrSym = tp.GetAttribute(attrObj1);
             Assert.Equal(3, attrSym.CommonConstructorArguments.Length);
             attrSym.VerifyValue(0, TypedConstantKind.Primitive, 'q');
@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             // attribute on method
             // [AllInheritMultiple(p3:1.234f, p2: 1056, p1: "555")]
-            var mtd = (MethodSymbol)ifoo.GetMember("Method");
+            var mtd = (MethodSymbol)igoo.GetMember("Method");
             Assert.Equal(1, mtd.GetAttributes().Length);
             attrSym = mtd.GetAttributes().First();
             Assert.Equal(4, attrSym.CommonConstructorArguments.Length);

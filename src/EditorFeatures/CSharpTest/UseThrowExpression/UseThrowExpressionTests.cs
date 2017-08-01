@@ -314,7 +314,7 @@ class C
 {
     private string _s;
 
-    void Foo()
+    void Goo()
     {
         Expression<Action<string>> e = s =>
         {

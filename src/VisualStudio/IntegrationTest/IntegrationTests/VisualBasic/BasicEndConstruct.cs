@@ -79,7 +79,7 @@ End Class");
         {
             SetUpEditor(@"
 Class C
-    Public Sub$$ Foo()
+    Public Sub$$ Goo()
     End Sub
 End Class");
 
@@ -87,7 +87,7 @@ End Class");
             VisualStudio.Editor.SendKeys("fu", VirtualKey.Tab);
             VisualStudio.Editor.Verify.TextContains(@"
 Class C
-    Public Function Foo()
+    Public Function Goo()
     End Function
 End Class");
         }

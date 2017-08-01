@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Const code = "
 {|span:'Hello
 'World|}
-Delegate Sub $$Foo()
+Delegate Sub $$Goo()
 "
             Await VerifyBlockSpansAsync(code,
                 Region("span", "' Hello ...", autoCollapse:=True))

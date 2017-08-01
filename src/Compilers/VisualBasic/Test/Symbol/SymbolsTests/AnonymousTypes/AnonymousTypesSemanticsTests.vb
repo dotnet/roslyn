@@ -161,7 +161,7 @@ End Module
                     Assert.Equal(1, members.Length)
                     Assert.Equal(member, members(0))
 
-                    ' IsImplicitlyDeclared: Return false. The foo = bar clause in 
+                    ' IsImplicitlyDeclared: Return false. The goo = bar clause in 
                     '                       the new { } clause serves as the declaration.
                     Assert.False(member.IsImplicitlyDeclared)
 
@@ -440,7 +440,7 @@ End Module
                     Assert.Equal(1, members.Length)
                     Assert.Equal(member, members(0))
 
-                    ' IsImplicitlyDeclared: Return true. The foo = bar clause initializes 
+                    ' IsImplicitlyDeclared: Return true. The goo = bar clause initializes 
                     '                       a property on the implicitly-declared type.
                     Assert.True(member.IsImplicitlyDeclared)
 
@@ -648,7 +648,7 @@ Module M
         Return Nothing
     End Function
 
-    Sub Foo(o As String)
+    Sub Goo(o As String)
         Dim at = [#0 New With {.f1 = o.ExtF, Key .f2 = .f1, .f3 = DirectCast(.f2, Integer)} 0#]
     End Sub
 
@@ -1790,11 +1790,11 @@ End Enum
 
 Structure S
     Public Shared sField As E
-    Public Interface IFoo
+    Public Interface IGoo
     End Interface
 
-    Public Property GetFoo As IFoo
-    Public Function GetFoo2() As Action(Of UShort)
+    Public Property GetGoo As IGoo
+    Public Function GetGoo2() As Action(Of UShort)
         Return Nothing
     End Function
 End Structure
@@ -1802,8 +1802,8 @@ End Structure
 Class AnonTypeTest
 
     Function F() As Action(Of UShort)
-        Dim anonType1 = New With {.a1 = New With {S.sField, .ifoo = New With {New S().GetFoo}}}
-        Dim anonType2 = New With {.a1 = New With {.a2 = New With {.a2 = S.sField, .a3 = New With {.a3 = New S().GetFoo2()}}}}
+        Dim anonType1 = New With {.a1 = New With {S.sField, .igoo = New With {New S().GetGoo}}}
+        Dim anonType2 = New With {.a1 = New With {.a2 = New With {.a2 = S.sField, .a3 = New With {.a3 = New S().GetGoo2()}}}}
         Return anonType2.a1.a2.a3.a3
     End Function
 End Class
@@ -1817,7 +1817,7 @@ End Class
             Assert.Equal(9, anonProps.Count())
             Dim symList = From ap In anonProps Let apsym = model.GetDeclaredSymbol(ap) Order By apsym.Name Select apsym.Name
             Dim results = String.Join(", ", symList)
-            Assert.Equal("a1, a1, a2, a2, a3, a3, GetFoo, ifoo, sField", results)
+            Assert.Equal("a1, a1, a2, a2, a3, a3, GetGoo, igoo, sField", results)
         End Sub
 
         <Fact>

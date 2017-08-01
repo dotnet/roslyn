@@ -66,7 +66,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If foo([|1 + 1|]) Then bar(1 + 1)
+        If goo([|1 + 1|]) Then bar(1 + 1)
     End Sub
 End Module",
 "Imports System
@@ -75,7 +75,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Const {|Rename:V|} As Integer = 1 + 1
-        If foo(V) Then bar(1 + 1)
+        If goo(V) Then bar(1 + 1)
     End Sub
 End Module",
 index:=2)
@@ -89,7 +89,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If foo([|1 + 1|]) Then bar(1 + 1)
+        If goo([|1 + 1|]) Then bar(1 + 1)
     End Sub
 End Module",
 "Imports System
@@ -98,7 +98,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Const {|Rename:V|} As Integer = 1 + 1
-        If foo(V) Then bar(V)
+        If goo(V) Then bar(V)
     End Sub
 End Module",
 index:=3)
@@ -112,7 +112,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If foo(1 + 1) Then bar([|1 + 1|])
+        If goo(1 + 1) Then bar([|1 + 1|])
     End Sub
 End Module",
 "Imports System
@@ -120,7 +120,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If foo(1 + 1) Then
+        If goo(1 + 1) Then
             Const {|Rename:V|} As Integer = 1 + 1
             bar(V)
         End If
@@ -137,7 +137,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If foo(1 + 1) Then bar([|1 + 1|])
+        If goo(1 + 1) Then bar([|1 + 1|])
     End Sub
 End Module",
 "Imports System
@@ -146,7 +146,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Const {|Rename:V|} As Integer = 1 + 1
-        If foo(V) Then bar(V)
+        If goo(V) Then bar(V)
     End Sub
 End Module",
 index:=3)
@@ -156,7 +156,7 @@ index:=3)
         Public Async Function TestNoIntroduceFieldOnMethodTypeParameter() As Task
             Dim source = "Module Program
     Sub Main(Of T)()
-        Foo([|CType(2.ToString(), T)|])
+        Goo([|CType(2.ToString(), T)|])
     End Sub
 End Module"
             Await TestExactActionSetOfferedAsync(
@@ -172,7 +172,7 @@ End Module"
         Public Async Function TestNoIntroduceFieldOnMethodParameter() As Task
             Dim source = "Module Program
     Sub Main(x As Integer)
-        Foo([|x.ToString()|])
+        Goo([|x.ToString()|])
     End Sub
 End Module"
             Await TestExactActionSetOfferedAsync(
@@ -199,7 +199,7 @@ End Module"
             Dim source = "Module Program
     Sub Main(x As Integer)
         If True Then
-            Foo([|x.ToString()|])
+            Goo([|x.ToString()|])
         End If
     End Sub
 End Module"
@@ -207,7 +207,7 @@ End Module"
     Sub Main(x As Integer)
         If True Then
             Dim {|Rename:v|} As String = x.ToString()
-            Foo(v)
+            Goo(v)
         End If
     End Sub
 End Module"
@@ -219,7 +219,7 @@ End Module"
             Dim source = "Module Program
     Sub Main(x As Integer)
         If True Then
-            Foo([|x.ToString()|])
+            Goo([|x.ToString()|])
         End If
     End Sub
 End Module"
@@ -227,7 +227,7 @@ End Module"
     Sub Main(x As Integer)
         If True Then
             Dim {|Rename:v|} As String = x.ToString()
-            Foo(v)
+            Goo(v)
         End If
     End Sub
 End Module"
@@ -329,20 +329,20 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestLocalFromSingleExpressionInObjectInitializer() As Task
             Dim source = "Module Program
-    Structure FooStruct
-        Dim FooMember1 As String
+    Structure GooStruct
+        Dim GooMember1 As String
     End Structure
     Sub Main(x As Integer)
-        Dim f1 = New FooStruct With {.FooMember1 = [|""t"" + ""test""|]}
+        Dim f1 = New GooStruct With {.GooMember1 = [|""t"" + ""test""|]}
     End Sub
 End Module"
             Dim expected = "Module Program
-    Structure FooStruct
-        Dim FooMember1 As String
+    Structure GooStruct
+        Dim GooMember1 As String
     End Structure
     Sub Main(x As Integer)
         Const {|Rename:V|} As String = ""t"" + ""test"" 
- Dim f1 = New FooStruct With {.FooMember1 = V}
+ Dim f1 = New GooStruct With {.GooMember1 = V}
     End Sub
 End Module"
             Await TestInRegularAndScriptAsync(source, expected, index:=2)
@@ -353,13 +353,13 @@ End Module"
             Dim code =
 "
 Module Program
-    Structure FooStruct
-        Dim FooMember1 As String
-        Dim FooMember2 As String
+    Structure GooStruct
+        Dim GooMember1 As String
+        Dim GooMember2 As String
     End Structure
     Sub Main(x As Integer)
-        Dim f1 = New FooStruct With {.FooMember1 = [|""t"" + ""test""|], .FooMember2 = ""t"" + ""test""}
-        Dim f2 = New FooStruct With {.FooMember1 = ""t"" + ""test"", .FooMember2 = ""t"" + ""test""}
+        Dim f1 = New GooStruct With {.GooMember1 = [|""t"" + ""test""|], .GooMember2 = ""t"" + ""test""}
+        Dim f2 = New GooStruct With {.GooMember1 = ""t"" + ""test"", .GooMember2 = ""t"" + ""test""}
         Dim str As String = ""t"" + ""test""
     End Sub
 End Module
@@ -368,14 +368,14 @@ End Module
             Dim expected =
 "
 Module Program
-    Structure FooStruct
-        Dim FooMember1 As String
-        Dim FooMember2 As String
+    Structure GooStruct
+        Dim GooMember1 As String
+        Dim GooMember2 As String
     End Structure
     Sub Main(x As Integer)
         Const {|Rename:V|} As String = ""t"" + ""test""
-        Dim f1 = New FooStruct With {.FooMember1 = V, .FooMember2 = V}
-        Dim f2 = New FooStruct With {.FooMember1 = V, .FooMember2 = V}
+        Dim f1 = New GooStruct With {.GooMember1 = V, .GooMember2 = V}
+        Dim f2 = New GooStruct With {.GooMember1 = V, .GooMember2 = V}
         Dim str As String = V
     End Sub
 End Module
@@ -388,7 +388,7 @@ End Module
             Dim source = "Class Program
     Dim q = New With {.str = [|""t"" + ""test""|]}
     Dim r = New With {.str = ""t"" + ""test""}
-    Sub Foo()
+    Sub Goo()
         Dim x = ""t"" + ""test"" 
  End Sub
 End Class"
@@ -396,7 +396,7 @@ End Class"
     Private Const {|Rename:V|} As String = ""t"" + ""test"" 
  Dim q = New With {.str = V}
     Dim r = New With {.str = V}
-    Sub Foo()
+    Sub Goo()
         Dim x = V
     End Sub
 End Class"
@@ -406,11 +406,11 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestPrivateFieldFromExpressionInField() As Task
             Dim source = "Class Program
-    Dim x = Foo([|2 + 2|])
+    Dim x = Goo([|2 + 2|])
 End Class"
             Dim expected = "Class Program
     Private Const {|Rename:V|} As Integer = 2 + 2
-    Dim x = Foo(V)
+    Dim x = Goo(V)
 End Class"
             Await TestInRegularAndScriptAsync(source, expected)
         End Function
@@ -418,7 +418,7 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNoLocalFromExpressionInField() As Task
             Dim source = "Class Program
-    Dim x = Foo([|2 + 2|])
+    Dim x = Goo([|2 + 2|])
 End Class"
             Await TestExactActionSetOfferedAsync(source, {String.Format(FeaturesResources.Introduce_constant_for_0, "2 + 2"), String.Format(FeaturesResources.Introduce_constant_for_all_occurrences_of_0, "2 + 2")})
         End Function
@@ -426,11 +426,11 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestSharedModifierAbsentInGeneratedModuleFields() As Task
             Dim source = "Module Program
-    Dim x = Foo([|2 + y|])
+    Dim x = Goo([|2 + y|])
 End Module"
             Dim expected = "Module Program
     Private ReadOnly {|Rename:p|} As Object = 2 + y
-    Dim x = Foo(p)
+    Dim x = Goo(p)
 End Module"
             Await TestInRegularAndScriptAsync(source, expected)
         End Function
@@ -441,7 +441,7 @@ End Module"
     Sub Method1()
         Dim v1 As String = ""TEST"" 
  Dim v2 As Integer = 2 + 2
-        Foo([|2 + 2|])
+        Goo([|2 + 2|])
     End Sub
 End Class"
             Dim expected = "Class Program
@@ -449,7 +449,7 @@ End Class"
         Dim v1 As String = ""TEST"" 
  Dim v2 As Integer = 2 + 2
         Const {|Rename:V|} As Integer = 2 + 2
-        Foo(V)
+        Goo(V)
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=2)
@@ -461,12 +461,12 @@ End Class"
         Public Async Function TestConstantFieldGenerationForParameterSingleOccurrence() As Task
             ' This is incorrect: the field type should be Integer, not Object
             Dim source = "Module Module1
-    Sub Foo(Optional x As Integer = [|42|])
+    Sub Goo(Optional x As Integer = [|42|])
     End Sub
 End Module"
             Dim expected = "Module Module1
     Private Const {|Rename:V|} As Integer = 42
-    Sub Foo(Optional x As Integer = V)
+    Sub Goo(Optional x As Integer = V)
     End Sub
 End Module"
             Await TestInRegularAndScriptAsync(source, expected)
@@ -478,14 +478,14 @@ End Module"
             Dim source = "Module Module1
     Sub Bar(Optional x As Integer = 42)
     End Sub
-    Sub Foo(Optional x As Integer = [|42|])
+    Sub Goo(Optional x As Integer = [|42|])
     End Sub
 End Module"
             Dim expected = "Module Module1
     Private Const {|Rename:V|} As Integer = 42
     Sub Bar(Optional x As Integer = V)
     End Sub
-    Sub Foo(Optional x As Integer = V)
+    Sub Goo(Optional x As Integer = V)
     End Sub
 End Module"
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
@@ -502,11 +502,11 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Console.WriteLine([|Foo.someVariable|])
-        Console.WriteLine(Foo.someVariable)
+        Console.WriteLine([|Goo.someVariable|])
+        Console.WriteLine(Goo.someVariable)
     End Sub
 End Module
-Friend Class Foo
+Friend Class Goo
     Shared Public someVariable As Integer
 End Class",
 "Imports System
@@ -514,12 +514,12 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Dim {|Rename:someVariable|} As Integer = Foo.someVariable
+        Dim {|Rename:someVariable|} As Integer = Goo.someVariable
         Console.WriteLine(someVariable)
         Console.WriteLine(someVariable)
     End Sub
 End Module
-Friend Class Foo
+Friend Class Goo
     Shared Public someVariable As Integer
 End Class",
 index:=1)
@@ -534,7 +534,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If True Then Foo([|2 + 2|])
+        If True Then Goo([|2 + 2|])
     End Sub
 End Module",
 "Imports System
@@ -544,7 +544,7 @@ Module Program
     Sub Main(args As String())
         If True Then
             Const {|Rename:V|} As Integer = 2 + 2
-            Foo(V)
+            Goo(V)
         End If
     End Sub
 End Module",
@@ -560,7 +560,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If True Then Foo([|1 + 1|]) Else Bar(1 + 1)
+        If True Then Goo([|1 + 1|]) Else Bar(1 + 1)
     End Sub
 End Module",
 "Imports System
@@ -570,7 +570,7 @@ Module Program
     Sub Main(args As String())
         If True Then
             Const {|Rename:V|} As Integer = 1 + 1
-            Foo(V)
+            Goo(V)
         Else
             Bar(1 + 1)
         End If
@@ -588,7 +588,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If True Then Foo([|1 + 1|]) Else Bar(1 + 1)
+        If True Then Goo([|1 + 1|]) Else Bar(1 + 1)
     End Sub
 End Module",
 "Imports System
@@ -597,7 +597,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Const {|Rename:V|} As Integer = 1 + 1
-        If True Then Foo(V) Else Bar(V)
+        If True Then Goo(V) Else Bar(V)
     End Sub
 End Module",
 index:=3)
@@ -612,7 +612,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If True Then Foo(1 + 1) Else Bar([|1 + 1|])
+        If True Then Goo(1 + 1) Else Bar([|1 + 1|])
     End Sub
 End Module",
 "Imports System
@@ -621,7 +621,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         If True Then
-            Foo(1 + 1)
+            Goo(1 + 1)
         Else
             Const {|Rename:V|} As Integer = 1 + 1
             Bar(V)
@@ -640,7 +640,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(Of T)(x As Integer)
-        Foo([|CType(2.ToString(), T)|])
+        Goo([|CType(2.ToString(), T)|])
     End Sub
 End Module",
 count:=2)
@@ -655,7 +655,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(Of T)(x As Integer)
-        Foo([|CType(2.ToString(), T)|])
+        Goo([|CType(2.ToString(), T)|])
     End Sub
 End Module",
 "Imports System
@@ -664,7 +664,7 @@ Imports System.Linq
 Module Program
     Sub Main(Of T)(x As Integer)
         Dim {|Rename:t1|} As T = CType(2.ToString(), T)
-        Foo(t1)
+        Goo(t1)
     End Sub
 End Module")
         End Function
@@ -673,7 +673,7 @@ End Module")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestOnlyFieldsInsideConstructorInitializer() As Task
             Await TestActionCountAsync(
-"Class Foo
+"Class Goo
     Sub New()
         Me.New([|2 + 2|])
     End Sub
@@ -683,14 +683,14 @@ End Class",
 count:=2)
 
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Sub New()
         Me.New([|2 + 2|])
     End Sub
     Sub New(v As Integer)
     End Sub
 End Class",
-"Class Foo
+"Class Goo
     Private Const {|Rename:V|} As Integer = 2 + 2
     Sub New()
         Me.New(V)
@@ -800,13 +800,13 @@ End Module
         Public Async Function TestInAttribute1() As Task
             Await TestInRegularAndScriptAsync(
 "<Attr([|2 + 2|])>
-Class Foo
+Class Goo
 End Class
 Friend Class AttrAttribute
     Inherits Attribute
 End Class",
-"<Attr(Foo.V)>
-Class Foo
+"<Attr(Goo.V)>
+Class Goo
     Friend Const {|Rename:V|} As Integer = 2 + 2
 End Class
 Friend Class AttrAttribute
@@ -818,14 +818,14 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestInMyClassNew() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Sub New()
         MyClass.New([|42|])
     End Sub
     Sub New(x As Integer)
     End Sub
 End Class",
-"Class Foo
+"Class Goo
     Private Const {|Rename:X|} As Integer = 42
     Sub New()
         MyClass.New(X)
@@ -843,7 +843,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If True Then Foo([|2 + 2|]) Else Bar(2 + 2)
+        If True Then Goo([|2 + 2|]) Else Bar(2 + 2)
     End Sub
 End Module",
 "Imports System
@@ -853,7 +853,7 @@ Module Program
     Sub Main(args As String())
         If True Then
             Const {|Rename:V|} As Integer = 2 + 2
-            Foo(V)
+            Goo(V)
         Else
             Bar(2 + 2)
         End If
@@ -870,7 +870,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If True Then Foo([|2 + 2|]) Else Bar(2 + 2)
+        If True Then Goo([|2 + 2|]) Else Bar(2 + 2)
     End Sub
 End Module",
 "Imports System
@@ -879,7 +879,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Const {|Rename:V|} As Integer = 2 + 2
-        If True Then Foo(V) Else Bar(V)
+        If True Then Goo(V) Else Bar(V)
     End Sub
 End Module",
 index:=3)
@@ -893,7 +893,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If True Then Foo(2 + 2) Else Bar([|2 + 2|])
+        If True Then Goo(2 + 2) Else Bar([|2 + 2|])
     End Sub
 End Module",
 "Imports System
@@ -902,7 +902,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         If True Then
-            Foo(2 + 2)
+            Goo(2 + 2)
         Else
             Const {|Rename:V|} As Integer = 2 + 2
             Bar(V)
@@ -920,7 +920,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        If True Then Foo(2 + 2) Else Bar([|2 + 2|])
+        If True Then Goo(2 + 2) Else Bar([|2 + 2|])
     End Sub
 End Module",
 "Imports System
@@ -929,7 +929,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Const {|Rename:V|} As Integer = 2 + 2
-        If True Then Foo(V) Else Bar(V)
+        If True Then Goo(V) Else Bar(V)
     End Sub
 End Module",
 index:=3)
@@ -940,13 +940,13 @@ index:=3)
         Public Async Function TestAttribute() As Task
             Await TestInRegularAndScriptAsync(
 "<Attr([|2 + 2|])>
-Class Foo
+Class Goo
 End Class
 Friend Class AttrAttribute
     Inherits System.Attribute
 End Class",
-"<Attr(Foo.V)>
-Class Foo
+"<Attr(Goo.V)>
+Class Goo
     Friend Const {|Rename:V|} As Integer = 2 + 2
 End Class
 Friend Class AttrAttribute
@@ -1027,21 +1027,21 @@ End Module")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestFieldConstantInAttribute1() As Task
             Await TestInRegularAndScriptAsync(
-"<Foo(2 + 3 + 4)>
+"<Goo(2 + 3 + 4)>
 Module Program
     Dim x = [|2 + 3|] + 4
 End Module
-Friend Class FooAttribute
+Friend Class GooAttribute
     Inherits Attribute
     Sub New(x As Integer)
     End Sub
 End Class",
-"<Foo(2 + 3 + 4)>
+"<Goo(2 + 3 + 4)>
 Module Program
     Private Const {|Rename:V|} As Integer = 2 + 3
     Dim x = V + 4
 End Module
-Friend Class FooAttribute
+Friend Class GooAttribute
     Inherits Attribute
     Sub New(x As Integer)
     End Sub
@@ -1052,21 +1052,21 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestFieldConstantInAttribute2() As Task
             Await TestAsync(
-"<Foo(2 + 3 + 4)>
+"<Goo(2 + 3 + 4)>
 Module Program
     Dim x = [|2 + 3|] + 4
 End Module
-Friend Class FooAttribute
+Friend Class GooAttribute
     Inherits Attribute
     Sub New(x As Integer)
     End Sub
 End Class",
-"<Foo(V + 4)>
+"<Goo(V + 4)>
 Module Program
     Friend Const {|Rename:V|} As Integer = 2 + 3
     Dim x = V + 4
 End Module
-Friend Class FooAttribute
+Friend Class GooAttribute
     Inherits Attribute
     Sub New(x As Integer)
     End Sub
@@ -1123,14 +1123,14 @@ End Module")
             Await TestMissingInRegularAndScriptAsync(
 "Class c1
     Public res As String
-    Sub Foo()
+    Sub Goo()
         res = ""1"" 
  End Sub
 End Class
 Class c2
     Inherits c1
     Sub scen1()
-        [|MyBase|].Foo()
+        [|MyBase|].Goo()
     End Sub
 End Class")
         End Function
@@ -1415,14 +1415,14 @@ End Module")
         Public Async Function TestCaseInsensitiveNameConflict() As Task
             Await TestInRegularAndScriptAsync(
 "Class M
-    Public Function Foo()
-        Return [|Me.Foo|] * 0
+    Public Function Goo()
+        Return [|Me.Goo|] * 0
     End Function
 End Class",
 "Class M
-    Public Function Foo()
-        Dim {|Rename:foo1|} As Object = Me.Foo
-        Return foo1 * 0
+    Public Function Goo()
+        Dim {|Rename:goo1|} As Object = Me.Goo
+        Return goo1 * 0
     End Function
 End Class")
         End Function
@@ -1610,7 +1610,7 @@ End Module")
     End Sub
 End Class
 <Test([|a|]:=5)>
-Class Foo
+Class Goo
 End Class")
         End Function
 
@@ -1719,12 +1719,12 @@ End Class
         Public Async Function TestNoRefactoringOnAddressOfExpression() As Task
             Dim source = "Imports System
 Module Module1
-    Public Sub Foo(ByVal a1 As Exception)
+    Public Sub Goo(ByVal a1 As Exception)
     End Sub
-    Public Sub foo(ByVal a1 As Action(Of ArgumentException))
+    Public Sub goo(ByVal a1 As Action(Of ArgumentException))
     End Sub
     Sub Main()
-        Foo(New Action(Of Exception)([|AddressOf Foo|]))
+        Goo(New Action(Of Exception)([|AddressOf Goo|]))
     End Sub
 End Module"
             Await TestMissingInRegularAndScriptAsync(source)
@@ -1735,12 +1735,12 @@ End Module"
         Public Async Function TestMissingOnAddressOfInDelegate() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Module1
-    Public Sub Foo(ByVal a1 As Exception)
+    Public Sub Goo(ByVal a1 As Exception)
     End Sub
-    Public Sub foo(ByVal a1 As Action(Of ArgumentException))
+    Public Sub goo(ByVal a1 As Action(Of ArgumentException))
     End Sub
     Sub Main()
-        foo(New Action(Of Exception)([|AddressOf Foo|]))
+        goo(New Action(Of Exception)([|AddressOf Goo|]))
     End Sub
 End Module")
         End Function
@@ -1787,7 +1787,7 @@ End Module")
             Dim code =
 "
 Module Module1
-    Public Sub foo(Optional ByVal arg = ([|""a""|]) & ""b"")
+    Public Sub goo(Optional ByVal arg = ([|""a""|]) & ""b"")
     End Sub
 End Module
 "
@@ -1797,7 +1797,7 @@ End Module
 Module Module1
     Private Const {|Rename:V|} As String = ""a""
 
-    Public Sub foo(Optional ByVal arg = V & ""b"")
+    Public Sub goo(Optional ByVal arg = V & ""b"")
     End Sub
 End Module
 "
@@ -1811,8 +1811,8 @@ End Module
             Dim code =
 "
 Class C
-    Sub Foo()
-#ExternalSource (""Foo"", 1)
+    Sub Goo()
+#ExternalSource (""Goo"", 1)
         Console.WriteLine([|5|])
 #End ExternalSource
    End Sub
@@ -1822,8 +1822,8 @@ End Class
             Dim expected =
 "
 Class C
-    Sub Foo()
-#ExternalSource (""Foo"", 1)
+    Sub Goo()
+#ExternalSource (""Goo"", 1)
         Const {|Rename:V|} As Integer = 5
         Console.WriteLine(V)
 #End ExternalSource
@@ -1844,8 +1844,8 @@ End Class
             Dim code =
 "
 Class C
-#ExternalSource (""Foo"", 1)
-    Sub Foo()
+#ExternalSource (""Goo"", 1)
+    Sub Goo()
         If False Then
             Console.WriteLine([|5|])
         End If
@@ -1865,8 +1865,8 @@ End Class
             Dim code =
 "
 Class C
-    Sub Foo()
-#ExternalSource (""Foo"", 1)
+    Sub Goo()
+#ExternalSource (""Goo"", 1)
         If False Then
             Console.WriteLine([|5|])
         End If
@@ -1878,8 +1878,8 @@ End Class
             Dim expected =
 "
 Class C
-    Sub Foo()
-#ExternalSource (""Foo"", 1)
+    Sub Goo()
+#ExternalSource (""Goo"", 1)
         If False Then
             Const {|Rename:V|} As Integer = 5
             Console.WriteLine(V)
@@ -1904,19 +1904,19 @@ End Class
 
 Class C
     Shared Sub Main()
-        Dim x = [|New C().Foo()|](0)
+        Dim x = [|New C().Goo()|](0)
     End Sub
-    Function Foo() As Integer()
+    Function Goo() As Integer()
     End Function
 End Class",
 "Option Strict On
 
 Class C
     Shared Sub Main()
-        Dim {|Rename:v|} As Integer() = New C().Foo()
+        Dim {|Rename:v|} As Integer() = New C().Goo()
         Dim x = v(0)
     End Sub
-    Function Foo() As Integer()
+    Function Goo() As Integer()
     End Function
 End Class")
         End Function
@@ -1968,11 +1968,11 @@ parseOptions:=GetScriptOptions())
 "
 Module A
     Sub Main()
-        Foo([|1|])
+        Goo([|1|])
     End Sub
-    Sub Foo(ByRef x As Long)
+    Sub Goo(ByRef x As Long)
     End Sub
-    Sub Foo(x As String)
+    Sub Goo(x As String)
     End Sub
 End Module
 "
@@ -1985,20 +1985,20 @@ End Module
         Public Async Function TestAcrossPartialTypes() As Task
             Await TestInRegularAndScriptAsync(
 "Partial Class C
-    Sub foo1(Optional x As String = [|""HELLO""|])
+    Sub goo1(Optional x As String = [|""HELLO""|])
     End Sub
 End Class
 Partial Class C
-    Sub foo3(Optional x As String = ""HELLO"")
+    Sub goo3(Optional x As String = ""HELLO"")
     End Sub
 End Class",
 "Partial Class C
     Private Const {|Rename:V|} As String = ""HELLO"" 
- Sub foo1(Optional x As String = V)
+ Sub goo1(Optional x As String = V)
     End Sub
 End Class
 Partial Class C
-    Sub foo3(Optional x As String = V)
+    Sub goo3(Optional x As String = V)
     End Sub
 End Class",
 index:=1)
@@ -2010,14 +2010,14 @@ index:=1)
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Dim a1 = Function(ByVal x) [|x!foo|]
+        Dim a1 = Function(ByVal x) [|x!goo|]
     End Sub
 End Module",
 "Module Program
     Sub Main(args As String())
         Dim a1 = Function(ByVal x)
-                     Dim {|Rename:foo|} As Object = x!foo
-                     Return foo
+                     Dim {|Rename:goo|} As Object = x!goo
+                     Return goo
                  End Function
     End Sub
 End Module")
@@ -2133,7 +2133,7 @@ End Module
 "
 Module Program
     Sub Main()
-        Dim a = Function(c) [|c!foo|]
+        Dim a = Function(c) [|c!goo|]
     End Sub
 End Module
 "
@@ -2143,8 +2143,8 @@ End Module
 Module Program
     Sub Main()
         Dim a = Function(c)
-                    Dim {|Rename:foo|} As Object = c!foo
-                    Return foo
+                    Dim {|Rename:goo|} As Object = c!goo
+                    Return goo
                 End Function
     End Sub
 End Module

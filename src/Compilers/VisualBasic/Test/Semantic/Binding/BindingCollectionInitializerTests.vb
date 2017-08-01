@@ -369,7 +369,7 @@ Class C1
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Public Shar ... End Sub')
   Locals: Local_1: a As C2
     Local_2: b As C2

@@ -23,16 +23,16 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable
+    Public Iterator Function goo As IEnumerable
         'valid
     End Function
 
-    Public Iterator Function foo1 As IEnumerable
+    Public Iterator Function goo1 As IEnumerable
         'valid
         Return
     End Function
 
-    Public Iterator Function foo2 As IEnumerable
+    Public Iterator Function goo2 As IEnumerable
         'valid
         Exit Function
     End Function
@@ -58,7 +58,7 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable
+    Public Iterator Function goo As IEnumerable
 
         'valid
         Return
@@ -95,12 +95,12 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable
+    Public Iterator Function goo As IEnumerable
         'valid
         Yield 123
     End Function
 
-    Public Function foo1 As IEnumerable
+    Public Function goo1 As IEnumerable
         'error
         Yield 123
     End Function
@@ -117,7 +117,7 @@ BC30451: 'Yield' is not declared. It may be inaccessible due to its protection l
 BC30800: Method arguments must be enclosed in parentheses.
         Yield 123
               ~~~
-BC42105: Function 'foo1' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+BC42105: Function 'goo1' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
     End Function
     ~~~~~~~~~~~~
 </errors>)
@@ -138,7 +138,7 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable
+    Public Iterator Function goo As IEnumerable
         Dim o as object
         Yield o
         
@@ -164,7 +164,7 @@ BC42104: Variable 'o' is used before it has been assigned a value. A null refere
             <file name="a.b"><![CDATA[
 Class C
 
-    Public Iterator Function foo() As IEnumerable
+    Public Iterator Function goo() As IEnumerable
 
         Dim o As Object = 1
 
@@ -213,7 +213,7 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable
+    Public Iterator Function goo As IEnumerable
 
         Try
             'valid
@@ -236,7 +236,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC32042: Too few type arguments to 'IEnumerable(Of Out T)'.
-    Public Iterator Function foo As IEnumerable
+    Public Iterator Function goo As IEnumerable
                                     ~~~~~~~~~~~
 BC36939: 'Yield' cannot be used inside a 'Catch' statement or a 'Finally' statement.
             Yield 1
@@ -262,7 +262,7 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable(of Exception)
+    Public Iterator Function goo As IEnumerable(of Exception)
         Yield 1       
     End Function
 
@@ -294,7 +294,7 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable(of Exception)
+    Public Iterator Function goo As IEnumerable(of Exception)
         Yield P1
     End Function
 
@@ -332,11 +332,11 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable(of Func(of Integer, Integer))
+    Public Iterator Function goo As IEnumerable(of Func(of Integer, Integer))
         Yield Function() New Long
     End Function
 
-    Public Iterator Function foo1 As IEnumerable(of Func(of String, Short, Integer))
+    Public Iterator Function goo1 As IEnumerable(of Func(of String, Short, Integer))
         Yield Function(x, y) x.length + y
     End Function
 
@@ -764,14 +764,14 @@ Module Program
                                        Yield 1
                                    End Function
 
-        foo(i)
+        goo(i)
 
         bar(Iterator Function()
                 Yield 1
             End Function)
     End Sub
 
-    Public Sub foo(Of T)(x As Func(Of T))
+    Public Sub goo(Of T)(x As Func(Of T))
         Console.WriteLine(GetType(T))
         Console.WriteLine(x.GetType())
     End Sub
@@ -874,10 +874,10 @@ Imports System.Collections
 Imports System.Collections.Generic
 
 Module ModuleChanges2
-    Sub Foo(x1 As Func(Of IEnumerable(Of Object)))
+    Sub Goo(x1 As Func(Of IEnumerable(Of Object)))
         System.Console.WriteLine("Object")
     End Sub
-    Sub Foo(x2 As Func(Of IEnumerable(Of Integer)))
+    Sub Goo(x2 As Func(Of IEnumerable(Of Integer)))
         System.Console.WriteLine("Integer")
     End Sub
     Sub Bar(x1 As Func(Of IEnumerable(Of Object)))
@@ -888,7 +888,7 @@ End Module
 Module Program
 
     Sub Main()
-        Foo(Iterator Function()
+        Goo(Iterator Function()
                 Yield 2.0
             End Function)
         Bar(Iterator Function()

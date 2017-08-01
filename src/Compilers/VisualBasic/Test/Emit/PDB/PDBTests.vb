@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
         <Fact>
         Public Sub EmitDebugInfoForSourceTextWithoutEncoding1()
-            Dim tree1 = SyntaxFactory.ParseSyntaxTree("Class A : End Class", path:="Foo.vb", encoding:=Nothing)
+            Dim tree1 = SyntaxFactory.ParseSyntaxTree("Class A : End Class", path:="Goo.vb", encoding:=Nothing)
             Dim tree2 = SyntaxFactory.ParseSyntaxTree("Class B : End Class", path:="", encoding:=Nothing)
             Dim tree3 = SyntaxFactory.ParseSyntaxTree(SourceText.From("Class C : End Class", encoding:=Nothing), path:="Bar.vb")
             Dim tree4 = SyntaxFactory.ParseSyntaxTree("Class D : End Class", path:="Baz.vb", encoding:=Encoding.UTF8)
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
         <Fact>
         Public Sub EmitDebugInfoForSourceTextWithoutEncoding2()
-            Dim tree1 = SyntaxFactory.ParseSyntaxTree("Class A" & vbCrLf & "Sub F() : End Sub : End Class", path:="Foo.vb", encoding:=Encoding.Unicode)
+            Dim tree1 = SyntaxFactory.ParseSyntaxTree("Class A" & vbCrLf & "Sub F() : End Sub : End Class", path:="Goo.vb", encoding:=Encoding.Unicode)
             Dim tree2 = SyntaxFactory.ParseSyntaxTree("Class B" & vbCrLf & "Sub F() : End Sub : End Class", path:="", encoding:=Nothing)
             Dim tree3 = SyntaxFactory.ParseSyntaxTree("Class C" & vbCrLf & "Sub F() : End Sub : End Class", path:="Bar.vb", encoding:=New UTF8Encoding(True, False))
             Dim tree4 = SyntaxFactory.ParseSyntaxTree(SourceText.From("Class D" & vbCrLf & "Sub F() : End Sub : End Class", New UTF8Encoding(False, False)), path:="Baz.vb")
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
             comp.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="Foo.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=<%= checksum1 %>/>
+        <file id="1" name="Goo.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=<%= checksum1 %>/>
         <file id="2" name="Bar.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=<%= checksum3 %>/>
         <file id="3" name="Baz.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=<%= checksum4 %>/>
     </files>
@@ -3220,7 +3220,7 @@ Option Strict Off
 Option Explicit Off
 Imports System
 
-Class FooDerived
+Class GooDerived
     Public Sub ComputeMatrix(ByVal rank As Integer)
         Dim I As Integer
         Dim J As Long
@@ -3245,7 +3245,7 @@ End Class
 
 Module Variety
     Sub Main()
-        Dim a As New FooDerived()
+        Dim a As New GooDerived()
         a.ComputeMatrix(2)
     End Sub
 End Module
@@ -3257,11 +3257,11 @@ End Module
                     source,
                     TestOptions.DebugExe)
 
-            compilation.VerifyPdb("FooDerived.ComputeMatrix",
+            compilation.VerifyPdb("GooDerived.ComputeMatrix",
 <symbols>
     <entryPoint declaringType="Variety" methodName="Main"/>
     <methods>
-        <method containingType="FooDerived" name="ComputeMatrix" parameterNames="rank">
+        <method containingType="GooDerived" name="ComputeMatrix" parameterNames="rank">
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
@@ -3544,10 +3544,10 @@ Imports System
 Module Module1
 
     Sub Main()
-        Const foo as String = "<%= longStringValue %>"
+        Const goo as String = "<%= longStringValue %>"
 
         Console.WriteLine("Hello Word.")
-        Console.WriteLine(foo)
+        Console.WriteLine(goo)
     End Sub
 End Module
 </file>
@@ -3562,7 +3562,7 @@ End Module
 
             'this new warning was abandoned
 
-            'result.Diagnostics.Verify(Diagnostic(ERRID.WRN_PDBConstantStringValueTooLong).WithArguments("foo", longStringValue.Substring(0, 20) & "..."))
+            'result.Diagnostics.Verify(Diagnostic(ERRID.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) & "..."))
 
             ''ensure that the warning is suppressable
             'compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(False).
@@ -3575,8 +3575,8 @@ End Module
             '    WithSpecificDiagnosticOptions(New Dictionary(Of Integer, ReportWarning) From {{CInt(ERRID.WRN_PDBConstantStringValueTooLong), ReportWarning.Error}}))
             'result = compilation.Emit(exebits, Nothing, "DontCare", pdbbits, Nothing)
             'Assert.False(result.Success)
-            'result.Diagnostics.Verify(Diagnostic(ERRID.WRN_PDBConstantStringValueTooLong).WithArguments("foo", longStringValue.Substring(0, 20) & "...").WithWarningAsError(True),
-            '                              Diagnostic(ERRID.ERR_WarningTreatedAsError).WithArguments("The value assigned to the constant string 'foo' is too long to be used in a PDB file. Consider shortening the value, otherwise the string's value will not be visible in the debugger. Only the debug experience is affected."))
+            'result.Diagnostics.Verify(Diagnostic(ERRID.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) & "...").WithWarningAsError(True),
+            '                              Diagnostic(ERRID.ERR_WarningTreatedAsError).WithArguments("The value assigned to the constant string 'goo' is too long to be used in a PDB file. Consider shortening the value, otherwise the string's value will not be visible in the debugger. Only the debug experience is affected."))
 
         End Sub
 

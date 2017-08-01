@@ -55,12 +55,12 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
-        [||]If a.Foo() Then a() Else b()
+        [||]If a.Goo() Then a() Else b()
     End Sub
 End Module",
 "Module Program
     Sub Main()
-        If Not a.Foo() Then b() Else a()
+        If Not a.Goo() Then b() Else a()
     End Sub
 End Module")
         End Function
@@ -486,7 +486,7 @@ End Module")
 "Module Program
     Sub Main()
 #End ExternalSource
-        foo()
+        goo()
 #ExternalSource File.vb 1 
         [||]If a Then
             a()
@@ -498,7 +498,7 @@ End Module",
 "Module Program
     Sub Main()
 #End ExternalSource
-        foo()
+        goo()
 #ExternalSource File.vb 1 
         If Not a Then
             b()
@@ -672,7 +672,7 @@ End Module")
 "Module Program
     Sub Main()
         [||]If a Then
-            foo()
+            goo()
             bar()
         Else
             you()
@@ -686,7 +686,7 @@ End Module",
             you()
             too()
         Else
-            foo()
+            goo()
             bar()
         End If
     End Sub
@@ -1247,11 +1247,11 @@ End Module
 <File>
 Module A
     Sub Main()
-        [||]If True Then : Foo : Foo
+        [||]If True Then : Goo : Goo
         Else
         End If
     End Sub
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module
 </File>
@@ -1261,10 +1261,10 @@ End Module
 Module A
     Sub Main()
         If False Then : Else
-            Foo() : Foo
+            Goo() : Goo
         End If
     End Sub
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module
 </File>
@@ -1279,15 +1279,15 @@ End Module
 <File>
     Module Program
         Sub Main()
-            Foo(Function(take)
+            Goo(Function(take)
                     [||]If True Then Console.WriteLine("true") Else Console.WriteLine("false")
                     take$.ToString()
                     Return Function() 1
                 End Function)
         End Sub
-        Sub Foo(Of T)(x As Func(Of String, T))
+        Sub Goo(Of T)(x As Func(Of String, T))
         End Sub
-        Sub Foo(Of T)(x As Func(Of Integer, T))
+        Sub Goo(Of T)(x As Func(Of Integer, T))
         End Sub
     End Module
 </File>
@@ -1296,15 +1296,15 @@ End Module
 <File>
     Module Program
         Sub Main()
-            Foo(Function(take)
+            Goo(Function(take)
                     If False Then Console.WriteLine("false") Else Console.WriteLine("true")
                     take$.ToString()
                     Return Function() 1
                 End Function)
         End Sub
-        Sub Foo(Of T)(x As Func(Of String, T))
+        Sub Goo(Of T)(x As Func(Of String, T))
         End Sub
-        Sub Foo(Of T)(x As Func(Of Integer, T))
+        Sub Goo(Of T)(x As Func(Of Integer, T))
         End Sub
     End Module
 </File>

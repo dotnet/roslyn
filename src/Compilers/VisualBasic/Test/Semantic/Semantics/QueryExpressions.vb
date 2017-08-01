@@ -487,7 +487,7 @@ Module Module1
     Sub Main()
         Dim q As New QueryAble2()
         Dim q1 As Object = From s In q
-        Dim q2 As Object = From s In q Where s.Foo()
+        Dim q2 As Object = From s In q Where s.Goo()
     End Sub
 End Module
     </file>
@@ -501,7 +501,7 @@ BC36593: Expression of type 'QueryAble2' is not queryable. Make sure you are not
         Dim q1 As Object = From s In q
                                      ~
 BC36593: Expression of type 'QueryAble2' is not queryable. Make sure you are not missing an assembly reference and/or namespace import for the LINQ provider.
-        Dim q2 As Object = From s In q Where s.Foo()
+        Dim q2 As Object = From s In q Where s.Goo()
                                      ~
 </expected>)
 
@@ -2080,14 +2080,14 @@ End Class
 
 Module Module1
 
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         Return x
     End Function
 
     Sub Main()
         Dim q As New QueryAble()
         Dim q1 As Object = From s In q Select x% = s
-        Dim q2 As Object = From s In q Select Foo(s)
+        Dim q2 As Object = From s In q Select Goo(s)
         Dim q3 As Object = From s In q Select  = s
         Dim q4 As Object = From s In q Where Date.Now() Select s
         Dim q5 As Object = From s In q Select s.Equals(0)
@@ -9806,7 +9806,7 @@ Imports System
 Imports System.Linq
 
         Module m1
-            Sub foo(y As ArgIterator)
+            Sub goo(y As ArgIterator)
                 Dim col = New Integer() {1, 2}
                 Dim x As New ArgIterator
                 Dim q1 = From i In col Where x.GetRemainingCount > 0 Select a = 1

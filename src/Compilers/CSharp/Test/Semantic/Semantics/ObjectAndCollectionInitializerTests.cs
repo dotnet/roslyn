@@ -101,13 +101,13 @@ class Base
     public int y { get; set; }
     public static void Main()
     {
-        MemberInitializerTest<Base>.Foo();
+        MemberInitializerTest<Base>.Goo();
     }
 }
 
-class MemberInitializerTest<T> where T : Base, new()
-{
-    public static void Foo()
+public class MemberInitializerTest<T> where T: Base, new()
+{   
+    public static void Goo()
     {
         var i = /*<bind>*/new T() { x = 0, y = 0 }/*</bind>*/;
     }
@@ -1212,10 +1212,10 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: X, IsInvalid) (Syntax
             string source = @"
 static class Ext
 {
-    static int Width(this Foo f) { return 0; }
+    static int Width(this Goo f) { return 0; }
 }
 
-class Foo
+class Goo
 {
     void M()
     {
@@ -1409,7 +1409,7 @@ using System.Collections.Generic;
 class MemberInitializerTest
 {
     public int x;
-    static MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    static MemberInitializerTest Goo() { return new MemberInitializerTest(); }
 
     public static void Main()
     {

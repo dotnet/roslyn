@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestMethodFix1()
         {
             await TestAsync(
-@"void Foo()
+@"void Goo()
 {
     Bar([|1 + 1|]);
     Bar(1 + 1);
 }",
-@"void Foo()
+@"void Goo()
 {
     const int {|Rename:V|} = 1 + 1;
     Bar(V);
@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestMethodFix2()
         {
             await TestAsync(
-@"void Foo()
+@"void Goo()
 {
     Bar([|1 + 1|]);
     Bar(1 + 1);
 }",
-@"void Foo()
+@"void Goo()
 {
     const int {|Rename:V|} = 1 + 1;
     Bar(V);
@@ -114,13 +114,13 @@ void Bar(int i = V, int j = V)
         public async Task TestAttributeFix1()
         {
             await TestAsync(
-@"[Foo([|1 + 1|], 1 + 1)]
+@"[Goo([|1 + 1|], 1 + 1)]
 void Bar()
 {
 }",
 @"private const int {|Rename:V|} = 1 + 1;
 
-[Foo(V, 1 + 1)]
+[Goo(V, 1 + 1)]
 void Bar()
 {
 }",
@@ -131,13 +131,13 @@ void Bar()
         public async Task TestAttributeFix2()
         {
             await TestAsync(
-@"[Foo([|1 + 1|], 1 + 1)]
+@"[Goo([|1 + 1|], 1 + 1)]
 void Bar()
 {
 }",
 @"private const int {|Rename:V|} = 1 + 1;
 
-[Foo(V, V)]
+[Goo(V, V)]
 void Bar()
 {
 }",

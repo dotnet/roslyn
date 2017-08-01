@@ -593,7 +593,7 @@ Imports System
 Class C1
     Public ReadOnly Property X As String
         Get
-            Return "foo"
+            Return "goo"
         End Get
     End Property
 
@@ -666,7 +666,7 @@ BC30064: 'ReadOnly' variable cannot be the target of an assignment.
 Class C1
     Public Property X As String
         Get
-            Return "foo"
+            Return "goo"
         End Get
         Private Set
         End Set
@@ -761,10 +761,10 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
 
             Dim expectedDiagnostics = <![CDATA[
 BC30517: Overload resolution failed because no 'New' is accessible.
-        Dim x As New C3() With {.X = "foo"}
+        Dim x As New C3() With {.X = "goo"}
                      ~~
 BC30456: 'X' is not a member of 'C3'.
-        Dim x As New C3() With {.X = "foo"}
+        Dim x As New C3() With {.X = "goo"}
                                  ~
 BC30517: Overload resolution failed because no 'New' is accessible.
         x = New C3() With {.X = Unknown()}
@@ -785,14 +785,14 @@ BC30451: 'Unknown' is not declared. It may be inaccessible due to its protection
             Dim source = <![CDATA[
 Imports System
 
-Interface IFoo
+Interface IGoo
     Property Bar As Integer
 End Interface
 
 Class C2
-    Implements IFoo
+    Implements IGoo
 
-    Public Property Bar As Integer Implements IFoo.Bar
+    Public Property Bar As Integer Implements IGoo.Bar
 End Class
 
 Class C1
@@ -1575,77 +1575,77 @@ End Class
 Structure NonEmptyStructure
     Public RefField1 As String
     Public ValField1 As Integer
-    Public Property Foo As String
+    Public Property Goo As String
 End Structure
 
 Structure EmptyStructure
-    Public Property Foo1 As Integer
-    Public Property Foo2 As String
+    Public Property Goo1 As Integer
+    Public Property Goo2 As String
 End Structure
 
 Class RefClass
     Public RefField1 As String
     Public ValField1 As Integer
-    Public Property Foo As String
-    Public Property Foo1 As Integer
-    Public Property Foo2 As String
+    Public Property Goo As String
+    Public Property Goo1 As Integer
+    Public Property Goo2 As String
 End Class
 
 Interface IMissingStuff2
-    Property Foo1 As Integer
-    Property Foo2 As String
+    Property Goo1 As Integer
+    Property Goo2 As String
 End Interface
 
 Class ObjectInitializerClass
     Public Sub TypeParameterNotDefined(Of T As {IMissingStuff2, New})()
-        Dim var20 As New T() With {.Foo1 = .Foo2.Length}                        ' Receiver type unknown, no warning
-        Dim var21 As New T() With {.Foo1 = var21.Foo2.Length}                   ' Receiver type unknown, no warning
-        Dim var22 As T = New T() With {.Foo1 = .Foo2.Length}                    ' Receiver type unknown, no warning
-        Dim var23 As T = New T() With {.Foo1 = var23.Foo2.Length}               ' Receiver type unknown, no warning
+        Dim var20 As New T() With {.Goo1 = .Goo2.Length}                        ' Receiver type unknown, no warning
+        Dim var21 As New T() With {.Goo1 = var21.Goo2.Length}                   ' Receiver type unknown, no warning
+        Dim var22 As T = New T() With {.Goo1 = .Goo2.Length}                    ' Receiver type unknown, no warning
+        Dim var23 As T = New T() With {.Goo1 = var23.Goo2.Length}               ' Receiver type unknown, no warning
     End Sub
 
     Public Sub TypeParameterAsStructure(Of T As {Structure, IMissingStuff2})()
-        Dim var24 As New T() With {.Foo1 = .Foo2.Length}                        ' no local referenced, no warning
-        Dim var25 As New T() With {.Foo1 = var25.Foo2.Length}                   ' inplace initialized, no warning
-        Dim var26 As T = New T() With {.Foo1 = .Foo2.Length}                    ' no local referenced, no warning
-        Dim var27 As T = New T() With {.Foo1 = var27.Foo2.Length}               ' temporary used, warning
+        Dim var24 As New T() With {.Goo1 = .Goo2.Length}                        ' no local referenced, no warning
+        Dim var25 As New T() With {.Goo1 = var25.Goo2.Length}                   ' inplace initialized, no warning
+        Dim var26 As T = New T() With {.Goo1 = .Goo2.Length}                    ' no local referenced, no warning
+        Dim var27 As T = New T() With {.Goo1 = var27.Goo2.Length}               ' temporary used, warning
 
-        Dim var28, var29 As New T() With {.Foo1 = var28.Foo2.Length}            ' no local referenced, no warning
-        Dim var30, var31 As New T() With {.Foo1 = var31.Foo2.Length}            ' Receiver type unknown, no warning
+        Dim var28, var29 As New T() With {.Goo1 = var28.Goo2.Length}            ' no local referenced, no warning
+        Dim var30, var31 As New T() With {.Goo1 = var31.Goo2.Length}            ' Receiver type unknown, no warning
     End Sub
 
     Public Sub DoStuff_3(Of T As {RefClass, New})()
-        Dim var32 As New T() With {.Foo1 = .Foo2.Length}                        ' no local referenced, no warning
-        Dim var33 As New T() With {.Foo1 = var33.Foo2.Length}                   ' not yet initialized, warning
-        Dim var34 As T = New T() With {.Foo1 = .Foo2.Length}                    ' no local referenced, no warning
-        Dim var35 As T = New T() With {.Foo1 = var35.Foo2.Length}               ' not yet initialized, warning
-        Dim var36, var37 As New T() With {.Foo1 = var36.Foo2.Length}            ' not yet initialized, warning
-        Dim var38, var39 As New T() With {.Foo1 = var39.Foo2.Length}            ' not yet initialized, warning
+        Dim var32 As New T() With {.Goo1 = .Goo2.Length}                        ' no local referenced, no warning
+        Dim var33 As New T() With {.Goo1 = var33.Goo2.Length}                   ' not yet initialized, warning
+        Dim var34 As T = New T() With {.Goo1 = .Goo2.Length}                    ' no local referenced, no warning
+        Dim var35 As T = New T() With {.Goo1 = var35.Goo2.Length}               ' not yet initialized, warning
+        Dim var36, var37 As New T() With {.Goo1 = var36.Goo2.Length}            ' not yet initialized, warning
+        Dim var38, var39 As New T() With {.Goo1 = var39.Goo2.Length}            ' not yet initialized, warning
     End Sub
 
     Public Shared Sub Main()
-        Dim var01 As New NonEmptyStructure() With {.ValField1 = var01.RefField1.Length, .RefField1 = var01.Foo} ' no warnings
-        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Foo} ' warnings
-        Dim var04, var05 As New NonEmptyStructure() With {.RefField1 = var04.Foo} ' no warnings
+        Dim var01 As New NonEmptyStructure() With {.ValField1 = var01.RefField1.Length, .RefField1 = var01.Goo} ' no warnings
+        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Goo} ' warnings
+        Dim var04, var05 As New NonEmptyStructure() With {.RefField1 = var04.Goo} ' no warnings
 
-        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Foo} ' warnings
-
-
-        Dim var07 As New EmptyStructure() With {.Foo1 = var07.Foo2.Length} ' no warnings
-        Dim var08, var09 As New EmptyStructure() With {.Foo1 = var09.Foo2.Length} ' warnings
-        Dim var10, var11 As New EmptyStructure() With {.Foo1 = var10.Foo2.Length} ' no warnings
-
-        Dim var12 As EmptyStructure = New EmptyStructure() With {.Foo1 = var12.Foo2.Length} ' warnings
+        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Goo} ' warnings
 
 
-        Dim var13 As New RefClass() With {.ValField1 = var13.RefField1.Length, .RefField1 = var13.Foo} ' no warnings
-        Dim var14, var15 As New RefClass() With {.ValField1 = var15.RefField1.Length, .RefField1 = var15.Foo} ' warnings
-        Dim var16, var17 As New RefClass() With {.ValField1 = var16.RefField1.Length, .RefField1 = var16.Foo} ' no warnings
+        Dim var07 As New EmptyStructure() With {.Goo1 = var07.Goo2.Length} ' no warnings
+        Dim var08, var09 As New EmptyStructure() With {.Goo1 = var09.Goo2.Length} ' warnings
+        Dim var10, var11 As New EmptyStructure() With {.Goo1 = var10.Goo2.Length} ' no warnings
 
-        Dim var18 As RefClass = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Foo} ' warnings
+        Dim var12 As EmptyStructure = New EmptyStructure() With {.Goo1 = var12.Goo2.Length} ' warnings
 
 
-        Dim var19 = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Foo} ' warnings
+        Dim var13 As New RefClass() With {.ValField1 = var13.RefField1.Length, .RefField1 = var13.Goo} ' no warnings
+        Dim var14, var15 As New RefClass() With {.ValField1 = var15.RefField1.Length, .RefField1 = var15.Goo} ' warnings
+        Dim var16, var17 As New RefClass() With {.ValField1 = var16.RefField1.Length, .RefField1 = var16.Goo} ' no warnings
+
+        Dim var18 As RefClass = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Goo} ' warnings
+
+
+        Dim var19 = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Goo} ' warnings
     End Sub
 End Class
 
@@ -1658,8 +1658,8 @@ Class CObjInitDerived
     Inherits CObjInitBase(Of NonEmptyStructure)
 
     Public Overrides Sub TypeParameterValueTypeAsClassConstraint(Of U As {NonEmptyStructure, IMissingStuff2})()
-        Dim uinst1 As New U() With {.Foo1 = uinst1.Foo2.Length}
-        Dim uinst2 As U = New U() With {.Foo1 = uinst2.Foo2.Length}
+        Dim uinst1 As New U() With {.Goo1 = uinst1.Goo2.Length}
+        Dim uinst2 As U = New U() With {.Goo1 = uinst2.Goo2.Length}
     End Sub
 End Class
     </file>
@@ -1668,55 +1668,55 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC42109: Variable 'var27' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var27 As T = New T() With {.Foo1 = var27.Foo2.Length}               ' temporary used, warning
+        Dim var27 As T = New T() With {.Goo1 = var27.Goo2.Length}               ' temporary used, warning
                                                ~~~~~
 BC42109: Variable 'var31' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var30, var31 As New T() With {.Foo1 = var31.Foo2.Length}            ' Receiver type unknown, no warning
+        Dim var30, var31 As New T() With {.Goo1 = var31.Goo2.Length}            ' Receiver type unknown, no warning
                                                   ~~~~~
 BC42104: Variable 'var33' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var33 As New T() With {.Foo1 = var33.Foo2.Length}                   ' not yet initialized, warning
+        Dim var33 As New T() With {.Goo1 = var33.Goo2.Length}                   ' not yet initialized, warning
                                            ~~~~~
 BC42104: Variable 'var35' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var35 As T = New T() With {.Foo1 = var35.Foo2.Length}               ' not yet initialized, warning
+        Dim var35 As T = New T() With {.Goo1 = var35.Goo2.Length}               ' not yet initialized, warning
                                                ~~~~~
 BC42104: Variable 'var36' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var36, var37 As New T() With {.Foo1 = var36.Foo2.Length}            ' not yet initialized, warning
+        Dim var36, var37 As New T() With {.Goo1 = var36.Goo2.Length}            ' not yet initialized, warning
                                                   ~~~~~
 BC42104: Variable 'var39' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var38, var39 As New T() With {.Foo1 = var39.Foo2.Length}            ' not yet initialized, warning
+        Dim var38, var39 As New T() With {.Goo1 = var39.Goo2.Length}            ' not yet initialized, warning
                                                   ~~~~~
 BC42104: Variable 'RefField1' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Foo} ' warnings
+        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Goo} ' warnings
                                                                        ~~~~~~~~~~~~~~~
 BC42109: Variable 'var03' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Foo} ' warnings
+        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Goo} ' warnings
                                                                                                             ~~~~~
 BC42104: Variable 'RefField1' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Foo} ' warnings
+        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Goo} ' warnings
                                                                                     ~~~~~~~~~~~~~~~
 BC42109: Variable 'var06' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Foo} ' warnings
+        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Goo} ' warnings
                                                                                                                          ~~~~~
 BC42109: Variable 'var09' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var08, var09 As New EmptyStructure() With {.Foo1 = var09.Foo2.Length} ' warnings
+        Dim var08, var09 As New EmptyStructure() With {.Goo1 = var09.Goo2.Length} ' warnings
                                                                ~~~~~
 BC42109: Variable 'var12' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var12 As EmptyStructure = New EmptyStructure() With {.Foo1 = var12.Foo2.Length} ' warnings
+        Dim var12 As EmptyStructure = New EmptyStructure() With {.Goo1 = var12.Goo2.Length} ' warnings
                                                                          ~~~~~
 BC42104: Variable 'var13' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var13 As New RefClass() With {.ValField1 = var13.RefField1.Length, .RefField1 = var13.Foo} ' no warnings
+        Dim var13 As New RefClass() With {.ValField1 = var13.RefField1.Length, .RefField1 = var13.Goo} ' no warnings
                                                        ~~~~~
 BC42104: Variable 'var15' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var14, var15 As New RefClass() With {.ValField1 = var15.RefField1.Length, .RefField1 = var15.Foo} ' warnings
+        Dim var14, var15 As New RefClass() With {.ValField1 = var15.RefField1.Length, .RefField1 = var15.Goo} ' warnings
                                                               ~~~~~
 BC42104: Variable 'var16' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var16, var17 As New RefClass() With {.ValField1 = var16.RefField1.Length, .RefField1 = var16.Foo} ' no warnings
+        Dim var16, var17 As New RefClass() With {.ValField1 = var16.RefField1.Length, .RefField1 = var16.Goo} ' no warnings
                                                               ~~~~~
 BC42104: Variable 'var18' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var18 As RefClass = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Foo} ' warnings
+        Dim var18 As RefClass = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Goo} ' warnings
                                                                   ~~~~~
 BC42109: Variable 'uinst2' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim uinst2 As U = New U() With {.Foo1 = uinst2.Foo2.Length}
+        Dim uinst2 As U = New U() With {.Goo1 = uinst2.Goo2.Length}
                                                 ~~~~~~
                                            </expected>)
         End Sub

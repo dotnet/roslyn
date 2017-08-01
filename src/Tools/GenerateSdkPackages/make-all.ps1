@@ -2,7 +2,8 @@
 param(
     [string]$version = "26606.00",
     [string]$branch = "d15rel",
-    [string]$outPath = $null
+    [string]$outPath = $null,
+    [string]$versionSuffix = "alpha"
 )
 
 Set-StrictMode -version 2.0
@@ -27,10 +28,14 @@ function Package-Normal() {
 # The debugger DLLs have a more complex structure and it's easier to special case
 # copying them over.
 function Copy-Debugger() { 
-    $refRootPath = [IO.Path]::GetFullPath((Join-Path $dropPath "..\..\Debugger\ReferenceDLL"))
-    $debuggerDllPath = Join-Path $dllPath "debugger"
-    Create-Directory $debuggerDllPath
-    Copy-Item -re -fo "$refRootPath\*" $debuggerDllPath
+    $debuggerRefDir = Join-Path $dllPath "debugger\ref"
+    $debuggerImplDir = Join-Path $dllPath "debugger\lib\net45"
+    Create-Directory $debuggerRefDir
+    Create-Directory $debuggerImplDir
+    
+    Copy-Item -re -fo (Join-Path $dropPath "..\..\Debugger\ReferenceDLL\*") $debuggerRefDir
+    Copy-Item -re -fo (Join-Path $dropPath "..\..\Debugger\IDE\Microsoft.VisualStudio.Debugger.Engine.dll") $debuggerImplDir
+    Copy-Item -re -fo (Join-Path $dropPath "Microsoft.VisualStudio.Debugger.Metadata.dll") $debuggerImplDir
 }
 
 # Used to package debugger nugets
@@ -55,7 +60,7 @@ try {
     $fakeSign = Join-Path (Get-PackageDir "FakeSign") "Tools\FakeSign.exe"
 
     $shortVersion = $version.Substring(0, $version.IndexOf('.'))
-    $packageVersion = "15.0.$shortVersion-alpha"
+    $packageVersion = "15.0.$shortVersion-$versionSuffix"
     $dllPath = Join-Path $outPath "Dlls"
     $packagePath = Join-Path $outPath "Packages"
 

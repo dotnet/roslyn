@@ -30702,15 +30702,15 @@ System.Int32");
 
 public class C
 {
-    public string[] Foo2(out string x) { x = """"; return null; }
-    public string[] Foo3(bool b) { return null; }
+    public string[] Goo2(out string x) { x = """"; return null; }
+    public string[] Goo3(bool b) { return null; }
 
-    public string[] Foo5(string u) { return null; }
+    public string[] Goo5(string u) { return null; }
     
     public void Test()
     {
-        var t1 = Foo2(out var x1).Concat(Foo5(x1));
-        var t2 = Foo3(t1 is var x2).Concat(Foo5(x2.First()));
+        var t1 = Goo2(out var x1).Concat(Goo5(x1));
+        var t2 = Goo3(t1 is var x2).Concat(Goo5(x2.First()));
     }
 }
 ";

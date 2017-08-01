@@ -1195,14 +1195,14 @@ namespace N
         {
             var generationSource = @"
 Public Class [|C|]
-    Public Sub Foo(x As Integer, Optional ByRef y As Integer = 10, Optional ByRef z As Object = Nothing)
+    Public Sub Goo(x As Integer, Optional ByRef y As Integer = 10, Optional ByRef z As Object = Nothing)
     End Sub
 End Class";
             var initial = "public class [|C|] {}";
             var expected = @"
 public class C
 {
-    public void Foo(int x, ref int y, ref object z);
+    public void Goo(int x, ref int y, ref object z);
 }
 ";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
@@ -1219,7 +1219,7 @@ namespace N
 {
     public class [|C|]<T, U> where T : struct where U : class
     {
-        public void Foo<Q, R>() where Q : new() where R : IComparable { }
+        public void Goo<Q, R>() where Q : new() where R : IComparable { }
         public delegate void D<T, U>(T t, U u) where T : struct where U : class;
     }
 }
@@ -1230,7 +1230,7 @@ namespace N
 {
     public class C<T, U> where T : struct where U : class
     {
-        public void Foo<Q, R>() where Q : new() where R : IComparable;
+        public void Goo<Q, R>() where Q : new() where R : IComparable;
         public delegate void D<T, U>(T t, U u) where T : struct where U : class;
     }
 }
