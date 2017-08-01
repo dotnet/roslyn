@@ -1,10 +1,13 @@
-﻿using System;
+﻿#if NETCOREAPP2_0
+
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Roslyn.Test.Utilities.CoreClr
 {
     internal static class SharedConsole
     {
@@ -70,3 +73,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
     }
 }
+
+#endif
