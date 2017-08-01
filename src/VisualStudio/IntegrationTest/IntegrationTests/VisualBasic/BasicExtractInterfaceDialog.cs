@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
@@ -22,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
-        public void CoreScenario()
+        public async Task CoreScenarioAsync()
         {
             SetUpEditor(@"Class C$$
     Public Sub M()
@@ -30,7 +31,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 End Class");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            await VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -55,7 +56,7 @@ End Interface");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
-        public void CheckFileName()
+        public async Task CheckFileNameAsync()
         {
             SetUpEditor(@"Class C2$$
     Public Sub M()
@@ -63,7 +64,7 @@ End Interface");
 End Class");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            await VisualStudio.Editor.Verify.CodeActionAsync("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 

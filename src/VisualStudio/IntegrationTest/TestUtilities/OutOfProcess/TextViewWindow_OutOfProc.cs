@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -72,8 +74,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string[] GetLightBulbActions()
             => _textViewWindowInProc.GetLightBulbActions();
 
-        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
-            => _textViewWindowInProc.ApplyLightBulbAction(action, fixAllScope, blockUntilComplete);
+        public Task ApplyLightBulbActionAsync(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
+        {
+            var marshalledTask = new MarshalledTask();
+            _textViewWindowInProc.ApplyLightBulbAction(marshalledTask, action, fixAllScope, blockUntilComplete);
+            return marshalledTask.Task;
+        }
 
         public void InvokeCompletionList()
         {

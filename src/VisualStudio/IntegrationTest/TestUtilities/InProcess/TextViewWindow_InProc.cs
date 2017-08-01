@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -287,7 +289,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return SelectActions(actionSets);
         }
 
-        public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
+        public async void ApplyLightBulbAction(MarshalledTask marshalledTask, string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
         {
             var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope);
             if (blockUntilComplete)
@@ -296,15 +298,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
             else
             {
-                BeginInvokeExecuteOnActiveView(lightBulbAction);
+                try
+                {
+                    await BeginInvokeExecuteOnActiveViewAsync(lightBulbAction);
+                    marshalledTask.OnRanToCompletion();
+                }
+                catch (OperationCanceledException)
+                {
+                    marshalledTask.OnCanceled();
+                }
+                catch (Exception ex)
+                {
+                    marshalledTask.OnFaulted(ex);
+                }
             }
         }
 
         /// <summary>
         /// Non-blocking version of <see cref="ExecuteOnActiveView"/>
         /// </summary>
-        private void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
-            => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
+        private Task BeginInvokeExecuteOnActiveViewAsync(Action<IWpfTextView> action)
+            => BeginInvokeOnUIThreadAsync(GetExecuteOnActionViewCallback(action));
 
         private Action<IWpfTextView> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope)
         {

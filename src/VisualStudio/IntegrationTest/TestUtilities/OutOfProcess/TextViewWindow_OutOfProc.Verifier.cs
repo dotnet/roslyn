@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Xunit;
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 _instance = instance;
             }
 
-            public void CodeAction(
+            public Task CodeActionAsync(
                 string expectedItem,
                 bool applyFix = false,
                 bool verifyNotShowing = false,
@@ -31,11 +32,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 bool blockUntilComplete = true)
             {
                 var expectedItems = new[] { expectedItem };
-                CodeActions(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
+                return CodeActionsAsync(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
                     ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete);
             }
 
-            public void CodeActions(
+            public async Task CodeActionsAsync(
                 IEnumerable<string> expectedItems,
                 string applyFix = null,
                 bool verifyNotShowing = false,
@@ -72,7 +73,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
                 if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
                 {
-                    _textViewWindow.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
+                    await _textViewWindow.ApplyLightBulbActionAsync(applyFix, fixAllScope, blockUntilComplete);
 
                     if (blockUntilComplete)
                     {

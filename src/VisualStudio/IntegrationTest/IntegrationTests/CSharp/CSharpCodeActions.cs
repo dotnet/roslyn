@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -23,7 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18295"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public void GenerateMethodInClosedFile()
+        public async Task GenerateMethodInClosedFileAsync()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "Foo.cs", contents: @"
@@ -46,7 +47,7 @@ public class Program
 ");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate method 'Foo.Bar'", applyFix: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate method 'Foo.Bar'", applyFix: true);
             VisualStudio.SolutionExplorer.Verify.FileContents(project, "Foo.cs", @"
 using System;
 
@@ -58,7 +59,7 @@ public class Foo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public void FastDoubleInvoke()
+        public async Task FastDoubleInvokeAsync()
         {
             // We want to invoke the first smart tag and then *immediately * try invoking the next.
             // The next will happen to be the 'Simplify name' smart tag.  We should be able
@@ -75,9 +76,9 @@ class Program
 }
 ");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("using System;", applyFix: true, blockUntilComplete: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("using System;", applyFix: true, blockUntilComplete: true);
             VisualStudio.Editor.InvokeCodeActionListWithoutWaiting();
-            VisualStudio.Editor.Verify.CodeAction("Simplify name 'System.ArgumentException'", applyFix: true, blockUntilComplete: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Simplify name 'System.ArgumentException'", applyFix: true, blockUntilComplete: true);
 
             VisualStudio.Editor.Verify.TextContains(
                 @"
@@ -93,7 +94,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void InvokeDelegateWithConditionalAccessMultipleTimes()
+        public async Task InvokeDelegateWithConditionalAccessMultipleTimesAsync()
         {
             var markup = @"
 using System;
@@ -123,10 +124,10 @@ class C
 
             SetUpEditor(markup);
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true);
             VisualStudio.Editor.PlaceCaret("temp2", 0, 0, extendSelection: false, selectBlock: false);
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true);
             VisualStudio.Editor.Verify.TextContains("First?.");
             VisualStudio.Editor.Verify.TextContains("Second?.");
         }
@@ -148,7 +149,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public void AddUsingExactMatchBeforeRenameTracking()
+        public async Task AddUsingExactMatchBeforeRenameTracking()
         {
             SetUpEditor(@"
 public class Program
@@ -177,12 +178,12 @@ public class P2 { }");
                 "in Source"
             };
 
-            VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
             VisualStudio.Editor.Verify.TextContains("using System.IO;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GFUFuzzyMatchAfterRenameTracking()
+        public async Task GFUFuzzyMatchAfterRenameTrackingAsync()
         {
             SetUpEditor(@"
 namespace N
@@ -217,11 +218,11 @@ namespace NS
                 "in Source",
             };
 
-            VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public void SuppressionAfterRefactorings()
+        public async Task SuppressionAfterRefactoringsAsync()
         {
             SetUpEditor(@"
 [System.Obsolete]
@@ -250,12 +251,12 @@ class Program
                 "in Source",
             };
 
-            VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
             VisualStudio.Editor.Verify.TextContains("implicit");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public void OrderFixesByCursorProximityLeft()
+        public async Task OrderFixesByCursorProximityLeftAsync()
         {
             SetUpEditor(@"
 using System;
@@ -274,12 +275,12 @@ public class Program
                 "System.Runtime.InteropServices.GCHandle"
             };
 
-            VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
             VisualStudio.Editor.Verify.TextContains("using System.Runtime.InteropServices");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public void OrderFixesByCursorProximityRight()
+        public async Task OrderFixesByCursorProximityRightAsync()
         {
             SetUpEditor(@"
 using System;
@@ -298,9 +299,8 @@ public class Program
                 "System.Runtime.InteropServices.GCHandle"
             };
 
-            VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            await VisualStudio.Editor.Verify.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
             VisualStudio.Editor.Verify.TextContains("using System.Runtime.InteropServices");
-
         }
     }
 }

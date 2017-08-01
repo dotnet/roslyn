@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -85,12 +86,12 @@ End Module";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public void ExtractViaCodeAction()
+        public async Task ExtractViaCodeActionAsync()
         {
             VisualStudio.Editor.SetText(TestSource);
             VisualStudio.Editor.PlaceCaret("a = 5", charsOffset: -1);
             VisualStudio.Editor.PlaceCaret("a * b", charsOffset: 1, extendSelection: true);
-            VisualStudio.Editor.Verify.CodeAction("Extract Method", applyFix: true, blockUntilComplete: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Extract Method", applyFix: true, blockUntilComplete: true);
 
             var expectedMarkup = @"
 Imports System
@@ -123,7 +124,7 @@ End Module";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public void ExtractViaCodeActionWithMoveLocal()
+        public async Task ExtractViaCodeActionWithMoveLocalAsync()
         {
             VisualStudio.Editor.SetText(TestSource);
             VisualStudio.Editor.PlaceCaret("a = 5", charsOffset: -1);
@@ -131,7 +132,7 @@ End Module";
             try
             {
                 VisualStudio.Workspace.SetFeatureOption("ExtractMethodOptions", "AllowMovingDeclaration", LanguageNames.VisualBasic, "true");
-                VisualStudio.Editor.Verify.CodeAction("Extract Method + Local", applyFix: true, blockUntilComplete: true);
+                await VisualStudio.Editor.Verify.CodeActionAsync("Extract Method + Local", applyFix: true, blockUntilComplete: true);
 
                 var expectedMarkup = @"
 Imports System

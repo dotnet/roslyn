@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
@@ -21,8 +22,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21154"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void OpenAndCloseDialog()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task OpenAndCloseDialog()
         {
             SetUpEditor(@"class C
 {
@@ -33,7 +34,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
 
-            VisualStudio.Editor.Verify.CodeAction("Generate new type...",
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate new type...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -42,8 +43,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             GenerateTypeDialog.VerifyClosed();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21154"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void CSharpToBasic()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task CSharpToBasic()
         {
             var vbProj = new ProjectUtils.Project("VBProj");
             VisualStudio.SolutionExplorer.AddProject(vbProj, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
@@ -60,7 +61,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
 
-            VisualStudio.Editor.Verify.CodeAction("Generate new type...",
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate new type...",
                 applyFix: true,
                 blockUntilComplete: false);
 

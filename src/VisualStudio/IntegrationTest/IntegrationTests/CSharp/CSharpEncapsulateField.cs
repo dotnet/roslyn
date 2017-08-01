@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -48,11 +49,11 @@ namespace myNamespace
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulateThroughLightbulbIncludingReferences()
+        public async Task EncapsulateThroughLightbulbIncludingReferences()
         {
             SetUpEditor(TestSource);
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'param' (and use property)", applyFix: true, blockUntilComplete: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'param' (and use property)", applyFix: true, blockUntilComplete: true);
             VisualStudio.Editor.Verify.TextContains(@"
 namespace myNamespace
 {
@@ -71,11 +72,11 @@ namespace myNamespace
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulateThroughLightbulbDefinitionsOnly()
+        public async Task EncapsulateThroughLightbulbDefinitionsOnly()
         {
             SetUpEditor(TestSource);
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'param' (but still use field)", applyFix: true, blockUntilComplete: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Encapsulate field: 'param' (but still use field)", applyFix: true, blockUntilComplete: true);
             VisualStudio.Editor.Verify.TextContains(@"
 namespace myNamespace
 {

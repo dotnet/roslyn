@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
@@ -196,13 +197,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6587, No support of quick actions in ETA scenario")]
-        public void AddUsing()
+        public async Task AddUsing()
         {
             VisualStudio.InteractiveWindow.InsertCode("typeof(ArrayList)");
             VisualStudio.InteractiveWindow.PlaceCaret("ArrayList");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.InteractiveWindow.InvokeCodeActionList();
-            VisualStudio.InteractiveWindow.Verify.CodeActions(
+            await VisualStudio.InteractiveWindow.Verify.CodeActionsAsync(
                 new string[] { "using System.Collections;", "System.Collections.ArrayList" },
                 "using System.Collections;");
 
@@ -211,13 +212,13 @@ typeof(ArrayList)");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6587, No support of quick actions in ETA scenario")]
-        public void QualifyName()
+        public async Task QualifyName()
         {
             VisualStudio.InteractiveWindow.InsertCode("typeof(ArrayList)");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.InteractiveWindow.PlaceCaret("ArrayList");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.InteractiveWindow.Verify.CodeActions(
+            await VisualStudio.InteractiveWindow.Verify.CodeActionsAsync(
     new string[] { "using System.Collections;", "System.Collections.ArrayList" },
     "System.Collections.ArrayList");
             VisualStudio.InteractiveWindow.Verify.LastReplInput("System.Collections.ArrayList");

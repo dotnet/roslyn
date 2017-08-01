@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -18,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
-        public void GenerateLocal()
+        public async Task GenerateLocalAsync()
         {
             SetUpEditor(
 @"class Program
@@ -28,7 +29,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         string s = $$xyz;
     }
 }");
-            VisualStudio.Editor.Verify.CodeAction("Generate local 'xyz'", applyFix: true);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate local 'xyz'", applyFix: true);
             VisualStudio.Editor.Verify.TextContains(
 @"class Program
 {

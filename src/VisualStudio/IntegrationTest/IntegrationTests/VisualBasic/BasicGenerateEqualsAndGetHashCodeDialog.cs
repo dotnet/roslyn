@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -21,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public void VerifyCodeRefactoringOfferedAndCanceled()
+        public async Task VerifyCodeRefactoringOfferedAndCanceledAsync()
         {
             SetUpEditor(@"
 Class C
@@ -33,7 +34,7 @@ $$
 End Class");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickCancel();
             var actualText = VisualStudio.Editor.GetText();
@@ -49,7 +50,7 @@ End Class";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public void VerifyCodeRefactoringOfferedAndAccepted()
+        public async Task VerifyCodeRefactoringOfferedAndAccepted()
         {
             SetUpEditor(@"
 Imports TestProj
@@ -63,7 +64,7 @@ $$
 End Class");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
+            await VisualStudio.Editor.Verify.CodeActionAsync("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickOk();
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
