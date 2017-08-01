@@ -8,12 +8,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract class BaseCSharpConversionExpression : BaseConversionExpression
     {
         protected BaseCSharpConversionExpression(Conversion conversion, bool isExplicitInCode, bool throwsExceptionOnFailure, bool isChecked, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(conversion.ToCommonConversion(), isExplicitInCode, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
+            base(isExplicitInCode, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
         {
             ConversionInternal = conversion;
         }
 
         internal Conversion ConversionInternal { get; }
+
+        public override CommonConversion Conversion => ConversionInternal.ToCommonConversion();
 
         public override string LanguageName => LanguageNames.CSharp;
     }
