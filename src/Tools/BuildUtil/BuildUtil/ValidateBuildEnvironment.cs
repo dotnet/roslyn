@@ -22,27 +22,27 @@ namespace Roslyn.MSBuild.Util
         /// https://github.com/Microsoft/msbuild/releases
         /// </summary>
         [Required]
-        public string MSBuildMinimimFileVersion { get; set; }
+        public string MSBuildMinimumFileVersion { get; set; }
 
         /// <summary>
         /// Friendly developer facing version of the MSBuild message. 
         /// </summary>
         [Required]
-        public string MSBuildMinimimDisplayVersion { get; set; }
+        public string MSBuildMinimumDisplayVersion { get; set; }
 
         public override bool Execute()
         {
             var allGood = true;
 
-            if (MSBuildMinimimFileVersion != null)
+            if (MSBuildMinimumFileVersion != null)
             {
                 var msbuildFilePath = Path.Combine(MSBuildBinPath, "msbuild.exe");
                 var fileVersionInfo = FileVersionInfo.GetVersionInfo(msbuildFilePath);
                 var fileVersion = new Version(fileVersionInfo.FileVersion);
-                var minimumVersion = new Version(MSBuildMinimimFileVersion);
+                var minimumVersion = new Version(MSBuildMinimumFileVersion);
                 if (fileVersion < minimumVersion)
                 {
-                    Log.LogError($"MSBuild version {fileVersion} is less than the required minimum version {minimumVersion} ({MSBuildMinimimDisplayVersion})");
+                    Log.LogError($"MSBuild version {fileVersion} is less than the required minimum version {minimumVersion} ({MSBuildMinimumDisplayVersion})");
                     allGood = false;
                 }
             }

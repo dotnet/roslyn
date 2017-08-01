@@ -495,8 +495,8 @@
   <Target Name="BeforeBuild" Condition="'$(OS)' == 'Windows_NT'">
     <ValidateBuildEnvironment
       MSBuildBinPath="$(MSBuildBinPath)"
-      MSBuildMinimimFileVersion="15.1.1012"
-      MSBuildMinimimDisplayVersion="MSBuild 15.1"
+      MSBuildMinimumFileVersion="15.1.1012"
+      MSBuildMinimumDisplayVersion="MSBuild 15.1"
       />
   </Target> 
 
