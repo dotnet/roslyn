@@ -350,7 +350,7 @@
        ==================================================================================== -->
 
   <PropertyGroup>
-    <PrepareForBuildDependsOn>RemoveDuplicateXUnitContent;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
+    <PrepareForBuildDependsOn>RemoveDuplicateXUnitContent;RestoreToolsetCheck;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
     <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\$(RoslynDependenciesOptimizationDataVersion)\content\OptimizationData</OptimizationDataFolderPath>
@@ -360,6 +360,8 @@
   <Target Name="RestoreToolsetCheck" Condition="'$(BuildingProject)' == 'true'">
       <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
              Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
+      <Error Text="Analyzer packages have not been restored, run Restore.cmd before building. File not found: '$(RoslynDiagnosticsPropsFilePath)'"
+             Condition="!Exists('$(RoslynDiagnosticsPropsFilePath)')" />
   </Target>
 
   <Target Name="CheckBootstrapState"
@@ -496,6 +498,11 @@
        by https://github.com/dotnet/roslyn/issues/19545. -->
   <ItemGroup>
     <AdditionalFiles Include="@(PublicAPI)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Show launchSettings.json in the project if it exists. -->
+    <None Include="$(AppDesignerFolder)\launchSettings.json" Condition="Exists('$(AppDesignerFolder)\launchSettings.json')" />
   </ItemGroup>
 
   <!-- CPS doesn't show these items by default, but we want to show them. -->

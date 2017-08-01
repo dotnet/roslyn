@@ -71,6 +71,25 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
                         {
                             removeOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
                         }
+                        else
+                        {
+                            var statementParent = localDeclaration.Parent;
+                            if (syntaxFacts.IsExecutableBlock(statementParent))
+                            {
+                                var siblings = syntaxFacts.GetExecutableBlockStatements(statementParent);
+                                var localDeclarationIndex = siblings.IndexOf(localDeclaration);
+                                if (localDeclarationIndex != 0)
+                                {
+                                    // if we're removing hte first statement in a block, then we
+                                    // want to have the elastic marker on it so that the next statement
+                                    // properly formats with the space left behind.  But if it's
+                                    // not the first statement then just keep the trivia as is
+                                    // so that the statement before and after it stay appropriately
+                                    // spaced apart.
+                                    removeOptions &= ~SyntaxRemoveOptions.AddElasticMarker;
+                                }
+                            }
+                        }
 
                         editor.RemoveNode(localDeclaration, removeOptions);
                     }

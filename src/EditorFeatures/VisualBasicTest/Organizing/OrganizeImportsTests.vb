@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -9,11 +10,15 @@ Imports Microsoft.CodeAnalysis.OrganizeImports
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public Class OrganizeImportsTests
-        Private Async Function CheckAsync(initial As XElement, final As XElement, Optional placeSystemNamespaceFirst As Boolean = False) As Task
+        Private Async Function CheckAsync(initial As XElement, final As XElement,
+                                          Optional placeSystemNamespaceFirst As Boolean = False,
+                                          Optional separateImportGroups As Boolean = False) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(initial.NormalizedValue)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
-                Dim newRoot = Await (Await OrganizeImportsService.OrganizeImportsAsync(document)).GetSyntaxRootAsync()
+                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
+
+                Dim newRoot = Await (Await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync()
                 Assert.Equal(final.NormalizedValue, newRoot.ToFullString())
             End Using
         End Function
@@ -677,6 +682,91 @@ Imports ああ
 </content>
 
             Await CheckAsync(initial, final)
+        End Function
+
+        <WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestGrouping() As Task
+            Dim initial =
+<content><![CDATA[' Banner
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports System.Collections.Generic
+Imports System.Linq
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports Roslyn.Utilities
+Imports IntList = System.Collections.Generic.List(Of Integer)
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Dim final =
+<content><![CDATA[' Banner
+
+Imports System.Collections.Generic
+Imports System.Linq
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+
+Imports Roslyn.Utilities
+
+Imports IntList = System.Collections.Generic.List(Of Integer)
+
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
+        End Function
+
+        <WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestGrouping2() As Task
+            ' Make sure we don't insert extra newlines if they're already there.
+            Dim initial =
+<content><![CDATA[' Banner
+
+Imports System.Collections.Generic
+Imports System.Linq
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+
+Imports Roslyn.Utilities
+
+Imports IntList = System.Collections.Generic.List(Of Integer)
+
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Dim final =
+<content><![CDATA[' Banner
+
+Imports System.Collections.Generic
+Imports System.Linq
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+
+Imports Roslyn.Utilities
+
+Imports IntList = System.Collections.Generic.List(Of Integer)
+
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
         End Function
     End Class
 End Namespace
