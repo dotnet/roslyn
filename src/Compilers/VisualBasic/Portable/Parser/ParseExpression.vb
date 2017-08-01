@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '
 '============ Methods for parsing portions of executable statements ==
@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' 6. end element without begin </
                     ' 7. error case <>, element missing name
 
-                    ' /* Dev10_427764 : Allow an implicit line continuation for XML after '(', e.g. foo(
+                    ' /* Dev10_427764 : Allow an implicit line continuation for XML after '(', e.g. goo(
 
                     Dim tokenHasFullWidthChars As Boolean = TokenContainsFullWidthChars(start)
 

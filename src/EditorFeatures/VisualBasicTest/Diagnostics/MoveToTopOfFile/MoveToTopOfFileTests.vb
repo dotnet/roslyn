@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -617,7 +617,7 @@ Imports System
         Public Async Function TestTestHiddenRegion() As Task
             Dim code =
 <File>
-#ExternalSource ("Foo", 1)
+#ExternalSource ("Goo", 1)
     Imports System
 #End ExternalSource
 

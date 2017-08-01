@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
@@ -128,7 +128,7 @@ End Module")
     End Sub
 
     &lt;Obsolete&gt;
-    Sub Foo
+    Sub Goo
     End Sub
 End Module
 </Text>.Value.Replace(vbLf, vbCrLf),
@@ -142,7 +142,7 @@ End Module
     End Function
 
     &lt;Obsolete&gt;
-    Sub Foo
+    Sub Goo
     End Sub
 End Module
 </Text>.Value.Replace(vbLf, vbCrLf),

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -2171,18 +2171,18 @@ Binary Divide
     <file name="a.vb"><![CDATA[
 Imports System
 
-Interface IFoo
+Interface IGoo
     Function F() As String
 End Interface
 
-Class Foo
-    Implements IFoo
+Class Goo
+    Implements IGoo
 
-    Public Function F() As String Implements IFoo.F
+    Public Function F() As String Implements IGoo.F
         Return "A"
     End Function
 
-    Shared Operator &(f As Foo, s As String) As Foo
+    Shared Operator &(f As Goo, s As String) As Goo
         Console.WriteLine("&")
         Return f
     End Operator
@@ -2191,8 +2191,8 @@ End Class
 
 Module Module1
     Sub Main()
-        Dim x As IFoo = New Foo()
-        Dim y As New Foo
+        Dim x As IGoo = New Goo()
+        Dim y As New Goo
         y &= x.F()
     End Sub
 End Module

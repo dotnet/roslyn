@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Globalization;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestConstructNamespaceWithNameOnly()
         {
-            var n = SyntaxFactory.NamespaceDeclaration(name: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("foo")));
+            var n = SyntaxFactory.NamespaceDeclaration(name: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("goo")));
             Assert.NotNull(n);
             Assert.Equal(0, n.Errors().Length);
             Assert.Equal(0, n.Externs.Count);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestConstructClassWithKindAndNameOnly()
         {
-            var c = SyntaxFactory.ClassDeclaration(identifier: SyntaxFactory.Identifier("foo"));
+            var c = SyntaxFactory.ClassDeclaration(identifier: SyntaxFactory.Identifier("goo"));
             Assert.NotNull(c);
             Assert.Equal(0, c.AttributeLists.Count);
             Assert.Equal(0, c.Modifiers.Count);

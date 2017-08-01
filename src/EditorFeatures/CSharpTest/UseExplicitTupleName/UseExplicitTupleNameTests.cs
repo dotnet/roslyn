@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -49,10 +49,10 @@ class C
     void M()
     {
         (int i, string s) v1 = default((int, string));
-        Foo(v1.[|Item1|]);
+        Goo(v1.[|Item1|]);
     }
 
-    void Foo(int i) { }
+    void Goo(int i) { }
 }",
 @"
 class C
@@ -60,10 +60,10 @@ class C
     void M()
     {
         (int i, string s) v1 = default((int, string));
-        Foo(v1.i);
+        Goo(v1.i);
     }
 
-    void Foo(int i) { }
+    void Goo(int i) { }
 }");
         }
 

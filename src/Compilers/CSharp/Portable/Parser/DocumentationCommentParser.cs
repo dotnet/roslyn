@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // It's possible that we finish parsing the xml, and we are still left in the middle
                 // of an Xml comment. For example,
                 //
-                //     /// <foo></foo></uhoh>
+                //     /// <goo></goo></uhoh>
                 //                    ^
                 // In this case, we stop at the caret. We need to ensure that we consume the remainder
                 // of the doc comment here, since otherwise we will return the lexer to the state

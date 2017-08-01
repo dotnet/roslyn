@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -110,13 +110,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // method, even if its containing type doesn't state that it implements the
                     // interface.  For example:
                     //
-                    //  interface IFoo { void Foo(); }
+                    //  interface IGoo { void Goo(); }
                     //
-                    //  class Base { public void Foo(); }
+                    //  class Base { public void Goo(); }
                     //
-                    //  class Derived : Base, IFoo { }
+                    //  class Derived : Base, IGoo { }
                     //
-                    // In this case, Base.Foo *does* implement IFoo.Foo in the context of the type
+                    // In this case, Base.Goo *does* implement IGoo.Goo in the context of the type
                     // Derived.
                     var containingType = symbolAndProjectId.WithSymbol(
                         symbol.ContainingType.OriginalDefinition);

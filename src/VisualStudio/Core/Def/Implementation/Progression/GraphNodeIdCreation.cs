@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -512,11 +512,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         /// <summary>
         /// Get the position of where a given local variable is defined considering there could be multiple variables with the same name in method body.
-        /// For example, in "int M() { { int foo = 0; ...} { int foo = 1; ...} }",
-        /// the return value for the first "foo" would be 0 while the value for the second one would be 1.
+        /// For example, in "int M() { { int goo = 0; ...} { int goo = 1; ...} }",
+        /// the return value for the first "goo" would be 0 while the value for the second one would be 1.
         /// It will be used to create a node with LocalVariableIndex for a non-zero value.
-        /// In the above example, hence, a node id for the first "foo" would look like (... Member=M LocalVariable=bar)
-        /// but an id for the second "foo" would be (... Member=M LocalVariable=bar LocalVariableIndex=1)
+        /// In the above example, hence, a node id for the first "goo" would look like (... Member=M LocalVariable=bar)
+        /// but an id for the second "goo" would be (... Member=M LocalVariable=bar LocalVariableIndex=1)
         /// </summary>
         private static async Task<int> GetLocalVariableIndexAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {

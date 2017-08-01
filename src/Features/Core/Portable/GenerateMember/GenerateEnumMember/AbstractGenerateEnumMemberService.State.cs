@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
             // public TypeDeclarationSyntax ContainingTypeDeclaration { get; private set; }
             public INamedTypeSymbol TypeToGenerateIn { get; private set; }
 
-            // Just the name of the method.  i.e. "Foo" in "Foo" or "X.Foo"
+            // Just the name of the method.  i.e. "Goo" in "Goo" or "X.Goo"
             public SyntaxToken IdentifierToken { get; private set; }
             public TSimpleNameSyntax SimpleName { get; private set; }
             public TExpressionSyntax SimpleNameOrMemberAccessExpression { get; private set; }

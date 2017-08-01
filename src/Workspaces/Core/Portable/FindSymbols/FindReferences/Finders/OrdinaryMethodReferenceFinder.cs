@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // these methods.
 
             // TODO(cyrusn): Handle searching for Monitor.Enter and Monitor.Exit.  If a user
-            // searches for these, then we should find usages of 'lock(foo)' or 'synclock(foo)'
+            // searches for these, then we should find usages of 'lock(goo)' or 'synclock(goo)'
             // since they implicitly call those methods.
 
             var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, methodSymbol.Name).ConfigureAwait(false);

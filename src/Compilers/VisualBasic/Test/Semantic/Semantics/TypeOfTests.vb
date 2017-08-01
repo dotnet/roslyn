@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
@@ -964,7 +964,7 @@ End Class
     <compilation name="TypeOfExprAlwaysFalse2">
         <file name="a.vb">
         Module M
-            Sub Foo(Of T As Structure)(ByVal x As T)
+            Sub Goo(Of T As Structure)(ByVal x As T)
                 Dim y = TypeOf x Is String
             End Sub
         End Module

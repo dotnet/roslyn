@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // The string literal has to at least be contained in a concatenation of some form.
-            // i.e.  "foo" + a      or     a + "foo".  However, those concats could be in larger
+            // i.e.  "goo" + a      or     a + "goo".  However, those concats could be in larger
             // concats as well.  Walk to the top of that entire chain.
 
             var literalExpression = token.Parent;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -21,7 +21,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine(""foo"");
+        Console.WriteLine(""goo"");
         goto bar;
         Console.Write(""you won't see me"");
         bar: Console.WriteLine(""bar"");
@@ -29,7 +29,7 @@ public class Program
     }
 }
 ";
-            string expectedOutput = @"foo
+            string expectedOutput = @"goo
 bar
 ";
 
@@ -47,14 +47,14 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine(""foo"");
+        Console.WriteLine(""goo"");
         goto bar;
         Console.Write(""you won't see me"");
         bar: Console.WriteLine(""bar"");
     }
 }
 ";
-            string expectedOutput = @"foo
+            string expectedOutput = @"goo
 bar
 ";
 

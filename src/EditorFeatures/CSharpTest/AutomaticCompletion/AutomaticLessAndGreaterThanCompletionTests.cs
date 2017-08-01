@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
@@ -412,7 +412,7 @@ using System.Linq;
 
 class Program
 {
-    void Foo(object[] args)
+    void Goo(object[] args)
     {
         var a = new Outer();
         a?.M(x => x?.ToString())?.Method$$

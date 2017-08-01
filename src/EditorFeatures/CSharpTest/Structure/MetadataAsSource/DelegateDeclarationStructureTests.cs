@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
@@ -28,7 +28,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
         public async Task WithAttributes()
         {
             const string code = @"
-{|hint:{|textspan:[Foo]
+{|hint:{|textspan:[Goo]
 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
             await VerifyBlockSpansAsync(code,
@@ -41,7 +41,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
             const string code = @"
 {|hint:{|textspan:// Summary:
 //     This is a summary.
-[Foo]
+[Goo]
 |}delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
             await VerifyBlockSpansAsync(code,
@@ -54,7 +54,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
             const string code = @"
 {|hint:{|textspan:// Summary:
 //     This is a summary.
-[Foo]
+[Goo]
 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
             await VerifyBlockSpansAsync(code,

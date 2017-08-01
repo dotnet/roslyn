@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -94,7 +94,7 @@ using System.Collections;
 
 class C : IList
 {
-    void Foo() { }
+    void Goo() { }
     int $$
 }
 ";
@@ -113,7 +113,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 }
 ";
@@ -132,7 +132,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 
     [Attr]
@@ -154,7 +154,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 
     public int Bar();
@@ -175,7 +175,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 
     int Bar();
@@ -196,7 +196,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 
     X Bar();
@@ -217,7 +217,7 @@ using System.Collections;
 
 class C : IList
 {
-    void Foo()
+    void Goo()
     {
         int $$
     }

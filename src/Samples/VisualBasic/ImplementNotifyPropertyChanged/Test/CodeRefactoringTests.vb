@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
 Imports Microsoft.CodeAnalysis
@@ -36,7 +36,7 @@ End Class</text>.Value
         Public Sub TestNoActionOnMethod()
             Dim code As String = <text>
 Public Class C
-    Public Function [|Foo|]() As Integer
+    Public Function [|Goo|]() As Integer
     End Function
 End Class
 </text>.Value

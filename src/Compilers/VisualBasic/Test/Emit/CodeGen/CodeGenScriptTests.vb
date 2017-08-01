@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Emit
@@ -74,7 +74,7 @@ Return 1
         <Fact>
         Public Sub MeKeyword()
             Dim source = <text>
-Sub Foo
+Sub Goo
     Me.Bar
 End Sub
 
@@ -82,7 +82,7 @@ Sub Bar
     System.Console.WriteLine(1+1)
 End Sub
 
-Me.Foo
+Me.Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -95,7 +95,7 @@ Me.Foo
         <Fact>
         Public Sub MyBaseAndMyClassKeyword()
             Dim source = <text>
-Sub Foo
+Sub Goo
     MyClass.Bar
 End Sub
 
@@ -103,7 +103,7 @@ Sub Bar
     System.Console.WriteLine(1+1)
 End Sub
 
-MyBase.Foo
+MyBase.Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -116,11 +116,11 @@ MyBase.Foo
         <Fact>
         Public Sub SubStatement()
             Dim source = <text>
-Sub Foo
+Sub Goo
     System.Console.WriteLine(1+1)
 End Sub
 
-Foo
+Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -134,23 +134,23 @@ Foo
             Dim source =
     <compilation>
         <file>
-Sub Foo
+Sub Goo
     System.Console.WriteLine(1+1)
 End Sub
     </file>
     </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidInNamespace, "Sub Foo"))
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidInNamespace, "Sub Goo"))
         End Sub
 
         <Fact>
         Public Sub FunctionStatement()
             Dim source = <text>
-Function Foo As Integer
+Function Goo As Integer
     Return 3
 End Function
 
-System.Console.WriteLine(Foo)
+System.Console.WriteLine(Goo)
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)

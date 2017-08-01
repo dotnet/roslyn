@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -89,7 +89,7 @@ End Class
         Public Sub TestDiagnosticWithSeverity()
             Dim source = <project><file>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x
     End Sub
 End Class

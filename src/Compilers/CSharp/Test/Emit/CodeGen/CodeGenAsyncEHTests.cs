@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -589,10 +589,10 @@ namespace ConsoleApplication1
         }
         static async Task<int> Bar()
         {
-            NotImplementedException ex = await Foo<NotImplementedException>();
+            NotImplementedException ex = await Goo<NotImplementedException>();
             return 3;
         }
-        public static async Task<T> Foo<T>() where T : Exception
+        public static async Task<T> Goo<T>() where T : Exception
         {
             Task<int> task = null;
             if (task != null) await task;

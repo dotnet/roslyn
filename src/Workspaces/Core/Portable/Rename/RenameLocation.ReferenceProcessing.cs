@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     // If we bound through an alias, we'll only rename if the alias's name matches
                     // the name of symbol it points to. We do this because it's common to see things
-                    // like "using Foo = System.Foo" where people want to import a single type
+                    // like "using Goo = System.Goo" where people want to import a single type
                     // rather than a whole namespace of stuff.
                     if (location.Alias != null)
                     {

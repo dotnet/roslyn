@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -714,11 +714,11 @@ class Bug813305 : IBug813305
 {
     void IBug813305.M(dynamic x)
     {
-        x.Foo();
+        x.Goo();
         System.Console.WriteLine(""Bug813305.M"");
     }
  
-    public void Foo() {}
+    public void Goo() {}
 }
  
 class Test

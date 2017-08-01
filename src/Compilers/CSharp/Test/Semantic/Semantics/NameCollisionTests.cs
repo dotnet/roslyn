@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -391,19 +391,19 @@ namespace name1
             var source = @"class A
 {
     delegate void D();
-    static void Foo() { }
+    static void Goo() { }
     class B
     {
-        const int Foo = 123;
+        const int Goo = 123;
         static void Main()
         {
-            Foo();
-            Bar(Foo);
+            Goo();
+            Bar(Goo);
         }
         static void Main2()
         {
-            Bar(Foo);
-            Foo();
+            Bar(Goo);
+            Goo();
         }
         static void Bar(int x) { }
         static void Bar(D x) { }

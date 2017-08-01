@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -606,7 +606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Does this namespace have multiple different case-sensitive spellings
-        ''' (i.e., "Namespace FOO" and "Namespace foo". Includes parent namespace(s).
+        ''' (i.e., "Namespace GOO" and "Namespace goo". Includes parent namespace(s).
         ''' </summary>
         Friend ReadOnly Property HasMultipleSpellings As Boolean
             Get
@@ -620,16 +620,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' syntax tree and location.
         ''' I.e., if this namespace was declared with:
         ''' Namespace zAp
-        '''  Namespace FOO.bar
+        '''  Namespace GOO.bar
         '''    'location
         '''  End Namespace
         ''' End Namespace
         ''' Namespace ZAP
-        '''  Namespace foo.bar
+        '''  Namespace goo.bar
         '''  End Namespace
         ''' End Namespace
         ''' 
-        ''' It would return "ProjectNamespace.zAp.FOO.bar".
+        ''' It would return "ProjectNamespace.zAp.GOO.bar".
         ''' </summary>
         Friend Function GetDeclarationSpelling(tree As SyntaxTree, location As Integer) As String
             If Not HasMultipleSpellings Then

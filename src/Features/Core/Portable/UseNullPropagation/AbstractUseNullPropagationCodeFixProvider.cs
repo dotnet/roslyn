@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         // They're calling ".Value" off of a nullable.  Because we're moving to ?.
                         // we want to remove the .Value as well.  i.e. we should generate:
                         //
-                        //      foo?.Bar()  not   foo?.Value.Bar();
+                        //      goo?.Bar()  not   goo?.Value.Bar();
                         return CreateConditionalAccessExpression(
                             syntaxFacts, generator, whenPart, match,
                             memberAccess.Parent, currentConditional);

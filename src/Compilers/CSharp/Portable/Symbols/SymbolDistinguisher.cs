@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// Some error messages are particularly confusing if multiple placeholders are substituted
-    /// with the same string.  For example, "cannot convert from 'Foo' to 'Foo'".  Usually, this
+    /// with the same string.  For example, "cannot convert from 'Goo' to 'Goo'".  Usually, this
     /// occurs because there are two types in different contexts with the same qualified name.
     /// The solution is to provide additional qualification on each symbol - either a source
     /// location, an assembly path, or an assembly identity.

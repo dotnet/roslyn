@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     // This happens when you have a mix of accessibilities.
                     //
-                    // i.e.: public private void Foo()
+                    // i.e.: public private void Goo()
                     return Accessibility.Public;
             }
         }
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     // This happens when you have a mix of accessibilities.
                     //
-                    // i.e.: public private void Foo()
+                    // i.e.: public private void Goo()
                     return false;
             }
         }

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports Roslyn.Test.Utilities
@@ -573,7 +573,7 @@ Class Class1(Of T)
             Return ff(x, p)
         End Function
 
-    Public Function Foo() As Integer
+    Public Function Goo() As Integer
         Return Nothing
     End Function
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -258,13 +258,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Resulting span: [first non-whitespace char, EOD)
         /// 
         /// Examples (pipes indicate span):
-        /// #error |foo|
-        /// #error  |foo|
-        /// #error |foo |
-        /// #error |foo baz|
-        /// #error |//foo|
-        /// #error |/*foo*/|
-        /// #error |/*foo|
+        /// #error |goo|
+        /// #error  |goo|
+        /// #error |goo |
+        /// #error |goo baz|
+        /// #error |//goo|
+        /// #error |/*goo*/|
+        /// #error |/*goo|
         /// </summary>
         /// <param name="hash">The '#' token.</param>
         /// <param name="keyword">The 'error' or 'warning' token.</param>

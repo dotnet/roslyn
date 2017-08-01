@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -293,7 +293,7 @@ public class Program
 
     static void TestMain()
     {
-        Console.WriteLine(""foo"");
+        Console.WriteLine(""goo"");
         goto bar;
         Console.Write(""you won't see me"");
         bar: Console.WriteLine(""bar"");
@@ -333,7 +333,7 @@ public class Program
     }
 }
 ";
-            string expectedOutput = @"foo
+            string expectedOutput = @"goo
 bar
 Flushing
 Method 1
@@ -1875,17 +1875,17 @@ public class Program
 
     static void TestMain()                                                  // Method 2
     {
-        foreach (var i in Foo())
+        foreach (var i in Goo())
         {    
             Console.WriteLine(i);
         }  
-        foreach (var i in Foo())
+        foreach (var i in Goo())
         {    
             Console.WriteLine(i);
         }
     }
 
-    public static System.Collections.Generic.IEnumerable<int> Foo()
+    public static System.Collections.Generic.IEnumerable<int> Goo()
     {
         for (int i = 0; i < 5; ++i)
         {

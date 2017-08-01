@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -772,7 +772,7 @@ Module Module_Usage
         Dim d1 As ClassLibrary1.Test_Module.DelSub
         Dim d2 As ClassLibrary1.Test_Module.DelFunction
 
-        d1 = AddressOf foo
+        d1 = AddressOf goo
         d2 = AddressOf bar
 
     End Sub
@@ -826,8 +826,8 @@ Module Module_Usage
         End If
     End Sub
 
-    Private Sub foo()
-        Console.WriteLine("foo")
+    Private Sub goo()
+        Console.WriteLine("goo")
     End Sub
 
     Private Function bar(x As String) As Boolean
@@ -3029,7 +3029,7 @@ Module Module1
         Return 1
     End Function
 
-    Class Foo
+    Class Goo
 
     End Class
 End Module

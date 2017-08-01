@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 RemovePlaceholderReplacement(argument.OutPlaceholder)
 
                 If secondUse.Kind = BoundKind.LateMemberAccess Then
-                    ' Method(ref objExpr.foo)
+                    ' Method(ref objExpr.goo)
 
                     copyBack = LateSet(secondUse.Syntax,
                                        DirectCast(MyBase.VisitLateMemberAccess(DirectCast(secondUse, BoundLateMemberAccess)), BoundLateMemberAccess),
@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim invocation = DirectCast(secondUse, BoundLateInvocation)
 
                     If invocation.Member.Kind = BoundKind.LateMemberAccess Then
-                        ' Method(ref objExpr.foo(args))
+                        ' Method(ref objExpr.goo(args))
                         copyBack = LateSet(invocation.Syntax,
                                            DirectCast(MyBase.VisitLateMemberAccess(DirectCast(invocation.Member, BoundLateMemberAccess)), BoundLateMemberAccess),
                                            copyBackValue,

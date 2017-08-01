@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -669,25 +669,25 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceImplementationGeneric1()
         {
-            VerifyFalse(@"class C { void IFoo<$$");
+            VerifyFalse(@"class C { void IGoo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceImplementationGenericList1()
         {
-            VerifyFalse(@"class C { void IFoo<T,$$");
+            VerifyFalse(@"class C { void IGoo<T,$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceImplementationGeneric2()
         {
-            VerifyTrue(@"class C { void IFoo<$$>.Method(");
+            VerifyTrue(@"class C { void IGoo<$$>.Method(");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceImplementationGenericList2()
         {
-            VerifyTrue(@"class C { void IFoo<T,$$>.Method(");
+            VerifyTrue(@"class C { void IGoo<T,$$>.Method(");
         }
     }
 }

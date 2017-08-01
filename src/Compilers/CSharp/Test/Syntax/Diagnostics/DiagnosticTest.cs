@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -130,10 +130,10 @@ public class A
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(foo[0]);
+        Console.WriteLine(goo[0]);
     }
 
-    static int[] foo()
+    static int[] goo()
     {
         return new int[0];
     }
@@ -149,7 +149,7 @@ public class A
     {        
     }
 
-    void foo(object o)
+    void goo(object o)
     {
         System.Console.WriteLine(o.GetType().GetMethods[0].Name);
     }
@@ -2004,7 +2004,7 @@ public class C
         int z = 0;  // CS0219
     }
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "goo.cs");
             Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "public class").Start));
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "public static").Start));
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "public static").Start));
@@ -2033,7 +2033,7 @@ class Program
         var y = 10;
     }
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "goo.cs");
             Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "static void").Start));
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "var x").Start));
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "var y").Start));
@@ -2051,7 +2051,7 @@ class Program
     {
     }
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "goo.cs");
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "static void").Start));
         }
 
@@ -2072,7 +2072,7 @@ interface IMyEnumerator { }
 
 public class Test
 {
-    static IMyEnumerator Foo()
+    static IMyEnumerator Goo()
     {
         yield break;
     }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // By contrast:
             //
-            // Foo(z: this.p, y: this.Q(), x: (object)10)
+            // Goo(z: this.p, y: this.Q(), x: (object)10)
             //
             // The boxing of 10 can be reordered, but the fetch of this.p has to happen before the
             // call to this.Q() because the call could change the value of this.p. 

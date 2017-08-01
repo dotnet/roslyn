@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -272,16 +272,16 @@ using System.Linq
 
 class Program
     sub M()
-        ' Comment [||]about foo!
-        ' Comment about foo!
-        ' Comment about foo!
-        ' Comment about foo!
-        ' Comment about foo!
-        ' Comment about foo!
-        ' Comment about foo!
-        dim foo = 0
+        ' Comment [||]about goo!
+        ' Comment about goo!
+        ' Comment about goo!
+        ' Comment about goo!
+        ' Comment about goo!
+        ' Comment about goo!
+        ' Comment about goo!
+        dim goo = 0
         Console.WriteLine()
-        Console.WriteLine(foo)
+        Console.WriteLine(goo)
     end sub
 end class")
         End Function

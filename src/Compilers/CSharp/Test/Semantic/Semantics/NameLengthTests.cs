@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -282,25 +282,25 @@ using System.Runtime.InteropServices;
 
 class C1
 {{
-    [DllImport(""foo.dll"", EntryPoint = ""Short1"")]
+    [DllImport(""goo.dll"", EntryPoint = ""Short1"")]
     static extern void {0}();  // Name is fine, entrypoint is fine.
-    [DllImport(""foo.dll"", EntryPoint = ""Short2"")]
+    [DllImport(""goo.dll"", EntryPoint = ""Short2"")]
     static extern void {0}1(); // Name is too long, entrypoint is fine.
 }}
 
 class C2
 {{
-    [DllImport(""foo.dll"", EntryPoint = ""{0}"")]
+    [DllImport(""goo.dll"", EntryPoint = ""{0}"")]
     static extern void Short1();   // Name is fine, entrypoint is fine.
-    [DllImport(""foo.dll"", EntryPoint = ""{0}1"")]
+    [DllImport(""goo.dll"", EntryPoint = ""{0}1"")]
     static extern void Short2();   // Name is fine, entrypoint is too long.
 }}
 
 class C3
 {{
-    [DllImport(""foo.dll"")]
+    [DllImport(""goo.dll"")]
     static extern void {0}();  // Name is fine, entrypoint is unspecified.
-    [DllImport(""foo.dll"")]
+    [DllImport(""goo.dll"")]
     static extern void {0}1(); // Name is too long, entrypoint is unspecified.
 }}
 ";

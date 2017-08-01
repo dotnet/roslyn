@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// True if the code generation should put multiple attributes in a single attribute
         /// declaration, or if should have a separate attribute declaration for each attribute.  For
-        /// example, in C# setting this to True this would produce "[Foo, Bar]" while setting it to
-        /// False would produce "[Foo][Bar]"
+        /// example, in C# setting this to True this would produce "[Goo, Bar]" while setting it to
+        /// False would produce "[Goo][Bar]"
         /// </summary>
         public bool MergeAttributes { get; }
 

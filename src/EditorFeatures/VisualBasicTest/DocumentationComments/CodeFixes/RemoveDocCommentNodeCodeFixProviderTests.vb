@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
@@ -416,7 +416,7 @@ End Class"
     ''' 
     ''' </summary>
     ''' [|<returns></returns>|]
-    Declare Sub Foo Lib ""User"" ()
+    Declare Sub Goo Lib ""User"" ()
 End Class"
 
             Dim expected =
@@ -424,7 +424,7 @@ End Class"
     ''' <summary>
     ''' 
     ''' </summary>
-    Declare Sub Foo Lib ""User"" ()
+    Declare Sub Goo Lib ""User"" ()
 End Class"
             
             Await TestAsync(initial, expected)

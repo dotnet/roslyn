@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
 using System.Linq;
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            string commandLine = @"CSharpClass.cs /out:foo.dll /target:library";
+            string commandLine = @"CSharpClass.cs /out:goo.dll /target:library";
             var baseDirectory = Path.Combine(this.SolutionDirectory.Path, "CSharpProject");
 
             using (var ws = new AdhocWorkspace())
@@ -166,20 +166,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var project = ws.CurrentSolution.GetProject(info.Id);
 
                 Assert.Equal("TestProject", project.Name);
-                Assert.Equal("foo", project.AssemblyName);
+                Assert.Equal("goo", project.AssemblyName);
                 Assert.Equal(OutputKind.DynamicallyLinkedLibrary, project.CompilationOptions.OutputKind);
 
                 Assert.Equal(1, project.Documents.Count());
 
-                var fooDoc = project.Documents.First(d => d.Name == "CSharpClass.cs");
-                Assert.Equal(0, fooDoc.Folders.Count);
+                var gooDoc = project.Documents.First(d => d.Name == "CSharpClass.cs");
+                Assert.Equal(0, gooDoc.Folders.Count);
                 var expectedPath = Path.Combine(baseDirectory, "CSharpClass.cs");
-                Assert.Equal(expectedPath, fooDoc.FilePath);
+                Assert.Equal(expectedPath, gooDoc.FilePath);
 
-                var text = (await fooDoc.GetTextAsync()).ToString();
+                var text = (await gooDoc.GetTextAsync()).ToString();
                 Assert.NotEqual("", text);
 
-                var tree = await fooDoc.GetSyntaxRootAsync();
+                var tree = await gooDoc.GetSyntaxRootAsync();
                 Assert.Equal(false, tree.ContainsDiagnostics);
 
                 var compilation = await project.GetCompilationAsync();
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
                 Assert.Null(originalDoc.FilePath);
 
-                var newPath = @"\foo\TestDocument.cs";
+                var newPath = @"\goo\TestDocument.cs";
                 var changedDoc = originalDoc.WithFilePath(newPath);
                 Assert.Equal(newPath, changedDoc.FilePath);
 

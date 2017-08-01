@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -1947,7 +1947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' and returns it instead of rebinding it. 
         ''' 
         ''' FOr example, we might have:
-        '''    While x > foo()
+        '''    While x > goo()
         '''      y = y * x
         '''      z = z + y
         '''    End While

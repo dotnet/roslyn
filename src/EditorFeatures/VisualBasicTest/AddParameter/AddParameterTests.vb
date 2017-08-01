@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -239,7 +239,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, [|0|])
     end sub
 end class",
@@ -250,7 +250,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
 end class",
@@ -267,7 +267,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, [|0|])
     end sub
 end class",
@@ -278,7 +278,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, 0)
     end sub
 end class",
@@ -295,7 +295,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, [|true|])
     end sub
 end class",
@@ -306,7 +306,7 @@ class C
                    v As Boolean)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, true)
     end sub
 end class",
@@ -324,7 +324,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, [|0|])
     end sub
 end class",
@@ -336,7 +336,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
 end class",
@@ -354,7 +354,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, [|0|])
     end sub
 end class",
@@ -366,7 +366,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, 0)
     end sub
 end class",
@@ -384,7 +384,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, [|true|])
     end sub
 end class",
@@ -396,7 +396,7 @@ class C
         v As Boolean)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, true)
     end sub
 end class",

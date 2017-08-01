@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
@@ -140,7 +140,7 @@ Delegate Sub DelegateType()
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ClassNotAfterPrivateInNamespaceTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Namespace Foo
+Namespace Goo
     Private |
 End Namespace</File>, "Class")
         End Function

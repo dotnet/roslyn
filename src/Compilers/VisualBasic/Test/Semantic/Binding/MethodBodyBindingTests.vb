@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
 Imports System.Text
@@ -45,7 +45,7 @@ Namespace N
                     dim a as double
                 end while
             else
-                Dim y As String = "foo"
+                Dim y As String = "goo"
             end if
             Return Nothing
         End Function
@@ -149,13 +149,13 @@ End Namespace
 Module M
 
   Sub Main()
-    Foo()
+    Goo()
   End Sub
 
-  Sub Foo()
-    Dim foo as Integer
-    Foo = 4273
-    System.Console.WriteLine(Foo)
+  Sub Goo()
+    Dim goo as Integer
+    Goo = 4273
+    System.Console.WriteLine(Goo)
   End Sub
 End Module
     </file>

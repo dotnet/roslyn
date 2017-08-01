@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -785,8 +785,8 @@ Done:
         ' If this method is generic, get a TypeSubstitution that substitutes IndexedTypeParameterSymbols
         ' for each method type parameter. This allows correctly comparing parameter and return types
         ' between two signatures:
-        '    Function foo(Of T)(p As T) As IEnumerable(Of T)
-        '    Function foo(Of U)(p As U) As IEnumerable(Of U)
+        '    Function goo(Of T)(p As T) As IEnumerable(Of T)
+        '    Function goo(Of U)(p As U) As IEnumerable(Of U)
         '
         ' The substitution returned is to be applied to the ORIGINAL definition of the method.
         Private Shared Function GetTypeSubstitution(method As MethodSymbol) As TypeSubstitution

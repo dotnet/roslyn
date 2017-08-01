@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -16,7 +16,7 @@ Option Explicit Off
 Imports System
 <Assembly: CLSCompliant(False)> 
 
-Namespace Foo.Bar
+Namespace Goo.Bar
     Public Class Class1
         Dim x As Integer
         Public Function f(ByVal a As Boolean) As Integer
@@ -58,7 +58,7 @@ End Namespace
 Option Explicit Off
 Imports System
 <Assembly: CLSCompliant(False)>
-Namespace Foo.Bar
+Namespace Goo.Bar
 Public Class Class1
 Dim x As Integer
 Public Function f(ByVal a As Boolean) As Integer

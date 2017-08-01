@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -238,9 +238,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.SubmitText("(new TestProj.C()).M()");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"C.M()\"");
 
-            VisualStudio.InteractiveWindow.SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"foo\";");
+            VisualStudio.InteractiveWindow.SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"goo\";");
             VisualStudio.InteractiveWindow.SubmitText("f.Text");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"foo\"");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"goo\"");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
         }
     }

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Case TypeKind.Module
                             Return "module"
                         Case TypeKind.Delegate
-                            ' Dev10 error message format "... delegate Class foo ..." instead of "... delegate foo ..."               
+                            ' Dev10 error message format "... delegate Class goo ..." instead of "... delegate goo ..."               
                             Return "delegate Class"
                         Case Else
                             'TODO: do we need string s for ByRef, Array, TypeParameter etc?

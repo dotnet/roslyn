@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
 using System.Linq;
@@ -79,7 +79,7 @@ class B
 
 
             SemanticModel speculativeSemanticModel;
-            var statement = SyntaxFactory.ParseStatement("var foo = new A().M();");
+            var statement = SyntaxFactory.ParseStatement("var goo = new A().M();");
 
             semanticModel.TryGetSpeculativeSemanticModel(position, statement, out speculativeSemanticModel);
             var creationExpression =

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(subFilePath, path);
 
             // prefer the base file over base directory:
-            path = resolver.ResolvePath(fileName, baseFilePath: PathUtilities.CombineAbsoluteAndRelativePaths(dir, "foo.csx"));
+            path = resolver.ResolvePath(fileName, baseFilePath: PathUtilities.CombineAbsoluteAndRelativePaths(dir, "goo.csx"));
             Assert.Equal(filePath, path);
 
             path = resolver.ResolvePath(@"\" + fileName, baseFilePath: null);
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 baseDirectory: subdir);
 
             // using base path
-            var path = resolver.ResolvePath(fileName, baseFilePath: PathUtilities.CombineAbsoluteAndRelativePaths(dir, "foo.csx"));
+            var path = resolver.ResolvePath(fileName, baseFilePath: PathUtilities.CombineAbsoluteAndRelativePaths(dir, "goo.csx"));
             Assert.Equal(filePath, path);
 
             // using base dir
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var resolverSP = new VirtualizedRelativePathResolver(
                 existingFullPaths: fs,
                 searchPaths: new[] { dir, subdir }.AsImmutableOrNull(),
-                baseDirectory: @"C:\foo");
+                baseDirectory: @"C:\goo");
 
             path = resolverSP.ResolvePath(fileName, baseFilePath: null);
             Assert.Equal(filePath, path);

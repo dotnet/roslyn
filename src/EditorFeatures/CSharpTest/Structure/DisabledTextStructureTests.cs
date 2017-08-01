@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
@@ -106,7 +106,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
 {|span:    void $$M()
     {
 #if Bar
@@ -127,7 +127,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
     void M()
     {
 #if Bar
@@ -149,7 +149,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
 {|span:    void $$M()
     {|}
 #if Bar
@@ -170,7 +170,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
 {|span:    void $$M()
     {
 #if Bar
@@ -200,7 +200,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
 {|span:    void $$M()
     {
 #if Bar

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -62,12 +62,12 @@ Public Class VisualBasicParseOptionsTests
         AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
-                                                   {New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)})
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
+                                                   {New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123)})
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
-                                                   New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123))
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
+                                                   New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123))
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication, empty)
         AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "exe")}, symbols.AsEnumerable)

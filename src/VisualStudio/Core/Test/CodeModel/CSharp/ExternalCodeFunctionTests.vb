@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -16,13 +16,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 <Code>
 class C
 {
-    void $$Foo(string s)
+    void $$Goo(string s)
     {
     }
 }
 </Code>
 
-            TestFullName(code, "C.Foo")
+            TestFullName(code, "C.Goo")
         End Sub
 
 #End Region
@@ -35,13 +35,13 @@ class C
 <Code>
 class C
 {
-    void $$Foo(string s)
+    void $$Goo(string s)
     {
     }
 }
 </Code>
 
-            TestName(code, "Foo")
+            TestName(code, "Goo")
         End Sub
 
 #End Region

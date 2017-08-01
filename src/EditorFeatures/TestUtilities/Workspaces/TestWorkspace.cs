@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -397,22 +397,22 @@ of the problem.");
         ///  {
         ///      public void M1()
         ///      {
-        ///          {|S1:int [|abc[|d$$ef|]|] = foo;|}
-        ///          int y = foo;
-        ///          {|S2:int [|def|] = foo;|}
+        ///          {|S1:int [|abc[|d$$ef|]|] = goo;|}
+        ///          int y = goo;
+        ///          {|S2:int [|def|] = goo;|}
         ///          int z = {|S3:123|} + {|S4:456|} + {|S5:789|};
         ///      }
         ///  }
         /// 
         /// The resulting projection buffer (with unnamed span markup preserved) would look like:
-        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = foo; [|MNOint [|def|] = foo;PQR S$$TU|] 456789123
+        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = goo; [|MNOint [|def|] = goo;PQR S$$TU|] 456789123
         /// 
         /// The union of unnamed spans from the surface buffer markup and each of the projected 
         /// spans is sorted as it would have been sorted by MarkupTestFile had it parsed the entire
         /// projection buffer as one file, which it would do in a stack-based manner. In our example,
         /// the order of the unnamed spans would be as follows:
         /// 
-        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = foo; [|MNOint [|def|] = foo;PQR S$$TU|] 456789123
+        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = goo; [|MNOint [|def|] = goo;PQR S$$TU|] 456789123
         ///       -----1       -----2            -------4                    -----6
         ///               ------------3     --------------5         --------------------------------7
         /// </summary>

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             //
             // In addition, in VB, it will filter out Bar from the sample below...
             //
-            //     Namespace Foo.$$
+            //     Namespace Goo.$$
             //         Namespace Bar
             //         End Namespace
             //     End Namespace

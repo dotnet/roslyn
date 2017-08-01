@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1072,14 +1072,14 @@ namespace ConsoleApplication1
         public void TestNamespaceDeclarationAnalyzer()
         {
             var source = @"
-namespace Foo.Bar.FooBar { }
+namespace Goo.Bar.GooBar { }
 ";
             var analyzers = new DiagnosticAnalyzer[] { new CSharpNamespaceDeclarationAnalyzer() };
 
             // Verify, no duplicate diagnostics on qualified name.
             CreateCompilationWithMscorlib45(source)
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
-                    expected: Diagnostic(CSharpNamespaceDeclarationAnalyzer.DiagnosticId, @"namespace Foo.Bar.FooBar { }").WithLocation(2, 1));
+                    expected: Diagnostic(CSharpNamespaceDeclarationAnalyzer.DiagnosticId, @"namespace Goo.Bar.GooBar { }").WithLocation(2, 1));
         }
 
         [Fact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")]

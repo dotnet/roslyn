@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Dim text = StringFromLines(
                 "Module M",
                 "    Sub S()",
-                "        Dim foo",
+                "        Dim goo",
                 "    End Sub",
                 "End Module")
             Await TestAsync(text)
@@ -511,7 +511,7 @@ End Class
 <code>
 Class C
     Sub M()
-        Dim m = My.Foo
+        Dim m = My.Goo
     End Sub
 End Class
 </code>.NormalizedValue()

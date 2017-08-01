@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 CheckEqualEnumerable(look1[k], look2[k]);
             }
 
-            foreach (string k in new string[] { "foo", "bar", "banana", "flibber" })
+            foreach (string k in new string[] { "goo", "bar", "banana", "flibber" })
             {
                 Assert.False(look1.Contains(k));
                 Assert.False(look2.Contains(k));

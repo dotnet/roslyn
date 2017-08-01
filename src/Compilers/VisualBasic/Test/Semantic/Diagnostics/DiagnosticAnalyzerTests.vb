@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.Serialization
@@ -607,7 +607,7 @@ End Class
             Dim sources = <compilation>
                               <file name="c.vb">
                                   <![CDATA[
-Namespace Foo.Bar.FooBar
+Namespace Goo.Bar.GooBar
 End Namespace
 ]]>
                               </file>
@@ -619,7 +619,7 @@ End Namespace
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                    Diagnostic(VisualBasicNamespaceDeclarationAnalyzer.DiagnosticId, <![CDATA[Namespace Foo.Bar.FooBar]]>))
+                    Diagnostic(VisualBasicNamespaceDeclarationAnalyzer.DiagnosticId, <![CDATA[Namespace Goo.Bar.GooBar]]>))
         End Sub
 
         <Fact, WorkItem(5463, "https://github.com/dotnet/roslyn/issues/5463")>

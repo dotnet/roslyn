@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -240,12 +240,12 @@ class D
 class C
 {
     public C(int i,
-             /* foo */ int j)
+             /* goo */ int j)
     {
 
     }
 
-    private void Foo()
+    private void Goo()
     {
         new [|C|](true, 0, 0);
     }
@@ -255,12 +255,12 @@ class C
 {
     public C(bool v,
              int i,
-             /* foo */ int j)
+             /* goo */ int j)
     {
 
     }
 
-    private void Foo()
+    private void Goo()
     {
         new C(true, 0, 0);
     }
@@ -277,12 +277,12 @@ ignoreTrivia: false);
 class C
 {
     public C(int i,
-             /* foo */ int j)
+             /* goo */ int j)
     {
 
     }
 
-    private void Foo()
+    private void Goo()
     {
         new [|C|](0, true, 0);
     }
@@ -292,12 +292,12 @@ class C
 {
     public C(int i,
              bool v,
-             /* foo */ int j)
+             /* goo */ int j)
     {
 
     }
 
-    private void Foo()
+    private void Goo()
     {
         new C(0, true, 0);
     }
@@ -314,12 +314,12 @@ ignoreTrivia: false);
 class C
 {
     public C(int i,
-             /* foo */ int j)
+             /* goo */ int j)
     {
 
     }
 
-    private void Foo()
+    private void Goo()
     {
         new [|C|](0, 0, true);
     }
@@ -328,13 +328,13 @@ class C
 class C
 {
     public C(int i,
-             /* foo */ int j,
+             /* goo */ int j,
              bool v)
     {
 
     }
 
-    private void Foo()
+    private void Goo()
     {
         new C(0, 0, true);
     }
@@ -352,12 +352,12 @@ class C
 {
     public C(
         int i,
-        /* foo */ int j)
+        /* goo */ int j)
     {
 
     }
 
-    private void Foo()
+    private void Goo()
     {
         new [|C|](true, 0, 0);
     }
@@ -368,12 +368,12 @@ class C
     public C(
         bool v,
         int i,
-        /* foo */ int j)
+        /* goo */ int j)
     {
 
     }
 
-    private void Foo()
+    private void Goo()
     {
         new C(true, 0, 0);
     }
@@ -391,12 +391,12 @@ class C
 {
     public C(
         int i,
-        /* foo */ int j)
+        /* goo */ int j)
     {
 
     }
 
-    private void Foo()
+    private void Goo()
     {
         new [|C|](0, true, 0);
     }
@@ -407,12 +407,12 @@ class C
     public C(
         int i,
         bool v,
-        /* foo */ int j)
+        /* goo */ int j)
     {
 
     }
 
-    private void Foo()
+    private void Goo()
     {
         new C(0, true, 0);
     }
@@ -430,12 +430,12 @@ class C
 {
     public C(
         int i,
-        /* foo */ int j)
+        /* goo */ int j)
     {
 
     }
 
-    private void Foo()
+    private void Goo()
     {
         new [|C|](0, 0, true);
     }
@@ -445,13 +445,13 @@ class C
 {
     public C(
         int i,
-        /* foo */ int j,
+        /* goo */ int j,
         bool v)
     {
 
     }
 
-    private void Foo()
+    private void Goo()
     {
         new C(0, 0, true);
     }

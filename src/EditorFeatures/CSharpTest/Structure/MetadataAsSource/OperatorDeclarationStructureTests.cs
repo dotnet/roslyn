@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         public async Task NoCommentsOrAttributes()
         {
             const string code = @"
-class Foo
+class Goo
 {
-    public static bool operator $$==(Foo a, Foo b);
+    public static bool operator $$==(Goo a, Goo b);
 }";
 
             await VerifyNoBlockSpansAsync(code);
@@ -31,10 +31,10 @@ class Foo
         public async Task WithAttributes()
         {
             const string code = @"
-class Foo
+class Goo
 {
     {|hint:{|textspan:[Blah]
-    |}public static bool operator $$==(Foo a, Foo b);|}
+    |}public static bool operator $$==(Goo a, Goo b);|}
 }";
 
             await VerifyBlockSpansAsync(code,
@@ -45,12 +45,12 @@ class Foo
         public async Task WithCommentsAndAttributes()
         {
             const string code = @"
-class Foo
+class Goo
 {
     {|hint:{|textspan:// Summary:
     //     This is a summary.
     [Blah]
-    |}bool operator $$==(Foo a, Foo b);|}
+    |}bool operator $$==(Goo a, Goo b);|}
 }";
 
             await VerifyBlockSpansAsync(code,
@@ -61,12 +61,12 @@ class Foo
         public async Task WithCommentsAttributesAndModifiers()
         {
             const string code = @"
-class Foo
+class Goo
 {
     {|hint:{|textspan:// Summary:
     //     This is a summary.
     [Blah]
-    |}public static bool operator $$==(Foo a, Foo b);|}
+    |}public static bool operator $$==(Goo a, Goo b);|}
 }";
 
             await VerifyBlockSpansAsync(code,

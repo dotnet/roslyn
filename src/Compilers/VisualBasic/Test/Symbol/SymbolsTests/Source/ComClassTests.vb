@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -1896,7 +1896,7 @@ Imports System.Runtime.InteropServices
 
 <Microsoft.VisualBasic.ComClass("1", "2", "3")>
 Public Class ComClassTest
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
     ]]></file>
@@ -1931,43 +1931,43 @@ Imports System.Runtime.InteropServices
 
 <Microsoft.VisualBasic.ComClass("7666AC25-855F-4534-BC55-27BF09D49D46", "7666AC25-855F-4534-BC55-27BF09D49D46", "7666AC25-855F-4534-BC55-27BF09D49D46")>
 Public Class ComClassTest1
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass("7666AC25-855F-4534-BC55-27BF09D49D46", "7666AC25-855F-4534-BC55-27BF09D49D46", "")>
 Public Class ComClassTest2
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass("7666AC25-855F-4534-BC55-27BF09D49D46", "", "7666AC25-855F-4534-BC55-27BF09D49D46")>
 Public Class ComClassTest3
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass("", "00000000-0000-0000-0000-000000000000", "")>
 Public Class ComClassTest4
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass("", "", "00000000-0000-0000-0000-000000000000")>
 Public Class ComClassTest5
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass("", "00000000-0000-0000-0000-000000000000", "0")>
 Public Class ComClassTest6
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass("", "0", "00000000-0000-0000-0000-000000000000")>
 Public Class ComClassTest7
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
     ]]></file>
@@ -2002,7 +2002,7 @@ Imports System.Runtime.InteropServices
 
 <Microsoft.VisualBasic.ComClass(), Guid("7666AC25-855F-4534-BC55-27BF09D49D46")>
 Public Class ComClassTest
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
     ]]></file>
@@ -2031,13 +2031,13 @@ Imports System.Runtime.InteropServices
 
 <Microsoft.VisualBasic.ComClass(), ClassInterface(0)>
 Public Class ComClassTest1
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass(), ClassInterface(ClassInterfaceType.None)>
 Public Class ComClassTest2
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
     ]]></file>
@@ -2069,31 +2069,31 @@ Imports System.Runtime.InteropServices
 
 <Microsoft.VisualBasic.ComClass(), ComSourceInterfaces("x")>
 Public Class ComClassTest1
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass(), ComSourceInterfaces(GetType(ComClassTest1))>
 Public Class ComClassTest2
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass(), ComSourceInterfaces(GetType(ComClassTest1), GetType(ComClassTest1))>
 Public Class ComClassTest3
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass(), ComSourceInterfaces(GetType(ComClassTest1), GetType(ComClassTest1), GetType(ComClassTest1))>
 Public Class ComClassTest4
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass(), ComSourceInterfaces(GetType(ComClassTest1), GetType(ComClassTest1), GetType(ComClassTest1), GetType(ComClassTest1))>
 Public Class ComClassTest5
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
     ]]></file>
@@ -2134,19 +2134,19 @@ Imports System.Runtime.InteropServices
 
 <Microsoft.VisualBasic.ComClass(), ComVisible(False)>
 Public Class ComClassTest1
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass(), ComVisible(True)>
 Public Class ComClassTest2
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
 <Microsoft.VisualBasic.ComClass(), ComVisible()>
 Public Class ComClassTest3
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
     ]]></file>
@@ -2178,7 +2178,7 @@ Imports System.Runtime.InteropServices
 
 <Microsoft.VisualBasic.ComClass()>
 Friend Class ComClassTest1
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 
@@ -2186,7 +2186,7 @@ Friend Class ComClassTest2
     Friend Class ComClassTest3
         <Microsoft.VisualBasic.ComClass()>
         Public Class ComClassTest4
-            Public Sub Foo()
+            Public Sub Goo()
             End Sub
         End Class
     End Class
@@ -2196,7 +2196,7 @@ Friend Class ComClassTest5
     Public Class ComClassTest6
         <Microsoft.VisualBasic.ComClass()>
         Public Class ComClassTest7
-            Public Sub Foo()
+            Public Sub Goo()
             End Sub
         End Class
     End Class
@@ -2233,7 +2233,7 @@ Imports System.Runtime.InteropServices
 
 <Microsoft.VisualBasic.ComClass()>
 Public MustInherit Class ComClassTest1
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
     ]]></file>
@@ -2262,7 +2262,7 @@ Imports System.Runtime.InteropServices
 
 <Microsoft.VisualBasic.ComClass()>
 Public Class ComClassTest1
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 
     Public Event E1()
@@ -2278,7 +2278,7 @@ End Class
 
 <Microsoft.VisualBasic.ComClass(InterfaceShadows:=False)>
 Public Class ComClassTest2
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 
     Public Event E1()
@@ -2294,7 +2294,7 @@ End Class
 
 <Microsoft.VisualBasic.ComClass(InterfaceShadows:=True)>
 Public Class ComClassTest3
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 
     Public Event E1()
@@ -2388,7 +2388,7 @@ End Class
 Public Class ComClassTest1
     Inherits ComClassBase
 
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 
     Public Event E1()
@@ -2470,7 +2470,7 @@ End Class
 Public Class ComClassTest1
     Inherits ComClassBase
 
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 
     Public Event E1()
@@ -2552,7 +2552,7 @@ End Class
 Public Class ComClassTest1
     Inherits ComClassBase
 
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 
     Public Event E1()
@@ -2630,7 +2630,7 @@ Imports System.Runtime.InteropServices
 
 <Microsoft.VisualBasic.ComClass()>
 Public Class ComClassTest1
-    Public Sub Foo(Of T)()
+    Public Sub Goo(Of T)()
     End Sub
 End Class
     ]]></file>
@@ -2641,7 +2641,7 @@ End Class
             Dim expected =
 <expected>
 BC30943: Generic methods cannot be exposed to COM.
-    Public Sub Foo(Of T)()
+    Public Sub Goo(Of T)()
                ~~~
 </expected>
 
@@ -8101,7 +8101,7 @@ Public Class ComClass1
     Public Const EventsId As String = "8F12C15B-4CA9-450C-9C85-37E9B74164B8"
 #End Region
 
-    Public Readonly Property Foo As Integer
+    Public Readonly Property Goo As Integer
         Get
             Return 0
         End Get
@@ -8151,7 +8151,7 @@ Public Class ComClass1
     Public Const EventsId As String = ""
     Public Sub New()
     End Sub
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
     Public Property oBrowser As Object ' cannot be exposed to COM as a property 'Let'. You will not be able to assign non-object values (such as numbers or strings) to this property from Visual Basic 6.0 using a 'Let' statement. 
 End Class

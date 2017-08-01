@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
@@ -683,12 +683,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If statement IsNot Nothing Then
                 ' VB statements are *really* weird.  Take, for example:
                 '
-                ' if foo
+                ' if goo
                 '
                 ' This is a MultiLineIfBlock (a statement), with an IfPart (not a statement) with an
                 ' IfStatement (a statement).
                 '
-                ' We want to find the thing that contains the 'if foo' statement that really isn't
+                ' We want to find the thing that contains the 'if goo' statement that really isn't
                 ' the MultiLineIfBlock.  So we find the first ancestor statement that does *not* have
                 ' the same starting position as the statement we're on.  
                 Dim outerStatement = statement.GetAncestors(Of StatementSyntax)().Where(Function(s) s.SpanStart <> statement.SpanStart).FirstOrDefault()

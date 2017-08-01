@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -110,7 +110,7 @@ class C
     {
         class Type
         {
-            void Foo()
+            void Goo()
             {
                 int x = 1 "" + {|FixAllInDocument:Sign|} + @"" "" + Sign + @""3;
             }
@@ -136,7 +136,7 @@ class C
     {
         class Type
         {
-            void Foo()
+            void Goo()
             {
                 int x = 1 "" + this.Sign + @"" "" + this.Sign + @""3;
             }

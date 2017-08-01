@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -17,25 +17,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void DebuggerDisplay_OneReference()
         {
-            ReferencedSymbol referencedSymbol = CreateReferencedSymbol("Foo", 1);
+            ReferencedSymbol referencedSymbol = CreateReferencedSymbol("Goo", 1);
 
-            Assert.Equal("Foo, 1 ref", referencedSymbol.GetDebuggerDisplay());
+            Assert.Equal("Goo, 1 ref", referencedSymbol.GetDebuggerDisplay());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void DebuggerDisplay_NoReferences()
         {
-            ReferencedSymbol referencedSymbol = CreateReferencedSymbol("Foo", 0);
+            ReferencedSymbol referencedSymbol = CreateReferencedSymbol("Goo", 0);
 
-            Assert.Equal("Foo, 0 refs", referencedSymbol.GetDebuggerDisplay());
+            Assert.Equal("Goo, 0 refs", referencedSymbol.GetDebuggerDisplay());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void DebuggerDisplay_TwoReferences()
         {
-            ReferencedSymbol referencedSymbol = CreateReferencedSymbol("Foo", 2);
+            ReferencedSymbol referencedSymbol = CreateReferencedSymbol("Goo", 2);
 
-            Assert.Equal("Foo, 2 refs", referencedSymbol.GetDebuggerDisplay());
+            Assert.Equal("Goo, 2 refs", referencedSymbol.GetDebuggerDisplay());
         }
 
         private static ReferencedSymbol CreateReferencedSymbol(

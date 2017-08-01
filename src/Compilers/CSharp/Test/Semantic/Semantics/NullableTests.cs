@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1739,13 +1739,13 @@ class Test
             string source = @"
 public class Parent
 {
-    public int Foo(int? d = 0) { return (int)d; }
+    public int Goo(int? d = 0) { return (int)d; }
 }
 ";
             string source2 = @"
 public class Parent
 {
-    public int Foo(int? d = 0) { return (int)d; }
+    public int Goo(int? d = 0) { return (int)d; }
 }
 
 public class Test
@@ -1753,7 +1753,7 @@ public class Test
     public static void Main()
     {
         Parent p = new Parent();
-        System.Console.Write(p.Foo(0));
+        System.Console.Write(p.Goo(0));
     }
 }
 ";

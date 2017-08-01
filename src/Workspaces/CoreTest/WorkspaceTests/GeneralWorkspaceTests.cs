@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
                 Assert.Null(originalDoc.FilePath);
 
-                var newPath = @"\foo\TestDocument.cs";
+                var newPath = @"\goo\TestDocument.cs";
                 var changedDoc = originalDoc.WithFilePath(newPath);
                 Assert.Equal(newPath, changedDoc.FilePath);
 

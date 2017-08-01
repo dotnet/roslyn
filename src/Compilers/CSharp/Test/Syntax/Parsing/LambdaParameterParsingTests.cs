@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out 
 ");
             N(SyntaxKind.CompilationUnit);
@@ -127,7 +127,7 @@ class C {
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out C
 ");
             N(SyntaxKind.CompilationUnit);
@@ -229,7 +229,7 @@ class C {
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out C c
 ");
             N(SyntaxKind.CompilationUnit);
@@ -331,7 +331,7 @@ class C {
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out C c
 ");
             N(SyntaxKind.CompilationUnit);
@@ -433,7 +433,7 @@ class C {
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out C c,
 ");
             N(SyntaxKind.CompilationUnit);

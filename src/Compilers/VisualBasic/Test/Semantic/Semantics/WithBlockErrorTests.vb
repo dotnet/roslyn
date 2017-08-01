@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -330,12 +330,12 @@ Option Strict On
 Class S
     Sub S()
         With New Object()
-            Dim x = .Foo()
+            Dim x = .Goo()
         End With
     End Sub
 End Class
     </file>
-</compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_StrictDisallowsLateBinding, ".Foo"))
+</compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_StrictDisallowsLateBinding, ".Goo"))
         End Sub
 
         <Fact()>

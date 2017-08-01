@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -266,8 +266,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim ns As SingleNamespaceDeclaration = Nothing
 
             ' The compilation node will count as a location for the innermost project level
-            ' namespace.  i.e. if the project level namespace is "Foo.Bar", then each compilation unit
-            ' is a location for "Foo.Bar".  "Foo" still has no syntax location though. 
+            ' namespace.  i.e. if the project level namespace is "Goo.Bar", then each compilation unit
+            ' is a location for "Goo.Bar".  "Goo" still has no syntax location though. 
             '
             ' By doing this we ensure that top level type and namespace declarations will have
             ' symbols whose parent namespace symbol points to the parent container CompilationUnit.

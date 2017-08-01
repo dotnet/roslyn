@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         Assert.True(result.Success);
                         result = comp.Emit(output, options: EmitOptions.Default.WithHighEntropyVirtualAddressSpace(true));
                         Assert.True(result.Success);
-                        result = comp.Emit(output, options: EmitOptions.Default.WithOutputNameOverride("foo"));
+                        result = comp.Emit(output, options: EmitOptions.Default.WithOutputNameOverride("goo"));
                         Assert.True(result.Success);
-                        result = comp.Emit(output, options: EmitOptions.Default.WithPdbFilePath("foo.pdb"));
+                        result = comp.Emit(output, options: EmitOptions.Default.WithPdbFilePath("goo.pdb"));
                         Assert.True(result.Success);
                     }
                 }

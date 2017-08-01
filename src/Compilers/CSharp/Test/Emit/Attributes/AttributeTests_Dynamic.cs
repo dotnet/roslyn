@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -1177,7 +1177,7 @@ using System.Collections.Generic;
  
 class C
 {
-    static IEnumerable<dynamic> Foo()
+    static IEnumerable<dynamic> Goo()
     {
         yield break;
     }
@@ -1186,7 +1186,7 @@ class C
             CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var iterator = c.GetMember<NamedTypeSymbol>("<Foo>d__0");
+                var iterator = c.GetMember<NamedTypeSymbol>("<Goo>d__0");
                 var getEnumerator = iterator.GetMethod("System.Collections.Generic.IEnumerable<dynamic>.GetEnumerator");
                 var attrs = getEnumerator.GetAttributes();
 

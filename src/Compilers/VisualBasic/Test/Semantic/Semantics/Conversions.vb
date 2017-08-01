@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports System.Xml.Linq
@@ -4023,9 +4023,9 @@ Public Module Program
         Dim inner As New C1(Of Integer).S1
         outer.EnumField = C1(Of Integer).E1.A
         inner.EnumField = C1(Of Integer).E1.A     
-        Foo(inner.EnumField)
+        Goo(inner.EnumField)
     End Sub
-    Sub Foo(x As Object)
+    Sub Goo(x As Object)
         Console.WriteLine(x.ToString)
     End Sub
 End Module]]>,

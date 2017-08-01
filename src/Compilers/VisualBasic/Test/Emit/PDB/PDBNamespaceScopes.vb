@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -397,7 +397,7 @@ Imports System.Reflection
 Imports System.Runtime.InteropServices
 
 <Assembly:Guid("11111111-1111-1111-1111-111111111111")>
-<Assembly:ImportedFromTypeLib("Foo")>
+<Assembly:ImportedFromTypeLib("Goo")>
 <Assembly:TypeLibVersion(1, 0)>
 
 Namespace N

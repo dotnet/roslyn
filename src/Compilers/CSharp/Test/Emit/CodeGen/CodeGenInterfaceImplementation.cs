@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -2572,7 +2572,7 @@ using System;
  
 interface I<T>
 {
-    void Foo();
+    void Goo();
 }
  
 class C : I<int[][,]>
@@ -2580,15 +2580,15 @@ class C : I<int[][,]>
     static void Main()
     {
         I<int[][,]> x = new C();
-        Action a = x.Foo;
+        Action a = x.Goo;
         Console.WriteLine(a.Method);
     }
  
-    void I<int[][,]>.Foo() { }
+    void I<int[][,]>.Goo() { }
 }
 ";
             // NOTE: order reversed from C# notation.
-            CompileAndVerify(source, expectedOutput: @"Void I<System.Int32[,][]>.Foo()");
+            CompileAndVerify(source, expectedOutput: @"Void I<System.Int32[,][]>.Goo()");
         }
 
         [Fact]

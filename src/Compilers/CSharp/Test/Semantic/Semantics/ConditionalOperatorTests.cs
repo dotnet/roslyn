@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -175,11 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestConditional("1 ? 2 : 3", null,
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool"));
 
-            TestConditional("foo ? 'a' : 'b'", null,
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo"));
+            TestConditional("goo ? 'a' : 'b'", null,
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"));
 
-            TestConditional("new Foo() ? GetObject() : null", null,
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Foo").WithArguments("Foo"));
+            TestConditional("new Goo() ? GetObject() : null", null,
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo"));
 
             // CONSIDER: dev10 reports ERR_ConstOutOfRange
             TestConditional("1 ? null : null", null,

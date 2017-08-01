@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1394,7 +1394,7 @@ End Namespace";
                 var generationSource = @"
 Namespace N
     Public Class [|C|](Of T As Structure, U As Class)
-        Public Sub Foo(Of Q As New, R As IComparable)()
+        Public Sub Goo(Of Q As New, R As IComparable)()
         End Sub
         Public Delegate Sub D(Of T1 As Structure, T2 As Class)(t As T1, u As T2)
     End Class
@@ -1404,7 +1404,7 @@ End Namespace
                 var expected = @"
 Namespace N
     Public Class C(Of T As Structure, U As Class)
-        Public Sub Foo(Of Q As New, R As IComparable)()
+        Public Sub Goo(Of Q As New, R As IComparable)()
         Public Delegate Sub D(Of T1 As Structure, T2 As Class)(t As T1, u As T2)
     End Class
 End Namespace

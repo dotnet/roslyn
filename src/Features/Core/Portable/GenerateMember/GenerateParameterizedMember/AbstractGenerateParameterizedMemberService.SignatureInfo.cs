@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         // NOTE(cyrusn): We only generate protected in the case of statics.  Consider
                         // the case where we're generating into one of our base types.  i.e.:
                         //
-                        // class B : A { void Foo() { A a; a.Foo(); }
+                        // class B : A { void Goo() { A a; a.Goo(); }
                         //
                         // In this case we can *not* mark the method as protected.  'B' can only
                         // access protected members of 'A' through an instance of 'B' (or a subclass
@@ -239,9 +239,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         //
                         // However, this does not apply if the method will be static.  i.e.
                         // 
-                        // class B : A { void Foo() { A.Foo(); }
+                        // class B : A { void Goo() { A.Goo(); }
                         //
-                        // B can access the protected statics of A, and so we generate 'Foo' as
+                        // B can access the protected statics of A, and so we generate 'Goo' as
                         // protected.
 
                         // TODO: Code coverage

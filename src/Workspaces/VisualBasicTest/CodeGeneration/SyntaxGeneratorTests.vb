@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Editing
@@ -453,8 +453,8 @@ End Class
             VerifySyntax(Of TupleExpressionSyntax)(_g.TupleExpression(
                 {_g.IdentifierName("x"), _g.IdentifierName("y")}), "(x, y)")
             VerifySyntax(Of TupleExpressionSyntax)(_g.TupleExpression(
-                {_g.Argument("foo", RefKind.None, _g.IdentifierName("x")),
-                 _g.Argument("bar", RefKind.None, _g.IdentifierName("y"))}), "(foo:=x, bar:=y)")
+                {_g.Argument("goo", RefKind.None, _g.IdentifierName("x")),
+                 _g.Argument("bar", RefKind.None, _g.IdentifierName("y"))}), "(goo:=x, bar:=y)")
         End Sub
 
         <Fact>

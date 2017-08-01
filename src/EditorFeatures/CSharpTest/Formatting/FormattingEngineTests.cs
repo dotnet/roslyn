@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -1017,24 +1017,24 @@ class C : Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatColonInThisConstructor()
         {
-            var code = @"class Foo
+            var code = @"class Goo
 {
-    Foo(int s)   :$$   this()
+    Goo(int s)   :$$   this()
     {
     }
 
-    Foo()
+    Goo()
     {
     }
 }";
 
-            var expected = @"class Foo
+            var expected = @"class Goo
 {
-    Foo(int s)   :   this()
+    Goo(int s)   :   this()
     {
     }
 
-    Foo()
+    Goo()
     {
     }
 }";
@@ -1050,7 +1050,7 @@ class C : Attribute
 {
     static void Main(string[] args)
     {
-        var vari = foo()     ?    true  :$$  false;
+        var vari = goo()     ?    true  :$$  false;
     }
 }";
 
@@ -1058,7 +1058,7 @@ class C : Attribute
 {
     static void Main(string[] args)
     {
-        var vari = foo()     ?    true  :  false;
+        var vari = goo()     ?    true  :  false;
     }
 }";
             AssertFormatAfterTypeChar(code, expected);

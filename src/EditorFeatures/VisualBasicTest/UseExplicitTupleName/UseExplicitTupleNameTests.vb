@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -40,20 +40,20 @@ end class")
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
-        Foo(v1.[|Item1|])
+        Goo(v1.[|Item1|])
     end sub
 
-    Sub Foo(i as integer)
+    Sub Goo(i as integer)
     end sub
 end class",
 "
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
-        Foo(v1.i)
+        Goo(v1.i)
     end sub
 
-    Sub Foo(i as integer)
+    Sub Goo(i as integer)
     end sub
 end class")
         End Function

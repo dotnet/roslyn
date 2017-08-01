@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -426,7 +426,7 @@ class RenameRocks
             VisualStudio.Editor.SetText(@"
 class Program
 {
-    void Foo()
+    void Goo()
     {
         var ids = 1;
         ids = 2;
@@ -441,7 +441,7 @@ class Program
             VisualStudio.Editor.Verify.TextContains(@"
 class Program
 {
-    void Foo()
+    void Goo()
     {
         var y = 1;
         y = 2;

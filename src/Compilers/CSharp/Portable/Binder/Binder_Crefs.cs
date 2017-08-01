@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -358,11 +358,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   to not introduce a regression and breaking change we return NULL in this case.
                     //   e.g.
                     //   
-                    //   /// <see cref="Foo"/>
-                    //   class Foo<T> { }
+                    //   /// <see cref="Goo"/>
+                    //   class Goo<T> { }
                     //   
                     //   This cref used not to bind to anything, because before it was looking for a type and
-                    //   since there was no arity, it didn't find Foo<T>. Now however, it finds Foo<T>.ctor,
+                    //   since there was no arity, it didn't find Goo<T>. Now however, it finds Goo<T>.ctor,
                     //   which is arguably correct, but would be a breaking change (albeit with minimal impact)
                     //   so we catch this case and chuck out the symbol found.
 

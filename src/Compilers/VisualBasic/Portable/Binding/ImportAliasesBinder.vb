@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -14,7 +14,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     ''' <summary>
-    ''' A ImportAliasesBinder provides lookup for looking up import aliases (A = Foo.Bar),
+    ''' A ImportAliasesBinder provides lookup for looking up import aliases (A = Goo.Bar),
     ''' either at file level or project level.
     ''' </summary>
     Friend Class ImportAliasesBinder

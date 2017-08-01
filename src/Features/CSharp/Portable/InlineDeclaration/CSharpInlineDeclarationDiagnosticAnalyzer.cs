@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // See if we have something like:
             //
             //      int i = 0;
-            //      if (Foo() || Bar(out i))
+            //      if (Goo() || Bar(out i))
             //      {
             //          Console.WriteLine(i);
             //      }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -103,10 +103,10 @@ class TestFile
 {
     int i;
 
-    void Foo(Func<bool> f) { }
+    void Goo(Func<bool> f) { }
 
     bool M(object obj)
-        => Foo(() => [||]obj is TestFile && ((TestFile)obj).i > 0, () => obj is TestFile && ((TestFile)obj).i > 0);
+        => Goo(() => [||]obj is TestFile && ((TestFile)obj).i > 0, () => obj is TestFile && ((TestFile)obj).i > 0);
 }",
 @"
 using System;
@@ -115,10 +115,10 @@ class TestFile
 {
     int i;
 
-    void Foo(Func<bool> f) { }
+    void Goo(Func<bool> f) { }
 
     bool M(object obj)
-        => Foo(() => obj is TestFile {|Rename:file|} && file.i > 0, () => obj is TestFile && ((TestFile)obj).i > 0);
+        => Goo(() => obj is TestFile {|Rename:file|} && file.i > 0, () => obj is TestFile && ((TestFile)obj).i > 0);
 }");
         }
 

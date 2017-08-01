@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
 Imports Roslyn.Test.Utilities
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Imports System
             Imports System.Collections
 
-            Namespace Foo.Bar
+            Namespace Goo.Bar
                 ' ClassA
                 Public Class Apple(Of TBravo)
                     Public alpha As Integer 'alpha
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Imports System
             Imports System.Collections
 
-            Namespace Foo.Bar
+            Namespace Goo.Bar
                 ' ClassA
                 Public Class Apple(Of TBravo)
                     ' this is before mango

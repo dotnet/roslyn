@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -122,9 +122,9 @@ class C { }
         {
             var source = @"
 #if false
-#define foo
+#define goo
 #endif
-#if foo
+#if goo
 #warning ""warning""
 #endif
 class C { }
@@ -153,11 +153,11 @@ class C { }
         public void DisabledUndef_Effect()
         {
             var source = @"
-#define foo
+#define goo
 #if false
-#undef foo
+#undef goo
 #endif
-#if foo
+#if goo
 #warning ""warning""
 #endif
 class C { }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestName()
         {
-            var text = "foo";
+            var text = "goo";
             var expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestParenthesizedExpression()
         {
-            var text = "(foo)";
+            var text = "(goo)";
             var expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
@@ -2117,7 +2117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestFromGroupBy1()
         {
-            var text = "from it in foo group x by y";
+            var text = "from it in goo group x by y";
             var expr = SyntaxFactory.ParseExpression(text);
 
             Assert.NotNull(expr);

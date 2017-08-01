@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' it will affect inference of stack behavior
         ''' it will also affect when expressions can be dup-reused
         '''     Example:
-        '''         Foo(x, ref x)     x cannot be duped as it is used in different context  
+        '''         Goo(x, ref x)     x cannot be duped as it is used in different context  
         ''' </summary>
         Private Enum ExprContext
             None

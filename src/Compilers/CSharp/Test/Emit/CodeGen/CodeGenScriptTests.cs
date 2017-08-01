@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -469,8 +469,8 @@ public abstract class C
         [Fact]
         public void ExprStmtWithMethodCall()
         {
-            var s0 = CreateSubmission("int Foo() { return 2;}");
-            var s1 = CreateSubmission("(4 + 5) * Foo()", previous: s0);
+            var s0 = CreateSubmission("int Goo() { return 2;}");
+            var s1 = CreateSubmission("(4 + 5) * Goo()", previous: s0);
 
             s0.VerifyEmitDiagnostics();
             s1.VerifyEmitDiagnostics();

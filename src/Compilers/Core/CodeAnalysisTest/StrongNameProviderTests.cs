@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // search paths
             var providerSP = new VirtualizedStrongNameProvider(
                 existingFullPaths: fs,
-                searchPaths: ImmutableArray.Create(@"C:\foo", dir, subdir));
+                searchPaths: ImmutableArray.Create(@"C:\goo", dir, subdir));
 
             path = providerSP.ResolveStrongNameKeyFile(fileName);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);

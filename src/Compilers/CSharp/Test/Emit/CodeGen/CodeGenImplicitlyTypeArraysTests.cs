@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -944,7 +944,7 @@ namespace Test
 {
     public class Program
     {
-        public void Foo()
+        public void Goo()
         {
             var a3 = new[,,] { { { 3, 4 } }, 3, 4 };
         }
@@ -969,7 +969,7 @@ namespace Test
 {
     public class Program
     {
-        public void Foo()
+        public void Goo()
         {
             var a3 = new[,,] { { { 3, 4 } }, x, 4 };
         }

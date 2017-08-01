@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
         void CaseCorrection()
         {
-            VisualStudio.Editor.SetText(@"Module Foo
+            VisualStudio.Editor.SetText(@"Module Goo
     Sub M()
 Dim x = Sub()
     End Sub
@@ -43,8 +43,8 @@ End Module");
 End Module");
 
             VisualStudio.Editor.PlaceCaret("    REM");
-            VisualStudio.Editor.SendKeys("sub", VirtualKey.Escape, " foo()", VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"Sub foo()
+            VisualStudio.Editor.SendKeys("sub", VirtualKey.Escape, " goo()", VirtualKey.Enter);
+            VisualStudio.Editor.Verify.TextContains(@"Sub goo()
 
     End Sub");
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Undo);

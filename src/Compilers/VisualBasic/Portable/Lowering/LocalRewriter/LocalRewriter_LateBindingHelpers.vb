@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           convertedValue As BoundExpression) As BoundExpression
 
             If assignmentTarget.Kind = BoundKind.LateMemberAccess Then
-                ' objExpr.foo = bar
+                ' objExpr.goo = bar
                 Dim memberAccess = DirectCast(assignmentTarget, BoundLateMemberAccess)
                 Return LateSet(syntax,
                                memberAccess,
@@ -426,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If invocation.Member.Kind = BoundKind.LateMemberAccess Then
                     Dim memberAccess = DirectCast(invocation.Member, BoundLateMemberAccess)
-                    ' objExpr.foo(args) = bar
+                    ' objExpr.goo(args) = bar
                     Return LateSet(syntax,
                                memberAccess,
                                convertedValue,
@@ -468,7 +468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim syntax = node.Syntax
 
-            ' expr = o.Foo<TypeParam>
+            ' expr = o.Goo<TypeParam>
             ' emit as:
             '     LateGet(invocation.Member, 
             '         invocation.Arguments, 

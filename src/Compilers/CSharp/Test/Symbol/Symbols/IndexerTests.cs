@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -2783,12 +2783,12 @@ set_P: 1");
         {
             #region "Source"
             var src1 = @"using System;
-    public interface IFoo
+    public interface IGoo
     {
         int this[int i] { get; }
     }
 
-    public class Foo : IFoo
+    public class Goo : IGoo
     {
         public int this[int i] { get { return i; } }
     }
@@ -2799,7 +2799,7 @@ class Test
 {
     public void M()
     {
-        IFoo ifoo = new Foo();
+        IGoo ifoo = new Goo();
         var local = ifoo[100];
     }
 }
@@ -2809,7 +2809,7 @@ class Test
             var comp1 = CreateCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
             var comp2 = CreateStandardCompilation(src2, new[] { new CSharpCompilationReference(comp1) });
 
-            var typeSymbol = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("IFoo");
+            var typeSymbol = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("IGoo");
             var idxSymbol = typeSymbol.GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.NotNull(idxSymbol);
             Assert.Equal("this[]", idxSymbol.Name);

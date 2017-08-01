@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -360,7 +360,7 @@ public class Test
 {
     static public int Main(string[] args)
     {
-        foreach (var var in ""foo"")
+        foreach (var var in ""goo"")
         {
             if (!var.GetType().Equals(typeof(char)))
             {

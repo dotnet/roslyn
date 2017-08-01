@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// 
     /// </summary>
     /// <param name=""j""></param>
-    public delegate int Foo(int [|i|], int j, int k);
+    public delegate int Goo(int [|i|], int j, int k);
 }
 ";
 
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// <param name=""i""></param>
     /// <param name=""j""></param>
     /// <param name=""k""></param>
-    public delegate int Foo(int [|i|], int j, int k);
+    public delegate int Goo(int [|i|], int j, int k);
 }
 ";
             await TestAsync(initial, expected);

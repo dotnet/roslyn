@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 @"using System.Linq;
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         var q = Enumerable.Range(1, 100).Where(x =>
         {
@@ -46,7 +46,7 @@ class C
 @"using System.Linq;
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         var q = Enumerable.Range(1, 100).Where((x) =>
         {
@@ -72,7 +72,7 @@ class C
 @"using System.Linq;
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         var q = Enumerable.Range(1, 100).Where(delegate (int x)
         {

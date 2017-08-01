@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -534,16 +534,16 @@ $$", @"         using
         {
             Test(@"class C
 {
-    void foo()
+    void goo()
     {
-        foo(); //comment
+        goo(); //comment
         $$
     }
 }", @"class C
 {
-    void foo()
+    void goo()
     {
-        foo()$$ //comment
+        goo()$$ //comment
     }
 }");
         }
@@ -566,16 +566,16 @@ $$", @"         using
         {
             Test(@"class Program
 {
-    object foo(object o)
+    object goo(object o)
     {
-        return foo();
+        return goo();
         $$
     }
 }", @"class Program
 {
-    object foo(object o)
+    object goo(object o)
     {
-        return foo($$)
+        return goo($$)
     }
 }", completionActive: true);
         }

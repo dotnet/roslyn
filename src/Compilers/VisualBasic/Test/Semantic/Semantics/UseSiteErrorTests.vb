@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -489,7 +489,7 @@ End Class
             <compilation name="CompilerGeneratedAttributeNotRequired">
                 <file name="a.vb">
 Class C
-    Property Foo as Integer 
+    Property Goo as Integer 
 End Class
     </file>
             </compilation>, Enumerable.Empty(Of MetadataReference)())
@@ -502,10 +502,10 @@ BC31091: Import of type 'Object' from assembly or module 'CompilerGeneratedAttri
 Class C
       ~
 BC30002: Type 'System.Void' is not defined.
-    Property Foo as Integer 
+    Property Goo as Integer 
     ~~~~~~~~~~~~~~~~~~~~~~~
 BC30002: Type 'System.Int32' is not defined.
-    Property Foo as Integer 
+    Property Goo as Integer 
                     ~~~~~~~                                                    
                                                 </errors>)
 

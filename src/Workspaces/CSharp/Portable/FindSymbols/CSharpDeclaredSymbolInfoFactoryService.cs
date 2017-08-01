@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     {
                         aliasMap = aliasMap ?? AllocateAliasMap();
 
-                        // If we have:  using X = Foo, then we store a mapping from X -> Foo
+                        // If we have:  using X = Goo, then we store a mapping from X -> Goo
                         // here.  That way if we see a class that inherits from X we also state
-                        // that it inherits from Foo as well.
+                        // that it inherits from Goo as well.
                         aliasMap[usingDecl.Alias.Name.Identifier.ValueText] = mappedName;
                     }
                 }

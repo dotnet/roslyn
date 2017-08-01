@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -186,15 +186,15 @@ End Module");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
     Sub Test()
         $$
     End Sub
 End Class");
 
-            VisualStudio.Editor.SendKeys("Foo(");
-            VisualStudio.Editor.Verify.CurrentSignature("C.Foo()");
+            VisualStudio.Editor.SendKeys("Goo(");
+            VisualStudio.Editor.Verify.CurrentSignature("C.Goo()");
 
             VisualStudio.Editor.SetText(@"
 Class C

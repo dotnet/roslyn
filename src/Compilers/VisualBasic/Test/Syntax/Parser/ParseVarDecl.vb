@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -250,7 +250,7 @@ End Class
         ParseAndVerify(<![CDATA[
 Module Program
     Sub Main()
-        Dim [foo as integer = 23 
+        Dim [goo as integer = 23 
         Dim [goo As Char = "d"c
 
         Dim [ as integer = 23 
@@ -266,7 +266,7 @@ Module Program
     End Sub
 End Module
             ]]>, Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
-                 Diagnostic(ERRID.ERR_MissingEndBrack, "[foo"),
+                 Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"),
                  Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
                  Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"),
                  Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),

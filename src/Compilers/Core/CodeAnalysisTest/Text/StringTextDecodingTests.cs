@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 foreach (var readEncoding in encodings)
                 {
-                    var text = CreateMemoryStreamBasedEncodedText("foo", writeEncoding, readEncoding);
+                    var text = CreateMemoryStreamBasedEncodedText("goo", writeEncoding, readEncoding);
                     Assert.Equal(1, text.Lines.Count);
                     Assert.Equal(3, text.Lines[0].Span.Length);
                 }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 foreach (var readEncoding in readEncodings)
                 {
-                    var text = CreateMemoryStreamBasedEncodedText("foo", writeEncoding, readEncoding);
+                    var text = CreateMemoryStreamBasedEncodedText("goo", writeEncoding, readEncoding);
                     Assert.Equal(1, text.Lines.Count);
                     Assert.Equal(3, text.Lines[0].Span.Length);
                 }

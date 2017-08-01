@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -1205,8 +1205,8 @@ class Program
 {
     static int Main()
     {
-        int [] foo = new int [] {1};
-        var q = from x in foo
+        int [] goo = new int [] {1};
+        var q = from x in goo
                 select x + 1 into z
                     select z.T
 ";

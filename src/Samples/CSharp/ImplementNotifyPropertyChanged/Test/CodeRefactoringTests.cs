@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -287,7 +287,7 @@ class C : INotifyPropertyChanged
         [Fact]
         public void TestRefactoringNotAvailableOnMethod()
         {
-            const string Markup = @"public class C { public int [|Foo|]() { } }";
+            const string Markup = @"public class C { public int [|Goo|]() { } }";
             TestNoActions(Markup);
         }
     }

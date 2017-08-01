@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
 Imports System.Text
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 <compilation name="C">
     <file>
 Namespace N
-    Sub Foo
+    Sub Goo
     End Sub
 End Namespace
     </file>
@@ -54,7 +54,7 @@ End Namespace
             Dim c = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="C">
     <file>
-Sub Foo
+Sub Goo
 End Sub
     </file>
 </compilation>, parseOptions:=TestOptions.Script)

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -886,18 +886,18 @@ End Interface
 Class C
     Implements IA(Of Integer), IB
 
-    Sub Foo(ByVal x As Action(Of Integer))
+    Sub Goo(ByVal x As Action(Of Integer))
         System.Console.WriteLine(1)
         x(1)
     End Sub
 
-    Sub Foo(ByVal x As Action(Of String))
+    Sub Goo(ByVal x As Action(Of String))
         System.Console.WriteLine(2)
         x("2")
     End Sub
 
     Sub Baz()
-        Foo(AddressOf Bar)
+        Goo(AddressOf Bar)
     End Sub
 End Class
 

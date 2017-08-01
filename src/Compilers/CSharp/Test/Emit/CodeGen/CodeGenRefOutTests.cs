@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -79,11 +79,11 @@ public class Test
         // Named parameters are in reversed order
         // Arguments have side effects
         // Arguments refer to the same array element
-        Foo(y: out GetArray(""A"")[GetIndex(""B"")], x: ref GetArray(""C"")[GetIndex(""D"")]);
+        Goo(y: out GetArray(""A"")[GetIndex(""B"")], x: ref GetArray(""C"")[GetIndex(""D"")]);
         System.Console.WriteLine(array[0]);
     }
 
-    static void Foo(ref int x, out int y)
+    static void Goo(ref int x, out int y)
     {
         x = 1;
         y = 2;

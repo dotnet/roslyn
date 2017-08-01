@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
 Public Interface I1
@@ -22,16 +22,16 @@ Public Class Class1
 
     Public WithEvents WE2 As C1
 
-    Public Sub foo() Handles WE1.I1
-        Console.WriteLine("Class1.Foo")
+    Public Sub goo() Handles WE1.I1
+        Console.WriteLine("Class1.Goo")
     End Sub
 End Class
 
 Public Class Derived
     Inherits Class1
 
-    Public Sub foo1() Handles WE1.I1
-        Console.WriteLine("Derived.Foo1")
+    Public Sub goo1() Handles WE1.I1
+        Console.WriteLine("Derived.Goo1")
     End Sub
 
 End Class

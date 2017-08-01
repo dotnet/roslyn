@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1572,12 +1572,12 @@ class Test
         string name = "";
         object obj = new object();
 /*<bind>*/
-        lock (new { p1 = name, p2 = foo(obj) })
+        lock (new { p1 = name, p2 = goo(obj) })
         {
         }
 /*</bind>*/
     }
-    static int foo(object  x)
+    static int goo(object  x)
     { return 1; }
 }
 ");

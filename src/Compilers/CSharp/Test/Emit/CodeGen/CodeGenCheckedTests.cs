@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2282,13 +2282,13 @@ public class MyClass
 {
     public static void Main()
     {
-        short foo = 0;
+        short goo = 0;
         try
         {
             for (int i = 0; i < 2; i++)
             {
-                checked { foo += 32000; }
-                Console.Write(foo);
+                checked { goo += 32000; }
+                Console.Write(goo);
             }
         }
         catch (OverflowException)

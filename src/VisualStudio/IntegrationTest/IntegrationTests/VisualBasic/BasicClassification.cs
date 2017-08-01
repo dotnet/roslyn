@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -68,10 +68,10 @@ End Namespace");
         {
             VisualStudio.Editor.SetText(@"
 Imports System
-Class Foo
+Class Goo
     Inherits Attribute
 End Class");
-            VisualStudio.Editor.PlaceCaret("Foo");
+            VisualStudio.Editor.PlaceCaret("Goo");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
             VisualStudio.Editor.PlaceCaret("Attribute");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");

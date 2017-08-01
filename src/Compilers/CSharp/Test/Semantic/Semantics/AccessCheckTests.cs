@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -719,7 +719,7 @@ class A
     static private int priv;
     static public int pub;
     protected int prot;
-    static private Foo unknowntype;
+    static private Goo unknowntype;
     
     private class K {}
 

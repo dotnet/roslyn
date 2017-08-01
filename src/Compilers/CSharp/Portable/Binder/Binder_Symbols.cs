@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var identifierValueText = node.Identifier.ValueText;
 
-            // If we are here in an error-recovery scenario, say, "foo<int, >(123);" then
+            // If we are here in an error-recovery scenario, say, "goo<int, >(123);" then
             // we might have an 'empty' simple name. In that case do not report an 
             // 'unable to find ""' error; we've already reported an error in the parser so
             // just bail out with an error symbol.

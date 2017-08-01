@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -346,7 +346,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                         // Some consumers like CodeMap want to show types in an unified way for both C# and VB.
                         // Therefore, populate a common label property using only name and its type parameters.
-                        // For example, VB's "Foo(Of T)" or C#'s "Foo<T>(): T" will be shown as "Foo<T>".
+                        // For example, VB's "Goo(Of T)" or C#'s "Goo<T>(): T" will be shown as "Goo<T>".
                         // This property will be used for drag-and-drop case.
                         var commonLabel = new System.Text.StringBuilder();
                         commonLabel.Append(typeSymbol.Name);

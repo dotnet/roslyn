@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1554,11 +1554,11 @@ class Program
 {
     static void Main()
     {
-        Foo(x => { foreach (var y in x) { } });
+        Goo(x => { foreach (var y in x) { } });
     }
 
-    static void Foo(Action<IEnumerable> a) { Console.WriteLine(1); }
-    static void Foo(Action<A> a) { }}
+    static void Goo(Action<IEnumerable> a) { Console.WriteLine(1); }
+    static void Goo(Action<A> a) { }}
 
 class A
 {

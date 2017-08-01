@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -105,7 +105,7 @@ Imports System.Collections.Generic
 
 Namespace N1
 
-    Public Interface IFoo
+    Public Interface IGoo
         Sub M(p1 As Integer, p2 As Integer)
         Sub M(ParamArray ary As Short())
         Sub M(p1 As String)
@@ -115,7 +115,7 @@ Namespace N1
     Public Structure S
 
         Public Event PublicEvent As Action(Of S)
-        Public PublicField As IFoo
+        Public PublicField As IGoo
         Public Property PublicProp As String
         Default Public Property Item(p As SByte) As Short
             Get
@@ -264,16 +264,16 @@ End Class
 Imports System
 Namespace Mscorlib20
 
-    Public Interface IFoo
+    Public Interface IGoo
         ' interface
         ReadOnly Property Prop As IDisposable
     End Interface
 
-    Public Class CFoo
-        Implements IFoo
+    Public Class CGoo
+        Implements IGoo
         ' enum
         Public PublicField As DayOfWeek
-        Public ReadOnly Property Prop As IDisposable Implements IFoo.Prop
+        Public ReadOnly Property Prop As IDisposable Implements IGoo.Prop
             Get
                 Return Nothing
             End Get
@@ -290,8 +290,8 @@ Imports N20 = Mscorlib20
 
 Class Test
     Public Function M() As IDisposable
-        Dim obj = New N20.CFoo()
-        Dim ifoo As N20.IFoo = obj
+        Dim obj = New N20.CGoo()
+        Dim ifoo As N20.IGoo = obj
         If obj.Publicfield = DayOfWeek.Friday Then  'BIND1:"obj.Publicfield"
             Return ifoo.Prop                        'BIND2:"ifoo.Prop"
         End If
@@ -311,7 +311,7 @@ End Class
 
             Dim ver20Symbols = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember).Where(Function(s) Not s.IsAccessor() And s.Kind <> SymbolKind.Parameter).OrderBy(Function(s) s.Name)
             ' ver20Symbols = ver20Symbols.Where(Function(s) Not IsAccessor(s) And s.Kind <> SymbolKind.Parameter).OrderBy(Function(s) s.Name).[Select](Function(s) s).ToList()
-            ''  IFoo.Prop, CFoo.Prop, Field
+            ''  IGoo.Prop, CGoo.Prop, Field
             Assert.Equal(3, ver20Symbols.Count)
 
             ' ====================
@@ -340,17 +340,17 @@ Imports System
 
 Namespace Mscorlib20
 
-    Public Interface IFoo
+    Public Interface IGoo
         ' class
         Default Property Item(t As ArgumentException) As Exception
     End Interface
 
-    Public Class CFoo
-        Implements IFoo
+    Public Class CGoo
+        Implements IGoo
         ' delegate
         Public Event PublicEventField As System.Threading.ParameterizedThreadStart
 
-        Default Public Property Item(t As ArgumentException) As Exception Implements IFoo.Item
+        Default Public Property Item(t As ArgumentException) As Exception Implements IGoo.Item
             Get
                 Return t
             End Get
@@ -370,9 +370,9 @@ Imports N20 = Mscorlib20
 
 Class Test
     Public Sub M()
-        Dim obj = New N20.CFoo()
+        Dim obj = New N20.CGoo()
         AddHandler obj.Publiceventfield, AddressOf MyEveHandler 'BIND1:"obj.Publiceventfield"
-        Dim ifoo As N20.IFoo = obj
+        Dim ifoo As N20.IGoo = obj
         Dim local = ifoo(Nothing)                               'BIND2:"ifoo(Nothing)"
     End Sub
 
@@ -386,7 +386,7 @@ End Class
             Dim comp40 = CreateCompilationWithMscorlibAndReferences(src2, {comp20.ToMetadataReference()})
 
             Dim ver20Symbols = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember).Where(Function(s) Not s.IsAccessor() And s.Kind <> SymbolKind.Parameter).OrderBy(Function(s) s.Name).ToList()
-            ' default property IFoo.Item, CFoo.Item, Event 
+            ' default property IGoo.Item, CGoo.Item, Event 
             Assert.Equal(3, ver20Symbols.Count)
 
             ' ====================

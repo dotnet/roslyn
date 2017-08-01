@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return false;
                 }
 
-                var argument = token.Parent.Parent as ArgumentSyntax // var is child of ArgumentSyntax, eg. Foo(out var $$
+                var argument = token.Parent.Parent as ArgumentSyntax // var is child of ArgumentSyntax, eg. Goo(out var $$
                     ?? token.Parent.Parent.Parent as ArgumentSyntax; // var is child of DeclarationExpression 
-                                                                     // under ArgumentSyntax, eg. Foo(out var a$$
+                                                                     // under ArgumentSyntax, eg. Goo(out var a$$
 
                 if (argument == null || !argument.RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
                 {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Indicates if this was not an exact reference to a location, but was instead a possible
         /// location that was found through error tolerance.  For example, a call to a method like
-        /// "Foo()" could show up as an error tolerance location to a method "Foo(int i)" if no
-        /// actual "Foo()" method existed.
+        /// "Goo()" could show up as an error tolerance location to a method "Goo(int i)" if no
+        /// actual "Goo()" method existed.
         /// </summary>
         public bool IsCandidateLocation => this.CandidateReason != CandidateReason.None;
 

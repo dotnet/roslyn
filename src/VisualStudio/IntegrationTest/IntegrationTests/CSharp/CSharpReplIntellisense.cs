@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -82,7 +82,7 @@ Del<C, System");
         {
             using (var temporaryTextFile = new TemporaryTextFile(
                 "c.csx",
-                "int x = 2; class Complex { public int foo() { return 4; } }"))
+                "int x = 2; class Complex { public int goo() { return 4; } }"))
             {
                 temporaryTextFile.Create();
                 VisualStudio.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));

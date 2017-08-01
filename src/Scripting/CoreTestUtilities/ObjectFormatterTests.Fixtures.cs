@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #pragma warning disable 169 // unused field
 #pragma warning disable 649 // field not set, will always be default value
@@ -109,7 +109,7 @@ namespace ObjectFormatterFixtures
 
     internal class ComplexProxyBase
     {
-        private int Foo()
+        private int Goo()
         {
             return 1;
         }
@@ -221,13 +221,13 @@ namespace ObjectFormatterFixtures
         [DebuggerDisplay("{F1(1)}")]
         public readonly int _26_4;
 
-        [DebuggerDisplay("{Foo}")]
+        [DebuggerDisplay("{Goo}")]
         public readonly int _26_5;
 
-        [DebuggerDisplay("{foo}")]
+        [DebuggerDisplay("{goo}")]
         public readonly int _26_6;
 
-        private int foo()
+        private int goo()
         {
             return 2;
         }

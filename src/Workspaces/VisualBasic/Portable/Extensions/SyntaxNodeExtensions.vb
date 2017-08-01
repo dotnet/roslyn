@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     ' this node that belongs to a span of pp directives that
                     ' is not entirely contained within the node.  i.e.:
                     '
-                    '   void Foo() {
+                    '   void Goo() {
                     '      #if ...
                     '   }
                     '
@@ -289,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     ' We have a PP directive before us.  i.e.:
                     ' 
                     '   #if ...
-                    '      void Foo() {
+                    '      void Goo() {
                     '
                     ' That means we start a new group that is contained between
                     ' the above directive and the following directive.
@@ -320,30 +320,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' 
         ''' i.e. The following returns false:
         ''' 
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #if true
         ''' #endif
         '''   }
         ''' 
         ''' #if true
-        '''   void Foo() {
+        '''   void Goo() {
         '''   }
         ''' #endif
         ''' 
         ''' but these return true:
         ''' 
         ''' #if true
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #endif
         '''   }
         ''' 
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #if true
         '''   }
         ''' #endif
         ''' 
         ''' #if true
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #else
         '''   }
         ''' #endif

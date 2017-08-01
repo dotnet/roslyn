@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -378,10 +378,10 @@ struct TestCase
 {
     public async Task<int> Run()
     {
-        return await Foo();
+        return await Goo();
     }
 
-    public async Task<int> Foo()
+    public async Task<int> Goo()
     {
         return await Task.Factory.StartNew(() => 42);
     }
@@ -416,10 +416,10 @@ struct TestCase
 {
     public IEnumerable<int> Run()
     {
-        yield return Foo();
+        yield return Goo();
     }
 
-    public int Foo()
+    public int Goo()
     {
         return 42;
     }

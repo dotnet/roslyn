@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Parser
@@ -1746,7 +1746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             If operand Is Nothing Then
                 ' if we bailed because the first token was not a way to start an expression, we might
-                ' be in a situation like "foo(Sub() Return, 15)" where next token was a valid thing
+                ' be in a situation like "goo(Sub() Return, 15)" where next token was a valid thing
                 ' to come after this return statement, in which case we proceed without trying
                 ' to gobble up the return expression. Or we might be like "Return Select", where the next
                 ' token cannot possibly come after the statement, so we'll report on it now:

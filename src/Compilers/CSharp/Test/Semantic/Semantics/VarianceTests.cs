@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -258,17 +258,17 @@ delegate T D<out T>();
 
 class C
 {
-    static void Foo(D<IIn<I>> x) { }
-    static void Foo(D<I> x) { }
+    static void Goo(D<IIn<I>> x) { }
+    static void Goo(D<I> x) { }
     static void M()
     {
-        Foo(null);
+        Goo(null);
     }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(D<IIn<I>>)' and 'C.Foo(D<I>)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(D<IIn<I>>)", "C.Foo(D<I>)"));
+                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Goo(D<IIn<I>>)' and 'C.Goo(D<I>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(D<IIn<I>>)", "C.Goo(D<I>)"));
         }
 
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
@@ -287,7 +287,7 @@ class C
     static void M()
     {
         IC<double> bar = null;
-        IN<IC<string>> foo = bar;
+        IN<IC<string>> goo = bar;
     }
 }
 ";

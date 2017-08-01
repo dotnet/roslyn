@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -38,8 +38,8 @@ End Class");
 ''' This is an XML doc comment defined in code.
 ''' </summary>
 Class العربية123
-    Shared Sub Foo()
-         Dim foo as العربية123$$
+    Shared Sub Goo()
+         Dim goo as العربية123$$
     End Sub
 End Class");
             VisualStudio.Editor.InvokeQuickInfo();
