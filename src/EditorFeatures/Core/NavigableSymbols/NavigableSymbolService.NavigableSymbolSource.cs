@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 
                 var service = document.GetLanguageService<IGoToSymbolService>();
 
-                var context = new GoToDefinitionContext(document, position, cancellationToken);
+                var context = new GoToSymbolContext(document, position, cancellationToken);
 
                 await service.GetDefinitionsAsync(context).ConfigureAwait(false);
 
-                if (!context.TryGetItems(WellKnownDefinitionTypes.Definition, out var definitions))
+                if (!context.TryGetItems(WellKnownSymbolTypes.Definition, out var definitions))
                 {
                     return null;
                 }

@@ -6,9 +6,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
-    internal abstract class AbstractGoToDefinitionItemService : ForegroundThreadAffinitizedObject, IGoToSymbolService
+    internal abstract class AbstractGoToSymbolService : ForegroundThreadAffinitizedObject, IGoToSymbolService
     {
-        public async Task GetDefinitionsAsync(GoToDefinitionContext context)
+        public async Task GetDefinitionsAsync(GoToSymbolContext context)
         {
             var document = context.Document;
             var position = context.Position;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             foreach (var definition in definitions)
             {
-                context.AddItem(WellKnownDefinitionTypes.Definition, definition);
+                context.AddItem(WellKnownSymbolTypes.Definition, definition);
             }
 
             context.Span = span;

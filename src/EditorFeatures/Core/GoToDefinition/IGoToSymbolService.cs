@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal interface IGoToSymbolService : ILanguageService
     {
-        Task GetDefinitionsAsync(GoToDefinitionContext context);
+        Task GetDefinitionsAsync(GoToSymbolContext context);
     }
 }

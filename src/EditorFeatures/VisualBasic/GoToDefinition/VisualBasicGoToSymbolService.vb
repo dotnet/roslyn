@@ -4,8 +4,8 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
     <ExportLanguageService(GetType(IGoToSymbolService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicGoToDefinitionItemService
-        Inherits AbstractGoToDefinitionItemService
+    Friend Class VisualBasicGoToSymbolService
+        Inherits AbstractGoToSymbolService
 
     End Class
 End Namespace

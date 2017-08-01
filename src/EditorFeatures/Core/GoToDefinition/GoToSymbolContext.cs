@@ -8,13 +8,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
-    internal class GoToDefinitionContext
+    internal class GoToSymbolContext
     {
         private readonly object _gate = new object();
 
         private readonly MultiDictionary<string, DefinitionItem> _items = new MultiDictionary<string, DefinitionItem>();
 
-        public GoToDefinitionContext(Document document, int position, CancellationToken cancellationToken)
+        public GoToSymbolContext(Document document, int position, CancellationToken cancellationToken)
         {
             Document = document;
             Position = position;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public TextSpan Span { get; set; }
 
-        public bool TryGetItems(string key, out IEnumerable<DefinitionItem> items)
+        internal bool TryGetItems(string key, out IEnumerable<DefinitionItem> items)
         {
             if (_items.ContainsKey(key))
             {

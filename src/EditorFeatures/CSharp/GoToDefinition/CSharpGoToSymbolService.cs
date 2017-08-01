@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 {
     [ExportLanguageService(typeof(IGoToSymbolService), LanguageNames.CSharp), Shared]
-    internal class CSharpGoToDefinitionItemService : AbstractGoToDefinitionItemService
+    internal class CSharpGoToSymbolService : AbstractGoToSymbolService
     {
     }
 }
