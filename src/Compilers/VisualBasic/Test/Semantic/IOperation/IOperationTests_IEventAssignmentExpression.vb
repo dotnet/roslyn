@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -188,8 +189,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  ... AddressOf M')
   Expression: IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
-      Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'Me.TestEvent')
-          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'Me')
+      Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'Me.TestEvent')
+          Instance Receiver: null
       Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
           Children(1):
               IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
@@ -203,5 +204,39 @@ BC42025: Access of shared member, constant member, enum member or nested type th
             VerifyOperationTreeAndDiagnosticsForTest(Of AddRemoveHandlerStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <Fact>
+        <WorkItem(8909, "https://github.com/dotnet/roslyn/issues/8909")>
+        Public Sub AddEventHandler_AssignToNonSharedEventOnType()
+            Dim source = <![CDATA[
+Imports System
+
+Class TestClass
+
+    Event TestEvent As Action
+
+    Sub Remove()
+        AddHandler TestClass.TestEvent, AddressOf M 'BIND:"AddHandler TestClass.TestEvent, AddressOf M"
+    End Sub
+
+    Sub M()
+    End Sub
+End Class]]>.Value
+            Dim expectedOperationTree = <![CDATA[
+IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'AddHandler  ... AddressOf M')
+  Expression: IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: null, IsInvalid) (Syntax: 'AddHandler  ... AddressOf M')
+      Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action, IsInvalid) (Syntax: 'TestClass.TestEvent')
+          Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'TestClass')
+      Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
+          Children(1):
+              IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30469: Reference to a non-shared member requires an object reference.
+        AddHandler TestClass.TestEvent, AddressOf M 'BIND:"AddHandler TestClass.TestEvent, AddressOf M"
+                   ~~~~~~~~~~~~~~~~~~~
+]]>.Value
+            VerifyOperationTreeAndDiagnosticsForTest(Of AddRemoveHandlerStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

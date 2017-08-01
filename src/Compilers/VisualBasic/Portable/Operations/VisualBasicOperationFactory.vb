@@ -574,7 +574,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundEventAccessOperation(boundEventAccess As BoundEventAccess) As IEventReferenceExpression
             Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(
                 Function()
-                    Return Create(boundEventAccess.ReceiverOpt)
+                    If boundEventAccess.EventSymbol.IsShared Then
+                        Return Nothing
+                    Else
+                        Return Create(boundEventAccess.ReceiverOpt)
+                    End If
                 End Function)
 
             Dim [event] As IEventSymbol = boundEventAccess.EventSymbol
