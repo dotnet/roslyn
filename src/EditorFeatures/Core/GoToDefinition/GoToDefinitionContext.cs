@@ -29,8 +29,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public bool TryGetItems(string key, out IEnumerable<DefinitionItem> items)
         {
-            items = _items[key];
-            return items != null;
+            if (_items.ContainsKey(key))
+            {
+                // Multidictionary valuesets are structs so we can't
+                // just check for null
+                items = _items[key];
+                return true;
+            }
+            else
+            {
+                items = null;
+                return false;
+            }
         }
 
         public void AddItem(string key, DefinitionItem item)
