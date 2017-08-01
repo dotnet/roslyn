@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             IsReference = 0b1000
         }
 
-        private ConversionKind _conversionKind;
+        private readonly ConversionKind _conversionKind;
 
         internal CommonConversion(bool exists, bool isIdentity, bool isNumeric, bool isReference, IMethodSymbol methodSymbol)
         {

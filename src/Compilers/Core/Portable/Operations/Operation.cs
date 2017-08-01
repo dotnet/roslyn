@@ -42,14 +42,10 @@ namespace Microsoft.CodeAnalysis
 
         public string Language
         {
-            get
-            {
-                // TODO: it is an eventual goal to support analyzing IL. At that point, we'll need to detect a null
-                // syntax and add a new field to LanguageNames for IL. Until then, though, we'll just assume that
-                // syntax is not null and return its language.
-                Debug.Assert(Syntax != null);
-                return Syntax.Language;
-            }
+            // It is an eventual goal to support analyzing IL. At that point, we'll need to detect a null
+            // syntax and add a new field to LanguageNames for IL. Until then, though, we'll just assume that
+            // syntax is not null and return its language.
+            get => Syntax.Language;
         }
 
         /// <summary>

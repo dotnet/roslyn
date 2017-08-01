@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class BaseCSharpConversionExpression : BaseConversionExpression
     {
-        protected BaseCSharpConversionExpression(Conversion conversion, bool isExplicitInCode, bool throwsExceptionOnFailure, bool isChecked, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(isExplicitInCode, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
+        protected BaseCSharpConversionExpression(Conversion conversion, bool isExplicitInCode, bool isTryCast, bool isChecked, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isExplicitInCode, isTryCast, isChecked, syntax, type, constantValue)
         {
             ConversionInternal = conversion;
         }
@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class CSharpConversionExpression : BaseCSharpConversionExpression
     {
-        public CSharpConversionExpression(IOperation operand, Conversion conversion, bool isExplicit, bool throwsExceptionOnFailure, bool isChecked, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(conversion, isExplicit, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
+        public CSharpConversionExpression(IOperation operand, Conversion conversion, bool isExplicit, bool isTryCast, bool isChecked, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(conversion, isExplicit, isTryCast, isChecked, syntax, type, constantValue)
         {
             Operand = operand;
         }
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class LazyCSharpConversionExpression : BaseCSharpConversionExpression
     {
         private readonly Lazy<IOperation> _operand;
-        public LazyCSharpConversionExpression(Lazy<IOperation> operand, Conversion conversion, bool isExplicit, bool throwsExceptionOnFailure, bool isChecked, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(conversion, isExplicit, throwsExceptionOnFailure, isChecked, syntax, type, constantValue)
+        public LazyCSharpConversionExpression(Lazy<IOperation> operand, Conversion conversion, bool isExplicit, bool isTryCast, bool isChecked, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(conversion, isExplicit, isTryCast, isChecked, syntax, type, constantValue)
         {
             _operand = operand;
         }

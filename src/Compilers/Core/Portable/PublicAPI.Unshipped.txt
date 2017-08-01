@@ -398,8 +398,8 @@ Microsoft.CodeAnalysis.Semantics.IConversionExpression
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.Conversion.get -> Microsoft.CodeAnalysis.Semantics.CommonConversion
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.IsChecked.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.IsExplicitInCode.get -> bool
+Microsoft.CodeAnalysis.Semantics.IConversionExpression.IsTryCast.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.Operand.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IConversionExpression.ThrowsExceptionOnFailure.get -> bool
 Microsoft.CodeAnalysis.Semantics.IDeclarationPattern
 Microsoft.CodeAnalysis.Semantics.IDeclarationPattern.DeclaredSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.Semantics.IDefaultCaseClause

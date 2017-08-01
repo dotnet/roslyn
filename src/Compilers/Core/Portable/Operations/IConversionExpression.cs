@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// True if the conversion will fail with a <see cref="InvalidCastException"/> at runtime if the cast fails. This is false for C#'s
         /// <code>as</code> operator and for VB's <code>TryCast</code> operator.
         /// </summary>
-        bool ThrowsExceptionOnFailure { get; }
+        bool IsTryCast { get; }
         /// <summary>
         /// True if the conversion can fail at runtime with an overflow exception. This corresponds to C# checked and unchecked blocks.
         /// </summary>
