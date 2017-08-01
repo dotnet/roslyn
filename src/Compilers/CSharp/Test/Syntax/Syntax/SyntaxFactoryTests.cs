@@ -361,6 +361,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("\"\\u2028\"", literal.Text);
         }
 
+        [WorkItem(20693, "https://github.com/dotnet/roslyn/issues/20693")]
+        [Fact]
+        public void TestEscapeSurrogate()
+        {
+            var literal = SyntaxFactory.Literal('\uDBFF');
+            Assert.Equal("'\\udbff'", literal.Text);
+        }
+
         private static void CheckLiteralToString(dynamic value, string expected)
         {
             var literal = SyntaxFactory.Literal(value);

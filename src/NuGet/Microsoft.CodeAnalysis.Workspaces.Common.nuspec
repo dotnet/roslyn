@@ -21,7 +21,6 @@
         <dependency id="System.Threading.Tasks.Parallel" version="$SystemThreadingTasksParallelVersion$" />
       </group>
       <group targetFramework="net46">
-        <dependency id="ManagedEsent" version="$ManagedEsentVersion$" />
         <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
         <dependency id="System.Composition" version="$SystemCompositionVersion$" />
       </group>

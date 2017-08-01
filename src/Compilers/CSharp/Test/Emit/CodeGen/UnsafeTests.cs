@@ -8493,6 +8493,7 @@ unsafe public struct FixedStruct
 ");
         }
 
+        [Fact]
         public void FixedBufferAndStatementWithFixedArrayElementAsInitializerExe()
         {
             var text = @"
