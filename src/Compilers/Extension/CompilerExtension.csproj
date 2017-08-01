@@ -170,10 +170,10 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Utilities">
       <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
-    </PackageReference>
-	<PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime">
-		<Version>$(MicrosoftVisualStudioShellInterop153DesignTimeVersion)</Version>
-	</PackageReference>
+	  </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime">
+      <Version>$(MicrosoftVisualStudioShellInterop153DesignTimeVersion)</Version>
+	  </PackageReference>
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
