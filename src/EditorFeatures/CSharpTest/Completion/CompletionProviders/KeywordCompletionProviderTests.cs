@@ -366,5 +366,18 @@ class C
 
             await VerifyItemExistsAsync(text, "protected");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ProtectedPrivateModifier()
+        {
+            System.Diagnostics.Debugger.Break();
+            var text = @"
+class C
+{
+    protected $$
+}";
+
+            await VerifyItemExistsAsync(text, "private");
+        }
     }
 }
