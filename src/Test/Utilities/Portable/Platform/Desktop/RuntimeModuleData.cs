@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#if NET46
 
 using System;
 using System.Collections.Concurrent;
@@ -16,7 +17,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
+namespace Roslyn.Test.Utilities.Desktop
 {
     [Serializable]
     public struct RuntimeModuleDataId : ISerializable
@@ -74,3 +75,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
         }
     }
 }
+
+#endif
