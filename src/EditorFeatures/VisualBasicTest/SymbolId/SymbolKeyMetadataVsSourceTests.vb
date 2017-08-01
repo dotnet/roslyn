@@ -137,11 +137,11 @@ Public Class App
     Shared Sub Main()
         Dim obj = New AN.S()
         obj.Publicevent += EH           'BIND1:"obj.Publicevent"
-        Dim ifoo = obj.Publicfield      'BIND2:"obj.Publicfield"
-        ifoo.M(obj.PublicProp)          'BIND3:"obj.PublicProp"
-        ifoo.M(obj(12), obj(123))       'BIND4:"obj(123)"
+        Dim igoo = obj.Publicfield      'BIND2:"obj.Publicfield"
+        igoo.M(obj.PublicProp)          'BIND3:"obj.PublicProp"
+        igoo.M(obj(12), obj(123))       'BIND4:"obj(123)"
         Dim x As Short = -1
-        ifoo.m(x, x)                    'BIND5:"ifoo.m(x, x)"
+        igoo.m(x, x)                    'BIND5:"igoo.m(x, x)"
     End Sub
 
     Shared Sub EH(s As AN.S)
@@ -291,9 +291,9 @@ Imports N20 = Mscorlib20
 Class Test
     Public Function M() As IDisposable
         Dim obj = New N20.CGoo()
-        Dim ifoo As N20.IGoo = obj
+        Dim igoo As N20.IGoo = obj
         If obj.Publicfield = DayOfWeek.Friday Then  'BIND1:"obj.Publicfield"
-            Return ifoo.Prop                        'BIND2:"ifoo.Prop"
+            Return igoo.Prop                        'BIND2:"igoo.Prop"
         End If
 
         Return Nothing
@@ -372,8 +372,8 @@ Class Test
     Public Sub M()
         Dim obj = New N20.CGoo()
         AddHandler obj.Publiceventfield, AddressOf MyEveHandler 'BIND1:"obj.Publiceventfield"
-        Dim ifoo As N20.IGoo = obj
-        Dim local = ifoo(Nothing)                               'BIND2:"ifoo(Nothing)"
+        Dim igoo As N20.IGoo = obj
+        Dim local = igoo(Nothing)                               'BIND2:"igoo(Nothing)"
     End Sub
 
     Public Sub MyEveHandler(o As Object)
@@ -398,7 +398,7 @@ End Class
             ResolveAndVerifySymbol(list(0), ver20Symbols(2), model, comp20)
             ResolveAndVerifyTypeSymbol(list(0), DirectCast(ver20Symbols(2), IEventSymbol).Type, model, comp20)
 
-            ' ifoo(Nothing)
+            ' igoo(Nothing)
             ResolveAndVerifySymbol(list(1), ver20Symbols(0), model, comp20)
             ResolveAndVerifyTypeSymbol(list(1), DirectCast(ver20Symbols(0), IPropertySymbol).Type, model, comp20)
         End Sub

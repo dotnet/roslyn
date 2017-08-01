@@ -79,47 +79,47 @@ class C
                 var bfmSym = interopNS.GetTypeMember("BestFitMappingAttribute");
 
                 // IGoo
-                var ifoo = m.GlobalNamespace.GetTypeMember("IGoo");
-                Assert.Equal(6, ifoo.GetAttributes().Length);
+                var igoo = m.GlobalNamespace.GetTypeMember("IGoo");
+                Assert.Equal(6, igoo.GetAttributes().Length);
 
                 // get attr by NamedTypeSymbol
-                attrSym = ifoo.GetAttribute(ciSym);
+                attrSym = igoo.GetAttribute(ciSym);
                 Assert.Equal("ComImportAttribute", attrSym.AttributeClass.Name);
                 Assert.Equal(0, attrSym.CommonConstructorArguments.Length);
                 Assert.Equal(0, attrSym.CommonNamedArguments.Length);
 
-                attrSym = ifoo.GetAttribute(guidSym);
+                attrSym = igoo.GetAttribute(guidSym);
                 attrSym.VerifyValue(0, TypedConstantKind.Primitive, "ABCDEF5D-2448-447A-B786-64682CBEF123");
                 // get attr by ctor
-                attrSym = ifoo.GetAttribute(itCtor);
+                attrSym = igoo.GetAttribute(itCtor);
                 attrSym.VerifyValue(0, TypedConstantKind.Enum, (int)ComInterfaceType.InterfaceIsIUnknown);
 
-                attrSym = ifoo.GetAttribute(tLibSym);
+                attrSym = igoo.GetAttribute(tLibSym);
                 attrSym.VerifyValue(0, TypedConstantKind.Type, typeof(object));
 
-                attrSym = ifoo.GetAttribute(tLTypeSym);
+                attrSym = igoo.GetAttribute(tLTypeSym);
                 attrSym.VerifyValue(0, TypedConstantKind.Enum, (int)TypeLibTypeFlags.FAggregatable);
 
-                attrSym = ifoo.GetAttribute(bfmSym);
+                attrSym = igoo.GetAttribute(bfmSym);
                 attrSym.VerifyValue(0, TypedConstantKind.Primitive, false);
                 attrSym.VerifyNamedArgumentValue(0, "ThrowOnUnmappableChar", TypedConstantKind.Primitive, true);
 
                 // =============================
-                var mem = (MethodSymbol)ifoo.GetMembers("DoSomething").First();
+                var mem = (MethodSymbol)igoo.GetMembers("DoSomething").First();
                 Assert.Equal(1, mem.GetAttributes().Length);
                 attrSym = mem.GetAttributes().First();
                 Assert.Equal("AllowReversePInvokeCallsAttribute", attrSym.AttributeClass.Name);
                 Assert.Equal(0, attrSym.CommonConstructorArguments.Length);
 
-                mem = (MethodSymbol)ifoo.GetMembers("Register").First();
+                mem = (MethodSymbol)igoo.GetMembers("Register").First();
                 attrSym = mem.GetAttributes().First();
                 Assert.Equal("ComRegisterFunctionAttribute", attrSym.AttributeClass.Name);
                 Assert.Equal(0, attrSym.CommonConstructorArguments.Length);
 
-                mem = (MethodSymbol)ifoo.GetMembers("UnRegister").First();
+                mem = (MethodSymbol)igoo.GetMembers("UnRegister").First();
                 Assert.Equal(1, mem.GetAttributes().Length);
 
-                mem = (MethodSymbol)ifoo.GetMembers("LibFunc").First();
+                mem = (MethodSymbol)igoo.GetMembers("LibFunc").First();
                 attrSym = mem.GetAttributes().First();
                 Assert.Equal(1, attrSym.CommonConstructorArguments.Length);
                 // 32

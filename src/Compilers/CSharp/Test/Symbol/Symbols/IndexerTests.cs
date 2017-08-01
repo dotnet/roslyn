@@ -2799,8 +2799,8 @@ class Test
 {
     public void M()
     {
-        IGoo ifoo = new Goo();
-        var local = ifoo[100];
+        IGoo igoo = new Goo();
+        var local = igoo[100];
     }
 }
 ";

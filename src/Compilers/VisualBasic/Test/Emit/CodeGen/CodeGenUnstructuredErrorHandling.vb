@@ -782,7 +782,7 @@ Imports  Microsoft.VisualBasic
 
 Module Module1
   Sub main
-    Dim i as ifoo = new c1
+    Dim i as igoo = new c1
     i.Testmethod
   End Sub
 End Module

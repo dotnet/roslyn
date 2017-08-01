@@ -1802,7 +1802,7 @@ End Structure
 Class AnonTypeTest
 
     Function F() As Action(Of UShort)
-        Dim anonType1 = New With {.a1 = New With {S.sField, .ifoo = New With {New S().GetGoo}}}
+        Dim anonType1 = New With {.a1 = New With {S.sField, .igoo = New With {New S().GetGoo}}}
         Dim anonType2 = New With {.a1 = New With {.a2 = New With {.a2 = S.sField, .a3 = New With {.a3 = New S().GetGoo2()}}}}
         Return anonType2.a1.a2.a3.a3
     End Function
@@ -1817,7 +1817,7 @@ End Class
             Assert.Equal(9, anonProps.Count())
             Dim symList = From ap In anonProps Let apsym = model.GetDeclaredSymbol(ap) Order By apsym.Name Select apsym.Name
             Dim results = String.Join(", ", symList)
-            Assert.Equal("a1, a1, a2, a2, a3, a3, GetGoo, ifoo, sField", results)
+            Assert.Equal("a1, a1, a2, a2, a3, a3, GetGoo, igoo, sField", results)
         End Sub
 
         <Fact>

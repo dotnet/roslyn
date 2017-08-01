@@ -7462,10 +7462,10 @@ End Class
 
 Friend Module AM
     Sub Main(args As String())
-        Dim ifoo As IGoo = New CGoo()
-        Dim at1 As New With {.if = ifoo}
+        Dim igoo As IGoo = New CGoo()
+        Dim at1 As New With {.if = igoo}
 [|
-        Dim at2 As New With {.if = at1, ifoo,
+        Dim at2 As New With {.if = at1, igoo,
             .friend = New With {Key args, .lambda = DirectCast(Sub(ByRef p As Char)
                                                                    args(0) = p &amp; p
                                                                    p = "Q"c
@@ -7484,12 +7484,12 @@ End Module
             Assert.Equal("at2", GetSymbolNamesJoined(dataFlowResults.AlwaysAssigned))
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowResults.Captured))
             Assert.Equal("at2, p", GetSymbolNamesJoined(dataFlowResults.VariablesDeclared))
-            Assert.Equal("args, ifoo, at1", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
+            Assert.Equal("args, igoo, at1", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Equal("p", GetSymbolNamesJoined(dataFlowResults.DataFlowsOut))
-            Assert.Equal("args, ifoo, at1, p", GetSymbolNamesJoined(dataFlowResults.ReadInside))
+            Assert.Equal("args, igoo, at1, p", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Equal("at2, p", GetSymbolNamesJoined(dataFlowResults.WrittenInside))
-            Assert.Equal("args, ifoo", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
-            Assert.Equal("args, ifoo, at1", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
+            Assert.Equal("args, igoo", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
+            Assert.Equal("args, igoo, at1", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
         <Fact()>

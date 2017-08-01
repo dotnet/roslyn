@@ -123,11 +123,11 @@ public class App
 
         /*<bind0>*/obj.PublicEvent/*</bind0>*/ += EH;
 
-        var ifoo = /*<bind1>*/obj.PublicField/*</bind1>*/;
+        var igoo = /*<bind1>*/obj.PublicField/*</bind1>*/;
 
-        /*<bind3>*/ifoo.M(/*<bind2>*/obj.PublicProp/*</bind2>*/)/*</bind3>*/;
+        /*<bind3>*/igoo.M(/*<bind2>*/obj.PublicProp/*</bind2>*/)/*</bind3>*/;
 
-        /*<bind5>*/ifoo.M(obj[12], /*<bind4>*/obj[123]/*</bind4>*/)/*</bind5>*/;
+        /*<bind5>*/igoo.M(obj[12], /*<bind4>*/obj[123]/*</bind4>*/)/*</bind5>*/;
     }
 
     static void EH(AN.S s) { }
@@ -304,10 +304,10 @@ class Test
     public IDisposable M()
     {
         var obj = new N20::CGoo();
-        N20.IGoo ifoo = obj;
+        N20.IGoo igoo = obj;
 
         /*<bind0>*/obj.PublicEventField/*</bind0>*/ += /*<bind1>*/MyEveHandler/*</bind1>*/;
-        var local = /*<bind2>*/ifoo[null]/*</bind2>*/;
+        var local = /*<bind2>*/igoo[null]/*</bind2>*/;
 
         if (/*<bind3>*/obj.PublicField /*</bind3>*/== DayOfWeek.Friday)
         {
@@ -394,10 +394,10 @@ class Test
 {
     public IDisposable M()
     {
-        N20.IGoo ifoo = new N20::CGoo();
+        N20.IGoo igoo = new N20::CGoo();
 
-        var local = /*<bind0>*/ifoo[new ArgumentException()]/*</bind0>*/;
-        return /*<bind1>*/ifoo.Prop/*</bind1>*/;
+        var local = /*<bind0>*/igoo[new ArgumentException()]/*</bind0>*/;
+        return /*<bind1>*/igoo.Prop/*</bind1>*/;
     }
 }
 ";

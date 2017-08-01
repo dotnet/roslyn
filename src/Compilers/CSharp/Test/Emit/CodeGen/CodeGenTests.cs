@@ -9309,8 +9309,8 @@ namespace NS
         {
             Goo goo = new Goo();
             goo.M();
-            IGoo ifoo = goo;
-            ifoo.M();
+            IGoo igoo = goo;
+            igoo.M();
         }
     }
 }

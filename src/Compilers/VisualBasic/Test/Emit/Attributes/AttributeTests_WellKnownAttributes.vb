@@ -79,38 +79,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                         Dim bfmSym = DirectCast(interopNS.GetTypeMember("BestFitMappingAttribute"), NamedTypeSymbol)
 
                         ' IGoo
-                        Dim ifoo = DirectCast(m.GlobalNamespace.GetTypeMember("IGoo"), NamedTypeSymbol)
+                        Dim igoo = DirectCast(m.GlobalNamespace.GetTypeMember("IGoo"), NamedTypeSymbol)
 
-                        Assert.True(ifoo.IsComImport)
+                        Assert.True(igoo.IsComImport)
                         ' ComImportAttribute is a pseudo-custom attribute, which is not emitted.
                         If Not isFromSource Then
-                            Assert.Equal(5, ifoo.GetAttributes().Length)
+                            Assert.Equal(5, igoo.GetAttributes().Length)
                         Else
-                            Assert.Equal(6, ifoo.GetAttributes().Length)
+                            Assert.Equal(6, igoo.GetAttributes().Length)
 
                             ' get attr by NamedTypeSymbol
-                            attrSym = ifoo.GetAttribute(ciSym)
+                            attrSym = igoo.GetAttribute(ciSym)
                             Assert.Equal("ComImportAttribute", attrSym.AttributeClass.Name)
                             Assert.Equal(0, attrSym.CommonConstructorArguments.Length)
                             Assert.Equal(0, attrSym.CommonNamedArguments.Length)
                         End If
 
-                        attrSym = ifoo.GetAttribute(guidSym)
+                        attrSym = igoo.GetAttribute(guidSym)
                         Assert.Equal("String", attrSym.CommonConstructorArguments(0).Type.ToDisplayString)
                         Assert.Equal("ABCDEF5D-2448-447A-B786-64682CBEF123", attrSym.CommonConstructorArguments(0).Value)
 
                         ' get attr by ctor
-                        attrSym = ifoo.GetAttribute(itCtor)
+                        attrSym = igoo.GetAttribute(itCtor)
                         Assert.Equal("System.Runtime.InteropServices.ComInterfaceType", attrSym.CommonConstructorArguments(0).Type.ToDisplayString())
                         Assert.Equal(ComInterfaceType.InterfaceIsIUnknown, CType(attrSym.CommonConstructorArguments(0).Value, ComInterfaceType))
 
-                        attrSym = ifoo.GetAttribute(tLibSym)
+                        attrSym = igoo.GetAttribute(tLibSym)
                         Assert.Equal("Object", CType(attrSym.CommonConstructorArguments(0).Value, Symbol).ToDisplayString())
 
-                        attrSym = ifoo.GetAttribute(tLTypeSym)
+                        attrSym = igoo.GetAttribute(tLTypeSym)
                         Assert.Equal(TypeLibTypeFlags.FAggregatable, CType(attrSym.CommonConstructorArguments(0).Value, TypeLibTypeFlags))
 
-                        attrSym = ifoo.GetAttribute(bfmSym)
+                        attrSym = igoo.GetAttribute(bfmSym)
                         Assert.Equal(False, attrSym.CommonConstructorArguments(0).Value)
                         Assert.Equal(1, attrSym.CommonNamedArguments.Length)
                         Assert.Equal("Boolean", attrSym.CommonNamedArguments(0).Value.Type.ToDisplayString)
@@ -118,21 +118,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                         Assert.Equal(True, attrSym.CommonNamedArguments(0).Value.Value)
 
                         ' =============================
-                        Dim mem = DirectCast(ifoo.GetMembers("DoSomething").First(), MethodSymbol)
+                        Dim mem = DirectCast(igoo.GetMembers("DoSomething").First(), MethodSymbol)
                         Assert.Equal(1, mem.GetAttributes().Length)
                         attrSym = mem.GetAttributes().First()
                         Assert.Equal("AllowReversePInvokeCallsAttribute", attrSym.AttributeClass.Name)
                         Assert.Equal(0, attrSym.CommonConstructorArguments.Length)
 
-                        mem = DirectCast(ifoo.GetMembers("Register").First(), MethodSymbol)
+                        mem = DirectCast(igoo.GetMembers("Register").First(), MethodSymbol)
                         attrSym = mem.GetAttributes().First()
                         Assert.Equal("ComRegisterFunctionAttribute", attrSym.AttributeClass.Name)
                         Assert.Equal(0, attrSym.CommonConstructorArguments.Length)
 
-                        mem = DirectCast(ifoo.GetMembers("UnRegister").First(), MethodSymbol)
+                        mem = DirectCast(igoo.GetMembers("UnRegister").First(), MethodSymbol)
                         Assert.Equal(1, mem.GetAttributes().Length)
 
-                        mem = DirectCast(ifoo.GetMembers("LibFunc").First(), MethodSymbol)
+                        mem = DirectCast(igoo.GetMembers("LibFunc").First(), MethodSymbol)
                         attrSym = mem.GetAttributes().First()
                         Assert.Equal(1, attrSym.CommonConstructorArguments.Length)
                         Assert.Equal(TypeLibFuncFlags.FDefaultBind, CType(attrSym.CommonConstructorArguments(0).Value, TypeLibFuncFlags)) ' 32

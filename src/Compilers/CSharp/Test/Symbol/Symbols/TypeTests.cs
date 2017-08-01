@@ -841,18 +841,18 @@ Goo();
             var namespaceNS = comp.GlobalNamespace.GetMembers("NS").First() as NamespaceOrTypeSymbol;
             Assert.Equal(3, namespaceNS.GetMembers().Length);
 
-            var ifoo = namespaceNS.GetTypeMembers("IGoo").First();
-            Assert.Equal(namespaceNS, ifoo.ContainingSymbol);
-            Assert.Equal(SymbolKind.NamedType, ifoo.Kind);
-            Assert.Equal(TypeKind.Interface, ifoo.TypeKind);
-            Assert.Equal(Accessibility.Public, ifoo.DeclaredAccessibility);
-            Assert.Equal(1, ifoo.TypeParameters.Length);
-            Assert.Equal("T", ifoo.TypeParameters[0].Name);
-            Assert.Equal(1, ifoo.TypeArguments.Length);
+            var igoo = namespaceNS.GetTypeMembers("IGoo").First();
+            Assert.Equal(namespaceNS, igoo.ContainingSymbol);
+            Assert.Equal(SymbolKind.NamedType, igoo.Kind);
+            Assert.Equal(TypeKind.Interface, igoo.TypeKind);
+            Assert.Equal(Accessibility.Public, igoo.DeclaredAccessibility);
+            Assert.Equal(1, igoo.TypeParameters.Length);
+            Assert.Equal("T", igoo.TypeParameters[0].Name);
+            Assert.Equal(1, igoo.TypeArguments.Length);
 
             // Bug#932083 - Not impl
-            // Assert.False(ifoo.TypeParameters[0].IsReferenceType);
-            // Assert.False(ifoo.TypeParameters[0].IsValueType);
+            // Assert.False(igoo.TypeParameters[0].IsReferenceType);
+            // Assert.False(igoo.TypeParameters[0].IsValueType);
 
             var classA = namespaceNS.GetTypeMembers("A").First();
             Assert.Equal(namespaceNS, classA.ContainingSymbol);
