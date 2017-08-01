@@ -163,6 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool FeatureStrictEnabled => Feature("strict") != null;
 
+        internal bool FeaturePEVerifyCompatEnabled => Feature("peverify-compat") != null;
+
         /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
         /// </summary>

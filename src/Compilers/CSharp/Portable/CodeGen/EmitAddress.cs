@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
-            if (!needWriteable)
+            if (!needWriteable && !IsPEVerifyCompatible())
             {
                 return true;
             }

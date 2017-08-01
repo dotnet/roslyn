@@ -137,6 +137,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return _module.Compilation.Options.DebugPlusMode;
         }
 
+        private bool IsPEVerifyCompatible()
+        {
+            //return true; 
+            return _module.Compilation.FeaturePEVerifyCompatEnabled;
+        }
+
         private LocalDefinition LazyReturnTemp
         {
             get

@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("strict", "true") }));
         }
 
+        public static CSharpParseOptions WithPEVerifyCompatFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("peverify-compat", "true") }));
+        }
+
         public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
         {
             return options;
