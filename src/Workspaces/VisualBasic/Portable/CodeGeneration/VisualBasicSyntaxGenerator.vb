@@ -3063,7 +3063,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 statement.CaseBlocks.InsertRange(index, switchSections.Cast(Of CaseBlockSyntax)))
         End Function
 
-        Private Function GetParameterList(declaration As SyntaxNode) As ParameterListSyntax
+        Friend Shared Function GetParameterList(declaration As SyntaxNode) As ParameterListSyntax
             Select Case declaration.Kind
                 Case SyntaxKind.SubBlock,
                     SyntaxKind.FunctionBlock

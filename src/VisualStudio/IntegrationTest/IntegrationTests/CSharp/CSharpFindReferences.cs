@@ -74,7 +74,9 @@ class SomeOtherClass
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
-            SetUpEditor(@"
+            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
+            {
+                SetUpEditor(@"
 class Program
 {
     static void Main()
@@ -85,18 +87,18 @@ class Program
 }
 ");
 
-            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+                VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-            const string localReferencesCaption = "'local' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
+                const string localReferencesCaption = "'local' references";
+                var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
+                var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
+                Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
 
-            Assert.Collection(
-                results,
-                new Action<Reference>[]
-                {
+                Assert.Collection(
+                    results,
+                    new Action<Reference>[]
+                    {
                     reference =>
                     {
                         Assert.Equal(expected: "int local = 1;", actual: reference.Code);
@@ -109,7 +111,10 @@ class Program
                         Assert.Equal(expected: 6, actual: reference.Line);
                         Assert.Equal(expected: 26, actual: reference.Column);
                     }
-                });
+                    });
+
+                telemetry.VerifyFired("vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference");
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]

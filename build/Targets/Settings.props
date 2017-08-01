@@ -16,6 +16,8 @@
     <VSIXExpInstallerPackageVersion>0.2.1-beta</VSIXExpInstallerPackageVersion>
     <RoslynDiagnosticsNugetPackageVersion>$(MicrosoftNetRoslynDiagnosticsVersion)</RoslynDiagnosticsNugetPackageVersion>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\$(RoslynDiagnosticsNugetPackageVersion)\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <!-- Disable analyzers if NuGet deviated from the expected restore location (e.g. by changing case on a case-sensitive file system) -->
+    <UseRoslynAnalyzers Condition="!Exists('$(NuGetPackageRoot)\Microsoft.CodeQuality.Analyzers\$(RoslynDiagnosticsNugetPackageVersion)\analyzers\dotnet\cs\Analyzer.Utilities.dll')">False</UseRoslynAnalyzers>
     <RoslynRuntimeIdentifier Condition="'$(RoslynRuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7-x64</RoslynRuntimeIdentifier>
     <Features>strict,IOperation</Features>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -72,6 +74,9 @@
       {TargetFrameworkDirectory};
       {RawFileName};
     </AssemblySearchPaths>
+
+    <!-- https://github.com/dotnet/roslyn/issues/21183 -->
+    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>
 
     <RoslynNetSdkRootPath>$(MSBuildSDKsPath)\Microsoft.NET.Sdk\Sdk\</RoslynNetSdkRootPath> 
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>

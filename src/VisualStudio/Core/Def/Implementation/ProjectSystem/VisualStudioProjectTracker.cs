@@ -38,8 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #region Mutable fields accessed only from foreground thread - don't need locking for access (all accessing methods must have AssertIsForeground).
         private readonly List<WorkspaceHostState> _workspaceHosts;
 
-        private readonly HostWorkspaceServices _workspaceServices;
-
         /// <summary>
         /// Set to true while we're batching project loads. That is, between
         /// <see cref="IVsSolutionLoadEvents.OnBeforeLoadProjectBatch" /> and
@@ -113,6 +111,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        internal HostWorkspaceServices WorkspaceServices { get; }
+
         IReadOnlyList<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects() => this.ImmutableProjects;
 
         void IVisualStudioHostProjectContainer.NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project)
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _serviceProvider = serviceProvider;
             _workspaceHosts = new List<WorkspaceHostState>(capacity: 1);
-            _workspaceServices = workspaceServices;
+            WorkspaceServices = workspaceServices;
 
             _vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
@@ -653,7 +653,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (solutionConfig != null)
             {
                 // Capture the context so that we come back on the UI thread, and do the actual project creation there.
-                var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
+                var deferredProjectWorkspaceService = WorkspaceServices.GetService<IDeferredProjectWorkspaceService>();
                 projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
                     $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
                     cancellationToken).ConfigureAwait(true);
@@ -694,7 +694,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
 
             var solution7 = (IVsSolution7)_vsSolution;
-            var analyzerAssemblyLoader = _workspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
+            var analyzerAssemblyLoader = WorkspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
             var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
             foreach (var (projectFilename, projectInfo) in projectInfos)
@@ -820,7 +820,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            var commandLineParser = _workspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
+            var commandLineParser = WorkspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
             var projectDirectory = PathUtilities.GetDirectoryName(projectFilename);
             var commandLineArguments = commandLineParser.Parse(
                 projectInfo.CommandLineArguments,
@@ -905,7 +905,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            var addedReferencePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var metadataReferencesToAdd = new Dictionary<string, MetadataReferenceProperties>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var reference in metadataReferences)
             {
                 var path = GetReferencePath(reference);
@@ -916,10 +917,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     continue;
                 }
 
-                if (addedReferencePaths.Add(path))
+                if (metadataReferencesToAdd.TryGetValue(path, out var existingProperties))
                 {
-                    projectContext.AddMetadataReference(path, reference.Properties);
+                    // Merge existing aliases the properties that are already there
+                    var allAliases = existingProperties.Aliases.AddRange(reference.Properties.Aliases);
+
+                    // If one is empty and the other isn't, then we need to toss the global alias in too. The other cases
+                    // are they're both empty (and this was a direct duplicate) or they're both non-empty and the merge
+                    // is OK.
+                    if ((existingProperties.Aliases.IsDefaultOrEmpty && !reference.Properties.Aliases.IsDefaultOrEmpty) ||
+                        (!existingProperties.Aliases.IsDefaultOrEmpty && reference.Properties.Aliases.IsDefaultOrEmpty))
+                    {
+                        allAliases = allAliases.Add(MetadataReferenceProperties.GlobalAlias);
+                    }
+                    else
+                    {
+                        allAliases = allAliases.Distinct();
+                    }
+
+                    metadataReferencesToAdd[path] = existingProperties.WithAliases(allAliases);
                 }
+                else
+                {
+                    metadataReferencesToAdd.Add(path, reference.Properties);
+                }
+            }
+
+            foreach (var metadataReferenceToAdd in metadataReferencesToAdd)
+            {
+                projectContext.AddMetadataReference(metadataReferenceToAdd.Key, metadataReferenceToAdd.Value);
             }
 
             var addedAnalyzerPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

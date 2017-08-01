@@ -2838,6 +2838,7 @@ class Program
                 );
         }
 
+        [Fact]
         [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic001()
         {
@@ -2867,6 +2868,8 @@ public class C
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d.Length").WithLocation(14, 20)
             );
         }
+
+        [Fact]
         [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic002()
         {
@@ -2897,6 +2900,7 @@ public class C
             );
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
         [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic003()
         {

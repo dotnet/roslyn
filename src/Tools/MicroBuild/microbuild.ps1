@@ -6,11 +6,17 @@ param (
     [string]$msbuildDir = "",
     [switch]$cibuild = $false,
     [string]$branchName = "master",
-    [string]$nugetApiKey = "",
     [string]$assemblyVersion = "42.42.42.4242",
     [switch]$testDesktop = $false,
     [switch]$publish = $false,
     [switch]$help = $false,
+
+    # Credentials
+    [string]$myGetApiKey = "",
+    [string]$nugetApiKey = "",
+    [string]$gitHubUserName = "",
+    [string]$gitHubToken = "",
+    [string]$gitHubEmail = "",
     [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
 Set-StrictMode -version 2.0
@@ -71,7 +77,6 @@ function Build-InsertionItems() {
         Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj $extraArgs"
         Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj $extraArgs"
         Run-MSBuild "..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj"
-        Copy-Item -Force "Vsix\myget_org-extensions.config" $configDir
     }
     finally {
         Pop-Location
@@ -139,7 +144,7 @@ try {
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | Stop-Process
 
     if ($publish) { 
-        Exec-Block { & .\publish-assets.ps1 -binariesPath $configDir -branchName $branchName -apiKey $nugetApiKey -test:$(-not $official) }
+        Exec-Block { & .\publish-assets.ps1 -configDir $configDir -branchName $branchName -mygetApiKey $mygetApiKey -nugetApiKey $nugetApiKey -gitHubUserName $githubUserName -gitHubToken $gitHubToken -gitHubEmail $gitHubEmail -test:$(-not $official) }
     }
 
     Exec-Block { & .\copy-insertion-items.ps1 -binariesPath $configDir -test:$(-not $official) }

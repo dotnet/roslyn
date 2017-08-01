@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         public override bool OpenFileOnly(Workspace workspace) => false;
 
         public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckId,
+            : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
