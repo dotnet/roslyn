@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigableSymbols
                 GetType(MockDocumentNavigationServiceProvider),
                 GetType(MockSymbolNavigationServiceProvider)))
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
         Public Async Function TestCharp() As Task
             Dim markup = "
 class {|target:C|}
@@ -45,7 +45,7 @@ class {|target:C|}
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
         Public Async Function TestVB() As Task
             Dim markup = "
 Class {|target:C|}
