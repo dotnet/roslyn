@@ -4395,6 +4395,7 @@ unsafe public class Test
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 24));
         }
         
+        [Fact]
         public void CS1674ERR_StackAllocInUsing1()
         {
             // Diff errors

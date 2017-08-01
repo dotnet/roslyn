@@ -461,6 +461,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Separate import directive groups.
+        '''</summary>
+        Friend Shared ReadOnly Property Separate_import_directive_groups() As String
+            Get
+                Return ResourceManager.GetString("Separate_import_directive_groups", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Show completion item _filters.
         '''</summary>
         Friend Shared ReadOnly Property Show_completion_item_filters() As String

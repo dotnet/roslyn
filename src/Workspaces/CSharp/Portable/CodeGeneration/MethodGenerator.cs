@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             methodDeclaration = UseExpressionBodyIfDesired(workspace, methodDeclaration, parseOptions);
 
-            return AddCleanupAnnotationsTo(methodDeclaration);
+            return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
         }
 
         private static MethodDeclarationSyntax UseExpressionBodyIfDesired(

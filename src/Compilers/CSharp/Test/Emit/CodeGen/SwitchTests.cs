@@ -895,6 +895,7 @@ public class Test
             );
         }
 
+        [Fact]
         public void DegenerateSwitch007()
         {
             var text = @"using System;

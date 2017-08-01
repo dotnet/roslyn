@@ -1591,7 +1591,7 @@ class C
         }
 
         [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatLockStatementWithEmbeddedStatementOnSemicolonDifferentLine()
         {
             var code = @"class C
@@ -1616,7 +1616,7 @@ class C
         }
 
         [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatLockStatementWithEmbeddedStatementOnSemicolonSameLine()
         {
             var code = @"class C

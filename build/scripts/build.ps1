@@ -445,7 +445,7 @@ function Ensure-ProcDump() {
         Remove-Item -Re $filePath -ErrorAction SilentlyContinue
         Create-Directory $outDir 
         $zipFilePath = Join-Path $toolsDir "procdump.zip"
-        Invoke-WebRequest "https://download.sysinternals.com/files/Procdump.zip" -outfile $zipFilePath | Out-Null
+        Invoke-WebRequest "https://download.sysinternals.com/files/Procdump.zip" -UseBasicParsing -outfile $zipFilePath | Out-Null
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         [IO.Compression.ZipFile]::ExtractToDirectory($zipFilePath, $outDir)
     }

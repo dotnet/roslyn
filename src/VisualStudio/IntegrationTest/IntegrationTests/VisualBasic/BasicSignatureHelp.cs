@@ -180,8 +180,9 @@ End Module");
             VisualStudio.Editor.Verify.CurrentParameter("b", "");
         }
 
+        [WorkItem(741415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?id=741415&fullScreen=true&_a=edit")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void BufferTextReplacedWithSigHelpActiveWithLengthOfUpdatedTextLessThanPositionOfInvocationExpression()
+        public void HandleBufferTextChangesDuringComputation()
         {
             SetUpEditor(@"
 Class C

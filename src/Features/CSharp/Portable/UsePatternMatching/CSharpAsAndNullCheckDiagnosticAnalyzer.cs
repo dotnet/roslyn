@@ -103,6 +103,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            if (asType?.TypeKind == TypeKind.Dynamic)
+            {
+                // Not legal to use dynamic in a pattern.
+                return;
+            }
+
             var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
             if (!localSymbol.Type.Equals(asType))
             {

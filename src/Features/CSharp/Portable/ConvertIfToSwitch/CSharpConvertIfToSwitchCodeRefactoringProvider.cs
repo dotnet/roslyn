@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.ConvertIfToSwitch;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 {
@@ -248,6 +249,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                     default:
                         return expression;
                 }
+            }
+
+            protected override SyntaxNode CreateSwitchStatement(
+                IfStatementSyntax ifStatement, ExpressionSyntax expression, List<SyntaxNode> sectionList)
+            {
+                var block = ifStatement.Statement as BlockSyntax;
+
+                return SyntaxFactory.SwitchStatement(
+                    SyntaxFactory.Token(SyntaxKind.SwitchKeyword).WithTriviaFrom(ifStatement.IfKeyword),
+                    ifStatement.OpenParenToken,
+                    expression,
+                    ifStatement.CloseParenToken.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker),
+                    block?.OpenBraceToken ?? SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
+                    new SyntaxList<SwitchSectionSyntax>(sectionList.OfType<SwitchSectionSyntax>()),
+                    block?.CloseBraceToken ?? SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
             }
         }
     }

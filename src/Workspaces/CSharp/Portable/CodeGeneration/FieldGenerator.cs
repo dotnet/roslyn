@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxFactory.SingletonSeparatedList(
                         AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer)))));
 
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, options));
         }
 

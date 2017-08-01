@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableTrees());
         }
 
-        public async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
+        private async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
         {
             var pid = ProjectId.CreateNewId();
             var text = SourceText.From("public class C { }");
