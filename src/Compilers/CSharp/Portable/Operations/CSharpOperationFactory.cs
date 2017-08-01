@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static bool IsIgnoredNode(BoundNode boundNode)
         {
             // since boundNode doesn't have parent pointer, it can't just look around using bound node
-            // it needs to use syntax node
+            // it needs to use syntax node. we ignore these because this will return its own operation tree
+            // that don't belong to its parent operation tree.
             switch (boundNode.Kind)
             {
                 case BoundKind.LocalDeclaration:

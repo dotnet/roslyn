@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(result == null || result == parent);
         }
 
+        /// <summary>
+        /// Create <see cref="IOperation"/> of <see cref="OperationKind.None"/> with explicit children
+        /// 
+        /// Use this to create IOperation when we don't have proper specific IOperation yet for given language construct
+        /// </summary>
         public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
         {
             return new NoneOperation(semanticModel, node, constantValue, getChildren);

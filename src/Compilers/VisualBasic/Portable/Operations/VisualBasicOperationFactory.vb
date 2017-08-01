@@ -47,7 +47,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Shared Function IsIgnoredNode(boundNode As BoundNode) As Boolean
             ' since boundNode doesn't have parent pointer, it can't just look around using bound node
-            ' it needs to use syntax node
+            ' it needs to use syntax node.  we ignore these because this will return its own operation tree
+            ' that don't belong to its parent operation tree.
             Select Case boundNode.Kind
                 Case BoundKind.LocalDeclaration
                     Return boundNode.Syntax.Kind() = SyntaxKind.ModifiedIdentifier AndAlso
