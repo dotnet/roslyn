@@ -97,7 +97,7 @@
     <Compile Include="Formatting\Indentation\SpecialFormattingOperation.vb" />
     <Compile Include="Formatting\Indentation\VisualBasicIndentationService.Indenter.vb" />
     <Compile Include="Formatting\Indentation\VisualBasicIndentationService.vb" />
-    <Compile Include="GoToDefinition\VisualBasicGoToDefinitionItemService.vb" />
+    <Compile Include="GoToDefinition\VisualBasicGoToSymbolService.vb" />
     <Compile Include="GoToDefinition\VisualBasicGoToDefinitionService.vb" />
     <Compile Include="GoToDefinition\VisualBasicGoToDefinitionSymbolService.vb" />
     <Compile Include="Highlighting\KeywordHighlighters\AccessorDeclarationHighlighter.vb" />

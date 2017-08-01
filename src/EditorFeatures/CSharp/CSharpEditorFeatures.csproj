@@ -116,7 +116,7 @@
     <Compile Include="Formatting\Indentation\SmartTokenFormatterCommandHandler.cs" />
     <Compile Include="Formatting\Indentation\WhitespaceExtensions.cs" />
     <Compile Include="Formatting\CSharpEditorFormattingService.PasteFormattingRule.cs" />
-    <Compile Include="GoToDefinition\CSharpGoToDefinitionItemService.cs" />
+    <Compile Include="GoToDefinition\CSharpGoToSymbolService.cs" />
     <Compile Include="GoToDefinition\CSharpGoToDefinitionService.cs" />
     <Compile Include="GoToDefinition\CSharpGoToDefinitionSymbolService.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AbstractAsyncHighlighter.cs" />

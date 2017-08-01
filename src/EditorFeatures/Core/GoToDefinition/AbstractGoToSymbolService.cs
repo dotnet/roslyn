@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal abstract class AbstractGoToSymbolService : ForegroundThreadAffinitizedObject, IGoToSymbolService
     {
-        public async Task GetDefinitionsAsync(GoToSymbolContext context)
+        public async Task GetSymbolsAsync(GoToSymbolContext context)
         {
             var document = context.Document;
             var position = context.Position;

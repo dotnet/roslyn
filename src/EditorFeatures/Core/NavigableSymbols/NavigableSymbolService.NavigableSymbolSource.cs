@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 
                 var context = new GoToSymbolContext(document, position, cancellationToken);
 
-                await service.GetDefinitionsAsync(context).ConfigureAwait(false);
+                await service.GetSymbolsAsync(context).ConfigureAwait(false);
 
                 if (!context.TryGetItems(WellKnownSymbolTypes.Definition, out var definitions))
                 {
