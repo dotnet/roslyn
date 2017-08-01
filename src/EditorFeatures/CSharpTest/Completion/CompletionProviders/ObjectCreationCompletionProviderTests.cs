@@ -526,6 +526,28 @@ class C
 
         [WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task DoNotIncludeTypeParametersFromLocalFunction()
+        {
+            var markup =
+@"using System.Threading.Tasks;
+
+class C
+{
+    void Bar()
+    {
+        void Foo<T>(Task<T> t)
+        {
+        }
+
+        Foo(new $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Task<>");
+        }
+
+        [WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IncludeTypeParametersFromSameMethod()
         {
             var markup =

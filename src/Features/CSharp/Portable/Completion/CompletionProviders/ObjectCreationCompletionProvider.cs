@@ -93,17 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return base.GetDisplayAndInsertionText(symbol, context);
         }
 
-        private bool IsApplicable(ITypeSymbol t, ISymbol enclosingSymbol)
-        {
-            var tp = (ITypeParameterSymbol)t;
-            if (tp.DeclaringMethod != null)
-            {
-                return tp.DeclaringMethod == enclosingSymbol;
-            }
-
-            return tp.DeclaringType == enclosingSymbol.ContainingType;
-        }
-
         private static readonly CompletionItemRules s_objectRules =
             CompletionItemRules.Create(
                 commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')),

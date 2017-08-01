@@ -139,7 +139,7 @@ End Module
 
 ]]></Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "Task(Of T)")
+            Await VerifyItemExistsAsync(markup, "Threading.Tasks.Task(Of T)")
         End Function
 
         <WorkItem(21049, "https://github.com/dotnet/roslyn/issues/21049")>
