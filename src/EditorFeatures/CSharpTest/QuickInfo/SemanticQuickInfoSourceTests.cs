@@ -589,7 +589,7 @@ void M() { M$$() }";
         {
             await TestInClassAsync(
 @"$$Int32 i;",
-                MainDescription("struct System.Int32"));
+                MainDescription("int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -597,7 +597,7 @@ void M() { M$$() }";
         {
             await TestInClassAsync(
 @"$$int i;",
-                MainDescription("struct System.Int32"));
+                MainDescription("int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -605,7 +605,7 @@ void M() { M$$() }";
         {
             await TestInClassAsync(
 @"$$String s;",
-                MainDescription("class System.String"));
+                MainDescription("string"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -613,7 +613,7 @@ void M() { M$$() }";
         {
             await TestInClassAsync(
 @"$$string s;",
-                MainDescription("class System.String"));
+                MainDescription("string"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -621,7 +621,7 @@ void M() { M$$() }";
         {
             await TestInClassAsync(
 @"string$$ s;",
-                MainDescription("class System.String"));
+                MainDescription("string"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -629,7 +629,7 @@ void M() { M$$() }";
         {
             await TestInClassAsync(
 @"$$Boolean b;",
-                MainDescription("struct System.Boolean"));
+                MainDescription("bool"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -637,7 +637,7 @@ void M() { M$$() }";
         {
             await TestInClassAsync(
 @"$$bool b;",
-                MainDescription("struct System.Boolean"));
+                MainDescription("bool"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -645,7 +645,7 @@ void M() { M$$() }";
         {
             await TestInClassAsync(
 @"$$Single s;",
-                MainDescription("struct System.Single"));
+                MainDescription("float"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -653,7 +653,7 @@ void M() { M$$() }";
         {
             await TestInClassAsync(
 @"$$float f;",
-                MainDescription("struct System.Single"));
+                MainDescription("float"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1255,21 +1255,21 @@ class D
         public async Task TestIntegerLiteral()
         {
             await TestInMethodAsync(@"int f = 37$$",
-                MainDescription("struct System.Int32"));
+                MainDescription("int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTrueKeyword()
         {
             await TestInMethodAsync(@"bool f = true$$",
-                MainDescription("struct System.Boolean"));
+                MainDescription("bool"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestFalseKeyword()
         {
             await TestInMethodAsync(@"bool f = false$$",
-                MainDescription("struct System.Boolean"));
+                MainDescription("bool"));
         }
 
         [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
@@ -1285,7 +1285,7 @@ class C
         return 5;
     }
 }";
-            await TestAsync(markup, MainDescription($"{FeaturesResources.Awaited_task_returns} struct System.Int32"));
+            await TestAsync(markup, MainDescription($"{FeaturesResources.Awaited_task_returns} int"));
         }
 
         [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
@@ -1301,7 +1301,7 @@ class C
         return 5;
     }
 }";
-            await TestAsync(markup, MainDescription($"{FeaturesResources.Awaited_task_returns} struct System.Int32"));
+            await TestAsync(markup, MainDescription($"{FeaturesResources.Awaited_task_returns} int"));
         }
 
         [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
@@ -1387,7 +1387,7 @@ class AsyncExample2
         result = await lambda();
     }
 }";
-            await TestAsync(markup, MainDescription($"{FeaturesResources.Awaited_task_returns} struct System.Int32"));
+            await TestAsync(markup, MainDescription($"{FeaturesResources.Awaited_task_returns} int"));
         }
 
         [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
@@ -1470,7 +1470,7 @@ class C
         public async Task TestStringLiteral()
         {
             await TestInMethodAsync(@"string f = ""Foo""$$",
-                MainDescription("class System.String"));
+                MainDescription("string"));
         }
 
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
@@ -1478,34 +1478,34 @@ class C
         public async Task TestVerbatimStringLiteral()
         {
             await TestInMethodAsync(@"string f = @""cat""$$",
-                MainDescription("class System.String"));
+                MainDescription("string"));
         }
 
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInterpolatedStringLiteral()
         {
-            await TestInMethodAsync(@"string f = $""cat""$$", MainDescription("class System.String"));
-            await TestInMethodAsync(@"string f = $""c$$at""", MainDescription("class System.String"));
-            await TestInMethodAsync(@"string f = $""$$cat""", MainDescription("class System.String"));
-            await TestInMethodAsync(@"string f = $""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
+            await TestInMethodAsync(@"string f = $""cat""$$", MainDescription("string"));
+            await TestInMethodAsync(@"string f = $""c$$at""", MainDescription("string"));
+            await TestInMethodAsync(@"string f = $""$$cat""", MainDescription("string"));
+            await TestInMethodAsync(@"string f = $""cat {1$$ + 2} dog""", MainDescription("int"));
         }
 
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestVerbatimInterpolatedStringLiteral()
         {
-            await TestInMethodAsync(@"string f = $@""cat""$$", MainDescription("class System.String"));
-            await TestInMethodAsync(@"string f = $@""c$$at""", MainDescription("class System.String"));
-            await TestInMethodAsync(@"string f = $@""$$cat""", MainDescription("class System.String"));
-            await TestInMethodAsync(@"string f = $@""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
+            await TestInMethodAsync(@"string f = $@""cat""$$", MainDescription("string"));
+            await TestInMethodAsync(@"string f = $@""c$$at""", MainDescription("string"));
+            await TestInMethodAsync(@"string f = $@""$$cat""", MainDescription("string"));
+            await TestInMethodAsync(@"string f = $@""cat {1$$ + 2} dog""", MainDescription("int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestCharLiteral()
         {
             await TestInMethodAsync(@"string f = 'x'$$",
-                MainDescription("struct System.Char"));
+                MainDescription("char"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2261,7 +2261,7 @@ class test
         public int z;
     }
 }",
-                MainDescription("struct System.Int32"));
+                MainDescription("int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2492,7 +2492,7 @@ class D : X$$
         int[] a = new i$$nt[0];
     }
 }",
-                MainDescription("struct System.Int32"));
+                MainDescription("int"));
         }
 
         [WorkItem(539841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539841")]
@@ -2646,7 +2646,7 @@ class C
         return 1;
     }
 }",
-                MainDescription("struct System.Int32"));
+                MainDescription("int"));
         }
 
         [WorkItem(541444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541444")]
@@ -4991,6 +4991,36 @@ class Program
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) ref int i"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task VarTupleTypeQualification()
+        {
+            await TestInMethodAsync(
+@"
+class C : I
+{
+    void M()
+    {
+        $$var x = (1, 2);
+    }
+}",
+                MainDescription("(int, int)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task VarTupleTypeQualification2()
+        {
+            await TestInMethodAsync(
+@"
+class C : I
+{
+    void M()
+    {
+        var x$$ = (1, 2);
+    }
+}",
+                MainDescription("(local variable) (int, int) x"));
         }
     }
 }
