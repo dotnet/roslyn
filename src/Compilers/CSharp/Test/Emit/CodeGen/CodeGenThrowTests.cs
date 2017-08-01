@@ -81,6 +81,7 @@ class C
 ");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
         public void TestRethrowImplicit()
         {
             var source = @"
@@ -121,6 +122,7 @@ class C
 ");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
         public void TestRethrowTyped()
         {
             var source = @"
@@ -161,6 +163,7 @@ class C
 ");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
         public void TestRethrowNamed()
         {
             var source = @"
@@ -201,6 +204,7 @@ class C
 ");
         }
 
+        [Fact]
         public void TestRethrowModified()
         {
             var source = @"
@@ -234,6 +238,7 @@ class C
             CompileAndVerify(source, expectedOutput: "B");
         }
 
+        [Fact]
         public void TestRethrowOverwritten()
         {
             var source = @"

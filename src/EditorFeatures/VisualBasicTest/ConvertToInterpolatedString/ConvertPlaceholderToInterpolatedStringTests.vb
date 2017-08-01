@@ -434,5 +434,137 @@ End Module</File>.ConvertTestSourceTag()
 End Module"
             Await TestMissingInRegularAndScriptAsync(text)
         End Function
+
+        <WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestFormatWithNamedArguments1() As Task
+            Dim text = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = [|String.Format(arg0:="test", arg1:="also", format:="This {0} {1} works")|]
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Dim expected = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = $"This {"test"} {"also"} works"
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
+
+        <WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestFormatWithNamedArguments2() As Task
+            Dim text = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = [|String.Format("This {0} {1} works", arg0:="test", arg1:="also")|]
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Dim expected = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = $"This {"test"} {"also"} works"
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
+
+        <WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestFormatWithNamedArguments3() As Task
+            Dim text = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = [|String.Format("{0} {1} {2}", "10", arg1:="11", arg2:="12")|]
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Dim expected = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = $"{"10"} {"11"} {"12"}"
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
+
+        <WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestFormatWithNamedArguments4() As Task
+            Dim text = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = [|String.Format("{0} {1} {2}", "10", arg2:="12", arg1:="11")|]
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Dim expected = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = $"{"10"} {"11"} {"12"}"
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
+
+        <WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestFormatWithNamedArguments5() As Task
+            Dim text = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = [|String.Format("{0} {1} {2} {3}", "10", arg1:="11", arg2:="12")|]
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Dim expected = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = $"{"10"} {"11"} {"12"} {3}"
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
+
+        <WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestFormatWithNamedArguments_CaseInsensitive() As Task
+            Dim text = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = [|String.Format("{0} {1} {2}", ARg0:="10", aRg1:="11", Arg2:="12")|]
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Dim expected = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = $"{"10"} {"11"} {"12"}"
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
     End Class
 End Namespace

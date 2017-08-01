@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.Script);
         }
 
-        public void ParseAndValidate(string text, params ErrorDescription[] errors)
+        private void ParseAndValidate(string text, params ErrorDescription[] errors)
         {
             ParseAndValidate(text, null, errors);
         }
 
-        public SyntaxTree ParseAndValidate(string text, CSharpParseOptions options, params ErrorDescription[] errors)
+        private SyntaxTree ParseAndValidate(string text, CSharpParseOptions options, params ErrorDescription[] errors)
         {
             var parsedTree = ParseTree(text, options);
             var parsedText = parsedTree.GetCompilationUnitRoot();

@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
+        [Fact, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_Change()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
+        [Fact, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_Cancellation()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
+        [Fact, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_Cancellation_MultipleTimes()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21082"), WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_InvocationReasons()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
