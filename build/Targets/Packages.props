@@ -98,7 +98,7 @@
     <MicrosoftVisualStudioShell140Version>14.3.25407</MicrosoftVisualStudioShell140Version>
     <MicrosoftVisualStudioShell150Version>15.0.26606-alpha</MicrosoftVisualStudioShell150Version>
     <MicrosoftVisualStudioShellDesignVersion>15.0.26606-alpha</MicrosoftVisualStudioShellDesignVersion>
-	<MicrosoftVisualStudioShellInterop153DesignTimeVersion>15.0.26606-alpha</MicrosoftVisualStudioShellInterop153DesignTimeVersion>
+	  <MicrosoftVisualStudioShellInterop153DesignTimeVersion>15.0.26606-alpha</MicrosoftVisualStudioShellInterop153DesignTimeVersion>
     <MicrosoftVisualStudioShellFrameworkVersion>15.0.26606-alpha</MicrosoftVisualStudioShellFrameworkVersion>
     <MicrosoftVisualStudioShellImmutable100Version>15.0.26606-alpha</MicrosoftVisualStudioShellImmutable100Version>
     <MicrosoftVisualStudioShellImmutable110Version>15.0.25413-Preview5</MicrosoftVisualStudioShellImmutable110Version>

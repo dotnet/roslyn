@@ -562,7 +562,7 @@ class Foo
             commandHandler.CollectEdits(service,
                 textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), textChanges, trackingSpans, operation);
 
-            AssertEx.SetEqual(expectedChanges, textChanges);
+            Roslyn.Test.Utilities.AssertEx.SetEqual(expectedChanges, textChanges);
 
             // Actually apply the edit to let the tracking spans adjust.
             using (var edit = textView.TextBuffer.CreateEdit())
@@ -579,7 +579,7 @@ class Foo
 
             if (expectedSelectedSpans != null)
             {
-                AssertEx.Equal(expectedSelectedSpans, textView.Selection.SelectedSpans.Select(snapshotSpan => snapshotSpan.Span));
+                Roslyn.Test.Utilities.AssertEx.Equal(expectedSelectedSpans, textView.Selection.SelectedSpans.Select(snapshotSpan => snapshotSpan.Span));
             }
         }
 
