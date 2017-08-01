@@ -651,13 +651,8 @@ class Program
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,26): error CS1031: Type expected
                 //         var s = Foo<int, >(123, 345);
-                Diagnostic(ErrorCode.ERR_TypeExpected, ">"),
-
-                // CONSIDER: we would prefer not to report this cascading diagnostic.
-
-                // (6,33): error CS1503: Argument 2: cannot convert from 'int' to '?'
-                //         var s = Foo<int, >(123, 345);
-                Diagnostic(ErrorCode.ERR_BadArgType, "345").WithArguments("2", "int", "?"));
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(6, 26)
+                );
         }
 
         [WorkItem(542591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542591")]

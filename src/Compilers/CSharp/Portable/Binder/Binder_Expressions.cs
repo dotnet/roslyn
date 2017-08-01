@@ -1198,10 +1198,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
-
+            bool isGenericName = node.Kind() == SyntaxKind.GenericName;
             // If the syntax tree is ill-formed and the identifier is missing then we've already
             // given a parse error. Just return an error local and continue with analysis.
-            if (node.IsMissing)
+            if (node.IsMissing || isGenericName && node.ContainsDiagnostics)
             {
                 return BadExpression(node);
             }
@@ -1228,13 +1228,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             int arity = node.Arity;
             bool hasTypeArguments = arity > 0;
 
-            SeparatedSyntaxList<TypeSyntax> typeArgumentList = node.Kind() == SyntaxKind.GenericName
-                ? ((GenericNameSyntax)node).TypeArgumentList.Arguments
-                : default(SeparatedSyntaxList<TypeSyntax>);
+            GenericNameSyntax genericName;
+            SeparatedSyntaxList<TypeSyntax> typeArgumentList = default(SeparatedSyntaxList<TypeSyntax>);
+            bool isUnboundTypeInNameof = false;
+
+            if (isGenericName)
+            {
+                genericName = (GenericNameSyntax)node;
+                typeArgumentList = genericName.TypeArgumentList.Arguments;
+                isUnboundTypeInNameof = this.EnclosingNameofArgument != null && this.IsUnboundTypeAllowed(genericName);
+            }
 
             Debug.Assert(arity == typeArgumentList.Count);
 
-            var typeArguments = hasTypeArguments ?
+            var typeArguments = hasTypeArguments && !isUnboundTypeInNameof ?
                 BindTypeArguments(typeArgumentList, diagnostics) :
                 default(ImmutableArray<TypeSymbol>);
 
@@ -1287,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     bool isNamedType = (symbol.Kind == SymbolKind.NamedType) || (symbol.Kind == SymbolKind.ErrorType);
 
-                    if (hasTypeArguments && isNamedType)
+                    if (!isUnboundTypeInNameof && hasTypeArguments && isNamedType)
                     {
                         symbol = ConstructNamedTypeUnlessTypeArgumentOmitted(node, (NamedTypeSymbol)symbol, typeArgumentList, typeArguments, diagnostics);
                     }
@@ -5238,9 +5245,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options |= LookupOptions.MustBeInvocableIfMember;
                 }
 
-                var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName ? ((GenericNameSyntax)right).TypeArgumentList.Arguments : default(SeparatedSyntaxList<TypeSyntax>);
+                GenericNameSyntax genericName;
+                SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax = default(SeparatedSyntaxList<TypeSyntax>);
+                bool isUnboundTypeInNameof = false;
+
+                if (right.Kind() == SyntaxKind.GenericName)
+                {
+                    genericName = (GenericNameSyntax)right;
+                    typeArgumentsSyntax = genericName.TypeArgumentList.Arguments;
+                    isUnboundTypeInNameof = this.EnclosingNameofArgument != null && this.IsUnboundTypeAllowed(genericName);
+                }
+
                 bool rightHasTypeArguments = typeArgumentsSyntax.Count > 0;
-                var typeArguments = rightHasTypeArguments ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default(ImmutableArray<TypeSymbol>);
+                var typeArguments = rightHasTypeArguments && !isUnboundTypeInNameof ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default(ImmutableArray<TypeSymbol>);
 
                 // A member-access consists of a primary-expression, a predefined-type, or a 
                 // qualified-alias-member, followed by a "." token, followed by an identifier, 
@@ -5294,7 +5311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     Debug.Assert(sym.Kind == SymbolKind.NamedType);
                                     var type = (NamedTypeSymbol)sym;
 
-                                    if (rightHasTypeArguments)
+                                    if (rightHasTypeArguments && !isUnboundTypeInNameof)
                                     {
                                         type = ConstructNamedTypeUnlessTypeArgumentOmitted(right, type, typeArgumentsSyntax, typeArguments, diagnostics);
                                     }
@@ -5335,7 +5352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (this.EnclosingNameofArgument == node)
                             {
                                 // Support selecting an extension method from a type name in nameof(.)
-                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics);
+                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics, isUnboundTypeInNameof: isUnboundTypeInNameof);
                             }
                             else
                             {
@@ -5371,7 +5388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if ((object)leftType != null)
                             {
                                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
-                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics);
+                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics, isUnboundTypeInNameof);
                             }
                             break;
                         }
@@ -5442,9 +5459,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
             ImmutableArray<TypeSymbol> typeArguments,
             bool invoked,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool isUnboundTypeInNameof = false)
         {
-            Debug.Assert(rightArity == (typeArguments.IsDefault ? 0 : typeArguments.Length));
+            Debug.Assert(isUnboundTypeInNameof || rightArity == (typeArguments.IsDefault ? 0 : typeArguments.Length));
             var leftType = boundLeft.Type;
             LookupOptions options = LookupOptions.AllMethodsOnArityZero;
             if (invoked)

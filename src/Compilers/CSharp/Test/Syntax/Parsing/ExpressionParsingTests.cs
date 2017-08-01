@@ -3669,5 +3669,30 @@ select t";
             }
             EOF();
         }
+
+        [Fact]
+        public void TestOpenTypeAsExpression()
+        {
+            var source = "X<,>";
+            UsingExpression(source);
+            N(SyntaxKind.GenericName);
+            {
+                N(SyntaxKind.IdentifierToken, "X");
+                N(SyntaxKind.TypeArgumentList);
+                {
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.OmittedTypeArgument);
+                    {
+                        N(SyntaxKind.OmittedTypeArgumentToken);
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.OmittedTypeArgument);
+                    {
+                        N(SyntaxKind.OmittedTypeArgumentToken);
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                }
+            }
+        }
     }
 }

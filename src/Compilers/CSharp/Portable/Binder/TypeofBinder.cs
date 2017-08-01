@@ -16,16 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// should be considered open so that the flag can be set 
     /// appropriately in BoundTypeOfOperator.
     /// </summary>
-    internal sealed class TypeofBinder : Binder
+    internal class TypeofBinder : Binder
     {
         private readonly Dictionary<GenericNameSyntax, bool> _allowedMap;
         private readonly bool _isTypeExpressionOpen;
 
-        internal TypeofBinder(ExpressionSyntax typeExpression, Binder next)
-            // Unsafe types are not unsafe in typeof, so it is effectively an unsafe region.
-            : base(next, next.Flags | BinderFlags.UnsafeRegion)
+        protected TypeofBinder(ExpressionSyntax typeExpression, Binder next, BinderFlags flags) : base(next, flags)
         {
             OpenTypeVisitor.Visit(typeExpression, out _allowedMap, out _isTypeExpressionOpen);
+        }
+
+        internal TypeofBinder(ExpressionSyntax typeExpression, Binder next)
+            // Unsafe types are not unsafe in typeof, so it is effectively an unsafe region.
+            : this(typeExpression, next, next.Flags | BinderFlags.UnsafeRegion)
+        {
         }
 
         internal bool IsTypeExpressionOpen { get { return _isTypeExpressionOpen; } }
@@ -35,48 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowed;
             return _allowedMap != null && _allowedMap.TryGetValue(syntax, out allowed) && allowed;
         }
-
-        /////// <summary>
-        /////// Returns the list of the symbols which represent the argument of the nameof operator. Ambiguities are not an error for the nameof.
-        /////// </summary>
-        ////internal ImmutableArray<Symbol> LookupForNameofArgument(ExpressionSyntax left, IdentifierNameSyntax right, string name, DiagnosticBag diagnostics, bool isAliasQualified, out bool hasErrors)
-        ////{
-        ////    ArrayBuilder<Symbol> symbols = ArrayBuilder<Symbol>.GetInstance();
-        ////    Symbol container = null;
-        ////    hasErrors = false;
-
-        ////    // We treat the AliasQualified syntax different than the rest. We bind the whole part for the alias.
-        ////    if (isAliasQualified)
-        ////    {
-        ////        container = BindNamespaceAliasSymbol((IdentifierNameSyntax)left, diagnostics);
-        ////        var aliasSymbol = container as AliasSymbol;
-        ////        if (aliasSymbol != null) container = aliasSymbol.Target;
-        ////        if (container.Kind == SymbolKind.NamedType)
-        ////        {
-        ////            diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, left.Location, left);
-        ////            hasErrors = true;
-        ////            return symbols.ToImmutableAndFree();
-        ////        }
-        ////    }
-        ////    // If it isn't AliasQualified, we first bind the left part, and then bind the right part as a simple name.
-        ////    else if (left != null)
-        ////    {
-        ////        // We use OriginalDefinition because of the unbound generic names such as List<>, Dictionary<,>.
-        ////        container = BindNamespaceOrTypeSymbol(left, diagnostics, null, false).OriginalDefinition;
-        ////    }
-
-        ////    this.BindNonGenericSimpleName(right, diagnostics, null, false, (NamespaceOrTypeSymbol)container, isNameofArgument: true, symbols: symbols);
-        ////    if (CheckUsedBeforeDeclarationIfLocal(symbols, right))
-        ////    {
-        ////        Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, right, right);
-        ////        hasErrors = true;
-        ////    }
-        ////    else if (symbols.Count == 0)
-        ////    {
-        ////        hasErrors = true;
-        ////    }
-        ////    return symbols.ToImmutableAndFree();
-        ////}
 
         /// <summary>
         /// This visitor walks over a type expression looking for open types.
@@ -130,19 +92,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitQualifiedName(QualifiedNameSyntax node)
             {
+                VisitQualifiedName(node.Left, node.Right);
+            }
+
+            public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+            {
+                VisitQualifiedName(node.Expression, node.Name);
+            }
+
+            private void VisitQualifiedName(CSharpSyntaxNode left, CSharpSyntaxNode right)
+            {
                 bool seenConstructedBeforeRight = _seenConstructed;
 
                 // Visit Right first because it's smaller (to make backtracking cheaper).
-                Visit(node.Right);
+                Visit(right);
 
                 bool seenConstructedBeforeLeft = _seenConstructed;
 
-                Visit(node.Left);
+                Visit(left);
 
                 // If the first time we saw a constructed type was in Left, then we need to re-visit Right
                 if (!seenConstructedBeforeRight && !seenConstructedBeforeLeft && _seenConstructed)
                 {
-                    Visit(node.Right);
+                    Visit(right);
                 }
             }
 
