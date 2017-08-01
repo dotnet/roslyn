@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         public int Position { get; }
         public CancellationToken CancellationToken { get; }
 
-        public IReadOnlyDictionary<string, List<DefinitionItem>> Items => null;// _items;
         public TextSpan Span { get; set; }
 
         public bool TryGetItems(string key, out IEnumerable<DefinitionItem> items)
