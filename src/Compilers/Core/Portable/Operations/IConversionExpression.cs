@@ -42,11 +42,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// True if the conversion can fail at runtime with an overflow exception. This corresponds to C# checked and unchecked blocks.
         /// </summary>
         bool IsChecked { get; }
-        /// <summary>
-        /// The language that defined this conversion. Possible values are <see cref="LanguageNames.CSharp"/> and
-        /// <see cref="LanguageNames.VisualBasic"/>.
-        /// </summary>
-        string LanguageName { get; }
     }
 }
 

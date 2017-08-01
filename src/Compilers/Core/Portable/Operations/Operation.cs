@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis
@@ -34,6 +35,22 @@ namespace Microsoft.CodeAnalysis
         /// Result type of the operation, or null if the operation does not produce a result.
         /// </summary>
         public ITypeSymbol Type { get; }
+
+        /// <summary>
+        /// The source language of the IOperation. Possible values are <see cref="LanguageNames.CSharp"/> and <see cref="LanguageNames.VisualBasic"/>.
+        /// </summary>
+
+        public string Language
+        {
+            get
+            {
+                // TODO: it is an eventual goal to support analyzing IL. At that point, we'll need to detect a null
+                // syntax and add a new field to LanguageNames for IL. Until then, though, we'll just assume that
+                // syntax is not null and return its language.
+                Debug.Assert(Syntax != null);
+                return Syntax.Language;
+            }
+        }
 
         /// <summary>
         /// If the operation is an expression that evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression. Otherwise, <see cref="Optional{Object}.HasValue"/> is false.
@@ -69,6 +86,8 @@ namespace Microsoft.CodeAnalysis
             public ITypeSymbol Type => null;
 
             public Optional<object> ConstantValue { get; }
+
+            public string Language => Syntax.Language;
 
             public void Accept(OperationVisitor visitor)
             {
