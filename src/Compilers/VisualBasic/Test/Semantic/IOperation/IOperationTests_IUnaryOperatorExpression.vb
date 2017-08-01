@@ -1861,5 +1861,79 @@ IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.Conversi
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
+
+        <Fact>
+        Public Sub VerifyLiftedUnaryOperators1()
+            Dim source = <![CDATA[
+Class C
+    Sub F(x as Integer?)
+        dim y = -x 'BIND:"-x"
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus-IsLifted) (OperationKind.UnaryOperatorExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '-x')
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyNonLiftedUnaryOperators1()
+            Dim source = <![CDATA[
+Class C
+    Sub F(x as Integer)
+        dim y = -x 'BIND:"-x"
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-x')
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyLiftedUserDefinedUnaryOperators1()
+            Dim source = <![CDATA[
+Structure C
+    Public Shared Operator -(c as C) as C
+    End Operator
+
+    Sub F(x as C?)
+        dim y = -x 'BIND:"-x"
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus-IsLifted) (OperatorMethod: Function C.op_UnaryNegation(c As C) As C) (OperationKind.UnaryOperatorExpression, Type: System.Nullable(Of C)) (Syntax: '-x')
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'x')]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub VerifyNonLiftedUserDefinedUnaryOperators1()
+            Dim source = <![CDATA[
+Structure C
+    Public Shared Operator -(c as C) as C
+    End Operator
+
+    Sub F(x as C)
+        dim y = -x 'BIND:"-x"
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperatorMethod: Function C.op_UnaryNegation(c As C) As C) (OperationKind.UnaryOperatorExpression, Type: C) (Syntax: '-x')
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
     End Class
 End Namespace
