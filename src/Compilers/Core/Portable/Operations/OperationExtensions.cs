@@ -30,22 +30,25 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public static IEnumerable<IOperation> Descendants(this IOperation operation)
         {
-            if (operation == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<IOperation>();
-            }
-
-            return DescendantsAndSelf(operation).Skip(1);
+            return Descendants(operation, includeSelf: false);
         }
 
         public static IEnumerable<IOperation> DescendantsAndSelf(this IOperation operation)
+        {
+            return Descendants(operation, includeSelf: true);
+        }
+
+        private static IEnumerable<IOperation> Descendants(IOperation operation, bool includeSelf)
         {
             if (operation == null)
             {
                 yield break;
             }
 
-            yield return operation;
+            if (includeSelf)
+            {
+                yield return operation;
+            }
 
             var stack = ArrayBuilder<IEnumerator<IOperation>>.GetInstance();
             stack.Push(operation.Children.GetEnumerator());
