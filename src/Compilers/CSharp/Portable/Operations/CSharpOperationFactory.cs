@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundCompoundAssignmentOperator.Syntax;
             ITypeSymbol type = boundCompoundAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundCompoundAssignmentOperator.ConstantValue);
-            return new LazyCompoundAssignmentExpression(binaryOperationKind, target, value, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+            return new LazyCompoundAssignmentExpression(binaryOperationKind, boundCompoundAssignmentOperator.Type.IsNullableType(), target, value, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
         }
 
         private IIncrementExpression CreateBoundIncrementOperatorOperation(BoundIncrementOperator boundIncrementOperator)
@@ -824,7 +824,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundUnaryOperator.Syntax;
             ITypeSymbol type = boundUnaryOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundUnaryOperator.ConstantValue);
-            return new LazyUnaryOperatorExpression(unaryOperationKind, operand, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+            bool isLifted = boundUnaryOperator.OperatorKind.IsLifted();
+            return new LazyUnaryOperatorExpression(unaryOperationKind, operand, isLifted, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
         }
 
         private IBinaryOperatorExpression CreateBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator)
@@ -837,7 +838,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundBinaryOperator.Syntax;
             ITypeSymbol type = boundBinaryOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundBinaryOperator.ConstantValue);
-            return new LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+            bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
+            return new LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, isLifted, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
         }
 
         private IConditionalChoiceExpression CreateBoundConditionalOperatorOperation(BoundConditionalOperator boundConditionalOperator)

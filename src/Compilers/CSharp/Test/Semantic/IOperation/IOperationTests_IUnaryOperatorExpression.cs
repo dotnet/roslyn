@@ -2958,5 +2958,83 @@ IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenc
 
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
+
+        [Fact]
+        public void VerifyLiftedUnaryOperators1()
+        {
+            var source = @"
+ class C
+ {
+     void F(int? x)
+     {
+         var y = /*<bind>*/-x/*</bind>*/;
+     }
+ }";
+
+            string expectedOperationTree =
+@"IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus-IsLifted) (OperationKind.UnaryOperatorExpression, Type: System.Int32?) (Syntax: '-x')
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'x')";
+
+            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact]
+        public void VerifyNonLiftedUnaryOperators1()
+        {
+            var source = @"
+class C
+{
+    void F(int x)
+    {
+        var y = /*<bind>*/-x/*</bind>*/;
+    }
+}";
+
+            string expectedOperationTree =
+@"IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-x')
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')";
+
+            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact]
+        public void VerifyLiftedUserDefinedUnaryOperators1()
+        {
+            var source = @"
+struct C
+{
+    public static C operator -(C c) { }
+    void F(C? x)
+    {
+        var y = /*<bind>*/-x/*</bind>*/;
+    }
+}";
+
+            string expectedOperationTree =
+@"IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus-IsLifted) (OperatorMethod: C C.op_UnaryNegation(C c)) (OperationKind.UnaryOperatorExpression, Type: C?) (Syntax: '-x')
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C?) (Syntax: 'x')";
+
+            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact]
+        public void VerifyNonLiftedUserDefinedUnaryOperators1()
+        {
+            var source = @"
+struct C
+{
+    public static C operator -(C c) { }
+    void F(C x)
+    {
+        var y = /*<bind>*/-x/*</bind>*/;
+    }
+}";
+
+            string expectedOperationTree =
+@"IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperatorMethod: C C.op_UnaryNegation(C c)) (OperationKind.UnaryOperatorExpression, Type: C) (Syntax: '-x')
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')";
+
+            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+        }
     }
 }

@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string actual = actualOperationTree.Trim(newLineChars);
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
             expectedOperationTree = Regex.Replace(expectedOperationTree, "([^\r])\n", "$1" + Environment.NewLine);
+
             AssertEx.AreEqual(expectedOperationTree, actual);
         }
 
@@ -758,7 +759,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IUnaryOperatorExpression));
 
             var kindStr = $"{nameof(UnaryOperationKind)}.{operation.UnaryOperationKind}";
-            LogString($" ({kindStr})");
+            if (operation.IsLifted)
+            {
+                LogString($" ({kindStr}-IsLifted)");
+            }
+            else
+            {
+                LogString($" ({kindStr})");
+            }
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -770,7 +778,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IBinaryOperatorExpression));
 
             var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
-            LogString($" ({kindStr})");
+            if (operation.IsLifted)
+            {
+                LogString($" ({kindStr}-IsLifted)");
+            }
+            else
+            {
+                LogString($" ({kindStr})");
+            }
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1059,7 +1074,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(ICompoundAssignmentExpression));
 
             var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
-            LogString($" ({kindStr})");
+            if (operation.IsLifted)
+            {
+                LogString($" ({kindStr}-IsLifted)");
+            }
+            else
+            {
+                LogString($" ({kindStr})");
+            }
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 

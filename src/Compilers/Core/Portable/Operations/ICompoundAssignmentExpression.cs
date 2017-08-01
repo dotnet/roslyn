@@ -17,5 +17,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Kind of binary operation.
         /// </summary>
         BinaryOperationKind BinaryOperationKind { get; }
+        /// <summary>
+        /// <code>true</code> if this assignment contains a 'lifted' binary operation.
+        /// </summary>
+        bool IsLifted { get; }
     }
 }

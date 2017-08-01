@@ -260,12 +260,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public override IOperation VisitUnaryOperatorExpression(IUnaryOperatorExpression operation, object argument)
             {
-                return new UnaryOperatorExpression(operation.UnaryOperationKind, Visit(operation.Operand), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+                return new UnaryOperatorExpression(operation.UnaryOperationKind, Visit(operation.Operand), operation.IsLifted, operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
             }
 
             public override IOperation VisitBinaryOperatorExpression(IBinaryOperatorExpression operation, object argument)
             {
-                return new BinaryOperatorExpression(operation.BinaryOperationKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+                return new BinaryOperatorExpression(operation.BinaryOperationKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.IsLifted, operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
             }
 
             public override IOperation VisitConversionExpression(IConversionExpression operation, object argument)
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public override IOperation VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation, object argument)
             {
-                return new CompoundAssignmentExpression(operation.BinaryOperationKind, Visit(operation.Target), Visit(operation.Value), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+                return new CompoundAssignmentExpression(operation.BinaryOperationKind, operation.IsLifted, Visit(operation.Target), Visit(operation.Value), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
             }
 
             public override IOperation VisitIncrementExpression(IIncrementExpression operation, object argument)

@@ -42,10 +42,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public static IExpressionStatement CreateCompoundAssignmentExpressionStatement(
-            IOperation target, IOperation value, BinaryOperationKind binaryOperationKind, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax)
+            IOperation target, IOperation value, BinaryOperationKind binaryOperationKind, bool isLifted, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax)
         {
             var expression = new CompoundAssignmentExpression(
                      binaryOperationKind,
+                     isLifted,
                      target,
                      value,
                      operatorMethod != null,
@@ -69,12 +70,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public static IBinaryOperatorExpression CreateBinaryOperatorExpression(
-            BinaryOperationKind binaryOperationKind, IOperation left, IOperation right, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax)
+            BinaryOperationKind binaryOperationKind, IOperation left, IOperation right, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isLifted)
         {
             return new BinaryOperatorExpression(
                 binaryOperationKind, left, right,
-                usesOperatorMethod: false, operatorMethod: null,
-                semanticModel: semanticModel, syntax: syntax, type: resultType, constantValue: default(Optional<object>));
+                isLifted: isLifted, usesOperatorMethod: false, operatorMethod: null,
+                semanticModel: semanticModel, syntax: syntax, type: resultType, constantValue: default);
         }
 
         public static IArrayCreationExpression CreateArrayCreationExpression(
