@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                            boundNode.Syntax.Parent?.Kind() == SyntaxKind.VariableDeclaration &&
                            boundNode.Syntax.Parent?.Parent?.Kind() == SyntaxKind.LocalDeclarationStatement;
                 case BoundKind.EventAccess:
+                    // related issue - https://github.com/dotnet/roslyn/pull/20960
                     return boundNode.Syntax.Kind() == SyntaxKind.IdentifierName &&
                            (boundNode.Syntax.Parent?.Kind() == SyntaxKind.AddAssignmentExpression ||
                             boundNode.Syntax.Parent?.Kind() == SyntaxKind.SubtractAssignmentExpression);

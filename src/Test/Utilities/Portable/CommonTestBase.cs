@@ -717,6 +717,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         return csNode.Parent?.Kind() == CSharp.SyntaxKind.VariableDeclarator &&
                                csNode.Parent?.Parent?.Kind() == CSharp.SyntaxKind.VariableDeclaration;
                     case CSharp.SyntaxKind.IdentifierName when csNode.ToString() == "E":
+                        // related issue - https://github.com/dotnet/roslyn/pull/20960
                         return csNode.Parent?.Kind() == CSharp.SyntaxKind.AddAssignmentExpression ||
                                csNode.Parent?.Kind() == CSharp.SyntaxKind.SubtractAssignmentExpression;
                     case CSharp.SyntaxKind.CheckedStatement:
