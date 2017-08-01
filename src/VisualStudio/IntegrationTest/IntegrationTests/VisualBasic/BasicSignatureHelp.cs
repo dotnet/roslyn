@@ -186,15 +186,15 @@ End Module");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
     Sub Test()
         $$
     End Sub
 End Class");
 
-            VisualStudio.Editor.SendKeys("Foo(");
-            VisualStudio.Editor.Verify.CurrentSignature("C.Foo()");
+            VisualStudio.Editor.SendKeys("Goo(");
+            VisualStudio.Editor.Verify.CurrentSignature("C.Goo()");
 
             VisualStudio.Editor.SetText(@"
 Class C

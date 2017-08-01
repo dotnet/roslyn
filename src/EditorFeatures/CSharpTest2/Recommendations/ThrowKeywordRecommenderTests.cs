@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -151,7 +151,7 @@ $$"));
             await VerifyKeywordAsync(
 @"class C
 {
-    void Foo() => $$
+    void Goo() => $$
 ");
         }
 

@@ -15,34 +15,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             var comp = CompileAndVerify(@"
 public partial class C
 {
-    static partial void foo() => System.Console.WriteLine(""test"");
+    static partial void goo() => System.Console.WriteLine(""test"");
 }
 
 public partial class C
 {
     public static void Main(string[] args)
     {
-        foo();
+        goo();
     }
-    static partial void foo();
+    static partial void goo();
 }
 ", sourceSymbolValidator: m =>
             {
-                var fooDef = m.GlobalNamespace
+                var gooDef = m.GlobalNamespace
                     .GetMember<NamedTypeSymbol>("C")
-                    .GetMember<SourceOrdinaryMethodSymbol>("foo");
-                Assert.True(fooDef.IsPartial);
-                Assert.True(fooDef.IsPartialDefinition);
-                Assert.False(fooDef.IsPartialImplementation);
-                Assert.Null(fooDef.PartialDefinitionPart);
+                    .GetMember<SourceOrdinaryMethodSymbol>("goo");
+                Assert.True(gooDef.IsPartial);
+                Assert.True(gooDef.IsPartialDefinition);
+                Assert.False(gooDef.IsPartialImplementation);
+                Assert.Null(gooDef.PartialDefinitionPart);
 
-                var fooImpl = fooDef.PartialImplementationPart
+                var gooImpl = gooDef.PartialImplementationPart
                     as SourceOrdinaryMethodSymbol;
-                Assert.NotNull(fooImpl);
-                Assert.True(fooImpl.IsPartial);
-                Assert.True(fooImpl.IsPartialImplementation);
-                Assert.False(fooImpl.IsPartialDefinition);
-                Assert.True(fooImpl.IsExpressionBodied);
+                Assert.NotNull(gooImpl);
+                Assert.True(gooImpl.IsPartial);
+                Assert.True(gooImpl.IsPartialImplementation);
+                Assert.False(gooImpl.IsPartialDefinition);
+                Assert.True(gooImpl.IsExpressionBodied);
             },
 expectedOutput: "test");
         }
@@ -156,11 +156,11 @@ public class C {
             var comp = CreateCompilationWithMscorlib45(@"
 namespace MyNamespace
 {
-    public partial struct Foo
+    public partial struct Goo
     {
         public double Bar => 0;
     }
-    public partial struct Foo
+    public partial struct Goo
     {
     }
 }");
@@ -228,7 +228,7 @@ class C : B
             var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
-    public void M() => System.Console.WriteLine(""foo"");
+    public void M() => System.Console.WriteLine(""goo"");
 }").VerifyDiagnostics();
         }
 
@@ -238,11 +238,11 @@ class C
             var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
-    public int M() => System.Console.WriteLine(""foo"");
+    public int M() => System.Console.WriteLine(""goo"");
 }").VerifyDiagnostics(
     // (4,23): error CS0029: Cannot implicitly convert type 'void' to 'int'
-    //     public int M() => System.Console.WriteLine("foo");
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"System.Console.WriteLine(""foo"")").WithArguments("void", "int").WithLocation(4, 23));
+    //     public int M() => System.Console.WriteLine("goo");
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"System.Console.WriteLine(""goo"")").WithArguments("void", "int").WithLocation(4, 23));
         }
 
         [Fact]
@@ -265,7 +265,7 @@ internal interface K
 class C : I, J, K
 {
     public int M() => 10;
-    string I.N() => ""foo"";
+    string I.N() => ""goo"";
     string J.N() => ""bar"";
     public decimal O() => M();
 }");
@@ -308,7 +308,7 @@ abstract class A
 }
 abstract class B : A
 {
-    protected sealed override string Z() => ""foo"";
+    protected sealed override string Z() => ""goo"";
     protected abstract string Y();
 }    
 class C : B
@@ -337,8 +337,8 @@ class C : B
 4
 2
 8
-foo
-foo8");
+goo
+goo8");
         }
 
         [ClrOnlyFact]

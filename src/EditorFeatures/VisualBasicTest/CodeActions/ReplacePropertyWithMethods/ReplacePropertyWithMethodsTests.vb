@@ -581,31 +581,31 @@ End Structure", ignoreTrivia:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestInterfaceReplacement1() As Task
             Await TestInRegularAndScriptAsync(
-"Interface IFoo
-    Property [||]Foo As Integer
+"Interface IGoo
+    Property [||]Goo As Integer
 End Interface
 
 Class C
-    Implements IFoo
+    Implements IGoo
 
-    Public Property Foo As Integer Implements IFoo.Foo
+    Public Property Goo As Integer Implements IGoo.Goo
 End Class",
-"Interface IFoo
-    Function GetFoo() As Integer
-    Sub SetFoo(Value As Integer)
+"Interface IGoo
+    Function GetGoo() As Integer
+    Sub SetGoo(Value As Integer)
 End Interface
 
 Class C
-    Implements IFoo
+    Implements IGoo
 
-    Private _Foo As Integer
+    Private _Goo As Integer
 
-    Public Function GetFoo() As Integer Implements IFoo.GetFoo
-        Return _Foo
+    Public Function GetGoo() As Integer Implements IGoo.GetGoo
+        Return _Goo
     End Function
 
-    Public Sub SetFoo(AutoPropertyValue As Integer) Implements IFoo.SetFoo
-        _Foo = AutoPropertyValue
+    Public Sub SetGoo(AutoPropertyValue As Integer) Implements IGoo.SetGoo
+        _Goo = AutoPropertyValue
     End Sub
 End Class")
         End Function

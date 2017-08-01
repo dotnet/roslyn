@@ -14,13 +14,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.Other
     {
         private const string FileInLibraryProject1 = @"Public Class Class1
     Inherits System.Windows.Forms.Form
-    Public Sub foo()
+    Public Sub goo()
 
     End Sub
 End Class
 
 Public Class class2
-    Public Sub foo(ByVal x As System.Windows.Forms.Form)
+    Public Sub goo(ByVal x As System.Windows.Forms.Form)
 
     End Sub
 
@@ -53,7 +53,7 @@ End Class
     Sub New()
         MyBase.New(Nothing, Nothing, Nothing, Nothing)
     End Sub
-    Sub foo()
+    Sub goo()
 
     End Sub
     Public bar As ClassLibrary3.Class1
@@ -65,7 +65,7 @@ End Class
         E2
     End Enum
 
-    Public Function Foo() As ADODB.Recordset
+    Public Function Goo() As ADODB.Recordset
         Dim x As ADODB.Recordset = Nothing
         Return x
     End Function
@@ -79,7 +79,7 @@ class Program
     static void Main(string[] args)
     {
         var y = new ClassLibrary1.class2();
-        y.foo(null);
+        y.goo(null);
 
         y.ee += (_, __) => { };
 
@@ -137,7 +137,7 @@ class Program
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
             VisualStudio.SolutionExplorer.OpenFile( consoleProject, "Program.cs");
-            VisualStudio.Editor.PlaceCaret("y.foo", charsOffset: 1);
+            VisualStudio.Editor.PlaceCaret("y.goo", charsOffset: 1);
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
             VisualStudio.Editor.PlaceCaret("y.ee", charsOffset: 1);
@@ -153,7 +153,7 @@ class Program
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
             VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Program.cs");
-            VisualStudio.Editor.PlaceCaret("y.foo", charsOffset: 1);
+            VisualStudio.Editor.PlaceCaret("y.goo", charsOffset: 1);
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
             VisualStudio.SolutionExplorer.Verify.AssemblyReferencePresent(

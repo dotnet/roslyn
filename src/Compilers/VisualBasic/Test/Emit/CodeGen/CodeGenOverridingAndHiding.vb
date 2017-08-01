@@ -170,7 +170,7 @@ End Module
             'is a bug in Dev10 that we fixed in Roslyn - the change is non-breaking.
             Dim vb1Compilation = CreateVisualBasicCompilation("VB1",
             <![CDATA[Public MustInherit Class C1
-    MustOverride Sub foo()
+    MustOverride Sub goo()
 End Class]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim vb1Verifier = CompileAndVerify(vb1Compilation)
@@ -180,7 +180,7 @@ End Class]]>,
             <![CDATA[using System;
 public abstract class C2 : C1
 {
-    new internal virtual void foo()
+    new internal virtual void goo()
     {
         Console.WriteLine("C2");
     }
@@ -192,7 +192,7 @@ public abstract class C2 : C1
             Dim vb2Compilation = CreateVisualBasicCompilation("VB2",
             <![CDATA[Imports System
 Public Class C3 : Inherits C2
-    Public Overrides Sub foo
+    Public Overrides Sub goo
         Console.WriteLine("C3")
     End Sub
 End Class]]>,
@@ -203,7 +203,7 @@ End Class]]>,
 
             'Dev10 reports an error for the below compilation - Roslyn on the other hand allows this code to compile without errors.
             'VB3.vb(2) : error BC30610: Class 'C4' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
-            'C1 : Public MustOverride Sub foo().
+            'C1 : Public MustOverride Sub goo().
             'Public Class C4 : Inherits C3
             '             ~~
             Dim vb3Compilation = CreateVisualBasicCompilation("VB3",
@@ -214,7 +214,7 @@ Public Class C4 : Inherits C3
 
     Public Class C5 : Inherits C2
         ' Corresponding case in C# results in PEVerify errors - See test 'CrossLanguageCase1' in CodeGenOverridingAndHiding.cs
-        Public Overrides Sub foo()
+        Public Overrides Sub goo()
             Console.WriteLine("C5")
         End Sub
     End Class
@@ -222,9 +222,9 @@ Public Class C4 : Inherits C3
     Public Module Program
         Sub Main()
             Dim x As C1 = New C4
-            x.foo()
+            x.goo()
             Dim y As C2 = New C5
-            y.Foo()
+            y.Goo()
         End Sub
 End Module]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
@@ -242,7 +242,7 @@ C5]]>)
             'is a bug in Dev10 that we fixed in Roslyn - the change is non-breaking.
             Dim vb1Compilation = CreateVisualBasicCompilation("VB1",
             <![CDATA[Public MustInherit Class C1
-        MustOverride Sub foo()
+        MustOverride Sub goo()
     End Class]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim vb1Verifier = CompileAndVerify(vb1Compilation)
@@ -253,7 +253,7 @@ C5]]>)
     [assembly:System.Runtime.CompilerServices.InternalsVisibleTo("VB3")]
     public abstract class C2 : C1
     {
-        new internal virtual void foo()
+        new internal virtual void goo()
         {
             Console.WriteLine("C2");
         }
@@ -265,7 +265,7 @@ C5]]>)
             Dim vb2Compilation = CreateVisualBasicCompilation("VB2",
             <![CDATA[Imports System
     Public Class C3 : Inherits C2
-        Public Overrides Sub foo
+        Public Overrides Sub goo
             Console.WriteLine("C3")
         End Sub
     End Class]]>,
@@ -276,13 +276,13 @@ C5]]>)
 
             'Dev10 reports an error for the below compilation - Roslyn on the other hand allows this code to compile without errors.
             'VB3.vb(2) : error BC30610: Class 'C4' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
-            'C1 : Public MustOverride Sub foo().
+            'C1 : Public MustOverride Sub goo().
             'Public Class C4 : Inherits C3
             '             ~~
             Dim vb3Compilation = CreateVisualBasicCompilation("VB3",
             <![CDATA[Imports System
     Public Class C4 : Inherits C3
-        Public Overrides Sub foo
+        Public Overrides Sub goo
             Console.WriteLine("C4")
         End Sub
     End Class
@@ -290,9 +290,9 @@ C5]]>)
     Public Module Program
         Sub Main()
             Dim x As C1 = New C4
-            x.foo
+            x.goo
             Dim y As C2 = New C4
-            y.foo
+            y.goo
         End Sub
     End Module]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
@@ -309,7 +309,7 @@ C2]]>)
             'Note: Dev10 and Roslyn produce identical errors for this case.
             Dim vb1Compilation = CreateVisualBasicCompilation("VB1",
             <![CDATA[Public MustInherit Class C1
-        MustOverride Sub foo()
+        MustOverride Sub goo()
     End Class]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim vb1Verifier = CompileAndVerify(vb1Compilation)
@@ -319,7 +319,7 @@ C2]]>)
             <![CDATA[[assembly:System.Runtime.CompilerServices.InternalsVisibleTo("VB3")]
     public abstract class C2 : C1
     {
-        new internal virtual void foo()
+        new internal virtual void goo()
         {
         }
     }]]>,
@@ -329,7 +329,7 @@ C2]]>)
 
             Dim vb2Compilation = CreateVisualBasicCompilation("VB2",
             <![CDATA[Public Class C3 : Inherits C2
-        Public Overrides Sub foo
+        Public Overrides Sub goo
         End Sub
     End Class]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
@@ -339,31 +339,31 @@ C2]]>)
 
             Dim vb3Compilation = CreateVisualBasicCompilation("VB3",
             <![CDATA[MustInherit Public Class C4 : Inherits C3
-        Public Overrides Sub foo
+        Public Overrides Sub goo
         End Sub
     End Class
 
     Public Class C5 : Inherits C2
-        Public Overrides Sub foo()
+        Public Overrides Sub goo()
         End Sub
     End Class
 
     Public Class C6 : Inherits C2
-        Friend Overrides Sub foo()
+        Friend Overrides Sub goo()
         End Sub
     End Class]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations:={vb1Compilation, cs1Compilation, vb2Compilation})
             vb3Compilation.AssertTheseDiagnostics(<expected>
 BC30610: Class 'C5' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
-    C1: Public MustOverride Sub foo().
+    C1: Public MustOverride Sub goo().
     Public Class C5 : Inherits C2
                  ~~
-BC30266: 'Public Overrides Sub foo()' cannot override 'Friend Overridable Overloads Sub foo()' because they have different access levels.
-        Public Overrides Sub foo()
+BC30266: 'Public Overrides Sub goo()' cannot override 'Friend Overridable Overloads Sub goo()' because they have different access levels.
+        Public Overrides Sub goo()
                              ~~~
 BC30610: Class 'C6' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
-    C1: Public MustOverride Sub foo().
+    C1: Public MustOverride Sub goo().
     Public Class C6 : Inherits C2
                  ~~
                                                   </expected>)
@@ -374,7 +374,7 @@ BC30610: Class 'C6' must either be declared 'MustInherit' or override the follow
         Public Sub CrossLanguageTest4()
             Dim vb1Compilation = CreateVisualBasicCompilation("VB1",
             <![CDATA[Public MustInherit Class C1
-        MustOverride Sub foo()
+        MustOverride Sub goo()
     End Class]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim vb1Verifier = CompileAndVerify(vb1Compilation)
@@ -384,7 +384,7 @@ BC30610: Class 'C6' must either be declared 'MustInherit' or override the follow
             <![CDATA[[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("VB2")]
     public abstract class C2 : C1
     {
-        new internal virtual void foo()
+        new internal virtual void goo()
         {
         }
     }]]>,
@@ -394,7 +394,7 @@ BC30610: Class 'C6' must either be declared 'MustInherit' or override the follow
 
             Dim vb2Compilation = CreateVisualBasicCompilation("VB2",
             <![CDATA[MustInherit Public Class C3 : Inherits C2
-        Friend Overrides Sub foo()
+        Friend Overrides Sub goo()
         End Sub
     End Class]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),

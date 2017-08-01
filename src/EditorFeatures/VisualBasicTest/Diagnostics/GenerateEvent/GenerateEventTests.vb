@@ -20,14 +20,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
 End Interface
 Class C
     Implements MyInterface
-    Event foo() Implements [|MyInterface.E|]
+    Event goo() Implements [|MyInterface.E|]
 End Class",
 "Interface MyInterface
     Event E()
 End Interface
 Class C
     Implements MyInterface
-    Event foo() Implements MyInterface.E
+    Event goo() Implements MyInterface.E
 End Class")
         End Function
 
@@ -38,7 +38,7 @@ End Class")
 End Interface
 Class C
     Implements MyInterface
-    Event foo() Implements [|MyInterface.|] 
+    Event goo() Implements [|MyInterface.|] 
  End Class")
         End Function
 
@@ -50,7 +50,7 @@ Class C
 End Interface
 Class C
     Implements MyInterface
-    Event foo() Implements [|MyInterface.E|]
+    Event goo() Implements [|MyInterface.E|]
 End Class")
         End Function
 
@@ -61,14 +61,14 @@ End Class")
 End Interface
 Class C
     Implements MyInterface
-    Event foo(x As Integer) Implements [|MyInterface.E|]
+    Event goo(x As Integer) Implements [|MyInterface.E|]
 End Class",
 "Interface MyInterface
     Event E(x As Integer)
 End Interface
 Class C
     Implements MyInterface
-    Event foo(x As Integer) Implements MyInterface.E
+    Event goo(x As Integer) Implements MyInterface.E
 End Class")
         End Function
 

@@ -276,7 +276,7 @@ Class C
     Dim j As Integer
     Sub M()
         Dim c = [||]New C()
-        c.i = 1 ' Foo
+        c.i = 1 ' Goo
         c.j = 2 ' Bar
     End Sub
 End Class",
@@ -286,7 +286,7 @@ Class C
     Dim j As Integer
     Sub M()
         Dim c = New C With {
-            .i = 1, ' Foo
+            .i = 1, ' Goo
             .j = 2 ' Bar
             }
     End Sub

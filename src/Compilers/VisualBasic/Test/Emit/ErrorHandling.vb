@@ -24,12 +24,12 @@ Module Module1
     Sub Main()
         Dim sPath As String = ""
         sPath = "Test1"
-        On Error GoTo foo
+        On Error GoTo goo
         Error 5
         Console.WriteLine(sPath)
         Exit Sub
-foo:
-        sPath &amp;= "foo"
+goo:
+        sPath &amp;= "goo"
         Console.WriteLine(sPath)
     End Sub
 End Module
@@ -52,7 +52,7 @@ Module Module1
         On Error GoTo -1
         Error 5
         exit sub
-foo:
+goo:
         Resume 
     End Sub
 End Module 
@@ -75,7 +75,7 @@ Module Module1
         On Error GoTo 0
         Error 5
         exit sub
-Foo:
+Goo:
         Resume 
     End Sub
 End Module 
@@ -366,7 +366,7 @@ End Module
 
         Sub Goto_MissingLabel()
             'Error - label is not present
-            On Error GoTo foo
+            On Error GoTo goo
 
         End Sub
 
@@ -393,7 +393,7 @@ End Module
                                           Diagnostic(ERRID.ERR_ExpectedDeclaration, "sing"),
                                           Diagnostic(ERRID.ERR_ExpectedEOS, "."),
                                           Diagnostic(ERRID.ERR_DuplicateProcDef1, "GotoLabelInDifferentMethod").WithArguments("Public Sub GotoLabelInDifferentMethod()"),
-                                          Diagnostic(ERRID.ERR_LabelNotDefined1, "foo").WithArguments("foo"),
+                                          Diagnostic(ERRID.ERR_LabelNotDefined1, "goo").WithArguments("goo"),
                                           Diagnostic(ERRID.ERR_LabelNotDefined1, "diffMethodLabel").WithArguments("diffMethodLabel"),
                                           Diagnostic(ERRID.ERR_LabelNotDefined1, "DifferentMethod").WithArguments("DifferentMethod"))
         End Sub
@@ -416,16 +416,16 @@ End Module
         Sub TryAndOnErrorInSameMethod()
             'Nested
             Try
-                On Error GoTo foo
-    foo:
+                On Error GoTo goo
+    goo:
             Catch ex As Exception
             End Try
         End Sub
 
         Sub OnErrorAndTryInSameMethod()
             'Sequential
-            On Error GoTo foo
-    foo:
+            On Error GoTo goo
+    goo:
             Try
             Catch ex As Exception
             End Try
@@ -437,8 +437,8 @@ End Module
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim ExpectedOutput = <![CDATA[Try
-                On Error GoTo foo
-    foo:
+                On Error GoTo goo
+    goo:
             Catch ex As Exception
             End Try]]>
 
@@ -447,8 +447,8 @@ End Module
             End Try]]>
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_TryAndOnErrorDoNotMix, ExpectedOutput),
-                                          Diagnostic(ERRID.ERR_TryAndOnErrorDoNotMix, "On Error GoTo foo"),
-                                          Diagnostic(ERRID.ERR_TryAndOnErrorDoNotMix, "On Error GoTo foo"),
+                                          Diagnostic(ERRID.ERR_TryAndOnErrorDoNotMix, "On Error GoTo goo"),
+                                          Diagnostic(ERRID.ERR_TryAndOnErrorDoNotMix, "On Error GoTo goo"),
                                           Diagnostic(ERRID.ERR_TryAndOnErrorDoNotMix, ExpectedOutput2)
     )
         End Sub
@@ -461,8 +461,8 @@ End Module
         <file name="a.vb">
     Module Module1   
         Public Sub Main        
-            On Error GoTo foo
-    foo:
+            On Error GoTo goo
+    goo:
         End Sub
     End Module 
     </file>
@@ -473,8 +473,8 @@ End Module
                                                                          options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
             Dim ExpectedOutput = <![CDATA[Public Sub Main        
-            On Error GoTo foo
-    foo:
+            On Error GoTo goo
+    goo:
         End Sub]]>
 
 
@@ -616,16 +616,16 @@ End Module
         End Sub
 
         'Error Outside of Method Body
-        On Error Goto foo
+        On Error Goto goo
 
-        Sub Foo
+        Sub Goo
         End Sub
     End Module 
     </file>
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "On Error Goto foo"))
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "On Error Goto goo"))
         End Sub
 
         <Fact()>
@@ -641,7 +641,7 @@ End Module
         Sub Main        
         End Sub
 
-      Class Foo
+      Class Goo
             Sub Method()
                 On Error GoTo CLassMethodLabel
 
@@ -662,7 +662,7 @@ End Module
         End Class
 
 
-    Structure Foo_Struct
+    Structure Goo_Struct
             Sub Method()
                 On Error GoTo StructMethodLabel
 
@@ -682,7 +682,7 @@ End Module
             End Property
         End Structure 
 
-        Class GenericFoo(Of t)
+        Class GenericGoo(Of t)
             Sub Method()
                 'Normal Method In Generic Class
                 On Error GoTo CLassMethodLabel
@@ -857,9 +857,9 @@ End Module
             On Error GoTo handler
 
             SyncLock lock
-                On Error GoTo foo
+                On Error GoTo goo
 
-    foo:
+    goo:
                 Resume Next
             End SyncLock
             Exit Sub
@@ -870,7 +870,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_LabelNotDefined1, "handler").WithArguments("handler"),
-                                          Diagnostic(ERRID.ERR_OnErrorInSyncLock, "On Error GoTo foo"))
+                                          Diagnostic(ERRID.ERR_OnErrorInSyncLock, "On Error GoTo goo"))
         End Sub
 
         <Fact()>

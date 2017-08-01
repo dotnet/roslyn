@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     class Class
     {
-        int Foo
+        int Goo
             {";
 
             await AssertSmartTokenFormatterOpenBraceAsync(
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     class Class
     {
-        int Foo
+        int Goo
         {
             }";
 
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     class Class
     {
-        event EventHandler Foo
+        event EventHandler Goo
             {";
 
             await AssertSmartTokenFormatterOpenBraceAsync(
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     class Class
     {
-        event EventHandler Foo
+        event EventHandler Goo
         {
             }";
 
@@ -522,7 +522,7 @@ using System.Linq;
 
 class Program
 {
-    static IEnumerable<int> Foo()
+    static IEnumerable<int> Goo()
     {
         return from a in new[] { 1, 2, 3 }
                     select
@@ -544,7 +544,7 @@ using System.Linq;
 
 class Program
 {
-    static IEnumerable<int> Foo()
+    static IEnumerable<int> Goo()
     {
         return from a in new[] { 1, 2, 3 }
                     where

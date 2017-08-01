@@ -290,13 +290,13 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateIntoInaccessibleType() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Private Class Bar
     End Class
 End Class
 Class A
     Sub Main()
-        Dim s = New Foo.Bar([|5|])
+        Dim s = New Goo.Bar([|5|])
     End Sub
 End Class")
         End Function
@@ -304,16 +304,16 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestOnNestedTypes() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Class Bar
     End Class
 End Class
 Class A
     Sub Main()
-        Dim s = New Foo.Bar([|5|])
+        Dim s = New Goo.Bar([|5|])
     End Sub
 End Class",
-"Class Foo
+"Class Goo
     Class Bar
         Private v As Integer
         Public Sub New(v As Integer)
@@ -323,7 +323,7 @@ End Class",
 End Class
 Class A
     Sub Main()
-        Dim s = New Foo.Bar(5)
+        Dim s = New Goo.Bar(5)
     End Sub
 End Class")
         End Function
@@ -396,7 +396,7 @@ End Class")
 "Class Base(Of T, V)
 End Class
 Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Base(Of Integer, Integer)([|5|], 5)
     End Sub
 End Class",
@@ -409,7 +409,7 @@ End Class",
     End Sub
 End Class
 Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Base(Of Integer, Integer)(5, 5)
     End Sub
 End Class")
@@ -424,7 +424,7 @@ Class Derived(Of V)
     Inherits Base(Of Integer, V)
 End Class
 Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Base(Of Integer, Integer)(5, 5)
         Dim b = New Derived(Of Integer)([|5|])
     End Sub
@@ -439,7 +439,7 @@ Class Derived(Of V)
     End Sub
 End Class
 Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Base(Of Integer, Integer)(5, 5)
         Dim b = New Derived(Of Integer)(5)
     End Sub
@@ -458,7 +458,7 @@ Class MoreDerived
     Inherits Derived(Of Double)
 End Class
 Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Base(Of Integer, Integer)(5, 5)
         Dim b = New Derived(Of Integer)(5)
         Dim c = New MoreDerived([|5.5|])
@@ -477,7 +477,7 @@ Class MoreDerived
     End Sub
 End Class
 Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Base(Of Integer, Integer)(5, 5)
         Dim b = New Derived(Of Integer)(5)
         Dim c = New MoreDerived(5.5)
@@ -489,14 +489,14 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestDateTypeForInference() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
 End Class
 Class A
     Sub Main()
-        Dim s = New Foo([|Date.Now|])
+        Dim s = New Goo([|Date.Now|])
     End Sub
 End Class",
-"Class Foo
+"Class Goo
     Private now As Date
     Public Sub New(now As Date)
         Me.now = now
@@ -504,7 +504,7 @@ End Class",
 End Class
 Class A
     Sub Main()
-        Dim s = New Foo(Date.Now)
+        Dim s = New Goo(Date.Now)
     End Sub
 End Class")
         End Function
@@ -582,10 +582,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Dim c = New [|foo|]( 
+        Dim c = New [|goo|]( 
  End Sub
 End Module
-Class foo
+Class goo
 End Class")
         End Function
 
@@ -734,14 +734,14 @@ End Class")
         Public Async Function TestConflictWithTypeParameterName() As Task
             Await TestInRegularAndScriptAsync(
 "Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Bar(Of Integer)([|5|])
     End Sub
 End Class
 Class Bar(Of V)
 End Class",
 "Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Bar(Of Integer)(5)
     End Sub
 End Class
@@ -1098,7 +1098,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "#ExternalSource (""Default.aspx"", 1) 
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x As New D([|5|])
     End Sub
 End Class
@@ -1107,7 +1107,7 @@ End Class
 #End ExternalSource",
 "#ExternalSource (""Default.aspx"", 1) 
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x As New D(5)
     End Sub
 End Class
@@ -1125,7 +1125,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(
 <Text>#ExternalSource (""Default.aspx"", 1)
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x As New D([|5|])
     End Sub
 End Class
@@ -1446,16 +1446,16 @@ End Module")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateInInaccessibleType() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Private Class Bar
     End Class
 End Class
 Class A
     Sub Main()
-        Dim s = New [|Foo.Bar(5)|]
+        Dim s = New [|Goo.Bar(5)|]
     End Sub
 End Class",
-"Class Foo
+"Class Goo
     Private Class Bar
         Private v As Integer
         Public Sub New(v As Integer)
@@ -1465,7 +1465,7 @@ End Class",
 End Class
 Class A
     Sub Main()
-        Dim s = New Foo.Bar(5)
+        Dim s = New Goo.Bar(5)
     End Sub
 End Class")
         End Function

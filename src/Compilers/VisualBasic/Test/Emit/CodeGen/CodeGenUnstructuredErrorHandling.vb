@@ -782,14 +782,14 @@ Imports  Microsoft.VisualBasic
 
 Module Module1
   Sub main
-    Dim i as ifoo = new c1
+    Dim i as igoo = new c1
     i.Testmethod
   End Sub
 End Module
 
 
-Public Class C1 : Implements Ifoo
-  Sub T1 implements Ifoo.Testmethod
+Public Class C1 : Implements Igoo
+  Sub T1 implements Igoo.Testmethod
     On error resume next
 10:
 	Err.Raise(3)
@@ -804,7 +804,7 @@ Public Class C1 : Implements Ifoo
   End Sub
 End Class
 
-Interface Ifoo
+Interface Igoo
 	Sub Testmethod()
 End Interface
 ]]>

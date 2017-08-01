@@ -24,10 +24,10 @@ Imports System.Threading.Tasks
 Module Module1
 
     Sub Main()
-        Foo(123).Wait()
+        Goo(123).Wait()
     End Sub
 
-    Public Async Function Foo(a As Integer) As Task
+    Public Async Function Goo(a As Integer) As Task
         Await Task.Factory.StartNew(Sub() System.Console.WriteLine(a))
     End Function
 
@@ -44,7 +44,7 @@ End Module
             CompileAndVerify(compilation.WithOptions(options),
                              expectedOutput:="123",
                              symbolValidator:=Sub(m As ModuleSymbol)
-                                                  Dim stateMachine = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Module1").GetMember(Of NamedTypeSymbol)("VB$StateMachine_1_Foo")
+                                                  Dim stateMachine = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Module1").GetMember(Of NamedTypeSymbol)("VB$StateMachine_1_Goo")
                                                   Assert.Equal(TypeKind.Structure, stateMachine.TypeKind)
                                               End Sub)
 
@@ -54,7 +54,7 @@ End Module
             CompileAndVerify(compilation.WithOptions(options),
                              expectedOutput:="123",
                              symbolValidator:=Sub(m As ModuleSymbol)
-                                                  Dim stateMachine = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Module1").GetMember(Of NamedTypeSymbol)("VB$StateMachine_1_Foo")
+                                                  Dim stateMachine = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Module1").GetMember(Of NamedTypeSymbol)("VB$StateMachine_1_Goo")
                                                   Assert.Equal(TypeKind.Class, stateMachine.TypeKind)
                                               End Sub)
         End Sub
@@ -4379,7 +4379,7 @@ Imports System.Threading.Tasks
 Class TestCase
     Public Shared Count = 0
 
-    Public Shared Function Foo(Of T)(tt As T) As T
+    Public Shared Function Goo(Of T)(tt As T) As T
         Return tt
     End Function
 
@@ -4389,9 +4389,9 @@ Class TestCase
     End Function
 
     Public Shared Async Function Run() As Task
-        Dim x1 = Foo(Await Bar(4))
+        Dim x1 = Goo(Await Bar(4))
         Dim t = Bar(5)
-        Dim x2 = Foo(Await t)
+        Dim x2 = Goo(Await t)
         If x1 &lt;&gt; 4 Then
             Count += 1
         End If
@@ -4936,11 +4936,11 @@ End Structure
 Structure TestCase
     Public Async Function Run() As Task
         Dim ms As New MyStruct(Of Integer)()
-        Dim x = ms(index:=Await Foo())
+        Dim x = ms(index:=Await Goo())
         Console.Write(x + 100)
     End Function
 
-    Public Async Function Foo() As Task(Of Integer)
+    Public Async Function Goo() As Task(Of Integer)
         Await Task.Yield
         Return 10
     End Function
@@ -4991,10 +4991,10 @@ Imports System.Threading.Tasks
 
 Class TestCase
     Public Async Function Run() As Task(Of Integer)
-        Return Await Foo()
+        Return Await Goo()
     End Function
 
-    Public Async Function Foo() As Task(Of Integer)
+    Public Async Function Goo() As Task(Of Integer)
         Return Await Task.Factory.StartNew(Function() 42)
     End Function
 End Class
@@ -5209,7 +5209,7 @@ Class TestCase
         Dim arr2()() As Integer =
             New Integer()() {
                 New Integer() {Await GetVal(2), Await GetVal(3)},
-                Await Foo()
+                Await Goo()
             }
         If arr2(0)(1) = 3 AndAlso arr2(1)(1) = 2 Then
             Count += 1
@@ -5218,7 +5218,7 @@ Class TestCase
         Result = Count - tests
     End Function
 
-    Public Async Function Foo() As Task(Of Integer())
+    Public Async Function Goo() As Task(Of Integer())
         Await Task.Yield
         Return {1, 2, 3}
     End Function
@@ -5278,7 +5278,7 @@ Class TestCase
         Result = Count - tests
     End Function
 
-    Public Async Function Foo() As Task(Of Integer())
+    Public Async Function Goo() As Task(Of Integer())
         Await Task.Yield
         Return {1, 2, 3}
     End Function
@@ -5335,7 +5335,7 @@ Class TestCase
         Dim arr2()() As Integer =
             New Integer()() {
                 New Integer() {Await GetVal(2), 3},
-                Await Foo()
+                Await Goo()
             }
         If arr2(0)(1) = 3 AndAlso arr2(1)(1) = 2 Then
             Count += 1
@@ -5344,7 +5344,7 @@ Class TestCase
         Result = Count - tests
     End Function
 
-    Public Async Function Foo() As Task(Of Integer())
+    Public Async Function Goo() As Task(Of Integer())
         Await Task.Yield
         Return {1, 2, 3}
     End Function
@@ -5708,7 +5708,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 
 Class BaseTestCase
-    Public Sub FooRef(ByRef d As Decimal, x As Integer, ByRef od As Decimal)
+    Public Sub GooRef(ByRef d As Decimal, x As Integer, ByRef od As Decimal)
         od = d
         d += 1
     End Sub
@@ -5727,7 +5727,7 @@ Class TestCase : Inherits BaseTestCase
         Dim od As Decimal
 
         tests += 1
-        MyBase.FooRef(d, Await MyBase.GetVal(4), od)
+        MyBase.GooRef(d, Await MyBase.GetVal(4), od)
         If d = 2 AndAlso od = 1 Then
             count += 1
         End If
@@ -6069,7 +6069,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 
 Structure Test
-    Public ReadOnly Property Foo As Task(Of String)
+    Public ReadOnly Property Goo As Task(Of String)
         Get
             Return Task.Run(Of String)(Async Function()
                                            Await Task.Yield
@@ -6093,13 +6093,13 @@ Class TestCase(Of U)
         Dim t As New Test()
 
         Tests += 1
-        Dim x1 = Await TestCase(Of String).GetVal(Await t.Foo)
+        Dim x1 = Await TestCase(Of String).GetVal(Await t.Goo)
         If x1 = "abc" Then
             Count += 1
         End If
 
         Tests += 1
-        Dim x2 = Await TestCase(Of String).GetVal1(t.Foo)
+        Dim x2 = Await TestCase(Of String).GetVal1(t.Goo)
         If x2 = "abc" Then
             Count += 1
         End If
@@ -6132,22 +6132,22 @@ Imports System.Threading
 Imports System.Threading.Tasks
 
 Class TestCase(Of U)
-    Public Async Function Foo1() As Task(Of Integer)
+    Public Async Function Goo1() As Task(Of Integer)
         Await Task.Yield
         Count += 1
         Dim i = 42
         Return i
     End Function
 
-    Public Async Function Foo2() As Task(Of Object)
+    Public Async Function Goo2() As Task(Of Object)
         Await Task.Yield
         Count += 1
         Return "string"
     End Function
 
     Public Async Function Run() As Task
-        Dim x1 = TryCast(Await Foo1(), Object)
-        Dim x2 = TypeOf (Await Foo2()) Is String
+        Dim x1 = TryCast(Await Goo1(), Object)
+        Dim x2 = TypeOf (Await Goo2()) Is String
         If x1.Equals(42) Then
             Tests += 1
         End If
@@ -6379,7 +6379,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 
 Structure DynamicClass
-    Public Async Function Foo(Of T)(tt As T) As Task(Of Object)
+    Public Async Function Goo(Of T)(tt As T) As Task(Of Object)
         Await Task.Yield
         Return tt
     End Function
@@ -6399,7 +6399,7 @@ Class TestCase
         Dim d As Object = 123
 
         Tests += 1
-        Dim x1 = Await dc.Foo("")
+        Dim x1 = Await dc.Goo("")
         If x1 = "" Then
             Count += 1
         End If
@@ -6411,7 +6411,7 @@ Class TestCase
         End If
 
         Tests += 1
-        Dim x3 = Await Await dc.Bar(Await dc.Foo(234))
+        Dim x3 = Await Await dc.Bar(Await dc.Goo(234))
         If x3 = 234 Then
             Count += 1
         End If
@@ -6639,7 +6639,7 @@ Structure MyClazz(Of T As Task(Of Func(Of Integer)))
 End Structure
 
 Class TestCase
-    Public Shared Async Function Foo(d As Task(Of Func(Of Integer))) As Task(Of Task(Of Func(Of Integer)))
+    Public Shared Async Function Goo(d As Task(Of Func(Of Integer))) As Task(Of Task(Of Func(Of Integer)))
         Await Task.Yield
         Interlocked.Increment(Count)
         Return d
@@ -6656,7 +6656,7 @@ Class TestCase
                                                                       End Function
                                                            End Function)
         Tests += 1
-        Dim x = Await ms(index:=Await Foo(Nothing))
+        Dim x = Await ms(index:=Await Goo(Nothing))
         If x IsNot Nothing AndAlso x() = 123 Then
             Tests += 1
         End If
@@ -6703,7 +6703,7 @@ Class MyClazz(Of T As Task(Of Func(Of Integer)))
 End Class
 
 Class TestCase
-    Public Shared Async Function Foo(d As Task(Of Func(Of Integer))) As Task(Of Task(Of Func(Of Integer)))
+    Public Shared Async Function Goo(d As Task(Of Func(Of Integer))) As Task(Of Task(Of Func(Of Integer)))
         Await Task.Yield
         Interlocked.Increment(Count)
         Return d
@@ -6720,7 +6720,7 @@ Class TestCase
                                                                       End Function
                                                            End Function)
         Tests += 1
-        Dim x = Await ms(index:=Await Foo(Nothing))
+        Dim x = Await ms(index:=Await Goo(Nothing))
         If x IsNot Nothing AndAlso x() = 123 Then
             Tests += 1
         End If
@@ -6753,16 +6753,16 @@ Imports System.Threading
 Imports System.Threading.Tasks
 
 Public Class MyClazz(Of T)
-    Public Async Function Foo(Of V)(tt As T, vv As V) As Task(Of Object)
+    Public Async Function Goo(Of V)(tt As T, vv As V) As Task(Of Object)
         Await Task.Yield
         Return vv
     End Function
 End Class
 
 Class TestCase
-    Public Shared Async Function Foo() As Task(Of Integer)
+    Public Shared Async Function Goo() As Task(Of Integer)
         Dim mc As Object = New MyClazz(Of String)()
-        Dim rez = Await mc.Foo(Of String)(Nothing, Await (Async Function() As Task(Of String)
+        Dim rez = Await mc.Goo(Of String)(Nothing, Await (Async Function() As Task(Of String)
                                                               Await Task.Yield
                                                               Return "Test"
                                                           End Function)())
@@ -6775,7 +6775,7 @@ End Class
 
 Module Form1
     Sub Main()
-        Console.Write(TestCase.Foo().Result)
+        Console.Write(TestCase.Goo().Result)
     End Sub
 End Module
     </file>
@@ -7010,7 +7010,7 @@ Class MyClazz
 End Class
 
 Public Class MyTask
-    Public Shared Function Foo(ByRef x As Integer, y As Integer) As Integer
+    Public Shared Function Goo(ByRef x As Integer, y As Integer) As Integer
         Return x + y
     End Function
 
@@ -7020,7 +7020,7 @@ Public Class MyTask
     End Function
 
     Public Shared Async Function Run() As Task(Of Integer)
-        Return Foo((New MyClazz() With {.Field = 21}.Field), Await Task.Factory.StartNew(Function() 21))
+        Return Goo((New MyClazz() With {.Field = 21}.Field), Await Task.Factory.StartNew(Function() 21))
     End Function
 End Class
 
@@ -7168,11 +7168,11 @@ Imports System.Threading.Tasks
 Structure S1
     Public X As Integer
 
-    Public Async Sub Foo1()
+    Public Async Sub Goo1()
         Bar(Me, Await Task(Of Integer).FromResult(42))
     End Sub
 
-    Public Sub Foo2()
+    Public Sub Goo2()
         Bar(Me, 42)
     End Sub
 
@@ -7184,11 +7184,11 @@ End Structure
 Class C1
     Public X As Integer
 
-    Public Async Sub Foo1()
+    Public Async Sub Goo1()
         Bar(Me, Await Task(Of Integer).FromResult(42))
     End Sub
 
-    Public Sub Foo2()
+    Public Sub Goo2()
         Bar(Me, 42)
     End Sub
 
@@ -7206,14 +7206,14 @@ Module Form1
         If True Then
             Dim s As S1
             s.X = -1
-            s.Foo1()
+            s.Goo1()
             Console.Write(s.X)
             Console.Write(" ")
         End If
         If True Then
             Dim s As S1
             s.X = -1
-            s.Foo2()
+            s.Goo2()
             Console.Write(s.X)
             Console.Write(" ")
         End If
@@ -7227,14 +7227,14 @@ Module Form1
         If True Then
             Dim s As New C1
             s.X = -1
-            s.Foo1()
+            s.Goo1()
             Console.Write(s.X)
             Console.Write(" ")
         End If
         If True Then
             Dim s As New C1
             s.X = -1
-            s.Foo2()
+            s.Goo2()
             Console.Write(s.X)
             Console.Write(" ")
         End If

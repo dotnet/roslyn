@@ -71,8 +71,8 @@ namespace Roslyn.Utilities
             bool trimLeadingTypePrefix,
             Func<char, char> convert)
         {
-            // Special case the common .net pattern of "IFoo" as a type name.  In this case we
-            // want to generate "foo" as the parameter name.  
+            // Special case the common .net pattern of "IGoo" as a type name.  In this case we
+            // want to generate "goo" as the parameter name.  
             if (!string.IsNullOrEmpty(shortName))
             {
                 if (trimLeadingTypePrefix && (shortName.LooksLikeInterfaceName() || shortName.LooksLikeTypeParameterName()))

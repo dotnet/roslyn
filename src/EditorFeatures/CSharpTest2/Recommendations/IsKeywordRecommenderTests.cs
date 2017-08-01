@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -58,7 +58,7 @@ $$");
         public async Task TestAfterExpr()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = foo $$"));
+@"var q = goo $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -102,14 +102,14 @@ $$");
         public async Task TestNotAfterType2()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"Foo $$"));
+@"Goo $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterType3()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"Foo<Bar> $$"));
+@"Goo<Bar> $$"));
         }
 
         [WorkItem(543041, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543041")]

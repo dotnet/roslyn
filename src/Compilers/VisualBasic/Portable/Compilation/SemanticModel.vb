@@ -2786,7 +2786,7 @@ _Default:
         '''    Event E3(bar As Integer) Implements I1.E   '  "bar" means nothing here. Only type matters.
         '''
         '''    Sub moo()
-        '''        RaiseEvent E3(qwer:=123)  ' qwer binds to parameter on I1.EEventhandler.invoke(foo)
+        '''        RaiseEvent E3(qwer:=123)  ' qwer binds to parameter on I1.EEventhandler.invoke(goo)
         '''    End Sub
         '''End Class
         ''' 

@@ -19,18 +19,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         {
             var src1 = @"using System;
 
-public delegate void DFoo(int p1, string p2);
+public delegate void DGoo(int p1, string p2);
 
 namespace N1.N2
 {
-    public interface IFoo { }
+    public interface IGoo { }
     namespace N3
     {
-        public class CFoo 
+        public class CGoo 
         {
-            public struct SFoo 
+            public struct SGoo 
             {
-                public enum EFoo { Zero, One }
+                public enum EGoo { Zero, One }
             }
         }
     }
@@ -39,24 +39,24 @@ namespace N1.N2
 
             var src2 = @"using System;
 
-public delegate void DFoo(int p1, string p2);
+public delegate void DGoo(int p1, string p2);
 
 namespace N1.N2
 {
-    public interface IFoo 
+    public interface IGoo 
     {
         // Add member
-        N3.CFoo GetClass();
+        N3.CGoo GetClass();
     }
 
     namespace N3
     {
-        public class CFoo 
+        public class CGoo 
         {
-            public struct SFoo 
+            public struct SGoo 
             {
                 // Update member
-                public enum EFoo { Zero, One, Two }
+                public enum EGoo { Zero, One, Two }
             }
             // Add member
             public void M(int n) { Console.WriteLine(n); }
@@ -218,19 +218,19 @@ class C
         {
             var src1 = @"using System;
 
-public delegate void DFoo(int p1);
+public delegate void DGoo(int p1);
 
 namespace N1.N2
 {
     public interface IBase { }
-    public interface IFoo { }
+    public interface IGoo { }
     namespace N3
     {
-        public class CFoo 
+        public class CGoo 
         {
-            public struct SFoo 
+            public struct SGoo 
             {
-                public enum EFoo { Zero, One }
+                public enum EGoo { Zero, One }
             }
         }
     }
@@ -239,22 +239,22 @@ namespace N1.N2
 
             var src2 = @"using System;
 
-public delegate void DFoo(int p1, string p2); // add 1 more parameter
+public delegate void DGoo(int p1, string p2); // add 1 more parameter
 
 namespace N1.N2
 {
     public interface IBase { }
-    public interface IFoo : IBase // add base interface
+    public interface IGoo : IBase // add base interface
     {
     }
 
     namespace N3
     {
-        public class CFoo : IFoo // impl interface
+        public class CGoo : IGoo // impl interface
         {
-            private struct SFoo // change modifier
+            private struct SGoo // change modifier
             {
-                internal enum EFoo : long { Zero, One } // change base class, and modifier
+                internal enum EGoo : long { Zero, One } // change base class, and modifier
             }
         }
     }

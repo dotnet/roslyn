@@ -133,7 +133,7 @@ Module Module1
         Dim x As New Test1(Of Integer)
         Dim y As IDerived(Of Long, Byte) = Nothing
 
-        x.Foo(y)
+        x.Goo(y)
     End Sub
 
     Sub M1(Of T, S)(x As IDictionary(Of T, S))
@@ -151,7 +151,7 @@ Interface IDerived(Of T, S)
 End Interface
 
 Class Test1(Of T)
-    Sub Foo(Of S)(x As IBase(Of T, S))
+    Sub Goo(Of S)(x As IBase(Of T, S))
         Dim x1 As T = Nothing
         Dim x2 As S = Nothing
 
@@ -182,7 +182,7 @@ Module Module1
         Dim x As New Test1(Of Integer)
         Dim y As IDerived(Of Long, Byte) = Nothing
 
-        x.Foo(y)
+        x.Goo(y)
     End Sub
 
 End Module
@@ -196,7 +196,7 @@ Class IDerived(Of T, S)
 End Class
 
 Class Test1(Of T)
-    Sub Foo(Of S)(x As IBase(Of T, S))
+    Sub Goo(Of S)(x As IBase(Of T, S))
         Dim x1 As T = Nothing
         Dim x2 As S = Nothing
 
@@ -212,7 +212,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30311: Value of type 'IDerived(Of Long, Byte)' cannot be converted to 'IBase(Of Integer, Byte)'.
-        x.Foo(y)
+        x.Goo(y)
               ~
 </expected>)
         End Sub
@@ -403,13 +403,13 @@ Imports System
 Imports System.Collections.Generic
 
 Module M
-    Sub Foo(Of T)(ParamArray a As Action(Of List(Of T))())
+    Sub Goo(Of T)(ParamArray a As Action(Of List(Of T))())
         System.Console.WriteLine(GetType(T))
     End Sub
 
     Sub Main()
-        Foo({Sub(x As IList(Of String)) Exit Sub}) 
-        Foo(Sub(x As IList(Of String)) Exit Sub) 
+        Goo({Sub(x As IList(Of String)) Exit Sub}) 
+        Goo(Sub(x As IList(Of String)) Exit Sub) 
     End Sub
 End Module
     </file>
@@ -713,10 +713,10 @@ Namespace Case2
     End Class
 End Namespace
 Module Module2
-    Sub Foo(Of T)(ByVal x As T, ByVal y As T)
+    Sub Goo(Of T)(ByVal x As T, ByVal y As T)
     End Sub
     Sub Main()
-        Foo(New Case1.B, New Case1.C)
+        Goo(New Case1.B, New Case1.C)
     End Sub
 End Module
     </file>
@@ -726,8 +726,8 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Foo(Of T)(x As T, y As T)' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
-        Foo(New Case1.B, New Case1.C)
+BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Goo(Of T)(x As T, y As T)' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
+        Goo(New Case1.B, New Case1.C)
         ~~~
 </expected>)
         End Sub
@@ -754,12 +754,12 @@ Namespace Case2
     End Class
 End Namespace
 Module Module2
-    Sub Foo(Of T)(ByVal x As T, ByVal y As T, z As Integer)
+    Sub Goo(Of T)(ByVal x As T, ByVal y As T, z As Integer)
     End Sub
-    Sub Foo(Of T)(ByVal x As T, ByVal y As T, z As UInteger)
+    Sub Goo(Of T)(ByVal x As T, ByVal y As T, z As UInteger)
     End Sub
     Sub Main()
-        Foo(New Case1.B, New Case1.C, 1)
+        Goo(New Case1.B, New Case1.C, 1)
     End Sub
 End Module
     </file>
@@ -769,10 +769,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'Foo' can be called with these arguments:
-    'Public Sub Foo(Of T)(x As T, y As T, z As Integer)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
-    'Public Sub Foo(Of T)(x As T, y As T, z As UInteger)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
-        Foo(New Case1.B, New Case1.C, 1)
+BC30518: Overload resolution failed because no accessible 'Goo' can be called with these arguments:
+    'Public Sub Goo(Of T)(x As T, y As T, z As Integer)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
+    'Public Sub Goo(Of T)(x As T, y As T, z As UInteger)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
+        Goo(New Case1.B, New Case1.C, 1)
         ~~~
 </expected>)
         End Sub
@@ -1021,10 +1021,10 @@ Imports System
  
 Module Program
     Sub Main()
-        Dim x As Func(Of Integer, Long) = AddressOf Foo
+        Dim x As Func(Of Integer, Long) = AddressOf Goo
     End Sub
  
-    Function Foo(Of T)(x As T) As T
+    Function Goo(Of T)(x As T) As T
         Return Nothing
     End Function
 End Module
@@ -1050,10 +1050,10 @@ Imports System.Collections.Generic
 
 Module Program
     Sub Main()
-        Dim x As Func(Of List(Of Integer)) = AddressOf Foo
+        Dim x As Func(Of List(Of Integer)) = AddressOf Goo
     End Sub
 
-    Function Foo(Of T)() As IList(Of T)
+    Function Goo(Of T)() As IList(Of T)
         Return Nothing
     End Function
 End Module
@@ -1074,16 +1074,16 @@ Option Strict Off
 Imports System
 Imports System.Collections.Generic
 Module M1
-    Sub foo(Of TT, UU, VV)(x As Func(Of TT, UU, VV),
+    Sub goo(Of TT, UU, VV)(x As Func(Of TT, UU, VV),
                            y As Func(Of UU, VV, TT),
                            z As Func(Of VV, TT, UU))
     End Sub
-    Sub foo(Of TT, UU)(xx As TT,
+    Sub goo(Of TT, UU)(xx As TT,
                        yy As UU,
                        zz As Action)
     End Sub
     Public Sub Test()
-        foo(1, 2, Sub()
+        goo(1, 2, Sub()
                   End Sub)
     End Sub
 End Module
@@ -1846,7 +1846,7 @@ Module Module1
     Sub Baz(Of T)(a As Func(Of T))
     End Sub
  
-    Sub Foo(ByRef a As Integer)
+    Sub Goo(ByRef a As Integer)
         Baz(Sub()
                 Console.WriteLine(a)
             End Sub)
