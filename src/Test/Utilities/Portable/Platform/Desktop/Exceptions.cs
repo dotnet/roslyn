@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if NET46
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis;
 using static Roslyn.Test.Utilities.ExceptionHelper; 
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
+namespace Roslyn.Test.Utilities.Desktop
 {
     [Serializable]
     public class RuntimePeVerifyException : Exception
@@ -36,3 +37,4 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
         }
     }
 }
+#endif

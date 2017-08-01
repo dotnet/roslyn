@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.Desktop
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 

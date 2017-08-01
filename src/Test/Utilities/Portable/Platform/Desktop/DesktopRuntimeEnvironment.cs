@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if NET46
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,11 +12,12 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using static Roslyn.Test.Utilities.RuntimeUtilities; 
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
+namespace Roslyn.Test.Utilities.Desktop
 {
     public sealed class DesktopRuntimeEnvironment : IDisposable, IRuntimeEnvironment, IInternalRuntimeEnvironment
     {
@@ -121,13 +124,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
 
         private static RuntimeData GetOrCreateRuntimeData(IEnumerable<ModuleData> modules)
         {
-            // Mono doesn't support AppDomains to the degree we use them for our tests and as a result many of 
-            // the checks are disabled.  Create an instance in this domain since it's not actually used.
-            if (MonoHelpers.IsRunningOnMono())
-            {
-                return new RuntimeData(new RuntimeAssemblyManager(), null);
-            }
-
             var data = TryGetCachedRuntimeData(modules);
             if (data != null)
             {
@@ -401,3 +397,4 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             Capture(action, expectedLength, out output, out errorOutput);
     }
 }
+#endif

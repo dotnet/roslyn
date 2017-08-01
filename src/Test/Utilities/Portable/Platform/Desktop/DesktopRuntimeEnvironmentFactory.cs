@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿#if NET46
+using System.Collections.Generic;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
+namespace Roslyn.Test.Utilities.Desktop
 {
     public sealed class DesktopRuntimeEnvironmentFactory : IRuntimeEnvironmentFactory
     {
@@ -11,3 +12,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
         }
     }
 }
+
+#endif

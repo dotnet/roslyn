@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.Desktop;
 using Roslyn.Utilities;
 using Xunit;
 

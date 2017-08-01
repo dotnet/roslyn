@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NET46
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities.Desktop
 {
     public static class DesktopRuntimeUtil
     {
@@ -94,3 +95,5 @@ namespace Roslyn.Test.Utilities
 
     }
 }
+
+#endif

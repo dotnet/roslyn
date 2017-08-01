@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if NETCOREAPP2_0
+
 using System;
 using System.Collections.Generic;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
+namespace Roslyn.Test.Utilities.CoreClr
 {
     public sealed class CoreCLRRuntimeEnvironmentFactory : IRuntimeEnvironmentFactory
     {
@@ -12,3 +14,4 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             => new CoreCLRRuntimeEnvironment(additionalDependencies);
     }
 }
+#endif
