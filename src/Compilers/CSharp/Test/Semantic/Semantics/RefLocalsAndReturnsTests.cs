@@ -245,7 +245,7 @@ public class Test
     // (37,24): error CS8166: Cannot return a parameter by reference 'arg1' because it is not a ref or out parameter
     //             return ref arg1;
     Diagnostic(ErrorCode.ERR_RefReturnParameter, "arg1").WithArguments("arg1").WithLocation(37, 24),
-    // (46,24): error CS8167: Cannot return or a member of parameter 'arg2' by reference because it is not a ref or out parameter
+    // (46,24): error CS8167: Cannot return a member of parameter 'arg2' by reference because it is not a ref or out parameter
     //             return ref arg2.x;
     Diagnostic(ErrorCode.ERR_RefReturnParameter2, "arg2").WithArguments("arg2").WithLocation(46, 24)
             );

@@ -3627,7 +3627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // 4. A delegate type.
                 else if (argument.Type.TypeKind == TypeKind.Delegate)
                 {
-                    var sourceDelegate = argument.Type as NamedTypeSymbol;
+                    var sourceDelegate = (NamedTypeSymbol)argument.Type;
                     MethodGroup methodGroup = MethodGroup.GetInstance();
                     try
                     {
