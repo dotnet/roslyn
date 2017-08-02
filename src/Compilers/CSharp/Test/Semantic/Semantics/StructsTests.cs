@@ -90,12 +90,12 @@ struct S {
         public void TestConstructorStruct()
         {
             var text = @"
-struct  Foo
+struct  Goo
 {
-    public Foo(int x) : this(5, 6)
+    public Goo(int x) : this(5, 6)
     {
     }
-    public Foo(int x, int y) 
+    public Goo(int x, int y) 
     {
         m_x = x;
         m_y = y;
@@ -279,7 +279,7 @@ using System;
 struct C<T>
 {
     public int num;
-    public int Foo1()
+    public int Goo1()
     {
         return this.num;
     }
@@ -290,7 +290,7 @@ class Test
     {
         C<object> c;
         c.num = 1;
-        bool verify = c.Foo1() == 1;
+        bool verify = c.Goo1() == 1;
         Console.WriteLine(verify);
     }
 }

@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 editor.ReplaceNode(invocation, (i, g) =>
                 {
                     var currentInvocation = (InvocationExpressionSyntax)i;
-                    // looks like   a.b.Foo(arg)   =>     a.b.NewName = arg
+                    // looks like   a.b.Goo(arg)   =>     a.b.NewName = arg
                     nameNode = currentInvocation.Expression.GetRightmostName();
                     currentInvocation = (InvocationExpressionSyntax)g.ReplaceNode(currentInvocation, nameNode, newName);
 

@@ -287,7 +287,7 @@ class C : INotifyPropertyChanged
         [Fact]
         public void TestRefactoringNotAvailableOnMethod()
         {
-            const string Markup = @"public class C { public int [|Foo|]() { } }";
+            const string Markup = @"public class C { public int [|Goo|]() { } }";
             TestNoActions(Markup);
         }
     }

@@ -96,14 +96,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         [|Bar|]();
     }
 }",
 @"class C
 {
-    void Foo() => Bar();
+    void Goo() => Bar();
 }", options: UseExpressionBody);
         }
 
@@ -113,14 +113,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo()
+    int Goo()
     {
         return [|Bar|]();
     }
 }",
 @"class C
 {
-    int Foo() => Bar();
+    int Goo() => Bar();
 }", options: UseExpressionBody);
         }
 
@@ -130,14 +130,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo()
+    int Goo()
     {
         [|throw|] new NotImplementedException();
     }
 }",
 @"class C
 {
-    int Foo() => throw new NotImplementedException();
+    int Goo() => throw new NotImplementedException();
 }", options: UseExpressionBody);
         }
 
@@ -147,14 +147,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo()
+    int Goo()
     {
         [|throw|] new NotImplementedException(); // comment
     }
 }",
 @"class C
 {
-    int Foo() => throw new NotImplementedException(); // comment
+    int Goo() => throw new NotImplementedException(); // comment
 }", ignoreTrivia: false, options: UseExpressionBody);
         }
 
@@ -164,11 +164,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo() [|=>|] Bar();
+    void Goo() [|=>|] Bar();
 }",
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         Bar();
     }
@@ -181,11 +181,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo() [|=>|] Bar();
+    int Goo() [|=>|] Bar();
 }",
 @"class C
 {
-    int Foo()
+    int Goo()
     {
         return Bar();
     }
@@ -198,11 +198,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo() [|=>|] throw new NotImplementedException();
+    int Goo() [|=>|] throw new NotImplementedException();
 }",
 @"class C
 {
-    int Foo()
+    int Goo()
     {
         throw new NotImplementedException();
     }
@@ -215,11 +215,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo() [|=>|] throw new NotImplementedException(); // comment
+    int Goo() [|=>|] throw new NotImplementedException(); // comment
 }",
 @"class C
 {
-    int Foo()
+    int Goo()
     {
         throw new NotImplementedException(); // comment
     }
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         // Comment
         [|Bar|]();
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    void Foo() =>
+    void Goo() =>
         // Comment
         Bar();
 }", options: UseExpressionBody, ignoreTrivia: false);
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         // Comment
         return [|Bar|]();
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    void Foo() =>
+    void Goo() =>
         // Comment
         Bar();
 }", options: UseExpressionBody, ignoreTrivia: false);
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         // Comment
         throw [|Bar|]();
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    void Foo() =>
+    void Goo() =>
         // Comment
         throw Bar();
 }", options: UseExpressionBody, ignoreTrivia: false);
@@ -292,14 +292,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         [|Bar|](); // Comment
     }
 }",
 @"class C
 {
-    void Foo() => Bar(); // Comment
+    void Goo() => Bar(); // Comment
 }", options: UseExpressionBody, ignoreTrivia: false);
         }
 
@@ -309,14 +309,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         return [|Bar|](); // Comment
     }
 }",
 @"class C
 {
-    void Foo() => Bar(); // Comment
+    void Goo() => Bar(); // Comment
 }", options: UseExpressionBody, ignoreTrivia: false);
         }
 
@@ -326,14 +326,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         throw [|Bar|](); // Comment
     }
 }",
 @"class C
 {
-    void Foo() => throw Bar(); // Comment
+    void Goo() => throw Bar(); // Comment
 }", options: UseExpressionBody, ignoreTrivia: false);
         }
 

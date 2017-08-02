@@ -619,13 +619,13 @@ namespace N
         [Fact]
         public void BaseInterfaceUpdate2()
         {
-            var src1 = "class C : IFoo, IBar { }";
-            var src2 = "class C : IFoo { }";
+            var src1 = "class C : IGoo, IBar { }";
+            var src2 = "class C : IGoo { }";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [class C : IFoo, IBar { }]@0 -> [class C : IFoo { }]@0");
+                "Update [class C : IGoo, IBar { }]@0 -> [class C : IGoo { }]@0");
 
             edits.VerifyRudeDiagnostics(
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
@@ -634,13 +634,13 @@ namespace N
         [Fact]
         public void BaseInterfaceUpdate3()
         {
-            var src1 = "class C : IFoo, IBar { }";
-            var src2 = "class C : IBar, IFoo { }";
+            var src1 = "class C : IGoo, IBar { }";
+            var src2 = "class C : IBar, IGoo { }";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [class C : IFoo, IBar { }]@0 -> [class C : IBar, IFoo { }]@0");
+                "Update [class C : IGoo, IBar { }]@0 -> [class C : IBar, IGoo { }]@0");
 
             edits.VerifyRudeDiagnostics(
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
@@ -1658,16 +1658,16 @@ class C
         [Fact]
         public void NestedClass_MethodDeleteInsert()
         {
-            var src1 = @"public class C { public void foo() {} }";
-            var src2 = @"public class C { private class D { public void foo() {} } }";
+            var src1 = @"public class C { public void goo() {} }";
+            var src2 = @"public class C { private class D { public void goo() {} } }";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [private class D { public void foo() {} }]@17",
-                "Insert [public void foo() {}]@35",
+                "Insert [private class D { public void goo() {} }]@17",
+                "Insert [public void goo() {}]@35",
                 "Insert [()]@50",
-                "Delete [public void foo() {}]@17",
+                "Delete [public void goo() {}]@17",
                 "Delete [()]@32");
 
             edits.VerifyRudeDiagnostics(
@@ -1927,7 +1927,7 @@ class C
             string src1 = @"
 class C
 {
-    void foo() { }
+    void goo() { }
 
     static void Main(string[] args)
     {
@@ -1946,7 +1946,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Delete [void foo() { }]@18",
+                "Delete [void goo() { }]@18",
                 "Delete [()]@26");
 
             edits.VerifyRudeDiagnostics(
@@ -1959,7 +1959,7 @@ class C
             string src1 = @"
 class C
 {
-    int foo() => 1;
+    int goo() => 1;
 
     static void Main(string[] args)
     {
@@ -1978,7 +1978,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Delete [int foo() => 1;]@18",
+                "Delete [int goo() => 1;]@18",
                 "Delete [()]@25");
 
             edits.VerifyRudeDiagnostics(
@@ -1991,7 +1991,7 @@ class C
             string src1 = @"
 class C
 {
-    void foo(int a) { }
+    void goo(int a) { }
 
     static void Main(string[] args)
     {
@@ -2010,7 +2010,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Delete [void foo(int a) { }]@18",
+                "Delete [void goo(int a) { }]@18",
                 "Delete [(int a)]@26",
                 "Delete [int a]@27");
 
@@ -2026,7 +2026,7 @@ class C
 class C
 {
     [Obsolete]
-    void foo(int a) { }
+    void goo(int a) { }
 
     static void Main(string[] args)
     {
@@ -2046,7 +2046,7 @@ class C
 
             edits.VerifyEdits(
                 @"Delete [[Obsolete]
-    void foo(int a) { }]@18",
+    void goo(int a) { }]@18",
                 "Delete [[Obsolete]]@18",
                 "Delete [Obsolete]@19",
                 "Delete [(int a)]@42",
@@ -2115,7 +2115,7 @@ class C
             string src2 = @"
 class C
 {
-    void foo() { }
+    void goo() { }
 
     static void Main(string[] args)
     {
@@ -2126,7 +2126,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [void foo() { }]@18",
+                "Insert [void goo() { }]@18",
                 "Insert [()]@26");
 
             edits.VerifyRudeDiagnostics();
@@ -2151,7 +2151,7 @@ using System;
 
 class C
 {
-    void foo(int a) { }
+    void goo(int a) { }
 
     static void Main(string[] args)
     {
@@ -2162,13 +2162,13 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [void foo(int a) { }]@35",
+                "Insert [void goo(int a) { }]@35",
                 "Insert [(int a)]@43",
                 "Insert [int a]@44");
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.foo")) });
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.goo")) });
         }
 
         [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
@@ -2187,7 +2187,7 @@ class C
 class C
 {
     [Obsolete]
-    void foo(int a) { }
+    void goo(int a) { }
 
     static void Main(string[] args)
     {
@@ -2199,7 +2199,7 @@ class C
 
             edits.VerifyEdits(
                 @"Insert [[Obsolete]
-    void foo(int a) { }]@18",
+    void goo(int a) { }]@18",
                 "Insert [[Obsolete]]@18",
                 "Insert [(int a)]@42",
                 "Insert [Obsolete]@19",
@@ -2951,20 +2951,20 @@ class Test
             string src1 = @"
 class C : I, J
 {
-    void I.Foo() { Console.WriteLine(2); }
-    void J.Foo() { Console.WriteLine(1); }
+    void I.Goo() { Console.WriteLine(2); }
+    void J.Goo() { Console.WriteLine(1); }
 }";
             string src2 = @"
 class C : I, J
 {
-    void I.Foo() { Console.WriteLine(1); }
-    void J.Foo() { Console.WriteLine(2); }
+    void I.Goo() { Console.WriteLine(1); }
+    void J.Goo() { Console.WriteLine(2); }
 }";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [void I.Foo() { Console.WriteLine(2); }]@25 -> [void I.Foo() { Console.WriteLine(1); }]@25",
-                "Update [void J.Foo() { Console.WriteLine(1); }]@69 -> [void J.Foo() { Console.WriteLine(2); }]@69");
+                "Update [void I.Goo() { Console.WriteLine(2); }]@25 -> [void I.Goo() { Console.WriteLine(1); }]@25",
+                "Update [void J.Goo() { Console.WriteLine(1); }]@69 -> [void J.Goo() { Console.WriteLine(2); }]@69");
 
             edits.VerifyRudeDiagnostics();
         }
@@ -2975,22 +2975,22 @@ class C : I, J
             string src1 = @"
 class C : I, J
 {
-    void I.Foo() { Console.WriteLine(1); }
-    void J.Foo() { Console.WriteLine(2); }
+    void I.Goo() { Console.WriteLine(1); }
+    void J.Goo() { Console.WriteLine(2); }
 }";
             string src2 = @"
 class C : I, J
 {
-    void Foo() { Console.WriteLine(1); }
-    void J.Foo() { Console.WriteLine(2); }
+    void Goo() { Console.WriteLine(1); }
+    void J.Goo() { Console.WriteLine(2); }
 }";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [void I.Foo() { Console.WriteLine(1); }]@25 -> [void Foo() { Console.WriteLine(1); }]@25");
+                "Update [void I.Goo() { Console.WriteLine(1); }]@25 -> [void Goo() { Console.WriteLine(1); }]@25");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "void Foo()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.Renamed, "void Goo()", FeaturesResources.method));
         }
 
         [WorkItem(754255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754255")]
@@ -3094,8 +3094,8 @@ class C
         [Fact]
         public void MethodUpdate_Query()
         {
-            var src1 = "class C { void M() { F(1, from foo in bar select baz); } }";
-            var src2 = "class C { void M() { F(2, from foo in bar select baz); } }";
+            var src1 = "class C { void M() { F(1, from goo in bar select baz); } }";
+            var src2 = "class C { void M() { F(2, from goo in bar select baz); } }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -3105,8 +3105,8 @@ class C
         [Fact]
         public void MethodWithExpressionBody_Update_Query()
         {
-            var src1 = "class C { void M() => F(1, from foo in bar select baz); }";
-            var src2 = "class C { void M() => F(2, from foo in bar select baz); }";
+            var src1 = "class C { void M() => F(1, from goo in bar select baz); }";
+            var src2 = "class C { void M() => F(2, from goo in bar select baz); }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -5285,8 +5285,8 @@ public class C
         [Fact]
         public void FieldInitializerUpdate_Query()
         {
-            var src1 = "class C { int a = F(1, from foo in bar select baz); }";
-            var src2 = "class C { int a = F(2, from foo in bar select baz); }";
+            var src1 = "class C { int a = F(1, from goo in bar select baz); }";
+            var src2 = "class C { int a = F(2, from goo in bar select baz); }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -5296,8 +5296,8 @@ public class C
         [Fact]
         public void PropertyInitializerUpdate_Query()
         {
-            var src1 = "class C { int a { get; } = F(1, from foo in bar select baz); }";
-            var src2 = "class C { int a { get; } = F(2, from foo in bar select baz); }";
+            var src1 = "class C { int a { get; } = F(1, from goo in bar select baz); }";
+            var src2 = "class C { int a { get; } = F(2, from goo in bar select baz); }";
 
             var edits = GetTopEdits(src1, src2);
 

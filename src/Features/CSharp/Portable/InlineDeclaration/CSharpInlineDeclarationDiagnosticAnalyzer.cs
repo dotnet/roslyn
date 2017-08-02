@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // See if we have something like:
             //
             //      int i = 0;
-            //      if (Foo() || Bar(out i))
+            //      if (Goo() || Bar(out i))
             //      {
             //          Console.WriteLine(i);
             //      }

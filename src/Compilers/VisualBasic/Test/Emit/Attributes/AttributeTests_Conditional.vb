@@ -754,7 +754,7 @@ End Module
 Imports System
 
 Class TestClass
-    WriteOnly Property foo() As String
+    WriteOnly Property goo() As String
         &lt;Diagnostics.Conditional("N")&gt;
         Set(ByVal Value As String)
             Console.WriteLine("Property Called")
@@ -765,7 +765,7 @@ End Class
 Module M1
     Sub Main()
         Dim t As New TestClass()
-        t.foo = "abds"
+        t.goo = "abds"
     End Sub
 End Module
 

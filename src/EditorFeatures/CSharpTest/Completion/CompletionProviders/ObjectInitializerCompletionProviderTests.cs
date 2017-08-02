@@ -30,9 +30,9 @@ class c { }
 
 class d
 {
-    void foo()
+    void goo()
     {
-       c foo = new c { $$
+       c goo = new c { $$
     }
 }";
 
@@ -48,9 +48,9 @@ class c { public int value {set; get; }}
 
 class d
 {
-    void foo()
+    void goo()
     {
-       c foo = new c { v$$
+       c goo = new c { v$$
     }
 }";
 
@@ -67,9 +67,9 @@ class c { public int value {set; get; }}
 
 class d
 {
-    void foo()
+    void goo()
     {
-       c foo = new c { v$$=
+       c goo = new c { v$$=
     }
 }";
 
@@ -86,9 +86,9 @@ class c
 {
     public int value {set; get; }
 
-    void foo()
+    void goo()
     {
-       c foo = new c { v$$
+       c goo = new c { v$$
     }
 }";
 
@@ -109,9 +109,9 @@ class c
 
 class d
 {
-    void foo()
+    void goo()
     {
-       c foo = new c { v$$
+       c goo = new c { v$$
     }
 }";
 
@@ -132,9 +132,9 @@ class c
 
 class d
 {
-    void foo()
+    void goo()
     {
-       c foo = new c { value = 3, o$$
+       c goo = new c { value = 3, o$$
     }
 }";
 
@@ -155,9 +155,9 @@ class c
 
 class d
 {
-    void foo()
+    void goo()
     {
-       c foo = new c { value = v$$
+       c goo = new c { value = v$$
     }
 }";
 
@@ -176,9 +176,9 @@ class c
 
 class d
 {
-    void foo()
+    void goo()
     {
-       c foo = new c { value = 3, otherValue = 4, $$
+       c goo = new c { value = 3, otherValue = 4, $$
     }
 }";
 
@@ -203,7 +203,7 @@ class d
 
 class e
 {
-    void foo()
+    void goo()
     {
        d bar = new d { myValue = new c { $$
     }
@@ -227,7 +227,7 @@ class c : IEnumerable<int>
 
 class d
 {
-    void foo()
+    void goo()
     {
        c bar = new c { v$$
     }
@@ -248,7 +248,7 @@ class c : IEnumerable
 
 class d
 {
-    void foo()
+    void goo()
     {
        c bar = new c { v$$
     }
@@ -299,14 +299,14 @@ namespace ConsoleApplication1
 {
     class Base
     {
-        public int FooBase;
+        public int GooBase;
         private int BasePrivate { get; set; }
         public int BasePublic{ get; set; }
     }
 
     class Derived : Base
     {
-        public int FooDerived;
+        public int GooDerived;
     }
 
     class Program
@@ -318,8 +318,8 @@ namespace ConsoleApplication1
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "FooBase");
-            await VerifyItemExistsAsync(markup, "FooDerived");
+            await VerifyItemExistsAsync(markup, "GooBase");
+            await VerifyItemExistsAsync(markup, "GooDerived");
             await VerifyItemExistsAsync(markup, "BasePublic");
             await VerifyItemIsAbsentAsync(markup, "BasePrivate");
         }
@@ -331,7 +331,7 @@ namespace ConsoleApplication1
             var markup = @"using System.Collections.Generic;
 class C
 {
-    void foo()
+    void goo()
     {
         var a = new List<int> {0, $$
     }
@@ -348,7 +348,7 @@ class C
 class b {}
 class d : b
 {
-    public int foo;
+    public int goo;
 }
 
 class C
@@ -359,7 +359,7 @@ class C
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "foo");
+            await VerifyItemExistsAsync(markup, "goo");
         }
 
         [WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
@@ -369,7 +369,7 @@ class C
             var markup = @"using System.Collections.Generic;
 class C
 {
-    void foo()
+    void goo()
     {
         var a = new List<int> {$$
     }
@@ -387,7 +387,7 @@ class C
             var markup = @"using System.Collections.Generic;
 class C
 {
-    void foo()
+    void goo()
     {
         var a = new List<int> {$$
     }
@@ -404,7 +404,7 @@ class C
             var markup = @"using System.Collections.Generic;
 class C
 {
-    public readonly int foo;
+    public readonly int goo;
     public readonly List<int> bar;
 
     void M()
@@ -414,7 +414,7 @@ class C
 }
 ";
 
-            await VerifyItemIsAbsentAsync(markup, "foo");
+            await VerifyItemIsAbsentAsync(markup, "goo");
             await VerifyItemExistsAsync(markup, "bar");
         }
 
@@ -423,16 +423,16 @@ class C
         public async Task DoNotIncludeStaticMember()
         {
             var markup = @"
-class Foo
+class Goo
 {
     public static int Gibberish { get; set; }
 }
  
 class Bar
 {
-    void foo()
+    void goo()
     {
-        var c = new Foo { $$
+        var c = new Goo { $$
     }
 }";
 
@@ -449,11 +449,11 @@ public class C
 {
     public void M()
     {
-        var x = new Foo { $$
+        var x = new Goo { $$
     }
 }";
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
     public string Prop { get; set; }
@@ -479,11 +479,11 @@ public class C
 {
     public void M()
     {
-        var x = new Foo { $$
+        var x = new Goo { $$
     }
 }";
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public string Prop { get; set; }
@@ -508,11 +508,11 @@ public class C
 {
     public void M()
     {
-        var x = new Foo { $$
+        var x = new Goo { $$
     }
 }";
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
     public string Prop { get; set; }
@@ -546,9 +546,9 @@ class c { public int value {set; get; }}
 
 class d
 {
-    void foo()
+    void goo()
     {
-       c foo = new c { v$$
+       c goo = new c { v$$
     }
 }";
 
@@ -563,9 +563,9 @@ class c { public int value {set; get; }}
 
 class d
 {
-    void foo()
+    void goo()
     {
-       c foo = new c { v$$
+       c goo = new c { v$$
     }
 }";
 
@@ -708,7 +708,7 @@ class Program
             var markup = @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public IList<int> Items { get; } = new List<int>();
     public int Bar;
@@ -718,7 +718,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var y = new Foo { $$ };
+        var y = new Goo { $$ };
     }
 }";
 
@@ -735,7 +735,7 @@ using System.Collections.Generic;
 
 public interface ICustomCollection<T> : ICollection<T> { }
 
-public class Foo
+public class Goo
 {
     public ICustomCollection<int> Items { get; } = new List<int>();
     public int Bar;
@@ -745,7 +745,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var y = new Foo { $$ };
+        var y = new Goo { $$ };
     }
 }";
 

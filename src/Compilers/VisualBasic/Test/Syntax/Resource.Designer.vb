@@ -75,20 +75,20 @@ Namespace My.Resources
         '''Imports System.Text
         '''Imports M = System.Math
         '''Imports System.Collections
-        '''Imports &lt;xmlns:ns=&quot;foo&quot;&gt;
-        '''Imports &lt;xmlns=&quot;foo&quot;&gt;
+        '''Imports &lt;xmlns:ns=&quot;goo&quot;&gt;
+        '''Imports &lt;xmlns=&quot;goo&quot;&gt;
         '''
         '''#Const line = 6
-        '''#Const foo = True
-        '''#If foo Then
+        '''#Const goo = True
+        '''#If goo Then
         '''#Else
         '''#End If
         '''&apos; There is no equivalent to #undef in VB.NET:
-        '''&apos;#undef foo
-        '''&apos;#warning foo
-        '''&apos;#error foo
+        '''&apos;#undef goo
+        '''&apos;#warning goo
+        '''&apos;#error goo
         '''&apos; There is no equivalent to &apos;extern alias&apos; in VB:
-        '''&apos;extern alias Foo;
+        '''&apos;extern alias Goo;
         '''
         '''#If DEBUG OrEl [rest of string was truncated]&quot;;.
         '''</summary>

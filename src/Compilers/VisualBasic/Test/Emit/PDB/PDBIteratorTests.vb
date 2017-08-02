@@ -141,12 +141,12 @@ Imports System.Collections.Generic
 Module Module1
 
     Sub Main()
-        For Each i In Foo
+        For Each i In Goo
             Console.Write(i)
         Next
     End Sub
 
-    Iterator Function Foo() As IEnumerable(Of Integer)
+    Iterator Function Goo() As IEnumerable(Of Integer)
         Dim arr(1) As Integer
         arr(0) = 42
 
@@ -170,11 +170,11 @@ End Module
 
             ' VERY IMPORTANT!!!! We must have locals named $VB$ResumableLocal_x$1 and $VB$ResumableLocal_x$2 here
             '                    Even though they do not really exist in IL, EE will rely on them for scoping     
-            compilation.VerifyPdb("Module1+VB$StateMachine_1_Foo.MoveNext",
+            compilation.VerifyPdb("Module1+VB$StateMachine_1_Goo.MoveNext",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
-        <method containingType="Module1+VB$StateMachine_1_Foo" name="MoveNext">
+        <method containingType="Module1+VB$StateMachine_1_Goo" name="MoveNext">
             <customDebugInfo>
                 <hoistedLocalScopes format="portable">
                     <slot startOffset="0x41" endOffset="0x183"/>
@@ -457,13 +457,13 @@ Imports System.Diagnostics
 Module Module1
 
     Sub Main()
-        For Each i In Foo
+        For Each i In Goo
             Console.Write(i)
         Next
     End Sub
 
     &lt;DebuggerHidden&gt;
-    Iterator Function Foo() As IEnumerable(Of Integer)
+    Iterator Function Goo() As IEnumerable(Of Integer)
         Yield 1
         Yield 2
     End Function
@@ -473,11 +473,11 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            compilation.VerifyPdb("Module1+VB$StateMachine_1_Foo.MoveNext",
+            compilation.VerifyPdb("Module1+VB$StateMachine_1_Goo.MoveNext",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
-        <method containingType="Module1+VB$StateMachine_1_Foo" name="MoveNext">
+        <method containingType="Module1+VB$StateMachine_1_Goo" name="MoveNext">
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="20" offset="-1"/>

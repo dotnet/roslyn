@@ -238,9 +238,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.SubmitText("(new TestProj.C()).M()");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"C.M()\"");
 
-            VisualStudio.InteractiveWindow.SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"foo\";");
+            VisualStudio.InteractiveWindow.SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"goo\";");
             VisualStudio.InteractiveWindow.SubmitText("f.Text");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"foo\"");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"goo\"");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
         }
     }

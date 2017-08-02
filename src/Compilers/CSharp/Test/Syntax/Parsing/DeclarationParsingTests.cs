@@ -5836,7 +5836,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         M(out var x);
     }
@@ -5854,7 +5854,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);

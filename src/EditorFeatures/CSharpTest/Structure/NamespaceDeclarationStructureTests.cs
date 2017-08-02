@@ -34,7 +34,7 @@ class C
             const string code = @"
 class C
 {
-    {|span1:// Foo
+    {|span1:// Goo
     // Bar|}
     {|hint2:$$namespace N{|textspan2:
     {
@@ -42,7 +42,7 @@ class C
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("span1", "// Goo ...", autoCollapse: true),
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
@@ -72,7 +72,7 @@ class C
 {
     {|hint1:$$namespace N{|textspan1:
     {
-        {|span2:// Foo
+        {|span2:// Goo
         // Bar|}
         {|hint3:using {|textspan3:System;
         using System.Linq;|}|}
@@ -81,7 +81,7 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("span2", "// Foo ...", autoCollapse: true),
+                Region("span2", "// Goo ...", autoCollapse: true),
                 Region("textspan3", "hint3", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
@@ -93,14 +93,14 @@ class C
 {
     {|hint1:$$namespace N{|textspan1:
     {
-        {|span2:// Foo
+        {|span2:// Goo
         // Bar|}
     }|}|}
 }";
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("span2", "// Foo ...", autoCollapse: true));
+                Region("span2", "// Goo ...", autoCollapse: true));
         }
     }
 }

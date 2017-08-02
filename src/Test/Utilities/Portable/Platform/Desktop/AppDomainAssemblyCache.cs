@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if NET46
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
+namespace Roslyn.Test.Utilities.Desktop
 {
     /// <summary>
     /// This is a singleton per AppDomain which manages all of the assemblies which were ever loaded into it.  
@@ -117,3 +119,4 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
         }
     }
 }
+#endif

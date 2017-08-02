@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // We actually want to collect two sets of named parameters to present the user.  The
             // normal named parameters that come from the attribute constructors.  These will be
-            // presented like "foo:".  And also the named parameters that come from the writable
+            // presented like "goo:".  And also the named parameters that come from the writable
             // fields/properties in the attribute.  These will be presented like "bar =".  
 
             var existingNamedParameters = GetExistingNamedParameters(attributeArgumentList, position);

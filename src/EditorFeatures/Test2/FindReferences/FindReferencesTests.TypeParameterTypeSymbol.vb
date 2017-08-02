@@ -12,11 +12,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document><![CDATA[
         class C<{|Definition:$$T|}>
         {
-            void Foo([|T|] t)
+            void Goo([|T|] t)
             {
             }
 
-            void Foo2(t t1)
+            void Goo2(t t1)
             {
             }
         }]]></Document>
@@ -33,18 +33,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document><![CDATA[
         partial class C<{|Definition:$$T|}>
         {
-            void Foo([|T|] t)
+            void Goo([|T|] t)
             {
             }
 
-            void Foo2(t t1)
+            void Goo2(t t1)
             {
             }
         }]]></Document>
         <Document><![CDATA[
         partial class C<{|Definition:T|}>
         {
-            void Foo2([|T|] t)
+            void Goo2([|T|] t)
             {
             }
         }]]></Document>
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document><![CDATA[
         partial class C<{|Definition:$$T|}>
         {
-            void Foo(X<[|T|]> t)
+            void Goo(X<[|T|]> t)
             {
             }
         }
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
-class {|Definition:F$$oo|} { void M() { Bar<[|Foo|]>.StaticDoSomething(); } }
+class {|Definition:G$$oo|} { void M() { Bar<[|Goo|]>.StaticDoSomething(); } }
 class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
     </Project>
 </Workspace>
@@ -96,9 +96,9 @@ class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
         partial class C(of {|Definition:$$T|})
-            sub Foo(x as [|T|])
+            sub Goo(x as [|T|])
             end sub
-            sub Foo1(x as [|t|])
+            sub Goo1(x as [|t|])
             end sub
         end class</Document>
     </Project>
@@ -116,12 +116,12 @@ class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
         <Document><![CDATA[
 interface I
 {
-    T Foo<T>();
+    T Goo<T>();
 }
  
 class A : I
 {
-    [|$$T|] I.Foo<{|Definition:T|}>() { return default([|T|]); }
+    [|$$T|] I.Goo<{|Definition:T|}>() { return default([|T|]); }
 }
 ]]></Document>
     </Project>
@@ -138,12 +138,12 @@ class A : I
         <Document><![CDATA[
 interface I
 {
-    T Foo<T>();
+    T Goo<T>();
 }
  
 class A : I
 {
-    [|T|] I.Foo<{|Definition:$$T|}>() { return default([|T|]); }
+    [|T|] I.Goo<{|Definition:$$T|}>() { return default([|T|]); }
 }
 ]]></Document>
     </Project>
@@ -160,12 +160,12 @@ class A : I
         <Document><![CDATA[
 interface I
 {
-    T Foo<T>();
+    T Goo<T>();
 }
  
 class A : I
 {
-    [|T|] I.Foo<{|Definition:T|}>() { return default([|$$T|]); }
+    [|T|] I.Goo<{|Definition:T|}>() { return default([|$$T|]); }
 }
 ]]></Document>
     </Project>
