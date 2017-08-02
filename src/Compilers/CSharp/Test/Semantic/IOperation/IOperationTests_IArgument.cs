@@ -2150,7 +2150,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKi
         }
 
         [Fact]
-        public void DirectlyBindArgument1()
+        public void DirectlyBindArgument_InvocationExpression()
         {
             string source = @"
 class P
@@ -2173,7 +2173,7 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument
         }
 
         [Fact]
-        public void DirectlyBindRefArgument()
+        public void DirectlyBindRefArgument_InvocationExpression()
         {
             string source = @"
 class P
@@ -2196,7 +2196,7 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument
         }
 
         [Fact]
-        public void DirectlyBindOutArgument()
+        public void DirectlyBindOutArgument_InvocationExpression()
         {
             string source = @"
 class P
@@ -2219,7 +2219,7 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument
         }
 
         [Fact]
-        public void DirectlyBindParamsArgument1()
+        public void DirectlyBindParamsArgument1_InvocationExpression()
         {
             string source = @"
 class P
@@ -2247,7 +2247,7 @@ IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Ar
         }
 
         [Fact]
-        public void DirectlyBindParamsArgument2()
+        public void DirectlyBindParamsArgument2_InvocationExpression()
         {
             string source = @"
 class P
@@ -2265,6 +2265,212 @@ IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Ar
     Dimension Sizes(1):
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(0, /*<bi ... *</bind>*/)')
     Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(0, /*<bi ... *</bind>*/)')
+        Element Values(2):
+            ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DirectlyBindArgument_ObjectCreation()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        new P(/*<bind>*/1/*</bind>*/);
+    }
+    public P(int i) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '1')
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DirectlyBindRefArgument_ObjectCreation()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        int i = 0;
+        new P(/*<bind>*/ref i/*</bind>*/);
+    }
+    public P(ref int i) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'i')
+  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+  InConversion: null
+  OutConversion: null";
+
+            VerifyOperationTreeForTest<ArgumentSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact]
+        public void DirectlyBindOutArgument_ObjectCreation()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        int i = 0;
+        new P(/*<bind>*/out i/*</bind>*/);
+    }
+    public P(out int i) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'i')
+  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+  InConversion: null
+  OutConversion: null";
+
+            VerifyOperationTreeForTest<ArgumentSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact]
+        public void DirectlyBindParamsArgument1_ObjectCreation()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        new P(/*<bind>*/1/*</bind>*/);
+    }
+    public P(params int[] array) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'new P(/*<bi ... *</bind>*/)')
+  IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new P(/*<bi ... *</bind>*/)')
+    Dimension Sizes(1):
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'new P(/*<bi ... *</bind>*/)')
+    Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'new P(/*<bi ... *</bind>*/)')
+        Element Values(1):
+            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DirectlyBindParamsArgument2_ObjectCreation()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        new P(0, /*<bind>*/1/*</bind>*/);
+    }
+    public P(params int[] array) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'new P(0, /* ... *</bind>*/)')
+  IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new P(0, /* ... *</bind>*/)')
+    Dimension Sizes(1):
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'new P(0, /* ... *</bind>*/)')
+    Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'new P(0, /* ... *</bind>*/)')
+        Element Values(2):
+            ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DirectlyBindArgument_Indexer()
+        {
+            string source = @"
+class P
+{
+    void M1()
+    {
+        var v = this[/*<bind>*/1/*</bind>*/];
+    }
+    public int this[int i] => 0;
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '1')
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DirectlyBindParamsArgument1_Indexer()
+        {
+            string source = @"
+class P
+{
+    void M1()
+    {
+        var v = this[/*<bind>*/1/*</bind>*/];
+    }
+    public int this[params int[] array] => 0;
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'this[/*<bin ... *</bind>*/]')
+  IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[/*<bin ... *</bind>*/]')
+    Dimension Sizes(1):
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'this[/*<bin ... *</bind>*/]')
+    Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'this[/*<bin ... *</bind>*/]')
+        Element Values(1):
+            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DirectlyBindParamsArgument2_Indexer()
+        {
+            string source = @"
+class P
+{
+    void M1()
+    {
+        var v = this[0, /*<bind>*/1/*</bind>*/];
+    }
+    public int this[params int[] array] => 0;
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'this[0, /*< ... *</bind>*/]')
+  IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[0, /*< ... *</bind>*/]')
+    Dimension Sizes(1):
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'this[0, /*< ... *</bind>*/]')
+    Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'this[0, /*< ... *</bind>*/]')
         Element Values(2):
             ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
             ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
