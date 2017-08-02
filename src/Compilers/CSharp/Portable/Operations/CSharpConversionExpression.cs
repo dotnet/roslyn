@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="conversionExpression">The conversion expression to get original info from.</param>
         /// <returns>The underlying <see cref="Conversion"/>.</returns>
         /// <exception cref="InvalidCastException">If the <see cref="IConversionExpression"/> was not created from CSharp code.</exception>
-        public static Conversion GetConversion(this IConversionExpression conversionExpression)
+        public static Conversion GetCSharpConversion(this IConversionExpression conversionExpression)
         {
             if (conversionExpression is BaseCSharpConversionExpression csharpConversionExpression)
             {

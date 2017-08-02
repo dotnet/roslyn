@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The underlying <see cref="Conversion"/>.</returns>
         ''' <exception cref="InvalidCastException">If the <see cref="IConversionExpression"/> was not created from Visual Basic code.</exception>
         <Extension>
-        Public Function GetConversion(conversionExpression As IConversionExpression) As Conversion
+        Public Function GetVisualBasicConversion(conversionExpression As IConversionExpression) As Conversion
             Dim basicConversionExpression = TryCast(conversionExpression, BaseVisualBasicConversionExpression)
             If basicConversionExpression IsNot Nothing Then
                 Return basicConversionExpression.ConversionInternal
