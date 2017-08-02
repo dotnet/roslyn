@@ -2029,7 +2029,7 @@ using System;
 
 using DICT1 = System.Collections.Generic.Dictionary<int, int>;
 
-namespace foo
+namespace goo
 {
     using ACT = System.Action<DICT1, DICT1, DICT1, DICT1, DICT1, DICT1, DICT1>;
     
@@ -2226,7 +2226,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 [assembly: Guid(""11111111-1111-1111-1111-111111111111"")]
-[assembly: ImportedFromTypeLib(""Foo"")]
+[assembly: ImportedFromTypeLib(""Goo"")]
 [assembly: TypeLibVersion(1, 0)]
 
 namespace N

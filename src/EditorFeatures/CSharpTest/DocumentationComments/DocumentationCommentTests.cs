@@ -58,7 +58,7 @@ class C
 @"class C
 {
     //$$
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             var expected =
@@ -68,9 +68,9 @@ class C
     /// $$
     /// </summary>
     /// <typeparam name=""T""></typeparam>
-    /// <param name=""foo""></param>
+    /// <param name=""goo""></param>
     /// <returns></returns>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             VerifyTypingCharacter(code, expected);
@@ -83,7 +83,7 @@ class C
 @"class C
 {
     //$$
-    int M<@int>(int @foo) { return 0; }
+    int M<@int>(int @goo) { return 0; }
 }";
 
             var expected =
@@ -93,9 +93,9 @@ class C
     /// $$
     /// </summary>
     /// <typeparam name=""int""></typeparam>
-    /// <param name=""foo""></param>
+    /// <param name=""goo""></param>
     /// <returns></returns>
-    int M<@int>(int @foo) { return 0; }
+    int M<@int>(int @goo) { return 0; }
 }";
 
             VerifyTypingCharacter(code, expected);
@@ -192,7 +192,7 @@ class C
 @"class C
 {
     //$$
-    void M<T>(int foo) {  }
+    void M<T>(int goo) {  }
 }";
 
             var expected =
@@ -202,8 +202,8 @@ class C
     /// $$
     /// </summary>
     /// <typeparam name=""T""></typeparam>
-    /// <param name=""foo""></param>
-    void M<T>(int foo) {  }
+    /// <param name=""goo""></param>
+    void M<T>(int goo) {  }
 }";
 
             VerifyTypingCharacter(code, expected);
@@ -346,7 +346,7 @@ class C
 {
     //$$
     /// <summary></summary>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             var expected =
@@ -354,7 +354,7 @@ class C
 {
     ///$$
     /// <summary></summary>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             VerifyTypingCharacter(code, expected);
@@ -366,7 +366,7 @@ class C
             var code =
 @"class C
 {
-    void M(int foo)
+    void M(int goo)
     {
       //$$
     }
@@ -375,7 +375,7 @@ class C
             var expected =
 @"class C
 {
-    void M(int foo)
+    void M(int goo)
     {
       ///$$
     }
@@ -391,7 +391,7 @@ class C
 @"class C
 {
     /// <summary></summary>
-    void M(int foo)
+    void M(int goo)
     {
       //$$
     }
@@ -401,7 +401,7 @@ class C
 @"class C
 {
     /// <summary></summary>
-    void M(int foo)
+    void M(int goo)
     {
       ///$$
     }
@@ -547,7 +547,7 @@ class C
         public void PressingEnter_InsertComment_Class3()
         {
             var code =
-@"///$$[Foo] class C
+@"///$$[Goo] class C
 {
 }";
 
@@ -555,7 +555,7 @@ class C
 @"/// <summary>
 /// $$
 /// </summary>
-[Foo] class C
+[Goo] class C
 {
 }";
 
@@ -586,7 +586,7 @@ class C
 @"class C
 {
     ///$$
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             var expected =
@@ -596,9 +596,9 @@ class C
     /// $$
     /// </summary>
     /// <typeparam name=""T""></typeparam>
-    /// <param name=""foo""></param>
+    /// <param name=""goo""></param>
     /// <returns></returns>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             VerifyPressingEnter(code, expected);
@@ -610,7 +610,7 @@ class C
             var code =
 @"class C
 {
-    ///$$int M<T>(int foo) { return 0; }
+    ///$$int M<T>(int goo) { return 0; }
 }";
 
             var expected =
@@ -620,9 +620,9 @@ class C
     /// $$
     /// </summary>
     /// <typeparam name=""T""></typeparam>
-    /// <param name=""foo""></param>
+    /// <param name=""goo""></param>
     /// <returns></returns>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             VerifyPressingEnter(code, expected);
@@ -634,7 +634,7 @@ class C
             var code =
 @"class C
 {
-void Foo()
+void Goo()
 {
 ///$$
 }
@@ -643,7 +643,7 @@ void Foo()
             var expected =
 @"class C
 {
-void Foo()
+void Goo()
 {
 ///
 $$
@@ -801,7 +801,7 @@ $$/// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task foo()
+        public async Task goo()
         {
             var x = 1;
         }
@@ -815,7 +815,7 @@ $$/// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task foo()
+        public async Task goo()
         {
             var x = 1;
         }
@@ -997,7 +997,7 @@ class C
 {
     ///$$
     /// <summary></summary>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             var expected =
@@ -1006,7 +1006,7 @@ class C
     ///
     /// $$
     /// <summary></summary>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             VerifyPressingEnter(code, expected);
@@ -1040,7 +1040,7 @@ class C
     /// 
     /// </summary>
     /// <param name=""i"">$$</param>
-    void Foo(int i)
+    void Goo(int i)
     {
     }
 }";
@@ -1053,7 +1053,7 @@ class C
     /// </summary>
     /// <param name=""i"">
     /// $$</param>
-    void Foo(int i)
+    void Goo(int i)
     {
     }
 }";
@@ -1492,7 +1492,7 @@ class C { $$ }";
             var code =
 @"class C
 {
-    int M<T>(int foo) { $$return 0; }
+    int M<T>(int goo) { $$return 0; }
 }";
 
             var expected =
@@ -1502,9 +1502,9 @@ class C { $$ }";
     /// $$
     /// </summary>
     /// <typeparam name=""T""></typeparam>
-    /// <param name=""foo""></param>
+    /// <param name=""goo""></param>
     /// <returns></returns>
-    int M<T>(int foo) { return 0; }
+    int M<T>(int goo) { return 0; }
 }";
 
             VerifyInsertCommentCommand(code, expected);
@@ -1535,14 +1535,14 @@ class C
 @"class C
 {
     /// <summary></summary>
-    int M<T>(int foo) { $$return 0; }
+    int M<T>(int goo) { $$return 0; }
 }";
 
             var expected =
 @"class C
 {
     /// <summary></summary>
-    int M<T>(int foo) { $$return 0; }
+    int M<T>(int goo) { $$return 0; }
 }";
 
             VerifyInsertCommentCommand(code, expected);
@@ -1581,7 +1581,7 @@ class C { } class D { }";
             var code =
 @"class C
 {
-    protected abstract void $$Foo(); protected abstract void Bar();
+    protected abstract void $$Goo(); protected abstract void Bar();
 }";
 
             var expected =
@@ -1590,7 +1590,7 @@ class C { } class D { }";
     /// <summary>
     /// $$
     /// </summary>
-    protected abstract void Foo(); protected abstract void Bar();
+    protected abstract void Goo(); protected abstract void Bar();
 }";
 
             VerifyInsertCommentCommand(code, expected);
@@ -1603,13 +1603,13 @@ class C { } class D { }";
             var code =
 @"class C
 {
-    protected abstract void Foo(); protected abstract void $$Bar();
+    protected abstract void Goo(); protected abstract void $$Bar();
 }";
 
             var expected =
 @"class C
 {
-    protected abstract void Foo(); protected abstract void $$Bar();
+    protected abstract void Goo(); protected abstract void $$Bar();
 }";
 
             VerifyInsertCommentCommand(code, expected);

@@ -272,7 +272,7 @@ Imports System.Collections.Generic
 Class C
     Sub M()
         Dim c = [||]New List(Of Integer)()
-        c.Add(1) ' Foo
+        c.Add(1) ' Goo
         c.Add(2) ' Bar
     End Sub
 End Class",
@@ -281,7 +281,7 @@ Imports System.Collections.Generic
 Class C
     Sub M()
         Dim c = New List(Of Integer) From {
-            1, ' Foo
+            1, ' Goo
             2 ' Bar
             }
     End Sub
@@ -298,7 +298,7 @@ Imports System.Collections.Generic
 Class C
     Sub M()
         Dim c = [||]New List(Of Integer)()
-        ' Foo
+        ' Goo
         c.Add(1)
         ' Bar
         c.Add(2)
@@ -308,7 +308,7 @@ End Class",
 Imports System.Collections.Generic
 Class C
     Sub M()
-        ' Foo
+        ' Goo
         ' Bar
         Dim c = New List(Of Integer) From {
             1,

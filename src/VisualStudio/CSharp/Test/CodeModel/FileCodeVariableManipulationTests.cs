@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     public class FileCodeVariableManipulationTests : AbstractFileCodeElementTests
     {
         public FileCodeVariableManipulationTests()
-            : base(@"class Foo
+            : base(@"class Goo
 {
     private int bar;
 }")
@@ -28,10 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void DeleteField()
         {
-            CodeClass c = (CodeClass)GetCodeElement("Foo");
+            CodeClass c = (CodeClass)GetCodeElement("Goo");
             c.RemoveMember(c.Members.Item("bar"));
 
-            Assert.Equal(@"class Foo
+            Assert.Equal(@"class Goo
 {
 }", GetFileText());
         }

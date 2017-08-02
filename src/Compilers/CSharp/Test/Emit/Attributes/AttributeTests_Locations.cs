@@ -513,7 +513,7 @@ public class A : Attribute { }
 
 class C
 {
-    int Foo
+    int Goo
     {
         [A]
         [assembly: A]
@@ -565,7 +565,7 @@ public class A : Attribute { }
 
 class C
 {
-    int Foo
+    int Goo
     {
         get { return 0; }
 
@@ -758,7 +758,7 @@ public class A : Attribute { }
 
 class C
 {
-    event Action Foo
+    event Action Goo
     {
         [A]
         [assembly: A]
@@ -808,7 +808,7 @@ public class A : Attribute { }
 
 class C
 {
-    event Action Foo
+    event Action Goo
     {
         add { }
 
@@ -1099,15 +1099,15 @@ class C
             var source = @"
 using System;
 
-public class foo
+public class goo
 {
     public static void Main()
     {
-        object[] o = typeof(foo).GetMethod(""Boo"").GetCustomAttributes(typeof(A), false);
+        object[] o = typeof(goo).GetMethod(""Boo"").GetCustomAttributes(typeof(A), false);
         Console.WriteLine(""Attribute Count={0}"", o.Length);
     }
 
-    [foo: A]
+    [goo: A]
     [method: A]
     public int Boo(int i)
     {
@@ -1120,8 +1120,8 @@ public class A : Attribute { }
 ";
 
             CompileAndVerify(source, expectedOutput: "Attribute Count=1").VerifyDiagnostics(
-                // (12,6): warning CS0658: 'foo' is not a recognized attribute location. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "foo").WithArguments("foo", "method, return"));
+                // (12,6): warning CS0658: 'goo' is not a recognized attribute location. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "goo").WithArguments("goo", "method, return"));
         }
 
         [WorkItem(537613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537613"), WorkItem(537738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537738")]

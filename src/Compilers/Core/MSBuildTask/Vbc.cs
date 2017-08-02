@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// meaning that the code is compiled by using the Roslyn compiler server, rather
     /// than vbc.exe. The two should be functionally identical, but the compiler server
     /// should be significantly faster with larger projects and have a smaller memory
-    /// footprint.
+    /// gootprint.
     /// </summary>
     public class Vbc : ManagedCompiler
     {
@@ -778,10 +778,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// accordingly.
         ///
         /// Example:
-        ///     If we attempted to pass in Platform="foobar", then this method would
+        ///     If we attempted to pass in Platform="goobar", then this method would
         ///     set HostCompilerSupportsAllParameters=true, but it would throw an 
         ///     exception because the host compiler fully supports
-        ///     the Platform parameter, but "foobar" is an illegal value.
+        ///     the Platform parameter, but "goobar" is an illegal value.
         ///
         /// Example:
         ///     If we attempted to pass in NoConfig=false, then this method would set

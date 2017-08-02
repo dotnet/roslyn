@@ -338,30 +338,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// 
         /// i.e. The following returns false:
         /// 
-        ///   void Foo() {
+        ///   void Goo() {
         /// #if true
         /// #endif
         ///   }
         /// 
         /// #if true
-        ///   void Foo() {
+        ///   void Goo() {
         ///   }
         /// #endif
         /// 
         /// but these return true:
         /// 
         /// #if true
-        ///   void Foo() {
+        ///   void Goo() {
         /// #endif
         ///   }
         /// 
-        ///   void Foo() {
+        ///   void Goo() {
         /// #if true
         ///   }
         /// #endif
         /// 
         /// #if true
-        ///   void Foo() {
+        ///   void Goo() {
         /// #else
         ///   }
         /// #endif
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // this node that belongs to a span of pp directives that
                     // is not entirely contained within the node.  i.e.:
                     //
-                    //   void Foo() {
+                    //   void Goo() {
                     //      #if ...
                     //   }
                     //
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // We have a PP directive before us.  i.e.:
                     // 
                     //   #if ...
-                    //      void Foo() {
+                    //      void Goo() {
                     //
                     // That means we start a new group that is contained between
                     // the above directive and the following directive.

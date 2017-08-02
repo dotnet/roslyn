@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
             : base(@"using System;
 
 
-public abstract class Foo : IDisposable, ICloneable
+public abstract class Goo : IDisposable, ICloneable
 {
 
 
@@ -53,7 +53,7 @@ class Baz
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body_BeforeNamespace()
         {
-            CodeClass testObject = GetCodeClass("Foo");
+            CodeClass testObject = GetCodeClass("Goo");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -65,7 +65,7 @@ class Baz
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body_BeforeOtherClass()
         {
-            CodeClass testObject = GetCodeClass("Foo", "Bar");
+            CodeClass testObject = GetCodeClass("Goo", "Bar");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 

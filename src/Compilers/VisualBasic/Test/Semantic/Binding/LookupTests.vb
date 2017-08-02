@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim sym3 = New MockAssemblySymbol("world") ' just a symbol to put in results
             Dim sym4 = New MockAssemblySymbol("banana") ' just a symbol to put in results
             Dim sym5 = New MockAssemblySymbol("apple") ' just a symbol to put in results
-            Dim meth1 = New MockMethodSymbol("foo") ' just a symbol to put in results
+            Dim meth1 = New MockMethodSymbol("goo") ' just a symbol to put in results
             Dim meth2 = New MockMethodSymbol("bag") ' just a symbol to put in results
             Dim meth3 = New MockMethodSymbol("baz") ' just a symbol to put in results
 
@@ -1414,8 +1414,8 @@ Imports A
 Imports B
 
 Class A
-    Shared Sub Foo()
-        System.Console.WriteLine("A.Foo()")
+    Shared Sub Goo()
+        System.Console.WriteLine("A.Goo()")
     End Sub
 End Class
 
@@ -1425,7 +1425,7 @@ End Class
 
 Module C
     Sub Main()
-        Foo()
+        Goo()
     End Sub
 End Module
     </file>
@@ -1433,7 +1433,7 @@ End Module
 
 
             CompileAndVerify(compilation, <![CDATA[
-A.Foo()
+A.Goo()
 ]]>)
 
             compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1443,22 +1443,22 @@ Imports A
 Imports B
 
 Class A
-    Shared Sub Foo()
-        System.Console.WriteLine("A.Foo()")
+    Shared Sub Goo()
+        System.Console.WriteLine("A.Goo()")
     End Sub
 End Class
 
 Class B
     Inherits A
 
-    Overloads Shared Sub Foo(x As Integer)
-        System.Console.WriteLine("B.Foo()")
+    Overloads Shared Sub Goo(x As Integer)
+        System.Console.WriteLine("B.Goo()")
     End Sub
 End Class
 
 Module C
     Sub Main()
-        Foo()
+        Goo()
     End Sub
 End Module
     </file>
@@ -1466,8 +1466,8 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30561: 'Foo' is ambiguous, imported from the namespaces or types 'A, B, A'.
-        Foo()
+BC30561: 'Goo' is ambiguous, imported from the namespaces or types 'A, B, A'.
+        Goo()
         ~~~
 </expected>)
         End Sub
@@ -1481,14 +1481,14 @@ Option Strict On
 Option Explicit On
 
 Interface I
-    Sub FooInstance()
+    Sub GooInstance()
 End Interface
 
 Class A
-    Public Shared Sub FooShared()
+    Public Shared Sub GooShared()
     End Sub
 
-    Public Sub FooInstance()
+    Public Sub GooInstance()
     End Sub
 End Class
 
@@ -1504,40 +1504,40 @@ End Module
 
             Dim classA = DirectCast(globalNS.GetMembers("A").Single(), NamedTypeSymbol)
 
-            Dim fooShared = DirectCast(classA.GetMembers("FooShared").Single(), MethodSymbol)
-            Dim fooInstance = DirectCast(classA.GetMembers("FooInstance").Single(), MethodSymbol)
+            Dim gooShared = DirectCast(classA.GetMembers("GooShared").Single(), MethodSymbol)
+            Dim gooInstance = DirectCast(classA.GetMembers("GooInstance").Single(), MethodSymbol)
 
             Dim lr As LookupResult
 
             ' Find Shared member
             lr = New LookupResult()
-            context.LookupMember(lr, classA, "FooShared", 0, LookupOptions.MustNotBeInstance, Nothing)
+            context.LookupMember(lr, classA, "GooShared", 0, LookupOptions.MustNotBeInstance, Nothing)
             Assert.Equal(1, lr.Symbols.Count)
-            Assert.Equal(fooShared, lr.Symbols.Single())
+            Assert.Equal(gooShared, lr.Symbols.Single())
             Assert.False(lr.HasDiagnostic)
 
             lr = New LookupResult()
-            context.LookupMember(lr, classA, "FooInstance", 0, LookupOptions.MustNotBeInstance, Nothing)
+            context.LookupMember(lr, classA, "GooInstance", 0, LookupOptions.MustNotBeInstance, Nothing)
             Assert.Equal(LookupResultKind.MustNotBeInstance, lr.Kind)
             Assert.True(lr.HasDiagnostic) 'error BC30469: Reference to a non-shared member requires an object reference.
 
             lr = New LookupResult()
-            context.LookupMember(lr, classA, "FooInstance", 0, LookupOptions.MustBeInstance, Nothing)
+            context.LookupMember(lr, classA, "GooInstance", 0, LookupOptions.MustBeInstance, Nothing)
             Assert.Equal(1, lr.Symbols.Count)
-            Assert.Equal(fooInstance, lr.Symbols.Single())
+            Assert.Equal(gooInstance, lr.Symbols.Single())
             Assert.False(lr.HasDiagnostic)
 
             lr = New LookupResult()
-            context.LookupMember(lr, classA, "FooShared", 0, LookupOptions.MustBeInstance, Nothing)
+            context.LookupMember(lr, classA, "GooShared", 0, LookupOptions.MustBeInstance, Nothing)
             Assert.Equal(LookupResultKind.MustBeInstance, lr.Kind)
             Assert.False(lr.HasDiagnostic)
 
 
             Dim interfaceI = DirectCast(globalNS.GetMembers("I").Single(), NamedTypeSymbol)
 
-            Dim ifooInstance = DirectCast(interfaceI.GetMembers("FooInstance").Single(), MethodSymbol)
+            Dim ifooInstance = DirectCast(interfaceI.GetMembers("GooInstance").Single(), MethodSymbol)
             lr = New LookupResult()
-            context.LookupMember(lr, interfaceI, "FooInstance", 0, LookupOptions.MustBeInstance, Nothing)
+            context.LookupMember(lr, interfaceI, "GooInstance", 0, LookupOptions.MustBeInstance, Nothing)
             Assert.Equal(1, lr.Symbols.Count)
             Assert.Equal(ifooInstance, lr.Symbols.Single())
             Assert.False(lr.HasDiagnostic)
@@ -1554,21 +1554,21 @@ End Module
 Option Strict On
 
 Interface I
-    Class Foo
+    Class Goo
         Shared Sub Boo()
         End Sub
     End Class
 End Interface
 Class D
-    Sub Foo()
+    Sub Goo()
     End Sub
     Interface I2
         Inherits I
-        Shadows Class Foo(Of T)
+        Shadows Class Goo(Of T)
         End Class
         Class C
             Sub Bar()
-                Foo.Boo()
+                Goo.Boo()
             End Sub
         End Class
     End Interface

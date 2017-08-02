@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(m.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Assembly, m.Kind);
 
-            m = new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases: ImmutableArray.Create("\\/[.'\":_)??\t\n*#$@^%*&)", "foo"), embedInteropTypes: true);
-            AssertEx.Equal(new[] { "\\/[.'\":_)??\t\n*#$@^%*&)", "foo" }, m.Aliases);
+            m = new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases: ImmutableArray.Create("\\/[.'\":_)??\t\n*#$@^%*&)", "goo"), embedInteropTypes: true);
+            AssertEx.Equal(new[] { "\\/[.'\":_)??\t\n*#$@^%*&)", "goo" }, m.Aliases);
             Assert.True(m.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Assembly, m.Kind);
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(a.WithAliases(default(ImmutableArray<string>)), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray<string>.Empty, embedInteropTypes: true));
             Assert.Equal(a.WithAliases(ImmutableArray<string>.Empty), new MetadataReferenceProperties(MetadataImageKind.Assembly, default(ImmutableArray<string>), embedInteropTypes: true));
             Assert.Equal(a.WithAliases(new string[0]), new MetadataReferenceProperties(MetadataImageKind.Assembly, default(ImmutableArray<string>), embedInteropTypes: true));
-            Assert.Equal(a.WithAliases(new[] { "foo", "aaa" }), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("foo", "aaa"), embedInteropTypes: true));
+            Assert.Equal(a.WithAliases(new[] { "goo", "aaa" }), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("goo", "aaa"), embedInteropTypes: true));
             Assert.Equal(a.WithEmbedInteropTypes(false), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("a"), embedInteropTypes: false));
             Assert.Equal(a.WithRecursiveAliases(true), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("a"), embedInteropTypes: true, hasRecursiveAliases: true));
 

@@ -213,7 +213,7 @@ class Program
 {
     void Method()
     {
-        [|var|] x = new Foo();
+        [|var|] x = new Goo();
     }
 }", new TestParameters(options: ExplicitTypeEverywhere()));
         }
