@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -787,7 +787,7 @@ Class P
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(y:=1)')
   Children(2):
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
@@ -804,6 +804,86 @@ BC30272: 'y' is not a parameter of 'Public Sub M2(x As Integer)'.
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact>
+        Public Sub DirectlyBindArgument_InvocationExpression()
+            Dim source = <![CDATA[
+Class Program
+    Sub M1()
+        M2(1)'BIND:"1"
+    End Sub
+
+    Sub M2(a As Integer)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '1')
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArgumentSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact>
+        Public Sub DirectlyBindParamsArgument1_InvocationExpression()
+            Dim source = <![CDATA[
+Class Program
+    Sub M1()
+        M2(1)'BIND:"1"
+    End Sub
+
+    Sub M2(paramarray a As Integer())
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'M2(1)')
+  IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'M2(1)')
+    Dimension Sizes(1):
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1)')
+    Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
+        Element Values(1):
+            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArgumentSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact>
+        Public Sub DirectlyBindParamsArgument2_InvocationExpression()
+            Dim source = <![CDATA[
+Class Program
+    Sub M1()
+        M2(0, 1)'BIND:"1"
+    End Sub
+
+    Sub M2(paramarray a As Integer())
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+Argument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'M2(0, 1)')
+  IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'M2(0, 1)')
+    Dimension Sizes(1):
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(0, 1)')
+    Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(0, 1)')
+        Element Values(2):
+            ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArgumentSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
     End Class

@@ -794,6 +794,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+            Dim argumentNode = TryCast(node, ArgumentSyntax)
+            If argumentNode IsNot Nothing Then
+                ' In VB argument syntaxes don't produce any bound nodes.  So walk to
+                ' the parent to get the bound node for it, then find the appropriate
+                ' argument within it.
+                Dim nodeToMatch = If(TryCast(argumentNode, SimpleArgumentSyntax)?.Expression, node)
+
+                Dim hasArguments = TryCast(GetBoundNodeSummaryAndCreateOperation(argumentNode.Parent.Parent, options, cancellationToken), IHasArgumentsExpression)
+                If hasArguments IsNot Nothing Then
+                    For Each argument In hasArguments.ArgumentsInEvaluationOrder
+                        If argument.Syntax Is nodeToMatch Then
+                            Return argument
+                        End If
+
+                        If argument.ArgumentKind = ArgumentKind.ParamArray AndAlso
+                           TypeOf argument.Value Is IArrayCreationExpression Then
+
+                            Dim arrayCreation = DirectCast(argument.Value, IArrayCreationExpression)
+                            For Each child In arrayCreation.Initializer.ElementValues
+                                If child.Syntax Is nodeToMatch Then
+                                    Return argument
+                                End If
+                            Next
+                        End If
+                    Next
+                End If
+
+                Return Nothing
+            End If
+
+            Return GetBoundNodeSummaryAndCreateOperation(node, options, cancellationToken)
+        End Function
+
+        Private Function GetBoundNodeSummaryAndCreateOperation(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
             Dim summary = GetBoundNodeSummary(node)
             Dim result As BoundNode
             Select Case options
