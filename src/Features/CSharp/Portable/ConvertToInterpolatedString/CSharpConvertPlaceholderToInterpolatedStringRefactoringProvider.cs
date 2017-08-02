@@ -13,15 +13,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
     {
         protected override SyntaxNode GetInterpolatedString(string text) 
             => SyntaxFactory.ParseExpression("$" + text) as InterpolatedStringExpressionSyntax;
-
-        protected override string GetArgumentName(ArgumentSyntax argument)
-        {
-            if (argument == null || argument.NameColon == null)
-            {
-                return null;
-            }
-
-            return argument.NameColon.Name.Identifier.Text;
-        }
     }
 }
