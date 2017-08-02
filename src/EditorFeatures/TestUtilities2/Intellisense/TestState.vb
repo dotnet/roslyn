@@ -167,14 +167,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #Region "Completion Operations"
         Public Overloads Sub SendTab()
             Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of TabKeyCommandArgs))
-            Dim f = Function(args As TabKeyCommandArgs) CommandHandlerExtensions.ExecuteCommand(
+            Dim f = Function(args As TabKeyCommandArgs)
+                        CommandHandlerExtensions.ExecuteCommand(
                 CompletionCommandHandler,
                 args,
                 Sub() EditorOperations.InsertText(vbTab))
-            Return False
+                        Return True
+                    End Function
 
 
-            MyBase.SendTab(f)
+            f(New TabKeyCommandArgs(TextView, SubjectBuffer))
         End Sub
 
         Public Overloads Sub SendReturn()

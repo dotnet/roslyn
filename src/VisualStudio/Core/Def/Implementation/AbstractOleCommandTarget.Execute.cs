@@ -417,9 +417,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
-                lastHandler: executeNextCommandTarget);
-        }
-
         protected void ExecuteCommitUniqueCompletionItem(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute(contentType,

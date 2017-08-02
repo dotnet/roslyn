@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             var options = new TaskHandlerOptions
             {
                 Title = title,
-                RetentionAfterCompletion = CompletionRetention.Faulted
+                //RetentionAfterCompletion = CompletionRetention.Faulted
             };
 
             return options;

@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             }
         }
 
-        public void SendTab(Func<TabKeyCommandArgs, bool> commandHandler, Action<TabKeyCommandArgs> successor)
+        public bool SendTab(Func<TabKeyCommandArgs, bool> commandHandler, Action<TabKeyCommandArgs> successor)
         {
             return commandHandler(new TabKeyCommandArgs(TextView, SubjectBuffer));
         }

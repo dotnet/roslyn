@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [VisualStudio.Text.UI.Commanding.ExportCommandHandler(PredefinedCommandHandlerNames.QuickInfo, ContentTypeNames.RoslynContentType)]
     internal partial class QuickInfoCommandHandlerAndSourceProvider :
         ForegroundThreadAffinitizedObject,
-        IQuickInfoSourceProvider
+        IQuickInfoSourceProvider,
+        ICommandHandler<InvokeQuickInfoCommandArgs>
     {
         private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> _presenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;

@@ -15,7 +15,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     [Export(typeof(ICommandHandlerService))]
     class TestCommandHandlerService : ICommandHandlerService
     {
-        List<ICommandHandler> handlers;
+        List<ICommandHandler> _handlers;
+        private readonly SignatureHelpCommandHandler signatureHelpCommandHandler;
+
+        public CompletionCommandHandler completionCommandHandler { get; }
 
         public TestCommandHandlerService(SignatureHelpCommandHandler signatureHelpCommandHandler, CompletionCommandHandler completionCommandHandler)
         {

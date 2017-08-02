@@ -276,7 +276,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
 
-        }
 
         private int QueryParameterInfoStatus(OLECMD[] prgCmds)
         {
