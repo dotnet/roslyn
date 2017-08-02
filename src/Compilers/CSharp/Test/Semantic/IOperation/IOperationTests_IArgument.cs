@@ -2149,6 +2149,132 @@ IInvocationExpression (void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKi
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [Fact]
+        public void DirectlyBindArgument1()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        M2(/*<bind>*/1/*</bind>*/);
+    }
+    static void M2(int i) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '1')
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DirectlyBindRefArgument()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        int i = 0;
+        M2(/*<bind>*/ref i/*</bind>*/);
+    }
+    static void M2(ref int i) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'i')
+  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+  InConversion: null
+  OutConversion: null";
+
+            VerifyOperationTreeForTest<ArgumentSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact]
+        public void DirectlyBindOutArgument()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        int i = 0;
+        M2(/*<bind>*/out i/*</bind>*/);
+    }
+    static void M2(out int i) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'i')
+  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+  InConversion: null
+  OutConversion: null";
+
+            VerifyOperationTreeForTest<ArgumentSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact]
+        public void DirectlyBindParamsArgument1()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        M2(/*<bind>*/1/*</bind>*/);
+    }
+    static void M2(params int[] array) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(/*<bind> ... *</bind>*/)')
+  IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(/*<bind> ... *</bind>*/)')
+    Dimension Sizes(1):
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(/*<bind> ... *</bind>*/)')
+    Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(/*<bind> ... *</bind>*/)')
+        Element Values(1):
+            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DirectlyBindParamsArgument2()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        M2(0, /*<bind>*/1/*</bind>*/);
+    }
+    static void M2(params int[] array) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(0, /*<bi ... *</bind>*/)')
+  IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(0, /*<bi ... *</bind>*/)')
+    Dimension Sizes(1):
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(0, /*<bi ... *</bind>*/)')
+    Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(0, /*<bi ... *</bind>*/)')
+        Element Values(2):
+            ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         private class IndexerAccessArgumentVerifier : OperationWalker
         {
             private readonly Compilation _compilation;
