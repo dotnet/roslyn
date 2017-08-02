@@ -2063,5 +2063,80 @@ class C
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 17)
                 );
         }
+
+        [WorkItem(19458, "https://github.com/dotnet/roslyn/issues/19458")]
+        [Fact]
+        public void VersionUnificationConstColorColorEnum()
+        {
+            string sourceRefLib = @"
+public enum Color { Red }
+";
+
+            var refLib = CreateCompilation(
+                sourceRefLib,
+                assemblyName: "RefLib",
+                references: new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
+
+            refLib.VerifyEmitDiagnostics();
+
+            string sourceMain = @"
+class M
+{
+    void F()
+    {
+        const Color Color = Color.Red;
+        _ = Color; // to avoid unused local warning
+    }
+}
+";
+
+            var main = CreateCompilation(
+                sourceMain,
+                assemblyName: "Main",
+                references: new MetadataReference[]
+                {
+                    new CSharpCompilationReference(refLib),
+                    TestReferences.NetFx.v4_0_30319.mscorlib
+                });
+
+            var unifyReferenceWarning =
+                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'RefLib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments(
+                    "mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                    "RefLib",
+                    "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                    "mscorlib");
+
+            main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
+        }
+
+        [WorkItem(19458, "https://github.com/dotnet/roslyn/issues/19458")]
+        [Fact]
+        public void ObsoleteConstColorColorEnum()
+        {
+            string source = @"
+enum Color
+{
+    [System.Obsolete] Red
+}
+
+class M
+{
+    void F()
+    {
+        const Color Color = Color.Red;
+        _ = Color; // to avoid unused local warning
+    }
+}
+";
+
+            var compilation = CreateStandardCompilation(source, assemblyName: "Main");
+
+            DiagnosticDescription obsoleteWarning =
+                // warning CS0612: 'Color.Red' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Color.Red").WithArguments("Color.Red").WithLocation(11, 29);
+
+            compilation.VerifyEmitDiagnostics(obsoleteWarning, obsoleteWarning);
+        }
     }
 }
