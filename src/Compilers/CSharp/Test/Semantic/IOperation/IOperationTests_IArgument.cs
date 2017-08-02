@@ -2276,6 +2276,52 @@ IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Ar
         }
 
         [Fact]
+        public void DirectlyBindNamedArgument1_InvocationExpression()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        M2(/*<bind>*/j: 1/*</bind>*/, i: 1);
+    }
+    static void M2(int i, int j) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument) (Syntax: '1')
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DirectlyBindNamedArgument2_InvocationExpression()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        M2(j: 1, /*<bind>*/i: 1/*</bind>*/);
+    }
+    static void M2(int i, int j) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '1')
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
         public void DirectlyBindArgument_ObjectCreation()
         {
             string source = @"
