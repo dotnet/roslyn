@@ -16,8 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
             var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-            var rewriter = new Rewriter(placeSystemNamespaceFirst);
+            var blankLineBetweenGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups);
+
+            var rewriter = new Rewriter(placeSystemNamespaceFirst, blankLineBetweenGroups);
             var newRoot = rewriter.Visit(root);
 
             return document.WithSyntaxRoot(newRoot);

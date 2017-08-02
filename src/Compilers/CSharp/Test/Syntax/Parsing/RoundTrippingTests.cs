@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ParentChecker.CheckParents(tree.GetCompilationUnitRoot(), tree);
         }
 
-        public static void ParseAndCheckTerminalSpans(string text)
+        private static void ParseAndCheckTerminalSpans(string text)
         {
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var toText = tree.GetCompilationUnitRoot().ToFullString();

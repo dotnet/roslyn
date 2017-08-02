@@ -118,14 +118,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             return ReadOutputToEnd(isError: true);
         }
 
-        public void ClearOutput()
+        private void ClearOutput()
         {
             _outputReadPosition = new int[] { 0, 0 };
             _synchronizedOutput.Clear();
             _synchronizedErrorOutput.Clear();
         }
 
-        public void RestartHost(string rspFile = null)
+        private void RestartHost(string rspFile = null)
         {
             ClearOutput();
 

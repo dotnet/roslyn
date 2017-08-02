@@ -1358,6 +1358,26 @@ goto Label;");
                 );
         }
 
+        [Fact]
+        [WorkItem(17779, "https://github.com/dotnet/roslyn/issues/17779")]
+        public void TestScriptWithConstVar()
+        {
+            var script = CreateCompilation(
+                source: @"string F() => null; const var x = F();",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe,
+                references: new MetadataReference[] { TaskFacadeAssembly(), MscorlibRef_v20 });
+
+            script.VerifyDiagnostics(
+                // (1,27): error CS0822: Implicitly-typed variables cannot be constant
+                // string F() => null; const var x = F();
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var").WithLocation(1, 27),
+                // (1,35): error CS0120: An object reference is required for the non-static field, method, or property 'F()'
+                // string F() => null; const var x = F();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("F()").WithLocation(1, 35)
+                );
+        }
+
         private static MemberAccessExpressionSyntax ErrorTestsGetNode(SyntaxTree syntaxTree)
         {
             var node1 = (CompilationUnitSyntax)syntaxTree.GetRoot();

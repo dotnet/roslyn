@@ -271,6 +271,25 @@ Class Customer
     End Sub
 End Class"
 
+        Private Shared ReadOnly s_preferIsNothingCheckOverReferenceEquals As String = $"
+Imports System
+
+Class Customer
+    Sub New(value as object)
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        If value Is Nothing
+            Return
+        End If
+
+        ' {ServicesVSResources.Over_colon}
+        If Object.ReferenceEquals(value, Nothing)
+            Return
+        End If
+//]
+    End Sub
+End Class"
+
 #End Region
 
         Public Sub New(optionSet As OptionSet, serviceProvider As IServiceProvider)
@@ -316,6 +335,7 @@ End Class"
             ' nothing preferences
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, Me, optionSet, nothingPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, Me, optionSet, nothingPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, BasicVSResources.Prefer_Is_Nothing_over_ReferenceEquals, s_preferIsNothingCheckOverReferenceEquals, s_preferIsNothingCheckOverReferenceEquals, Me, optionSet, nothingPreferencesGroupTitle))
         End Sub
     End Class
 End Namespace
