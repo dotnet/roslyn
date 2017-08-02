@@ -799,26 +799,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' In VB argument syntaxes don't produce any bound nodes.  So walk to
                 ' the parent to get the bound node for it, then find the appropriate
                 ' argument within it.
-                Dim nodeToMatch = If(TryCast(argumentNode, SimpleArgumentSyntax)?.Expression, node)
-
                 Dim hasArguments = TryCast(GetBoundNodeSummaryAndCreateOperation(argumentNode.Parent.Parent, options, cancellationToken), IHasArgumentsExpression)
                 If hasArguments IsNot Nothing Then
-                    For Each argument In hasArguments.ArgumentsInEvaluationOrder
-                        If argument.Syntax Is nodeToMatch Then
-                            Return argument
-                        End If
+                    Dim omitted = TryCast(argumentNode, OmittedArgumentSyntax)
+                    If omitted IsNot Nothing Then
+                        Dim index = DirectCast(argumentNode.Parent, ArgumentListSyntax).Arguments.IndexOf(argumentNode)
+                        Return hasArguments.ArgumentsInEvaluationOrder(index)
+                    End If
 
-                        If argument.ArgumentKind = ArgumentKind.ParamArray AndAlso
+                    Dim expression = TryCast(argumentNode, SimpleArgumentSyntax)?.Expression
+                    If expression IsNot Nothing Then
+                        For Each argument In hasArguments.ArgumentsInEvaluationOrder
+                            If argument.Syntax Is expression Then
+                                Return argument
+                            End If
+
+                            If argument.ArgumentKind = ArgumentKind.ParamArray AndAlso
                            TypeOf argument.Value Is IArrayCreationExpression Then
 
-                            Dim arrayCreation = DirectCast(argument.Value, IArrayCreationExpression)
-                            For Each child In arrayCreation.Initializer.ElementValues
-                                If child.Syntax Is nodeToMatch Then
-                                    Return argument
-                                End If
-                            Next
-                        End If
-                    Next
+                                Dim arrayCreation = DirectCast(argument.Value, IArrayCreationExpression)
+                                For Each child In arrayCreation.Initializer.ElementValues
+                                    If child.Syntax Is expression Then
+                                        Return argument
+                                    End If
+                                Next
+                            End If
+                        Next
+                    End If
                 End If
 
                 Return Nothing
