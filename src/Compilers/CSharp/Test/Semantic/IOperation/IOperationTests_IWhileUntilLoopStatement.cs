@@ -30,7 +30,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: False, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'do ... le (i < 4);')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 4')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -72,7 +72,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (i <  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -112,7 +112,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (cond ... }')
   Condition: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'condition')
   Body: IBlockStatement (2 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -160,7 +160,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (true ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -220,7 +220,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (true ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -276,7 +276,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while ((i = ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '(i = value) >= 0')
       Left: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = value')
@@ -324,7 +324,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'while (numb ... }')
   Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'number')
       Operand: ILocalReferenceExpression: number (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'number')
@@ -357,7 +357,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (true ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -403,7 +403,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (true ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -447,7 +447,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'while () ... }')
   Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
       Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
@@ -489,7 +489,7 @@ class ContinueTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while(i <=  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i <= 10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -520,7 +520,7 @@ class ContinueTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while(i <=  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i <= 10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -571,7 +571,7 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while(i<10) ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i<10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -637,7 +637,7 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while(i<10) ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i<10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -727,7 +727,7 @@ public class MyWhile
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (d.Do ... }')
   Condition: IUnaryOperatorExpression (UnaryOperationKind.DynamicTrue) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'd.Done')
       Operand: IDynamicMemberReferenceExpression (Member Name: ""Done"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Done')
@@ -761,7 +761,7 @@ class Program
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while ( ++i ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '++i < 5')
       Left: IIncrementExpression (UnaryOperandKind.IntegerPrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++i')
@@ -794,12 +794,8 @@ class C
             i++;
         }/*</bind>*/
     }
-}
-
-
-
-";
-string expectedOperationTree = @"
+}";
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (i >  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 0')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -826,13 +822,9 @@ class Program
             return b;
         }/*</bind>*/
     }
-    
 }
-
-
-
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (b == ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.BooleanEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: True) (Syntax: 'b == b')
       Left: ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Boolean, Constant: True) (Syntax: 'b')
@@ -868,7 +860,7 @@ public class TryCatchFinally
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (x--  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x-- > 0')
       Left: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'x--')
@@ -925,9 +917,8 @@ public class X
         return true;
     }
 }
-
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (Dumm ... }')
   Condition: IInvocationExpression (System.Boolean X.Dummy(System.Boolean x, System.Object y, System.Object z)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'Dummy(f, Ta ... ar x1), x1)')
       Instance Receiver: null
@@ -975,6 +966,5 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
-
     }
 }

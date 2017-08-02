@@ -96,6 +96,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
+
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IWhileUntilLoopStatement_WhileLoopsTest()
             Dim source = <![CDATA[
@@ -547,6 +548,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
 ]]>.Value
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
+
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IWhileUntilLoopStatement_WhileConditionInVocationExpression()
             Dim source = <![CDATA[
@@ -655,7 +657,6 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                   InConversion: null
                   OutConversion: null
 ]]>.Value
-
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
 
@@ -951,7 +952,6 @@ IWhileUntilLoopStatement (IsTopTest: False, IsWhile: True) (LoopKind.WhileUntil)
                   InConversion: null
                   OutConversion: null
 ]]>.Value
-
             VerifyOperationTreeForTest(Of DoLoopBlockSyntax)(source, expectedOperationTree)
         End Sub
 
@@ -997,9 +997,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             Left: ILocalReferenceExpression: breakLoop (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'breakLoop')
             Right: ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
 ]]>.Value
-
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
-
     End Class
 End Namespace
