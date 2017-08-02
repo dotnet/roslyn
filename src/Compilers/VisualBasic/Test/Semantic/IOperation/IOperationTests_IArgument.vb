@@ -870,11 +870,91 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-Argument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'M2(0, 1)')
+IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'M2(0, 1)')
   IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'M2(0, 1)')
     Dimension Sizes(1):
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(0, 1)')
     Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(0, 1)')
+        Element Values(2):
+            ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArgumentSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact>
+        Public Sub DirectlyBindArgument_ObjectCreation()
+            Dim source = <![CDATA[
+Class Program
+    Sub M1()
+        dim p = new Program(1)'BIND:"1"
+    End Sub
+
+    Sub new(a As Integer)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '1')
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArgumentSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact>
+        Public Sub DirectlyBindParamsArgument1_ObjectCreation()
+            Dim source = <![CDATA[
+Class Program
+    Sub M1()
+        dim p = new Program(1)'BIND:"1"
+    End Sub
+
+    Sub new(paramarray a As Integer())
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'Program')
+  IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'Program')
+    Dimension Sizes(1):
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'Program')
+    Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'Program')
+        Element Values(1):
+            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArgumentSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact>
+        Public Sub DirectlyBindParamsArgument2_ObjectCreation()
+            Dim source = <![CDATA[
+Class Program
+    Sub M1()
+        dim p = new Program(0, 1)'BIND:"1"
+    End Sub
+
+    Sub new(paramarray a As Integer())
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'Program')
+  IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'Program')
+    Dimension Sizes(1):
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'Program')
+    Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'Program')
         Element Values(2):
             ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
             ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
