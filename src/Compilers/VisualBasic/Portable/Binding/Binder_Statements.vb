@@ -65,6 +65,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SyntaxKind.ElseIfStatement
                     ' ElseIf without a preceding If.
+                    '
+                    ' PROTOTYPE(IOperation)
                     ' re-enable the assert once this issue is fixed
                     ' https://github.com/dotnet/roslyn/issues/21180
                     ' Debug.Assert(node.ContainsDiagnostics)
@@ -198,6 +200,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '     where only the ones that can appear in a method body have been selected).
                     '
                     '   We simply need to ignore this, the error is already created by the parser.
+                    ' 
+                    ' PROTOTYPE(IOperation)
                     ' re-enable the assert once this issue is fixed
                     ' https://github.com/dotnet/roslyn/issues/21180
                     'Debug.Assert(node.ContainsDiagnostics OrElse
@@ -268,6 +272,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' not handling here and then throwing ExceptionUtilities.UnexpectedValue in the else case, but
             ' there are just too many statement SyntaxKinds in VB (e.g. declarations, statements corresponding
             ' to blocks handled above, etc).
+            '
+            ' PROTOTYPE(IOperation)
             ' re-enable the assert once this issue is fixed
             ' https://github.com/dotnet/roslyn/issues/21180
             ' Debug.Assert(node.ContainsDiagnostics)

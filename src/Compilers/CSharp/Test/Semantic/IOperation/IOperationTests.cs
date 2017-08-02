@@ -111,5 +111,29 @@ public class C
             Assert.Equal(OperationKind.None, operation3.Kind);
             Assert.False(operation3 is ISimpleAssignmentExpression);
         }
+
+        [Fact]
+        public void TestClone()
+        {
+            var sourceCode = TestResource.AllInOneCSharpCode;
+
+            var compilation = CreateStandardCompilation(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            VerifyClone(model);
+        }
+
+        [Fact]
+        public void TestParentOperations()
+        {
+            var sourceCode = TestResource.AllInOneCSharpCode;
+
+            var compilation = CreateStandardCompilation(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            VerifyParentOperations(model);
+        }
     }
 }

@@ -770,27 +770,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                            vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.RaiseEventStatement;
             }
         }
-
-        private static string GetKindInfo(SyntaxNode node)
-        {
-            return node.Language + ":" + GetKind(node) + ":" + GetKind(node.Parent) + ":" + GetKind(node.Parent?.Parent);
-        }
-
-        private static string GetKind(SyntaxNode node)
-        {
-            if (node == null)
-            {
-                return "null";
-            }
-
-            if (node is CSharp.CSharpSyntaxNode csNode)
-            {
-                return csNode.Kind().ToString();
-            }
-
-            var vbNode = (VisualBasic.VisualBasicSyntaxNode)node;
-            return vbNode.Kind().ToString();
-        }
         #endregion
     }
 }

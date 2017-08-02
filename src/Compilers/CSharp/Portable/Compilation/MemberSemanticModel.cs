@@ -1088,6 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bindableNode = this.GetBindableSyntaxNode(node);
 
+            // PROTOTYPE(IOperation)
             // remove this check once we fix this issue
             // https://github.com/dotnet/roslyn/issues/21180
             if (!Root.FullSpan.Contains(bindableNode.FullSpan))
