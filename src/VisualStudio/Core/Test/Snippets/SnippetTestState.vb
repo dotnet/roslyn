@@ -45,6 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 completionService.SetTestProviders({snippetProvider})
 
                 Dim asyncCompletionService = New AsyncCompletionService(
+                    GetService(Of Microsoft.VisualStudio.Text.UI.Commanding.ICommandHandlerServiceFactory),
                     GetService(Of IEditorOperationsFactoryService)(),
                     UndoHistoryRegistry,
                     GetService(Of IInlineRenameService)(),

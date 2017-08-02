@@ -49,11 +49,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly bool _isImmediateWindow;
         private readonly ImmutableHashSet<string> _roles;
 
-        private readonly VSC.ICommandHandlerService commandHandlerService;
+        private readonly VSC.ICommandHandlerService _commandHandlerService;
 
         public Controller(
             ITextView textView,
             ITextBuffer subjectBuffer,
+            VSC.ICommandHandlerService commandHandlerService,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> presenter,
@@ -63,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             bool isImmediateWindow)
             : base(textView, subjectBuffer, presenter, asyncListener, null, "Completion")
         {
+            _commandHandlerService = commandHandlerService;
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _undoHistoryRegistry = undoHistoryRegistry;
             _autoBraceCompletionChars = autoBraceCompletionChars;
@@ -74,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         internal static Controller GetInstance(
             ITextView textView,
             ITextBuffer subjectBuffer,
+            VSC.ICommandHandlerService commandHandlerService,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> presenter,
@@ -86,13 +89,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             return textView.GetOrCreatePerSubjectBufferProperty(subjectBuffer, s_controllerPropertyKey,
                 (v, b) => new Controller(
-                    textView, subjectBuffer, editorOperationsFactoryService, undoHistoryRegistry, 
+                    textView, subjectBuffer, commandHandlerService, editorOperationsFactoryService, undoHistoryRegistry, 
                     presenter, asyncListener, autoBraceCompletionChars, isDebugger, isImmediateWindow));
         }
 
         private void ExecuteEditorCommandHandler<T>(T args) where T : VSC.Commands.CommandArgs
         {
-            this.commandHandlerService.Execute(this.TextView.TextBuffer.ContentType, this.TextView.Roles, false, args);
+            this._commandHandlerService.Execute(this.TextView.TextBuffer.ContentType, this.TextView.Roles, false, args);
         }
 
         private SnapshotPoint GetCaretPointInViewBuffer()

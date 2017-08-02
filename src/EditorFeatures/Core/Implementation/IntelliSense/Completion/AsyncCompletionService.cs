@@ -16,12 +16,14 @@ using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     [Export(typeof(IAsyncCompletionService))]
     internal class AsyncCompletionService : ForegroundThreadAffinitizedObject, IAsyncCompletionService
     {
+        private readonly VSC.ICommandHandlerServiceFactory _commandHandlerServiceFactory;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IInlineRenameService _inlineRenameService;
@@ -35,16 +37,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
+            VSC.ICommandHandlerServiceFactory commandHandlerServiceFactory,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, OrderableMetadata>> completionPresenters,
             [ImportMany] IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
-            : this(editorOperationsFactoryService, undoHistoryRegistry, inlineRenameService,
+            : this(commandHandlerServiceFactory, editorOperationsFactoryService, undoHistoryRegistry, inlineRenameService,
                   ExtensionOrderer.Order(completionPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
                   asyncListeners, autoBraceCompletionChars)
         {
         }
 
         public AsyncCompletionService(
+            VSC.ICommandHandlerServiceFactory commandHandlerServiceFactory,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
@@ -52,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
         {
+            _commandHandlerServiceFactory = commandHandlerServiceFactory;
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _undoHistoryRegistry = undoHistoryRegistry;
             _inlineRenameService = inlineRenameService;
@@ -85,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var autobraceCompletionCharSet = GetAllAutoBraceCompletionChars(subjectBuffer.ContentType);
             controller = Controller.GetInstance(
                 textView, subjectBuffer,
+                _commandHandlerServiceFactory.GetService(textView),
                 _editorOperationsFactoryService, _undoHistoryRegistry, _completionPresenter, 
                 new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.CompletionSet),
                 autobraceCompletionCharSet);

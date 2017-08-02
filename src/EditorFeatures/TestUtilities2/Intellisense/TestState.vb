@@ -65,6 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             Me.AsyncCompletionService = New AsyncCompletionService(
+                GetService(Of Microsoft.VisualStudio.Text.UI.Commanding.ICommandHandlerService),
                 GetService(Of IEditorOperationsFactoryService)(),
                 UndoHistoryRegistry,
                 GetService(Of IInlineRenameService)(),
