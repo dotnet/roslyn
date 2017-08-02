@@ -915,6 +915,51 @@ IArgument (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argu
             OperationTreeVerifier.Verify(expectedOperationTree, operationTree.tree)
         End Sub
 
+        <Fact>
+        Public Sub DirectlyBindNAmedArgument1_InvocationExpression()
+            Dim source = <![CDATA[
+Class Program
+    Sub M1()
+        M2(b:=1, a:=1)'BIND:"b:=1"
+    End Sub
+
+    Sub M2(a As Integer, b as integer)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: '1')
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArgumentSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact>
+        Public Sub DirectlyBindNAmedArgument2_InvocationExpression()
+            Dim source = <![CDATA[
+Class Program
+    Sub M1()
+        M2(b:=1, a:=1)'BIND:"a:=1"
+    End Sub
+
+    Sub M2(a As Integer, b as integer)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '1')
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  InConversion: null
+  OutConversion: null]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArgumentSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
 
         <Fact>
         Public Sub DirectlyBindArgument_ObjectCreation()
