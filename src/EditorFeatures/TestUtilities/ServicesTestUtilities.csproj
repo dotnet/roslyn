@@ -83,8 +83,6 @@
     <Compile Include="..\..\VisualStudio\Core\Next\Remote\RemotableDataJsonRpcEx.cs">
       <Link>Remote\RemotableDataJsonRpcEx.cs</Link>
     </Compile>
-    <Compile Include="CommandHandlerExtensions.cs" />
-    <Compile Include="TestCommandHandlerService.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />

@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var displayService = context.GetLanguageService<ISymbolDisplayService>();
             var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
-            return (displayString, displayString);
+                return (displayString, displayString);
         }
     }
 }
