@@ -637,7 +637,7 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSu
 }",
 @"abstract class Contribution
 {
-    public Contribution(string title, int number)
+    protected Contribution(string title, int number)
     {
         Title = title;
         Number = number;
@@ -898,6 +898,36 @@ class Z
 
     public void N() { }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+<<<<<<< HEAD
+        [WorkItem(13749, "https://github.com/dotnet/roslyn/issues/13749")]
+        public async Task AbstractContructor()
+=======
+        [WorkItem(20595, "https://github.com/dotnet/roslyn/issues/20595")]
+        public async Task ProtectedConstructorShouldBeGeneratedForAbstractClass()
+>>>>>>> 7e54816793
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class C 
+{
+    [|public int Prop { get; set; }|]
+}",
+@"abstract class C 
+{
+    protected C(int prop) 
+    {
+<<<<<<< HEAD
+        Prop = prop ;
+=======
+        Prop = prop;
+>>>>>>> 7e54816793
+    } 
+
+    public int Prop { get; set; }
+}",
+options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
     }
 }
