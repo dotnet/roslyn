@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                            SyntaxNode syntax = increment.Syntax;
                                            ITypeSymbol type = increment.Type;
                                            Optional<object> constantValue = new Optional<object>(1);
-                                           var value = new LiteralExpression(text, syntax, type, constantValue);
+                                           var value = new LiteralExpression(text, operationContext.Compilation.GetSemanticModel(syntax.SyntaxTree), syntax, type, constantValue);
 
                                            AssignTo(increment.Target, localsSourceTypes, fieldsSourceTypes, value);
                                        }
