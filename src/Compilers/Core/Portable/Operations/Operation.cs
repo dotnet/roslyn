@@ -113,12 +113,14 @@ namespace Microsoft.CodeAnalysis
                 return operations;
             }
 
-            // race is okay. penalty is going through a loop one more time
+            // race is okay. penalty is going through a loop one more time or 
+            // .Parent going through slower path of SearchParentOperation()
             // explicit cast is not allowed, so using "as" instead
             // invalid expression can have null element in the array
             if ((operations[0] as Operation)?._parentDoNotAccessDirectly != null)
             {
-                // already initialized
+                // most likely already initialized. if not, due to a race or invalid expression,
+                // operation.Parent will take slower path but still return correct Parent.
                 return operations;
             }
 
@@ -146,8 +148,8 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly Func<ImmutableArray<IOperation>> _getChildren;
 
-            public NoneOperation(SemanticModel semanticMode, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren) :
-                base(OperationKind.None, semanticMode, node, type: null, constantValue: constantValue)
+            public NoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren) :
+                base(OperationKind.None, semanticModel, node, type: null, constantValue: constantValue)
             {
                 _getChildren = getChildren;
             }
@@ -166,8 +168,13 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    foreach (var child in _getChildren().NullToEmpty().WhereNotNull())
+                    foreach (var child in _getChildren().NullToEmpty())
                     {
+                        if (child == null)
+                        {
+                            continue;
+                        }
+
                         yield return Operation.SetParentOperation(child, this);
                     }
                 }
