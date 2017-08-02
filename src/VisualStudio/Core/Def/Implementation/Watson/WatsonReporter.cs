@@ -10,6 +10,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal class WatsonReporter
     {
         /// <summary>
+        /// The default callback to pass to <see cref="TelemetrySessionExtensions.PostFault(TelemetrySession, string, string, Exception, Func{IFaultUtility, int})"/>.
+        /// Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
+        /// </summary>
+        private static Func<IFaultUtility, int> s_defaultCallback = _ => 0;
+
+        /// <summary>
         /// Report Non-Fatal Watson
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
@@ -25,18 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <param name="exception">Exception that triggered this non-fatal error</param>
         public static void Report(string description, Exception exception)
         {
-            TelemetryService.DefaultSession.PostFault(
-                eventName: FunctionId.NonFatalWatson.GetEventName(),
-                description: description,
-                exceptionObject: exception,
-                gatherEventDetails: arg =>
-                {
-                    arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
-
-                    // 0 means send watson, otherwise, cancel watson
-                    // we always send watson since dump itself can have valuable data
-                    return 0;
-                });
+            Report(description, exception, s_defaultCallback);
         }
 
         /// <summary>
@@ -44,7 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         /// <param name="description">any description you want to save with this watson report</param>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
-        /// <param name="callback">callback to include extra data with the NFW</param>
+        /// <param name="callback">Callback to include extra data with the NFW. Note that we always collect
+        /// a dump of the current process, but this can be used to add further information or files to the
+        /// CAB.</param>
         public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
         {
             TelemetryService.DefaultSession.PostFault(
