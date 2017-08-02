@@ -796,42 +796,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
             Dim argumentNode = TryCast(node, ArgumentSyntax)
             If argumentNode IsNot Nothing Then
-                ' In VB argument syntaxes don't produce any bound nodes.  So walk to
-                ' the parent to get the bound node for it, then find the appropriate
-                ' argument within it.
-                Dim hasArguments = TryCast(GetBoundNodeSummaryAndCreateOperation(argumentNode.Parent.Parent, options, cancellationToken), IHasArgumentsExpression)
-                If hasArguments IsNot Nothing Then
-                    Dim omitted = TryCast(argumentNode, OmittedArgumentSyntax)
-                    If omitted IsNot Nothing Then
-                        Dim index = DirectCast(argumentNode.Parent, ArgumentListSyntax).Arguments.IndexOf(argumentNode)
-                        Return hasArguments.ArgumentsInEvaluationOrder(index)
-                    End If
-
-                    Dim expression = TryCast(argumentNode, SimpleArgumentSyntax)?.Expression
-                    If expression IsNot Nothing Then
-                        For Each argument In hasArguments.ArgumentsInEvaluationOrder
-                            If argument.Syntax Is expression Then
-                                Return argument
-                            End If
-
-                            If argument.ArgumentKind = ArgumentKind.ParamArray AndAlso
-                           TypeOf argument.Value Is IArrayCreationExpression Then
-
-                                Dim arrayCreation = DirectCast(argument.Value, IArrayCreationExpression)
-                                For Each child In arrayCreation.Initializer.ElementValues
-                                    If child.Syntax Is expression Then
-                                        Return argument
-                                    End If
-                                Next
-                            End If
-                        Next
-                    End If
-                End If
-
-                Return Nothing
+                Return TryGetOperationForArgument(options, argumentNode, cancellationToken)
             End If
 
             Return GetBoundNodeSummaryAndCreateOperation(node, options, cancellationToken)
+        End Function
+
+        Private Function TryGetOperationForArgument(options As GetOperationOptions, argumentNode As ArgumentSyntax, cancellationToken As CancellationToken) As IOperation
+            ' In VB argument syntaxes don't produce any bound nodes.  So walk to
+            ' the parent to get the bound node for it, then find the appropriate
+            ' argument within it.
+            Dim hasArguments = TryCast(GetBoundNodeSummaryAndCreateOperation(argumentNode.Parent.Parent, options, cancellationToken), IHasArgumentsExpression)
+            If hasArguments IsNot Nothing Then
+                Dim omitted = TryCast(argumentNode, OmittedArgumentSyntax)
+                If omitted IsNot Nothing Then
+                    Dim index = DirectCast(argumentNode.Parent, ArgumentListSyntax).Arguments.IndexOf(argumentNode)
+                    Return hasArguments.ArgumentsInEvaluationOrder(index)
+                End If
+
+                Dim expression = TryCast(argumentNode, SimpleArgumentSyntax)?.Expression
+                If expression IsNot Nothing Then
+                    For Each argument In hasArguments.ArgumentsInEvaluationOrder
+                        If argument.Syntax Is expression Then
+                            Return argument
+                        End If
+
+                        If argument.ArgumentKind = ArgumentKind.ParamArray AndAlso
+                       TypeOf argument.Value Is IArrayCreationExpression Then
+
+                            Dim arrayCreation = DirectCast(argument.Value, IArrayCreationExpression)
+                            For Each child In arrayCreation.Initializer.ElementValues
+                                If child.Syntax Is expression Then
+                                    Return argument
+                                End If
+                            Next
+                        End If
+                    Next
+                End If
+            End If
+
+            Return Nothing
         End Function
 
         Private Function GetBoundNodeSummaryAndCreateOperation(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
