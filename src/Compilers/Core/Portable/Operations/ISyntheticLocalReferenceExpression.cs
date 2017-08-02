@@ -17,10 +17,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Kind of the synthetic local.
         /// </summary>
         SyntheticLocalKind SyntheticLocalKind { get; }
-        /// <summary>
-        /// Statement defining the lifetime of the synthetic local.
-        /// </summary>
-        IOperation ContainingStatement { get; }
     }
 }
 

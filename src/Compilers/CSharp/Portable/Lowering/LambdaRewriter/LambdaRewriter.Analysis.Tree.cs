@@ -7,7 +7,6 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -40,7 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// in this scope or nested scopes. "Declared" refers to the start of the variable
                 /// lifetime (which, at this point in lowering, should be equivalent to lexical scope).
                 /// </summary>
-                public ArrayBuilder<Symbol> DeclaredVariables { get; } = ArrayBuilder<Symbol>.GetInstance();
+                /// <remarks>
+                /// It's important that this is a set and that enumeration order is deterministic. We loop
+                /// over this list to generate proxies and if we loop out of order this will cause
+                /// non-deterministic compilation, and if we generate duplicate proxies we'll generate
+                /// wasteful code in the best case and incorrect code in the worst.
+                /// </remarks>
+                public SetWithInsertionOrder<Symbol> DeclaredVariables { get; } = new SetWithInsertionOrder<Symbol>();
 
                 /// <summary>
                 /// The bound node representing this scope. This roughly corresponds to the bound
@@ -54,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// The closure that this scope is nested inside. Null if this scope is not nested
                 /// inside a closure.
                 /// </summary>
-                public Closure ContainingClosure { get; }
+                public Closure ContainingClosureOpt { get; }
 
                 public Scope(Scope parent, BoundNode boundNode, Closure containingClosure)
                 {
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Parent = parent;
                     BoundNode = boundNode;
-                    ContainingClosure = containingClosure;
+                    ContainingClosureOpt = containingClosure;
                 }
 
                 public void Free()
@@ -78,7 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         closure.Free();
                     }
                     Closures.Free();
-                    DeclaredVariables.Free();
                 }
 
                 public override string ToString() => BoundNode.Syntax.GetText().ToString();
@@ -118,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Optimizes local functions such that if a local function only references other local functions
             /// that capture no variables, we don't need to create capture environments for any of them.
             /// </summary>
-            private void RemoveUnneededReferences()
+            private void RemoveUnneededReferences(ParameterSymbol thisParam)
             {
                 var methodGraph = new MultiDictionary<MethodSymbol, MethodSymbol>();
                 var capturesThis = new HashSet<MethodSymbol>();
@@ -132,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             methodGraph.Add(localFunc, closure.OriginalMethodSymbol);
                         }
-                        else if (capture == _topLevelMethod.ThisParameter)
+                        else if (capture == thisParam)
                         {
                             if (capturesThis.Add(closure.OriginalMethodSymbol))
                             {
@@ -168,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     if (capturesThis.Contains(closure.OriginalMethodSymbol))
                     {
-                        closure.CapturedVariables.Add(_topLevelMethod.ThisParameter);
+                        closure.CapturedVariables.Add(thisParam);
                     }
                 });
             }
@@ -191,9 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Builds a tree of <see cref="Scope"/> nodes corresponding to a given method.
-            /// <see cref="Build(BoundNode, Analysis)"/> visits the bound tree and translates
-            /// information from the bound tree about variable scope, declared variables, and
-            /// variable captures into the resulting <see cref="Scope"/> tree.
+            /// <see cref="Build(BoundNode, MethodSymbol, HashSet{MethodSymbol}, DiagnosticBag)"/>
+            /// visits the bound tree and translates information from the bound tree about
+            /// variable scope, declared variables, and variable captures into the resulting
+            /// <see cref="Scope"/> tree.
             /// </summary>
             private class ScopeTreeBuilder : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
             {
@@ -211,24 +216,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// </summary>
                 private readonly SmallDictionary<Symbol, Scope> _localToScope = new SmallDictionary<Symbol, Scope>();
 
-                private readonly Analysis _analysis;
+                private readonly MethodSymbol _topLevelMethod;
 
-                private ScopeTreeBuilder(Scope rootScope, Analysis analysis)
+                /// <summary>
+                /// If a local function is in the set, at some point in the code it is converted
+                /// to a delegate and should then not be optimized to a struct closure.
+                /// Also contains all lambdas (as they are converted to delegates implicitly).
+                /// </summary>
+                private readonly HashSet<MethodSymbol> _methodsConvertedToDelegates;
+                private readonly DiagnosticBag _diagnostics;
+
+                private ScopeTreeBuilder(
+                    Scope rootScope,
+                    MethodSymbol topLevelMethod,
+                    HashSet<MethodSymbol> methodsConvertedToDelegates,
+                    DiagnosticBag diagnostics)
                 {
                     Debug.Assert(rootScope != null);
-                    Debug.Assert(analysis != null);
+                    Debug.Assert(topLevelMethod != null);
+                    Debug.Assert(methodsConvertedToDelegates != null);
+                    Debug.Assert(diagnostics != null);
 
                     _currentScope = rootScope;
-                    _analysis = analysis;
+                    _topLevelMethod = topLevelMethod;
+                    _methodsConvertedToDelegates = methodsConvertedToDelegates;
+                    _diagnostics = diagnostics;
                 }
 
-                public static Scope Build(BoundNode node, Analysis analysis)
+                public static Scope Build(
+                    BoundNode node,
+                    MethodSymbol topLevelMethod,
+                    HashSet<MethodSymbol> methodsConvertedToDelegates,
+                    DiagnosticBag diagnostics)
                 {
                     // This should be the top-level node
                     Debug.Assert(node == FindNodeToAnalyze(node));
+                    Debug.Assert(topLevelMethod != null);
 
                     var rootScope = new Scope(parent: null, boundNode: node, containingClosure: null);
-                    var builder = new ScopeTreeBuilder(rootScope, analysis);
+                    var builder = new ScopeTreeBuilder(
+                        rootScope,
+                        topLevelMethod,
+                        methodsConvertedToDelegates,
+                        diagnostics);
                     builder.Build();
                     return rootScope;
                 }
@@ -236,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private void Build()
                 {
                     // Set up the current method locals
-                    DeclareLocals(_currentScope, _analysis._topLevelMethod.Parameters);
+                    DeclareLocals(_currentScope, _topLevelMethod.Parameters);
                     Visit(_currentScope.BoundNode);
                 }
 
@@ -245,12 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override BoundNode VisitBlock(BoundBlock node)
                 {
-                    if (node.Locals.IsDefaultOrEmpty)
-                    {
-                        // Skip introducing a new scope if there are no new locals
-                        return base.VisitBlock(node);
-                    }
-
                     var oldScope = _currentScope;
                     _currentScope = CreateOrReuseScope(node, node.Locals);
                     var result = base.VisitBlock(node);
@@ -278,12 +302,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
                 {
-                    if (node.InnerLocals.IsDefaultOrEmpty)
-                    {
-                        // Skip introducing a new scope if there are no new locals
-                        return base.VisitSwitchStatement(node);
-                    }
-
                     var oldScope = _currentScope;
                     _currentScope = CreateOrReuseScope(node, node.InnerLocals);
                     var result = base.VisitSwitchStatement(node);
@@ -296,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var oldInExpressionTree = _inExpressionTree;
                     _inExpressionTree |= node.Type.IsExpressionTree();
 
-                    _analysis.MethodsConvertedToDelegates.Add(node.Symbol.OriginalDefinition);
+                    _methodsConvertedToDelegates.Add(node.Symbol.OriginalDefinition);
                     var result = VisitClosure(node.Symbol, node.Body);
 
                     _inExpressionTree = oldInExpressionTree;
@@ -311,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (node.Method.MethodKind == MethodKind.LocalFunction)
                     {
                         // Use OriginalDefinition to strip generic type parameters
-                        AddIfCaptured(node.Method.OriginalDefinition);
+                        AddIfCaptured(node.Method.OriginalDefinition, node.Syntax);
                     }
                     return base.VisitCall(node);
                 }
@@ -322,36 +340,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Use OriginalDefinition to strip generic type parameters
                         var method = node.MethodOpt.OriginalDefinition;
-                        AddIfCaptured(method);
-                        _analysis.MethodsConvertedToDelegates.Add(method);
+                        AddIfCaptured(method, node.Syntax);
+                        _methodsConvertedToDelegates.Add(method);
                     }
                     return base.VisitDelegateCreationExpression(node);
                 }
 
                 public override BoundNode VisitParameter(BoundParameter node)
                 {
-                    AddIfCaptured(node.ParameterSymbol);
+                    AddIfCaptured(node.ParameterSymbol, node.Syntax);
                     return base.VisitParameter(node);
                 }
 
                 public override BoundNode VisitLocal(BoundLocal node)
                 {
-                    AddIfCaptured(node.LocalSymbol);
+                    AddIfCaptured(node.LocalSymbol, node.Syntax);
                     return base.VisitLocal(node);
                 }
 
                 public override BoundNode VisitBaseReference(BoundBaseReference node)
                 {
-                    AddIfCaptured(_analysis._topLevelMethod.ThisParameter);
+                    AddIfCaptured(_topLevelMethod.ThisParameter, node.Syntax);
                     return base.VisitBaseReference(node);
                 }
 
                 public override BoundNode VisitThisReference(BoundThisReference node)
                 {
-                    var thisParam = _analysis._topLevelMethod.ThisParameter;
+                    var thisParam = _topLevelMethod.ThisParameter;
                     if (thisParam != null)
                     {
-                        AddIfCaptured(thisParam);
+                        AddIfCaptured(thisParam, node.Syntax);
                     }
                     else
                     {
@@ -402,8 +420,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
 
-                private void AddIfCaptured(Symbol symbol)
+                private void AddIfCaptured(Symbol symbol, SyntaxNode syntax)
                 {
+                    Debug.Assert(
+                        symbol.Kind == SymbolKind.Local ||
+                        symbol.Kind == SymbolKind.Parameter ||
+                        symbol.Kind == SymbolKind.Method);
+
                     if (_currentClosure == null)
                     {
                         // Can't be captured if we're not in a closure
@@ -418,6 +441,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (symbol.ContainingSymbol != _currentClosure.OriginalMethodSymbol)
                     {
+                        // Restricted types can't be hoisted, so they are not permitted to be captured
+                        AddDiagnosticIfRestrictedType(symbol, syntax);
+
                         // Record the captured variable where it's captured
                         var scope = _currentScope;
                         var closure = _currentClosure;
@@ -426,11 +452,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             closure.CapturedVariables.Add(symbol);
 
                             // Also mark captured in enclosing scopes
-                            while (scope.ContainingClosure == closure)
+                            while (scope.ContainingClosureOpt == closure)
                             {
                                 scope = scope.Parent;
                             }
-                            closure = scope.ContainingClosure;
+                            closure = scope.ContainingClosureOpt;
                         }
 
                         // Also record where the captured variable lives
@@ -462,6 +488,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 /// <summary>
+                /// Add a diagnostic if the type of a captured variable is a restricted type
+                /// </summary>
+                private void AddDiagnosticIfRestrictedType(Symbol capturedVariable, SyntaxNode syntax)
+                {
+                    TypeSymbol type;
+                    switch (capturedVariable.Kind)
+                    {
+                        case SymbolKind.Local:
+                            type = ((LocalSymbol)capturedVariable).Type;
+                            break;
+                        case SymbolKind.Parameter:
+                            type = ((ParameterSymbol)capturedVariable).Type;
+                            break;
+                        default:
+                            // This should only be called for captured variables, and captured
+                            // variables must be a method, parameter, or local symbol
+                            Debug.Assert(capturedVariable.Kind == SymbolKind.Method);
+                            return;
+                    }
+
+                    if (type.IsRestrictedType() == true)
+                    {
+                        _diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
+                    }
+                }
+
+                /// <summary>
                 /// Create a new nested scope under the current scope, or reuse the current
                 /// scope if there's no change in the bound node for the nested scope.
                 /// Records the given locals as declared in the aforementioned scope.
@@ -469,14 +522,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private Scope CreateOrReuseScope<TSymbol>(BoundNode node, ImmutableArray<TSymbol> locals)
                     where TSymbol : Symbol
                 {
-                    // We should never create a new scope with the same bound
-                    // node. We can get into this situation for methods and
-                    // closures where a new scope is created to add parameters
-                    // and a new scope would be created for the method block,
-                    // despite the fact that they should be the same scope.
-                    var scope = _currentScope.BoundNode == node
-                        ? _currentScope
-                        : CreateNestedScope(node, _currentScope, _currentClosure);
+                    Scope scope;
+                    if (locals.IsEmpty || _currentScope.BoundNode == node)
+                    {
+                        // We should never create a new scope with the same bound
+                        // node. We can get into this situation for methods and
+                        // closures where a new scope is created to add parameters
+                        // and a new scope would be created for the method block,
+                        // despite the fact that they should be the same scope.
+                        scope = _currentScope;
+                    }
+                    else
+                    {
+                        scope = CreateNestedScope(node, _currentScope, _currentClosure);
+                    }
                     DeclareLocals(scope, locals);
                     return scope;
                 }

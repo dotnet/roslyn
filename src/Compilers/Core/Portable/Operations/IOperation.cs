@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis
     public interface IOperation
     {
         /// <summary>
+        /// IOperation that has this operation as a child
+        /// </summary>
+        IOperation Parent { get; }
+
+        /// <summary>
         /// Identifies the kind of the operation.
         /// </summary>
         OperationKind Kind { get; }

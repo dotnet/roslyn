@@ -237,13 +237,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [InlineData("my[|_b|]utton", "_B", PatternMatchKind.CamelCaseSubstring, CaseInsensitive)]
         [InlineData("[|_|]my_[|b|]utton", "_B", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseInsensitive)]
-        public void TestNonFuzzyMatch(
-            string candidate, string pattern, int matchKindInt, bool isCaseSensitive)
+        // Test is internal as PatternMatchKind is internal, but this is still ran.
+        internal void TestNonFuzzyMatch(
+            string candidate, string pattern, PatternMatchKind matchKind, bool isCaseSensitive)
         {
             var match = TestNonFuzzyMatch(candidate, pattern);
             Assert.NotNull(match);
 
-            var matchKind = (PatternMatchKind)matchKindInt;
             Assert.Equal(matchKind, match.Value.Kind);
             Assert.Equal(isCaseSensitive, match.Value.IsCaseSensitive);
         }

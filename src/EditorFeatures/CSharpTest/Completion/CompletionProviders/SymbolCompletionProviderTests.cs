@@ -9106,5 +9106,48 @@ class C
             await VerifyItemExistsAsync(markup, "A");
             await VerifyItemExistsAsync(markup, "B");
         }
+
+        [WorkItem(8321, "https://github.com/dotnet/roslyn/issues/8321")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task NotOnMethodGroup1()
+        {
+            var markup =
+@"namespace ConsoleApp
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Main.$$
+        }
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(8321, "https://github.com/dotnet/roslyn/issues/8321")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task NotOnMethodGroup2()
+        {
+            var markup =
+@"class C {
+    void M<T>() {M<C>.$$ }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(8321, "https://github.com/dotnet/roslyn/issues/8321")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task NotOnMethodGroup3()
+        {
+            var markup =
+@"class C {
+    void M() {M.$$}
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
     }
 }

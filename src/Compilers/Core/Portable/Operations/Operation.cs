@@ -1,9 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,12 +18,36 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
-        public Operation(OperationKind kind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+        internal readonly SemanticModel SemanticModel;
+
+        // this will be lazily initialized. this will be initialized only once
+        // but once initialized, will never change
+        private IOperation _parentDoNotAccessDirectly;
+
+        public Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
         {
+            SemanticModel = semanticModel;
+
             Kind = kind;
             Syntax = syntax;
             Type = type;
             ConstantValue = constantValue;
+        }
+
+        /// <summary>
+        /// IOperation that has this operation as a child
+        /// </summary>
+        public IOperation Parent
+        {
+            get
+            {
+                if (_parentDoNotAccessDirectly == null)
+                {
+                    SetParentOperation(SearchParentOperation());
+                }
+
+                return _parentDoNotAccessDirectly;
+            }
         }
 
         /// <summary>
@@ -46,41 +76,210 @@ namespace Microsoft.CodeAnalysis
 
         public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
 
-        public static IOperation CreateOperationNone(SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
+        protected void SetParentOperation(IOperation parent)
         {
-            return new NoneOperation(node, constantValue, getChildren);
+            var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, null);
+
+            // tree must belong to same semantic model if parent is given
+            Debug.Assert(parent == null || ((Operation)parent).SemanticModel == SemanticModel);
+
+            // make sure given parent and one we already have is same if we have one already
+            Debug.Assert(result == null || result == parent);
         }
 
-        private class NoneOperation : IOperation
+        /// <summary>
+        /// Create <see cref="IOperation"/> of <see cref="OperationKind.None"/> with explicit children
+        /// 
+        /// Use this to create IOperation when we don't have proper specific IOperation yet for given language construct
+        /// </summary>
+        public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
+        {
+            return new NoneOperation(semanticModel, node, constantValue, getChildren);
+        }
+
+        public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation
+        {
+            // explicit cast is not allowed, so using "as" instead
+            (operation as Operation)?.SetParentOperation(parent);
+            return operation;
+        }
+
+        public static ImmutableArray<T> SetParentOperation<T>(ImmutableArray<T> operations, IOperation parent) where T : IOperation
+        {
+            // check quick bail out case first
+            if (operations.Length == 0)
+            {
+                // no element
+                return operations;
+            }
+
+            // race is okay. penalty is going through a loop one more time or 
+            // .Parent going through slower path of SearchParentOperation()
+            // explicit cast is not allowed, so using "as" instead
+            // invalid expression can have null element in the array
+            if ((operations[0] as Operation)?._parentDoNotAccessDirectly != null)
+            {
+                // most likely already initialized. if not, due to a race or invalid expression,
+                // operation.Parent will take slower path but still return correct Parent.
+                return operations;
+            }
+
+            foreach (var operation in operations)
+            {
+                // go through slowest path
+                SetParentOperation(operation, parent);
+            }
+
+            return operations;
+        }
+
+        public static T ResetParentOperation<T>(T operation) where T : IOperation
+        {
+            if (operation == null)
+            {
+                return operation;
+            }
+
+            Interlocked.Exchange(ref (operation as Operation)._parentDoNotAccessDirectly, null);
+            return operation;
+        }
+
+        private class NoneOperation : Operation
         {
             private readonly Func<ImmutableArray<IOperation>> _getChildren;
 
-            public NoneOperation(SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
+            public NoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren) :
+                base(OperationKind.None, semanticModel, node, type: null, constantValue: constantValue)
             {
-                Syntax = node;
-                ConstantValue = constantValue;
                 _getChildren = getChildren;
             }
 
-            public OperationKind Kind => OperationKind.None;
-
-            public SyntaxNode Syntax { get; }
-
-            public ITypeSymbol Type => null;
-
-            public Optional<object> ConstantValue { get; }
-
-            public void Accept(OperationVisitor visitor)
+            public override void Accept(OperationVisitor visitor)
             {
                 visitor.VisitNoneOperation(this);
             }
 
-            public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
                 return visitor.VisitNoneOperation(this, argument);
             }
 
-            public IEnumerable<IOperation> Children => _getChildren().NullToEmpty();
+            public override IEnumerable<IOperation> Children
+            {
+                get
+                {
+                    foreach (var child in _getChildren().NullToEmpty())
+                    {
+                        if (child == null)
+                        {
+                            continue;
+                        }
+
+                        yield return Operation.SetParentOperation(child, this);
+                    }
+                }
+            }
+        }
+
+        private static readonly ObjectPool<Queue<IOperation>> s_queuePool =
+            new ObjectPool<Queue<IOperation>>(() => new Queue<IOperation>(), 10);
+
+        private IOperation WalkDownOperationToFindParent(HashSet<IOperation> operationAlreadyProcessed, IOperation root)
+        {
+            void EnqueueChildOperations(Queue<IOperation> queue, IOperation parent)
+            {
+                // for now, children can return null. once we fix the issue, children should never return null
+                // https://github.com/dotnet/roslyn/issues/21196
+                foreach (var o in parent.Children.WhereNotNull())
+                {
+                    queue.Enqueue(o);
+                }
+            }
+
+            var operationQueue = s_queuePool.Allocate();
+
+            try
+            {
+                EnqueueChildOperations(operationQueue, root);
+
+                // walk down the tree to find parent operation
+                // every operation returned by the queue should already have Parent operation set
+                while (operationQueue.Count > 0)
+                {
+                    var operation = operationQueue.Dequeue();
+
+                    if (!operationAlreadyProcessed.Add(operation))
+                    {
+                        // don't process IOperation we already processed otherwise,
+                        // we can walk down same tree multiple times
+                        continue;
+                    }
+
+                    if (operation == this)
+                    {
+                        // parent found
+                        return operation.Parent;
+                    }
+
+                    // It can't filter visiting children by node span since IOperation
+                    // might have children which belong to sibling but not direct spine
+                    // of sub tree.
+
+                    // queue children so that we can do breadth first search
+                    EnqueueChildOperations(operationQueue, operation);
+                }
+
+                return null;
+            }
+            finally
+            {
+                operationQueue.Clear();
+                s_queuePool.Free(operationQueue);
+            }
+        }
+
+        // internal for testing
+        internal IOperation SearchParentOperation()
+        {
+            var operationAlreadyProcessed = PooledHashSet<IOperation>.GetInstance();
+
+            // start from current node since one node can have multiple operations mapped to
+            var currentCandidate = Syntax;
+
+            try
+            {
+                while (currentCandidate != null)
+                {
+                    if (!SemanticModel.Root.FullSpan.Contains(currentCandidate.FullSpan))
+                    {
+                        // reached top of parent chain
+                        break;
+                    }
+
+                    // get operation
+                    var tree = SemanticModel.GetOperationInternal(currentCandidate);
+                    if (tree != null)
+                    {
+                        // walk down operation tree to see whether this tree contains parent of this operation
+                        var parent = WalkDownOperationToFindParent(operationAlreadyProcessed, tree);
+                        if (parent != null)
+                        {
+                            return parent;
+                        }
+                    }
+
+                    // move up the tree
+                    currentCandidate = currentCandidate.Parent;
+                }
+
+                // root node. there is no parent
+                return null;
+            }
+            finally
+            {
+                // put the hashset back to the pool
+                operationAlreadyProcessed.Free();
+            }
         }
     }
 }
