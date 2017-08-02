@@ -636,7 +636,6 @@
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Versions\Extensions.cs" />
-    <Compile Include="Versions\ISemanticVersionTrackingService.cs" />
     <Compile Include="Versions\PersistedVersionStampLogger.cs" />
     <Compile Include="Workspace\AdhocWorkspace.cs" />
     <Compile Include="Workspace\DocumentActiveContextChangedEventArgs.cs" />
