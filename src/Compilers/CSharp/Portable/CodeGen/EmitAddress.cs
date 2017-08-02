@@ -398,9 +398,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (!field.IsReadOnly)
             {
-                //PROTOTYPE(verifier): should we dig through struct receivers? 
-                //   roField.a.b.c.d.Method() // roField is readonly, all structs
-                //   is it cheaper to copy "d" than "roField", but getting rw ref of roField could upset verifier
+                // in a case if we have a writeable struct field with a receiver that only has a readable home we would need to pass it via a temp.
+                // it would be advantageous to make a temp for the field, not for the the outer struct, since the field is smaller and we can get to is by feching references.
+                // NOTE: this would not be profitable if we have to satisfy verifier, since for verifiability 
+                //       we would not be able to dig for the inner field using references and the outer struct will have to be copied to a temp anyways.
+                if (!IsPEVerifyCompatible())
+                {
+                    Debug.Assert(needWriteable == true);
+
+                    var receiver = fieldAccess.ReceiverOpt;
+                    if (receiver?.Type.IsValueType == true)
+                    {
+                        // Check receiver:
+                        // has writeable home -> return true - the whole chain has writeable home (also a more common case)
+                        // has readable home -> return false - we need to copy the field
+                        // otherwise         -> return true  - the copy will be made at higher level so the leaf field can have writeable home
+
+                        return HasHome(receiver, needWriteable: true) ||  
+                               !HasHome(receiver, needWriteable: false);
+                    }
+                }
+
                 return true;
             }
 
