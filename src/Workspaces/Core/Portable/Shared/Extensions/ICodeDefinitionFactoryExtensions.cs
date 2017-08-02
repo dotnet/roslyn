@@ -87,8 +87,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             yield return CodeGenerationSymbolFactory.CreateConstructorSymbol(
+<<<<<<< HEAD
+<<<<<<< HEAD
                 attributes: default,
                 accessibility: Accessibility.Public,
+=======
+                attributes: default(ImmutableArray<AttributeData>),
+                accessibility: containingTypeOpt.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
+>>>>>>> d22f77d314
+=======
+                attributes: default(ImmutableArray<AttributeData>),
+                accessibility: containingTypeOpt.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
+>>>>>>> 7e54816793
                 modifiers: new DeclarationModifiers(),
                 typeName: typeName,
                 parameters: parameters,
