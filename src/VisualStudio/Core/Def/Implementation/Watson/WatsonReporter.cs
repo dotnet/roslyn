@@ -16,6 +16,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private static Func<IFaultUtility, int> s_defaultCallback = _ => 0;
 
         /// <summary>
+        /// Controls whether or not we actually report the failure.
+        /// There are situations where we know we're in a bad state and any further reports are unlikely to be
+        /// helpful, so we shouldn't send them.
+        /// </summary>
+        private static bool s_reportWatson = true;
+
+        /// <summary>
         /// Report Non-Fatal Watson
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
@@ -44,6 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// CAB.</param>
         public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
         {
+            if (!s_reportWatson)
+            {
+                return;
+            }
+
             TelemetryService.DefaultSession.PostFault(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
                 description: description,
@@ -54,6 +66,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
                     return callback(arg);
                 });
+
+            if (exception is OutOfMemoryException)
+            {
+                // Once we've encountered one OOM we're likely to see more. There will probably be other
+                // failures as a direct result of the OOM, as well. These aren't helpful so we should just
+                // stop reporting failures.
+                s_reportWatson = false;
+            }
         }
     }
 }
