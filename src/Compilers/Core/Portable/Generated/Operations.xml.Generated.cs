@@ -1368,35 +1368,21 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseEventAssignmentExpression : Operation, IEventAssignmentExpression
     {
-<<<<<<< HEAD
-        protected BaseEventAssignmentExpression(bool adds, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.EventAssignmentExpression, syntax, type, constantValue)
-=======
-        protected BaseEventAssignmentExpression(IEventSymbol @event, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseEventAssignmentExpression(bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.EventAssignmentExpression, semanticModel, syntax, type, constantValue)
->>>>>>> dotnet/features/ioperation
         {
             Adds = adds;
         }
-<<<<<<< HEAD
 
         /// <summary>
         /// Reference to the event being bound.
         /// </summary>
-        public abstract IEventReferenceExpression EventReference { get; }
+        protected abstract IEventReferenceExpression EventReferenceImpl { get; }
 
         /// <summary>
         /// Handler supplied for the event.
         /// </summary>
-        public abstract IOperation HandlerValue { get; }
-=======
-        /// <summary>
-        /// Event being bound.
-        /// </summary>
-        public IEventSymbol Event { get; }
-        protected abstract IOperation EventInstanceImpl { get; }
         protected abstract IOperation HandlerValueImpl { get; }
->>>>>>> dotnet/features/ioperation
 
         /// <summary>
         /// True for adding a binding, false for removing one.
@@ -1414,7 +1400,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Instance used to refer to the event being bound.
         /// </summary>
-        public IOperation EventInstance => Operation.SetParentOperation(EventInstanceImpl, this);
+        public IEventReferenceExpression EventReference => Operation.SetParentOperation(EventReferenceImpl, this);
 
         /// <summary>
         /// Handler supplied for the event.
@@ -1435,34 +1421,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class EventAssignmentExpression : BaseEventAssignmentExpression, IEventAssignmentExpression
     {
-<<<<<<< HEAD
-        public EventAssignmentExpression(IEventReferenceExpression eventReference, IOperation handlerValue, bool adds, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(adds, syntax, type, constantValue)
+        public EventAssignmentExpression(IEventReferenceExpression eventReference, IOperation handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(adds, semanticModel, syntax, type, constantValue)
         {
-            EventReference = eventReference;
-            HandlerValue = handlerValue;
-        }
-
-        /// <summary>
-        /// Instance used to refer to the event being bound.
-        /// </summary>
-        public override IEventReferenceExpression EventReference { get; }
-
-        /// <summary>
-        /// Handler supplied for the event.
-        /// </summary>
-        public override IOperation HandlerValue { get; }
-=======
-        public EventAssignmentExpression(IEventSymbol @event, IOperation eventInstance, IOperation handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(@event, adds, semanticModel, syntax, type, constantValue)
-        {
-            EventInstanceImpl = eventInstance;
+            EventReferenceImpl = eventReference;
             HandlerValueImpl = handlerValue;
         }
 
-        protected override IOperation EventInstanceImpl { get; }
+        protected override IEventReferenceExpression EventReferenceImpl { get; }
         protected override IOperation HandlerValueImpl { get; }
->>>>>>> dotnet/features/ioperation
     }
 
     /// <summary>
@@ -1472,25 +1439,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IEventReferenceExpression> _lazyEventReference;
         private readonly Lazy<IOperation> _lazyHandlerValue;
+        
+        public LazyEventAssignmentExpression(Lazy<IEventReferenceExpression> eventReference, Lazy<IOperation> handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(adds, semanticModel, syntax, type, constantValue)
 
-<<<<<<< HEAD
-        public LazyEventAssignmentExpression(Lazy<IEventReferenceExpression> eventReference, Lazy<IOperation> handlerValue, bool adds, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(adds, syntax, type, constantValue)
-=======
-        public LazyEventAssignmentExpression(IEventSymbol @event, Lazy<IOperation> eventInstance, Lazy<IOperation> handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(@event, adds, semanticModel, syntax, type, constantValue)
->>>>>>> dotnet/features/ioperation
         {
             _lazyEventReference = eventReference ?? throw new System.ArgumentNullException(nameof(eventReference));
             _lazyHandlerValue = handlerValue ?? throw new System.ArgumentNullException(nameof(handlerValue));
         }
-
-<<<<<<< HEAD
-        /// <summary>
-        /// Instance used to refer to the event being bound.
-        /// </summary>
-        public override IEventReferenceExpression EventReference => _lazyEventReference.Value;
-=======
-        protected override IOperation EventInstanceImpl => _lazyEventInstance.Value;
->>>>>>> dotnet/features/ioperation
+        
+        protected override IEventReferenceExpression EventReferenceImpl => _lazyEventReference.Value;
 
         protected override IOperation HandlerValueImpl => _lazyHandlerValue.Value;
     }

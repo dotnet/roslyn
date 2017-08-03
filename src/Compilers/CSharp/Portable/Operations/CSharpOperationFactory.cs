@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Event.IsStatic ? null : boundEventAssignmentOperator.ReceiverOpt));
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
 
-            return new LazyEventReferenceExpression(@event, instance, @event, eventAccessSyntax, @event.Type, ConvertToOptional(null));
+            return new LazyEventReferenceExpression(@event, instance, @event, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null));
         }
 
         private IEventAssignmentExpression CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
@@ -412,11 +412,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             bool adds = boundEventAssignmentOperator.IsAddition;
             ITypeSymbol type = boundEventAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundEventAssignmentOperator.ConstantValue);
-<<<<<<< HEAD
-            return new LazyEventAssignmentExpression(eventReference, handlerValue, adds, syntax, type, constantValue);
-=======
-            return new LazyEventAssignmentExpression(@event, eventInstance, handlerValue, adds, _semanticModel, syntax, type, constantValue);
->>>>>>> dotnet/features/ioperation
+            return new LazyEventAssignmentExpression(eventReference, handlerValue, adds, _semanticModel, syntax, type, constantValue);
         }
 
         private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)

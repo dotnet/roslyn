@@ -427,27 +427,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
             Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
-<<<<<<< HEAD
             Dim eventReference = If(eventAccess Is Nothing, Nothing, CreateBoundEventAccessOperation(eventAccess))
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New EventAssignmentExpression(
-                eventReference, Create(statement.Handler), adds:=adds, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
-=======
-            Dim [event] As IEventSymbol = eventAccess?.EventSymbol
-            Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
-
-            Return New EventAssignmentExpression(
-                        [event], instance, Create(statement.Handler), adds:=True, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
-        End Function
-
-        Private Function GetRemoveStatementExpression(statement As BoundRemoveHandlerStatement) As IOperation
-            Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
-            Dim [event] As IEventSymbol = eventAccess?.EventSymbol
-            Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
-
-            Return New EventAssignmentExpression(
-                [event], instance, Create(statement.Handler), adds:=False, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
->>>>>>> dotnet/features/ioperation
+                eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
         End Function
 
         Private Shared Function GetConversionKind(kind As VisualBasic.ConversionKind) As Semantics.ConversionKind
