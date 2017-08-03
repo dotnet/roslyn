@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
-        [CompilerTrait(CompilerFeature.Determinism)]
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void VerifyLiftedBinaryOperators1()
         {
@@ -30,7 +30,7 @@ class C
             VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
         }
 
-        [CompilerTrait(CompilerFeature.Determinism)]
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void VerifyNonLiftedBinaryOperators1()
         {
@@ -51,7 +51,7 @@ class C
             VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
         }
 
-        [CompilerTrait(CompilerFeature.Determinism)]
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void VerifyLiftedUserDefinedBinaryOperators1()
         {
@@ -73,7 +73,7 @@ struct C
             VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
         }
 
-        [CompilerTrait(CompilerFeature.Determinism)]
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void VerifyNonLiftedUserDefinedBinaryOperators1()
         {
