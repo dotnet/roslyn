@@ -86,6 +86,9 @@
     <!-- Live Unit Testing does not currently support PackageReference style restore unless the Sdk="Microsoft.NET.Sdk" attribute is used on projects.
          Removal of this work-around tracked by:  https://github.com/dotnet/roslyn/issues/20427 -->
     <ProjectAssetsFile Condition="'$(BuildingForLiveUnitTesting)' == 'true'">$(LiveUnitTestingOriginalBaseIntermediateOutputPath)project.assets.json</ProjectAssetsFile>
+
+    <!-- https://github.com/dotnet/roslyn/issues/21272 -->
+    <GenerateResourceMSBuildRuntime Condition="'$(TargetFramework)' == 'netcoreapp2.0'">CurrentRuntime</GenerateResourceMSBuildRuntime>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
