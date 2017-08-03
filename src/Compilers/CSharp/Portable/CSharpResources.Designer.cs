@@ -2501,7 +2501,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert {0} to delegate type &apos;{1}&apos; because the parameter types do not match the delegate parameter types.
+        ///   Looks up a localized string similar to Cannot convert {0} to type &apos;{1}&apos; because the parameter types do not match the delegate parameter types.
         /// </summary>
         internal static string ERR_CantConvAnonMethParams {
             get {
