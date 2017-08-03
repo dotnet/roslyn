@@ -27,15 +27,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
         {
             var markup = @"
 Class C
-    Dim {|definition:Foo|} as Int32
+    Dim {|definition:Goo|} as Int32
     Function M()
-        Console.WriteLine({|reference:Foo|})
-        {|writtenReference:Foo|} = 4
+        Console.WriteLine({|reference:Goo|})
+        {|writtenReference:Goo|} = 4
     End Function
 End Class";
             Test.Utilities.MarkupTestFile.GetSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
             VisualStudio.Editor.SetText(text);
-            Verify("Foo", spans);
+            Verify("Goo", spans);
 
             // Verify tags disappear
             VerifyNone("4");

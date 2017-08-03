@@ -110,7 +110,7 @@ class C
     {
         class Type
         {
-            void Foo()
+            void Goo()
             {
                 int x = 1 "" + {|FixAllInDocument:Sign|} + @"" "" + Sign + @""3;
             }
@@ -136,7 +136,7 @@ class C
     {
         class Type
         {
-            void Foo()
+            void Goo()
             {
                 int x = 1 "" + this.Sign + @"" "" + this.Sign + @""3;
             }

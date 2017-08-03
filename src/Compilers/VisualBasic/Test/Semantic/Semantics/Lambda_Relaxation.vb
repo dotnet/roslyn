@@ -2997,11 +2997,11 @@ End Module
 Imports System
 
 Class Thing
-    Sub Foo()
+    Sub Goo()
     End Sub
  
     Public t As New Thing
-    Public tcb As AsyncCallback = AddressOf t.Foo
+    Public tcb As AsyncCallback = AddressOf t.Goo
 End Class
     ]]></file>
 </compilation>

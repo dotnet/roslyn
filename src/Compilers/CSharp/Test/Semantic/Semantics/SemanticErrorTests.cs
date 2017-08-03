@@ -129,37 +129,37 @@ class C
     static void Main(string[] args)
     {
         abc p = new abc();
-        boo foo = null;
-        boo foo1 = new boo(abc.far);
+        boo goo = null;
+        boo goo1 = new boo(abc.far);
         boo[] arrfoo = { p.bar, abc.far };
-        foo += arrfoo; // Invalid
-        foo -= arrfoo; // Invalid
-        foo += new boo[] { p.bar, abc.far };	// Invalid
-        foo -= new boo[] { p.bar, abc.far };	// Invalid
-        foo += Delegate.Combine(arrfoo);	// Invalid
-        foo += Delegate.Combine(foo, foo1);  	// Invalid
+        goo += arrfoo; // Invalid
+        goo -= arrfoo; // Invalid
+        goo += new boo[] { p.bar, abc.far };	// Invalid
+        goo -= new boo[] { p.bar, abc.far };	// Invalid
+        goo += Delegate.Combine(arrfoo);	// Invalid
+        goo += Delegate.Combine(goo, goo1);  	// Invalid
     }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (16,16): error CS0029: Cannot implicitly convert type 'boo[]' to 'boo'
-                //         foo += arrfoo; // Invalid
+                //         goo += arrfoo; // Invalid
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "arrfoo").WithArguments("boo[]", "boo"),
                 // (17,16): error CS0029: Cannot implicitly convert type 'boo[]' to 'boo'
-                //         foo -= arrfoo; // Invalid
+                //         goo -= arrfoo; // Invalid
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "arrfoo").WithArguments("boo[]", "boo"),
                 // (18,16): error CS0029: Cannot implicitly convert type 'boo[]' to 'boo'
-                //         foo += new boo[] { p.bar, abc.far };	// Invalid
+                //         goo += new boo[] { p.bar, abc.far };	// Invalid
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new boo[] { p.bar, abc.far }").WithArguments("boo[]", "boo"),
                 // (19,16): error CS0029: Cannot implicitly convert type 'boo[]' to 'boo'
-                //         foo -= new boo[] { p.bar, abc.far };	// Invalid
+                //         goo -= new boo[] { p.bar, abc.far };	// Invalid
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new boo[] { p.bar, abc.far }").WithArguments("boo[]", "boo"),
                 // (20,16): error CS0266: Cannot implicitly convert type 'System.Delegate' to 'boo'. An explicit conversion exists (are you missing a cast?)
-                //         foo += Delegate.Combine(arrfoo);	// Invalid
+                //         goo += Delegate.Combine(arrfoo);	// Invalid
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "Delegate.Combine(arrfoo)").WithArguments("System.Delegate", "boo"),
                 // (21,16): error CS0266: Cannot implicitly convert type 'System.Delegate' to 'boo'. An explicit conversion exists (are you missing a cast?)
-                //         foo += Delegate.Combine(foo, foo1);  	// Invalid
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "Delegate.Combine(foo, foo1)").WithArguments("System.Delegate", "boo")
+                //         goo += Delegate.Combine(goo, goo1);  	// Invalid
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "Delegate.Combine(goo, goo1)").WithArguments("System.Delegate", "boo")
                 );
         }
 
@@ -199,24 +199,24 @@ class C
 {
     static void Main(string[] args)
     {
-        boo foo = null;
-        foo += delegate (string x) { System.Console.WriteLine(x); };// Invalid
-        foo -= delegate (string x) { System.Console.WriteLine(x); };// Invalid
+        boo goo = null;
+        goo += delegate (string x) { System.Console.WriteLine(x); };// Invalid
+        goo -= delegate (string x) { System.Console.WriteLine(x); };// Invalid
     }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (7,16): error CS1661: Cannot convert anonymous method to delegate type 'boo' because the parameter types do not match the delegate parameter types
-                //         foo += delegate (string x) { System.Console.WriteLine(x); };// Invalid
+                //         goo += delegate (string x) { System.Console.WriteLine(x); };// Invalid
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate (string x) { System.Console.WriteLine(x); }").WithArguments("anonymous method", "boo"),
                 // (7,33): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
-                //         foo += delegate (string x) { System.Console.WriteLine(x); };// Invalid
+                //         goo += delegate (string x) { System.Console.WriteLine(x); };// Invalid
                 Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int"),
                 // (8,16): error CS1661: Cannot convert anonymous method to delegate type 'boo' because the parameter types do not match the delegate parameter types
-                //         foo -= delegate (string x) { System.Console.WriteLine(x); };// Invalid
+                //         goo -= delegate (string x) { System.Console.WriteLine(x); };// Invalid
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate (string x) { System.Console.WriteLine(x); }").WithArguments("anonymous method", "boo"),
                 // (8,33): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
-                //         foo -= delegate (string x) { System.Console.WriteLine(x); };// Invalid
+                //         goo -= delegate (string x) { System.Console.WriteLine(x); };// Invalid
                 Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int")
                 );
         }
@@ -232,24 +232,24 @@ class C
 {
     static void Main(string[] args)
     {
-        boo foo = null;
-        foo += (string x) => { };// Invalid
-        foo -= (string x) => { };// Invalid
+        boo goo = null;
+        goo += (string x) => { };// Invalid
+        goo -= (string x) => { };// Invalid
     }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (7,16): error CS1661: Cannot convert lambda expression to delegate type 'boo' because the parameter types do not match the delegate parameter types
-                //         foo += (string x) => { };// Invalid
+                //         goo += (string x) => { };// Invalid
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(string x) => { }").WithArguments("lambda expression", "boo"),
                 // (7,24): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
-                //         foo += (string x) => { };// Invalid
+                //         goo += (string x) => { };// Invalid
                 Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int"),
                 // (8,16): error CS1661: Cannot convert lambda expression to delegate type 'boo' because the parameter types do not match the delegate parameter types
-                //         foo -= (string x) => { };// Invalid
+                //         goo -= (string x) => { };// Invalid
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(string x) => { }").WithArguments("lambda expression", "boo"),
                 // (8,24): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
-                //         foo -= (string x) => { };// Invalid
+                //         goo -= (string x) => { };// Invalid
                 Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int")
                 );
         }
@@ -269,10 +269,10 @@ class C
     static void Main(string[] args)
     {
         C p = new C();
-        boo foo = null;
-        foo += p.bar + far;// Invalid
-        foo += (x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far;// Invalid
-        foo += delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far;// Invalid
+        boo goo = null;
+        goo += p.bar + far;// Invalid
+        goo += (x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far;// Invalid
+        goo += delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far;// Invalid
     }
 }
 ";
@@ -331,7 +331,7 @@ class C
                 );
         }
 
-        // generic-delegate (foo<t>(...)) += non generic-methodgroup(bar<t>(...))
+        // generic-delegate (goo<t>(...)) += non generic-methodgroup(bar<t>(...))
         [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps10()
@@ -346,67 +346,67 @@ class C
     static void Main(string[] args)
     {
         C p = new C();
-        boo<int> foo = null;
-        foo += p.bar;// OK
-        foo += p.bar1;// Invalid
-        foo += (x) => { System.Console.WriteLine(""Lambda:{0}"", x); };// OK
-        foo += (string x) => { System.Console.WriteLine(""Lambda:{0}"", x); };// Invalid
-        foo += delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); };// OK
-        foo += delegate (string x) { System.Console.WriteLine(""Anonymous:{0}"", x); };// Invalid
+        boo<int> goo = null;
+        goo += p.bar;// OK
+        goo += p.bar1;// Invalid
+        goo += (x) => { System.Console.WriteLine(""Lambda:{0}"", x); };// OK
+        goo += (string x) => { System.Console.WriteLine(""Lambda:{0}"", x); };// Invalid
+        goo += delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); };// OK
+        goo += delegate (string x) { System.Console.WriteLine(""Anonymous:{0}"", x); };// Invalid
 
-        boo<string> foo1 = null;
-        foo1 += p.bar;// Invalid
-        foo1 += p.bar1;// OK
-        foo1 += (x) => { System.Console.WriteLine(""Lambda:{0}"", x); };// OK
-        foo1 += (int x) => { System.Console.WriteLine(""Lambda:{0}"", x); };// Invalid
-        foo1 += delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); };// Invalid
-        foo1 += delegate (string x) { System.Console.WriteLine(""Anonymous:{0}"", x); };// OK
-        foo += foo1;// Invalid
-        foo1 += foo;// Invalid
+        boo<string> goo1 = null;
+        goo1 += p.bar;// Invalid
+        goo1 += p.bar1;// OK
+        goo1 += (x) => { System.Console.WriteLine(""Lambda:{0}"", x); };// OK
+        goo1 += (int x) => { System.Console.WriteLine(""Lambda:{0}"", x); };// Invalid
+        goo1 += delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); };// Invalid
+        goo1 += delegate (string x) { System.Console.WriteLine(""Anonymous:{0}"", x); };// OK
+        goo += goo1;// Invalid
+        goo1 += goo;// Invalid
     }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (12,18): error CS0123: No overload for 'bar1' matches delegate 'boo<int>'
-                //         foo += p.bar1;// Invalid
+                //         goo += p.bar1;// Invalid
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "bar1").WithArguments("bar1", "boo<int>"),
                 // (14,16): error CS1661: Cannot convert lambda expression to delegate type 'boo<int>' because the parameter types do not match the delegate parameter types
-                //         foo += (string x) => { System.Console.WriteLine("Lambda:{0}", x); };// Invalid
+                //         goo += (string x) => { System.Console.WriteLine("Lambda:{0}", x); };// Invalid
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, @"(string x) => { System.Console.WriteLine(""Lambda:{0}"", x); }").WithArguments("lambda expression", "boo<int>"),
                 // (14,24): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
-                //         foo += (string x) => { System.Console.WriteLine("Lambda:{0}", x); };// Invalid
+                //         goo += (string x) => { System.Console.WriteLine("Lambda:{0}", x); };// Invalid
                 Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int"),
                 // (16,16): error CS1661: Cannot convert anonymous method to delegate type 'boo<int>' because the parameter types do not match the delegate parameter types
-                //         foo += delegate (string x) { System.Console.WriteLine("Anonymous:{0}", x); };// Invalid
+                //         goo += delegate (string x) { System.Console.WriteLine("Anonymous:{0}", x); };// Invalid
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, @"delegate (string x) { System.Console.WriteLine(""Anonymous:{0}"", x); }").WithArguments("anonymous method", "boo<int>"),
                 // (16,33): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
-                //         foo += delegate (string x) { System.Console.WriteLine("Anonymous:{0}", x); };// Invalid
+                //         goo += delegate (string x) { System.Console.WriteLine("Anonymous:{0}", x); };// Invalid
                 Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int"),
                 // (19,19): error CS0123: No overload for 'bar' matches delegate 'boo<string>'
-                //         foo1 += p.bar;// Invalid
+                //         goo1 += p.bar;// Invalid
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "bar").WithArguments("bar", "boo<string>"),
                 // (22,17): error CS1661: Cannot convert lambda expression to delegate type 'boo<string>' because the parameter types do not match the delegate parameter types
-                //         foo1 += (int x) => { System.Console.WriteLine("Lambda:{0}", x); };// Invalid
+                //         goo1 += (int x) => { System.Console.WriteLine("Lambda:{0}", x); };// Invalid
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, @"(int x) => { System.Console.WriteLine(""Lambda:{0}"", x); }").WithArguments("lambda expression", "boo<string>"),
                 // (22,22): error CS1678: Parameter 1 is declared as type 'int' but should be 'string'
-                //         foo1 += (int x) => { System.Console.WriteLine("Lambda:{0}", x); };// Invalid
+                //         goo1 += (int x) => { System.Console.WriteLine("Lambda:{0}", x); };// Invalid
                 Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "int", "", "string"),
                 // (23,17): error CS1661: Cannot convert anonymous method to delegate type 'boo<string>' because the parameter types do not match the delegate parameter types
-                //         foo1 += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); };// Invalid
+                //         goo1 += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); };// Invalid
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); }").WithArguments("anonymous method", "boo<string>"),
                 // (23,31): error CS1678: Parameter 1 is declared as type 'int' but should be 'string'
-                //         foo1 += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); };// Invalid
+                //         goo1 += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); };// Invalid
                 Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "int", "", "string"),
                 // (25,16): error CS0029: Cannot implicitly convert type 'boo<string>' to 'boo<int>'
-                //         foo += foo1;// Invalid
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "foo1").WithArguments("boo<string>", "boo<int>"),
+                //         goo += goo1;// Invalid
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goo1").WithArguments("boo<string>", "boo<int>"),
                 // (26,17): error CS0029: Cannot implicitly convert type 'boo<int>' to 'boo<string>'
-                //         foo1 += foo;// Invalid
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "foo").WithArguments("boo<int>", "boo<string>")
+                //         goo1 += goo;// Invalid
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goo").WithArguments("boo<int>", "boo<string>")
                 );
         }
 
-        // generic-delegate (foo<t>(...)) += generic-methodgroup(bar<t>(...))
+        // generic-delegate (goo<t>(...)) += generic-methodgroup(bar<t>(...))
         [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps11()
@@ -419,20 +419,20 @@ class C
     static void Main(string[] args)
     {
         C p = new C();
-        boo<int> foo = null;
-        foo += far<int>;// OK
-        foo += far<short>;// Invalid
+        boo<int> goo = null;
+        goo += far<int>;// OK
+        goo += far<short>;// Invalid
     }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (10,16): error CS0123: No overload for 'far' matches delegate 'boo<int>'
-                //         foo += far<short>;// Invalid
+                //         goo += far<short>;// Invalid
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "far<short>").WithArguments("far", "boo<int>")
                 );
         }
 
-        // non generic-delegate (foo<t>(...)) += generic-methodgroup(bar<t>(...))
+        // non generic-delegate (goo<t>(...)) += generic-methodgroup(bar<t>(...))
         [WorkItem(539906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539906")]
         [Fact]
         public void CS0019ERR_BadBinaryOps12()
@@ -445,15 +445,15 @@ class C
     static void Main(string[] args)
     {
         C p = new C();
-        boo<int> foo = null;
-        foo += far<int>;// OK
-        foo += far<short>;// Invalid
+        boo<int> goo = null;
+        goo += far<int>;// OK
+        goo += far<short>;// Invalid
     }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (10,16): error CS0123: No overload for 'far' matches delegate 'boo<int>'
-                //         foo += far<short>;// Invalid
+                //         goo += far<short>;// Invalid
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "far<short>").WithArguments("far", "boo<int>")
                 );
         }
@@ -1148,7 +1148,7 @@ namespace X
 {
     void M()
     {
-        M().Foo();
+        M().Goo();
     }
 }
 ";
@@ -1344,8 +1344,8 @@ int c = this.a;
 this.c = this.a;
 int prop { get { return 1; } set { this.a = 1;} }
 
-void foo() {
-    this.foo();
+void goo() {
+    this.goo();
     this.a = this.b;
     object c = this;
 }
@@ -1358,9 +1358,9 @@ class C
     {
     }
 
-    void foo()
+    void goo()
     {
-        this.foo();
+        this.goo();
     }
 }";
             var comp = CreateCompilationWithMscorlib45(
@@ -1882,10 +1882,10 @@ class Program
 
     static int Main()
     {
-        return Foo((MyEnum)null);
+        return Goo((MyEnum)null);
     }
 
-    static int Foo(MyEnum x)
+    static int Goo(MyEnum x)
     {
         return 1;
     }
@@ -2311,7 +2311,7 @@ class Program
 {
     public static void Main()
     { }
-    void foo(color color1)
+    void goo(color color1)
     {
         switch (color)
         {
@@ -2710,14 +2710,14 @@ class C
     static void Main(string[] args)
     {
         abc p = new abc();
-        boo foo = null;
-        foo += new boo(I.bar);
-        foo();
+        boo goo = null;
+        goo += new boo(I.bar);
+        goo();
     }
 }")
             .VerifyDiagnostics(
                 // (16,24): error CS0120: An object reference is required for the non-static field, method, or property 'I.bar()'
-                //         foo += new boo(I.bar);
+                //         goo += new boo(I.bar);
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "I.bar").WithArguments("I.bar()"),
                 // (14,13): warning CS0219: The variable 'p' is assigned but its value is never used
                 //         abc p = new abc();
@@ -2864,7 +2864,7 @@ class C
         object field2;
         object Property2 { get; set; }
 
-        public void Foo() 
+        public void Goo() 
         {
             object f = field;
             object p = Property;
@@ -2879,13 +2879,13 @@ class C
 
             object f2 = field2;
             object p2 = Property2;
-            Foo();
+            Goo();
         }
     }
 
     class E : C
     {
-        public void Foo() 
+        public void Goo() 
         {
             object f3 = field;
             object p3 = Property;
@@ -2918,9 +2918,9 @@ class C
                 // (27,25): error CS0120: An object reference is required for the non-static field, method, or property 'C.D.Property2'
                 //             object p2 = Property2;
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Property2").WithArguments("C.D.Property2"),
-                // (28,13): error CS0120: An object reference is required for the non-static field, method, or property 'C.D.Foo()'
-                //             Foo();
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Foo").WithArguments("C.D.Foo()"),
+                // (28,13): error CS0120: An object reference is required for the non-static field, method, or property 'C.D.Goo()'
+                //             Goo();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Goo").WithArguments("C.D.Goo()"),
                 // (4,12): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value null
                 //     object field;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "null"),
@@ -3089,11 +3089,11 @@ interface I<T> { }
 
 class Error
 {
-    static void Foo<T>(I<T> i) { }
+    static void Goo<T>(I<T> i) { }
 
     static void Main()
     {
-        Foo(new A.B());
+        Goo(new A.B());
     }
 }
 ";
@@ -3116,7 +3116,7 @@ class Error
             Assert.Equal(CandidateReason.OverloadResolutionFailure, boundCall.CandidateReason);
 
             var constructedMethodSymbol = (MethodSymbol)(boundCall.CandidateSymbols[0]);
-            Assert.Equal("void Error.Foo<A.ProtectedClass>(I<A.ProtectedClass> i)", constructedMethodSymbol.ToTestDisplayString());
+            Assert.Equal("void Error.Goo<A.ProtectedClass>(I<A.ProtectedClass> i)", constructedMethodSymbol.ToTestDisplayString());
 
             var typeArgSymbol = constructedMethodSymbol.TypeArguments.Single();
             Assert.Equal("A.ProtectedClass", typeArgSymbol.ToTestDisplayString());
@@ -3126,7 +3126,7 @@ class Error
             Assert.Equal("I<A.ProtectedClass>", paramTypeSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Type should be inaccessible since type argument is inaccessible");
 
-            // The original test attempted to verify that "Error.Foo<A.ProtectedClass>" is an 
+            // The original test attempted to verify that "Error.Goo<A.ProtectedClass>" is an 
             // inaccessible method when inside Error.Main. The C# specification nowhere gives 
             // a special rule for constructed generic methods; the accessibility domain of
             // a method depends only on its declared accessibility and the declared accessibility
@@ -3138,8 +3138,8 @@ class Error
             // Assert.False(model.IsAccessible(callPosition, constructedMethodSymbol), "Method should be inaccessible since parameter type is inaccessible");
 
             compilation.VerifyDiagnostics(
-                // (16,9): error CS0122: 'Error.Foo<A.ProtectedClass>(I<A.ProtectedClass>)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "Foo").WithArguments("Error.Foo<A.ProtectedClass>(I<A.ProtectedClass>)"));
+                // (16,9): error CS0122: 'Error.Goo<A.ProtectedClass>(I<A.ProtectedClass>)' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "Goo").WithArguments("Error.Goo<A.ProtectedClass>(I<A.ProtectedClass>)"));
         }
 
         [WorkItem(539628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539628")]
@@ -3217,9 +3217,9 @@ class C
     static void Main(string[] args)
     {
         C p = new C();
-        boo foo = null;
-        foo += far<int>;// Invalid
-        foo += far<short>;// OK
+        boo goo = null;
+        goo += far<int>;// Invalid
+        goo += far<short>;// OK
     }
 }";
             CreateStandardCompilation(text).VerifyDiagnostics(
@@ -3238,7 +3238,7 @@ class C<T>
 {
     public static void far(T x) { }
     public static void par<U>(U x) { System.Console.WriteLine(""par""); }
-    public static boo foo = null;
+    public static boo goo = null;
 
 }
 class D
@@ -3246,18 +3246,18 @@ class D
     static void Main(string[] args)
     {
         C<long> p = new C<long>();
-        C<long>.foo += C<long>.far;
-        C<long>.foo += C<long>.par<byte>;
-        C<long>.foo(byte.MaxValue);
-        C<long>.foo(long.MaxValue);
-        C<short>.foo(long.MaxValue);
+        C<long>.goo += C<long>.far;
+        C<long>.goo += C<long>.par<byte>;
+        C<long>.goo(byte.MaxValue);
+        C<long>.goo(long.MaxValue);
+        C<short>.goo(long.MaxValue);
     }
 }";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (15,24): error CS0123: No overload for 'C<long>.far(long)' matches delegate 'boo'
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "C<long>.far").WithArguments("C<long>.far(long)", "boo").WithLocation(15, 24),
                 // (16,32): error CS0123: No overload for 'par' matches delegate 'boo'
-                //         C<long>.foo += C<long>.par<byte>;
+                //         C<long>.goo += C<long>.par<byte>;
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "par<byte>").WithArguments("par", "boo").WithLocation(16, 32),
                 // (18,21): error CS1503: Argument 1: cannot convert from 'long' to 'short'
                 Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "short").WithLocation(18, 21),
@@ -5004,7 +5004,7 @@ class Program
     {
         goto Label;
     }
-    public static void Foo()
+    public static void Goo()
     {
     Label:
         ;
@@ -5435,7 +5435,7 @@ public class A
     {
         try
         {
-            Foo();
+            Goo();
         }
         catch (EG<object>)
         {
@@ -5445,7 +5445,7 @@ public class A
         }
     }
 
-    void Foo() { }
+    void Goo() { }
 }";
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (17,16): error CS0160: A previous catch clause already catches all exceptions of this or of a super type ('EG<object>')
@@ -5467,7 +5467,7 @@ public class A<T> where T : EB
     {
         try
         {
-            Foo();
+            Goo();
         }
         catch (EA)
         {
@@ -5477,7 +5477,7 @@ public class A<T> where T : EB
         }
     }
 
-    void Foo() { }
+    void Goo() { }
 }";
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (18,16): error CS0160: A previous catch clause already catches all exceptions of this or of a super type ('EA')
@@ -5503,7 +5503,7 @@ public class B<V> : A<EG<dynamic>> where V : EG<object>
     {
         try
         {
-            Foo();
+            Goo();
         }
         catch (EG<dynamic>)
         {
@@ -5516,7 +5516,7 @@ public class B<V> : A<EG<dynamic>> where V : EG<object>
         }
     }
 
-    void Foo() { } 
+    void Goo() { } 
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
@@ -5564,7 +5564,7 @@ public class B<V> : A<EG<dynamic>> where V : EG<object>
         va = (V[])egda;      
     }
 
-    void Foo() { } 
+    void Goo() { } 
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
@@ -5590,7 +5590,7 @@ public class B<V> : A<EG<dynamic>> where V : EG<object>
     {
         try
         {
-            Foo();
+            Goo();
         }
         catch (EG<object>)
         {
@@ -5603,7 +5603,7 @@ public class B<V> : A<EG<dynamic>> where V : EG<object>
         }
     }
 
-    void Foo() { } 
+    void Goo() { } 
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
@@ -6487,14 +6487,14 @@ namespace MyNamespace
         {
             public int a;
 
-            void Foo()
+            void Goo()
             {
             }
 
             S(int i)
             {
                 // a = i;
-                Foo();  // CS0188
+                Goo();  // CS0188
             }
         }
         public static void Main()
@@ -6505,8 +6505,8 @@ namespace MyNamespace
             CreateStandardCompilation(text).
                 VerifyDiagnostics(
                 // (17,17): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
-                //                 Foo();  // CS0188
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Foo").WithArguments("this"),
+                //                 Goo();  // CS0188
+                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Goo").WithArguments("this"),
                 // (8,24): warning CS0649: Field 'MyNamespace.MyClass.S.a' is never assigned to, and will always have its default value 0
                 //             public int a;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "a").WithArguments("MyNamespace.MyClass.S.a", "0"));
@@ -6942,30 +6942,30 @@ class MyDerived : MyClass
         public void WriteOfReadonlyStaticMemberOfAnotherInstantiation01()
         {
             var text =
-@"public static class Foo<T>
+@"public static class Goo<T>
 {
-    static Foo()
+    static Goo()
     {
-        Foo<int>.X = 1;
-        Foo<int>.Y = 2;
-        Foo<T>.Y = 3;
+        Goo<int>.X = 1;
+        Goo<int>.Y = 2;
+        Goo<T>.Y = 3;
     }
 
     public static readonly int X;
     public static int Y { get; }
 }";
             CreateStandardCompilation(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (6,9): error CS0200: Property or indexer 'Foo<int>.Y' cannot be assigned to -- it is read only
-                //         Foo<int>.Y = 2;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Foo<int>.Y").WithArguments("Foo<int>.Y").WithLocation(6, 9)
+                // (6,9): error CS0200: Property or indexer 'Goo<int>.Y' cannot be assigned to -- it is read only
+                //         Goo<int>.Y = 2;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Goo<int>.Y").WithArguments("Goo<int>.Y").WithLocation(6, 9)
                 );
             CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (5,9): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
-                //         Foo<int>.X = 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "Foo<int>.X").WithLocation(5, 9),
-                // (6,9): error CS0200: Property or indexer 'Foo<int>.Y' cannot be assigned to -- it is read only
-                //         Foo<int>.Y = 2;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Foo<int>.Y").WithArguments("Foo<int>.Y").WithLocation(6, 9)
+                //         Goo<int>.X = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "Goo<int>.X").WithLocation(5, 9),
+                // (6,9): error CS0200: Property or indexer 'Goo<int>.Y' cannot be assigned to -- it is read only
+                //         Goo<int>.Y = 2;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Goo<int>.Y").WithArguments("Goo<int>.Y").WithLocation(6, 9)
                 );
         }
 
@@ -6979,19 +6979,19 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<long>.x);
-        Console.WriteLine(Foo<int>.x);
-        Console.WriteLine(Foo<string>.x);
-        Console.WriteLine(Foo<int>.x);
+        Console.WriteLine(Goo<long>.x);
+        Console.WriteLine(Goo<int>.x);
+        Console.WriteLine(Goo<string>.x);
+        Console.WriteLine(Goo<int>.x);
     }
 }
 
-public static class Foo<T>
+public static class Goo<T>
 {
-    static Foo()
+    static Goo()
     {
         Console.WriteLine(""initializing for "" + typeof(T));
-        Foo<int>.x = typeof(T).Name;
+        Goo<int>.x = typeof(T).Name;
     }
 
     public static readonly string x;
@@ -8233,7 +8233,7 @@ class F
         {
             CreateStandardCompilation(
 @"
-public class Foo
+public class Goo
 {
     public int i;
     public string s;
@@ -8243,7 +8243,7 @@ public class MemberInitializerTest
 {
     private int i =10;
     private string s = ""abc"";
-    private Foo f = new Foo{i = i, s = s};
+    private Goo f = new Goo{i = i, s = s};
 
     public static void Main()
     {
@@ -8252,10 +8252,10 @@ public class MemberInitializerTest
 ")
             .VerifyDiagnostics(
                 // (12,33): error CS0236: A field initializer cannot reference the non-static field, method, or property 'MemberInitializerTest.i'
-                //     private Foo f = new Foo{i = i, s = s};
+                //     private Goo f = new Goo{i = i, s = s};
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "i").WithArguments("MemberInitializerTest.i").WithLocation(12, 33),
                 // (12,40): error CS0236: A field initializer cannot reference the non-static field, method, or property 'MemberInitializerTest.s'
-                //     private Foo f = new Foo{i = i, s = s};
+                //     private Goo f = new Goo{i = i, s = s};
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "s").WithArguments("MemberInitializerTest.s").WithLocation(12, 40));
         }
 
@@ -9939,10 +9939,10 @@ public class DerivedClass : BaseClass
     }
     static void Main(string[] args)
     {
-        MyDerivedDelegate foo1 = null;
-        foo1 += BaseClass.DelegatedMethod;
-        foo1 += DerivedClass.DelegatedMethod;
-        foo1(new DerivedClass());
+        MyDerivedDelegate goo1 = null;
+        goo1 += BaseClass.DelegatedMethod;
+        goo1 += DerivedClass.DelegatedMethod;
+        goo1(new DerivedClass());
     }
 }
 ";
@@ -10148,14 +10148,14 @@ namespace ConsoleApplication1
 using AliasC = C;
 class C
 {
-    public class Foo { }
+    public class Goo { }
 }
 class Test
 {
     class C { }
     static int Main()
     {
-        AliasC::Foo foo = new AliasC::Foo();
+        AliasC::Goo goo = new AliasC::Goo();
         return 0;
     }
 }";
@@ -10913,7 +10913,7 @@ public class Test
             var text = @"
 class X
 {
-    public void foo(int a)
+    public void goo(int a)
     {
         int[] x = { { 4 } }; //CS0623
     }
@@ -11456,7 +11456,7 @@ class A
         public void CS0819ERR_ImplicitlyTypedVariableMultipleDeclarator_Fields()
         {
             CreateCompilationWithMscorlib45(@"
-var foo = 4, bar = 4.5;
+var goo = 4, bar = 4.5;
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,1): error CS0819: Implicitly-typed fields cannot have multiple declarators
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, "var"));
@@ -11563,8 +11563,8 @@ const var x = 0; // CS0822.cs
         public void CS0825ERR_ImplicitlyTypedVariableCannotBeUsedAsTheTypeOfAParameter_Fields()
         {
             CreateCompilationWithMscorlib45(@"
-void foo(var arg) { }
-var foo(int arg) { return 2; }
+void goo(var arg) { }
+var goo(int arg) { return 2; }
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (1,10): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var"),
@@ -11576,8 +11576,8 @@ var foo(int arg) { return 2; }
         public void CS0825ERR_ImplicitlyTypedVariableCannotBeUsedAsTheTypeOfAParameter_Fields2()
         {
             CreateCompilationWithMscorlib45(@"
-T foo<T>() { return default(T); }
-foo<var>();
+T goo<T>() { return default(T); }
+goo<var>();
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,5): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var"));
@@ -11878,7 +11878,7 @@ public class MyClass : Attribute
 }
 
 [MyClass(new { })] // CS0836
-public class ClassFoo
+public class ClassGoo
 {
 }
 
@@ -13163,19 +13163,19 @@ class C
             var text = @"
 class A
 {
-  public static void Foo(int x) { }
+  public static void Goo(int x) { }
 }
 class B : A
 {
-  public class Foo { }
+  public class Goo { }
 }
 class C : B
 {
-  public static void Foo(string x) { }
+  public static void Goo(string x) { }
 
   static void Main()
   {
-    ((Foo))(1);
+    ((Goo))(1);
   }
 }
 ";
@@ -13262,25 +13262,25 @@ class C : B
             var text =
 @"class C
 {
-    void Foo<T>(ref System.Action<T> t) {}
-    void Foo<T1,T2>(ref System.Action<T1,T2> t) {}
+    void Goo<T>(ref System.Action<T> t) {}
+    void Goo<T1,T2>(ref System.Action<T1,T2> t) {}
     void M()
     {
-        Foo<int>(ref x => x = 1);
-        Foo<int, int>(ref (x,y) => x = 1);
-        Foo<int>(ref delegate (int x) {x = 1;});
+        Goo<int>(ref x => x = 1);
+        Goo<int, int>(ref (x,y) => x = 1);
+        Goo<int>(ref delegate (int x) {x = 1;});
     }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (7,22): error CS1510: A ref or out argument must be an assignable variable
-                //         Foo<int>(ref x => x = 1);
+                //         Goo<int>(ref x => x = 1);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(7, 22),
                 // (8,27): error CS1510: A ref or out argument must be an assignable variable
-                //         Foo<int, int>(ref (x,y) => x = 1);
+                //         Goo<int, int>(ref (x,y) => x = 1);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(8, 27),
                 // (9,22): error CS1510: A ref or out argument must be an assignable variable
-                //         Foo<int>(ref delegate (int x) {x = 1;});
+                //         Goo<int>(ref delegate (int x) {x = 1;});
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(9, 22));
         }
 
@@ -13290,25 +13290,25 @@ class C : B
             var text =
 @"class C
 {
-    void Foo<T>(out System.Action<T> t) {t = null;}
-    void Foo<T1,T2>(out System.Action<T1,T2> t) {t = null;}
+    void Goo<T>(out System.Action<T> t) {t = null;}
+    void Goo<T1,T2>(out System.Action<T1,T2> t) {t = null;}
     void M()
     {
-        Foo<int>(out x => x = 1);
-        Foo<int, int>(out (x,y) => x = 1);
-        Foo<int>(out delegate (int x) {x = 1;});
+        Goo<int>(out x => x = 1);
+        Goo<int, int>(out (x,y) => x = 1);
+        Goo<int>(out delegate (int x) {x = 1;});
     }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (7,22): error CS1510: A ref or out argument must be an assignable variable
-                //         Foo<int>(out x => x = 1);
+                //         Goo<int>(out x => x = 1);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(7, 22),
                 // (8,27): error CS1510: A ref or out argument must be an assignable variable
-                //         Foo<int, int>(out (x,y) => x = 1);
+                //         Goo<int, int>(out (x,y) => x = 1);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(8, 27),
                 // (9,22): error CS1510: A ref or out argument must be an assignable variable
-                //         Foo<int>(out delegate (int x) {x = 1;});
+                //         Goo<int>(out delegate (int x) {x = 1;});
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(9, 22));
         }
 
@@ -14146,13 +14146,13 @@ delegate void del();
 
 class MakeAnError
 {
-    class Foo: Attribute
+    class Goo: Attribute
     {
-        public Foo(object o) {}
+        public Goo(object o) {}
     }
 
     [Conditional(""DEBUG"")]
-    [Foo(new del(ConditionalMethod))] // CS1618
+    [Goo(new del(ConditionalMethod))] // CS1618
     public static void ConditionalMethod()
     {
     }
@@ -14160,7 +14160,7 @@ class MakeAnError
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (15,18): error CS1618: Cannot create delegate with 'MakeAnError.ConditionalMethod()' because it has a Conditional attribute
-                //     [Foo(new del(ConditionalMethod))] // CS1618
+                //     [Goo(new del(ConditionalMethod))] // CS1618
                 Diagnostic(ErrorCode.ERR_DelegateOnConditional, "ConditionalMethod").WithArguments("MakeAnError.ConditionalMethod()").WithLocation(15, 18));
         }
 
@@ -14500,7 +14500,7 @@ Diagnostic(ErrorCode.ERR_BadDelegateLeave, "break")
 
 public class Test
 {
-    IEnumerable Foo(__arglist)
+    IEnumerable Goo(__arglist)
     {
         yield return 1;
     }
@@ -14514,8 +14514,8 @@ public class Test
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
 // (5,17): error CS1636: __arglist is not allowed in the parameter list of iterators
-//     IEnumerable Foo(__arglist)
-Diagnostic(ErrorCode.ERR_VarargsIterator, "Foo"));
+//     IEnumerable Goo(__arglist)
+Diagnostic(ErrorCode.ERR_VarargsIterator, "Goo"));
         }
 
         [Fact]
@@ -15647,7 +15647,7 @@ class MyDerived : MyBase
             var text = @"
 class C
 {
-    public void Foo(string s = null, int x)
+    public void Goo(string s = null, int x)
     {
     }
 }";
@@ -15663,7 +15663,7 @@ class C
             var text = @"
 class C
 {
-    public void Foo(string s = null, params int[] ints)
+    public void Goo(string s = null, params int[] ints)
     {
     }
 }
@@ -17396,20 +17396,20 @@ class Program
     {
         dynamic d = 1;
         B b = new B();
-        b.Foo(d);
+        b.Goo(d);
     }
 }
 public class B { }
 static public class Extension
 {
-    public static void Foo(this B b, int x) { }
+    public static void Goo(this B b, int x) { }
 }";
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(text);
             comp.VerifyDiagnostics(
-// (8,9): error CS1973: 'B' has no applicable method named 'Foo' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
-//         b.Foo(d);
-Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "b.Foo(d)").WithArguments("B", "Foo"));
+// (8,9): error CS1973: 'B' has no applicable method named 'Goo' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
+//         b.Goo(d);
+Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "b.Goo(d)").WithArguments("B", "Goo"));
         }
 
         [Fact]
@@ -17462,14 +17462,14 @@ class Program
 {
     static void M(dynamic d)
     {
-        d.Foo(M);
+        d.Goo(M);
     }
 }";
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(text);
             comp.VerifyDiagnostics(
                 // (6,15): error CS1976: Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?
-                //         d.Foo(M);
+                //         d.Goo(M);
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgMemgrp, "M"));
         }
 
@@ -17481,17 +17481,17 @@ class Program
 {
     static void M(dynamic d)
     {
-        d.Foo(()=>{});
-        d.Foo(delegate () {});
+        d.Goo(()=>{});
+        d.Goo(delegate () {});
     }
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(text);
             comp.VerifyDiagnostics(
                 // (6,15): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
-                //         d.Foo(()=>{});
+                //         d.Goo(()=>{});
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "()=>{}"),
                 // (7,15): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
-                //         d.Foo(delegate () {});
+                //         d.Goo(delegate () {});
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "delegate () {}"));
         }
 
@@ -17598,12 +17598,12 @@ class Program
 {
     unsafe static void M(dynamic d, int* i, System.TypedReference tr)
     {
-        d.Foo(i);
-        d.Foo(tr);
-        d.Foo(ref tr);
-        d.Foo(out tr);
-        d.Foo(out i);
-        d.Foo(ref i);
+        d.Goo(i);
+        d.Goo(tr);
+        d.Goo(ref tr);
+        d.Goo(out tr);
+        d.Goo(out i);
+        d.Goo(ref i);
     }
 }
 ";
@@ -17636,7 +17636,7 @@ class Program
             string text = @"
 class Program
 {
-    public void Foo<T, U>(T t = default(U)) where U : T
+    public void Goo<T, U>(T t = default(U)) where U : T
     {
     }
     static void Main(string[] args)
@@ -17646,7 +17646,7 @@ class Program
 }";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (4,29): error CS1763: 't' is of type 'T'. A default parameter value of a reference type other than string can only be initialized with null
-                //     public void Foo<T, U>(T t = default(U)) where U : T
+                //     public void Goo<T, U>(T t = default(U)) where U : T
                 Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "t").WithArguments("t", "T"));
         }
 
@@ -18937,11 +18937,11 @@ class TestClass
       Interlocked.Exchange(ref Method1(ref x).y, 0);            // CS0420 for x
 
       // located as a function argument 
-      foo(Interlocked.Increment(ref x));                        // no CS0420
+      goo(Interlocked.Increment(ref x));                        // no CS0420
 
    }
 
-   public static int foo(int x)
+   public static int goo(int x)
    {
       return x; 
    } 
@@ -18978,21 +18978,21 @@ class TestClass
 class Test
 {
     static volatile int x;
-    unsafe static void foo(int* pX) { }
+    unsafe static void goo(int* pX) { }
 
     static int Main()
     {
-        unsafe { Test.foo(&x); }
+        unsafe { Test.goo(&x); }
         return 1;
     }
 }
 ";
             CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,27): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
-                //         unsafe { Test.foo(&x); }
+                //         unsafe { Test.goo(&x); }
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&x"),
                 // (9,28): warning CS0420: 'Test.x': a reference to a volatile field will not be treated as volatile
-                //         unsafe { Test.foo(&x); }
+                //         unsafe { Test.goo(&x); }
                 Diagnostic(ErrorCode.WRN_VolatileByRef, "x").WithArguments("Test.x"));
         }
 
@@ -20347,8 +20347,8 @@ namespace TestNamespace
     {
         static int Main()
         {
-            VeryLong foo = null;
-            Console.WriteLine(foo);
+            VeryLong goo = null;
+            Console.WriteLine(goo);
             return 1;
         }
     }
@@ -21486,14 +21486,14 @@ class Myclass
     static void Main()
     {
         dynamic d = null;
-        // Warning because Foo might be conditional.
-        Foo(d); 
+        // Warning because Goo might be conditional.
+        Goo(d); 
         // No warning; only the two-parameter Bar is conditional.
         Bar(d);
     }
 
     [Conditional(""DEBUG"")]
-    static void Foo(string d) {}
+    static void Goo(string d) {}
 
     [Conditional(""DEBUG"")]
     static void Bar(int x, int y) {}
@@ -21503,9 +21503,9 @@ class Myclass
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(text);
             comp.VerifyDiagnostics(
-// (9,9): warning CS1974: The dynamically dispatched call to method 'Foo' may fail at runtime because one or more applicable overloads are conditional methods.
-//         Foo(d); 
-Diagnostic(ErrorCode.WRN_DynamicDispatchToConditionalMethod, "Foo(d)").WithArguments("Foo"));
+// (9,9): warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime because one or more applicable overloads are conditional methods.
+//         Goo(d); 
+Diagnostic(ErrorCode.WRN_DynamicDispatchToConditionalMethod, "Goo(d)").WithArguments("Goo"));
         }
 
         [Fact]
@@ -21685,7 +21685,7 @@ namespace Namespace1.Namespace2
 {
     public interface I<T>
     {
-        void Foo();
+        void Goo();
     }
 
     public class OuterGenericClass<T, S>
@@ -21694,7 +21694,7 @@ namespace Namespace1.Namespace2
 
         public class C : I<NestedClass.NestedClass.NestedClass.NestedClass.NestedClass>
         {
-            void I<NestedClass.NestedClass.NestedClass.NestedClass.NestedClass>.Foo()
+            void I<NestedClass.NestedClass.NestedClass.NestedClass.NestedClass>.Goo()
             {
             }
         }
@@ -21703,7 +21703,7 @@ namespace Namespace1.Namespace2
 ";
             // This error will necessarily have a very long error string.
             CreateStandardCompilation(text).VerifyEmitDiagnostics(
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "Foo").WithArguments("Namespace1.Namespace2.I<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo"));
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "Goo").WithArguments("Namespace1.Namespace2.I<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass,Namespace1.Namespace2.OuterGenericClass<Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass,Namespace1.Namespace2.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo"));
         }
 
         #endregion
@@ -21781,9 +21781,9 @@ namespace CSSample
 using System;
 public class Program
 {
-    static Func<T, T> Foo<T>(Func<T, T> t) { return t; }
-    static Func<string, string> Bar = Foo<string>(x => x);
-    static Func<string, string> BarP => Foo<string>(x => x);
+    static Func<T, T> Goo<T>(Func<T, T> t) { return t; }
+    static Func<string, string> Bar = Goo<string>(x => x);
+    static Func<string, string> BarP => Goo<string>(x => x);
     static T Id<T>(T id) => id;
 
     static void Test(Func<string, string> Baz)
@@ -21793,11 +21793,11 @@ public class Program
         var z2 = new Func<string, string>(ref Baz); // compat
         var z3 = new Func<string, string>(ref k); // compat
         var z4 = new Func<string, string>(ref x => x);
-        var z5 = new Func<string, string>(ref Foo<string>(x => x));
+        var z5 = new Func<string, string>(ref Goo<string>(x => x));
         var z6 = new Func<string, string>(ref BarP); 
         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
         var z8 = new Func<string, string>(ref Program.BarP); 
-        var z9 = new Func<string, string>(ref Program.Foo<string>(x => x));
+        var z9 = new Func<string, string>(ref Program.Goo<string>(x => x));
         var z10 = new Func<string, string>(ref Id); // compat
     }
 }";
@@ -21806,8 +21806,8 @@ public class Program
                 //         var z4 = new Func<string, string>(ref x => x);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x").WithLocation(16, 47),
                 // (17,47): error CS1510: A ref or out argument must be an assignable variable
-                //         var z5 = new Func<string, string>(ref Foo<string>(x => x));
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Foo<string>(x => x)").WithLocation(17, 47),
+                //         var z5 = new Func<string, string>(ref Goo<string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Goo<string>(x => x)").WithLocation(17, 47),
                 // (18,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         var z6 = new Func<string, string>(ref BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(18, 43),
@@ -21818,8 +21818,8 @@ public class Program
                 //         var z8 = new Func<string, string>(ref Program.BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref Program.BarP").WithArguments("Program.BarP").WithLocation(20, 43),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
-                //         var z9 = new Func<string, string>(ref Program.Foo<string>(x => x));
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Foo<string>(x => x)").WithLocation(21, 47));
+                //         var z9 = new Func<string, string>(ref Program.Goo<string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47));
 
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (13,47): error CS0149: Method name expected
@@ -21835,8 +21835,8 @@ public class Program
                 //         var z4 = new Func<string, string>(ref x => x);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x").WithLocation(16, 47),
                 // (17,47): error CS1510: A ref or out argument must be an assignable variable
-                //         var z5 = new Func<string, string>(ref Foo<string>(x => x));
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Foo<string>(x => x)").WithLocation(17, 47),
+                //         var z5 = new Func<string, string>(ref Goo<string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Goo<string>(x => x)").WithLocation(17, 47),
                 // (18,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         var z6 = new Func<string, string>(ref BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "BarP").WithArguments("Program.BarP").WithLocation(18, 47),
@@ -21847,8 +21847,8 @@ public class Program
                 //         var z8 = new Func<string, string>(ref Program.BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "Program.BarP").WithArguments("Program.BarP").WithLocation(20, 47),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
-                //         var z9 = new Func<string, string>(ref Program.Foo<string>(x => x));
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Foo<string>(x => x)").WithLocation(21, 47),
+                //         var z9 = new Func<string, string>(ref Program.Goo<string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47),
                 // (22,48): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
                 //         var z10 = new Func<string, string>(ref Id); // compat
                 Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(22, 48));
@@ -21863,8 +21863,8 @@ public class Program
 using System;
 public class Program
 {
-    static Func<T, T> Foo<T>(Func<T, T> t) { return t; }
-    static Func<string, string> Bar = Foo<string>(x => x);
+    static Func<T, T> Goo<T>(Func<T, T> t) { return t; }
+    static Func<string, string> Bar = Goo<string>(x => x);
 
     static T Id<T>(T id) => id;
 
@@ -22292,7 +22292,7 @@ class C
             builder.AppendFormat("int {0}1;\n", longE);
             builder.AppendFormat("event System.Action {0}2;\n", longE);
             builder.AppendFormat("public void {0}3() {{ }}\n", longE);
-            builder.AppendFormat("public void foo(int {0}4) {{ }}\n", longE);
+            builder.AppendFormat("public void goo(int {0}4) {{ }}\n", longE);
             builder.AppendFormat("public string {0}5 {{ get; set; }}\n", longE);
 
             builder.AppendLine(@"
@@ -22719,7 +22719,7 @@ using System;
  
 class Program
 {
-    static void Foo<T,S>() where T : S where S : Exception
+    static void Goo<T,S>() where T : S where S : Exception
     {
         try
         {
@@ -23016,7 +23016,7 @@ namespace ConsoleApplication31
     {
         static void Main(string[] args)
         {
-            var o = new Foo();
+            var o = new Goo();
             var x = o.E.Compile()().Pop();
             System.Console.WriteLine(x);
         }
@@ -23027,7 +23027,7 @@ namespace ConsoleApplication31
         public static void Add<T>(this Stack<T> s, T x) => s.Push(x);
     }
 
-    class Foo
+    class Goo
     {
         public Expression<Func<Stack<int>>> E = () => new Stack<int> { 42 };
     }
@@ -23242,7 +23242,7 @@ class Program
         System.Console.WriteLine(i);
     }
 
-    static void Foo()
+    static void Goo()
     {
         int i;
         var s = new Dictionary<int, int> () {[i = 1] = 2};

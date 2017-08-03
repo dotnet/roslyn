@@ -263,10 +263,10 @@ public class TestAnalyzer : DiagnosticAnalyzer
         public void BadAnalyzerReference_DisplayName()
         {
             var directory = Temp.CreateDirectory();
-            var textFile = directory.CreateFile("Foo.txt").WriteAllText("I am the very model of a modern major general.");
+            var textFile = directory.CreateFile("Goo.txt").WriteAllText("I am the very model of a modern major general.");
             AnalyzerFileReference reference = CreateAnalyzerFileReference(textFile.Path);
 
-            Assert.Equal(expected: "Foo", actual: reference.Display);
+            Assert.Equal(expected: "Goo", actual: reference.Display);
         }
 
         [Fact]
@@ -300,10 +300,10 @@ public class TestAnalyzer : DiagnosticAnalyzer
         public void BadAnalyzerReference_Id()
         {
             var directory = Temp.CreateDirectory();
-            var textFile = directory.CreateFile("Foo.txt").WriteAllText("I am the very model of a modern major general.");
+            var textFile = directory.CreateFile("Goo.txt").WriteAllText("I am the very model of a modern major general.");
             AnalyzerFileReference reference = CreateAnalyzerFileReference(textFile.Path);
 
-            Assert.Equal(expected: "Foo", actual: reference.Id);
+            Assert.Equal(expected: "Goo", actual: reference.Id);
         }
 
         [Fact]

@@ -45,10 +45,10 @@ class Program
     {
         int x = 2;
         int i = 1;
-        Foo(x < [|(int)i|], x > (2 + 3));
+        Goo(x < [|(int)i|], x > (2 + 3));
     }
  
-    static void Foo(bool a, bool b) { }
+    static void Goo(bool a, bool b) { }
 }",
 
             @"
@@ -58,10 +58,10 @@ class Program
     {
         int x = 2;
         int i = 1;
-        Foo((x < i), x > (2 + 3));
+        Goo((x < i), x > (2 + 3));
     }
  
-    static void Foo(bool a, bool b) { }
+    static void Goo(bool a, bool b) { }
 }",
             ignoreTrivia: false);
         }
@@ -133,7 +133,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(
 @"class Ð¡
 {
-    void Foo<T>(T obj)
+    void Goo<T>(T obj)
 {
     int x = (int)[|(object)obj|];
 }
@@ -260,14 +260,14 @@ class Program
 {
     static void Main()
     {
-        Foo(x => [|(int)x|]);
+        Goo(x => [|(int)x|]);
     }
 
-    static void Foo(Func<int, object> x)
+    static void Goo(Func<int, object> x)
     {
     }
 
-    static void Foo(Func<string, object> x)
+    static void Goo(Func<string, object> x)
     {
     }
 }");
@@ -285,14 +285,14 @@ class Program
     static void Main()
     {
         var x = [|(IComparable<int>)1|];
-        Foo(x);
+        Goo(x);
     }
 
-    static void Foo(IComparable<int> x)
+    static void Goo(IComparable<int> x)
     {
     }
 
-    static void Foo(int x)
+    static void Goo(int x)
     {
     }
 }");
@@ -311,14 +311,14 @@ class Program
     {
         var x = [|(IComparable<int>)1|];
         var y = x;
-        Foo(y);
+        Goo(y);
     }
 
-    static void Foo(IComparable<int> x)
+    static void Goo(IComparable<int> x)
     {
     }
 
-    static void Foo(int x)
+    static void Goo(int x)
     {
     }
 }");
@@ -353,10 +353,10 @@ class C
     {
         Action<object>[] x = {
         };
-        Foo(x);
+        Goo(x);
     }
 
-    static void Foo<T>(Action<T>[] x)
+    static void Goo<T>(Action<T>[] x)
     {
         var y = (IList<Action<object>>)[|(IList<object>)x|];
         Console.WriteLine(y.Count);
@@ -878,7 +878,7 @@ class X : List<int>
             @"
 class X
 {
-    static void Foo()
+    static void Goo()
     {
         string x = "";
         var s = new object[] { [|(object)x|] };
@@ -888,7 +888,7 @@ class X
 @"
 class X
 {
-    static void Foo()
+    static void Goo()
     {
         string x = "";
         var s = new object[] { x };
@@ -906,7 +906,7 @@ class X
 using System;
 class MyAction
 {
-    static void Foo()
+    static void Goo()
     {
         MyAction x = null;
         var y = x + [|(Action)delegate { }|];
@@ -922,7 +922,7 @@ class MyAction
 using System;
 class MyAction
 {
-    static void Foo()
+    static void Goo()
     {
         MyAction x = null;
         var y = x + delegate { };
@@ -946,10 +946,10 @@ using System;
  
 class Program
 {
-    static void Foo<T>()
+    static void Goo<T>()
     {
         Action a = null;
-        var x = [|(Action)(Foo<Guid>)|]==a;
+        var x = [|(Action)(Goo<Guid>)|]==a;
     }
 }",
 
@@ -958,10 +958,10 @@ using System;
  
 class Program
 {
-    static void Foo<T>()
+    static void Goo<T>()
     {
         Action a = null;
-        var x = (Foo<Guid>) == a;
+        var x = (Goo<Guid>) == a;
     }
 }",
     ignoreTrivia: false);
@@ -1004,7 +1004,7 @@ class A
             await TestMissingInRegularAndScriptAsync(
 @"class X
 {
-    static void Foo()
+    static void Goo()
     {
         X x = null;
         object y = [|(string)x|];
@@ -1101,7 +1101,7 @@ class E
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void Foo(object y)
+    void Goo(object y)
     {
         int x = [|(int)y|];
     }
@@ -1119,7 +1119,7 @@ class Program
 {
     static void Main()
     {
-        Boo(x => Foo(x, y => [|(int)x|]), null);
+        Boo(x => Goo(x, y => [|(int)x|]), null);
     }
 
     static void Boo(Action<int> x, object y)
@@ -1132,15 +1132,15 @@ class Program
         Console.WriteLine(2);
     }
 
-    static void Foo(int x, Func<int, int> y)
+    static void Goo(int x, Func<int, int> y)
     {
     }
 
-    static void Foo(string x, Func<string, string> y)
+    static void Goo(string x, Func<string, string> y)
     {
     }
 
-    static void Foo(string x, Func<int, int> y)
+    static void Goo(string x, Func<int, int> y)
     {
     }
 }");
@@ -1153,7 +1153,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(
 @"class X
 {
-    static void Foo<T, S>() where T : class, S
+    static void Goo<T, S>() where T : class, S
     {
         S y = [|(T)null|];
     }
@@ -1167,7 +1167,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(
 @"class X
 {
-    static void Foo()
+    static void Goo()
     {
         string x = "";
         var s = new[] { [|(object)x|] };
@@ -1338,11 +1338,11 @@ class A
 
 class C
 {
-    static void Foo(int x, Func<int, int> y)
+    static void Goo(int x, Func<int, int> y)
     {
     }
 
-    static void Foo(string x, Func<string, string> y)
+    static void Goo(string x, Func<string, string> y)
     {
     }
 
@@ -1356,7 +1356,7 @@ class C
         Console.WriteLine(2);
     }
 
-    C() : this(x => Foo(x, y => [|(int)x|]), null)
+    C() : this(x => Goo(x, y => [|(int)x|]), null)
     {
     }
 
@@ -1405,10 +1405,10 @@ static class Program
 {
     static void Main()
     {
-        Foo(new S(), new C());
+        Goo(new S(), new C());
     }
 
-    static void Foo<TAny, TClass>(TAny x, TClass y)
+    static void Goo<TAny, TClass>(TAny x, TClass y)
         where TAny : IIncrementable
         where TClass : class, IIncrementable
     {
@@ -1451,10 +1451,10 @@ static class Program
 {
     static void Main()
     {
-        Foo(new S(), new C());
+        Goo(new S(), new C());
     }
 
-    static void Foo<TAny, TClass>(TAny x, TClass y) 
+    static void Goo<TAny, TClass>(TAny x, TClass y) 
         where TAny : IIncrementable
         where TClass : class, IIncrementable
     {
@@ -1491,10 +1491,10 @@ static class Program
 {
     static void Main()
     {
-        Foo(new S(), new C());
+        Goo(new S(), new C());
     }
 
-    static void Foo<TAny, TClass>(TAny x, TClass y) 
+    static void Goo<TAny, TClass>(TAny x, TClass y) 
         where TAny : IIncrementable
         where TClass : class, IIncrementable
     {
@@ -1521,10 +1521,10 @@ class A
     static void Main()
     {
         byte
-        Foo(x => 1, [|(byte)1|]);
+        Goo(x => 1, [|(byte)1|]);
     }
 
-    static void Foo<T, S>(T x, )
+    static void Goo<T, S>(T x, )
     {
     }
 }");
@@ -1573,7 +1573,7 @@ class Program
             @"
 class X
 {
-    static void Foo()
+    static void Goo()
     {
         object x = (string)null;
         object y = [|(int?)null|];
@@ -1584,7 +1584,7 @@ class X
             @"
 class X
 {
-    static void Foo()
+    static void Goo()
     {
         object x = (string)null;
         object y = null;
@@ -1661,7 +1661,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    static void Foo<T>(T x, object y)
+    static void Goo<T>(T x, object y)
     {
         if ([|(object)x|] == y)
         {
@@ -2097,7 +2097,7 @@ class Y : X, IDisposable
         public async Task RemoveCastToInterfaceForSealedType1()
         {
             // Note: The cast below can be removed because C is sealed and the
-            // unspecified optional parameters of I.Foo() and C.Foo() have the
+            // unspecified optional parameters of I.Goo() and C.Goo() have the
             // same default values.
 
             await TestInRegularAndScriptAsync(
@@ -2106,19 +2106,19 @@ using System;
 
 interface I
 {
-    void Foo(int x = 0);
+    void Goo(int x = 0);
 }
 
 sealed class C : I
 {
-    public void Foo(int x = 0)
+    public void Goo(int x = 0)
     {
         Console.WriteLine(x);
     }
 
     static void Main()
     {
-        ([|(I)new C()|]).Foo();
+        ([|(I)new C()|]).Goo();
     }
 }
 ",
@@ -2128,19 +2128,19 @@ using System;
 
 interface I
 {
-    void Foo(int x = 0);
+    void Goo(int x = 0);
 }
 
 sealed class C : I
 {
-    public void Foo(int x = 0)
+    public void Goo(int x = 0)
     {
         Console.WriteLine(x);
     }
 
     static void Main()
     {
-        new C().Foo();
+        new C().Goo();
     }
 }
 ",
@@ -2160,12 +2160,12 @@ using System;
 
 interface I
 {
-    string Foo { get; }
+    string Goo { get; }
 }
 
 sealed class C : I
 {
-    public string Foo
+    public string Goo
     {
         get
         {
@@ -2175,7 +2175,7 @@ sealed class C : I
 
     static void Main()
     {
-        Console.WriteLine(([|(I)new C()|]).Foo);
+        Console.WriteLine(([|(I)new C()|]).Goo);
     }
 }
 ",
@@ -2185,12 +2185,12 @@ using System;
 
 interface I
 {
-    string Foo { get; }
+    string Goo { get; }
 }
 
 sealed class C : I
 {
-    public string Foo
+    public string Goo
     {
         get
         {
@@ -2200,7 +2200,7 @@ sealed class C : I
 
     static void Main()
     {
-        Console.WriteLine(new C().Foo);
+        Console.WriteLine(new C().Goo);
     }
 }
 ",
@@ -2220,14 +2220,14 @@ using System;
 
 interface I
 {
-    string Foo { get; }
+    string Goo { get; }
 }
 
 sealed class C : I
 {
     public C Instance { get { return new C(); } }
 
-    public string Foo
+    public string Goo
     {
         get
         {
@@ -2237,7 +2237,7 @@ sealed class C : I
 
     static void Main()
     {
-        Console.WriteLine(([|(I)Instance|]).Foo);
+        Console.WriteLine(([|(I)Instance|]).Goo);
     }
 }
 ",
@@ -2247,14 +2247,14 @@ using System;
 
 interface I
 {
-    string Foo { get; }
+    string Goo { get; }
 }
 
 sealed class C : I
 {
     public C Instance { get { return new C(); } }
 
-    public string Foo
+    public string Goo
     {
         get
         {
@@ -2264,7 +2264,7 @@ sealed class C : I
 
     static void Main()
     {
-        Console.WriteLine(Instance.Foo);
+        Console.WriteLine(Instance.Goo);
     }
 }
 ",
@@ -2283,19 +2283,19 @@ sealed class C : I
 
 interface I
 {
-    void Foo(int x = 0);
+    void Goo(int x = 0);
 }
 
 sealed class C : I
 {
-    public void Foo(int x = 1)
+    public void Goo(int x = 1)
     {
         Console.WriteLine(x);
     }
 
     static void Main()
     {
-        ([|(I)new C()|]).Foo();
+        ([|(I)new C()|]).Goo();
     }
 }");
         }
@@ -2314,19 +2314,19 @@ using System;
 
 interface I
 {
-    void Foo(int x = 0);
+    void Goo(int x = 0);
 }
 
 sealed class C : I
 {
-    public void Foo(int x = 1)
+    public void Goo(int x = 1)
     {
         Console.WriteLine(x);
     }
 
     static void Main()
     {
-        ([|(I)new C()|]).Foo(2);
+        ([|(I)new C()|]).Goo(2);
     }
 }
 ",
@@ -2336,19 +2336,19 @@ using System;
 
 interface I
 {
-    void Foo(int x = 0);
+    void Goo(int x = 0);
 }
 
 sealed class C : I
 {
-    public void Foo(int x = 1)
+    public void Goo(int x = 1)
     {
         Console.WriteLine(x);
     }
 
     static void Main()
     {
-        new C().Foo(2);
+        new C().Goo(2);
     }
 }
 ",
@@ -2368,19 +2368,19 @@ sealed class C : I
 
 interface I
 {
-    void Foo(int x = 0, int y = 0);
+    void Goo(int x = 0, int y = 0);
 }
 
 sealed class C : I
 {
-    public void Foo(int y = 0, int x = 0)
+    public void Goo(int y = 0, int x = 0)
     {
         Console.WriteLine(x);
     }
 
     static void Main()
     {
-        ([|(I)new C()|]).Foo(x: 1);
+        ([|(I)new C()|]).Goo(x: 1);
     }
 }");
         }
@@ -2708,10 +2708,10 @@ class C
 {
     static void Main()
     {
-        Foo([|(object)null|]);
+        Goo([|(object)null|]);
     }
 
-    static void Foo(params object[] x)
+    static void Goo(params object[] x)
     {
         Console.WriteLine(x.Length);
     }
@@ -2729,10 +2729,10 @@ class C
 {
     static void Main()
     {
-        Foo([|(int[])null|]);
+        Goo([|(int[])null|]);
     }
 
-    static void Foo(params object[] x)
+    static void Goo(params object[] x)
     {
         Console.WriteLine(x.Length);
     }
@@ -2750,10 +2750,10 @@ class C
 {
     static void Main()
     {
-        Foo([|(object[])null|]);
+        Goo([|(object[])null|]);
     }
 
-    static void Foo(params object[][] x)
+    static void Goo(params object[][] x)
     {
         Console.WriteLine(x.Length);
     }
@@ -2768,11 +2768,11 @@ class C
             @"
 class C
 {
-    static void Foo(params object[] x) { }
+    static void Goo(params object[] x) { }
 
     static void Main()
     {
-        Foo([|(object[])null|]);
+        Goo([|(object[])null|]);
     }
 }
 ",
@@ -2780,11 +2780,11 @@ class C
 @"
 class C
 {
-    static void Foo(params object[] x) { }
+    static void Goo(params object[] x) { }
 
     static void Main()
     {
-        Foo(null);
+        Goo(null);
     }
 }
 ",
@@ -2799,11 +2799,11 @@ class C
             @"
 class C
 {
-    static void Foo(params object[] x) { }
+    static void Goo(params object[] x) { }
 
     static void Main()
     {
-        Foo([|(string[])null|]);
+        Goo([|(string[])null|]);
     }
 }
 ",
@@ -2811,11 +2811,11 @@ class C
 @"
 class C
 {
-    static void Foo(params object[] x) { }
+    static void Goo(params object[] x) { }
 
     static void Main()
     {
-        Foo(null);
+        Goo(null);
     }
 }
 ",
@@ -2830,11 +2830,11 @@ class C
             @"
 class C
 {
-    static void Foo(params int[] x) { }
+    static void Goo(params int[] x) { }
 
     static void Main()
     {
-        Foo([|(int[])null|]);
+        Goo([|(int[])null|]);
     }
 }
 ",
@@ -2842,11 +2842,11 @@ class C
 @"
 class C
 {
-    static void Foo(params int[] x) { }
+    static void Goo(params int[] x) { }
 
     static void Main()
     {
-        Foo(null);
+        Goo(null);
     }
 }
 ",
@@ -2861,11 +2861,11 @@ class C
             @"
 class C
 {
-    static void Foo(params object[] x) { }
+    static void Goo(params object[] x) { }
 
     static void Main()
     {
-        Foo([|(object[])null|], null);
+        Goo([|(object[])null|], null);
     }
 }
 ",
@@ -2873,11 +2873,11 @@ class C
 @"
 class C
 {
-    static void Foo(params object[] x) { }
+    static void Goo(params object[] x) { }
 
     static void Main()
     {
-        Foo(null, null);
+        Goo(null, null);
     }
 }
 ",
@@ -2892,11 +2892,11 @@ class C
             @"
 class C
 {
-    static void Foo(params object[] x) { }
+    static void Goo(params object[] x) { }
 
     static void Main()
     {
-        Foo([|(object)null|], null);
+        Goo([|(object)null|], null);
     }
 }
 ",
@@ -2904,11 +2904,11 @@ class C
 @"
 class C
 {
-    static void Foo(params object[] x) { }
+    static void Goo(params object[] x) { }
 
     static void Main()
     {
-        Foo(null, null);
+        Goo(null, null);
     }
 }
 ",
@@ -2924,10 +2924,10 @@ class C
 {
     static void Main()
     {
-        Foo(x: [|(object[])null|]);
+        Goo(x: [|(object[])null|]);
     }
 
-    static void Foo(params object[] x) { }
+    static void Goo(params object[] x) { }
 }
 ",
                 @"
@@ -2935,10 +2935,10 @@ class C
 {
     static void Main()
     {
-        Foo(x: null);
+        Goo(x: null);
     }
 
-    static void Foo(params object[] x) { }
+    static void Goo(params object[] x) { }
 }
 ",
             ignoreTrivia: false);
@@ -3103,24 +3103,24 @@ class Program
         public async Task DontRemoveCastIfOverriddenMethodHasIncompatibleParameterList()
         {
             // Note: The cast below can't be removed because the parameter list
-            // of Foo and its override have different default values.
+            // of Goo and its override have different default values.
 
             await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 abstract class Y
 {
-    public abstract void Foo(int x = 1);
+    public abstract void Goo(int x = 1);
 }
 
 class X : Y
 {
     static void Main()
     {
-        ([|(Y)new X()|]).Foo();
+        ([|(Y)new X()|]).Goo();
     }
 
-    public override void Foo(int x = 2)
+    public override void Goo(int x = 2)
     {
         Console.WriteLine(x);
     }
@@ -3132,7 +3132,7 @@ class X : Y
         public async Task RemoveCastIfOverriddenMethodHaveCompatibleParameterList()
         {
             // Note: The cast below can be removed because the parameter list
-            // of Foo and its override have the same default values.
+            // of Goo and its override have the same default values.
 
             await TestInRegularAndScriptAsync(
 @"
@@ -3140,17 +3140,17 @@ using System;
 
 abstract class Y
 {
-    public abstract void Foo(int x = 1);
+    public abstract void Goo(int x = 1);
 }
 
 class X : Y
 {
     static void Main()
     {
-        ([|(Y)new X()|]).Foo();
+        ([|(Y)new X()|]).Goo();
     }
 
-    public override void Foo(int x = 1)
+    public override void Goo(int x = 1)
     {
         Console.WriteLine(x);
     }
@@ -3162,17 +3162,17 @@ using System;
 
 abstract class Y
 {
-    public abstract void Foo(int x = 1);
+    public abstract void Goo(int x = 1);
 }
 
 class X : Y
 {
     static void Main()
     {
-        new X().Foo();
+        new X().Goo();
     }
 
-    public override void Foo(int x = 1)
+    public override void Goo(int x = 1)
     {
         Console.WriteLine(x);
     }
@@ -3196,10 +3196,10 @@ static class Program
 {
     static void Main()
     {
-        Action a = ([|(string)""""|]).Foo;
+        Action a = ([|(string)""""|]).Goo;
     }
 
-    static void Foo(this string x) { }
+    static void Goo(this string x) { }
 }
 ",
 
@@ -3210,10 +3210,10 @@ static class Program
 {
     static void Main()
     {
-        Action a = """".Foo;
+        Action a = """".Goo;
     }
 
-    static void Foo(this string x) { }
+    static void Goo(this string x) { }
 }
 ",
             ignoreTrivia: false);
@@ -3231,10 +3231,10 @@ class Program
 {
     static void Main()
     {
-        Foo().Wait();
+        Goo().Wait();
     }
 
-    static async Task Foo()
+    static async Task Goo()
     {
         Task task = Task.FromResult(0);
         Console.WriteLine(await [|(dynamic)task|]);
@@ -3266,19 +3266,19 @@ namespace System
 
 class A
 {
-    static void Foo(int x)
+    static void Goo(int x)
     {
         Console.WriteLine(""int"");
     }
 
-    static void Foo(MyInt x)
+    static void Goo(MyInt x)
     {
         Console.WriteLine(""MyInt"");
     }
 
     static void Main()
     {
-        Foo([|(MyInt)0|]);
+        Goo([|(MyInt)0|]);
     }
 }");
         }
@@ -3310,18 +3310,18 @@ class MyAttributeAttribute : Attribute
     {
     }
 
-    public void Foo(EEEnum e)
+    public void Goo(EEEnum e)
     {
     }
 
-    public void Foo(short e)
+    public void Goo(short e)
     {
     }
 
     [MyAttribute([|(EEEnum)0x0|])]
     public void Bar()
     {
-        Foo((EEEnum)0x0);
+        Goo((EEEnum)0x0);
     }
 }");
         }
@@ -3363,22 +3363,22 @@ class Program
 {
     static void Main()
     {
-        C<string>.InvokeFoo(0);
+        C<string>.InvokeGoo(0);
     }
 }
 
 class C<T>
 {
-    public static void InvokeFoo(dynamic x)
+    public static void InvokeGoo(dynamic x)
     {
-        Console.WriteLine(Foo(x, [|(object)""""|], """"));
+        Console.WriteLine(Goo(x, [|(object)""""|], """"));
     }
 
-    static void Foo(int x, string y, T z)
+    static void Goo(int x, string y, T z)
     {
     }
 
-    static bool Foo(int x, object y, object z)
+    static bool Goo(int x, object y, object z)
     {
         return true;
     }
@@ -3416,7 +3416,7 @@ class C<T>
         }
     }
 
-    void Foo(dynamic xx)
+    void Goo(dynamic xx)
     {
         var y = this[x: xx, s: """", d: [|(object)""""|]];
     }
@@ -3430,7 +3430,7 @@ class C<T>
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    static bool Foo(dynamic d)
+    static bool Goo(dynamic d)
     {
         d([|(object)""""|]);
         return true;
@@ -3445,9 +3445,9 @@ class C<T>
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    static bool Foo(dynamic d)
+    static bool Goo(dynamic d)
     {
-        d.foo([|(object)""""|]);
+        d.goo([|(object)""""|]);
         return true;
     }
 }");
@@ -3460,9 +3460,9 @@ class C<T>
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    static bool Foo(dynamic d)
+    static bool Goo(dynamic d)
     {
-        d.foo.bar.foo([|(object)""""|]);
+        d.goo.bar.goo([|(object)""""|]);
         return true;
     }
 }");
@@ -3475,9 +3475,9 @@ class C<T>
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    static bool Foo(dynamic d)
+    static bool Goo(dynamic d)
     {
-        d.foo().bar().foo([|(object)""""|]);
+        d.goo().bar().goo([|(object)""""|]);
         return true;
     }
 }");
@@ -3494,22 +3494,22 @@ class Program
 {
     static void Main()
     {
-        C<string>.InvokeFoo(0);
+        C<string>.InvokeGoo(0);
     }
 }
 
 class C<T>
 {
-    public static void InvokeFoo(dynamic x)
+    public static void InvokeGoo(dynamic x)
     {
-        Console.WriteLine(Foo([|(object)""""|], x, """"));
+        Console.WriteLine(Goo([|(object)""""|], x, """"));
     }
 
-    static void Foo(string y, int x, T z)
+    static void Goo(string y, int x, T z)
     {
     }
 
-    static bool Foo(object y, int x, object z)
+    static bool Goo(object y, int x, object z)
     {
         return true;
     }
@@ -3564,7 +3564,7 @@ class C
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    static void Foo<T>(T x, object y)
+    static void Goo<T>(T x, object y)
     {
         if ([|(object)|]x == y)
         {
@@ -3584,7 +3584,7 @@ using System.Threading.Tasks;
  
 class C
 {
-    void Foo(Task<Action> x)
+    void Goo(Task<Action> x)
     {
         (([|(Task<Action>)x|]).Result)();
     }
@@ -3597,7 +3597,7 @@ using System.Threading.Tasks;
  
 class C
 {
-    void Foo(Task<Action> x)
+    void Goo(Task<Action> x)
     {
         x.Result();
     }
@@ -3659,8 +3659,8 @@ public struct B
     {
         static void Main(string[] args)
         {
-            int foo = 0;
-            switch ([|(E)foo|])
+            int goo = 0;
+            switch ([|(E)goo|])
             {
                 case E.A:
                 case E.B:
@@ -3928,9 +3928,9 @@ class Program
         TakesParams([|(object)|]takesArgs);
     }
 
-    private static void TakesParams(params object[] foo)
+    private static void TakesParams(params object[] goo)
     {
-        Console.WriteLine(foo.Length);
+        Console.WriteLine(goo.Length);
     }
 }");
         }
@@ -3949,9 +3949,9 @@ class Program
         TakesParams([|(System.IComparable[])|]takesArgs);
     }
 
-    private static void TakesParams(params object[] foo)
+    private static void TakesParams(params object[] goo)
     {
-        System.Console.WriteLine(foo.Length);
+        System.Console.WriteLine(goo.Length);
     }
 }",
 @"
@@ -3963,9 +3963,9 @@ class Program
         TakesParams(takesArgs);
     }
 
-    private static void TakesParams(params object[] foo)
+    private static void TakesParams(params object[] goo)
     {
-        System.Console.WriteLine(foo.Length);
+        System.Console.WriteLine(goo.Length);
     }
 }");
         }
@@ -3986,7 +3986,7 @@ enum Sign
 
     class T
     {{
-        void Foo()
+        void Goo()
         {{
             Sign mySign = Sign.Positive;
             Sign invertedSign = (Sign) ( [|{op}((int) mySign)|] );
@@ -4010,7 +4010,7 @@ enum Sign
 
     class T
     {{
-        void Foo()
+        void Goo()
         {{
             Sign mySign = Sign.Positive;
             Sign invertedSign = (Sign) ( [|{op}(int) mySign|] );
@@ -4032,7 +4032,7 @@ enum Sign
 
     class T
     {
-        void Foo()
+        void Goo()
         {
             Sign mySign = Sign.Positive;
             Sign invertedSign = (Sign) ( [|~(int) mySign|] );
@@ -4047,7 +4047,7 @@ enum Sign
 
     class T
     {
-        void Foo()
+        void Goo()
         {
             Sign mySign = Sign.Positive;
             Sign invertedSign = (Sign) ( ~mySign );

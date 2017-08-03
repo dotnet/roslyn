@@ -195,7 +195,7 @@ class Test
             var source = @"
 class Test
 {
-    void Foo(int p)
+    void Goo(int p)
     {
         System.Func<int> f1 = () => p;
         f1();
@@ -207,7 +207,7 @@ class Test
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Test"" name=""Foo"" parameterNames=""p"">
+    <method containingType=""Test"" name=""Goo"" parameterNames=""p"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -234,9 +234,9 @@ class Test
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass0_0"" name=""&lt;Foo&gt;b__0"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass0_0"" name=""&lt;Goo&gt;b__0"">
       <customDebugInfo>
-        <forward declaringType=""Test"" methodName=""Foo"" parameterNames=""p"" />
+        <forward declaringType=""Test"" methodName=""Goo"" parameterNames=""p"" />
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""37"" endLine=""6"" endColumn=""38"" />

@@ -159,7 +159,7 @@ class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source, "foo.cs"), options: TestOptions.DebugDll);
+            var c = CreateStandardCompilation(Parse(source, "goo.cs"), options: TestOptions.DebugDll);
 
             var peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithPdbFilePath(@"a/b/c/d.pdb"));
 
@@ -181,7 +181,7 @@ class C
                 using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded))
                 {
                     var mdReader = embeddedMetadataProvider.GetMetadataReader();
-                    AssertEx.Equal(new[] { "foo.cs" }, mdReader.Documents.Select(doc => mdReader.GetString(mdReader.GetDocument(doc).Name)));
+                    AssertEx.Equal(new[] { "goo.cs" }, mdReader.Documents.Select(doc => mdReader.GetString(mdReader.GetDocument(doc).Name)));
 
                     pdbId = new BlobContentId(mdReader.DebugMetadataHeader.Id);
                 }
@@ -210,7 +210,7 @@ class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source, "foo.cs"), options: TestOptions.DebugDll.WithDeterministic(true));
+            var c = CreateStandardCompilation(Parse(source, "goo.cs"), options: TestOptions.DebugDll.WithDeterministic(true));
 
             var peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithPdbFilePath(@"a/b/c/d.pdb"));
 
@@ -233,7 +233,7 @@ class C
                 using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded))
                 {
                     var mdReader = embeddedMetadataProvider.GetMetadataReader();
-                    AssertEx.Equal(new[] { "foo.cs" }, mdReader.Documents.Select(doc => mdReader.GetString(mdReader.GetDocument(doc).Name)));
+                    AssertEx.Equal(new[] { "goo.cs" }, mdReader.Documents.Select(doc => mdReader.GetString(mdReader.GetDocument(doc).Name)));
 
                     pdbId = new BlobContentId(mdReader.DebugMetadataHeader.Id);
                 }
@@ -276,7 +276,7 @@ class C
 }
 ");
 
-            var c = CreateStandardCompilation(Parse(source, "f:/build/foo.cs"), options: TestOptions.DebugDll);
+            var c = CreateStandardCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream, sourceLinkStream: new MemoryStream(sourceLinkBlob));
@@ -317,7 +317,7 @@ class C
   }
 }
 ");
-            var c = CreateStandardCompilation(Parse(source, "f:/build/foo.cs"), options: TestOptions.DebugDll);
+            var c = CreateStandardCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
 
             var peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded), sourceLinkStream: new MemoryStream(sourceLinkBlob));
 
@@ -356,7 +356,7 @@ class C
 ";
             var sourceLinkStream = new TestStream(canRead: true, readFunc: (_, __, ___) => { throw new Exception("Error!"); });
 
-            var c = CreateStandardCompilation(Parse(source, "f:/build/foo.cs"), options: TestOptions.DebugDll);
+            var c = CreateStandardCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
             var result = c.Emit(new MemoryStream(), new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), sourceLinkStream: sourceLinkStream);
             result.Diagnostics.Verify(
                 // error CS0041: Unexpected error writing debug information -- 'Error!'
@@ -377,7 +377,7 @@ class C
     }
 }
 ";
-            var tree = Parse(source, "f:/build/foo.cs");
+            var tree = Parse(source, "f:/build/goo.cs");
             var c = CreateStandardCompilation(tree, options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
@@ -400,7 +400,7 @@ class C
                          Text = pdbReader.GetEmbeddedSource(documentHandle)
                      }).Single();
 
-                Assert.Equal(embeddedSource.FilePath, "f:/build/foo.cs");
+                Assert.Equal(embeddedSource.FilePath, "f:/build/goo.cs");
                 Assert.Equal(source, embeddedSource.Text.ToString());
             }
         }
@@ -419,7 +419,7 @@ class C
     }
 }
 ";
-            var tree = Parse(source, "f:/build/foo.cs");
+            var tree = Parse(source, "f:/build/goo.cs");
             var c = CreateStandardCompilation(tree, options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
@@ -445,7 +445,7 @@ class C
                              Text = pdbReader.GetEmbeddedSource(documentHandle)
                          }).Single();
 
-                    Assert.Equal(embeddedSource.FilePath, "f:/build/foo.cs");
+                    Assert.Equal(embeddedSource.FilePath, "f:/build/goo.cs");
                     Assert.Equal(source, embeddedSource.Text.ToString());
                 }
             }

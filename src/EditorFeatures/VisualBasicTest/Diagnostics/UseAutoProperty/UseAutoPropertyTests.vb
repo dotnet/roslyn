@@ -207,7 +207,7 @@ end class")
     [|dim i as integer|]
     property P as Integer
         get
-            Foo()
+            Goo()
             return i
         end get
     end property
@@ -221,7 +221,7 @@ end class")
     [|dim i as integer|]
     property P as Integer
         set
-            Foo()
+            Goo()
             i = value
         end set
     end property
@@ -239,7 +239,7 @@ end class")
         end get
 
         set
-            Foo()
+            Goo()
             i = value
         end set
     end property
@@ -500,7 +500,7 @@ end class")
         get
             return i
  end property
-    public sub Foo()
+    public sub Goo()
         i = 1
     end sub
 end class")
@@ -515,7 +515,7 @@ end class")
         get
             return i
  \end property 
- public sub Foo()
+ public sub Goo()
         i = 1
     end sub
 end class")
@@ -534,13 +534,13 @@ end class")
             i = value
         end set
     end property
-    public sub Foo()
+    public sub Goo()
         i = 1
     end sub
 end class",
 "class Class1
     public property P as Integer
-    public sub Foo() P = 1 
+    public sub Goo() P = 1 
  end sub
 end class")
         End Function

@@ -1554,11 +1554,11 @@ class Program
 {
     static void Main()
     {
-        Foo(x => { foreach (var y in x) { } });
+        Goo(x => { foreach (var y in x) { } });
     }
 
-    static void Foo(Action<IEnumerable> a) { Console.WriteLine(1); }
-    static void Foo(Action<A> a) { }}
+    static void Goo(Action<IEnumerable> a) { Console.WriteLine(1); }
+    static void Goo(Action<A> a) { }}
 
 class A
 {

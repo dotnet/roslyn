@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromFile((string)null));
             Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(""));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"http://foo.bar"));
+            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"http://goo.bar"));
             Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"c:\*"));
             Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"\\.\COM1"));
 

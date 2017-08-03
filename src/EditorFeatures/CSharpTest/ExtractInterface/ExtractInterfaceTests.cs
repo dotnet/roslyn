@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
 using System;
 class MyClass
 {
-    public void Foo()
+    public void Goo()
     {
         $$
     }
@@ -40,7 +40,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo()
+    public void Goo()
     {
         
     }
@@ -56,7 +56,7 @@ class MyClass
 using System;
 $$class MyClass
 {
-    public void Foo()
+    public void Goo()
     {
         
     }
@@ -72,7 +72,7 @@ $$class MyClass
 using System;
 class MyClass
 {
-    public void Foo()
+    public void Goo()
     {
         
     }
@@ -95,7 +95,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo()
+    public void Goo()
     {
         
     }
@@ -118,7 +118,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo()
+    public void Goo()
     {
         
     }$$
@@ -131,7 +131,7 @@ class MyClass
     }
 }";
 
-            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Foo");
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Goo");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
@@ -141,10 +141,10 @@ class MyClass
 using System;
 interface IMyInterface
 {
-    $$void Foo();
+    $$void Goo();
 }";
 
-            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Foo", expectedInterfaceName: "IMyInterface1");
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Goo", expectedInterfaceName: "IMyInterface1");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
@@ -154,10 +154,10 @@ interface IMyInterface
 using System;
 struct SomeStruct
 {
-    $$public void Foo() { }
+    $$public void Goo() { }
 }";
 
-            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Foo", expectedInterfaceName: "ISomeStruct");
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Goo", expectedInterfaceName: "ISomeStruct");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
@@ -170,7 +170,7 @@ namespace Ns$$
 {
     class MyClass
     {
-        public async Task Foo() { }
+        public async Task Goo() { }
     }
 }";
 
@@ -186,12 +186,12 @@ class MyClass
 {
     $$public int x;
 
-    public void Foo()
+    public void Goo()
     {
     }
 }";
 
-            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Foo");
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Goo");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
@@ -348,7 +348,7 @@ class MyClass
 using System;
 class MyClass
 {
-    $$public void Foo() { }
+    $$public void Goo() { }
 }
 
 interface IMyClass { }
@@ -365,7 +365,7 @@ class IMyClass2 { }";
 using System;
 class MyClass
 {
-    $$public void Foo() { }
+    $$public void Goo() { }
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedNamespaceName: "");
@@ -380,7 +380,7 @@ namespace MyNamespace
 {
     class MyClass
     {
-        $$public void Foo() { }
+        $$public void Goo() { }
     }
 }";
 
@@ -398,7 +398,7 @@ namespace OuterNamespace
     {
         class MyClass
         {
-            $$public void Foo() { }
+            $$public void Goo() { }
         }
     }
 }";
@@ -413,14 +413,14 @@ namespace OuterNamespace
 
 class MyClass
 {
-    $$public void Foo() { }
+    $$public void Goo() { }
 }";
 
             var expectedCode = @"using System;
 
 class MyClass : IMyClass
 {
-    public void Foo() { }
+    public void Goo() { }
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
@@ -434,7 +434,7 @@ using System;
 
 struct MyStruct
 {
-    $$public void Foo() { }
+    $$public void Goo() { }
 }";
 
             var expectedCode = @"
@@ -442,7 +442,7 @@ using System;
 
 struct MyStruct : IMyStruct
 {
-    public void Foo() { }
+    public void Goo() { }
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
@@ -456,7 +456,7 @@ using System;
 
 interface MyInterface
 {
-    $$void Foo();
+    $$void Goo();
 }";
 
             var expectedCode = @"
@@ -464,7 +464,7 @@ using System;
 
 interface MyInterface
 {
-    void Foo();
+    void Goo();
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
@@ -616,11 +616,11 @@ public interface IClass
             var markup = @"
 public class Class<A, B, C, D, E, F, G, H, NO1> where E : F
 {
-	$$public void Foo1(A a) { }
-	public B Foo2() { return default(B); }
-	public void Foo3(List<C> list) { }
+	$$public void Goo1(A a) { }
+	public B Goo2() { return default(B); }
+	public void Goo3(List<C> list) { }
 	
-	public event Func<D> Foo4;
+	public event Func<D> Goo4;
 	
 	public List<E> Prop { set { } }
 	public List<G> this[List<List<H>> list] { set { } }
@@ -634,12 +634,12 @@ public class Class<A, B, C, D, E, F, G, H, NO1> where E : F
 
     List<E> Prop { set; }
 
-    event Func<D> Foo4;
+    event Func<D> Goo4;
 
     void Bar1();
-    void Foo1(A a);
-    B Foo2();
-    void Foo3(List<C> list);
+    void Goo1(A a);
+    B Goo2();
+    void Goo3(List<C> list);
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
@@ -653,7 +653,7 @@ public class Class<A, B, C, D, E, F, G, H, NO1> where E : F
 
 class Program<A, B, C, D, E> where A : List<B> where B : Dictionary<List<D>, List<E>>
 {
-    $$public void Foo<T>(T t) where T : List<A> { }
+    $$public void Goo<T>(T t) where T : List<A> { }
 }";
 
             var expectedInterfaceCode = @"using System.Collections.Generic;
@@ -662,7 +662,7 @@ interface IProgram<A, B, D, E>
     where A : List<B>
     where B : Dictionary<List<D>, List<E>>
 {
-    void Foo<T>(T t) where T : List<A>;
+    void Goo<T>(T t) where T : List<A>;
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
@@ -733,13 +733,13 @@ public interface IC4<A, B, C>
             var markup = @"
 class Program
 {
-    $$public void Foo() { }
+    $$public void Goo() { }
 }";
 
             var expectedCode = @"
 class Program : IProgram
 {
-    public void Foo() { }
+    public void Goo() { }
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
@@ -751,13 +751,13 @@ class Program : IProgram
             var markup = @"
 class Program<T>
 {
-    $$public void Foo(T t) { }
+    $$public void Goo(T t) { }
 }";
 
             var expectedCode = @"
 class Program<T> : IProgram<T>
 {
-    public void Foo(T t) { }
+    public void Goo(T t) { }
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
@@ -769,13 +769,13 @@ class Program<T> : IProgram<T>
             var markup = @"
 class Program<T, U> where T : U
 {
-    $$public void Foo(T t, U u) { }
+    $$public void Goo(T t, U u) { }
 }";
 
             var expectedCode = @"
 class Program<T, U> : IProgram<T, U> where T : U
 {
-    public void Foo(T t, U u) { }
+    public void Goo(T t, U u) { }
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
@@ -787,7 +787,7 @@ class Program<T, U> : IProgram<T, U> where T : U
             var markup = @"
 class Program : ISomeInterface
 {
-    $$public void Foo() { }
+    $$public void Goo() { }
 }
 
 interface ISomeInterface {}";
@@ -795,7 +795,7 @@ interface ISomeInterface {}";
             var expectedCode = @"
 class Program : ISomeInterface, IProgram
 {
-    public void Foo() { }
+    public void Goo() { }
 }
 
 interface ISomeInterface {}";
@@ -809,7 +809,7 @@ interface ISomeInterface {}";
             var markup = @"
 class Program<T, U> : ISomeInterface<T>
 {
-    $$public void Foo(T t, U u) { }
+    $$public void Goo(T t, U u) { }
 }
 
 interface ISomeInterface<T> {}";
@@ -817,7 +817,7 @@ interface ISomeInterface<T> {}";
             var expectedCode = @"
 class Program<T, U> : ISomeInterface<T>, IProgram<T, U>
 {
-    public void Foo(T t, U u) { }
+    public void Goo(T t, U u) { }
 }
 
 interface ISomeInterface<T> {}";
@@ -831,7 +831,7 @@ interface ISomeInterface<T> {}";
             var markup = @"
 class Program<T, U> : ISomeInterface<T>, ISomeInterface2<T, U>
 {
-    $$public void Foo(T t, U u) { }
+    $$public void Goo(T t, U u) { }
 }
 
 interface ISomeInterface<T> {}
@@ -840,7 +840,7 @@ interface ISomeInterface2<T, U> {}";
             var expectedCode = @"
 class Program<T, U> : ISomeInterface<T>, ISomeInterface2<T, U>, IProgram<T, U>
 {
-    public void Foo(T t, U u) { }
+    public void Goo(T t, U u) { }
 }
 
 interface ISomeInterface<T> {}
@@ -855,7 +855,7 @@ interface ISomeInterface2<T, U> {}";
             var markup = @"
 class Program<T, U> : ISomeInterface<T>, ISomeInterface2<T, U> where T : U
 {
-    $$public void Foo(T t, U u) { }
+    $$public void Goo(T t, U u) { }
 }
 
 interface ISomeInterface<T> {}
@@ -864,7 +864,7 @@ interface ISomeInterface2<T, U> {}";
             var expectedCode = @"
 class Program<T, U> : ISomeInterface<T>, ISomeInterface2<T, U>, IProgram<T, U> where T : U
 {
-    public void Foo(T t, U u) { }
+    public void Goo(T t, U u) { }
 }
 
 interface ISomeInterface<T> {}
@@ -880,7 +880,7 @@ interface ISomeInterface2<T, U> {}";
 interface ISomeInterface<T> {}
 class Program<T, U> : ISomeInterface<T> where T : U
 {
-    $$public void Foo(T t, U u) { }
+    $$public void Goo(T t, U u) { }
 }";
 
             await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
@@ -893,7 +893,7 @@ class Program<T, U> : ISomeInterface<T> where T : U
 interface ISomeInterface<T> {}
 class Program<T, U> $$: ISomeInterface<T> where T : U
 {
-    public void Foo(T t, U u) { }
+    public void Goo(T t, U u) { }
 }";
 
             await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
@@ -906,7 +906,7 @@ class Program<T, U> $$: ISomeInterface<T> where T : U
 interface ISomeInterface<T> {}
 class$$ Program<T, U> : ISomeInterface<T> where T : U
 {
-    public void Foo(T t, U u) { }
+    public void Goo(T t, U u) { }
 }";
 
             await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
@@ -919,7 +919,7 @@ class$$ Program<T, U> : ISomeInterface<T> where T : U
 interface ISomeInterface<T> {}
 class Program<T, U>$$ : ISomeInterface<T> where T : U
 {
-    public void Foo(T t, U u) { }
+    public void Goo(T t, U u) { }
 }";
 
             await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
@@ -932,7 +932,7 @@ class Program<T, U>$$ : ISomeInterface<T> where T : U
 interface ISomeInterface<T> {}
 class Program  $$ <T, U> : ISomeInterface<T> where T : U
 {
-    public void Foo(T t, U u) { }
+    public void Goo(T t, U u) { }
 }";
 
             await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
@@ -945,7 +945,7 @@ class Program  $$ <T, U> : ISomeInterface<T> where T : U
 interface ISomeInterface<T> {}
 class $$Program   <T, U> : ISomeInterface<T> where T : U
 {
-    public void Foo(T t, U u) { }
+    public void Goo(T t, U u) { }
 }";
 
             await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
@@ -958,7 +958,7 @@ class $$Program   <T, U> : ISomeInterface<T> where T : U
 interface ISomeInterface<T> {}
 class $$Program : ISomeInterface<object>
 {
-    public void Foo() { }
+    public void Goo() { }
 }";
 
             await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
@@ -971,7 +971,7 @@ class $$Program : ISomeInterface<object>
 interface ISomeInterface<T> {}
 class Program$$ : ISomeInterface<object>
 {
-    public void Foo() { }
+    public void Goo() { }
 }";
 
             await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
@@ -984,7 +984,7 @@ class Program$$ : ISomeInterface<object>
 interface ISomeInterface<T> {}
 class$$ Program : ISomeInterface<object>
 {
-    public void Foo() { }
+    public void Goo() { }
 }";
 
             await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
@@ -997,7 +997,7 @@ class$$ Program : ISomeInterface<object>
 interface ISomeInterface<T> {}
 class Program $$: ISomeInterface<object>
 {
-    public void Foo() { }
+    public void Goo() { }
 }";
 
             await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);

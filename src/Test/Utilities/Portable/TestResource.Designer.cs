@@ -67,13 +67,13 @@ namespace Roslyn.Test.Utilities {
         ///#pragma warning disable 414, 3021
         ///#pragma warning restore 3021
         ///#pragma checksum &quot;file.txt&quot; &quot;{00000000-0000-0000-0000-000000000000}&quot; &quot;2453&quot;
-        ///#define foo
-        ///#if foo
+        ///#define goo
+        ///#if goo
         ///#else
         ///#endif
-        ///#undef foo
+        ///#undef goo
         ///
-        ///extern alias Foo;
+        ///extern alias Goo;
         ///
         ///using System;
         ///using System.Collections.Generic;
@@ -84,7 +84,7 @@ namespace Roslyn.Test.Utilities {
         ///
         ///#if DEBUG || TRACE
         ///using System.Diagnostics;
-        ///#elif SILVERLIGHT &amp;&amp; WINDOWS_PHONE || DEBUG || foo == t [rest of string was truncated]&quot;;.
+        ///#elif SILVERLIGHT &amp;&amp; WINDOWS_PHONE || DEBUG || goo == t [rest of string was truncated]&quot;;.
         /// </summary>
         public static string AllInOneCSharpCode {
             get {
@@ -103,19 +103,19 @@ namespace Roslyn.Test.Utilities {
         ///Imports System.Text
         ///Imports M = System.Math
         ///Imports System.Collections
-        ///Imports &lt;xmlns:ns=&quot;foo&quot;&gt;
-        ///Imports &lt;xmlns=&quot;foo&quot;&gt;
+        ///Imports &lt;xmlns:ns=&quot;goo&quot;&gt;
+        ///Imports &lt;xmlns=&quot;goo&quot;&gt;
         ///#Const line = 6
-        ///#Const foo = True
-        ///#If foo Then
+        ///#Const goo = True
+        ///#If goo Then
         ///#Else
         ///#End If
         ///&apos; There is no equivalent to #undef in VB.NET:
-        ///&apos;#undef foo
-        ///&apos;#warning foo
-        ///&apos;#error foo
+        ///&apos;#undef goo
+        ///&apos;#warning goo
+        ///&apos;#error goo
         ///&apos; There is no equivalent to &apos;extern alias&apos; in VB:
-        ///&apos;extern alias Foo;
+        ///&apos;extern alias Goo;
         ///#If DEBUG OrElse T [rest of string was truncated]&quot;;.
         /// </summary>
         public static string AllInOneVisualBasicBaseline {
@@ -135,20 +135,20 @@ namespace Roslyn.Test.Utilities {
         ///Imports System.Text
         ///Imports M = System.Math
         ///Imports System.Collections
-        ///Imports &lt;xmlns:ns=&quot;foo&quot;&gt;
-        ///Imports &lt;xmlns=&quot;foo&quot;&gt;
+        ///Imports &lt;xmlns:ns=&quot;goo&quot;&gt;
+        ///Imports &lt;xmlns=&quot;goo&quot;&gt;
         ///
         ///#Const line = 6
-        ///#Const foo = True
-        ///#If foo Then
+        ///#Const goo = True
+        ///#If goo Then
         ///#Else
         ///#End If
         ///&apos; There is no equivalent to #undef in VB.NET:
-        ///&apos;#undef foo
-        ///&apos;#warning foo
-        ///&apos;#error foo
+        ///&apos;#undef goo
+        ///&apos;#warning goo
+        ///&apos;#error goo
         ///&apos; There is no equivalent to &apos;extern alias&apos; in VB:
-        ///&apos;extern alias Foo;
+        ///&apos;extern alias Goo;
         ///
         ///#If DEBUG OrEl [rest of string was truncated]&quot;;.
         /// </summary>

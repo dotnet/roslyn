@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         [Fact]
         public void TestEmptySpanIntersects1()
         {
-            var tree = CreateTree("foo", new Span(0, 0));
+            var tree = CreateTree("goo", new Span(0, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(0, 0)));
             Assert.True(spans.Count == 1);
         }
@@ -140,15 +140,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         [Fact]
         public void TestEmptySpanIntersects2()
         {
-            var tree = CreateTree("foo", new Span(0, 0));
-            var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(0, "foo".Length)));
+            var tree = CreateTree("goo", new Span(0, 0));
+            var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(0, "goo".Length)));
             Assert.True(spans.Count == 1);
         }
 
         [Fact]
         public void TestEmptySpanIntersects3()
         {
-            var tree = CreateTree("foo", new Span(1, 0));
+            var tree = CreateTree("goo", new Span(1, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(0, 1)));
             Assert.True(spans.Count == 1);
         }
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         [Fact]
         public void TestEmptySpanIntersects4()
         {
-            var tree = CreateTree("foo", new Span(1, 0));
+            var tree = CreateTree("goo", new Span(1, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(1, 0)));
             Assert.True(spans.Count == 1);
         }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         [Fact]
         public void TestEmptySpanIntersects5()
         {
-            var tree = CreateTree("foo", new Span(1, 0));
+            var tree = CreateTree("goo", new Span(1, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(1, 1)));
             Assert.True(spans.Count == 1);
         }

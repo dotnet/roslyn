@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
@@ -44,7 +44,7 @@ End Class");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
@@ -59,7 +59,7 @@ End Class");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
@@ -82,7 +82,7 @@ End Class");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
@@ -92,7 +92,7 @@ End Class");
              VisualStudio.Editor.Verify.CurrentLineText("            $$}", assertCaretPosition: true, trimWhitespace: false);
              VisualStudio.Editor.Verify.TextContains(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = {
             $$}
     End Sub
@@ -108,13 +108,13 @@ Class C
     $$
 End Class");
 
-             VisualStudio.Editor.SendKeys("Sub Foo(");
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Foo($$)", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Sub Goo(");
+             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
 
              VisualStudio.Editor.SendKeys("x As Long");
              VisualStudio.Editor.SendKeys(VirtualKey.Escape);
              VisualStudio.Editor.SendKeys(VirtualKey.Tab);
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Foo(x As Long)$$", assertCaretPosition: true);
+             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo(x As Long)$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -125,12 +125,12 @@ Class C
     $$
 End Class");
 
-             VisualStudio.Editor.SendKeys("Sub Foo(");
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Foo($$)", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Sub Goo(");
+             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
 
              VisualStudio.Editor.SendKeys(VirtualKey.Escape);
              VisualStudio.Editor.SendKeys(')');
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Foo()$$", assertCaretPosition: true);
+             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo()$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -138,7 +138,7 @@ End Class");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
@@ -152,7 +152,7 @@ End Class");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
@@ -169,7 +169,7 @@ End Class");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
@@ -189,7 +189,7 @@ Class C
     Sub New([dim] As String)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
@@ -211,7 +211,7 @@ Class C
     Sub New([dim] As String)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
@@ -234,7 +234,7 @@ End Class");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         ' $$
     End Sub
 End Class");
@@ -248,7 +248,7 @@ End Class");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
@@ -281,7 +281,7 @@ Class C
     ''' <summary>
     ''' <see></see>$$
     ''' </summary>
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class");
 
@@ -295,7 +295,7 @@ End Class");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class");
@@ -310,7 +310,7 @@ End Class");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()$$
+    Sub Goo()$$
     End Sub
 End Class");
 
@@ -327,15 +327,15 @@ End Class");
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
     Sub Test()
         $$
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Foo(");
-             VisualStudio.Editor.Verify.CurrentLineText("Foo($$)", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Goo(");
+             VisualStudio.Editor.Verify.CurrentLineText("Goo($$)", assertCaretPosition: true);
         }
 
         [WorkItem(657451, "DevDiv")]
@@ -346,8 +346,8 @@ End Class");
 Class C
     $$");
 
-             VisualStudio.Editor.SendKeys("Sub Foo(");
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Foo($$)", assertCaretPosition: true);
+             VisualStudio.Editor.SendKeys("Sub Goo(");
+             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
         }
     }
 }

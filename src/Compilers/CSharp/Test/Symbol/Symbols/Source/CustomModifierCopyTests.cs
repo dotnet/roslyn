@@ -714,11 +714,11 @@ class Bug813305 : IBug813305
 {
     void IBug813305.M(dynamic x)
     {
-        x.Foo();
+        x.Goo();
         System.Console.WriteLine(""Bug813305.M"");
     }
  
-    public void Foo() {}
+    public void Goo() {}
 }
  
 class Test

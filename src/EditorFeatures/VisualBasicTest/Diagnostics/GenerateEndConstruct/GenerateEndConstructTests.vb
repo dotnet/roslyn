@@ -29,11 +29,11 @@ End If</MethodBody>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestUsing() As Task
             Dim text = <MethodBody>
-Using (foo)[||]
+Using (goo)[||]
 </MethodBody>
 
             Dim expected = <MethodBody>
-Using (foo)
+Using (goo)
 
 End Using</MethodBody>
 
@@ -43,9 +43,9 @@ End Using</MethodBody>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestStructure() As Task
             Dim text = <File>
-Structure Foo[||]</File>
+Structure Goo[||]</File>
 
-            Dim expected = StringFromLines("Structure Foo", "End Structure", "")
+            Dim expected = StringFromLines("Structure Goo", "End Structure", "")
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
         End Function
@@ -53,10 +53,10 @@ Structure Foo[||]</File>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestModule() As Task
             Dim text = <File>
-Module Foo[||]
+Module Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Module Foo", "End Module", "")
+            Dim expected = StringFromLines("Module Goo", "End Module", "")
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
         End Function
@@ -64,10 +64,10 @@ Module Foo[||]
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestNamespace() As Task
             Dim text = <File>
-Namespace Foo[||]
+Namespace Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Namespace Foo", "End Namespace", "")
+            Dim expected = StringFromLines("Namespace Goo", "End Namespace", "")
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
         End Function
@@ -75,10 +75,10 @@ Namespace Foo[||]
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestClass() As Task
             Dim text = <File>
-Class Foo[||]
+Class Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Class Foo", "End Class", "")
+            Dim expected = StringFromLines("Class Goo", "End Class", "")
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
         End Function
@@ -86,10 +86,10 @@ Class Foo[||]
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestInterface() As Task
             Dim text = <File>
-Interface Foo[||]
+Interface Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Interface Foo", "End Interface", "")
+            Dim expected = StringFromLines("Interface Goo", "End Interface", "")
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
         End Function
@@ -97,10 +97,10 @@ Interface Foo[||]
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestEnum() As Task
             Dim text = <File>
-Enum Foo[||]
+Enum Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Enum Foo", "End Enum", "")
+            Dim expected = StringFromLines("Enum Goo", "End Enum", "")
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
         End Function
@@ -311,7 +311,7 @@ End Class</File>
             Dim text = <File>
 Public Enum e[||]
     e1
-Class Foo
+Class Goo
 End Class</File>
 
             Dim expected = <File>
@@ -319,7 +319,7 @@ Public Enum e
     e1
 End Enum
 
-Class Foo
+Class Goo
 End Class</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
@@ -433,7 +433,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
     End Sub
-    Function foo()
+    Function goo()
         Dim op = Sub[||](c)
                      Dim kl = Sub(g)
                               End Sub 
