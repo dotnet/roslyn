@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
 
             foreach (var (siblingDocument, siblingRoot) in siblingDocumentsAndRoots)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var siblingBanner = await TryGetBannerAsync(siblingDocument, siblingRoot, cancellationToken).ConfigureAwait(false);
                 if (siblingBanner.Length > 0 && !siblingDocument.IsGeneratedCode(cancellationToken))
                 {
