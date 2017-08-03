@@ -1024,31 +1024,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal bool TryGetLocals(MethodDefinitionHandle handle, out ImmutableArray<LocalInfo<TypeSymbol>> localInfo)
+        internal ImmutableArray<LocalInfo<TypeSymbol>> GetLocalsOrThrow(StandaloneSignatureHandle handle)
         {
-            try
-            {
-                Debug.Assert(Module.HasIL);
-                var methodBody = Module.GetMethodBodyOrThrow(handle);
-
-                if (!methodBody.LocalSignature.IsNil)
-                {
-                    var signatureHandle = Module.MetadataReader.GetStandaloneSignature(methodBody.LocalSignature).Signature;
-                    var signatureReader = Module.GetMemoryReaderOrThrow(signatureHandle);
-                    localInfo = DecodeLocalSignatureOrThrow(ref signatureReader);
-                }
-                else
-                {
-                    localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
-                }
-            }
-            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException || e is IOException)
-            {
-                localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
-                return false;
-            }
-
-            return true;
+            var signatureHandle = Module.MetadataReader.GetStandaloneSignature(handle).Signature;
+            var signatureReader = Module.MetadataReader.GetBlobReader(signatureHandle);
+            return DecodeLocalSignatureOrThrow(ref signatureReader);
         }
 
         /// <summary>
