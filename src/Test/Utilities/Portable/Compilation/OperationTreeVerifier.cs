@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($"{header}: {typeStr}");
         }
 
-        private string FormatBoolProperty(string propertyName, bool value) => $"{propertyName}: {(value ? "True" : "False")}";
+        private static string FormatBoolProperty(string propertyName, bool value) => $"{propertyName}: {(value ? "True" : "False")}";
 
         #endregion
 
