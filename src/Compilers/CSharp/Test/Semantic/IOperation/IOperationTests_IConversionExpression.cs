@@ -3276,6 +3276,41 @@ IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return f;'
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [Fact]
+        public void ConversionExpression_Implicit_CheckedOnlyAppliesToNumeric()
+        {
+            string source = @"
+namespace ConsoleApp1
+{
+    class C1
+    {
+        static void M1()
+        {
+            checked
+            {
+                /*<bind>*/object o = null/*</bind>*/;
+            }
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'object o =  ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'object o =  ... *</bind>*/;')
+    Variables: Local_1: System.Object o
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'null')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+        Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 'o' is assigned but its value is never used
+                //                 /*<bind>*/object o = null/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(10, 34)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         #endregion
 
         #region Explicit Conversion
@@ -5176,6 +5211,42 @@ IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return (in
 
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact]
+        public void ConversionExpression_Explicit_CheckedOnlyAppliesToNumeric()
+        {
+            string source = @"
+namespace ConsoleApp1
+{
+    class C1
+    {
+        static void M1()
+        {
+            checked
+            {
+                /*<bind>*/object o = (object)null/*</bind>*/;
+            }
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'object o =  ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'object o =  ... *</bind>*/;')
+    Variables: Local_1: System.Object o
+    Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: '(object)null')
+        Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 'o' is assigned but its value is never used
+                //                 /*<bind>*/object o = (object)null/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(10, 34)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
 
         #endregion
 

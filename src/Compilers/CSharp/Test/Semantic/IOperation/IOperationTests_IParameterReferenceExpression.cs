@@ -254,7 +254,7 @@ class Class
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
   Children(1):
       ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => ... }')
@@ -291,7 +291,7 @@ class Class
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'new Delegate(Method2)')
   Children(1):
       IOperation:  (OperationKind.None) (Syntax: 'Method2')

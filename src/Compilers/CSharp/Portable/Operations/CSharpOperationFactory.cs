@@ -644,10 +644,11 @@ namespace Microsoft.CodeAnalysis.Semantics
                 Conversion conversion = _semanticModel.GetConversion(syntax);
                 bool isExplicit = boundConversion.ExplicitCastInCode;
                 bool isTryCast = false;
-                bool isChecked = boundConversion.Checked;
+                // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
+                bool isChecked = conversion.IsNumeric && boundConversion.Checked;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isChecked, isTryCast, _semanticModel, syntax, type, constantValue);
+                return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue);
             }
         }
 
