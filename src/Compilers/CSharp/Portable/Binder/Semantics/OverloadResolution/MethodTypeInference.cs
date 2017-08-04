@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 /*
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    void M<U>(T t, U u); 
             // }
             // ...
-            // static void Foo<V>(V v, I<V> iv) 
+            // static void Goo<V>(V v, I<V> iv) 
             // {
             //   iv.M(v, "");
             // }
@@ -545,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that has no name text. This is because of the following scenario:
             //
             // void M<T>(T t) { }
-            // void Foo()
+            // void Goo()
             // {
             //     UnknownType t;
             //     M(t);
@@ -2712,17 +2713,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         // In error recovery and reporting scenarios we sometimes end up in a situation
         // like this:
         //
-        // x.Foo( y=>
+        // x.Goo( y=>
         //
-        // and the question is, "is Foo a valid extension method of x?"  If Foo is
-        // generic, then Foo will be something like:
+        // and the question is, "is Goo a valid extension method of x?"  If Goo is
+        // generic, then Goo will be something like:
         //
-        // static Blah Foo<T>(this Bar<T> bar, Func<T, T> f){ ... }
+        // static Blah Goo<T>(this Bar<T> bar, Func<T, T> f){ ... }
         //
         // What we would like to know is: given _only_ the expression x, can we infer
         // what T is in Bar<T> ?  If we can, then for error recovery and reporting
-        // we can provisionally consider Foo to be an extension method of x. If we 
-        // cannot deduce this just from x then we should consider Foo to not be an
+        // we can provisionally consider Goo to be an extension method of x. If we 
+        // cannot deduce this just from x then we should consider Goo to not be an
         // extension method of x, at least until we have more information.
         //
         // Clearly it is pointless to run multiple phases

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal static ImmutableArray<SyntaxNode> GetAllLocals(MethodSymbol method)
         {
-            var sourceMethod = method as SourceMethodSymbol;
+            var sourceMethod = method as SourceMemberMethodSymbol;
             if (sourceMethod == null)
             {
                 return ImmutableArray<SyntaxNode>.Empty;

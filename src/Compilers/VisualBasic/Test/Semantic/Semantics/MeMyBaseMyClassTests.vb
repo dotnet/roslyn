@@ -100,7 +100,7 @@ End Class
     <file name="a.vb">
 Structure s1
     Dim x As Integer
-    Sub foo()
+    Sub goo()
 [|
         Me.x = 1
         Dim y = Me.x
@@ -205,14 +205,14 @@ End Module
 <compilation name="MyClassUsedToRefMethodDefinedInBaseClass">
     <file name="a.vb">
 Class BaseClass
-    Public Function foo()
-        foo = "STRING"
+    Public Function goo()
+        goo = "STRING"
     End Function
 End Class
 Class DerivedClass
     Inherits BaseClass
     Sub Test()
-        [| Dim x = MyClass.foo() |]
+        [| Dim x = MyClass.goo() |]
     End Sub
 End Class
     </file>
@@ -241,7 +241,7 @@ End Class
 <compilation name="MyClassUsedToQualifierSharedMember">
     <file name="a.vb">
 Class BaseClass
-    Private Sub foo()
+    Private Sub goo()
     End Sub
 End Class
 Class DerivedClass
@@ -445,7 +445,7 @@ Class GenParent(Of t)
     Inherits GenBase
     Dim xyz = 1
     Public Property PropXyz = 1
-    Sub foo()
+    Sub goo()
         Dim x = Sub()
                     xyz = 2
                     MyBase.abc = 1
@@ -481,7 +481,7 @@ Class C1
     Public Function Compare1(ByVal x As Integer, ByVal y As Integer) As Integer Implements System.Collections.Generic.IComparer(Of Integer).Compare
         Return 0
     End Function
-    Sub FOO()
+    Sub GOO()
         Console.WriteLine(MyBase.ToString()) 'BIND1:"MyBase"
     End Sub
 End Class
@@ -501,7 +501,7 @@ Option Infer On
 Imports System.Runtime.CompilerServices
 Imports System
 Class C1
-    Sub Foo()
+    Sub Goo()
         Console.WriteLine(MyClass.Sum) 'BIND1:"Sum"
     End Sub
 End Class
@@ -529,7 +529,7 @@ End Module
     <file name="a.vb">
 Option Infer On        
 Structure s1
-    Sub foo()
+    Sub goo()
         Console.WriteLine(MyClass.ToString()) 'BIND1:"MyClass"
     End Sub
 End Structure

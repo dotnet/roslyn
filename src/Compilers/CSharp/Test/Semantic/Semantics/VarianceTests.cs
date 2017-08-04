@@ -242,9 +242,9 @@ class Test
             }
         }
 
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         /// <remarks>Based on LambdaTests.TestLambdaErrors03</remarks>
         [Fact]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         public void TestVarianceConversionCycle()
         {
             // To determine which overload is better, we have to try to convert D<IIn<I>> to D<I>
@@ -258,22 +258,22 @@ delegate T D<out T>();
 
 class C
 {
-    static void Foo(D<IIn<I>> x) { }
-    static void Foo(D<I> x) { }
+    static void Goo(D<IIn<I>> x) { }
+    static void Goo(D<I> x) { }
     static void M()
     {
-        Foo(null);
+        Goo(null);
     }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(D<IIn<I>>)' and 'C.Foo(D<I>)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(D<IIn<I>>)", "C.Foo(D<I>)"));
+                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Goo(D<IIn<I>>)' and 'C.Goo(D<I>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(D<IIn<I>>)", "C.Goo(D<I>)"));
         }
 
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
         [Fact]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         public void TestVarianceConversionInfiniteExpansion01()
         {
             // IC<double> is convertible to IN<IC<string>> if and only
@@ -287,7 +287,7 @@ class C
     static void M()
     {
         IC<double> bar = null;
-        IN<IC<string>> foo = bar;
+        IN<IC<string>> goo = bar;
     }
 }
 ";
@@ -296,9 +296,9 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "bar").WithArguments("IC<double>", "IN<IC<string>>"));
         }
 
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
         [Fact]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         public void TestVarianceConversionInfiniteExpansion02()
         {
             var text = @"

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1200,14 +1201,13 @@ End Class
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
-  // Code size        3 (0x3)
+  // Code size        2 (0x2)
   .maxstack  1
   .locals init (pinned String V_0, //s
-  pinned Integer& V_1, //f
-  Integer& V_2) //i
+                pinned Integer& V_1, //f
+                Integer& V_2) //i
   IL_0000:  ldloc.0
-  IL_0001:  conv.i
-  IL_0002:  ret
+  IL_0001:  ret
 }")
 
             testData = New CompilationTestData()
@@ -1229,33 +1229,33 @@ End Class
             context.CompileExpression("f", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
-"{
-  // Code size        4 (0x4)
+"
+{
+  // Code size        3 (0x3)
   .maxstack  1
   .locals init (pinned String V_0, //s
-  pinned Integer& V_1, //f
-  Integer& V_2) //i
+                pinned Integer& V_1, //f
+                Integer& V_2) //i
   IL_0000:  ldloc.1
-  IL_0001:  conv.i
-  IL_0002:  ldind.i4
-  IL_0003:  ret
+  IL_0001:  ldind.i4
+  IL_0002:  ret
 }")
 
             testData = New CompilationTestData()
             context.CompileAssignment("f", "1", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
-"{
-  // Code size        5 (0x5)
+"
+{
+  // Code size        4 (0x4)
   .maxstack  2
   .locals init (pinned String V_0, //s
-  pinned Integer& V_1, //f
-  Integer& V_2) //i
+                pinned Integer& V_1, //f
+                Integer& V_2) //i
   IL_0000:  ldloc.1
-  IL_0001:  conv.i
-  IL_0002:  ldc.i4.1
-  IL_0003:  stind.i4
-  IL_0004:  ret
+  IL_0001:  ldc.i4.1
+  IL_0002:  stind.i4
+  IL_0003:  ret
 }")
 
             testData = New CompilationTestData()

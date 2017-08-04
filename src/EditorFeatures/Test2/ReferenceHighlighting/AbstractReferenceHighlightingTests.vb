@@ -1,7 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.DocumentHighlighting
 Imports Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
@@ -9,7 +8,9 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
+Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
 
@@ -25,8 +26,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
             Using workspace = TestWorkspace.Create(test)
                 WpfTestCase.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.VerifyHighlightsAsync creates asynchronous taggers")
 
-                workspace.Options = workspace.Options.WithChangedOption(
-                    DocumentHighlightingOptions.OutOfProcessAllowed, outOfProcess)
+                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
+                                                      WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
+                                                      WithChangedOption(RemoteFeatureOptions.DocumentHighlightingEnabled, outOfProcess)
 
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.GetService(Of IForegroundNotificationService),

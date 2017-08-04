@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -474,7 +474,7 @@ class Derived : Base
        extends [mscorlib]System.Object
 {
   .method public hidebysig instance class [pe1]Cycle 
-          Foo() cil managed
+          Goo() cil managed
   {
     ldnull
     ret
@@ -497,7 +497,7 @@ class Test
     static void Main()
     {
         UseSite us = new UseSite();
-        us.Foo();
+        us.Goo();
     }
 }
 ";
@@ -522,8 +522,8 @@ class Test
 
             compilation.VerifyDiagnostics(
                 // (7,9): error CS0731: The type forwarder for type 'Cycle' in assembly 'pe2' causes a cycle
-                //         us.Foo();
-                Diagnostic(ErrorCode.ERR_CycleInTypeForwarder, "us.Foo").WithArguments("Cycle", "pe2"));
+                //         us.Goo();
+                Diagnostic(ErrorCode.ERR_CycleInTypeForwarder, "us.Goo").WithArguments("Cycle", "pe2"));
         }
 
         /// <summary>
@@ -1370,14 +1370,14 @@ namespace NS
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
-            string moduleA = @"public class Foo{ public static string A = ""Original""; }";
+            string moduleA = @"public class Goo{ public static string A = ""Original""; }";
             var bitsA = CreateStandardCompilation(moduleA, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
             var refA = MetadataReference.CreateFromImage(bitsA);
 
-            string moduleB = @"using System; class Program2222 { static void Main(string[] args) { Console.WriteLine(Foo.A); } }";
+            string moduleB = @"using System; class Program2222 { static void Main(string[] args) { Console.WriteLine(Goo.A); } }";
             var bitsB = CreateStandardCompilation(moduleB, new[] { refA }, TestOptions.ReleaseExe, assemblyName: "test").EmitToArray();
 
-            string module0 = @"public class Foo{ public static string A = ""Substituted""; }";
+            string module0 = @"public class Goo{ public static string A = ""Substituted""; }";
             var bits0 = CreateStandardCompilation(module0, options: TestOptions.ReleaseModule, assemblyName: "asm0").EmitToArray();
             var ref0 = ModuleMetadata.CreateFromImage(bits0).GetReference();
 
@@ -1385,7 +1385,7 @@ namespace NS
             var bits1 = CreateStandardCompilation(module1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1").EmitToArray();
             var ref1 = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(bits1), ModuleMetadata.CreateFromImage(bits0)).GetReference();
 
-            string module2 = @"using System; [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Foo))]";
+            string module2 = @"using System; [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Goo))]";
             var bits2 = CreateStandardCompilation(module2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
 
             // runtime check:
@@ -1415,7 +1415,7 @@ namespace NS
             var source0 = @"
 namespace X 
 {
-    public class Foo
+    public class Goo
     {
 	    public int getValue()
 	    {
@@ -1430,10 +1430,10 @@ using System;
 
             var source2 = @"
 using System;
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(X.Foo))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(X.Goo))]
 ";
 
-            CheckForwarderEmit2(source0, source1, source2, "X.Foo");
+            CheckForwarderEmit2(source0, source1, source2, "X.Goo");
         }
 
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]

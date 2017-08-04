@@ -17,8 +17,8 @@
     <PackageReference Include="Microsoft.Net.RoslynDiagnostics" Version="$(MicrosoftNetRoslynDiagnosticsVersion)" />
     <PackageReference Include="FakeSign" Version="$(FakeSignVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
     <PackageReference Include="Roslyn.Build.Util" Version="$(RoslynBuildUtilVersion)" />
     <PackageReference Include="RoslynDependencies.OptimizationData" Version="$(RoslynDependenciesOptimizationDataVersion)" />
     <PackageReference Include="RoslynTools.Microsoft.LocateVS" Version="$(RoslynToolsMicrosoftLocateVSVersion)" />
@@ -27,6 +27,5 @@
     <PackageReference Include="RoslynTools.ReferenceAssemblies" Version="$(RoslynToolsReferenceAssembliesVersion)" />
     <PackageReference Include="GitLink" Version="$(GitLinkVersion)" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="$(MicrosoftVSSDKBuildToolsVersion)" />
-    <PackageReference Include="ManagedEsent" Version="$(ManagedEsentVersion)" />
   </ItemGroup>
 </Project>

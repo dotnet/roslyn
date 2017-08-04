@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
-        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default(T), NotificationOption.None);
+        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.None);
 
         private const int SerializationVersion = 1;
 
@@ -53,7 +53,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private object GetValueForSerialization()
         {
-            if (typeof(T) == typeof(bool))
+            if (typeof(T) == typeof(string))
+            {
+                return Value;
+            }
+            else if (typeof(T) == typeof(bool))
             {
                 return Value;
             }
@@ -69,6 +73,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private string GetTypeNameForSerialization()
         {
+            if (typeof(T) == typeof(string))
+            {
+                return nameof(String);
+            }
             if (typeof(T) == typeof(bool) || IsZeroOrOneValueOfEnum())
             {
                 return nameof(Boolean);
@@ -140,6 +148,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     return v => Convert(bool.Parse(v));
                 case nameof(Int32):
                     return v => Convert(int.Parse(v));
+                case nameof(String):
+                    return v => (T)(object)v;
                 default:
                     throw new ArgumentException(nameof(type));
             }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -41,28 +41,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         [Fact]
         public void GetFirstNonWhitespacePosition_TextLine()
         {
-            var position = GetFirstNonWhitespacePosition("Foo");
+            var position = GetFirstNonWhitespacePosition("Goo");
             Assert.Equal(0, position.Value);
         }
 
         [Fact]
         public void GetFirstNonWhitespacePosition_TextLineStartingWithWhitespace1()
         {
-            var position = GetFirstNonWhitespacePosition("    Foo");
+            var position = GetFirstNonWhitespacePosition("    Goo");
             Assert.Equal(4, position.Value);
         }
 
         [Fact]
         public void GetFirstNonWhitespacePosition_TextLineStartingWithWhitespace2()
         {
-            var position = GetFirstNonWhitespacePosition(" \t Foo");
+            var position = GetFirstNonWhitespacePosition(" \t Goo");
             Assert.Equal(3, position.Value);
         }
 
         [Fact]
         public void GetFirstNonWhitespacePosition_TextLineStartingWithWhitespace3()
         {
-            var position = GetFirstNonWhitespacePosition("\t\tFoo");
+            var position = GetFirstNonWhitespacePosition("\t\tGoo");
             Assert.Equal(2, position.Value);
         }
 
@@ -97,28 +97,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         [Fact]
         public void IsEmptyOrWhitespace_TextLineReturnsFalse()
         {
-            var value = IsEmptyOrWhitespace("Foo");
+            var value = IsEmptyOrWhitespace("Goo");
             Assert.False(value);
         }
 
         [Fact]
         public void IsEmptyOrWhitespace_TextLineStartingWithWhitespaceReturnsFalse1()
         {
-            var value = IsEmptyOrWhitespace("    Foo");
+            var value = IsEmptyOrWhitespace("    Goo");
             Assert.False(value);
         }
 
         [Fact]
         public void IsEmptyOrWhitespace_TextLineStartingWithWhitespaceReturnsFalse2()
         {
-            var value = IsEmptyOrWhitespace(" \t Foo");
+            var value = IsEmptyOrWhitespace(" \t Goo");
             Assert.False(value);
         }
 
         [Fact]
         public void IsEmptyOrWhitespace_TextLineStartingWithWhitespaceReturnsFalse3()
         {
-            var value = IsEmptyOrWhitespace("\t\tFoo");
+            var value = IsEmptyOrWhitespace("\t\tGoo");
             Assert.False(value);
         }
 

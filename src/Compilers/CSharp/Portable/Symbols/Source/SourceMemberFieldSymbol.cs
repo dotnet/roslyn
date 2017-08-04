@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -453,6 +454,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else if (fieldSyntax.Declaration.Variables.Count > 1)
                         {
                             diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, typeSyntax.Location);
+                        }
+                        else if (this.IsConst && this.ContainingType.IsScriptClass)
+                        {
+                            // For const var in script, we won't try to bind the initializer (case below), as it can lead to an unbound recursion
+                            type = null;
                         }
                         else
                         {

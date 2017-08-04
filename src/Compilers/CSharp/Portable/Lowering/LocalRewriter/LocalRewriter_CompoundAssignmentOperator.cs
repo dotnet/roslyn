@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isPossibleEventHandlerOperation)
             {
-                // IsEvent("Foo", dyn) ? InvokeMember("{add|remove}_Foo", dyn, RHS) : rewrittenAssignment
+                // IsEvent("Goo", dyn) ? InvokeMember("{add|remove}_Goo", dyn, RHS) : rewrittenAssignment
                 var memberAccess = (BoundDynamicMemberAccess)transformedLHS;
 
                 var isEventCondition = _dynamicFactory.MakeDynamicIsEventTest(memberAccess.Name, memberAccess.Receiver);
@@ -647,9 +648,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// are not captured.
         /// 
         /// Example:
-        ///        l += foo(ref l);
+        ///        l += goo(ref l);
         /// 
-        /// even though l is a local, we must access it via a temp since "foo(ref l)" may change it
+        /// even though l is a local, we must access it via a temp since "goo(ref l)" may change it
         /// on between accesses. 
         /// </summary>
         internal static bool CanChangeValueBetweenReads(

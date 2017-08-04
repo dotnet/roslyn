@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -14,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindCompoundAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
+            node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
+
             BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
             BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
@@ -479,7 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool leftNull = left.IsLiteralNull();
             bool rightNull = right.IsLiteralNull();
             bool isEquality = kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual;
-
             if (isEquality && leftNull && rightNull)
             {
                 return new BoundLiteral(node, ConstantValue.Create(kind == BinaryOperatorKind.Equal), GetSpecialType(SpecialType.System_Boolean, diagnostics, node));
@@ -625,6 +627,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportBinaryOperatorError(ExpressionSyntax node, DiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
+            if ((operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken) &&
+                (left.IsLiteralDefault() && right.IsLiteralDefault()))
+            {
+                Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnDefault, node, operatorToken.Text);
+                return;
+            }
+
+            if (left.IsLiteralDefault() || right.IsLiteralDefault())
+            {
+                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, operatorToken.Text, "default");
+                return;
+            }
+
             ErrorCode errorCode = resultKind == LookupResultKind.Ambiguous ?
                 ErrorCode.ERR_AmbigBinaryOps : // Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'
                 ErrorCode.ERR_BadBinaryOps;    // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'
@@ -1023,6 +1038,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BinaryOperatorAnalysisResult BinaryOperatorOverloadResolution(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, CSharpSyntaxNode node, DiagnosticBag diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
         {
+            if (!IsDefaultLiteralAllowedInBinaryOperator(kind, left, right))
+            {
+                resultKind = LookupResultKind.OverloadResolutionFailure;
+                originalUserDefinedOperators = default(ImmutableArray<MethodSymbol>);
+                return default(BinaryOperatorAnalysisResult);
+            }
+
             var result = BinaryOperatorOverloadResolutionResult.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             this.OverloadResolution.BinaryOperatorOverloadResolution(kind, left, right, result, ref useSiteDiagnostics);
@@ -1071,6 +1093,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             result.Free();
             return possiblyBest;
+        }
+
+        private bool IsDefaultLiteralAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
+        {
+            bool isEquality = kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual;
+            if (isEquality)
+            {
+                return !left.IsLiteralDefault() || !right.IsLiteralDefault();
+            }
+            else
+            {
+                return !left.IsLiteralDefault() && !right.IsLiteralDefault();
+            }
         }
 
         private UnaryOperatorAnalysisResult UnaryOperatorOverloadResolution(
@@ -1868,6 +1903,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindIncrementOperator(CSharpSyntaxNode node, ExpressionSyntax operandSyntax, SyntaxToken operatorToken, DiagnosticBag diagnostics)
         {
+            operandSyntax.CheckDeconstructionCompatibleArgument(diagnostics);
+
             BoundExpression operand = BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement);
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
@@ -2027,12 +2064,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnboundLambda:
                     {
                         Debug.Assert(hasErrors);
-                        return new BoundAddressOfOperator(node, operand, isFixedStatementAddressOfExpression, CreateErrorType(), hasErrors: true);
+                        return new BoundAddressOfOperator(node, operand, CreateErrorType(), hasErrors: true);
                     }
             }
 
             TypeSymbol operandType = operand.Type;
-            Debug.Assert((object)operandType != null || hasErrors, "BindValue should have caught a null operand type");
+            Debug.Assert((object)operandType != null, "BindValue should have caught a null operand type");
 
             bool isManagedType = operandType.IsManagedType;
             bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowManagedAddressOf);
@@ -2058,7 +2095,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol pointerType = new PointerTypeSymbol(isManagedType && allowManagedAddressOf
                 ? GetSpecialType(SpecialType.System_IntPtr, diagnostics, node)
                 : operandType ?? CreateErrorType());
-            return new BoundAddressOfOperator(node, operand, isFixedStatementAddressOfExpression, pointerType, hasErrors);
+
+            return new BoundAddressOfOperator(node, operand, pointerType, hasErrors);
         }
 
         // Basically a port of ExpressionBinder::isFixedExpression, which basically implements spec section 18.3.
@@ -2180,12 +2218,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
-            bool isOperandTypeNull = operand.IsLiteralNull();
+            bool isOperandTypeNull = operand.IsLiteralNull() || operand.IsLiteralDefault();
             if (isOperandTypeNull)
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
                 // (or other typeless expressions).
-                Error(diagnostics, ErrorCode.ERR_BadUnaryOp, node, operatorText, operand.Display);
+                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, operatorText, operand.Display);
             }
 
             // If the operand is bad, avoid generating cascading errors.
@@ -2981,7 +3019,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //    The value is always false.
 
                     Debug.Assert(targetType.IsNullableType());
-                    return (operandType == targetType.GetNullableUnderlyingType()) ? ConstantValue.True : ConstantValue.False;
+                    return operandType.Equals(targetType.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions)
+                        ? ConstantValue.True : ConstantValue.False;
 
                 default:
                 case ConversionKind.ImplicitDynamic:
@@ -3235,7 +3274,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression GenerateNullCoalescingBadBinaryOpsError(BinaryExpressionSyntax node, BoundExpression leftOperand, BoundExpression rightOperand, Conversion leftConversion, DiagnosticBag diagnostics)
         {
-            Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
+
+            if (leftOperand.IsLiteralDefault() || rightOperand.IsLiteralDefault())
+            {
+                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, "default");
+            }
+            else
+            {
+                Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
+            }
+
             return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
                 leftConversion, CreateErrorType(), hasErrors: true);
         }

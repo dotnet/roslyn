@@ -31,6 +31,208 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        public void IntermediateStructClosures1()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+class C
+{
+    int _x = 0;
+
+    public static void Main() => new C().M();
+
+    public void M()
+    {
+        int var1 = 0;
+        void L1()
+        {
+            void L2()
+            {
+                void L3()
+                {   
+                    void L4()
+                    {
+                        int var2 = 0;
+                        void L5()
+                        {
+                            int L6() => var2 + _x++;
+                            L6();
+                        }
+                        L5();
+                    }
+                    L4();
+                }
+                L3();
+            }
+            L2();
+            int L8() => var1;
+        }
+        Console.WriteLine(_x);
+        L1();
+        Console.WriteLine(_x);
+    }
+}", expectedOutput: 
+@"0
+1");
+            // L1
+            verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)""
+  IL_000c:  ret
+}");
+            // L2
+            verifier.VerifyIL("C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""void C.<M>g__L32_2(ref C.<>c__DisplayClass2_0)""
+  IL_0007:  ret
+}");
+            // Skip some... L5
+            verifier.VerifyIL("C.<M>g__L52_4(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
+  IL_0007:  pop
+  IL_0008:  ret
+}");
+            // L6
+            verifier.VerifyIL("C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass2_1.var2""
+  IL_0006:  ldarg.1
+  IL_0007:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
+  IL_000c:  ldarg.1
+  IL_000d:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
+  IL_0012:  ldfld      ""int C._x""
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.1
+  IL_001a:  add
+  IL_001b:  stfld      ""int C._x""
+  IL_0020:  ldloc.0
+  IL_0021:  add
+  IL_0022:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        public void IntermediateStructClosures2()
+        {
+            CompileAndVerify(@"
+class C
+{
+    int _x;
+    void M()
+    {
+        int y = 0;
+        void L1()
+        {
+            void L2()
+            {
+                int z = 0;
+                int L3() => z + _x;
+            }
+            y++;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        public void Repro18814()
+        {
+            CompileAndVerify(@"
+class Program
+{
+    private void ResolvingPackages()
+    {
+        string outerScope(int a) => """";
+
+        void C1(int cabinetIdx)
+        {
+            void modifyState()
+            {
+                var no = outerScope(cabinetIdx);
+            }
+
+            modifyState();
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        public void Repro18918()
+        {
+            CompileAndVerify(@"
+public class Test
+{
+    private int _field;
+
+    public void OuterMethod(int outerParam)
+    {
+        void InnerMethod1()
+        {
+            void InnerInnerMethod(int innerInnerParam)
+            {
+                InnerInnerInnerMethod();
+                
+                bool InnerInnerInnerMethod()
+                {
+                    return innerInnerParam != _field;
+                }
+            }
+
+            void InnerMethod2()
+            {
+                var temp = outerParam;
+            }  
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(17719, "https://github.com/dotnet/roslyn/issues/17719")]
+        public void Repro17719()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        T GetField<T>(string name, T @default = default(T))
+        {
+          return @default;
+        }
+        Console.WriteLine(GetField<int>(string.Empty));
+    }
+}", expectedOutput: "0");
+        }
+
+        [Fact]
         [WorkItem(17890, "https://github.com/dotnet/roslyn/issues/17890")]
         public void Repro17890()
         {
@@ -522,7 +724,7 @@ class Test<T>
 {
     T Value;
 
-    public bool Foo(IEqualityComparer<T> comparer)
+    public bool Goo(IEqualityComparer<T> comparer)
     {
         bool local(T tmp)
         {
@@ -1422,7 +1624,7 @@ using System;
 
 class Program
 {
-    static int Foo
+    static int Goo
     {
         get
         {
@@ -1435,7 +1637,7 @@ class Program
     }
     static void Main(string[] args)
     {
-        Console.Write(Foo);
+        Console.Write(Goo);
     }
 }";
             VerifyOutput(source, "2");
@@ -1450,7 +1652,7 @@ using System.Collections.Generic;
 
 class Program
 {
-    static int Foo
+    static int Goo
     {
         get
         {
@@ -1468,7 +1670,7 @@ class Program
     }
     static void Main(string[] args)
     {
-        Console.Write(Foo);
+        Console.Write(Goo);
     }
 }";
             VerifyOutput(source, "2");
@@ -1530,7 +1732,7 @@ local();
             var source = @"
 int x = 1;
 int Bar() => ++x;
-var str = $@""{((Func<int>)(() => { int Foo() => Bar(); return Foo(); }))()}"";
+var str = $@""{((Func<int>)(() => { int Goo() => Bar(); return Goo(); }))()}"";
 Console.Write(str + ' ' + x);
 ";
             VerifyOutputInMain(source, "2 2", "System");
@@ -1542,35 +1744,35 @@ Console.Write(str + ' ' + x);
         public void StaticNoClosure()
         {
             var source = @"
-T Foo<T>(T x)
+T Goo<T>(T x)
 {
     return x;
 }
-Console.Write(Foo(2));
+Console.Write(Goo(2));
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
-            var foo = verify.FindLocalFunction("Foo");
-            Assert.True(foo.IsStatic);
-            Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), foo.ContainingType);
+            var goo = verify.FindLocalFunction("Goo");
+            Assert.True(goo.IsStatic);
+            Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), goo.ContainingType);
         }
 
         [Fact]
         public void StaticNoClosureDelegate()
         {
             var source = @"
-T Foo<T>(T x)
+T Goo<T>(T x)
 {
     return x;
 }
-Func<int, int> foo = Foo;
-Console.Write(foo(2));
+Func<int, int> goo = Goo;
+Console.Write(goo(2));
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
-            var foo = verify.FindLocalFunction("Foo");
+            var goo = verify.FindLocalFunction("Goo");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
-            Assert.False(foo.IsStatic);
-            Assert.Equal("<>c", foo.ContainingType.Name);
-            Assert.Equal(program, foo.ContainingType.ContainingType);
+            Assert.False(goo.IsStatic);
+            Assert.Equal("<>c", goo.ContainingType.Name);
+            Assert.Equal(program, goo.ContainingType.ContainingType);
         }
 
         [Fact]
@@ -2082,19 +2284,19 @@ class Program
         {
             var source = @"
 int x = 2;
-void Foo()
+void Goo()
 {
     Console.Write(x);
 }
-Foo();
+Goo();
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
-            var foo = verify.FindLocalFunction("Foo");
+            var goo = verify.FindLocalFunction("Goo");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
-            Assert.Equal(program, foo.ContainingType);
-            Assert.True(foo.IsStatic);
-            Assert.Equal(RefKind.Ref, foo.Parameters[0].RefKind);
-            Assert.True(foo.Parameters[0].Type.IsValueType);
+            Assert.Equal(program, goo.ContainingType);
+            Assert.True(goo.IsStatic);
+            Assert.Equal(RefKind.Ref, goo.Parameters[0].RefKind);
+            Assert.True(goo.Parameters[0].Type.IsValueType);
         }
 
         [Fact]
@@ -2102,7 +2304,7 @@ Foo();
         {
             var source = @"
 int x = 2;
-void Foo<T1>()
+void Goo<T1>()
 {
     int y = x;
     void Bar<T2>()
@@ -2111,23 +2313,23 @@ void Foo<T1>()
     }
     Bar<T1>();
 }
-Foo<int>();
+Goo<int>();
 ";
             var verify = VerifyOutputInMain(source, "4", "System");
-            var foo = verify.FindLocalFunction("Foo");
+            var goo = verify.FindLocalFunction("Goo");
             var bar = verify.FindLocalFunction("Bar");
-            Assert.Equal(1, foo.Parameters.Length);
+            Assert.Equal(1, goo.Parameters.Length);
             Assert.Equal(2, bar.Parameters.Length);
-            Assert.Equal(RefKind.Ref, foo.Parameters[0].RefKind);
+            Assert.Equal(RefKind.Ref, goo.Parameters[0].RefKind);
             Assert.Equal(RefKind.Ref, bar.Parameters[0].RefKind);
             Assert.Equal(RefKind.Ref, bar.Parameters[1].RefKind);
-            Assert.True(foo.Parameters[0].Type.IsValueType);
+            Assert.True(goo.Parameters[0].Type.IsValueType);
             Assert.True(bar.Parameters[0].Type.IsValueType);
             Assert.True(bar.Parameters[1].Type.IsValueType);
-            Assert.Equal(foo.Parameters[0].Type.OriginalDefinition, bar.Parameters[0].Type.OriginalDefinition);
-            var fooFrame = (INamedTypeSymbol)foo.Parameters[0].Type;
+            Assert.Equal(goo.Parameters[0].Type.OriginalDefinition, bar.Parameters[0].Type.OriginalDefinition);
+            var gooFrame = (INamedTypeSymbol)goo.Parameters[0].Type;
             var barFrame = (INamedTypeSymbol)bar.Parameters[1].Type;
-            Assert.Equal(0, fooFrame.Arity);
+            Assert.Equal(0, gooFrame.Arity);
             Assert.Equal(1, barFrame.Arity);
         }
 
@@ -2217,27 +2419,27 @@ class Program
         {
             var source = @"
 int x = 0;
-void Foo()
+void Goo()
 {
     if (x != 2)
     {
         x++;
-        Foo();
+        Goo();
     }
     else
     {
         Console.Write(x);
     }
 }
-Foo();
+Goo();
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
-            var foo = verify.FindLocalFunction("Foo");
+            var goo = verify.FindLocalFunction("Goo");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
-            Assert.Equal(program, foo.ContainingType);
-            Assert.True(foo.IsStatic);
-            Assert.Equal(RefKind.Ref, foo.Parameters[0].RefKind);
-            Assert.True(foo.Parameters[0].Type.IsValueType);
+            Assert.Equal(program, goo.ContainingType);
+            Assert.True(goo.IsStatic);
+            Assert.Equal(RefKind.Ref, goo.Parameters[0].RefKind);
+            Assert.True(goo.Parameters[0].Type.IsValueType);
         }
 
         [Fact]
@@ -2245,13 +2447,13 @@ Foo();
         {
             var source = @"
 int x = 0;
-void Foo(int depth)
+void Goo(int depth)
 {
     int dummy = 0;
     void Bar(int depth2)
     {
         dummy++;
-        Foo(depth2);
+        Goo(depth2);
     }
     if (depth != 2)
     {
@@ -2263,22 +2465,22 @@ void Foo(int depth)
         Console.Write(x);
     }
 }
-Foo(0);
+Goo(0);
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
-            var foo = verify.FindLocalFunction("Foo");
+            var goo = verify.FindLocalFunction("Goo");
             var bar = verify.FindLocalFunction("Bar");
-            Assert.Equal(program, foo.ContainingType);
+            Assert.Equal(program, goo.ContainingType);
             Assert.Equal(program, bar.ContainingType);
-            Assert.True(foo.IsStatic);
+            Assert.True(goo.IsStatic);
             Assert.True(bar.IsStatic);
-            Assert.Equal(2, foo.Parameters.Length);
+            Assert.Equal(2, goo.Parameters.Length);
             Assert.Equal(3, bar.Parameters.Length);
-            Assert.Equal(RefKind.Ref, foo.Parameters[1].RefKind);
+            Assert.Equal(RefKind.Ref, goo.Parameters[1].RefKind);
             Assert.Equal(RefKind.Ref, bar.Parameters[1].RefKind);
             Assert.Equal(RefKind.Ref, bar.Parameters[2].RefKind);
-            Assert.True(foo.Parameters[1].Type.IsValueType);
+            Assert.True(goo.Parameters[1].Type.IsValueType);
             Assert.True(bar.Parameters[1].Type.IsValueType);
             Assert.True(bar.Parameters[2].Type.IsValueType);
         }
@@ -2287,16 +2489,16 @@ Foo(0);
         public void Recursion()
         {
             var source = @"
-void Foo(int depth)
+void Goo(int depth)
 {
     if (depth > 10)
     {
         Console.WriteLine(2);
         return;
     }
-    Foo(depth + 1);
+    Goo(depth + 1);
 }
-Foo(0);
+Goo(0);
 ";
             VerifyOutputInMain(source, "2", "System");
         }
@@ -2305,7 +2507,7 @@ Foo(0);
         public void MutualRecursion()
         {
             var source = @"
-void Foo(int depth)
+void Goo(int depth)
 {
     if (depth > 10)
     {
@@ -2314,11 +2516,11 @@ void Foo(int depth)
     }
     void Bar(int depth2)
     {
-        Foo(depth2 + 1);
+        Goo(depth2 + 1);
     }
     Bar(depth + 1);
 }
-Foo(0);
+Goo(0);
 ";
             VerifyOutputInMain(source, "2", "System");
         }
@@ -3196,9 +3398,9 @@ Local();
 ";
             // Should be a static method on "Program" itself, not a display class like "Program+<>c__DisplayClass0_0"
             var verify = VerifyOutputInMain(source, "2", "System");
-            var foo = verify.FindLocalFunction("Local");
-            Assert.True(foo.IsStatic);
-            Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), foo.ContainingType);
+            var goo = verify.FindLocalFunction("Local");
+            Assert.True(goo.IsStatic);
+            Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), goo.ContainingType);
         }
 
         [Fact]
@@ -3380,11 +3582,11 @@ class Program
     }
     static string C()
     {
-        async Foo()
+        async Goo()
         {
             return new async();
         }
-        return Foo().ToString();
+        return Goo().ToString();
     }
     static string D()
     {

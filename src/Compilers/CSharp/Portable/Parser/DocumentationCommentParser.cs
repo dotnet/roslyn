@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // It's possible that we finish parsing the xml, and we are still left in the middle
                 // of an Xml comment. For example,
                 //
-                //     /// <foo></foo></uhoh>
+                //     /// <goo></goo></uhoh>
                 //                    ^
                 // In this case, we stop at the caret. We need to ensure that we consume the remainder
                 // of the doc comment here, since otherwise we will return the lexer to the state

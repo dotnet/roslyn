@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -12,10 +12,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
-    internal class AccessibilityTests : CSharpResultProviderTestBase
+    public class AccessibilityTests : CSharpResultProviderTestBase
     {
         [WorkItem(889710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21084")]
         public void HideNonPublicMembersBaseClass()
         {
             var sourceA =
@@ -176,7 +176,7 @@ class C
         }
 
         [WorkItem(889710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21084")]
         public void HideNonPublicMembersDerivedClass()
         {
             var sourceA =

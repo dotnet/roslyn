@@ -2,12 +2,13 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.Net.CSharp.Interactive.netcore</id>
-    <description>
+    <summary>
       CoreCLR-compatible version of csi.exe.
 
       Supported Platforms:
       - .NET Core (NETCoreApp1.0)
-    </description>
+    </summary>
+    <description>$commitPathMessage$</description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>

@@ -82,9 +82,9 @@ bigInt");
         {
             VisualStudio.InteractiveWindow.SubmitText("#r \"System.Numerics\"");
             VisualStudio.InteractiveWindow.SubmitText(@"using System.Numerics;
-class Complex { public int foo() { return 4; } }
+class Complex { public int goo() { return 4; } }
 var comp = new Complex();
-comp.foo()");
+comp.goo()");
 
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("4");
         }
@@ -96,12 +96,12 @@ comp.foo()");
             VisualStudio.InteractiveWindow.SubmitText("using System.Numerics;");
             using (var temporaryTextFile = new TemporaryTextFile(
                 "directivesScenario4.csx",
-                "class Complex { public int foo() { return 4; } }"))
+                "class Complex { public int goo() { return 4; } }"))
             {
                 temporaryTextFile.Create();
                 VisualStudio.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
                 VisualStudio.InteractiveWindow.SubmitText(@"var comp = new Complex();
-comp.foo()");
+comp.goo()");
                 VisualStudio.InteractiveWindow.WaitForLastReplOutput("4");
             }
         }
@@ -132,7 +132,7 @@ Process.GetCurrentProcess().ProcessName");
         [Fact]
         public void VerifySquiggleAndErrorMessageUnderIncorrectDirective()
         {
-            VisualStudio.InteractiveWindow.SubmitText("#foo");
+            VisualStudio.InteractiveWindow.SubmitText("#goo");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(1);

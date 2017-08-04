@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Semantics;
 using System.Collections.Immutable;
 using System.Linq;
@@ -854,16 +855,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundLocalFunctionStatement
     {
-        protected override OperationKind StatementKind => OperationKind.LocalFunctionStatement;
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Body);
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitLocalFunctionStatement(this);
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLocalFunctionStatement(this, argument);
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 

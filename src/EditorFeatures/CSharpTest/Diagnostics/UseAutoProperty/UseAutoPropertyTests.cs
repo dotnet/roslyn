@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -694,7 +694,7 @@ partial class Class
         }
     }
 
-    public Foo()
+    public Goo()
     {
         i = 1;
     }
@@ -703,7 +703,7 @@ partial class Class
 {
     int P { get; set; }
 
-    public Foo()
+    public Goo()
     {
         P = 1;
     }
@@ -726,7 +726,7 @@ partial class Class
         }
     }
 
-    public Foo()
+    public Goo()
     {
         i = 1;
     }
@@ -735,7 +735,7 @@ partial class Class
 {
     public int P { get; private set; }
 
-    public Foo()
+    public Goo()
     {
         P = 1;
     }

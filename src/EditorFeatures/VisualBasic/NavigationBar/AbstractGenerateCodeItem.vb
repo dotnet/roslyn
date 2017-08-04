@@ -32,6 +32,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim codeGenerationOptions As New CodeGenerationOptions(contextLocation, generateMethodBodies:=True)
 
             Dim newDocument = Await GetGeneratedDocumentCoreAsync(document, codeGenerationOptions, cancellationToken).ConfigureAwait(False)
+            If newDocument Is Nothing Then
+                Return document
+            End If
 
             newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, Nothing, cancellationToken).WaitAndGetResult(cancellationToken)
 

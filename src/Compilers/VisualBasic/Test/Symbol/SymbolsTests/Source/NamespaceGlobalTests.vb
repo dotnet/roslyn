@@ -204,13 +204,13 @@ BC30179: class 'C1' and class 'C1' conflict in namespace '&lt;Default&gt;'.
                 <compilation name="comp1">
                     <file name="a.vb">
                         Imports Global.[global]'invalid
-                        Imports Global.foo'invalid
+                        Imports Global.goo'invalid
                         Imports Global 'invalid
                         Imports a = [Global]   'valid
 
                         Namespace [global]
                         End Namespace
-                        Namespace foo
+                        Namespace goo
                         End Namespace
                     </file>
                 </compilation>)
@@ -223,7 +223,7 @@ BC36001: 'Global' not allowed in this context; identifier expected.
 Imports Global.[global]'invalid
         ~~~~~~
 BC36001: 'Global' not allowed in this context; identifier expected.
-                        Imports Global.foo'invalid
+                        Imports Global.goo'invalid
                                 ~~~~~~
 BC36001: 'Global' not allowed in this context; identifier expected.
                         Imports Global 'invalid

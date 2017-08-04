@@ -1,14 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{737FF62C-F068-4317-84D0-BFB210C17A4E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CSharp.Interactive</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.CSharp.Repl</AssemblyName>
@@ -16,44 +15,21 @@
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
-      <Name>Workspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
-      <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
-      <Name>EditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
-      <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
-      <Name>InteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
-      <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
-      <Name>CSharpInteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Interactive\Features\InteractiveFeatures.csproj">
-      <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
-      <Name>InteractiveFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj">
-      <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
-      <Name>ServicesVisualStudio</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Interactive\Features\InteractiveFeatures.csproj" />
+    <ProjectReference Include="..\..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj" />
     <ProjectReference Include="..\..\Core\Impl\ServicesVisualStudioImpl.csproj">
-      <Project>{c0e80510-4fbe-4b0c-af2c-4f473787722c}</Project>
-      <Name>ServicesVisualStudioImpl</Name>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveServices\VisualStudioInteractiveServices.csproj">
-      <Project>{a31228bb-f05c-4d4a-b98a-0e681d876b7c}</Project>
-      <Name>VisualStudioInteractiveServices</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\InteractiveServices\VisualStudioInteractiveServices.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -65,23 +41,11 @@
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
     <Reference Include="Microsoft.CSharp" />
-    <PackageReference Include="EnvDTE">
-      <Version>$(EnvDTEVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="EnvDTE80">
-      <Version>$(EnvDTE80Version)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Editor">
-      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
+    <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CSharpInteractiveCommandHandler.cs" />
-    <Compile Include="CSharpInteractiveCommands.cs" />
-    <Compile Include="CSharpVsInteractiveWindowProvider.cs" />
-    <Compile Include="CSharpVsInteractiveWindowPackage.cs" />
-    <Compile Include="CSharpVsInteractiveWindowCommandProvider.cs" />
-    <Compile Include="CSharpVsResetInteractiveCommand.cs" />
     <Content Include="CSharpInteractive.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -92,7 +56,7 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
-    <EmbeddedResource Include="VSPackage.resx">
+    <EmbeddedResource Update="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
       <SubType>Designer</SubType>

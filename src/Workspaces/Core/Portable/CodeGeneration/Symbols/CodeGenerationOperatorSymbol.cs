@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                  modifiers,
                  returnType: returnType,
                  returnsByRef: false,
-                 explicitInterfaceSymbolOpt: null,
+                 explicitInterfaceImplementations: default,
                  name: GetMetadataName(operatorKind),
                  typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
                  parameters: parameters,

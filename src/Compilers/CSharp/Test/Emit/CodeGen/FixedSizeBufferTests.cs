@@ -104,38 +104,40 @@ class Program
 }";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12")
                 .VerifyIL("Program.Main",
-@"{
-  // Code size       48 (0x30)
+@"
+{
+  // Code size       47 (0x2f)
   .maxstack  2
-  .locals init (pinned int& V_0) //p
+  .locals init (int* V_0, //p
+                pinned int*& V_1)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  ldflda     ""S C.s""
   IL_000a:  ldflda     ""int* S.x""
-  IL_000f:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""" /* Note the absence of conv.u here */ + @"
-  IL_0014:  stloc.0
-  IL_0015:  ldloc.0
-  IL_0016:  conv.i
-  IL_0017:  ldc.i4.s   12
-  IL_0019:  stind.i4
-  IL_001a:  ldloc.0
-  IL_001b:  conv.i
-  IL_001c:  ldc.i4.4
-  IL_001d:  add
-  IL_001e:  ldloc.0
-  IL_001f:  conv.i
+  IL_000f:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
+  IL_0014:  stloc.1
+  IL_0015:  ldloc.1
+  IL_0016:  conv.u
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.s   12
+  IL_001b:  stind.i4
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.4
+  IL_001e:  add
+  IL_001f:  ldloc.0
   IL_0020:  ldind.i4
   IL_0021:  stind.i4
   IL_0022:  ldloc.0
-  IL_0023:  conv.i
-  IL_0024:  ldc.i4.4
-  IL_0025:  add
-  IL_0026:  ldind.i4
-  IL_0027:  call       ""void System.Console.WriteLine(int)""
-  IL_002c:  ldc.i4.0
-  IL_002d:  conv.u
-  IL_002e:  stloc.0
-  IL_002f:  ret
-}");
+  IL_0023:  ldc.i4.4
+  IL_0024:  add
+  IL_0025:  ldind.i4
+  IL_0026:  call       ""void System.Console.WriteLine(int)""
+  IL_002b:  ldc.i4.0
+  IL_002c:  conv.u
+  IL_002d:  stloc.1
+  IL_002e:  ret
+}
+");
         }
 
         [Fact]

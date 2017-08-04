@@ -308,8 +308,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (forType == null)
             {
                 var type = value.Value.Type;
-                var narrowedExpression = GetBoundPatternMatchingLocal(type);
-                forType = new DecisionTree.ByValue(narrowedExpression, type.TupleUnderlyingTypeOrSelf(), narrowedExpression.LocalSymbol);
+                if (byType.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
+                {
+                    // reuse the input expression when we have an equivalent type to reduce the number of generated temps
+                    forType = new DecisionTree.ByValue(byType.Expression, type.TupleUnderlyingTypeOrSelf(), null);
+                }
+                else
+                {
+                    var narrowedExpression = GetBoundPatternMatchingLocal(type);
+                    forType = new DecisionTree.ByValue(narrowedExpression, type.TupleUnderlyingTypeOrSelf(), narrowedExpression.LocalSymbol);
+                }
+
                 byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, forType));
             }
 

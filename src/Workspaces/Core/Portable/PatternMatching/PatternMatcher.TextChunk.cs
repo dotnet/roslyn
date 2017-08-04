@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
@@ -23,22 +25,26 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             /// capitalized runs and lowercase runs.  i.e. if you have AAbb, then there will be two 
             /// character spans, one for AA and one for BB.
             /// </summary>
-            public readonly StringBreaks CharacterSpans;
+            public readonly ArrayBuilder<TextSpan> PatternHumps;
 
             public readonly WordSimilarityChecker SimilarityChecker;
+
+            public readonly bool IsLowercase;
 
             public TextChunk(string text, bool allowFuzzingMatching)
             {
                 this.Text = text;
-                this.CharacterSpans = StringBreaker.BreakIntoCharacterParts(text);
+                this.PatternHumps = StringBreaker.GetCharacterParts(text);
                 this.SimilarityChecker = allowFuzzingMatching
                     ? WordSimilarityChecker.Allocate(text, substringsAreSimilar: false)
                     : null;
+
+                IsLowercase = !ContainsUpperCaseLetter(text);
             }
 
             public void Dispose()
             {
-                this.CharacterSpans.Dispose();
+                this.PatternHumps.Free();
                 this.SimilarityChecker?.Free();
             }
         }

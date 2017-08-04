@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The abstract method &apos;{0}&apos; cannot be marked virtual.
+        ///   Looks up a localized string similar to The abstract {0} &apos;{1}&apos; cannot be marked virtual.
         /// </summary>
         internal static string ERR_AbstractNotVirtual {
             get {
@@ -301,6 +301,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AmbigBinaryOps {
             get {
                 return ResourceManager.GetString("ERR_AmbigBinaryOps", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on operands &apos;default&apos; and &apos;default&apos;.
+        /// </summary>
+        internal static string ERR_AmbigBinaryOpsOnDefault {
+            get {
+                return ResourceManager.GetString("ERR_AmbigBinaryOpsOnDefault", resourceCulture);
             }
         }
         
@@ -1232,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.1..
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion. Use &apos;/langversion:?&apos; to list supported values..
         /// </summary>
         internal static string ERR_BadCompatMode {
             get {
@@ -1732,6 +1741,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadOperatorSyntax {
             get {
                 return ResourceManager.GetString("ERR_BadOperatorSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to operand &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_BadOpOnNullOrDefault {
+            get {
+                return ResourceManager.GetString("ERR_BadOpOnNullOrDefault", resourceCulture);
             }
         }
         
@@ -4481,6 +4499,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 7.2. Please use language version {1} or greater..
+        /// </summary>
+        internal static string ERR_FeatureNotAvailableInVersion7_2 {
+            get {
+                return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion7_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_FeatureNotValidInExpressionTree {
@@ -5543,6 +5570,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to read debug information of method &apos;{0}&apos; (token 0x{1:X8}) from assembly &apos;{2}&apos;.
+        /// </summary>
+        internal static string ERR_InvalidDebugInfo {
+            get {
+                return ResourceManager.GetString("ERR_InvalidDebugInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid debug information format: {0}.
         /// </summary>
         internal static string ERR_InvalidDebugInformationFormat {
@@ -5890,6 +5926,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_LocalDuplicate {
             get {
                 return ResourceManager.GetString("ERR_LocalDuplicate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is a local function and must therefore always have a body..
+        /// </summary>
+        internal static string ERR_LocalFunctionMissingBody {
+            get {
+                return ResourceManager.GetString("ERR_LocalFunctionMissingBody", resourceCulture);
             }
         }
         
@@ -7460,15 +7505,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only methods, classes, structs, or interfaces may be partial.
-        /// </summary>
-        internal static string ERR_PartialMethodOnlyMethods {
-            get {
-                return ResourceManager.GetString("ERR_PartialMethodOnlyMethods", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A partial method may not have multiple implementing declarations.
         /// </summary>
         internal static string ERR_PartialMethodOnlyOneActual {
@@ -7739,7 +7775,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported.
+        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported, or is declared in multiple referenced assemblies.
         /// </summary>
         internal static string ERR_PredefinedValueTupleTypeNotFound {
             get {
@@ -8279,7 +8315,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return or a member of parameter &apos;{0}&apos; by reference because it is not a ref or out parameter.
+        ///   Looks up a localized string similar to Cannot return a member of parameter &apos;{0}&apos; by reference because it is not a ref or out parameter.
         /// </summary>
         internal static string ERR_RefReturnParameter2 {
             get {
@@ -8693,7 +8729,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Instance of type &apos;{0}&apos; cannot be used inside an anonymous function, query expression, iterator block or async method.
+        ///   Looks up a localized string similar to Instance of type &apos;{0}&apos; cannot be used inside a nested function, query expression, iterator block or async method.
         /// </summary>
         internal static string ERR_SpecialByRefInLambda {
             get {
@@ -10427,6 +10463,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_Lambda {
             get {
                 return ResourceManager.GetString("IDS_Lambda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Supported language versions:.
+        /// </summary>
+        internal static string IDS_LangVersions {
+            get {
+                return ResourceManager.GetString("IDS_LangVersions", resourceCulture);
             }
         }
         
@@ -14172,6 +14217,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_UnreferencedLabel_Title {
             get {
                 return ResourceManager.GetString("WRN_UnreferencedLabel_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The local function &apos;{0}&apos; is declared but never used.
+        /// </summary>
+        internal static string WRN_UnreferencedLocalFunction {
+            get {
+                return ResourceManager.GetString("WRN_UnreferencedLocalFunction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local function is declared but never used.
+        /// </summary>
+        internal static string WRN_UnreferencedLocalFunction_Title {
+            get {
+                return ResourceManager.GetString("WRN_UnreferencedLocalFunction_Title", resourceCulture);
             }
         }
         

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
@@ -347,15 +347,15 @@ End Class",
             VerifyStatementEndConstructApplied(
                 before:="Class C1
     Sub M1()
-        Dim x = <foo></foo>
+        Dim x = <goo></goo>
     End Sub
 End Class",
                 beforeCaret:={2, 21},
                 after:="Class C1
     Sub M1()
-        Dim x = <foo>
+        Dim x = <goo>
 
-                </foo>
+                </goo>
     End Sub
 End Class",
                 afterCaret:={3, -1})

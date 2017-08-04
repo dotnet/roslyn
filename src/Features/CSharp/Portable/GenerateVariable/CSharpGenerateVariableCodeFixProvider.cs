@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateVariable
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateMethod)]
     internal class CSharpGenerateVariableCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
-        private const string CS1061 = nameof(CS1061); // error CS1061: 'C' does not contain a definition for 'Foo' and no extension method 'Foo' accepting a first argument of type 'C' could be found
-        private const string CS0103 = nameof(CS0103); // error CS0103: The name 'Foo' does not exist in the current context
+        private const string CS1061 = nameof(CS1061); // error CS1061: 'C' does not contain a definition for 'Goo' and no extension method 'Goo' accepting a first argument of type 'C' could be found
+        private const string CS0103 = nameof(CS0103); // error CS0103: The name 'Goo' does not exist in the current context
         private const string CS0117 = nameof(CS0117); // error CS0117: 'TestNs.Program' does not contain a definition for 'blah'
         private const string CS0539 = nameof(CS0539); // error CS0539: 'Class.SomeProp' in explicit interface declaration is not a member of interface
         private const string CS0246 = nameof(CS0246); // error CS0246: The type or namespace name 'Version' could not be found

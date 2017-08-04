@@ -15,10 +15,12 @@
     <VSIXExpInstallerPackageName>RoslynTools.Microsoft.VSIXExpInstaller</VSIXExpInstallerPackageName>
     <VSIXExpInstallerPackageVersion>0.2.1-beta</VSIXExpInstallerPackageVersion>
     <RoslynDiagnosticsNugetPackageVersion>$(MicrosoftNetRoslynDiagnosticsVersion)</RoslynDiagnosticsNugetPackageVersion>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\$(RoslynDiagnosticsNugetPackageVersion)\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
-    <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.Build.Util\0.9.4-portable\lib\dotnet\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
+    <!-- Disable analyzers if NuGet deviated from the expected restore location (e.g. by changing case on a case-sensitive file system) -->
+    <UseRoslynAnalyzers Condition="!Exists('$(NuGetPackageRoot)\Microsoft.CodeQuality.Analyzers\$(RoslynDiagnosticsNugetPackageVersion)\analyzers\dotnet\cs\Analyzer.Utilities.dll')">False</UseRoslynAnalyzers>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/roslyn/Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynRuntimeIdentifier Condition="'$(RoslynRuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7-x64</RoslynRuntimeIdentifier>
-    <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
+    <RoslynPortableTargetFrameworks>net46;netcoreapp2.0</RoslynPortableTargetFrameworks>
+ 
     <Features>strict,IOperation</Features>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <SignAssembly>true</SignAssembly>
@@ -45,10 +47,15 @@
     <TargetFrameworkRootPath>$(NuGetPackageRoot)\RoslynTools.ReferenceAssemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\Framework</TargetFrameworkRootPath>
 
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
-    <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring(0, $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
+    <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring($([System.Convert]::ToInt32(0)), $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
     <VisualStudioCodename>Dev$(VisualStudioReferenceMajorVersion)</VisualStudioCodename>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+
+    <!-- When building WPF / VSIX projects MSBuild will create a temporary project with an extension of
+         tmp_proj.  In that case the SDK is unable to determine the target language and cannot pick
+         the correct import.  Need to set it explicitly here. -->
+    <LanguageTargets Condition="'$(ProjectLanguage)' != ''">$(MSBuildToolsPath)\Microsoft.$(ProjectLanguage).targets</LanguageTargets>
 
     <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
          that any builds of portable projects end up in a sub folder of $(OutputPath). Search for this flag in
@@ -70,15 +77,24 @@
       {RawFileName};
     </AssemblySearchPaths>
 
-    <NoWarn>$(NoWarn);1701</NoWarn>
+    <!-- https://github.com/dotnet/roslyn/issues/21183 -->
+    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>
+
     <RoslynNetSdkRootPath>$(MSBuildSDKsPath)\Microsoft.NET.Sdk\Sdk\</RoslynNetSdkRootPath> 
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+
+    <!-- Live Unit Testing does not currently support PackageReference style restore unless the Sdk="Microsoft.NET.Sdk" attribute is used on projects.
+         Removal of this work-around tracked by:  https://github.com/dotnet/roslyn/issues/20427 -->
+    <ProjectAssetsFile Condition="'$(BuildingForLiveUnitTesting)' == 'true'">$(LiveUnitTestingOriginalBaseIntermediateOutputPath)project.assets.json</ProjectAssetsFile>
+
+    <!-- https://github.com/dotnet/roslyn/issues/21272 -->
+    <GenerateResourceMSBuildRuntime Condition="'$(TargetFramework)' == 'netcoreapp2.0'">CurrentRuntime</GenerateResourceMSBuildRuntime>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <BaseNuGetRuntimeIdentifier>win7</BaseNuGetRuntimeIdentifier>
-    <DebugType>pdbonly</DebugType>
+    <RoslynDebugType>full</RoslynDebugType>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <!-- Presently our code can build on machines with Dev14 or Dev15 but only successfully deploy
@@ -94,7 +110,13 @@
 
   <!-- Unix specific settings -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-    <DebugType>portable</DebugType>
+    <RoslynDebugType>portable</RoslynDebugType>
+    
+    <!-- Presently can't build anything with a net46 TargetFramework on non-Windows. Disabling
+         for now. 
+         
+         https://github.com/dotnet/roslyn/issues/20932 -->
+    <RoslynPortableTargetFrameworks>netcoreapp2.0</RoslynPortableTargetFrameworks>
   </PropertyGroup>
 
   <!--
@@ -122,10 +144,48 @@
     <VisualBasicCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup>
 
-  <!-- Language specifc settings -->
+  <!-- During bootstrap builds it's important to load our bootstrap tasks before doing any
+       other imports (which could load a same named DLL) -->
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
+             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             Condition="'$(BootstrapBuildPath)' != ''" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc"
+             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             Condition="'$(BootstrapBuildPath)' != ''" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
+             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             Condition="'$(BootstrapBuildPath)' != ''" />
+  <UsingTask TaskName="Roslyn.MSBuild.Util.FindNuGetAssetsForVsix"
+             AssemblyFile="$(NuGetPackageRoot)\Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
+             Condition="'$(OS)' == 'Windows_NT'" />
+  <UsingTask TaskName="Roslyn.MSBuild.Util.ValidateBuildEnvironment"
+             AssemblyFile="$(NuGetPackageRoot)\Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
+             Condition="'$(OS)' == 'Windows_NT'" />
+
+  <!-- This file is imported by all projects at the beginning of the project files -->
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
+          Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(RoslynSdkProject)' != 'true'" />
+
+  <Import Project="$(RoslynNetSdkRootPath)Sdk.props" Condition="'$(RoslynSdkProject)' == 'true'" />
+
+  <Import Project="$(RoslynDiagnosticsPropsFilePath)" Condition="'$(UseRoslynAnalyzers)' == 'true' AND Exists('$(RoslynDiagnosticsPropsFilePath)')" />
+
+  <ImportGroup Label="WindowsImports" Condition="'$(OS)' == 'Windows_NT'">
+    <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props" />
+  </ImportGroup>
+
+  <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == ''" />
+
+  <!-- 
+    Language specifc settings 
+    
+    These deliberately come after importing the core targets. That way we can assure these are 
+    the final settings, and not over written by core targets. Certain versions of the SDK for 
+    example do exactly that.
+    -->
   <Choose>
     <!-- VB specific settings -->
-    <When Condition="'$(MSBuildProjectExtension)' == '.vbproj' OR '$(Language)' == 'VB' OR '$(ProjectLanguage)' == 'VB'">
+    <When Condition="'$(MSBuildProjectExtension)' == '.vbproj' OR '$(Language)' == 'VB' OR '$(ProjectLanguage)' == 'VisualBasic'">
       <PropertyGroup>
         <ProjectLanguage>VB</ProjectLanguage>
         <MyType>Empty</MyType>
@@ -137,6 +197,7 @@
         <RemoveIntegerChecks>true</RemoveIntegerChecks>
         <RootNamespace></RootNamespace>
         <MSBuildTargetsLanguageName>VisualBasic</MSBuildTargetsLanguageName>
+        <NoWarn>$(NoWarn);40057</NoWarn>
       </PropertyGroup>
       <ItemGroup>
         <Import Include="Microsoft.VisualBasic" />
@@ -166,16 +227,20 @@
     <When Condition="'$(MSBuildProjectExtension)' == '.csproj' OR '$(Language)' == 'C#' OR '$(ProjectLanguage)' == 'CSharp'">
       <PropertyGroup>
         <ProjectLanguage>CSharp</ProjectLanguage>
+        <LangVersion>7.1</LangVersion>
         <WarningLevel>4</WarningLevel>
         <ErrorReport>prompt</ErrorReport>
 
         <!-- Suppress the following warnings by default for C# projects
+                1573: Suppressed in order to allow documentation for some but not all parameters.
+                      A warning will still be reported if the documentation defines/references a
+                      parameter which does not exist.
                 1591: So far we've chosen to implicitly implement interfaces and as a consequence
                       the methods are public.  We don't want to duplicate documentation for them
                       and hence suppress this warning until we get closer to release and a more
                       thorough documentation story
         -->
-        <NoWarn>$(NoWarn);1591</NoWarn>
+        <NoWarn>$(NoWarn);1573;1591;1701</NoWarn>
         <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
         <MSBuildTargetsLanguageName>CSharp</MSBuildTargetsLanguageName>
       </PropertyGroup>
@@ -205,45 +270,7 @@
     </When>
   </Choose>
 
-  <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
-    <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
-  </ItemGroup>
-
-  <!-- During bootstrap builds it's important to load our bootstrap tasks before doing any
-       other imports (which could load a same named DLL) -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
-             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
-             Condition="'$(BootstrapBuildPath)' != ''" />
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc"
-             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
-             Condition="'$(BootstrapBuildPath)' != ''" />
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
-             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
-             Condition="'$(BootstrapBuildPath)' != ''" />
-
-  <!-- This file is imported by all projects at the beginning of the project files -->
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
-          Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(RoslynSdkProject)' != 'true'" />
-
-  <Import Project="$(RoslynNetSdkRootPath)Sdk.props" Condition="'$(RoslynSdkProject)' == 'true'" />
-
-  <Import Project="$(RoslynDiagnosticsPropsFilePath)" Condition="'$(UseRoslynAnalyzers)' == 'true' AND Exists('$(RoslynDiagnosticsPropsFilePath)')" />
-
-  <ImportGroup Label="WindowsImports" Condition="'$(OS)' == 'Windows_NT'">
-    <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props" />
-  </ImportGroup>
-
-  <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == ''" />
-
-  <!-- The Sdk props will set the rootnamespace to the assembly name when the property
-       is empty.  Need to override this after  -->
-  <PropertyGroup Condition="'$(RoslynSdkProject)' == 'true'" >
-    <DebugType>full</DebugType>
-    <RootNamespace Condition="'$(MSBuildTargetsLanguageName)' == 'VisualBasic'"></RootNamespace>
-    <DefineConstants Condition="'$(InitialDefineConstants)' != ''">$(InitialDefineConstants)</DefineConstants>
-
-    <!-- The NoWarn property is still being unconditionally set.  https://github.com/dotnet/sdk/issues/752 -->
-    <OptionStrict>On</OptionStrict>
-    <NoWarn>$(NoWarn);1591</NoWarn>
+  <PropertyGroup>
+    <DebugType>$(RoslynDebugType)</DebugType>
   </PropertyGroup>
 </Project>

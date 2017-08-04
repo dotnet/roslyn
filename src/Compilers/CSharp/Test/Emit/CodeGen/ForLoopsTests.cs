@@ -1457,12 +1457,12 @@ class C
 {
     static void Main(string[] args)
     {
-        for (Foo f = new Foo { i = 0, s = ""abc"" }; f.i < 5; f.i = f.i + 1)
+        for (Goo f = new Goo { i = 0, s = ""abc"" }; f.i < 5; f.i = f.i + 1)
         {
         }
     }
 }
-public class Foo
+public class Goo
 {
     public int i;
     public string s;
@@ -1472,24 +1472,24 @@ public class Foo
 {
   // Code size       50 (0x32)
   .maxstack  3
-  .locals init (Foo V_0) //f
-  IL_0000:  newobj     ""Foo..ctor()""
+  .locals init (Goo V_0) //f
+  IL_0000:  newobj     ""Goo..ctor()""
   IL_0005:  dup
   IL_0006:  ldc.i4.0
-  IL_0007:  stfld      ""int Foo.i""
+  IL_0007:  stfld      ""int Goo.i""
   IL_000c:  dup
   IL_000d:  ldstr      ""abc""
-  IL_0012:  stfld      ""string Foo.s""
+  IL_0012:  stfld      ""string Goo.s""
   IL_0017:  stloc.0
   IL_0018:  br.s       IL_0028
   IL_001a:  ldloc.0
   IL_001b:  ldloc.0
-  IL_001c:  ldfld      ""int Foo.i""
+  IL_001c:  ldfld      ""int Goo.i""
   IL_0021:  ldc.i4.1
   IL_0022:  add
-  IL_0023:  stfld      ""int Foo.i""
+  IL_0023:  stfld      ""int Goo.i""
   IL_0028:  ldloc.0
-  IL_0029:  ldfld      ""int Foo.i""
+  IL_0029:  ldfld      ""int Goo.i""
   IL_002e:  ldc.i4.5
   IL_002f:  blt.s      IL_001a
   IL_0031:  ret
@@ -1845,12 +1845,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        for (int i = 0; foo(i--) > -5;)
+        for (int i = 0; goo(i--) > -5;)
         {
             System.Console.WriteLine(i);
         }
     }
-    static int foo(int x)
+    static int goo(int x)
     {
         return x;
     }

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return modifiers;
             }
 
-            return default(DeclarationModifiers);
+            return default;
         }
 
         public static int GetLine(CompletionItem item)

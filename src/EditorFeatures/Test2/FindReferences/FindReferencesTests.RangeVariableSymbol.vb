@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -212,13 +212,13 @@ Imports System.Linq
 Imports System.Runtime.CompilerServices
 Module Program  
     Sub Main()    
-        Dim q = Aggregate x In {0, 1, 2} Into Count(), {|Definition:Foo()|}
-        Dim y = q.[|$$Foo|] ' Find All references for Foo    
-        Dim y2 = q.[|Foo|]
+        Dim q = Aggregate x In {0, 1, 2} Into Count(), {|Definition:Goo()|}
+        Dim y = q.[|$$Goo|] ' Find All references for Goo    
+        Dim y2 = q.[|Goo|]
     End Sub
 
     &lt;Extension&gt;
-    Function Foo(Of T)(seq As IEnumerable(Of T)) As Integer  
+    Function Goo(Of T)(seq As IEnumerable(Of T)) As Integer  
         Return 0
     End Function 
 End Module

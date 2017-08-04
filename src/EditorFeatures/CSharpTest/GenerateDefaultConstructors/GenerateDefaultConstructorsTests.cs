@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -863,6 +863,16 @@ class Derived : Base
     public Derived(int a, string value = null) : base(a, value)
     {
     }
+}");
+        }
+
+        [WorkItem(19953, "https://github.com/dotnet/roslyn/issues/19953")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestNotOnEnum()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"enum [||]E
+{
 }");
         }
     }

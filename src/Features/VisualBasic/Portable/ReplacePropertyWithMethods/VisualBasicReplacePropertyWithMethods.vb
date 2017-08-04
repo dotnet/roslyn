@@ -2,6 +2,7 @@
 
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -82,17 +83,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Dim getMethod = [property].GetMethod
             If getMethod IsNot Nothing Then
                 result.Add(GetGetMethod(
-                    generator, propertyStatement, propertyBackingField,
-                    getMethod, desiredGetMethodName,
-                    cancellationToken:=cancellationToken))
+                    generator, [property], propertyStatement, propertyBackingField,
+                    getMethod, desiredGetMethodName, cancellationToken:=cancellationToken))
             End If
 
             Dim setMethod = [property].SetMethod
             If setMethod IsNot Nothing Then
                 result.Add(GetSetMethod(
-                    generator, propertyStatement, propertyBackingField,
-                    setMethod, desiredSetMethodName,
-                    cancellationToken:=cancellationToken))
+                    generator, [property], propertyStatement, propertyBackingField,
+                    setMethod, desiredSetMethodName, cancellationToken:=cancellationToken))
             End If
 
             Return result
@@ -100,6 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
         Private Function GetGetMethod(
                 generator As SyntaxGenerator,
+                [property] As IPropertySymbol,
                 propertyStatement As PropertyStatementSyntax,
                 propertyBackingField As IFieldSymbol,
                 getMethod As IMethodSymbol,
@@ -119,7 +119,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 statements.Add(generator.ReturnStatement(fieldReference))
             End If
 
+            getMethod = UpdateExplicitInterfaceImplementations([property], getMethod, desiredGetMethodName)
             Dim methodDeclaration = generator.MethodDeclaration(getMethod, desiredGetMethodName, statements)
+
             methodDeclaration = CopyLeadingTriviaOver(propertyStatement, methodDeclaration, ConvertValueToReturnsRewriter.instance)
             Return methodDeclaration
         End Function
@@ -130,6 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
         Private Function GetSetMethod(
                 generator As SyntaxGenerator,
+                [property] As IPropertySymbol,
                 propertyStatement As PropertyStatementSyntax,
                 propertyBackingField As IFieldSymbol,
                 setMethod As IMethodSymbol,
@@ -150,9 +153,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                     fieldReference, generator.IdentifierName(setMethod.Parameters(0).Name)))
             End If
 
+            setMethod = UpdateExplicitInterfaceImplementations([property], setMethod, desiredSetMethodName)
             Dim methodDeclaration = generator.MethodDeclaration(setMethod, desiredSetMethodName, statements)
+
             methodDeclaration = CopyLeadingTriviaOver(propertyStatement, methodDeclaration, ConvertValueToParamRewriter.instance)
             Return methodDeclaration
+        End Function
+
+        Private Function UpdateExplicitInterfaceImplementations(
+                [property] As IPropertySymbol,
+                method As IMethodSymbol,
+                desiredName As String) As IMethodSymbol
+
+            ' We have a property like:
+            '       Public ReadOnly Goo As Integer Implements I.Goo'
+            '
+            ' That property has an implicit getter:
+            '       Public Function get_Goo As Integer Implements I.get_Goo'
+            '
+            ' We want to generate the new explicit function:
+            '       Public Function GetGoo() As Integer Implements I.GetGoo
+            ' 
+            ' To do this we make the new method using the information from the implicit getter 
+            ' Function.  However, we need to update the 'explicit interface implementations' 
+            ' of the implicit getter function so that they point to the updated interface method
+            ' and not hte old implicit interface method.
+            Dim updatedImplementations = method.ExplicitInterfaceImplementations.SelectAsArray(
+                Function(i) UpdateExplicitInterfaceImplementation([property], i, desiredName))
+
+            Return If(updatedImplementations.SequenceEqual(method.ExplicitInterfaceImplementations),
+                      method,
+                      CodeGenerationSymbolFactory.CreateMethodSymbol(
+                        method, explicitInterfaceImplementations:=updatedImplementations))
+        End Function
+
+        Private Function UpdateExplicitInterfaceImplementation(
+                [property] As IPropertySymbol,
+                explicitInterfaceImplMethod As IMethodSymbol,
+                desiredName As String) As IMethodSymbol
+
+            If explicitInterfaceImplMethod IsNot Nothing Then
+                If explicitInterfaceImplMethod.Name = "get_" + [property].Name OrElse
+                   explicitInterfaceImplMethod.Name = "set_" + [property].Name Then
+                    Return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                        explicitInterfaceImplMethod, name:=desiredName, containingType:=explicitInterfaceImplMethod.ContainingType)
+                End If
+            End If
+
+            Return explicitInterfaceImplMethod
         End Function
 
         Private Function CopyLeadingTriviaOver(propertyStatement As PropertyStatementSyntax,

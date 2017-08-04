@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -40,9 +41,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
         }
 
-        private static PatternMatchKind GetCamelCaseKind(CamelCaseResult result, StringBreaks candidateHumps)
+        private static PatternMatchKind GetCamelCaseKind(CamelCaseResult result, ArrayBuilder<TextSpan> candidateHumps)
         {
-            var toEnd = result.MatchCount == candidateHumps.GetCount();
+            var toEnd = result.MatchCount == candidateHumps.Count;
             if (result.FromStart)
             {
                 if (result.Contiguous)

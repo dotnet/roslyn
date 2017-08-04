@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -71,18 +71,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }
 
-            using (var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics))
-            {
-                var fixer = providerAndFixer.Item2;
-                var diagnostics = (await testDriver.GetAllDiagnosticsAsync(provider, document, span))
-                    .Where(d => fixer.CanBeSuppressedOrUnsuppressed(d));
+            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
+            var fixer = providerAndFixer.Item2;
+            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(provider, document, span))
+                .Where(d => fixer.CanBeSuppressedOrUnsuppressed(d));
 
-                var filteredDiagnostics = FilterDiagnostics(diagnostics);
+            var filteredDiagnostics = FilterDiagnostics(diagnostics);
 
-                var wrapperCodeFixer = new WrapperCodeFixProvider(fixer, filteredDiagnostics.Select(d => d.Id));
-                return await GetDiagnosticAndFixesAsync(
-                    filteredDiagnostics, provider, wrapperCodeFixer, testDriver, document, span, annotation, parameters.fixAllActionEquivalenceKey);
-            }
+            var wrapperCodeFixer = new WrapperCodeFixProvider(fixer, filteredDiagnostics.Select(d => d.Id));
+            return await GetDiagnosticAndFixesAsync(
+                filteredDiagnostics, provider, wrapperCodeFixer, testDriver, document, span, annotation, parameters.fixAllActionEquivalenceKey);
         }
     }
 }

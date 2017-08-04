@@ -7,6 +7,7 @@ Imports System.Globalization
 Imports System.Threading
 Imports System.Reflection
 Imports System.Reflection.Metadata
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax

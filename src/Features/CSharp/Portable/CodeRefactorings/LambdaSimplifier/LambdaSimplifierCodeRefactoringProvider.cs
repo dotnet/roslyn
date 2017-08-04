@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Simplify_lambda_expression,
-                    (c) => SimplifyLambdaAsync(document, lambda, c)));
+                    c => SimplifyLambdaAsync(document, lambda, c)));
 
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Simplify_all_occurrences,
-                    (c) => SimplifyAllLambdasAsync(document, c)));
+                    c => SimplifyAllLambdasAsync(document, c)));
         }
 
         private async Task<Document> SimplifyLambdaAsync(
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var rewriter = new Rewriter(this, semanticDocument, (n) => n == lambda, cancellationToken);
+            var rewriter = new Rewriter(this, semanticDocument, n => n == lambda, cancellationToken);
             var result = rewriter.Visit(semanticDocument.Root);
             return document.WithSyntaxRoot(result);
         }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var rewriter = new Rewriter(this, semanticDocument, (n) => true, cancellationToken);
+            var rewriter = new Rewriter(this, semanticDocument, n => true, cancellationToken);
             var result = rewriter.Visit(semanticDocument.Root);
             return document.WithSyntaxRoot(result);
         }
@@ -220,12 +220,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
         // Ensure that if we replace the invocation with its expression that its expression will
         // bind unambiguously.  This can happen with awesome cases like:
 #if false
-    static void Foo<T>(T x) where T : class { }
+    static void Goo<T>(T x) where T : class { }
     static void Bar(Action<int> x) { }
     static void Bar(Action<string> x) { }
     static void Main()
     {
-        Bar(x => Foo(x)); // error CS0121: The call is ambiguous between the following methods or properties: 'A.Bar(System.Action<int>)' and 'A.Bar(System.Action<string>)'
+        Bar(x => Goo(x)); // error CS0121: The call is ambiguous between the following methods or properties: 'A.Bar(System.Action<int>)' and 'A.Bar(System.Action<string>)'
     }
 #endif
         private static bool WouldCauseAmbiguity(

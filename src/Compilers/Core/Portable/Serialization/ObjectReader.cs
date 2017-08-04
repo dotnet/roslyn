@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
@@ -30,7 +31,7 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00001000;
+        internal const byte VersionByte2 = 0b00001001;
 
         private readonly BinaryReader _reader;
         private readonly CancellationToken _cancellationToken;
@@ -84,7 +85,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public static ObjectReader TryGetReader(
             Stream stream,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (stream == null)
             {
@@ -123,6 +124,17 @@ namespace Roslyn.Utilities
         public ushort ReadUInt16() => _reader.ReadUInt16();
         public string ReadString() => ReadStringValue();
 
+        public Guid ReadGuid()
+        {
+            var accessor = new ObjectWriter.GuidAccessor
+            {
+                Low64 = ReadInt64(),
+                High64 = ReadInt64()
+            };
+
+            return accessor.Guid;
+        }
+
         public object ReadValue()
         {
             var oldDepth = _recursionDepth;
@@ -138,8 +150,15 @@ namespace Roslyn.Utilities
                     _cancellationToken,
                     TaskCreationOptions.LongRunning,
                     TaskScheduler.Default);
-                task.Wait(_cancellationToken);
-                value = task.Result;
+
+                // We must not proceed until the additional task completes. After returning from a read, the underlying
+                // stream providing access to raw memory will be closed; if this occurs before the separate thread
+                // completes its read then an access violation can occur attempting to read from unmapped memory.
+                //
+                // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
+                // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
+                // so the wait can complete.
+                value = task.GetAwaiter().GetResult();
             }
             else
             {

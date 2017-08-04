@@ -10,11 +10,13 @@
 
 Supported Platforms:
 - .NET Framework 4.6
+
+    $commitPathMessage$
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />
-      <dependency id="Microsoft.Composition" version="$MicrosoftCompositionVersion$" />
+      <dependency id="System.Composition" version="$SystemCompositionVersion$" />
     </dependencies>
 
     <language>en-US</language>

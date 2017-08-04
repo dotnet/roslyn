@@ -20,9 +20,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             return CoMarshalInterThreadInterfaceInStream(ref s_IID_IUnknown, pUnk, out stream);
         }
 
-        public static int GetObjectForStream(IntPtr stream, out object pUnk)
+        public static object GetObjectAndRelease(IntPtr stream)
         {
-            return CoGetInterfaceAndReleaseStream(stream, ref s_IID_IUnknown, out pUnk);
+            Marshal.ThrowExceptionForHR(CoGetInterfaceAndReleaseStream(stream, ref s_IID_IUnknown, out object pUnk));
+            return pUnk;
         }
     }
 }

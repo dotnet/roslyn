@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -338,6 +338,54 @@ class Program
     }
     public enum Directions { North, East, South, West }
 }           ", "Directions.South", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(19987, "https://github.com/dotnet/roslyn/issues/19987")]
+        public void SpeculationAnalyzerSwitchCaseWithRedundantCast()
+        {
+            Test(@"
+class Program
+{
+    static void Main(string[] arts)
+    {
+        var x = 1f;
+        switch (x)
+        {
+            case [|(float) 1|]:
+                System.Console.WriteLine(""one"");
+                break;
+
+            default:
+                System.Console.WriteLine(""not one"");
+                break;
+        }
+    }
+}
+            ", "1", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(19987, "https://github.com/dotnet/roslyn/issues/19987")]
+        public void SpeculationAnalyzerSwitchCaseWithRequiredCast()
+        {
+            Test(@"
+class Program
+{
+    static void Main(string[] arts)
+    {
+        object x = 1f;
+        switch (x)
+        {
+            case [|(float) 1|]: // without the case, object x does not match int 1
+                System.Console.WriteLine(""one"");
+                break;
+
+            default:
+                System.Console.WriteLine(""not one"");
+                break;
+        }
+    }
+}
+            ", "1", semanticChanges: true);
         }
 
         protected override SyntaxTree Parse(string text)

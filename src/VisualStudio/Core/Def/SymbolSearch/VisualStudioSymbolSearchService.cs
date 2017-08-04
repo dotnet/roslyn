@@ -10,11 +10,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.VisualStudio.TaskStatusCenter;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
 
@@ -37,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly IPackageInstallerService _installerService;
         private readonly string _localSettingsDirectory;
         private readonly LogService _logService;
+        private readonly ISymbolSearchProgressService _progressService;
 
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
@@ -53,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _localSettingsDirectory = new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
             _logService = new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
+            _progressService = workspace.Services.GetService<ISymbolSearchProgressService>();
         }
 
         protected override void EnableService()
@@ -91,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 if (_updateEngine == null)
                 {
                     _updateEngine = await SymbolSearchUpdateEngineFactory.CreateEngineAsync(
-                        _workspace, _logService, cancellationToken).ConfigureAwait(false);
+                        _workspace, _logService, _progressService, cancellationToken).ConfigureAwait(false);
                 }
 
                 return _updateEngine;
@@ -109,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             var allPackagesWithType = await engine.FindPackagesWithTypeAsync(
-                source, name, arity).ConfigureAwait(false);
+                source, name, arity, cancellationToken).ConfigureAwait(false);
 
             return FilterAndOrderPackages(allPackagesWithType);
         }
@@ -119,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             var allPackagesWithAssembly = await engine.FindPackagesWithAssemblyAsync(
-                source, assemblyName).ConfigureAwait(false);
+                source, assemblyName, cancellationToken).ConfigureAwait(false);
 
             return FilterAndOrderPackages(allPackagesWithAssembly);
         }
@@ -171,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             return await engine.FindReferenceAssembliesWithTypeAsync(
-                name, arity).ConfigureAwait(false);
+                name, arity, cancellationToken).ConfigureAwait(false);
         }
     }
 }

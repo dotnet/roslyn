@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <RoslynSdkProject>true</RoslynSdkProject>
-    <EnableDefaultItems>false</EnableDefaultItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
   </PropertyGroup>
 
   <Import Project="Settings.props" />

@@ -88,7 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 succeeded = true;
             }
 
-            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false))
+            var (canOffer, _) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false);
+            if (canOffer)
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseBlockBodyTitle.ToString(),
@@ -119,10 +120,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             OptionSet options, UseExpressionBodyHelper helper, bool useExpressionBody,
             CancellationToken cancellationToken)
         {
-            var updatedDeclaration = helper.Update(declaration, options, useExpressionBody)
-                                           .WithAdditionalAnnotations(Formatter.Annotation);
-            var newRoot = root.ReplaceNode(declaration, updatedDeclaration);
+            var parseOptions = root.SyntaxTree.Options;
+            var updatedDeclaration = helper.Update(declaration, options, parseOptions, useExpressionBody);
 
+            var parent = declaration is AccessorDeclarationSyntax
+                ? declaration.Parent
+                : declaration;
+            var updatedParent = parent.ReplaceNode(declaration, updatedDeclaration)
+                                      .WithAdditionalAnnotations(Formatter.Annotation);
+
+            var newRoot = root.ReplaceNode(parent, updatedParent);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 

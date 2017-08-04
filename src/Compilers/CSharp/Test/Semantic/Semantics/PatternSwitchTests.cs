@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             case var n:
                 break;
-            case ""foo"": ; // error: subsumed by previous case
+            case ""goo"": ; // error: subsumed by previous case
             case null: ; // error: subsumed by previous case
         }
     }
@@ -130,8 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case "foo": ; // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, @"case ""foo"":").WithLocation(10, 13),
+                //             case "goo": ; // error: subsumed by previous case
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, @"case ""goo"":").WithLocation(10, 13),
                 // (11,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case null: ; // error: subsumed by previous case
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case null:").WithLocation(11, 13)
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             case bool n:
                 break;
-            case ""foo"": // wrong type
+            case ""goo"": // wrong type
                 break; // unreachable
         }
     }
@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(10, 18),
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(10, 18),
                 // (11,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
@@ -707,7 +707,7 @@ null";
 {
     public static void Main(string[] args)
     {
-        switch (""foo"")
+        switch (""goo"")
         {
             case null when true:
                 break;
@@ -767,28 +767,28 @@ null";
             case true:
             case false:
                 break;
-            case ""foo"": // wrong type
+            case ""goo"": // wrong type
                 break;
         }
     }
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (11,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18),
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18),
                 // (12,17): warning CS0162: Unreachable code detected
                 //                 break;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
         }
 
@@ -819,9 +819,9 @@ class Program
     }
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (18,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
+                // (18,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case Color x when false:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case Color x when false:").WithArguments("pattern matching", "7").WithLocation(18, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case Color x when false:").WithArguments("pattern matching", "7.0").WithLocation(18, 13),
                 // (11,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 //                 goto case 1; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 1;").WithArguments("Color").WithLocation(11, 17),
@@ -3205,11 +3205,11 @@ static class Ex
 }";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
-                // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
+                // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, @"case
 
-        var q ").WithArguments("pattern matching", "7").WithLocation(8, 13),
+        var q ").WithArguments("pattern matching", "7.0").WithLocation(8, 13),
                 // (10,15): error CS1003: Syntax error, ':' expected
                 //         var q = 3;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(":", "=").WithLocation(10, 15),
@@ -3251,9 +3251,9 @@ static class Ex
 }";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
-                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
+                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case var q:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case var q:").WithArguments("pattern matching", "7").WithLocation(7, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case var q:").WithArguments("pattern matching", "7.0").WithLocation(7, 13)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

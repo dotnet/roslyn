@@ -165,12 +165,12 @@ class Program
     {
     }
 
-    static void Foo(S1 s = new S1())
+    static void Goo(S1 s = new S1())
     {
 
     }
 
-    static void Foo(S2 s = new S2())
+    static void Goo(S2 s = new S2())
     {
 
     }
@@ -182,7 +182,7 @@ class Program
     //     public S2()
     Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(10, 12),
     // (26,28): error CS1736: Default parameter value for 's' must be a compile-time constant
-    //     static void Foo(S2 s = new S2())
+    //     static void Goo(S2 s = new S2())
     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S2()").WithArguments("s").WithLocation(26, 28)
 );
         }
@@ -1969,7 +1969,7 @@ class C
             // multiplying constants in checked statement that causes overflow behaves like unchecked
 
             var source = @"
-public class foo
+public class goo
 {
     const int i = 1000000;
     const int j = 1000000;
@@ -2472,7 +2472,7 @@ class c1
     }
 
     [MyAttribute(A + B + 3)]
-    void Foo()
+    void Goo()
     {
     }
 }");
@@ -2839,9 +2839,9 @@ class Program
 }
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
+                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         void f() { if () const int i = 0; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7.0").WithLocation(6, 14),
                 // (6,24): error CS1525: Invalid expression term ')'
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24),
@@ -2851,9 +2851,9 @@ class Program
                 // (6,36): warning CS0219: The variable 'i' is assigned but its value is never used
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 36),
-                // (6,14): warning CS0168: The variable 'f' is declared but never used
+                // (6,14): warning CS8321: The local function 'f' is declared but never used
                 //         void f() { if () const int i = 0; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(6, 14)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(6, 14)
                 );
         }
 

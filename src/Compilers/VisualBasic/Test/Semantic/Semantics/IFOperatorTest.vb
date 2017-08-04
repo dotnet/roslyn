@@ -498,14 +498,14 @@ End Module
 Imports System
 Module Program
     Sub Main(args As String())
-        Dim f1 As New Foo(), f2 As New Foo(), f3 As New Foo()
+        Dim f1 As New Goo(), f2 As New Goo(), f3 As New Goo()
         Dim b As Boolean = True
-        f3 = If(b, f1 = New Foo(), f2 = New Foo())
+        f3 = If(b, f1 = New Goo(), f2 = New Goo())
         b = False
-        f3 = If(b, f1 = New Foo(), f2 = New Foo())
+        f3 = If(b, f1 = New Goo(), f2 = New Goo())
     End Sub
 End Module
-Class Foo
+Class Goo
     Public i As Integer
 End Class
     </file>
@@ -667,14 +667,14 @@ End Module
 Imports System
 Module Program
     Sub Main(args As String())
-        Dim x = foo(0)
+        Dim x = goo(0)
         System.Console.WriteLine(x)
         'Blue
-        Dim y = foo(1)
+        Dim y = goo(1)
         System.Console.WriteLine(y)
         'Red
     End Sub
-    Private Function foo(x As color) As color
+    Private Function goo(x As color) As color
         Dim dd = Function()
                      Return If((x = color.Red), color.Blue, Nothing)
                  End Function
@@ -1070,7 +1070,7 @@ Module Program
             inside = 1
         End Try
     End Sub
-    Sub foo()
+    Sub goo()
         Try
             Dim s_a As Exception
             Dim s_b As New InvalidCastException

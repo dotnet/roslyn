@@ -536,14 +536,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
 
-            ' Technically, you could introduce an LValue for "Foo" in "Foo()" even if "Foo" binds
+            ' Technically, you could introduce an LValue for "Goo" in "Goo()" even if "Goo" binds
             ' to a method.  (i.e. by assigning to a Func<...> type).  However, this is so contrived
             ' and none of the features that use this extension consider this replaceable.
             If TypeOf expression.Parent Is InvocationExpressionSyntax Then
 
-                ' If something is being invoked, then it's either something like Foo(), Foo.Bar(), or
+                ' If something is being invoked, then it's either something like Goo(), Goo.Bar(), or
                 ' SomeExpr() (i.e. Blah[1]()).  In the first and second case, we only allow
-                ' replacement if Foo and Foo.Bar didn't bind to a method.  If we can't bind it, we'll
+                ' replacement if Goo and Goo.Bar didn't bind to a method.  If we can't bind it, we'll
                 ' assume it's a method and we don't allow it to be replaced either.  However, if it's
                 ' an arbitrary expression, we do allow replacement.
                 If expression.IsKind(SyntaxKind.IdentifierName) OrElse expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then

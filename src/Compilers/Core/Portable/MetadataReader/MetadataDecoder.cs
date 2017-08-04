@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -676,7 +677,7 @@ namespace Microsoft.CodeAnalysis
         {
             ArrayBuilder<ModifierInfo<TypeSymbol>> modifiers = null;
 
-            for (;;)
+            for (; ; )
             {
                 typeCode = signatureReader.ReadSignatureTypeCode();
 
@@ -710,10 +711,10 @@ namespace Microsoft.CodeAnalysis
             TypeSymbol type;
             bool isNoPiaLocalType;
 
-        // According to ECMA spec:
-        //  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
-        //  indexes a row in the TypeDef table or the TypeRef table.
-        tryAgain:
+            // According to ECMA spec:
+            //  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
+            //  indexes a row in the TypeDef table or the TypeRef table.
+            tryAgain:
             switch (token.Kind)
             {
                 case HandleKind.TypeDefinition:
@@ -1101,7 +1102,7 @@ namespace Microsoft.CodeAnalysis
             if (typeCode == SignatureTypeCode.ByReference)
             {
                 info.IsByRef = true;
-                info.RefCustomModifiers = info.CustomModifiers; 
+                info.RefCustomModifiers = info.CustomModifiers;
                 info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
             }
 
@@ -1848,7 +1849,7 @@ namespace Microsoft.CodeAnalysis
                 SignatureTypeCode typeCode;
                 ArrayBuilder<ModifierInfo<TypeSymbol>> customModifierBuilder = null;
 
-                for (;;)
+                for (; ; )
                 {
                     typeCode = signatureReader.ReadSignatureTypeCode();
 

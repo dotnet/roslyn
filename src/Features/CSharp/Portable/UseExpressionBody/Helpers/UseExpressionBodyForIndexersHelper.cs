@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -52,11 +54,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected override IndexerDeclarationSyntax WithGenerateBody(
-            IndexerDeclarationSyntax declaration, OptionSet options)
+            IndexerDeclarationSyntax declaration, OptionSet options, ParseOptions parseOptions)
         {
-            return WithAccessorList(declaration, options);
+            return WithAccessorList(declaration, options, parseOptions);
         }
 
         protected override bool CreateReturnStatementForExpression(IndexerDeclarationSyntax declaration) => true;
+
+        protected override bool TryConvertToExpressionBody(
+            IndexerDeclarationSyntax declaration, ParseOptions options,
+            ExpressionBodyPreference conversionPreference,
+            out ArrowExpressionClauseSyntax arrowExpression,
+            out SyntaxToken semicolonToken)
+        {
+            return this.TryConvertToExpressionBodyForBaseProperty(
+                declaration, options, conversionPreference,
+                out arrowExpression, out semicolonToken);
+        }
     }
 }

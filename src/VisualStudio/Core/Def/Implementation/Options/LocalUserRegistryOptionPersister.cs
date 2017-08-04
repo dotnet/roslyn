@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -77,24 +77,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     }
                     else if (optionKey.Option.Type == typeof(long))
                     {
-                        object untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
-
-                        if (untypedValue is string stringValue)
+                        var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
+                        switch (untypedValue)
                         {
-                            // Due to a previous bug we were accidentally serializing longs as strings. Gracefully convert
-                            // those back.
-                            bool suceeded = long.TryParse(stringValue, out long longValue);
-                            value = longValue;
-                            return suceeded;
-                        }
-                        else if (untypedValue is long longValue)
-                        {
-                            value = longValue;
-                            return true;
-                        }
+                            case string stringValue:
+                                {
+                                    // Due to a previous bug we were accidentally serializing longs as strings.
+                                    // Gracefully convert those back.
+                                    var suceeded = long.TryParse(stringValue, out long longValue);
+                                    value = longValue;
+                                    return suceeded;
+                                }
 
-                        value = null;
-                        return false;
+                            case long longValue:
+                                value = longValue;
+                                return true;
+                        }
+                    }
+                    else if (optionKey.Option.Type == typeof(int))
+                    {
+                        var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
+                        switch (untypedValue)
+                        {
+                            case string stringValue:
+                                {
+                                    // Due to a previous bug we were accidentally serializing ints as strings. 
+                                    // Gracefully convert those back.
+                                    var suceeded = int.TryParse(stringValue, out int intValue);
+                                    value = intValue;
+                                    return suceeded;
+                                }
+
+                            case int intValue:
+                                value = intValue;
+                                return true;
+                        }
                     }
                     else
                     {
@@ -104,6 +121,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     }
                 }
             }
+
+            value = null;
+            return false;
         }
 
         bool IOptionPersister.TryPersist(OptionKey optionKey, object value)

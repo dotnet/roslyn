@@ -138,10 +138,10 @@ unsafe class C
         S2* p2 = &s.s;
         int* p3 = &s.s.x;
 
-        Foo(s, p1, p2, p3);
+        Goo(s, p1, p2, p3);
     }
 
-    void Foo(S1 s, S1* p1, S2* p2, int* p3) { }
+    void Goo(S1 s, S1* p1, S2* p2, int* p3) { }
 }
 
 struct S1
@@ -180,7 +180,7 @@ struct S2
   IL_001d:  ldloc.1
   IL_001e:  ldloc.2
   IL_001f:  ldloc.3
-  IL_0020:  call       ""void C.Foo(S1, S1*, S2*, int*)""
+  IL_0020:  call       ""void C.Goo(S1, S1*, S2*, int*)""
   IL_0025:  ret
 }
 ");
@@ -195,10 +195,10 @@ unsafe class C
     static void M()
     {
         int x = 123;
-        Foo(&x); // should not optimize into 'Foo(&123)'
+        Goo(&x); // should not optimize into 'Goo(&123)'
     }
 
-    static void Foo(int* p) { }
+    static void Goo(int* p) { }
 }
 ";
             var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll);
@@ -211,7 +211,7 @@ unsafe class C
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_0
   IL_0005:  conv.u
-  IL_0006:  call       ""void C.Foo(int*)""
+  IL_0006:  call       ""void C.Goo(int*)""
   IL_000b:  ret
 }
 ");
@@ -1207,13 +1207,13 @@ unsafe class C
 {
   // Code size       30 (0x1e)
   .maxstack  3
-  .locals init (pinned int& V_0) //p
+  .locals init (pinned int& V_0)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  dup
   IL_0006:  ldflda     ""int C.x""
   IL_000b:  stloc.0
   IL_000c:  ldloc.0
-  IL_000d:  conv.i
+  IL_000d:  conv.u
   IL_000e:  ldc.i4.1
   IL_000f:  stind.i4
   IL_0010:  ldc.i4.0
@@ -1254,37 +1254,40 @@ unsafe class C
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       55 (0x37)
-  .maxstack  3
-  .locals init (pinned int& V_0, //p
-                pinned int& V_1) //q
+  // Code size       57 (0x39)
+  .maxstack  4
+  .locals init (int* V_0, //p
+                pinned int& V_1,
+                pinned int& V_2)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  dup
   IL_0006:  ldflda     ""int C.x""
-  IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldflda     ""int C.y""
-  IL_0012:  stloc.1
-  IL_0013:  ldloc.0
-  IL_0014:  conv.i
-  IL_0015:  ldc.i4.1
-  IL_0016:  stind.i4
-  IL_0017:  ldloc.1
-  IL_0018:  conv.i
-  IL_0019:  ldc.i4.2
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  conv.u
+  IL_000e:  stloc.0
+  IL_000f:  dup
+  IL_0010:  ldflda     ""int C.y""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.2
+  IL_0017:  conv.u
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.1
   IL_001a:  stind.i4
-  IL_001b:  ldc.i4.0
-  IL_001c:  conv.u
-  IL_001d:  stloc.0
-  IL_001e:  ldc.i4.0
-  IL_001f:  conv.u
-  IL_0020:  stloc.1
-  IL_0021:  dup
-  IL_0022:  ldfld      ""int C.x""
-  IL_0027:  call       ""void System.Console.Write(int)""
-  IL_002c:  ldfld      ""int C.y""
-  IL_0031:  call       ""void System.Console.Write(int)""
-  IL_0036:  ret
+  IL_001b:  ldc.i4.2
+  IL_001c:  stind.i4
+  IL_001d:  ldc.i4.0
+  IL_001e:  conv.u
+  IL_001f:  stloc.1
+  IL_0020:  ldc.i4.0
+  IL_0021:  conv.u
+  IL_0022:  stloc.2
+  IL_0023:  dup
+  IL_0024:  ldfld      ""int C.x""
+  IL_0029:  call       ""void System.Console.Write(int)""
+  IL_002e:  ldfld      ""int C.y""
+  IL_0033:  call       ""void System.Console.Write(int)""
+  IL_0038:  ret
 }
 ");
         }
@@ -1316,13 +1319,13 @@ unsafe class C
   .maxstack  2
   .locals init (char* V_0, //o
                 pinned string V_1,
-                pinned char& V_2, //o
-                char[] V_3)
+                char* V_2, //o
+                pinned char[] V_3)
   IL_0000:  ldarg.0
   IL_0001:  callvirt   ""string C.P.get""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
-  IL_0008:  conv.i
+  IL_0008:  conv.u
   IL_0009:  stloc.0
   IL_000a:  ldloc.0
   IL_000b:  brfalse.s  IL_0015
@@ -1344,16 +1347,17 @@ unsafe class C
   IL_0026:  ldc.i4.0
   IL_0027:  conv.u
   IL_0028:  stloc.2
-  IL_0029:  br.s       IL_0033
+  IL_0029:  br.s       IL_0034
   IL_002b:  ldloc.3
   IL_002c:  ldc.i4.0
   IL_002d:  ldelema    ""char""
-  IL_0032:  stloc.2
-  IL_0033:  ldc.i4.0
-  IL_0034:  conv.u
-  IL_0035:  stloc.2
+  IL_0032:  conv.u
+  IL_0033:  stloc.2
+  IL_0034:  ldnull
+  IL_0035:  stloc.3
   IL_0036:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -1384,37 +1388,40 @@ unsafe class C
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       55 (0x37)
-  .maxstack  3
-  .locals init (pinned int& V_0, //p
-      pinned int& V_1) //q
+  // Code size       57 (0x39)
+  .maxstack  4
+  .locals init (int* V_0, //p
+                pinned int& V_1,
+                pinned int& V_2)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  dup
   IL_0006:  ldflda     ""int C.x""
-  IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldflda     ""int C.y""
-  IL_0012:  stloc.1
-  IL_0013:  ldloc.0
-  IL_0014:  conv.i
-  IL_0015:  ldc.i4.1
-  IL_0016:  stind.i4
-  IL_0017:  ldloc.1
-  IL_0018:  conv.i
-  IL_0019:  ldc.i4.2
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  conv.u
+  IL_000e:  stloc.0
+  IL_000f:  dup
+  IL_0010:  ldflda     ""int C.y""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.2
+  IL_0017:  conv.u
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.1
   IL_001a:  stind.i4
-  IL_001b:  ldc.i4.0
-  IL_001c:  conv.u
-  IL_001d:  stloc.0
-  IL_001e:  ldc.i4.0
-  IL_001f:  conv.u
-  IL_0020:  stloc.1
-  IL_0021:  dup
-  IL_0022:  ldfld      ""int C.x""
-  IL_0027:  call       ""void System.Console.Write(int)""
-  IL_002c:  ldfld      ""int C.y""
-  IL_0031:  call       ""void System.Console.Write(int)""
-  IL_0036:  ret
+  IL_001b:  ldc.i4.2
+  IL_001c:  stind.i4
+  IL_001d:  ldc.i4.0
+  IL_001e:  conv.u
+  IL_001f:  stloc.1
+  IL_0020:  ldc.i4.0
+  IL_0021:  conv.u
+  IL_0022:  stloc.2
+  IL_0023:  dup
+  IL_0024:  ldfld      ""int C.x""
+  IL_0029:  call       ""void System.Console.Write(int)""
+  IL_002e:  ldfld      ""int C.y""
+  IL_0033:  call       ""void System.Console.Write(int)""
+  IL_0038:  ret
 }
 ");
         }
@@ -1449,17 +1456,68 @@ class C
 {
   // Code size       11 (0xb)
   .maxstack  2
-  .locals init (pinned char& V_0) //p
+  .locals init (pinned char& V_0)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  conv.i
+  IL_0003:  conv.u
   IL_0004:  ldc.i4.s   97
   IL_0006:  stind.i2
   IL_0007:  ldc.i4.0
   IL_0008:  conv.u
   IL_0009:  stloc.0
   IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FixedStatementReferenceParameterDebug()
+        {
+            var text = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        char ch;
+        M(out ch);
+        Console.WriteLine(ch);
+    }
+
+    unsafe static void M(out char ch)
+    {
+        fixed (char* p = &ch)
+        {
+            *p = 'a';
+        }
+    }
+}
+";
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: @"a");
+
+            compVerifier.VerifyIL("C.M", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (char* V_0, //p
+                pinned char& V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloc.1
+  IL_0004:  conv.u
+  IL_0005:  stloc.0
+  IL_0006:  nop
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.s   97
+  IL_000a:  stind.i2
+  IL_000b:  nop
+  IL_000c:  ldc.i4.0
+  IL_000d:  conv.u
+  IL_000e:  stloc.1
+  IL_000f:  ret
 }
 ");
         }
@@ -1493,7 +1551,7 @@ unsafe class C
   IL_0001:  ldstr      ""hello""
   IL_0006:  stloc.1
  -IL_0007:  ldloc.1
-  IL_0008:  conv.i
+  IL_0008:  conv.u
   IL_0009:  stloc.0
   IL_000a:  ldloc.0
   IL_000b:  brfalse.s  IL_0015
@@ -1555,7 +1613,7 @@ unsafe class C
   IL_0007:  ldloc.0
   IL_0008:  stloc.2
  -IL_0009:  ldloc.2
-  IL_000a:  conv.i
+  IL_000a:  conv.u
   IL_000b:  stloc.1
   IL_000c:  ldloc.1
   IL_000d:  brfalse.s  IL_0017
@@ -1576,7 +1634,7 @@ unsafe class C
   IL_0025:  ldloc.0
   IL_0026:  stloc.s    V_4
  -IL_0028:  ldloc.s    V_4
-  IL_002a:  conv.i
+  IL_002a:  conv.u
   IL_002b:  stloc.3
   IL_002c:  ldloc.3
   IL_002d:  brfalse.s  IL_0037
@@ -1636,7 +1694,7 @@ unsafe class C
   IL_0000:  ldstr      ""hello""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  conv.i
+  IL_0007:  conv.u
   IL_0008:  stloc.0
   IL_0009:  ldloc.0
   IL_000a:  brfalse.s  IL_0014
@@ -1652,7 +1710,7 @@ unsafe class C
   IL_001d:  ldnull
   IL_001e:  stloc.1
   IL_001f:  ldloc.1
-  IL_0020:  conv.i
+  IL_0020:  conv.u
   IL_0021:  stloc.2
   IL_0022:  ldloc.2
   IL_0023:  brfalse.s  IL_002d
@@ -1698,10 +1756,10 @@ unsafe class C
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       66 (0x42)
+  // Code size       65 (0x41)
   .maxstack  3
-  .locals init (pinned int& V_0, //p
-                int[] V_1)
+  .locals init (int* V_0, //p
+                pinned int[] V_1)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  dup
   IL_0006:  ldfld      ""int[] C.a""
@@ -1720,23 +1778,22 @@ unsafe class C
   IL_0021:  ldc.i4.0
   IL_0022:  conv.u
   IL_0023:  stloc.0
-  IL_0024:  br.s       IL_002e
+  IL_0024:  br.s       IL_002f
   IL_0026:  ldloc.1
   IL_0027:  ldc.i4.0
   IL_0028:  ldelema    ""int""
-  IL_002d:  stloc.0
-  IL_002e:  ldloc.0
-  IL_002f:  conv.i
+  IL_002d:  conv.u
+  IL_002e:  stloc.0
+  IL_002f:  ldloc.0
   IL_0030:  ldc.i4.1
   IL_0031:  stind.i4
-  IL_0032:  ldc.i4.0
-  IL_0033:  conv.u
-  IL_0034:  stloc.0
-  IL_0035:  ldfld      ""int[] C.a""
-  IL_003a:  ldc.i4.0
-  IL_003b:  ldelem.i4
-  IL_003c:  call       ""void System.Console.Write(int)""
-  IL_0041:  ret
+  IL_0032:  ldnull
+  IL_0033:  stloc.1
+  IL_0034:  ldfld      ""int[] C.a""
+  IL_0039:  ldc.i4.0
+  IL_003a:  ldelem.i4
+  IL_003b:  call       ""void System.Console.Write(int)""
+  IL_0040:  ret
 }
 ");
         }
@@ -1767,10 +1824,10 @@ unsafe class C
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       66 (0x42)
+  // Code size       65 (0x41)
   .maxstack  3
-  .locals init (pinned int& V_0, //p
-  int[] V_1)
+  .locals init (int* V_0, //p
+                pinned int[] V_1)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  dup
   IL_0006:  ldfld      ""int[] C.a""
@@ -1789,23 +1846,22 @@ unsafe class C
   IL_0021:  ldc.i4.0
   IL_0022:  conv.u
   IL_0023:  stloc.0
-  IL_0024:  br.s       IL_002e
+  IL_0024:  br.s       IL_002f
   IL_0026:  ldloc.1
   IL_0027:  ldc.i4.0
   IL_0028:  ldelema    ""int""
-  IL_002d:  stloc.0
-  IL_002e:  ldloc.0
-  IL_002f:  conv.i
+  IL_002d:  conv.u
+  IL_002e:  stloc.0
+  IL_002f:  ldloc.0
   IL_0030:  ldc.i4.1
   IL_0031:  stind.i4
-  IL_0032:  ldc.i4.0
-  IL_0033:  conv.u
-  IL_0034:  stloc.0
-  IL_0035:  ldfld      ""int[] C.a""
-  IL_003a:  ldc.i4.0
-  IL_003b:  ldelem.i4
-  IL_003c:  call       ""void System.Console.Write(int)""
-  IL_0041:  ret
+  IL_0032:  ldnull
+  IL_0033:  stloc.1
+  IL_0034:  ldfld      ""int[] C.a""
+  IL_0039:  ldc.i4.0
+  IL_003a:  ldelem.i4
+  IL_003b:  call       ""void System.Console.Write(int)""
+  IL_0040:  ret
 }
 ");
         }
@@ -1836,10 +1892,10 @@ unsafe class C
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       80 (0x50)
+  // Code size       79 (0x4f)
   .maxstack  4
-  .locals init (pinned int& V_0, //p
-      int[,] V_1)
+  .locals init (int* V_0, //p
+                pinned int[,] V_1)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  dup
   IL_0006:  ldfld      ""int[,] C.a""
@@ -1858,25 +1914,24 @@ unsafe class C
   IL_0029:  ldc.i4.0
   IL_002a:  conv.u
   IL_002b:  stloc.0
-  IL_002c:  br.s       IL_0037
+  IL_002c:  br.s       IL_0038
   IL_002e:  ldloc.1
   IL_002f:  ldc.i4.0
   IL_0030:  ldc.i4.0
   IL_0031:  call       ""int[*,*].Address""
-  IL_0036:  stloc.0
-  IL_0037:  ldloc.0
-  IL_0038:  conv.i
+  IL_0036:  conv.u
+  IL_0037:  stloc.0
+  IL_0038:  ldloc.0
   IL_0039:  ldc.i4.1
   IL_003a:  stind.i4
-  IL_003b:  ldc.i4.0
-  IL_003c:  conv.u
-  IL_003d:  stloc.0
-  IL_003e:  ldfld      ""int[,] C.a""
+  IL_003b:  ldnull
+  IL_003c:  stloc.1
+  IL_003d:  ldfld      ""int[,] C.a""
+  IL_0042:  ldc.i4.0
   IL_0043:  ldc.i4.0
-  IL_0044:  ldc.i4.0
-  IL_0045:  call       ""int[*,*].Get""
-  IL_004a:  call       ""void System.Console.Write(int)""
-  IL_004f:  ret
+  IL_0044:  call       ""int[*,*].Get""
+  IL_0049:  call       ""void System.Console.Write(int)""
+  IL_004e:  ret
 }
 ");
         }
@@ -1908,64 +1963,66 @@ unsafe class C
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       94 (0x5e)
+  // Code size       99 (0x63)
   .maxstack  2
-  .locals init (pinned char& V_0, //p
-                pinned char& V_1, //q
+  .locals init (char* V_0, //p
+                char* V_1, //q
                 char* V_2, //r
-                char[] V_3,
-                pinned string V_4)
+                pinned char& V_3,
+                pinned char[] V_4,
+                pinned string V_5)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  dup
   IL_0006:  ldflda     ""char C.c""
-  IL_000b:  stloc.0
-  IL_000c:  ldfld      ""char[] C.a""
-  IL_0011:  dup
-  IL_0012:  stloc.3
-  IL_0013:  brfalse.s  IL_001a
-  IL_0015:  ldloc.3
-  IL_0016:  ldlen
-  IL_0017:  conv.i4
-  IL_0018:  brtrue.s   IL_001f
-  IL_001a:  ldc.i4.0
-  IL_001b:  conv.u
-  IL_001c:  stloc.1
-  IL_001d:  br.s       IL_0027
-  IL_001f:  ldloc.3
-  IL_0020:  ldc.i4.0
-  IL_0021:  ldelema    ""char""
-  IL_0026:  stloc.1
-  IL_0027:  ldstr      ""hello""
-  IL_002c:  stloc.s    V_4
-  IL_002e:  ldloc.s    V_4
-  IL_0030:  conv.i
-  IL_0031:  stloc.2
-  IL_0032:  ldloc.2
-  IL_0033:  brfalse.s  IL_003d
-  IL_0035:  ldloc.2
-  IL_0036:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_003b:  add
-  IL_003c:  stloc.2
-  IL_003d:  ldloc.0
-  IL_003e:  conv.i
-  IL_003f:  ldind.u2
-  IL_0040:  call       ""void System.Console.Write(int)""
-  IL_0045:  ldloc.1
-  IL_0046:  conv.i
-  IL_0047:  ldind.u2
-  IL_0048:  call       ""void System.Console.Write(int)""
-  IL_004d:  ldloc.2
-  IL_004e:  ldind.u2
-  IL_004f:  call       ""void System.Console.Write(int)""
-  IL_0054:  ldc.i4.0
-  IL_0055:  conv.u
-  IL_0056:  stloc.0
-  IL_0057:  ldc.i4.0
-  IL_0058:  conv.u
-  IL_0059:  stloc.1
-  IL_005a:  ldnull
-  IL_005b:  stloc.s    V_4
-  IL_005d:  ret
+  IL_000b:  stloc.3
+  IL_000c:  ldloc.3
+  IL_000d:  conv.u
+  IL_000e:  stloc.0
+  IL_000f:  ldfld      ""char[] C.a""
+  IL_0014:  dup
+  IL_0015:  stloc.s    V_4
+  IL_0017:  brfalse.s  IL_001f
+  IL_0019:  ldloc.s    V_4
+  IL_001b:  ldlen
+  IL_001c:  conv.i4
+  IL_001d:  brtrue.s   IL_0024
+  IL_001f:  ldc.i4.0
+  IL_0020:  conv.u
+  IL_0021:  stloc.1
+  IL_0022:  br.s       IL_002e
+  IL_0024:  ldloc.s    V_4
+  IL_0026:  ldc.i4.0
+  IL_0027:  ldelema    ""char""
+  IL_002c:  conv.u
+  IL_002d:  stloc.1
+  IL_002e:  ldstr      ""hello""
+  IL_0033:  stloc.s    V_5
+  IL_0035:  ldloc.s    V_5
+  IL_0037:  conv.u
+  IL_0038:  stloc.2
+  IL_0039:  ldloc.2
+  IL_003a:  brfalse.s  IL_0044
+  IL_003c:  ldloc.2
+  IL_003d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0042:  add
+  IL_0043:  stloc.2
+  IL_0044:  ldloc.0
+  IL_0045:  ldind.u2
+  IL_0046:  call       ""void System.Console.Write(int)""
+  IL_004b:  ldloc.1
+  IL_004c:  ldind.u2
+  IL_004d:  call       ""void System.Console.Write(int)""
+  IL_0052:  ldloc.2
+  IL_0053:  ldind.u2
+  IL_0054:  call       ""void System.Console.Write(int)""
+  IL_0059:  ldc.i4.0
+  IL_005a:  conv.u
+  IL_005b:  stloc.3
+  IL_005c:  ldnull
+  IL_005d:  stloc.s    V_4
+  IL_005f:  ldnull
+  IL_0060:  stloc.s    V_5
+  IL_0062:  ret
 }
 ");
         }
@@ -2007,7 +2064,7 @@ unsafe class C
       IL_0000:  ldstr      ""hello""
       IL_0005:  stloc.1
       IL_0006:  ldloc.1
-      IL_0007:  conv.i
+      IL_0007:  conv.u
       IL_0008:  stloc.0
       IL_0009:  ldloc.0
       IL_000a:  brfalse.s  IL_0014
@@ -2069,7 +2126,7 @@ unsafe class C
       IL_0000:  ldstr      ""hello""
       IL_0005:  stloc.1
       IL_0006:  ldloc.1
-      IL_0007:  conv.i
+      IL_0007:  conv.u
       IL_0008:  stloc.0
       IL_0009:  ldloc.0
       IL_000a:  brfalse.s  IL_0014
@@ -2134,7 +2191,7 @@ unsafe class C
     IL_0002:  ldstr      ""hello""
     IL_0007:  stloc.1
     IL_0008:  ldloc.1
-    IL_0009:  conv.i
+    IL_0009:  conv.u
     IL_000a:  stloc.0
     IL_000b:  ldloc.0
     IL_000c:  brfalse.s  IL_0016
@@ -2193,7 +2250,7 @@ unsafe class C
     IL_0009:  ldstr      ""hello""
     IL_000e:  stloc.1
     IL_000f:  ldloc.1
-    IL_0010:  conv.i
+    IL_0010:  conv.u
     IL_0011:  stloc.0
     IL_0012:  ldloc.0
     IL_0013:  brfalse.s  IL_001d
@@ -2255,7 +2312,7 @@ unsafe class C
       IL_0008:  ldstr      ""hello""
       IL_000d:  stloc.1
       IL_000e:  ldloc.1
-      IL_000f:  conv.i
+      IL_000f:  conv.u
       IL_0010:  stloc.0
       IL_0011:  ldloc.0
       IL_0012:  brfalse.s  IL_001c
@@ -2308,7 +2365,7 @@ unsafe class C
   IL_0000:  ldstr      ""goodbye""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  conv.i
+  IL_0007:  conv.u
   IL_0008:  stloc.0
   IL_0009:  ldloc.0
   IL_000a:  brfalse.s  IL_0014
@@ -2319,7 +2376,7 @@ unsafe class C
   IL_0014:  ldstr      ""hello""
   IL_0019:  stloc.3
   IL_001a:  ldloc.3
-  IL_001b:  conv.i
+  IL_001b:  conv.u
   IL_001c:  stloc.2
   IL_001d:  ldloc.2
   IL_001e:  brfalse.s  IL_0028
@@ -2370,7 +2427,7 @@ unsafe class C
     IL_0000:  ldstr      ""goodbye""
     IL_0005:  stloc.1
     IL_0006:  ldloc.1
-    IL_0007:  conv.i
+    IL_0007:  conv.u
     IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  brfalse.s  IL_0014
@@ -2384,7 +2441,7 @@ unsafe class C
       IL_0015:  ldstr      ""hello""
       IL_001a:  stloc.3
       IL_001b:  ldloc.3
-      IL_001c:  conv.i
+      IL_001c:  conv.u
       IL_001d:  stloc.2
       IL_001e:  ldloc.2
       IL_001f:  brfalse.s  IL_0029
@@ -2446,7 +2503,7 @@ unsafe class C
     IL_0000:  ldstr      ""goodbye""
     IL_0005:  stloc.1
     IL_0006:  ldloc.1
-    IL_0007:  conv.i
+    IL_0007:  conv.u
     IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  brfalse.s  IL_0014
@@ -2457,7 +2514,7 @@ unsafe class C
     IL_0014:  ldstr      ""hello""
     IL_0019:  stloc.3
     IL_001a:  ldloc.3
-    IL_001b:  conv.i
+    IL_001b:  conv.u
     IL_001c:  stloc.2
     IL_001d:  ldloc.2
     IL_001e:  brfalse.s  IL_0028
@@ -2534,7 +2591,7 @@ unsafe class C
   IL_0000:  ldstr      ""A""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  conv.i
+  IL_0007:  conv.u
   IL_0008:  stloc.0
   IL_0009:  ldloc.0
   IL_000a:  brfalse.s  IL_0014
@@ -2545,7 +2602,7 @@ unsafe class C
   IL_0014:  ldstr      ""B""
   IL_0019:  stloc.3
   IL_001a:  ldloc.3
-  IL_001b:  conv.i
+  IL_001b:  conv.u
   IL_001c:  stloc.2
   IL_001d:  ldloc.2
   IL_001e:  brfalse.s  IL_0028
@@ -2556,7 +2613,7 @@ unsafe class C
   IL_0028:  ldstr      ""C""
   IL_002d:  stloc.s    V_5
   IL_002f:  ldloc.s    V_5
-  IL_0031:  conv.i
+  IL_0031:  conv.u
   IL_0032:  stloc.s    V_4
   IL_0034:  ldloc.s    V_4
   IL_0036:  brfalse.s  IL_0042
@@ -2569,7 +2626,7 @@ unsafe class C
   IL_0045:  ldstr      ""D""
   IL_004a:  stloc.s    V_5
   IL_004c:  ldloc.s    V_5
-  IL_004e:  conv.i
+  IL_004e:  conv.u
   IL_004f:  stloc.s    V_6
   IL_0051:  ldloc.s    V_6
   IL_0053:  brfalse.s  IL_005f
@@ -2584,7 +2641,7 @@ unsafe class C
   IL_0064:  ldstr      ""E""
   IL_0069:  stloc.3
   IL_006a:  ldloc.3
-  IL_006b:  conv.i
+  IL_006b:  conv.u
   IL_006c:  stloc.s    V_7
   IL_006e:  ldloc.s    V_7
   IL_0070:  brfalse.s  IL_007c
@@ -2595,7 +2652,7 @@ unsafe class C
   IL_007c:  ldstr      ""F""
   IL_0081:  stloc.s    V_5
   IL_0083:  ldloc.s    V_5
-  IL_0085:  conv.i
+  IL_0085:  conv.u
   IL_0086:  stloc.s    V_8
   IL_0088:  ldloc.s    V_8
   IL_008a:  brfalse.s  IL_0096
@@ -2608,7 +2665,7 @@ unsafe class C
   IL_0099:  ldstr      ""G""
   IL_009e:  stloc.s    V_5
   IL_00a0:  ldloc.s    V_5
-  IL_00a2:  conv.i
+  IL_00a2:  conv.u
   IL_00a3:  stloc.s    V_9
   IL_00a5:  ldloc.s    V_9
   IL_00a7:  brfalse.s  IL_00b3
@@ -2658,7 +2715,7 @@ unsafe class C
     IL_0000:  ldstr      ""hello""
     IL_0005:  stloc.1
     IL_0006:  ldloc.1
-    IL_0007:  conv.i
+    IL_0007:  conv.u
     IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  brfalse.s  IL_0014
@@ -2718,7 +2775,7 @@ unsafe class C
     IL_000c:  ldstr      ""hello""
     IL_0011:  stloc.3
     IL_0012:  ldloc.3
-    IL_0013:  conv.i
+    IL_0013:  conv.u
     IL_0014:  stloc.2
     IL_0015:  ldloc.2
     IL_0016:  brfalse.s  IL_0020
@@ -2785,7 +2842,7 @@ unsafe class C
     IL_000a:  ldstr      ""hello""
     IL_000f:  stloc.3
     IL_0010:  ldloc.3
-    IL_0011:  conv.i
+    IL_0011:  conv.u
     IL_0012:  stloc.2
     IL_0013:  ldloc.2
     IL_0014:  brfalse.s  IL_001e
@@ -2868,7 +2925,7 @@ class Enumerator : System.IDisposable
       IL_0010:  ldstr      ""hello""
       IL_0015:  stloc.2
       IL_0016:  ldloc.2
-      IL_0017:  conv.i
+      IL_0017:  conv.u
       IL_0018:  stloc.1
       IL_0019:  ldloc.1
       IL_001a:  brfalse.s  IL_0024
@@ -2938,7 +2995,7 @@ unsafe class C
     IL_0000:  ldstr      ""hello""
     IL_0005:  stloc.1
     IL_0006:  ldloc.1
-    IL_0007:  conv.i
+    IL_0007:  conv.u
     IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  brfalse.s  IL_0014
@@ -2992,7 +3049,7 @@ unsafe class C
   IL_0000:  ldstr      ""hello""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  conv.i
+  IL_0007:  conv.u
   IL_0008:  stloc.0
   IL_0009:  ldloc.0
   IL_000a:  brfalse.s  IL_0014
@@ -3039,7 +3096,7 @@ unsafe class C
     IL_0000:  ldstr      ""hello""
     IL_0005:  stloc.1
     IL_0006:  ldloc.1
-    IL_0007:  conv.i
+    IL_0007:  conv.u
     IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  brfalse.s  IL_0014
@@ -3093,7 +3150,7 @@ unsafe class C
     IL_0000:  ldstr      ""hello""
     IL_0005:  stloc.1
     IL_0006:  ldloc.1
-    IL_0007:  conv.i
+    IL_0007:  conv.u
     IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  brfalse.s  IL_0014
@@ -3110,7 +3167,8 @@ unsafe class C
     IL_0018:  endfinally
   }
   IL_0019:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -3142,7 +3200,7 @@ unsafe class C
     IL_0000:  ldstr      ""hello""
     IL_0005:  stloc.1
     IL_0006:  ldloc.1
-    IL_0007:  conv.i
+    IL_0007:  conv.u
     IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  brfalse.s  IL_0014
@@ -3195,7 +3253,7 @@ unsafe class C
     IL_0001:  ldstr      ""hello""
     IL_0006:  stloc.1
     IL_0007:  ldloc.1
-    IL_0008:  conv.i
+    IL_0008:  conv.u
     IL_0009:  stloc.0
     IL_000a:  ldloc.0
     IL_000b:  brfalse.s  IL_0015
@@ -3249,7 +3307,7 @@ unsafe class C
     IL_0001:  ldstr      ""hello""
     IL_0006:  stloc.1
     IL_0007:  ldloc.1
-    IL_0008:  conv.i
+    IL_0008:  conv.u
     IL_0009:  stloc.0
     IL_000a:  ldloc.0
     IL_000b:  brfalse.s  IL_0015
@@ -3302,7 +3360,7 @@ unsafe class C
     IL_0001:  ldstr      ""hello""
     IL_0006:  stloc.1
     IL_0007:  ldloc.1
-    IL_0008:  conv.i
+    IL_0008:  conv.u
     IL_0009:  stloc.0
     IL_000a:  ldloc.0
     IL_000b:  brfalse.s  IL_0015
@@ -3356,7 +3414,7 @@ unsafe class C
     IL_0001:  ldstr      ""hello""
     IL_0006:  stloc.1
     IL_0007:  ldloc.1
-    IL_0008:  conv.i
+    IL_0008:  conv.u
     IL_0009:  stloc.0
     IL_000a:  ldloc.0
     IL_000b:  brfalse.s  IL_0015
@@ -3406,7 +3464,7 @@ unsafe class C
     IL_0001:  ldstr      ""hello""
     IL_0006:  stloc.1
     IL_0007:  ldloc.1
-    IL_0008:  conv.i
+    IL_0008:  conv.u
     IL_0009:  stloc.0
     IL_000a:  ldloc.0
     IL_000b:  brfalse.s  IL_0015
@@ -3455,7 +3513,7 @@ unsafe class C
     IL_0000:  ldstr      ""hello""
     IL_0005:  stloc.1
     IL_0006:  ldloc.1
-    IL_0007:  conv.i
+    IL_0007:  conv.u
     IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  brfalse.s  IL_0014
@@ -3502,7 +3560,7 @@ unsafe class C
   IL_0000:  ldstr      ""hello""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  conv.i
+  IL_0007:  conv.u
   IL_0008:  stloc.0
   IL_0009:  ldloc.0
   IL_000a:  brfalse.s  IL_0014
@@ -3542,7 +3600,7 @@ unsafe class C
   IL_0000:  ldstr      ""hello""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  conv.i
+  IL_0007:  conv.u
   IL_0008:  stloc.0
   IL_0009:  ldloc.0
   IL_000a:  brfalse.s  IL_0014
@@ -3584,7 +3642,7 @@ unsafe class C
   IL_0000:  ldstr      ""hello""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  conv.i
+  IL_0007:  conv.u
   IL_0008:  stloc.0
   IL_0009:  ldloc.0
   IL_000a:  brfalse.s  IL_0014
@@ -3641,7 +3699,7 @@ unsafe class C
   IL_0000:  ldstr      ""hello""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  conv.i
+  IL_0007:  conv.u
   IL_0008:  stloc.0
   IL_0009:  ldloc.0
   IL_000a:  brfalse.s  IL_0014
@@ -3706,7 +3764,7 @@ unsafe class C
   IL_0000:  ldstr      ""hello""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  conv.i
+  IL_0007:  conv.u
   IL_0008:  stloc.0
   IL_0009:  ldloc.0
   IL_000a:  brfalse.s  IL_0014
@@ -3772,7 +3830,7 @@ unsafe class C
   IL_0000:  ldstr      ""hello""
   IL_0005:  stloc.1
   IL_0006:  ldloc.1
-  IL_0007:  conv.i
+  IL_0007:  conv.u
   IL_0008:  stloc.0
   IL_0009:  ldloc.0
   IL_000a:  brfalse.s  IL_0014
@@ -4439,75 +4497,77 @@ unsafe class C
             // NB: "pinned System.IntPtr&" (which ildasm displays as "pinned native int&"), not void.
             var expectedIL = @"
 {
-  // Code size      107 (0x6b)
+  // Code size      112 (0x70)
   .maxstack  2
   .locals init (C V_0, //c
-                pinned System.IntPtr& V_1, //p
-                pinned System.IntPtr& V_2, //q
+                void* V_1, //p
+                void* V_2, //q
                 void* V_3, //r
-                char[] V_4,
-                pinned string V_5)
+                pinned char& V_4,
+                pinned char[] V_5,
+                pinned string V_6)
  -IL_0000:  nop
  -IL_0001:  nop
  -IL_0002:  newobj     ""C..ctor()""
   IL_0007:  stloc.0
- -IL_0008:  ldloc.0
+  IL_0008:  ldloc.0
   IL_0009:  ldflda     ""char C.c""
-  IL_000e:  stloc.1
- -IL_000f:  ldloc.0
-  IL_0010:  ldfld      ""char[] C.a""
-  IL_0015:  dup
-  IL_0016:  stloc.s    V_4
-  IL_0018:  brfalse.s  IL_0020
-  IL_001a:  ldloc.s    V_4
-  IL_001c:  ldlen
-  IL_001d:  conv.i4
-  IL_001e:  brtrue.s   IL_0025
-  IL_0020:  ldc.i4.0
-  IL_0021:  conv.u
-  IL_0022:  stloc.2
-  IL_0023:  br.s       IL_002e
-  IL_0025:  ldloc.s    V_4
-  IL_0027:  ldc.i4.0
-  IL_0028:  ldelema    ""char""
-  IL_002d:  stloc.2
-  IL_002e:  ldstr      ""hello""
-  IL_0033:  stloc.s    V_5
- -IL_0035:  ldloc.s    V_5
-  IL_0037:  conv.i
-  IL_0038:  stloc.3
-  IL_0039:  ldloc.3
-  IL_003a:  brfalse.s  IL_0044
-  IL_003c:  ldloc.3
-  IL_003d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0042:  add
-  IL_0043:  stloc.3
- -IL_0044:  nop
- -IL_0045:  ldloc.1
-  IL_0046:  conv.i
-  IL_0047:  ldind.u2
-  IL_0048:  call       ""void System.Console.Write(int)""
-  IL_004d:  nop
- -IL_004e:  ldloc.2
-  IL_004f:  conv.i
-  IL_0050:  ldind.u2
-  IL_0051:  call       ""void System.Console.Write(int)""
-  IL_0056:  nop
- -IL_0057:  ldloc.3
-  IL_0058:  ldind.u2
-  IL_0059:  call       ""void System.Console.Write(int)""
-  IL_005e:  nop
- -IL_005f:  nop
- ~IL_0060:  ldc.i4.0
-  IL_0061:  conv.u
-  IL_0062:  stloc.1
-  IL_0063:  ldc.i4.0
-  IL_0064:  conv.u
-  IL_0065:  stloc.2
-  IL_0066:  ldnull
-  IL_0067:  stloc.s    V_5
- -IL_0069:  nop
- -IL_006a:  ret
+  IL_000e:  stloc.s    V_4
+ -IL_0010:  ldloc.s    V_4
+  IL_0012:  conv.u
+  IL_0013:  stloc.1
+ -IL_0014:  ldloc.0
+  IL_0015:  ldfld      ""char[] C.a""
+  IL_001a:  dup
+  IL_001b:  stloc.s    V_5
+  IL_001d:  brfalse.s  IL_0025
+  IL_001f:  ldloc.s    V_5
+  IL_0021:  ldlen
+  IL_0022:  conv.i4
+  IL_0023:  brtrue.s   IL_002a
+  IL_0025:  ldc.i4.0
+  IL_0026:  conv.u
+  IL_0027:  stloc.2
+  IL_0028:  br.s       IL_0034
+  IL_002a:  ldloc.s    V_5
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldelema    ""char""
+  IL_0032:  conv.u
+  IL_0033:  stloc.2
+  IL_0034:  ldstr      ""hello""
+  IL_0039:  stloc.s    V_6
+ -IL_003b:  ldloc.s    V_6
+  IL_003d:  conv.u
+  IL_003e:  stloc.3
+  IL_003f:  ldloc.3
+  IL_0040:  brfalse.s  IL_004a
+  IL_0042:  ldloc.3
+  IL_0043:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0048:  add
+  IL_0049:  stloc.3
+ -IL_004a:  nop
+ -IL_004b:  ldloc.1
+  IL_004c:  ldind.u2
+  IL_004d:  call       ""void System.Console.Write(int)""
+  IL_0052:  nop
+ -IL_0053:  ldloc.2
+  IL_0054:  ldind.u2
+  IL_0055:  call       ""void System.Console.Write(int)""
+  IL_005a:  nop
+ -IL_005b:  ldloc.3
+  IL_005c:  ldind.u2
+  IL_005d:  call       ""void System.Console.Write(int)""
+  IL_0062:  nop
+ -IL_0063:  nop
+ ~IL_0064:  ldc.i4.0
+  IL_0065:  conv.u
+  IL_0066:  stloc.s    V_4
+  IL_0068:  ldnull
+  IL_0069:  stloc.s    V_5
+  IL_006b:  ldnull
+  IL_006c:  stloc.s    V_6
+ -IL_006e:  nop
+ -IL_006f:  ret
 }
 ";
             var expectedOutput = @"970104";
@@ -4546,7 +4606,7 @@ unsafe class C
   // Code size       36 (0x24)
   .maxstack  3
   .locals init (char V_0, //ch
-  pinned void*& V_1) //p
+                pinned void*& V_1)
   IL_0000:  ldc.i4.s   97
   IL_0002:  stloc.0
   IL_0003:  newobj     ""C..ctor()""
@@ -4557,7 +4617,7 @@ unsafe class C
   IL_0011:  ldflda     ""void* C.v""
   IL_0016:  stloc.1
   IL_0017:  ldloc.1
-  IL_0018:  conv.i
+  IL_0018:  conv.u
   IL_0019:  ldind.i
   IL_001a:  ldind.u2
   IL_001b:  call       ""void System.Console.Write(char)""
@@ -4739,7 +4799,7 @@ unsafe class C
   // Code size       41 (0x29)
   .maxstack  4
   .locals init (int*[] V_0,
-  int V_1)
+                int V_1)
   IL_0000:  ldc.i4.2
   IL_0001:  newarr     ""int*""
   IL_0006:  dup
@@ -4802,10 +4862,10 @@ unsafe class C
   // Code size      120 (0x78)
   .maxstack  5
   .locals init (int*[,] V_0,
-  int V_1,
-  int V_2,
-  int V_3,
-  int V_4)
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4)
   IL_0000:  ldc.i4.2
   IL_0001:  ldc.i4.2
   IL_0002:  newobj     ""int*[*,*]..ctor""
@@ -5129,7 +5189,7 @@ unsafe struct S
 }
 ";
 
-            // Dev10 has conv.i after IL_000d and conv.i8 in place of conv.u8 at IL_0017.
+            // Dev10 has conv.u after IL_000d and conv.i8 in place of conv.u8 at IL_0017.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("S.Main", @"
 {
   // Code size       59 (0x3b)
@@ -5194,7 +5254,7 @@ unsafe struct S
 }
 ";
 
-            // Dev10 has conv.i after IL_000d and conv.i8 in place of conv.u8 at IL_0017.
+            // Dev10 has conv.u after IL_000d and conv.i8 in place of conv.u8 at IL_0017.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("S.Main", @"
 {
   // Code size       59 (0x3b)
@@ -5259,7 +5319,7 @@ unsafe struct S
 }
 ";
 
-            // Dev10 has conv.i after IL_000d and conv.i8 in place of conv.u8 at IL_0017.
+            // Dev10 has conv.u after IL_000d and conv.i8 in place of conv.u8 at IL_0017.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("S.Main", @"
 {
   // Code size       59 (0x3b)
@@ -5324,7 +5384,7 @@ unsafe struct S
 }
 ";
 
-            // Dev10 has conv.i after IL_000d and conv.i8 in place of conv.u8 at IL_0017.
+            // Dev10 has conv.u after IL_000d and conv.i8 in place of conv.u8 at IL_0017.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("S.Main", @"
 {
   // Code size       59 (0x3b)
@@ -5400,7 +5460,7 @@ unsafe class C
   // Code size       50 (0x32)
   .maxstack  2
   .locals init (byte V_0, //b
-  byte* V_1) //p
+                byte* V_1) //p
   IL_0000:  nop
   IL_0001:  nop
   IL_0002:  ldc.i4.3
@@ -5449,7 +5509,8 @@ unsafe class C
   IL_002f:  stloc.1
   IL_0030:  nop
   IL_0031:  ret
-}");
+}
+");
         }
 
         [WorkItem(546750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546750")]
@@ -5487,7 +5548,7 @@ unsafe class C
   // Code size       50 (0x32)
   .maxstack  2
   .locals init (byte V_0, //b
-  byte* V_1) //p
+                byte* V_1) //p
   IL_0000:  nop
   IL_0001:  nop
   IL_0002:  ldc.i4.3
@@ -5874,8 +5935,8 @@ unsafe struct S
   // Code size       78 (0x4e)
   .maxstack  5
   .locals init (S V_0, //s
-  S& V_1,
-  int V_2)
+                S& V_1,
+                int V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
@@ -5941,7 +6002,7 @@ unsafe struct S
   // Code size       39 (0x27)
   .maxstack  2
   .locals init (S* V_0, //p
-  S* V_1) //q
+                S* V_1) //q
   IL_0000:  ldc.i4.8
   IL_0001:  conv.i
   IL_0002:  stloc.0
@@ -5999,7 +6060,7 @@ unsafe struct S
   // Code size       39 (0x27)
   .maxstack  2
   .locals init (S* V_0, //p
-      S* V_1) //q
+                S* V_1) //q
   IL_0000:  ldc.i4.8
   IL_0001:  conv.i
   IL_0002:  stloc.0
@@ -6055,7 +6116,7 @@ unsafe struct S
   // Code size       29 (0x1d)
   .maxstack  2
   .locals init (int* V_0, //p
-      int* V_1) //q
+                int* V_1) //q
   IL_0000:  ldc.i4.8
   IL_0001:  conv.i
   IL_0002:  stloc.0
@@ -6114,8 +6175,8 @@ unsafe struct S
   // Code size       43 (0x2b)
   .maxstack  2
   .locals init (S* V_0, //p1
-      S* V_1, //p2
-      S* V_2) //q
+                S* V_1, //p2
+                S* V_2) //q
   IL_0000:  ldc.i4.7
   IL_0001:  conv.i
   IL_0002:  stloc.0
@@ -7579,7 +7640,7 @@ unsafe struct S
   // Code size      133 (0x85)
   .maxstack  2
   .locals init (S* V_0, //p
-      S* V_1) //q
+                S* V_1) //q
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i
   IL_0002:  stloc.0
@@ -8118,11 +8179,11 @@ class Program
 {
     static void Main()
     {
-        Foo(x => { });
+        Goo(x => { });
     }
 
-    static void Foo(F1 f) { Console.WriteLine(1); }
-    static void Foo(F2 f) { Console.WriteLine(2); }
+    static void Goo(F1 f) { Console.WriteLine(1); }
+    static void Goo(F2 f) { Console.WriteLine(2); }
 }
 
 unsafe delegate void F1(int* x);
@@ -8185,7 +8246,7 @@ unsafe class C
   IL_001b:  ldstr      ""pinned""
   IL_0020:  stloc.2
   IL_0021:  ldloc.2
-  IL_0022:  conv.i
+  IL_0022:  conv.u
   IL_0023:  stloc.1
   IL_0024:  ldloc.1
   IL_0025:  brfalse.s  IL_002f
@@ -8209,7 +8270,7 @@ unsafe class C
   IL_004c:  ldstr      ""pinned""
   IL_0051:  stloc.2
   IL_0052:  ldloc.2
-  IL_0053:  conv.i
+  IL_0053:  conv.u
   IL_0054:  stloc.3
   IL_0055:  ldloc.3
   IL_0056:  brfalse.s  IL_0060
@@ -8413,7 +8474,89 @@ unsafe public struct FixedStruct
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: false).VerifyDiagnostics();
+            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: false).VerifyDiagnostics();
+
+            comp.VerifyIL("FixedStruct.ToString", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (pinned char*& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""char* FixedStruct.c""
+  IL_0006:  ldflda     ""char FixedStruct.<c>e__FixedBuffer.FixedElementField""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  conv.u
+  IL_000e:  call       ""string char.ToString()""
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FixedBufferAndStatementWithFixedArrayElementAsInitializerExe()
+        {
+            var text = @"
+    class Program
+    {
+        unsafe static void Main(string[] args)
+        {
+            FixedStruct s = new FixedStruct();
+
+            s.c[0] = 'A';
+            s.c[1] = 'B';
+            s.c[2] = 'C';
+
+            FixedStruct[] arr = { s };
+
+            System.Console.Write(arr[0].ToString());
+        }
+    }
+
+    unsafe public struct FixedStruct
+    {
+        public fixed char c[10];
+
+        override public string ToString()
+        {
+            fixed (char* pc = this.c)
+            {
+                System.Console.Write(pc[0]);
+                System.Console.Write(pc[1].ToString());
+                return pc[2].ToString();
+            }
+        }
+    }";
+            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput:"ABC", verify: false).VerifyDiagnostics();
+
+            comp.VerifyIL("FixedStruct.ToString", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (pinned char*& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""char* FixedStruct.c""
+  IL_0006:  ldflda     ""char FixedStruct.<c>e__FixedBuffer.FixedElementField""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  conv.u
+  IL_000e:  dup
+  IL_000f:  ldind.u2
+  IL_0010:  call       ""void System.Console.Write(char)""
+  IL_0015:  dup
+  IL_0016:  ldc.i4.2
+  IL_0017:  add
+  IL_0018:  call       ""string char.ToString()""
+  IL_001d:  call       ""void System.Console.Write(string)""
+  IL_0022:  ldc.i4.2
+  IL_0023:  conv.i
+  IL_0024:  ldc.i4.2
+  IL_0025:  mul
+  IL_0026:  add
+  IL_0027:  call       ""string char.ToString()""
+  IL_002c:  ret
+}
+");
         }
 
         [Fact, WorkItem(545299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545299")]
@@ -8427,7 +8570,7 @@ using System.Collections.Generic;
 
 unsafe class C<T> where T : struct
 {
-    public void Foo()
+    public void Goo()
     {
         Func<T, char> d = delegate
         {
@@ -8447,7 +8590,7 @@ class A
 {
     static void Main()
     {
-        new C<int>().Foo();
+        new C<int>().Goo();
     }
 }
 ";
@@ -8766,8 +8909,8 @@ unsafe class C
   // Code size       36 (0x24)
   .maxstack  2
   .locals init (byte* V_0, //data
-  uint V_1, //offset
-  byte* V_2) //wrong
+                uint V_1, //offset
+                byte* V_2) //wrong
   IL_0000:  ldc.i4     0x76543210
   IL_0005:  conv.i
   IL_0006:  stloc.0
@@ -8812,8 +8955,8 @@ unsafe class C
   // Code size       40 (0x28)
   .maxstack  3
   .locals init (short* V_0, //data
-  uint V_1, //offset
-  short* V_2) //wrong
+                uint V_1, //offset
+                short* V_2) //wrong
   IL_0000:  ldc.i4     0x76543210
   IL_0005:  conv.i
   IL_0006:  stloc.0
@@ -8861,7 +9004,7 @@ unsafe class C
   // Code size       34 (0x22)
   .maxstack  2
   .locals init (byte* V_0, //data
-  byte* V_1) //wrong
+                byte* V_1) //wrong
   IL_0000:  ldc.i4     0x76543210
   IL_0005:  conv.i
   IL_0006:  stloc.0
@@ -8903,7 +9046,7 @@ unsafe class C
   // Code size       33 (0x21)
   .maxstack  2
   .locals init (byte* V_0, //data
-  byte* V_1) //wrong
+                byte* V_1) //wrong
   IL_0000:  ldc.i4     0x76543210
   IL_0005:  conv.i
   IL_0006:  stloc.0
@@ -8999,8 +9142,8 @@ public unsafe class C
 {
   // Code size       42 (0x2a)
   .maxstack  3
-  .locals init (pinned byte& V_0, //pBytes
-  byte[] V_1)
+  .locals init (byte* V_0, //pBytes
+                pinned byte[] V_1)
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_0009
   IL_0003:  ldsfld     ""byte[] C._emptyArray""
@@ -9018,14 +9161,14 @@ public unsafe class C
   IL_0019:  ldc.i4.0
   IL_001a:  conv.u
   IL_001b:  stloc.0
-  IL_001c:  br.s       IL_0026
+  IL_001c:  br.s       IL_0027
   IL_001e:  ldloc.1
   IL_001f:  ldc.i4.0
   IL_0020:  ldelema    ""byte""
-  IL_0025:  stloc.0
-  IL_0026:  ldc.i4.0
-  IL_0027:  conv.u
-  IL_0028:  stloc.0
+  IL_0025:  conv.u
+  IL_0026:  stloc.0
+  IL_0027:  ldnull
+  IL_0028:  stloc.1
   IL_0029:  ret
 }
 ");
@@ -9070,13 +9213,13 @@ public unsafe class C
             var v = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: "System.Byte[]");
             v.VerifyIL("C.ToManagedByteArray", @"
 {
-  // Code size       63 (0x3f)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (bool V_0,
                 byte[] V_1,
                 byte[] V_2, //bytes
-                pinned byte& V_3, //pBytes
-                byte[] V_4)
+                byte* V_3, //pBytes
+                pinned byte[] V_4)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
@@ -9087,7 +9230,7 @@ public unsafe class C
  -IL_0009:  nop
  -IL_000a:  ldsfld     ""byte[] C._emptyArray""
   IL_000f:  stloc.1
-  IL_0010:  br.s       IL_003d
+  IL_0010:  br.s       IL_003e
  -IL_0012:  nop
  -IL_0013:  ldarg.0
   IL_0014:  newarr     ""byte""
@@ -9103,21 +9246,21 @@ public unsafe class C
   IL_0026:  ldc.i4.0
   IL_0027:  conv.u
   IL_0028:  stloc.3
-  IL_0029:  br.s       IL_0034
+  IL_0029:  br.s       IL_0035
   IL_002b:  ldloc.s    V_4
   IL_002d:  ldc.i4.0
   IL_002e:  ldelema    ""byte""
-  IL_0033:  stloc.3
- -IL_0034:  nop
+  IL_0033:  conv.u
+  IL_0034:  stloc.3
  -IL_0035:  nop
- ~IL_0036:  ldc.i4.0
-  IL_0037:  conv.u
-  IL_0038:  stloc.3
- -IL_0039:  ldloc.2
-  IL_003a:  stloc.1
-  IL_003b:  br.s       IL_003d
- -IL_003d:  ldloc.1
-  IL_003e:  ret
+ -IL_0036:  nop
+ ~IL_0037:  ldnull
+  IL_0038:  stloc.s    V_4
+ -IL_003a:  ldloc.2
+  IL_003b:  stloc.1
+  IL_003c:  br.s       IL_003e
+ -IL_003e:  ldloc.1
+  IL_003f:  ret
 }
 ", sequencePoints: "C.ToManagedByteArray");
         }
@@ -9170,7 +9313,7 @@ public unsafe class C
 .class public AddressHelper{
     .method public hidebysig static native int AddressOf<T>(!!0& t){
         ldc.i4.5
-	    conv.i
+	    conv.u
 	    ret
     }    
 }

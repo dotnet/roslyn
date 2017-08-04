@@ -5,6 +5,7 @@ Imports System.Diagnostics
 Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -2656,7 +2657,7 @@ Done:
         ''' 
         ''' Assumptions: 
         '''    1) This function is never called for a candidate that should be rejected due to parameter count.
-        '''    2) Omitted arguments [ Call Foo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
+        '''    2) Omitted arguments [ Call Goo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
         '''    3) Omitted argument never has name.
         '''    4) argumentNames contains Nothing for all positional arguments.
         ''' 
@@ -2820,7 +2821,7 @@ Bailout:
         ''' 
         ''' Assumptions: 
         '''    1) This function is never called for a candidate that should be rejected due to parameter count.
-        '''    2) Omitted arguments [ Call Foo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
+        '''    2) Omitted arguments [ Call Goo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
         '''    3) Omitted argument never has name.
         '''    4) argumentNames contains Nothing for all positional arguments.
         ''' 
@@ -4531,8 +4532,8 @@ ContinueCandidatesLoop:
 
             ' Both are generics
             If leftType.Kind = SymbolKind.NamedType AndAlso rightType.Kind = SymbolKind.NamedType Then
-                Dim leftNamedType = DirectCast(leftType, NamedTypeSymbol)
-                Dim rightNamedType = DirectCast(rightType, NamedTypeSymbol)
+                Dim leftNamedType = DirectCast(leftType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
+                Dim rightNamedType = DirectCast(rightType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
                 ' If their arities are equal
                 If leftNamedType.Arity = rightNamedType.Arity Then

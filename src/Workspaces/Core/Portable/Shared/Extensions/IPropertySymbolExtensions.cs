@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.GetSymbolModifiers(),
                 property.Type,
                 property.ReturnsByRef,
-                property.ExplicitInterfaceImplementations.FirstOrDefault(),
+                property.ExplicitInterfaceImplementations,
                 property.Name,
                 parameters,
                 property.GetMethod,
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.GetSymbolModifiers(),
                 property.Type,
                 property.ReturnsByRef,
-                property.ExplicitInterfaceImplementations.FirstOrDefault(),
+                property.ExplicitInterfaceImplementations,
                 property.Name,
                 property.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(

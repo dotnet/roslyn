@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             DocumentSpan sourceSpan,
-            ImmutableArray<TaggedText> nameDisplayParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<TaggedText> nameDisplayParts = default,
             bool displayIfNoReferences = true)
         {
             return Create(
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableArray<TaggedText> nameDisplayParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<TaggedText> nameDisplayParts = default,
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public static DefinitionItem CreateNonNavigableItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<TaggedText> originationParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<TaggedText> originationParts = default,
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
