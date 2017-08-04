@@ -3446,6 +3446,51 @@ class Program
         }
 
         [Fact]
+        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicGenericArg()
+        {
+            var src = @"
+void L1<T>(T x)
+{
+    Console.WriteLine(x);
+    Console.WriteLine(typeof(T).ToString());
+}
+dynamic val = 2;
+L1<object>(val);
+L1<int>(val);
+
+void L2<T>(int x, T y)
+{
+    Console.WriteLine(x);
+    Console.WriteLine(y);
+    Console.WriteLine(typeof(T).ToString());
+}
+L2(val, 3.0f);
+
+List<dynamic> listOfDynamic = new List<dynamic> { 1, 2, 3 };
+void L3<T>(List<T> x)
+{
+    Console.WriteLine(string.Join("", "", x));
+    Console.WriteLine(typeof(T).ToString());
+}
+L3(listOfDynamic);
+";
+            var output = @"
+2
+System.Object
+2
+System.Int32
+2
+3
+System.Single
+1, 2, 3
+System.Object
+";
+            VerifyOutputInMain(src, output, "System", "System.Collections.Generic");
+        }
+
+        [Fact]
         [CompilerTrait(CompilerFeature.Dynamic, CompilerFeature.Params)]
         public void DynamicArgsAndParams()
         {

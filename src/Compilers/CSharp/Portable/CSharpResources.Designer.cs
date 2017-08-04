@@ -3725,6 +3725,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot pass argument with dynamic type to generic parameter &apos;{0}&apos; of local function &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_DynamicLocalFunctionTypeParameter {
+            get {
+                return ResourceManager.GetString("ERR_DynamicLocalFunctionTypeParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to One or more types required to compile a dynamic expression cannot be found. Are you missing a reference?.
         /// </summary>
         internal static string ERR_DynamicRequiredTypesMissing {

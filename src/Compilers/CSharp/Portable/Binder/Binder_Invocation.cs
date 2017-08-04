@@ -682,6 +682,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // If we call an unconstructed generic local function with a dynamic argument, we need to
+            // dynamically dispatch the call (as the function must be constructed at runtime).
+            // Check for the situation where a dynamic argument influences a type parameter,
+            // and disallow it.
+            if (boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty && localFunction.IsGenericMethod)
+            {
+                var originalLocalFunction = localFunction.OriginalDefinition;
+                for (int i = 0; i < args.Length; ++i)
+                {
+                    var argument = args[i];
+                    var parameter = originalLocalFunction.Parameters[methodResult.ParameterFromArgument(i)];
+                    if (argument.HasDynamicType() &&
+                        parameter.Type.ContainsTypeParameter(parameterContainer: originalLocalFunction))
+                    {
+                        Error(diagnostics,
+                            ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
+                            syntax, parameter.Name, localFunction.Name);
+                        return BindDynamicInvocation(
+                            syntax,
+                            boundMethodGroup,
+                            resolution.AnalyzedArguments,
+                            resolution.OverloadResolutionResult.GetAllApplicableMembers(),
+                            diagnostics,
+                            queryClause);
+                    }
+                }
+            }
+
             return BindInvocationExpressionContinued(
                 node: syntax,
                 expression: expression,

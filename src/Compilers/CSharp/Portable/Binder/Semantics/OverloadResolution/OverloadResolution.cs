@@ -2801,7 +2801,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             EffectiveParameters effectiveParameters;
             if (member.Kind == SymbolKind.Method && (method = (MethodSymbol)(Symbol)member).Arity > 0)
             {
-                if (typeArgumentsBuilder.Count == 0 && arguments.HasDynamicArgument && !inferWithDynamic)
+                var isLocalFunction = ((MethodSymbol)(Symbol)member).MethodKind == MethodKind.LocalFunction;
+                if (typeArgumentsBuilder.Count == 0 && arguments.HasDynamicArgument && !inferWithDynamic && !isLocalFunction)
                 {
                     // Spec 7.5.4: Compile-time checking of dynamic overload resolution:
                     // * First, if F is a generic method and type arguments were provided, 

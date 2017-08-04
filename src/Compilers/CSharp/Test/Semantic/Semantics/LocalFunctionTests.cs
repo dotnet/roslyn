@@ -3163,5 +3163,56 @@ class C
                 //             => await L(async m => L(async d => await d, m), p);
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(8, 32));
         }
+
+        [Fact]
+        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicGenericArg()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    static void M()
+    {
+        dynamic val = 2;
+
+        void L1<T>(T x)
+        {
+            Console.Write(x);
+        }
+        L1(val);
+
+        void L2<T>(int x, T y)
+        {
+            Console.Write(x);
+        }
+        L2(1, val);
+
+        dynamic dynamicList = new List<int>();
+        void L3<T>(List<T> x)
+        {
+            Console.Write(x);
+        }
+        L3(dynamicList);
+    }
+}
+";
+            VerifyDiagnostics(src,
+                // (14,9): error CS8322: Cannot pass argument with dynamic type to generic parameter 'x' of local function 'L1'.
+                //         L1(val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L1(val)").WithArguments("x", "L1").WithLocation(14, 9),
+                // (20,9): error CS8322: Cannot pass argument with dynamic type to generic parameter 'y' of local function 'L2'.
+                //         L2(1, val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L2(1, val)").WithArguments("y", "L2").WithLocation(20, 9),
+                // (27,9): error CS0411: The type arguments for method 'L3<T>(List<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         L3(dynamicList);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "L3").WithArguments("L3<T>(System.Collections.Generic.List<T>)").WithLocation(27, 9),
+                // (23,14): warning CS8321: The local function 'L3' is declared but never used
+                //         void L3<T>(List<T> x)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "L3").WithArguments("L3").WithLocation(23, 14)
+                );
+        }
     }
 }
