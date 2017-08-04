@@ -149,12 +149,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
+        Friend Overrides Function CloneOperation(Of T As IOperation)(operation As T) As T
+            Return VisualBasicOperationCloner.Instance.Visit(operation)
+        End Function
+
         ''' <summary>
         ''' Returns what symbol(s), if any, the given expression syntax bound to in the program.
-        ''' 
+        '''
         ''' An AliasSymbol will never be returned by this method. What the alias refers to will be
         ''' returned instead. To get information about aliases, call GetAliasInfo.
-        ''' 
+        '''
         ''' If binding the type name C in the expression "new C(...)" the actual constructor bound to
         ''' will be returned (or all constructor if overload resolution failed). This occurs as long as C
         ''' unambiguously binds to a single type that has a constructor. If C ambiguously binds to multiple

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 ' we can't use bound node to operation map.
                 ' for now, we will just create new operation and return clone but we need to figure out
                 ' what we want to do with place holder node such as just returning nothing
-                Return CreateInternal(boundNode).Clone()
+                Return _semanticModel.CloneOperation(CreateInternal(boundNode))
             End If
 
             ' this should be removed once this issue is fixed
@@ -865,13 +865,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return GetForLoopStatementBefore(
                         boundForToStatement.ControlVariable,
                         boundForToStatement.InitialValue,
-                        Create(boundForToStatement.LimitValue).Clone(),
-                        Create(boundForToStatement.StepValue).Clone())
+                        _semanticModel.CloneOperation(Create(boundForToStatement.LimitValue)),
+                        _semanticModel.CloneOperation(Create(boundForToStatement.StepValue)))
                 End Function)
             Dim atLoopBottom As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
                     Return GetForLoopStatementAtLoopBottom(
-                        Create(boundForToStatement.ControlVariable).Clone(),
+                        _semanticModel.CloneOperation(Create(boundForToStatement.ControlVariable)),
                         boundForToStatement.StepValue,
                         boundForToStatement.OperatorsOpt)
                 End Function)
