@@ -207,7 +207,7 @@ BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private
             Dim source = <compilation name="F">
                              <file name="F.vb">
 Class C
-    Public Custom Event Foo
+    Public Custom Event Goo
 End Class
 
                              </file>
@@ -218,7 +218,7 @@ End Class
             CompilationUtils.AssertTheseParseDiagnostics(comp2,
 <expected>
 BC31122: 'Custom' modifier is not valid on events declared without explicit delegate types.
-    Public Custom Event Foo
+    Public Custom Event Goo
     ~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -503,7 +503,7 @@ Class cls1
     Event e1()
     Event e2()
 
-    Sub foo()
+    Sub goo()
         System.Console.WriteLine(e1)
         System.Console.WriteLine(e1 + (e2))
     End Sub
@@ -797,11 +797,11 @@ Class C
 End Class
 
 Module Program
-    Sub Foo()
+    Sub Goo()
     End Sub
     Sub Main(args As String())
         Dim x As C
-        AddHandler x.Hello, Foo
+        AddHandler x.Hello, Goo
     End Sub
 End Module
 
@@ -813,10 +813,10 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
 BC42104: Variable 'x' is used before it has been assigned a value. A null reference exception could result at runtime.
-        AddHandler x.Hello, Foo
+        AddHandler x.Hello, Goo
                    ~
 BC30491: Expression does not produce a value.
-        AddHandler x.Hello, Foo
+        AddHandler x.Hello, Goo
                             ~~~
 </expected>)
         End Sub
@@ -1229,50 +1229,50 @@ Module Module1
     Sub Main()
     End Sub
 
-    ' Expect compiler catch that Foo1 does not implement AnEvent or method()
+    ' Expect compiler catch that Goo1 does not implement AnEvent or method()
 
-    Class Foo1
+    Class Goo1
         Inherits Base
     End Class
 
-    ' Expect compiler catch Foo2 does not implement AnEvent
+    ' Expect compiler catch Goo2 does not implement AnEvent
 
-    Class Foo2
+    Class Goo2
         Inherits Base
         Public Overrides Sub method()
         End Sub
     End Class
 
-    ' Expect compiler catch that Foo3 does not implement AnEvent
+    ' Expect compiler catch that Goo3 does not implement AnEvent
 
-    Class Foo3
+    Class Goo3
         Inherits base2
     End Class
 
     ' Expect no compiler error
 
-    Class Foo4
+    Class Goo4
         Inherits base1
     End Class
 
-    ' Expect no compiler error, since both Foo5 and base2 are abstract
+    ' Expect no compiler error, since both Goo5 and base2 are abstract
 
-    MustInherit Class Foo5
+    MustInherit Class Goo5
         Inherits base2
     End Class
 
     '
     ' Testing Type Parameter Printing
     '
-    Class GenFoo1(Of T)
+    Class GenGoo1(Of T)
         Inherits GenBase(Of T)
     End Class
 
-    Class GenFoo2
+    Class GenGoo2
         Inherits GenBase(Of Integer)
     End Class
 
-    MustInherit Class Foo6
+    MustInherit Class Goo6
         Inherits base2
         Shadows Public AnEvent As Integer
     End Class
@@ -1282,24 +1282,24 @@ End Module
                 additionalRefs:={csCompilation.EmitToImageReference()})
 
             vbCompilation.AssertTheseDiagnostics(<errors>
-BC30610: Class 'Foo1' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+BC30610: Class 'Goo1' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
     Base: Public MustOverride Overloads Sub method().
-    Class Foo1
+    Class Goo1
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo1' MustInherit.
-    Class Foo1
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Goo1' MustInherit.
+    Class Goo1
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo2' MustInherit.
-    Class Foo2
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Goo2' MustInherit.
+    Class Goo2
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo3' MustInherit.
-    Class Foo3
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Goo3' MustInherit.
+    Class Goo3
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of T)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo1' MustInherit.
-    Class GenFoo1(Of T)
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of T)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenGoo1' MustInherit.
+    Class GenGoo1(Of T)
           ~~~~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of Integer)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo2' MustInherit.
-    Class GenFoo2
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of Integer)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenGoo2' MustInherit.
+    Class GenGoo2
           ~~~~~~~
 BC31404: 'Public AnEvent As Integer' cannot shadow a method declared 'MustOverride'.
         Shadows Public AnEvent As Integer
@@ -1440,50 +1440,50 @@ Module Module1
     Sub Main()
     End Sub
 
-    ' Expect compiler catch that Foo1 does not implement AnEvent or method()
+    ' Expect compiler catch that Goo1 does not implement AnEvent or method()
 
-    Class Foo1
+    Class Goo1
         Inherits Base
     End Class
 
-    ' Expect compiler catch Foo2 does not implement AnEvent
+    ' Expect compiler catch Goo2 does not implement AnEvent
 
-    Class Foo2
+    Class Goo2
         Inherits Base
         Public Overrides Sub method()
         End Sub
     End Class
 
-    ' Expect compiler catch that Foo3 does not implement AnEvent
+    ' Expect compiler catch that Goo3 does not implement AnEvent
 
-    Class Foo3
+    Class Goo3
         Inherits base2
     End Class
 
     ' Expect no compiler error
 
-    Class Foo4
+    Class Goo4
         Inherits base1
     End Class
 
-    ' Expect no compiler error, since both Foo5 and base2 are abstract
+    ' Expect no compiler error, since both Goo5 and base2 are abstract
 
-    MustInherit Class Foo5
+    MustInherit Class Goo5
         Inherits base2
     End Class
 
     '
     ' Testing Type Parameter Printing
     '
-    Class GenFoo1(Of T)
+    Class GenGoo1(Of T)
         Inherits GenBase(Of T)
     End Class
 
-    Class GenFoo2
+    Class GenGoo2
         Inherits GenBase(Of Integer)
     End Class
 
-    MustInherit Class Foo6
+    MustInherit Class Goo6
         Inherits base2
         Shadows Public AnEvent As Integer
     End Class
@@ -1494,24 +1494,24 @@ End Module
             Dim vbCompilation = CreateCompilationWithCustomILSource(vbSource, ilSource, includeVbRuntime:=True)
 
             vbCompilation.AssertTheseDiagnostics(<errors>
-BC30610: Class 'Foo1' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+BC30610: Class 'Goo1' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
     Base: Public MustOverride Overloads Sub method().
-    Class Foo1
+    Class Goo1
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo1' MustInherit.
-    Class Foo1
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Goo1' MustInherit.
+    Class Goo1
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo2' MustInherit.
-    Class Foo2
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Goo2' MustInherit.
+    Class Goo2
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo3' MustInherit.
-    Class Foo3
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Goo3' MustInherit.
+    Class Goo3
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of T)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo1' MustInherit.
-    Class GenFoo1(Of T)
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of T)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenGoo1' MustInherit.
+    Class GenGoo1(Of T)
           ~~~~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of Integer)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo2' MustInherit.
-    Class GenFoo2
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of Integer)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenGoo2' MustInherit.
+    Class GenGoo2
           ~~~~~~~
 BC31404: 'Public AnEvent As Integer' cannot shadow a method declared 'MustOverride'.
         Shadows Public AnEvent As Integer

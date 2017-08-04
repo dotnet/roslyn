@@ -3,6 +3,6 @@
 'vbc /t:module /vbruntime- Mod2.vb
 
 Public Class Class2
-Sub Foo()
+Sub Goo()
 End Sub
 End Class

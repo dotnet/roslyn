@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     ///    
     ///    var result = LookupResult.GetInstance();
     ///  
-    ///    scope.Lookup(result, "foo");
+    ///    scope.Lookup(result, "goo");
     ///    ... use result ...
     ///         
     ///    result.Clear();

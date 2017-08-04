@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromSpanNotIncludingBreaks()
         {
-            var text = SourceText.From("foo" + Environment.NewLine);
+            var text = SourceText.From("goo" + Environment.NewLine);
             var span = new TextSpan(0, 3);
             var line = TextLine.FromSpan(text, span);
             Assert.Equal(span, line.Span);
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromSpanIncludingBreaksAtEnd()
         {
-            var text = SourceText.From("foo" + Environment.NewLine);
+            var text = SourceText.From("goo" + Environment.NewLine);
             var span = TextSpan.FromBounds(0, text.Length);
             var line = TextLine.FromSpan(text, span);
             Assert.Equal(span, line.SpanIncludingLineBreak);
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromSpanIncludingBreaks()
         {
-            var text = SourceText.From("foo" + Environment.NewLine + "bar");
+            var text = SourceText.From("goo" + Environment.NewLine + "bar");
             var span = TextSpan.FromBounds(0, 5);
             var line = TextLine.FromSpan(text, span);
             Assert.Equal(span, line.SpanIncludingLineBreak);
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromSpanNoBreaksBeforeOrAfter()
         {
-            var text = SourceText.From("foo");
+            var text = SourceText.From("goo");
             var line = TextLine.FromSpan(text, new TextSpan(0, 3));
-            Assert.Equal("foo", line.ToString());
+            Assert.Equal("goo", line.ToString());
             Assert.Equal(0, line.LineNumber);
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromSpanZeroLengthAtEnd()
         {
-            var text = SourceText.From("foo" + Environment.NewLine);
+            var text = SourceText.From("goo" + Environment.NewLine);
             var start = text.Length;
             var line = TextLine.FromSpan(text, new TextSpan(start, 0));
             Assert.Equal("", line.ToString());

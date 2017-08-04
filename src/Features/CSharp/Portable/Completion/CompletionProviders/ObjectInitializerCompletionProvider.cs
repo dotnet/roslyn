@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // class c : IEnumerable<int> 
             // { 
             // public void Add(int addend) { }
-            // public int foo; 
+            // public int goo; 
             // }
 
-            // void foo()
+            // void goo()
             // {
             //    var b = new c {|
             // }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
             }
 
-            // new Foo { bar = $$
+            // new Goo { bar = $$
             if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
             {
                 var objectCreation = token.Parent.Parent as ObjectCreationExpressionSyntax;
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return Tuple.Create<ITypeSymbol, Location>(type, token.GetLocation());
             }
 
-            // Nested: new Foo { bar = { $$
+            // Nested: new Goo { bar = { $$
             if (token.Parent.Parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
                 // Use the type inferrer to get the type being initialized.

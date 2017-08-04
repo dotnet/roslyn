@@ -6,21 +6,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InheritsAfterClassDeclarationTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
-Class Foo
+Class Goo
 |</File>, "Inherits")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InheritsAfterInterfaceDeclarationTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
-Interface Foo
+Interface Goo
 |</File>, "Inherits")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InheritsAfterClassDeclarationAndBlankLineTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
-Class Foo
+Class Goo
 
 |</File>, "Inherits")
         End Function
@@ -28,7 +28,7 @@ Class Foo
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InheritsAfterInterfaceDeclarationAndBlankLineTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
-Interface Foo
+Interface Goo
 
 |</File>, "Inherits")
         End Function
@@ -36,15 +36,15 @@ Interface Foo
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InheritsNotAfterImplementsTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Class Foo
-Implements IFooable
+Class Goo
+Implements IGooable
 |</File>, "Inherits")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InheritsNotInStructureTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Structure Foo
+Structure Goo
 |</File>, "Inherits")
         End Function
 
@@ -64,7 +64,7 @@ Public Interface ITest2
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InheritsNotAfterInheritsInClassTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Public Class Foo
+Public Class Goo
     Inherits Bar
     |
 </File>, "Inherits")

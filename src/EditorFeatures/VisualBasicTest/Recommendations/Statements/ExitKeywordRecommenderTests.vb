@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ExitInSubBodyTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>
-Sub Foo()
+Sub Goo()
 |
 End Sub</ClassDeclaration>, "Exit")
         End Function
@@ -14,7 +14,7 @@ End Sub</ClassDeclaration>, "Exit")
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ExitInFunctionTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>
-Sub Foo()
+Sub Goo()
 |
 End Sub</ClassDeclaration>, "Exit")
         End Function
@@ -23,7 +23,7 @@ End Sub</ClassDeclaration>, "Exit")
         Public Async Function ExitInPropertyGetTest() As Task
             ' We can always exit a Sub/Function, so it should be there
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>
-ReadOnly Property Foo
+ReadOnly Property Goo
 Get
 |
 End Get
@@ -35,7 +35,7 @@ End Property
         Public Async Function ExitInPropertySetTest() As Task
             ' We can always exit a Sub/Function, so it should be there
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>
-WriteOnly Property Foo
+WriteOnly Property Goo
 Set
 |
 End Set
@@ -296,8 +296,8 @@ End Event
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ExitNotInOperatorTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Class Foo
-    Public Shared Operator +(value1 As Foo, value2 as Foo) As Foo
+Class Goo
+    Public Shared Operator +(value1 As Goo, value2 as Goo) As Goo
         |
     End Operator
 End Class

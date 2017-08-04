@@ -128,8 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement("{;;}", "{\r\n  ;\r\n  ;\r\n}");
 
             // labelled statements
-            TestNormalizeStatement("foo:;", "foo:\r\n  ;");
-            TestNormalizeStatement("foo:a;", "foo:\r\n  a;");
+            TestNormalizeStatement("goo:;", "goo:\r\n  ;");
+            TestNormalizeStatement("goo:a;", "goo:\r\n  a;");
 
             // return/goto
             TestNormalizeStatement("return;", "return;");
@@ -153,11 +153,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement("switch(a){case b:{c();}}", "switch (a)\r\n{\r\n  case b:\r\n  {\r\n    c();\r\n  }\r\n}");
 
             // curlies
-            TestNormalizeStatement("{if(foo){}if(bar){}}", "{\r\n  if (foo)\r\n  {\r\n  }\r\n\r\n  if (bar)\r\n  {\r\n  }\r\n}");
+            TestNormalizeStatement("{if(goo){}if(bar){}}", "{\r\n  if (goo)\r\n  {\r\n  }\r\n\r\n  if (bar)\r\n  {\r\n  }\r\n}");
 
             // Queries
             TestNormalizeStatement("int i=from v in vals select v;", "int i =\r\n  from v in vals\r\n  select v;");
-            TestNormalizeStatement("Foo(from v in vals select v);", "Foo(\r\n  from v in vals\r\n  select v);");
+            TestNormalizeStatement("Goo(from v in vals select v);", "Goo(\r\n  from v in vals\r\n  select v);");
             TestNormalizeStatement("int i=from v in vals select from x in xxx where x > 10 select x;", "int i =\r\n  from v in vals\r\n  select\r\n    from x in xxx\r\n    where x > 10\r\n    select x;");
             TestNormalizeStatement("int i=from v in vals group v by x into g where g > 10 select g;", "int i =\r\n  from v in vals\r\n  group v by x into g\r\n    where g > 10\r\n    select g;");
 
@@ -303,12 +303,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement("{\r\n//a\r\n}", "{\r\n//a\r\n}");
             TestNormalizeStatement("{\r\n//a\r\nb}", "{\r\n  //a\r\n  b\r\n}");
             TestNormalizeStatement("{\r\n/*a*/b}", "{\r\n  /*a*/\r\n  b\r\n}");
-            TestNormalizeStatement("{\r\n/// <foo/>\r\na}", "{\r\n  /// <foo/>\r\n  a\r\n}");
-            TestNormalizeStatement("{\r\n///<foo/>\r\na}", "{\r\n  ///<foo/>\r\n  a\r\n}");
-            TestNormalizeStatement("{\r\n/// <foo>\r\n/// </foo>\r\na}", "{\r\n  /// <foo>\r\n  /// </foo>\r\n  a\r\n}");
-            TestNormalizeToken("/// <foo>\r\n/// </foo>\r\na", "/// <foo>\r\n/// </foo>\r\na");
-            TestNormalizeStatement("{\r\n/*** <foo/> ***/\r\na}", "{\r\n  /*** <foo/> ***/\r\n  a\r\n}");
-            TestNormalizeStatement("{\r\n/*** <foo/>\r\n ***/\r\na}", "{\r\n  /*** <foo/>\r\n ***/\r\n  a\r\n}");
+            TestNormalizeStatement("{\r\n/// <goo/>\r\na}", "{\r\n  /// <goo/>\r\n  a\r\n}");
+            TestNormalizeStatement("{\r\n///<goo/>\r\na}", "{\r\n  ///<goo/>\r\n  a\r\n}");
+            TestNormalizeStatement("{\r\n/// <goo>\r\n/// </goo>\r\na}", "{\r\n  /// <goo>\r\n  /// </goo>\r\n  a\r\n}");
+            TestNormalizeToken("/// <goo>\r\n/// </goo>\r\na", "/// <goo>\r\n/// </goo>\r\na");
+            TestNormalizeStatement("{\r\n/*** <goo/> ***/\r\na}", "{\r\n  /*** <goo/> ***/\r\n  a\r\n}");
+            TestNormalizeStatement("{\r\n/*** <goo/>\r\n ***/\r\na}", "{\r\n  /*** <goo/>\r\n ***/\r\n  a\r\n}");
         }
 
         private void TestNormalizeToken(string text, string expected)
@@ -339,17 +339,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         SyntaxFactory.EndIfDirectiveTrivia(false))),
                 "#if a\r\n#endif\r\n");
 
-            TestNormalizeTrivia("#endregion foo", "#endregion foo\r\n");
+            TestNormalizeTrivia("#endregion goo", "#endregion goo\r\n");
 
             TestNormalizeDeclaration(
 @"#pragma warning disable 123
 
-namespace foo {
+namespace goo {
 }
 
 #pragma warning restore 123",
 @"#pragma warning disable 123
-namespace foo
+namespace goo
 {
 }
 #pragma warning restore 123
@@ -387,8 +387,8 @@ namespace foo
         public void TestNormalizeWithinDirectives()
         {
             TestNormalizeDeclaration(
-"class C\r\n{\r\n#if true\r\nvoid Foo(A x) { }\r\n#else\r\n#endif\r\n}\r\n",
-"class C\r\n{\r\n#if true\r\n  void Foo(A x)\r\n  {\r\n  }\r\n#else\r\n#endif\r\n}");
+"class C\r\n{\r\n#if true\r\nvoid Goo(A x) { }\r\n#else\r\n#endif\r\n}\r\n",
+"class C\r\n{\r\n#if true\r\n  void Goo(A x)\r\n  {\r\n  }\r\n#else\r\n#endif\r\n}");
         }
 
         [WorkItem(542887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542887")]
@@ -398,7 +398,7 @@ namespace foo
             var code =
 @"class c1
 {
-void foo()
+void goo()
 {
 {
 int i = 1;
@@ -409,7 +409,7 @@ int i = 1;
             TestNormalize(tree.GetCompilationUnitRoot(),
 @"class c1
 {
-  void foo()
+  void goo()
   {
     {
       int i = 1;
@@ -428,7 +428,7 @@ int i = 1;
     ///<summary>
     /// A documentation comment
     ///</summary>
-    void foo()
+    void goo()
     {
     }
 }";
@@ -441,7 +441,7 @@ int i = 1;
 $"  ///<summary>{Environment.NewLine}" +
 $"  /// A documentation comment{Environment.NewLine}" +
 $"  ///</summary>{Environment.NewLine}" +
-"  void foo()\r\n" +
+"  void goo()\r\n" +
 "  {\r\n" +
 "  }\r\n" +
 "}");
@@ -456,7 +456,7 @@ $"  ///</summary>{Environment.NewLine}" +
   ///  <summary>
   ///  A documentation comment
   ///  </summary>
-  void foo()
+  void goo()
   {
   }
 }";
@@ -468,7 +468,7 @@ $"  ///</summary>{Environment.NewLine}" +
 $"  ///  <summary>{Environment.NewLine}" +
 $"  ///  A documentation comment{Environment.NewLine}" +
 $"  ///  </summary>{Environment.NewLine}" +
-"  void foo()\r\n" +
+"  void goo()\r\n" +
 "  {\r\n" +
 "  }\r\n" +
 "}");

@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 foreach (var readEncoding in encodings)
                 {
-                    var text = CreateMemoryStreamBasedEncodedText("foo", writeEncoding, readEncoding);
+                    var text = CreateMemoryStreamBasedEncodedText("goo", writeEncoding, readEncoding);
                     Assert.Equal(1, text.Lines.Count);
                     Assert.Equal(3, text.Lines[0].Span.Length);
                 }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 foreach (var readEncoding in readEncodings)
                 {
-                    var text = CreateMemoryStreamBasedEncodedText("foo", writeEncoding, readEncoding);
+                    var text = CreateMemoryStreamBasedEncodedText("goo", writeEncoding, readEncoding);
                     Assert.Equal(1, text.Lines.Count);
                     Assert.Equal(3, text.Lines[0].Span.Length);
                 }

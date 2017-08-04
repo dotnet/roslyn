@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         public async Task TestValueInProperty()
         {
             await TestInClassAsync(
-@"int Foo
+@"int Goo
 {
     get
     {
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     }
 }",
                 Keyword("int"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenCurly,
                 Keyword("get"),
                 Punctuation.OpenCurly,
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await TestAsync(
 @"class X
 {
-    void Foo<var>()
+    void Goo<var>()
     {
         var x;
     }
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Class("X"),
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenAngle,
                 TypeParameter("var"),
                 Punctuation.CloseAngle,
@@ -604,7 +604,7 @@ namespace C
 @"class Program<T>
 {
     /// <param name=""x""/>
-    void Foo(int x)
+    void Goo(int x)
     {
     }
 }",
@@ -626,7 +626,7 @@ namespace C
                 XmlDoc.AttributeQuotes("\""),
                 XmlDoc.Delimiter("/>"),
                 Keyword("void"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Identifier("x"),
@@ -643,7 +643,7 @@ namespace C
 @"/// <see cref=""Program{T}""/>
 class Program<T>
 {
-    void Foo()
+    void Goo()
     {
     }
 }",
@@ -668,7 +668,7 @@ class Program<T>
                 Punctuation.CloseAngle,
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -712,17 +712,17 @@ namespace N
         public async Task InterfacePropertyWithSameNameShouldBePreferredToType()
         {
             await TestAsync(
-@"interface IFoo
+@"interface IGoo
 {
-    int IFoo { get; set; }
+    int IGoo { get; set; }
 
-    void Bar(int x = IFoo);
+    void Bar(int x = IGoo);
 }",
                 Keyword("interface"),
-                Interface("IFoo"),
+                Interface("IGoo"),
                 Punctuation.OpenCurly,
                 Keyword("int"),
-                Identifier("IFoo"),
+                Identifier("IGoo"),
                 Punctuation.OpenCurly,
                 Keyword("get"),
                 Punctuation.Semicolon,
@@ -735,7 +735,7 @@ namespace N
                 Keyword("int"),
                 Identifier("x"),
                 Operators.Equals,
-                Identifier("IFoo"),
+                Identifier("IGoo"),
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);

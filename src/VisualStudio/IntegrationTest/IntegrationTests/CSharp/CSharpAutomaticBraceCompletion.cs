@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             SetUpEditor(@"
 class C {
-    void Foo() {
+    void Goo() {
         $$
     }
 }");
@@ -40,7 +40,7 @@ class C {
         {
             SetUpEditor(@"
 class C {
-    void Foo() {
+    void Goo() {
         $$
     }
 }");
@@ -57,7 +57,7 @@ class C {
         {
             SetUpEditor(@"
 class C {
-    void Foo() {
+    void Goo() {
         $$
     }
 }");
@@ -69,7 +69,7 @@ class C {
 
             VisualStudio.Editor.Verify.TextContains(@"
 class C {
-    void Foo() {
+    void Goo() {
         if (true)
         {
             var a = 1;$$
@@ -84,7 +84,7 @@ assertCaretPosition: true);
         {
             SetUpEditor(@"
 class C {
-    void Foo() {
+    void Goo() {
         $$
     }
 }");
@@ -97,7 +97,7 @@ class C {
 
             VisualStudio.Editor.Verify.TextContains(@"
 class C {
-    void Foo() {
+    void Goo() {
         if (true)
         {
             var a = 1;
@@ -128,11 +128,11 @@ class C {
     $$
 }");
 
-            VisualStudio.Editor.SendKeys("void Foo(");
-            VisualStudio.Editor.Verify.CurrentLineText("void Foo($$)", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("void Goo(");
+            VisualStudio.Editor.Verify.CurrentLineText("void Goo($$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys("int x", VirtualKey.Tab);
-            VisualStudio.Editor.Verify.CurrentLineText("void Foo(int x)$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("void Goo(int x)$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -144,11 +144,11 @@ class C {
 }");
 
             VisualStudio.Editor.SendKeys(
-                "void Foo(",
+                "void Goo(",
                 VirtualKey.Escape,
                 ")");
 
-            VisualStudio.Editor.Verify.CurrentLineText("void Foo()$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("void Goo()$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -269,7 +269,7 @@ class C {
             SetUpEditor(@"
 class Bar<U>
 {
-    T Foo<T>(T t) { return t; }
+    T Goo<T>(T t) { return t; }
     void M()
     {
         $$
@@ -277,10 +277,10 @@ class Bar<U>
 }");
 
             VisualStudio.Editor.SendKeys(
-                "var arr=new object[,]{{Foo(0",
+                "var arr=new object[,]{{Goo(0",
                 VirtualKey.Tab,
                 VirtualKey.Tab,
-                ",{Foo(Foo(\"hello",
+                ",{Goo(Goo(\"hello",
                 VirtualKey.Tab,
                 VirtualKey.Tab,
                 VirtualKey.Tab,
@@ -288,7 +288,7 @@ class Bar<U>
                 VirtualKey.Tab,
                 ';');
 
-            VisualStudio.Editor.Verify.CurrentLineText("var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("var arr = new object[,] { { Goo(0) }, { Goo(Goo(\"hello\")) } };$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -363,8 +363,8 @@ $$
 #endif
 }");
 
-            VisualStudio.Editor.SendKeys("void Foo(");
-            VisualStudio.Editor.Verify.CurrentLineText("void Foo($$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("void Goo(");
+            VisualStudio.Editor.Verify.CurrentLineText("void Goo($$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -422,24 +422,24 @@ $$
             SetUpEditor(@"
 class A
 {
-    public virtual void Foo() { }
+    public virtual void Goo() { }
 }
 class B : A
 {
-    // type ""override Foo(""
+    // type ""override Goo(""
     $$
 }
 ");
 
-            VisualStudio.Editor.SendKeys("override Foo(");
+            VisualStudio.Editor.SendKeys("override Goo(");
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 class B : A
 {
-    // type ""override Foo(""
-    public override void Foo()
+    // type ""override Goo(""
+    public override void Goo()
     {
-        base.Foo();
+        base.Goo();
     }
 }", actualText);
         }

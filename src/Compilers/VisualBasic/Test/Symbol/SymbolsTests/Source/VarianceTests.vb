@@ -39,7 +39,7 @@ End Interface
 Delegate Sub D126(Of In T, Out S)()
 
 Class C125
-    Sub Foo(Of In T, Out S)()
+    Sub Goo(Of In T, Out S)()
     End Sub
 
     Function Bar(Of In T, Out S)() As Integer
@@ -66,10 +66,10 @@ BC36722: Keywords 'Out' and 'In' can only be used in interface and delegate decl
 Structure S124(Of In T, Out S)
                         ~~~
 BC36722: Keywords 'Out' and 'In' can only be used in interface and delegate declarations.
-    Sub Foo(Of In T, Out S)()
+    Sub Goo(Of In T, Out S)()
                ~~
 BC36722: Keywords 'Out' and 'In' can only be used in interface and delegate declarations.
-    Sub Foo(Of In T, Out S)()
+    Sub Goo(Of In T, Out S)()
                      ~~~
 BC36722: Keywords 'Out' and 'In' can only be used in interface and delegate declarations.
     Function Bar(Of In T, Out S)() As Integer

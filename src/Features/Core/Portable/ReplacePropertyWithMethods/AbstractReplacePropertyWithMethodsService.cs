@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 else if (_syntaxFacts.IsRightSideOfQualifiedName(_identifierName))
                 {
                     // Found a reference in a qualified name.  This happens for VB explicit interface
-                    // names.  We don't want to update this.  (The "Implement IFoo.Bar" clause will be
+                    // names.  We don't want to update this.  (The "Implement IGoo.Bar" clause will be
                     // updated when we generate the actual Get/Set methods.
                     return;
                 }

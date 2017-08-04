@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 // cases:
                 //   if (true)
                 //     if (false)
-                //       Foo();
+                //       Goo();
                 //
                 //   if (true)
                 //     { }

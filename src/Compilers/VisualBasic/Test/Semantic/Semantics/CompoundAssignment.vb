@@ -1121,7 +1121,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Shift(item)
     End Sub
 
@@ -1141,8 +1141,8 @@ End Class
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             ' Verify presence of constrained calls in order to enforce compatibility with Dev12
@@ -1168,7 +1168,7 @@ Position set for item 'Foo'
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 ]]>)
 
@@ -1224,7 +1224,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Shift(item)
     End Sub
 
@@ -1244,8 +1244,8 @@ End Class
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             ' Verify presence of constrained calls in order to enforce compatibility with Dev12
@@ -1271,7 +1271,7 @@ Position set for item 'Foo'
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 ]]>)
 
@@ -1327,7 +1327,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Shift(item)
     End Sub
 
@@ -1348,8 +1348,8 @@ End Class
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             ' Verify presence of constrained calls in order to enforce compatibility with Dev12
@@ -1378,7 +1378,7 @@ Position set for item 'Foo'
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 ]]>)
 
@@ -1437,7 +1437,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = { New Item With {.Name = "Foo"} }
+        Dim item = { New Item With {.Name = "Goo"} }
         Shift(item)
     End Sub
 
@@ -1457,8 +1457,8 @@ End Class
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             ' Verify presence of constrained calls in order to enforce compatibility with Dev12
@@ -1491,7 +1491,7 @@ Position set for item 'Foo'
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 ]]>)
 
@@ -1558,7 +1558,7 @@ End Structure
 
 Class Program
     Shared Sub Main()
-        Dim item = New Test(Of Item) With { .F = New Item With {.Name = "Foo"} } 
+        Dim item = New Test(Of Item) With { .F = New Item With {.Name = "Goo"} } 
         Shift(item)
     End Sub
 
@@ -1578,8 +1578,8 @@ End Class
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             ' Verify presence of constrained calls in order to enforce compatibility with Dev12
@@ -1610,7 +1610,7 @@ Position set for item 'Foo'
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 ]]>)
 
@@ -1671,7 +1671,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Shift(item)
     End Sub
 
@@ -1693,8 +1693,8 @@ End Class
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             ' Verify presence of constrained calls in order to enforce compatibility with Dev12
@@ -1720,7 +1720,7 @@ Position set for item 'Foo'
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 ]]>)
 
@@ -1778,7 +1778,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Shift(item)
     End Sub
 
@@ -1798,8 +1798,8 @@ End Class
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             ' Verify presence of constrained calls in order to enforce compatibility with Dev12
@@ -1825,7 +1825,7 @@ Position set for item 'Foo'
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 ]]>)
 
@@ -1881,7 +1881,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Shift(item)
     End Sub
 
@@ -1901,8 +1901,8 @@ End Class
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             ' Verify presence of constrained calls in order to enforce compatibility with Dev12
@@ -1928,7 +1928,7 @@ Position set for item 'Foo'
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 ]]>)
 
@@ -1984,7 +1984,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Shift(item)
     End Sub
 
@@ -2005,8 +2005,8 @@ End Class
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             ' Verify presence of constrained calls in order to enforce compatibility with Dev12
@@ -2035,7 +2035,7 @@ Position set for item 'Foo'
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 ]]>)
 
@@ -2094,7 +2094,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = { New Item With {.Name = "Foo"} }
+        Dim item = { New Item With {.Name = "Goo"} }
         Shift(item)
     End Sub
 
@@ -2114,8 +2114,8 @@ End Class
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             ' Verify presence of constrained calls in order to enforce compatibility with Dev12
@@ -2148,7 +2148,7 @@ Position set for item 'Foo'
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 ]]>)
 
@@ -2215,7 +2215,7 @@ End Structure
 
 Class Program
     Shared Sub Main()
-        Dim item = New Test(Of Item) With { .F = New Item With {.Name = "Foo"} } 
+        Dim item = New Test(Of Item) With { .F = New Item With {.Name = "Goo"} } 
         Shift(item)
     End Sub
 
@@ -2235,8 +2235,8 @@ End Class
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             ' Verify presence of constrained calls in order to enforce compatibility with Dev12
@@ -2267,7 +2267,7 @@ Position set for item 'Foo'
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 ]]>)
 
@@ -2328,7 +2328,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Shift(item)
     End Sub
 
@@ -2350,8 +2350,8 @@ End Class
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             ' Verify presence of constrained calls in order to enforce compatibility with Dev12
@@ -2377,7 +2377,7 @@ Position set for item 'Foo'
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 ]]>)
 
@@ -2444,7 +2444,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Shift(item, 0)
     End Sub
 
@@ -2464,16 +2464,16 @@ End Class
 
             CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
         End Sub
 
@@ -2516,7 +2516,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Shift(item, 0)
     End Sub
 
@@ -2536,16 +2536,16 @@ End Class
 
             CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
 
             compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 ]]>)
         End Sub
 
@@ -2583,7 +2583,7 @@ End Structure
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Shift(item)
         Console.WriteLine(item.B1)
         Console.WriteLine(item.B2)
@@ -2605,7 +2605,7 @@ End Class
 
             CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 False
 True
@@ -2615,7 +2615,7 @@ True
 
             CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
+Position get for item 'Goo'
 Position set for item 'Bar'
 False
 True
@@ -2665,7 +2665,7 @@ End Structure
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Shift(item, 0)
         Console.WriteLine(item.B1)
         Console.WriteLine(item.B2)
@@ -2687,8 +2687,8 @@ End Class
 
             CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 False
 False
 ]]>)
@@ -2697,8 +2697,8 @@ False
 
             CompileAndVerify(compilation,
             <![CDATA[
-Position get for item 'Foo'
-Position set for item 'Foo'
+Position get for item 'Goo'
+Position set for item 'Goo'
 False
 False
 ]]>)
