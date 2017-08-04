@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Property Instance As OperationCloner = New VisualBasicOperationCloner()
 
         Public Overrides Function VisitConversionExpression(operation As IConversionExpression, argument As Object) As IOperation
-            Return New VisualBasicConversionExpression(Visit(operation.Operand), operation.GetVisualBasicConversion(), operation.IsExplicitInCode, operation.IsTryCast, operation.IsChecked, DirectCast(operation, Operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue)
+            Return New VisualBasicConversionExpression(Visit(operation.Operand), operation.GetConversion(), operation.IsExplicitInCode, operation.IsTryCast, operation.IsChecked, DirectCast(operation, Operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue)
         End Function
     End Class
 End Namespace

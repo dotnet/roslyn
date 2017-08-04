@@ -355,10 +355,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             switch (operation.Language)
             {
                 case LanguageNames.CSharp:
-                    CSharp.Conversion csharpConversion = operation.GetCSharpConversion();
+                    CSharp.Conversion csharpConversion = CSharp.CSharpExtensions.GetConversion(operation);
                     break;
                 case LanguageNames.VisualBasic:
-                    VisualBasic.Conversion visualBasicConversion = operation.GetVisualBasicConversion();
+                    VisualBasic.Conversion visualBasicConversion = VisualBasic.VisualBasicExtensions.GetConversion(operation);
                     break;
                 default:
                     Debug.Fail($"Language {operation.Language} is unknown!");
