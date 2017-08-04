@@ -186,6 +186,33 @@ Type ""#help"" for more information.
 >", runner.Console.Out.ToString())
         End Sub
 
+        <Fact, WorkItem(21327, "https://github.com/dotnet/roslyn/issues/21327")>
+        Public Sub TestLatestLanguageVersion()
+            Dim runner = CreateRunner(args:={}, input:="
+Dim a = 1
+Dim t = (a, 2)
+System.Console.Write(t.a)
+")
+
+            runner.RunInteractive()
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
+Copyright (C) Microsoft Corporation. All rights reserved.
+Type ""#help"" for more information.
+>
+> Dim a = 1
+> Dim t = (a, 2)
+> System.Console.Write(t.a)
+«Red»
+Public member 'a' on type 'ValueTuple(Of Object,Integer)' not found.
+  + Microsoft.VisualBasic.CompilerServices.Symbols.Container.GetMembers(ByRef String, Boolean)
+  + Submission#3.VB$StateMachine_1_<Initialize>.MoveNext()
+  + Microsoft.CodeAnalysis.Scripting.ScriptExecutionState.<RunSubmissionsAsync>d__9(Of TResult).MoveNext()
+«Gray»
+>", runner.Console.Out.ToString())
+        End Sub
+
         <Fact>
         Public Sub Version()
             Dim runner = CreateRunner({"/version"})
