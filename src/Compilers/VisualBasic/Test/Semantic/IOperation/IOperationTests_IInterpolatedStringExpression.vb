@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -19,7 +19,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""')
   Parts(0)
 ]]>.Value
@@ -40,7 +40,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"Only text part"')
   Parts(1):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'Only text part')
@@ -63,7 +63,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{1}"')
   Parts(1):
       IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
@@ -88,7 +88,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid) (Syntax: '$"{}"')
   Parts(1):
       IInterpolation (OperationKind.Interpolation, IsInvalid) (Syntax: '{}')
@@ -118,7 +118,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
   Parts(4):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -154,7 +154,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
   Parts(6):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -197,7 +197,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x,20:D3}"')
   Parts(2):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -231,7 +231,7 @@ Friend Class [Class]
     End Function
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
   Parts(6):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -282,7 +282,7 @@ Friend Class [Class]
     End Function
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {M2($"{y}")}"')
   Parts(2):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -320,7 +320,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid) (Syntax: '$"String {x ...  {[Class]}"')
   Parts(4):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')

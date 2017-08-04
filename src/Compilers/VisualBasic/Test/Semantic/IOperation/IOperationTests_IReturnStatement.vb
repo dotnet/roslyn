@@ -17,7 +17,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
   ReturnedValue: null
 ]]>.Value
@@ -55,7 +55,7 @@ Class C
     End Function
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'Yield 0')
   ReturnedValue: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
@@ -75,7 +75,7 @@ Class C
     End Function
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
   ReturnedValue: null
 ]]>.Value

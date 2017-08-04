@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -103,7 +103,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x.T ... }')
   Switch expression: IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'x.ToString()')
       Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
@@ -112,7 +112,8 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'case 1: ... break;')
           Clauses:
               ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.StringEquals) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'case 1:')
-                Value: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '1')
+                Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '1')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
           Body:
               IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
@@ -143,12 +144,14 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x = nul ... }')
-  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x = null')
+  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x = null')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: Program, IsInvalid) (Syntax: 'x = null')
           Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
-          Right: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid) (Syntax: 'null')
+          Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid) (Syntax: 'null')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
   IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
   IfFalse: null
@@ -181,14 +184,16 @@ class Program
 /*</bind>*/    }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... else')
-  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
+  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
           Children(0)
   IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
   IfFalse: IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x) x; ... else')
-      Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+      Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+          Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
       IfTrue: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x;')
           Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
@@ -234,9 +239,10 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'for (P; x;) ... }')
-  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
   Before:
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'P')
@@ -279,7 +285,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto case 1;')
   Children(1):
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -334,7 +340,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'break;')
   Children(0)
 ";
@@ -361,7 +367,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'continue;')
   Children(0)
 ";

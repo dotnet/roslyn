@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -27,7 +27,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Sections:
@@ -62,7 +62,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Sections:
@@ -96,7 +96,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -130,7 +130,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -164,7 +164,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -204,7 +204,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -212,7 +212,8 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
           Clauses:
               IPatternCaseClause (Label Symbol: case null:) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case null:')
                 Pattern: IConstantPattern (OperationKind.ConstantPattern) (Syntax: 'case null:')
-                    Value: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'null')
+                    Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'null')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                         Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
                 Guard Expression: null
           Body:
@@ -248,7 +249,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -256,7 +257,8 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
           Clauses:
               IPatternCaseClause (Label Symbol: case null:) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case null:')
                 Pattern: IConstantPattern (OperationKind.ConstantPattern) (Syntax: 'case null:')
-                    Value: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'null')
+                    Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'null')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                         Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
                 Guard Expression: null
               IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case X y:')
@@ -289,7 +291,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -297,7 +299,8 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
           Clauses:
               IPatternCaseClause (Label Symbol: case null:) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case null:')
                 Pattern: IConstantPattern (OperationKind.ConstantPattern) (Syntax: 'case null:')
-                    Value: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'null')
+                    Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'null')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                         Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
                 Guard Expression: null
               IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case X y:')
@@ -329,7 +332,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -339,7 +342,8 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
                 Pattern: IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern) (Syntax: 'X y')
                 Guard Expression: IBinaryOperatorExpression (BinaryOperationKind.ObjectNotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x != null')
                     Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
-                    Right: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'null')
+                    Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'null')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                         Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
           Body:
               IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
@@ -366,7 +370,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -402,7 +406,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -410,7 +414,8 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
           Clauses:
               IPatternCaseClause (Label Symbol: case X y when :) (CaseKind.Pattern) (OperationKind.PatternCaseClause, IsInvalid) (Syntax: 'case X y when :')
                 Pattern: IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern) (Syntax: 'X y')
-                Guard Expression: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
+                Guard Expression: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
                         Children(0)
           Body:
@@ -442,7 +447,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -450,7 +455,8 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
           Clauses:
               IPatternCaseClause (Label Symbol: case X y when x:) (CaseKind.Pattern) (OperationKind.PatternCaseClause, IsInvalid) (Syntax: 'case X y when x:')
                 Pattern: IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern) (Syntax: 'X y')
-                Guard Expression: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+                Guard Expression: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
           Body:
               IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
@@ -514,7 +520,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -549,7 +555,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x.G ... }')
   Switch expression: IInvocationExpression ( System.Type System.Object.GetType()) (OperationKind.InvocationExpression, Type: System.Type) (Syntax: 'x.GetType()')
       Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
@@ -593,7 +599,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -631,7 +637,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Sections:
@@ -670,7 +676,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Sections:
@@ -711,14 +717,15 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Sections:
       ISwitchCase (1 case clauses, 2 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'case /*</bi ... break;')
           Clauses:
               ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.IntegerEquals) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'case /*</bind>*/')
-                Value: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
+                Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
                         Children(0)
           Body:
@@ -773,7 +780,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (3 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (p) ... }')
   Switch expression: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'p')
   Sections:

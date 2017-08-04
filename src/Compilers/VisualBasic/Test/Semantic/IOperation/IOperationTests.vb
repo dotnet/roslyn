@@ -16,24 +16,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                              <file name="c.vb">
                                  <![CDATA[
 Public Class B2
-    Public Shared Operator +(x As B2, y As B2) As B2 
+    Public Shared Operator +(x As B2, y As B2) As B2
         System.Console.WriteLine("+")
         Return x
     End Operator
 
-    Public Shared Operator -(x As B2) As B2 
+    Public Shared Operator -(x As B2) As B2
         System.Console.WriteLine("-")
         Return x
     End Operator
 
-    Public Shared Operator -(x As B2) As B2 
+    Public Shared Operator -(x As B2) As B2
         System.Console.WriteLine("-")
         Return x
     End Operator
 End Class
 
 Module Module1
-    Sub Main() 
+    Sub Main()
         Dim x, y As New B2()
         x = x + 10
         x = x + y
@@ -142,7 +142,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
                              <file name="c.vb">
                                  <![CDATA[
 Public Class B2
-    Public Shared Operator +(x As B2, y As B2) As B2 
+    Public Shared Operator +(x As B2, y As B2) As B2
         System.Console.WriteLine("+")
         Return x
     End Operator
@@ -150,7 +150,7 @@ End Class
 
 Module Module1
     Sub Main()
-        Dim x, y As Integer 
+        Dim x, y As Integer
         Dim a, b As New B2()
         x += y
         a += b
@@ -230,7 +230,7 @@ Class C
 End Class
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerNotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
       Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -277,7 +277,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For i = 0 T ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For i = 0 T ... Next')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i = 0 T ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i = 0 T ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i = 0 T ... Next')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For i = 0 T ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(i)')
@@ -302,7 +303,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i =
                              <file name="c.vb">
                                  <![CDATA[
 Module Module1
-    Sub Main() 
+    Sub Main()
         Test1(Nothing)
         Test2(New System.Guid(), Nothing)
         Test1(AddressOf Main)
@@ -345,7 +346,8 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
   Instance Receiver: null
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'Nothing')
-        IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null) (Syntax: 'Nothing')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null) (Syntax: 'Nothing')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
         InConversion: null
         OutConversion: null")

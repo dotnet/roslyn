@@ -37,13 +37,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _operandLazy As Lazy(Of IOperation)
 
-        Public Sub New(operand As Lazy(Of IOperation), conversion As Conversion, isExplicitInCode As Boolean, isTryCast As Boolean, isChecked As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
+        Public Sub New(operandLazy As Lazy(Of IOperation), conversion As Conversion, isExplicitInCode As Boolean, isTryCast As Boolean, isChecked As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
             MyBase.New(conversion, isExplicitInCode, isTryCast, isChecked, syntax, type, constantValue)
 
-            _operandLazy = operand
+            _operandLazy = operandLazy
         End Sub
 
-        Public Overrides ReadOnly Property Operand As IOperation = _operandLazy.Value
+        Public Overrides ReadOnly Property Operand As IOperation
+            Get
+                Return _operandLazy.Value
+            End Get
+        End Property
     End Class
 
     Public Module IConversionExpressionExtensions

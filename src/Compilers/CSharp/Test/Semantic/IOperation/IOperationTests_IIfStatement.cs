@@ -26,7 +26,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -65,7 +65,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -108,7 +108,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (1 == 1) ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: True) (Syntax: '1 == 1')
       Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -154,7 +154,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m > 10) ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 10')
       Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
@@ -211,7 +211,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m > 10) ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 10')
       Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
@@ -264,7 +264,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m >= n  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.BooleanConditionalAnd) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm >= n && m >= p')
       Left: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm >= n')
@@ -316,7 +316,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (n > 20) ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'n > 20')
       Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
@@ -374,7 +374,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (int.Try ... , s ={s}"");')
   Condition: IInvocationExpression (System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'int.TryPars ...  out var i)')
       Instance Receiver: null
@@ -461,7 +461,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... eLine(A());')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... eLine(A());')
@@ -504,7 +504,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   IfTrue: IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -556,7 +556,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ...  int i, 1);')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   IfTrue: IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'A(o is int i, 1);')
@@ -601,7 +601,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (obj is  ... }')
   Condition: IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'obj is string str')
       Expression: ILocalReferenceExpression: obj (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'obj')
@@ -642,7 +642,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... A(25);')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'A(25);')
@@ -650,7 +650,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... A(25);')
           Instance Receiver: null
           Arguments(1):
               IArgument (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument) (Syntax: '25')
-                IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '25')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '25')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: ILiteralExpression (Text: 25) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 25) (Syntax: '25')
                 InConversion: null
                 OutConversion: null
@@ -685,7 +686,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   IfTrue: IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -731,7 +732,7 @@ class P
 /*</bind>*/    }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (obj is  ... else')
   Condition: IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'obj is string str')
       Expression: ILocalReferenceExpression: obj (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'obj')
@@ -783,9 +784,10 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... }')
-  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
+  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
           Children(0)
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -829,7 +831,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (a == 1) ... else')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'a == 1')
       Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
@@ -884,7 +886,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... B();')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'A();')
@@ -924,7 +926,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (d.GetTy ... }')
   Condition: IUnaryOperatorExpression (UnaryOperationKind.DynamicTrue) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'd.GetType() ... ).Equals(x)')
       Operand: IBinaryOperatorExpression (BinaryOperationKind.DynamicAnd) (OperationKind.BinaryOperatorExpression, Type: dynamic) (Syntax: 'd.GetType() ... ).Equals(x)')
@@ -936,11 +938,13 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (d.GetTy ... }')
                             IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
               Right: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Type) (Syntax: 't')
           Right: IInvocationExpression (virtual System.Boolean System.ValueType.Equals(System.Object obj)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: '((T)d).Equals(x)')
-              Instance Receiver: IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: T) (Syntax: '(T)d')
+              Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T) (Syntax: '(T)d')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument) (Syntax: 'x')
-                    IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'x')
+                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'x')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: T) (Syntax: 'x')
                     InConversion: null
                     OutConversion: null

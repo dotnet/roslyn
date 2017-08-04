@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -44,7 +44,7 @@ class C
     static int s1 /*<bind>*/= 1/*</bind>*/;
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
@@ -66,7 +66,7 @@ class C
     int i1 = 1, i2 /*<bind>*/= 2/*</bind>*/;
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializer) (Syntax: '= 2')
   ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
@@ -131,9 +131,10 @@ class C
     void M(int p1 = 0, params int[] p2 /*<bind>*/= null/*</bind>*/) { }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IParameterInitializer (Parameter: params System.Int32[] p2) (OperationKind.ParameterInitializer) (Syntax: '= null')
-  IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null) (Syntax: 'null')
+  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null) (Syntax: 'null')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
     Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -156,7 +157,7 @@ class C
     static int F() { return 1; }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -182,7 +183,7 @@ class C
     static int F() { return 1; }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -206,7 +207,7 @@ class C
     static int F() { return 1; }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -235,7 +236,7 @@ partial class C
     int i2 = 2;
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
@@ -273,7 +274,7 @@ partial class C
     int i2 /*<bind>*/= 2/*</bind>*/;
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializer) (Syntax: '= 2')
   ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
@@ -306,7 +307,7 @@ class C
     static System.Action MakeAction(int x) { return null; }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializer) (Syntax: '= MakeAction(1)')
   IInvocationExpression (System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(1)')
     Instance Receiver: null
@@ -332,7 +333,7 @@ class C
     static System.Action MakeAction(int x) { return null; }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializer) (Syntax: '= MakeAction(2)')
   IInvocationExpression (System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(2)')
     Instance Receiver: null

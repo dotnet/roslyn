@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -68,13 +68,16 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
       Elements(2):
-          IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1) (Syntax: '1')
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1) (Syntax: '1')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-          IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 2) (Syntax: '2')
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 2) (Syntax: '2')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
@@ -94,16 +97,19 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (U ... r) = (1, 2)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.UInt32, System.UInt32)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
             Elements(2):
-                IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1) (Syntax: '1')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1) (Syntax: '1')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 2) (Syntax: '2')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 2) (Syntax: '2')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
@@ -123,13 +129,16 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, Nothing)')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, Nothing)')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, Nothing)')
       Elements(2):
-          IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1) (Syntax: '1')
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1) (Syntax: '1')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-          IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'Nothing')
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'Nothing')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
@@ -149,16 +158,19 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (U ... 1, Nothing)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.UInt32, System.String)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, Nothing)')
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, Nothing)')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, Nothing)')
             Elements(2):
-                IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1) (Syntax: '1')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1) (Syntax: '1')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'Nothing')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'Nothing')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
@@ -230,8 +242,9 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (A As System.Int32, B As System.Int32)) (Syntax: '(1, 2)')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int32, B As System.Int32)) (Syntax: '(1, 2)')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
       Elements(2):
           ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -255,11 +268,12 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (A ... r) = (1, 2)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int32, B As System.Int32)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (A As System.Int32, B As System.Int32)) (Syntax: '(1, 2)')
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int32, B As System.Int32)) (Syntax: '(1, 2)')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
             Elements(2):
                 ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -283,13 +297,16 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(A:=1, B:=Nothing)')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(A:=1, B:=Nothing)')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: ITupleExpression (OperationKind.TupleExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(A:=1, B:=Nothing)')
       Elements(2):
-          IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 1) (Syntax: '1')
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 1) (Syntax: '1')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-          IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'Nothing')
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'Nothing')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
@@ -310,16 +327,19 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (A ... B:=Nothing)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int16, B As System.String)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(A:=1, B:=Nothing)')
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(A:=1, B:=Nothing)')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: ITupleExpression (OperationKind.TupleExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(A:=1, B:=Nothing)')
             Elements(2):
-                IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 1) (Syntax: '1')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 1) (Syntax: '1')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'Nothing')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'Nothing')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
@@ -356,12 +376,15 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(New C(0), c1)')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(New C(0), c1)')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String)) (Syntax: '(New C(0), c1)')
       Elements(2):
-          IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: System.Int16) (Syntax: 'New C(0)')
-            Operand: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function C.op_Implicit(c As C) As System.Int16) (OperationKind.ConversionExpression, Type: C) (Syntax: 'New C(0)')
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16) (Syntax: 'New C(0)')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C) (Syntax: 'New C(0)')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IObjectCreationExpression (Constructor: Sub C..ctor(x As System.Int32)) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'New C(0)')
                     Arguments(1):
                         IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
@@ -369,8 +392,10 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
                           InConversion: null
                           OutConversion: null
                     Initializer: null
-          IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'c1')
-            Operand: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function C.op_Implicit(c As C) As System.String) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'c1')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
 ]]>.Value
 
@@ -407,15 +432,18 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (A ... w C(0), c1)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int16, B As System.String)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(New C(0), c1)')
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(New C(0), c1)')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String)) (Syntax: '(New C(0), c1)')
             Elements(2):
-                IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: System.Int16) (Syntax: 'New C(0)')
-                  Operand: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function C.op_Implicit(c As C) As System.Int16) (OperationKind.ConversionExpression, Type: C) (Syntax: 'New C(0)')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16) (Syntax: 'New C(0)')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C) (Syntax: 'New C(0)')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: IObjectCreationExpression (Constructor: Sub C..ctor(x As System.Int32)) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'New C(0)')
                           Arguments(1):
                               IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
@@ -423,8 +451,10 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                                 InConversion: null
                                 OutConversion: null
                           Initializer: null
-                IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'c1')
-                  Operand: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function C.op_Implicit(c As C) As System.String) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'c1')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
 ]]>.Value
 
@@ -457,14 +487,18 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: C) (Syntax: '(0, Nothing)')
-  Operand: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function C.op_Implicit(x As (System.Int32, System.String)) As C) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object)) (Syntax: '(0, Nothing)')
-      Operand: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object)) (Syntax: '(0, Nothing)')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C) (Syntax: '(0, Nothing)')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object)) (Syntax: '(0, Nothing)')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object)) (Syntax: '(0, Nothing)')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Object)) (Syntax: '(0, Nothing)')
               Elements(2):
                   ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                  IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
@@ -497,17 +531,21 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As C  ... 0, Nothing)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As C
-    Initializer: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: C) (Syntax: '(0, Nothing)')
-        Operand: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function C.op_Implicit(x As (System.Int32, System.String)) As C) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object)) (Syntax: '(0, Nothing)')
-            Operand: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object)) (Syntax: '(0, Nothing)')
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C) (Syntax: '(0, Nothing)')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object)) (Syntax: '(0, Nothing)')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object)) (Syntax: '(0, Nothing)')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Object)) (Syntax: '(0, Nothing)')
                     Elements(2):
                         ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                        IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+                          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
@@ -540,9 +578,11 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: (System.Int32, System.String)) (Syntax: 'c1')
-  Operand: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function C.op_Implicit(c As C) As (System.Int32, System.String)) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, System.String)) (Syntax: 'c1')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
 ]]>.Value
 
@@ -575,12 +615,14 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (I ... tring) = c1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.Int32, System.String)
-    Initializer: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: (System.Int32, System.String)) (Syntax: 'c1')
-        Operand: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function C.op_Implicit(c As C) As (System.Int32, System.String)) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, System.String)) (Syntax: 'c1')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
 ]]>.Value
 
@@ -615,10 +657,11 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String), IsInvalid) (Syntax: '(New C(0), c1)')
   Elements(2):
-      IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int16, IsInvalid) (Syntax: 'New C(0)')
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, IsInvalid) (Syntax: 'New C(0)')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IObjectCreationExpression (Constructor: Sub C..ctor(x As System.Int32)) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'New C(0)')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
@@ -626,8 +669,10 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As Syst
                   InConversion: null
                   OutConversion: null
             Initializer: null
-      IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'c1')
-        Operand: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function C.op_Implicit(c As C) As System.String) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'c1')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
 ]]>.Value
 
@@ -668,13 +713,14 @@ End Class
 
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim t As (S ... w C(0), c1)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.Int16, System.String)
     Initializer: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String), IsInvalid) (Syntax: '(New C(0), c1)')
         Elements(2):
-            IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int16, IsInvalid) (Syntax: 'New C(0)')
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, IsInvalid) (Syntax: 'New C(0)')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: IObjectCreationExpression (Constructor: Sub C..ctor(x As System.Int32)) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'New C(0)')
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
@@ -682,8 +728,10 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                         InConversion: null
                         OutConversion: null
                   Initializer: null
-            IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'c1')
-              Operand: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function C.op_Implicit(c As C) As System.String) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'c1')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
 ]]>.Value
 

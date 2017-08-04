@@ -20,7 +20,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.SByte) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.SByte) (Syntax: 'i')
 ]]>.Value
@@ -40,7 +40,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Byte) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Byte) (Syntax: 'i')
 ]]>.Value
@@ -60,7 +60,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int16) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int16) (Syntax: 'i')
 ]]>.Value
@@ -80,7 +80,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.UInt16) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt16) (Syntax: 'i')
 ]]>.Value
@@ -100,7 +100,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ]]>.Value
@@ -120,7 +120,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.UInt32) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'i')
 ]]>.Value
@@ -140,7 +140,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int64) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'i')
 ]]>.Value
@@ -160,7 +160,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.UInt64) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt64) (Syntax: 'i')
 ]]>.Value
@@ -180,7 +180,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.DecimalPlus) (OperationKind.UnaryOperatorExpression, Type: System.Decimal) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Decimal) (Syntax: 'i')
 ]]>.Value
@@ -200,7 +200,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryOperatorExpression, Type: System.Single) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Single) (Syntax: 'i')
 ]]>.Value
@@ -220,7 +220,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryOperatorExpression, Type: System.Double) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'i')
 ]]>.Value
@@ -240,7 +240,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.ObjectPlus) (OperationKind.UnaryOperatorExpression, Type: System.Object) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i')
 ]]>.Value
@@ -260,7 +260,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.SByte) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.SByte) (Syntax: 'i')
 ]]>.Value
@@ -280,7 +280,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int16) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int16) (Syntax: 'i')
 ]]>.Value
@@ -300,7 +300,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ]]>.Value
@@ -320,7 +320,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int64) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'i')
 ]]>.Value
@@ -340,7 +340,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.DecimalMinus) (OperationKind.UnaryOperatorExpression, Type: System.Decimal) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Decimal) (Syntax: 'i')
 ]]>.Value
@@ -360,7 +360,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.UnaryOperatorExpression, Type: System.Single) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Single) (Syntax: 'i')
 ]]>.Value
@@ -380,7 +380,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.UnaryOperatorExpression, Type: System.Double) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'i')
 ]]>.Value
@@ -400,7 +400,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.ObjectMinus) (OperationKind.UnaryOperatorExpression, Type: System.Object) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i')
 ]]>.Value
@@ -420,7 +420,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.SByte) (Syntax: 'Not i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.SByte) (Syntax: 'i')
 ]]>.Value
@@ -440,7 +440,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Byte) (Syntax: 'Not i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Byte) (Syntax: 'i')
 ]]>.Value
@@ -460,7 +460,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int16) (Syntax: 'Not i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int16) (Syntax: 'i')
 ]]>.Value
@@ -480,7 +480,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.UInt16) (Syntax: 'Not i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt16) (Syntax: 'i')
 ]]>.Value
@@ -500,7 +500,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: 'Not i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ]]>.Value
@@ -520,7 +520,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.UInt32) (Syntax: 'Not i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'i')
 ]]>.Value
@@ -540,7 +540,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int64) (Syntax: 'Not i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'i')
 ]]>.Value
@@ -560,7 +560,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.UInt64) (Syntax: 'Not i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt64) (Syntax: 'i')
 ]]>.Value
@@ -580,7 +580,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.BooleanBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'Not i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'i')
 ]]>.Value
@@ -600,7 +600,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.ObjectNot) (OperationKind.UnaryOperatorExpression, Type: System.Object) (Syntax: 'Not i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i')
 ]]>.Value
@@ -620,7 +620,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.SByte) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.SByte) (OperationKind.InvocationExpression, Type: System.SByte) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -642,7 +642,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Byte) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Byte) (OperationKind.InvocationExpression, Type: System.Byte) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -664,7 +664,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int16) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Int16) (OperationKind.InvocationExpression, Type: System.Int16) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -686,7 +686,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.UInt16) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.UInt16) (OperationKind.InvocationExpression, Type: System.UInt16) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -708,7 +708,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -730,7 +730,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.UInt32) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.UInt32) (OperationKind.InvocationExpression, Type: System.UInt32) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -752,7 +752,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int64) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Int64) (OperationKind.InvocationExpression, Type: System.Int64) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -774,7 +774,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.UInt64) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.UInt64) (OperationKind.InvocationExpression, Type: System.UInt64) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -796,7 +796,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.DecimalPlus) (OperationKind.UnaryOperatorExpression, Type: System.Decimal) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Decimal) (OperationKind.InvocationExpression, Type: System.Decimal) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -818,7 +818,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryOperatorExpression, Type: System.Single) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Single) (OperationKind.InvocationExpression, Type: System.Single) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -840,7 +840,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryOperatorExpression, Type: System.Double) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Double) (OperationKind.InvocationExpression, Type: System.Double) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -862,7 +862,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.ObjectPlus) (OperationKind.UnaryOperatorExpression, Type: System.Object) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Object) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -884,7 +884,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.SByte) (Syntax: '-Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.SByte) (OperationKind.InvocationExpression, Type: System.SByte) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -906,7 +906,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int16) (Syntax: '-Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Int16) (OperationKind.InvocationExpression, Type: System.Int16) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -928,7 +928,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -950,7 +950,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int64) (Syntax: '-Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Int64) (OperationKind.InvocationExpression, Type: System.Int64) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -972,7 +972,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.DecimalMinus) (OperationKind.UnaryOperatorExpression, Type: System.Decimal) (Syntax: '-Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Decimal) (OperationKind.InvocationExpression, Type: System.Decimal) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -994,7 +994,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.UnaryOperatorExpression, Type: System.Single) (Syntax: '-Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Single) (OperationKind.InvocationExpression, Type: System.Single) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1016,7 +1016,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.UnaryOperatorExpression, Type: System.Double) (Syntax: '-Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Double) (OperationKind.InvocationExpression, Type: System.Double) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1038,7 +1038,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.ObjectMinus) (OperationKind.UnaryOperatorExpression, Type: System.Object) (Syntax: '-Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Object) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1060,7 +1060,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.SByte) (Syntax: 'Not Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.SByte) (OperationKind.InvocationExpression, Type: System.SByte) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1082,7 +1082,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Byte) (Syntax: 'Not Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Byte) (OperationKind.InvocationExpression, Type: System.Byte) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1104,7 +1104,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int16) (Syntax: 'Not Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Int16) (OperationKind.InvocationExpression, Type: System.Int16) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1126,7 +1126,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.UInt16) (Syntax: 'Not Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.UInt16) (OperationKind.InvocationExpression, Type: System.UInt16) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1148,7 +1148,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: 'Not Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1170,7 +1170,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.UInt32) (Syntax: 'Not Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.UInt32) (OperationKind.InvocationExpression, Type: System.UInt32) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1192,7 +1192,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int64) (Syntax: 'Not Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Int64) (OperationKind.InvocationExpression, Type: System.Int64) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1214,7 +1214,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.UInt64) (Syntax: 'Not Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.UInt64) (OperationKind.InvocationExpression, Type: System.UInt64) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1236,7 +1236,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.BooleanBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'Not Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Boolean) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1258,7 +1258,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.ObjectNot) (OperationKind.UnaryOperatorExpression, Type: System.Object) (Syntax: 'Not Method()')
   Operand: IInvocationExpression ( Function A.Method() As System.Object) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1283,10 +1283,12 @@ B
 End Enum
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: E) (Syntax: '+i')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E) (Syntax: '+i')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '+i')
-      Operand: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'i')
+      Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'i')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: E) (Syntax: 'i')
 ]]>.Value
 
@@ -1308,10 +1310,12 @@ B
 End Enum
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: E) (Syntax: '-i')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E) (Syntax: '-i')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-i')
-      Operand: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'i')
+      Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'i')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: E) (Syntax: 'i')
 ]]>.Value
 
@@ -1333,7 +1337,7 @@ B
 End Enum
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: E) (Syntax: 'Not i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: E) (Syntax: 'i')
 ]]>.Value
@@ -1356,10 +1360,12 @@ B
 End Enum
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: E) (Syntax: '+Method()')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E) (Syntax: '+Method()')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '+Method()')
-      Operand: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'Method()')
+      Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'Method()')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: IInvocationExpression ( Function A.Method() As E) (OperationKind.InvocationExpression, Type: E) (Syntax: 'Method()')
               Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
               Arguments(0)
@@ -1383,10 +1389,12 @@ B
 End Enum
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: E) (Syntax: '-Method()')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E) (Syntax: '-Method()')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-Method()')
-      Operand: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'Method()')
+      Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'Method()')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: IInvocationExpression ( Function A.Method() As E) (OperationKind.InvocationExpression, Type: E) (Syntax: 'Method()')
               Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
               Arguments(0)
@@ -1410,7 +1418,7 @@ B
 End Enum
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: E) (Syntax: 'Not Method()')
   Operand: IInvocationExpression ( Function A.Method() As E) (OperationKind.InvocationExpression, Type: E) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1446,7 +1454,7 @@ End CLass
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodPlus) (OperatorMethod: Function CustomType.op_UnaryPlus(x As CustomType) As CustomType) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType) (Syntax: 'i')
 ]]>.Value
@@ -1480,7 +1488,7 @@ End CLass
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperatorMethod: Function CustomType.op_UnaryNegation(x As CustomType) As CustomType) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType) (Syntax: 'i')
 ]]>.Value
@@ -1514,7 +1522,7 @@ End CLass
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodBitwiseNegation) (OperatorMethod: Function CustomType.op_OnesComplement(x As CustomType) As CustomType) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: 'Not i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType) (Syntax: 'i')
 ]]>.Value
@@ -1548,7 +1556,7 @@ End CLass
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodPlus) (OperatorMethod: Function CustomType.op_UnaryPlus(x As CustomType) As CustomType) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Function A.Method() As CustomType) (OperationKind.InvocationExpression, Type: CustomType) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1584,7 +1592,7 @@ End CLass
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperatorMethod: Function CustomType.op_UnaryNegation(x As CustomType) As CustomType) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: '-Method()')
   Operand: IInvocationExpression ( Function A.Method() As CustomType) (OperationKind.InvocationExpression, Type: CustomType) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1620,7 +1628,7 @@ End CLass
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodBitwiseNegation) (OperatorMethod: Function CustomType.op_OnesComplement(x As CustomType) As CustomType) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: 'Not Method()')
   Operand: IInvocationExpression ( Function A.Method() As CustomType) (OperationKind.InvocationExpression, Type: CustomType) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1663,7 +1671,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If x AndAls ... End If')
   Condition: IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodTrue) (OperatorMethod: Function CustomType.op_True(x As CustomType) As System.Boolean) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'x AndAlso y')
       Operand: IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodConditionalAnd) (OperatorMethod: Function CustomType.op_BitwiseAnd(x As CustomType, y As CustomType) As CustomType) (OperationKind.BinaryOperatorExpression, Type: CustomType) (Syntax: 'x AndAlso y')
@@ -1709,7 +1717,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If x OrElse ... End If')
   Condition: IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodTrue) (OperatorMethod: Function CustomType.op_True(x As CustomType) As System.Boolean) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'x OrElse y')
       Operand: IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodConditionalAnd) (OperatorMethod: Function CustomType.op_BitwiseOr(x As CustomType, y As CustomType) As CustomType) (OperationKind.BinaryOperatorExpression, Type: CustomType) (Syntax: 'x OrElse y')
@@ -1737,8 +1745,9 @@ End CLass
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: CustomType, IsInvalid) (Syntax: '+i')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: CustomType, IsInvalid) (Syntax: '+i')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType, IsInvalid) (Syntax: 'i')
 ]]>.Value
@@ -1766,9 +1775,10 @@ Public Class DerivedType
     Inherits BaseType
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodPlus) (OperatorMethod: Function BaseType.op_UnaryPlus(x As BaseType) As BaseType) (OperationKind.UnaryOperatorExpression, Type: BaseType) (Syntax: '+i')
-  Operand: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: BaseType) (Syntax: 'i')
+  Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: BaseType) (Syntax: 'i')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType) (Syntax: 'i')
 ]]>.Value
 
@@ -1797,8 +1807,9 @@ Public Class DerivedType
     End Operator
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: BaseType, IsInvalid) (Syntax: '+i')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: BaseType, IsInvalid) (Syntax: '+i')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType, IsInvalid) (Syntax: 'i')
 ]]>.Value
@@ -1828,8 +1839,9 @@ Public Class DerivedType
     End Operator
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: BaseType, IsInvalid) (Syntax: '+i')
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: BaseType, IsInvalid) (Syntax: '+i')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType, IsInvalid) (Syntax: 'i')
 ]]>.Value
@@ -1854,7 +1866,8 @@ Public Class BaseType
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: BaseType, IsInvalid) (Syntax: '+i')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: BaseType, IsInvalid) (Syntax: '+i')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: BaseType, IsInvalid) (Syntax: 'i')
 ]]>.Value
