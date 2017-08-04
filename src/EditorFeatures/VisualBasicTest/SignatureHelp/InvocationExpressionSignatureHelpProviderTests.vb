@@ -1900,5 +1900,25 @@ End Class
 
             Await TestAsync(markup, {New SignatureHelpTestItem("List(Of Integer).Add(item As Integer)")})
         End Function
+
+        <WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestInvocationOnMeExpression_Constructor() As Task
+            Dim markup = <a><![CDATA[
+Imports System
+Public Class A
+    Public Sub New()
+        [|Me.New($$
+    |]End Sub
+    Public Sub New(x As Integer)
+    End Sub
+End Class
+]]></a>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("A.New(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
     End Class
 End Namespace
