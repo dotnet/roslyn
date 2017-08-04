@@ -7221,6 +7221,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void ConditionalAccessOffReadOnlyNullable1()
         {
             var source = @"

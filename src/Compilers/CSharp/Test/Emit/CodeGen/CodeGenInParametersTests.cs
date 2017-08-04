@@ -173,6 +173,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void InParamPassRoField()
         {
             var text = @"
@@ -1099,6 +1100,7 @@ public struct S1
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void ReadonlyParamAsyncSpillReadOnlyStructThis()
         {
             var text = @"
@@ -1200,6 +1202,7 @@ public readonly struct S1
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void ReadonlyParamAsyncSpillReadOnlyStructThis_NoValCapture()
         {
             var text = @"

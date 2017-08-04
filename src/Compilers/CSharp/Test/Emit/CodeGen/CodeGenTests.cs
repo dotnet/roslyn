@@ -11973,6 +11973,7 @@ class B<T> : A<T>
         #endregion
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void MutateReadonlyNested()
         {
             string source = @"
@@ -12090,6 +12091,8 @@ struct MyManagedStruct
 ");
         }
 
+        [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void MutateReadonlyNested1()
         {
             string source = @"

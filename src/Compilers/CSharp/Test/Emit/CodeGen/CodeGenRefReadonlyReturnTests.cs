@@ -408,6 +408,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void ReadonlyFieldCanReturnByRefReadonly()
         {
             var text = @"

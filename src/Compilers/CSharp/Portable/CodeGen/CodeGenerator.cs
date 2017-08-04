@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return _module.Compilation.Options.DebugPlusMode;
         }
 
-        private bool IsPEVerifyCompatible()
+        private bool EnablePEVerifyCompat()
         {
             return _module.Compilation.FeaturePEVerifyCompatEnabled;
         }

@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
-            if (!needWriteable && !IsPEVerifyCompatible())
+            if (!needWriteable && !EnablePEVerifyCompat())
             {
                 return true;
             }
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // it would be advantageous to make a temp for the field, not for the the outer struct, since the field is smaller and we can get to is by feching references.
                 // NOTE: this would not be profitable if we have to satisfy verifier, since for verifiability 
                 //       we would not be able to dig for the inner field using references and the outer struct will have to be copied to a temp anyways.
-                if (!IsPEVerifyCompatible())
+                if (!EnablePEVerifyCompat())
                 {
                     Debug.Assert(needWriteable == true);
 

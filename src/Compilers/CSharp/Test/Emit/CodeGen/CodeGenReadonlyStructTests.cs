@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenReadOnlyStructTests : CompilingTestBase
     {
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void InvokeOnReadOnlyStaticField()
         {
             var text = @"
@@ -81,6 +82,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void InvokeOnReadOnlyStaticFieldMetadata()
         {
             var text1 = @"
@@ -151,6 +153,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void InvokeOnReadOnlyInstanceField()
         {
             var text = @"
@@ -220,6 +223,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void InvokeOnReadOnlyInstanceFieldGeneric()
         {
             var text = @"
@@ -294,6 +298,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void InvokeOnReadOnlyInstanceFieldGenericMetadata()
         {
             var text1 = @"

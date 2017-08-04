@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // this does not need to be writeable
                     // we may call "HasValue" on this, but it is not mutating 
                     // (however verification does not know that and considers all calls mutating)
-                    var addressKind = IsPEVerifyCompatible()? 
+                    var addressKind = EnablePEVerifyCompat()? 
                                             AddressKind.Writeable: 
                                             AddressKind.ReadOnly;
 
