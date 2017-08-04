@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                         <Document FilePath="Test1.vb">
                             public class Class1
                             {
-                                public void Foo()
+                                public void Goo()
                                 {
                                     var x = new Cl$$ass2();
                                 }
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
 
                             public class Class1
                             {
-                                public void Foo()
+                                public void Goo()
                                 {
                                     var x = new Class2();
                                 }
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                         <ProjectReference>CSAssembly1</ProjectReference>
                         <Document FilePath="Test1.vb">
                             public class Class1
-                                public sub Foo()
+                                public sub Goo()
                                     dim x as new Cl$$ass2()
                                 end sub
                             end class
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                             Imports NS2
 
                             Public Class Class1
-                                Public Sub Foo()
+                                Public Sub Goo()
                                     Dim x As New Class2()
                                 End Sub
                             End Class

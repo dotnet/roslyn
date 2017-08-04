@@ -87,8 +87,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 project.Disconnect()
             Next
 
+            _projectTracker.OnAfterCloseSolution()
             _workspace.Dispose()
-            _projectTracker.Dispose()
 
             For Each filePath In _projectFilePaths
                 File.Delete(filePath)
@@ -216,8 +216,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 _workspace.OnAdditionalDocumentClosed(documentId, loader)
             End Sub
 
-            Public Sub OnAdditionalDocumentOpened(documentId As DocumentId, textBuffer As ITextBuffer) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentOpened
-                _workspace.OnAdditionalDocumentOpened(documentId, textBuffer.AsTextContainer())
+            Public Sub OnAdditionalDocumentOpened(documentId As DocumentId, textBuffer As ITextBuffer, isCurrentContext As Boolean) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentOpened
+                _workspace.OnAdditionalDocumentOpened(documentId, textBuffer.AsTextContainer(), isCurrentContext)
             End Sub
 
             Public Sub OnAdditionalDocumentRemoved(additionalDocument As DocumentId) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentRemoved

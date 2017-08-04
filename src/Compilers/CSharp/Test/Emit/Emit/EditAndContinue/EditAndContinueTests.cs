@@ -5769,6 +5769,7 @@ class C
 }");
         }
 
+        /// <summary>
         /// Local names array (from PDB) may have fewer slots than method
         /// signature (from metadata) when the trailing slots are unnamed.
         /// </summary>
@@ -7071,7 +7072,7 @@ class C
 {
     static void F()
     {
-        string foo = ""abc"";
+        string goo = ""abc"";
     }
 }";
             var source1 =
@@ -7079,7 +7080,7 @@ class C
 {
     static void F()
     {
-        float foo = 10;
+        float goo = 10;
     }
 }";
             var source2 =
@@ -7087,7 +7088,7 @@ class C
 {
     static void F()
     {
-        bool foo = true;
+        bool goo = true;
     }
 }";
             var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
@@ -7283,7 +7284,7 @@ public class B
             var source0 = @"
 public class C
 {    
-    public static void F(dynamic d) { d.Foo(); }
+    public static void F(dynamic d) { d.Goo(); }
 }";
             var source1 = @"
 public class C
@@ -7406,10 +7407,9 @@ class C
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
-            // TODO: better error code
             diff1.EmitResult.Diagnostics.Verify(
                 // (6,14): error CS7038: Failed to emit module 'Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null''.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure, "F").WithArguments("Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_InvalidDebugInfo, "F").WithArguments("C.F()", "100663297", "PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 14));
         }
 
         [Fact]

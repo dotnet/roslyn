@@ -397,7 +397,7 @@ Imports System.Reflection
 Imports System.Runtime.InteropServices
 
 <Assembly:Guid("11111111-1111-1111-1111-111111111111")>
-<Assembly:ImportedFromTypeLib("Foo")>
+<Assembly:ImportedFromTypeLib("Goo")>
 <Assembly:TypeLibVersion(1, 0)>
 
 Namespace N

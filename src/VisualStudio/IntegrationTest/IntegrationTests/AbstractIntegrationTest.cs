@@ -26,12 +26,23 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         public void Dispose()
-            => _visualStudioContext.Dispose();
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         protected void Wait(double seconds)
         {
             var timeout = TimeSpan.FromMilliseconds(seconds * 1000);
             Thread.Sleep(timeout);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _visualStudioContext.Dispose();
+            }
         }
 
         protected KeyPress Ctrl(VirtualKey virtualKey)

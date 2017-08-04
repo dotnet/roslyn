@@ -1,31 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{73242A2D-6300-499D-8C15-FADF7ECB185C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <!-- Package Microsoft.VisualStudio.Debugger.Engine 15.0.26201-gamma is not compatible with netstandard1.3 -->
-    <PackageTargetFallback>portable-net46</PackageTargetFallback>
-    <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Source\ExpressionCompiler\ExpressionCompiler.csproj">
-      <Project>{b8da3a90-a60c-42e3-9d8e-6c67b800c395}</Project>
-      <Name>ExpressionCompiler</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\..\Core\Source\ExpressionCompiler\ExpressionCompiler.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -39,57 +26,14 @@
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.ProductionBreakpoints.CodeAnalysis" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Binders\EENamedTypeBinder.vb" />
-    <Compile Include="Binders\ParametersAndLocalsBinder.vb" />
-    <Compile Include="Binders\SuppressDiagnosticsBinder.vb" />
-    <Compile Include="CompilationContext.vb" />
-    <Compile Include="CompilationExtensions.vb" />
-    <Compile Include="VisualBasicEESymbolProvider.vb" />
-    <Compile Include="EETypeNameDecoder.vb" />
-    <Compile Include="EEAssemblyBuilder.vb" />
-    <Compile Include="EvaluationContext.vb" />
-    <Compile Include="Resources.Designer.vb">
+    <Compile Update="Resources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Rewriters\CapturedVariableRewriter.vb" />
-    <Compile Include="Rewriters\LocalDeclarationRewriter.vb" />
-    <Compile Include="Rewriters\MayHaveSideEffectsVisitor.vb" />
-    <Compile Include="Rewriters\PlaceholderLocalRewriter.vb" />
-    <Compile Include="SymbolExtensions.vb" />
-    <Compile Include="Symbols\DisplayClassInstance.vb" />
-    <Compile Include="Symbols\EEDisplayClassFieldLocalSymbol.vb" />
-    <Compile Include="Symbols\EELocalConstantSymbol.vb" />
-    <Compile Include="Symbols\EELocalSymbol.vb" />
-    <Compile Include="Symbols\DisplayClassVariable.vb" />
-    <Compile Include="Symbols\EELocalSymbolBase.vb" />
-    <Compile Include="Symbols\EEConstructorSymbol.vb" />
-    <Compile Include="Symbols\EEMethodSymbol.vb" />
-    <Compile Include="Symbols\EENamedTypeSymbol.vb" />
-    <Compile Include="Symbols\EEStaticLocalSymbol.vb" />
-    <Compile Include="Symbols\EETypeParameterSymbol.vb" />
-    <Compile Include="Symbols\ObjectIdLocalSymbol.vb" />
-    <Compile Include="Symbols\PlaceholderMethodSymbol.vb" />
-    <Compile Include="Binders\PlaceholderLocalBinder.vb" />
-    <Compile Include="Symbols\PlaceholderLocalSymbol.vb" />
-    <Compile Include="Symbols\ExceptionLocalSymbol.vb" />
-    <Compile Include="Symbols\ReturnValueLocalSymbol.vb" />
-    <Compile Include="Symbols\SimpleTypeParameterSymbol.vb" />
-    <Compile Include="Symbols\SynthesizedContextMethodSymbol.vb" />
-    <Compile Include="Symbols\TypeSubstitutionExtensions.vb" />
-    <Compile Include="SyntaxHelpers.vb" />
-    <Compile Include="TypeParameterChecker.vb" />
-    <Compile Include="VisualBasicCompileResult.vb" />
-    <Compile Include="VisualBasicLocalAndMethod.vb" />
-    <Compile Include="VisualBasicMetadataContext.vb" />
-    <Compile Include="VisualBasicExpressionCompiler.vb" />
-    <Compile Include="VisualBasicFrameDecoder.vb" />
-    <Compile Include="VisualBasicInstructionDecoder.vb" />
-    <Compile Include="VisualBasicLanguageInstructionDecoder.vb" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
+    <EmbeddedResource Update="Resources.resx">
       <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>

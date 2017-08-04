@@ -339,14 +339,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 case SymbolKind.NamedType:
                     var typeSymbol = (INamedTypeSymbol)symbol;
-                    if (typeSymbol != null && typeSymbol.IsGenericType)
+                    if (typeSymbol.IsGenericType)
                     {
                         // Symbol.name does not contain type params for generic types, so we populate them here for some requiring cases like VS properties panel.
                         node.Label = (string)node[RoslynGraphProperties.FormattedLabelWithoutContainingSymbol];
 
                         // Some consumers like CodeMap want to show types in an unified way for both C# and VB.
                         // Therefore, populate a common label property using only name and its type parameters.
-                        // For example, VB's "Foo(Of T)" or C#'s "Foo<T>(): T" will be shown as "Foo<T>".
+                        // For example, VB's "Goo(Of T)" or C#'s "Goo<T>(): T" will be shown as "Goo<T>".
                         // This property will be used for drag-and-drop case.
                         var commonLabel = new System.Text.StringBuilder();
                         commonLabel.Append(typeSymbol.Name);
@@ -388,8 +388,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 case SymbolKind.Property:
                     node.Label = symbol.MetadataName;
 
-                    var propertySymbol = symbol as IPropertySymbol;
-                    if (propertySymbol != null && propertySymbol.IsIndexer && LanguageNames.CSharp == propertySymbol.Language)
+                    var propertySymbol = (IPropertySymbol)symbol;
+                    if (propertySymbol.IsIndexer && LanguageNames.CSharp == propertySymbol.Language)
                     {
                         // For C# indexer, we will strip off the "[]"
                         node.Label = symbol.Name.Replace("[]", string.Empty);

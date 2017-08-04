@@ -1101,7 +1101,7 @@ class Test
 class Test
 {
     private object syncroot = new object();
-    public void foo()
+    public void goo()
     {
         lock (syncroot)
         {
@@ -1112,7 +1112,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.foo", @"
+            CompileAndVerify(text).VerifyIL("Test.goo", @"
 {
   // Code size       57 (0x39)
   .maxstack  2
@@ -1209,7 +1209,7 @@ class Test
 {
     public static void Main()
     { }
-    public IEnumerable<int> Foo()
+    public IEnumerable<int> Goo()
     {
         lock (new object())
         {
@@ -1846,7 +1846,7 @@ class C
         System.Threading.Thread[] t = new System.Threading.Thread[20];
         for (int i = 0; i < 20; i++)
         {
-            t[i] = new System.Threading.Thread(p.foo);
+            t[i] = new System.Threading.Thread(p.goo);
             t[i].Start();
         }
         for (int i = 0; i < 20; i++)
@@ -1861,7 +1861,7 @@ class D
 {
     private object syncroot = new object();
     public int s;
-    public void foo()
+    public void goo()
     {
         lock (syncroot)
         {

@@ -30,18 +30,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestRoundTripSyntaxNode()
-            RoundTrip(<Foo>
+            RoundTrip(<Goo>
 Public Class C
 End Class
-</Foo>.Value)
+</Goo>.Value)
         End Sub
 
         <Fact>
         Public Sub TestRoundTripSyntaxNodeWithDiagnostics()
-            Dim text = <Foo>
+            Dim text = <Goo>
 Public Class C
 End 
-</Foo>.Value
+</Goo>.Value
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim root = tree.GetVisualBasicRoot()
             Assert.True(root.HasErrors)
@@ -61,10 +61,10 @@ End
 
         <Fact>
         Public Sub TestRoundTripSyntaxNodeWithAnnotation()
-            Dim text = <Foo>
+            Dim text = <Goo>
 Public Class C
 End Class
-</Foo>.Value
+</Goo>.Value
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim annotation = New SyntaxAnnotation()
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation)
@@ -87,10 +87,10 @@ End Class
 
         <Fact>
         Public Sub TestRoundTripSyntaxNodeWithMultipleInstancesOfTheSameAnnotation()
-            Dim text = <Foo>
+            Dim text = <Goo>
 Public Class C
 End Class
-</Foo>.Value
+</Goo>.Value
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim annotation = New SyntaxAnnotation()
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation, annotation)
@@ -113,10 +113,10 @@ End Class
 
         <Fact>
         Public Sub RoundTripSyntaxNodeWithAnnotationsRemoved()
-            Dim text = <Foo>
+            Dim text = <Goo>
 Public Class C
 End Class
-</Foo>.Value
+</Goo>.Value
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim annotation1 = New SyntaxAnnotation("annotation1")
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation1)
@@ -161,10 +161,10 @@ End Class
 
         <Fact>
         Public Sub RoundTripSyntaxNodeWithAnnotationRemovedWithMultipleReference()
-            Dim text = <Foo>
+            Dim text = <Goo>
 Public Class C
 End Class
-</Foo>.Value
+</Goo>.Value
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim annotation1 = New SyntaxAnnotation("annotation1")
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation1, annotation1)
@@ -187,10 +187,10 @@ End Class
 
         <Fact()>
         Public Sub TestRoundTripSyntaxNodeWithSpecialAnnotation()
-            Dim text = <Foo>
+            Dim text = <Goo>
 Public Class C
 End Class
-</Foo>.Value
+</Goo>.Value
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim annotation = New SyntaxAnnotation("TestAnnotation", "this is a test")
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation)
@@ -219,7 +219,7 @@ End Class
         <ConditionalFact(GetType(x86))>
         <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
         Public Sub RoundtripSerializeDeepExpression()
-            Dim text = <Foo><![CDATA[
+            Dim text = <Goo><![CDATA[
 Module Module15
     Declare Function GetDesktopWindow Lib "User32" () As Integer
     Declare Function EnumChildWindows Lib "User32" (ByVal hw As Integer, ByVal lpWndProc As mydel, ByVal lp As Integer) As Integer
@@ -419,31 +419,31 @@ Module Module15
     End Sub
 End Module
 ]]>
-                       </Foo>.Value
+                       </Goo>.Value
             RoundTrip(text, expectRecursive:=False)
         End Sub
 
         <Fact>
         <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
         Public Sub RoundtripSerializeDeepExpression2()
-            Dim text = <Foo><![CDATA[
+            Dim text = <Goo><![CDATA[
 Module GroupJoin2
     Sub Test1()
         q = From a In aa Group Join b As $ In bb On a Equals b
     End Sub
 End Module
 ]]>
-                       </Foo>.Value
+                       </Goo>.Value
             RoundTrip(text)
         End Sub
 
         <Fact>
         <WorkItem(1038237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038237")>
         Public Sub RoundTripPragmaDirective()
-            Dim text = <Foo><![CDATA[
+            Dim text = <Goo><![CDATA[
 #Disable Warning BC40000
 ]]>
-                       </Foo>.Value
+                       </Goo>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim root = tree.GetRoot()

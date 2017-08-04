@@ -17,8 +17,9 @@
     <tags>VSSDK</tags>
   </metadata>
   <files>
-    <file src="$debuggerPath$\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll" target="lib\net20" />
-    <file src="$debuggerPath$\v4.5\Microsoft.VisualStudio.Debugger.Engine.dll" target="lib\net45" />
-    <file src="$debuggerPath$\portable\Microsoft.VisualStudio.Debugger.Engine.dll" target="lib\portable-net45+win8" />
+    <file src="$debuggerPath$\ref\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll" target="ref\net20" />
+    <file src="$debuggerPath$\ref\v4.5\Microsoft.VisualStudio.Debugger.Engine.dll" target="ref\net45" />
+    <file src="$debuggerPath$\ref\portable\Microsoft.VisualStudio.Debugger.Engine.dll" target="ref\netstandard1.3" />
+    <file src="$debuggerPath$\lib\net45\Microsoft.VisualStudio.Debugger.Engine.dll" target="lib\net45" />
   </files>
 </package>

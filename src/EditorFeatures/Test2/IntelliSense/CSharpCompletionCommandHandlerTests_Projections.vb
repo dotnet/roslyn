@@ -40,7 +40,7 @@ public override void Execute() {
 {|S2:
 class C
 {
-    void Foo()
+    void Goo()
     {
         System$$
     }
@@ -79,7 +79,7 @@ class C
 {|S2:
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s = new$$
     }
@@ -116,7 +116,7 @@ class C
 {|S2:
 class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }

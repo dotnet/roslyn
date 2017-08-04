@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             ' We have to be careful here: just because the Lambda's End isn't missing doesn't mean we shouldn't spit a
             ' End Sub / End Function. A good example is an unterminated multi-line sub in a sub, like this:
             '
-            ' Sub foo()
+            ' Sub goo()
             '    Dim x = Sub()
             ' End Sub
             '

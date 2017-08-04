@@ -36,14 +36,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 deletedChar = viewBufferCaretPoint.Position >= 0 && viewBufferCaretPoint.Position < textView.TextBuffer.CurrentSnapshot.Length
                     ? textView.TextBuffer.CurrentSnapshot[viewBufferCaretPoint.Position]
-                    : default(char?);
+                    : default;
             }
             else
             {
                 // backspace
                 deletedChar = viewBufferCaretPoint > 0
                     ? textView.TextBuffer.CurrentSnapshot[viewBufferCaretPoint - 1]
-                    : default(char?);
+                    : default;
             }
 
             if (sessionOpt == null)

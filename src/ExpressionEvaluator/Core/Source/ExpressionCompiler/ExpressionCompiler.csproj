@@ -1,65 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{B8DA3A90-A60C-42E3-9D8E-6C67B800C395}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <!-- Package Microsoft.VisualStudio.Debugger.Engine 15.0.26201-gamma is not compatible with netstandard1.3 -->
-    <PackageTargetFallback>portable-net46</PackageTargetFallback>
     <DefineConstants>$(DefineConstants);EXPRESSIONCOMPILER</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
       <Link>Shared\DateTimeUtilities.cs</Link>
     </Compile>
-    <Compile Include="AssemblyReaders.cs" />
-    <Compile Include="AssemblyReference.cs" />
-    <Compile Include="CustomTypeInfo.cs" />
-    <Compile Include="DebuggerDiagnosticFormatter.cs" />
-    <Compile Include="DynamicFlagsCustomTypeInfo.cs" />
-    <Compile Include="EESymbolProvider.cs" />
-    <Compile Include="ILSpan.cs" />
-    <Compile Include="MetadataUtilities_Exceptions.cs" />
-    <Compile Include="NotImplementedMetadataException.cs" />
-    <Compile Include="PDB\MethodDebugInfo.Native.cs" />
-    <Compile Include="PDB\MethodDebugInfo.Portable.cs" />
-    <Compile Include="Placeholders.cs" />
-    <Compile Include="ImmutableArrayExtensions.cs" />
-    <Compile Include="CompileResult.cs" />
-    <Compile Include="FrameDecoder.cs" />
-    <Compile Include="InstructionDecoder.cs" />
-    <Compile Include="LanguageInstructionDecoder.cs" />
-    <Compile Include="PDB\HoisedLocalScopeRecord.cs" />
-    <Compile Include="PDB\ExternAliasRecord.cs" />
-    <Compile Include="PDB\MethodDebugInfo.cs" />
-    <Compile Include="PDB\ImportRecord.cs" />
-    <Compile Include="PDB\PdbHelpers.cs" />
-    <Compile Include="ResultProperties.cs" />
-    <Compile Include="ExpressionCompilerUtilities.cs" />
-    <Compile Include="ExpressionEvaluatorFatalError.cs" />
-    <Compile Include="EvaluationContextBase.cs" />
-    <Compile Include="ExpressionCompiler.cs" />
-    <Compile Include="ExpressionCompilerConstants.cs" />
-    <Compile Include="DkmUtilities.cs" />
-    <Compile Include="LocalAndMethod.cs" />
-    <Compile Include="MetadataBlock.cs" />
-    <Compile Include="MetadataUtilities.cs" />
-    <Compile Include="AbstractTypeParameterChecker.cs" />
-    <Compile Include="MethodContextReuseConstraints.cs" />
-    <Compile Include="PseudoVariableUtilities.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

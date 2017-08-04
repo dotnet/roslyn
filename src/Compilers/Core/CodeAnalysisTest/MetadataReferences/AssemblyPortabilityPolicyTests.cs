@@ -165,8 +165,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // ok, but no configuration:
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
-<foo>
-</foo>
+<goo>
+</goo>
 ");
             AssertIsEnabled(appConfig.Path, platform: true, nonPlatform: true);
 
@@ -192,14 +192,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
-  <foo/>
+  <goo/>
   <runtime>
-    <foo/>
+    <goo/>
     <assemblyBinding>
     </assemblyBinding>    
-    <foo/>
+    <goo/>
   </runtime>
-  <foo/>
+  <goo/>
 </configuration>
 ");
             AssertIsEnabled(appConfig.Path, platform: true, nonPlatform: true);
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 <configuration>
   <runtime>
     <assemblyBinding xmlns=""urn:schemas-microsoft-com:asm.v1"">
-       <supportPortability PKT=""7cec85d7bea7798e"" foo=""false""/> <!-- platform -->
+       <supportPortability PKT=""7cec85d7bea7798e"" goo=""false""/> <!-- platform -->
        <supportPortability pkt=""7cec85d7bea7798e"" enable=""false""/> <!-- platform -->
        <supportPortability PKT=""31bf3856ad364e35"" Enable=""false""/> <!-- nonplatform -->
        <supportPortability enable=""false""/> <!-- platform -->
@@ -347,14 +347,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
-  <foo>
+  <goo>
     <runtime>
       <assemblyBinding xmlns=""urn:schemas-microsoft-com:asm.v1"">
          <supportPortability PKT=""7cec85d7bea7798e"" enable=""true""/> <!-- platform -->
          <supportPortability PKT=""31bf3856ad364e35"" enable=""false""/> <!-- nonplatform -->
       </assemblyBinding>
     </runtime>
-  </foo>
+  </goo>
 </configuration>
 ");
             AssertIsEnabled(appConfig.Path, platform: true, nonPlatform: true);
@@ -367,11 +367,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
-  <foo>
+  <goo>
     <runtime>
       <assemblyBinding xmlns=""urn:schemas-microsoft-com:asm.v1"" />
     </runtime>
-  </foo>
+  </goo>
 </configuration>
 ");
             AssertIsEnabled(appConfig.Path, platform: true, nonPlatform: true);

@@ -46,7 +46,12 @@ Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic11 = 11 -> Microso
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic12 = 12 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic14 = 14 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_3 = 1503 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic9 = 9 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> String
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(version As String, ByRef result As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.LocalizableErrorArgument
 Microsoft.CodeAnalysis.VisualBasic.LocalizableErrorArgument.ToString_IFormattable(format As String, formatProvider As System.IFormatProvider) -> String
 Microsoft.CodeAnalysis.VisualBasic.OptionStrict
@@ -2427,6 +2432,7 @@ Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.NormalizeWhitespace(token As
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.NormalizeWhitespace(token As Microsoft.CodeAnalysis.SyntaxToken, indentation As String, elasticTrivia As Boolean) -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.NormalizeWhitespace(trivia As Microsoft.CodeAnalysis.SyntaxTriviaList, indentation As String = "    ", eol As String = vbCrLf, elasticTrivia As Boolean = False, useDefaultCasing As Boolean = False) -> Microsoft.CodeAnalysis.SyntaxTriviaList
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.ToSyntaxTriviaList(sequence As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTrivia)) -> Microsoft.CodeAnalysis.SyntaxTriviaList
+Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.TryGetInferredMemberName(syntax As Microsoft.CodeAnalysis.SyntaxNode) -> String
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.Type(asClauseSyntax As Microsoft.CodeAnalysis.VisualBasic.Syntax.AsClauseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.Type(newExpressionSyntax As Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.WithIdentifier(simpleName As Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleNameSyntax, identifier As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleNameSyntax
@@ -2537,6 +2543,7 @@ Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.CompilationUnit = 38 -> Microsoft.
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.ConcatenateAssignmentStatement = 259 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.ConcatenateExpression = 317 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.ConditionalAccessExpression = 713 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
+Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.ConflictMarkerTrivia = 792 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.ConstDirectiveTrivia = 736 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.ConstKeyword = 441 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.ConstructorBlock = 81 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
@@ -4852,6 +4859,7 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ConcatenateExpression(le
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ConditionalAccessExpression(expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax, questionMarkToken As Microsoft.CodeAnalysis.SyntaxToken, whenNotNull As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ConditionalAccessExpressionSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ConditionalAccessExpression(expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax, whenNotNull As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ConditionalAccessExpressionSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ConditionalAccessExpression(whenNotNull As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ConditionalAccessExpressionSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ConflictMarkerTrivia(text As String) -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ConstDirectiveTrivia(hashToken As Microsoft.CodeAnalysis.SyntaxToken, constKeyword As Microsoft.CodeAnalysis.SyntaxToken, name As Microsoft.CodeAnalysis.SyntaxToken, equalsToken As Microsoft.CodeAnalysis.SyntaxToken, value As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ConstDirectiveTriviaSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ConstDirectiveTrivia(name As Microsoft.CodeAnalysis.SyntaxToken, value As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ConstDirectiveTriviaSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ConstDirectiveTrivia(name As String, value As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ConstDirectiveTriviaSyntax
@@ -5924,6 +5932,7 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsRelationalCaseClause(kin
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsRelationalCaseClauseOperatorToken(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsRelationalOperator(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsReservedKeyword(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsReservedTupleElementName(elementName As String) -> Boolean
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsResumeStatement(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsSingleLineLambdaExpression(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsSpecialConstraint(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean

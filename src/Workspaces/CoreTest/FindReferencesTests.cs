@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
             return CreateSolution()
-                    .AddProject(pid, "foo", "foo", LanguageNames.CSharp)
+                    .AddProject(pid, "goo", "goo", LanguageNames.CSharp)
                     .AddMetadataReference(pid, MscorlibRef)
-                    .AddDocument(did, "foo.cs", SourceText.From(sourceText));
+                    .AddDocument(did, "goo.cs", SourceText.From(sourceText));
         }
 
         [Fact]
@@ -64,10 +64,10 @@ public class C {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
             var solution = CreateSolution()
-                           .AddProject(pid, "foo", "foo.dll", LanguageNames.CSharp)
+                           .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                            .AddMetadataReference(pid, MscorlibRef)
                            .AddMetadataReference(pid, ((PortableExecutableReference)MscorlibRef).WithAliases(new[] { "X" }))
-                           .AddDocument(did, "foo.cs", SourceText.From(text));
+                           .AddDocument(did, "goo.cs", SourceText.From(text));
 
             var project = solution.Projects.First();
             var symbol = (IFieldSymbol)(await project.GetCompilationAsync()).GetTypeByMetadataName("C").GetMembers("X").First();

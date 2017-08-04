@@ -619,7 +619,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return true;
             }
 
-            subjectBufferSpan = default(SnapshotSpan);
+            subjectBufferSpan = default;
             return false;
         }
 
@@ -634,7 +634,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return true;
             }
 
-            span = default(SnapshotSpan);
+            span = default;
             return false;
         }
     }

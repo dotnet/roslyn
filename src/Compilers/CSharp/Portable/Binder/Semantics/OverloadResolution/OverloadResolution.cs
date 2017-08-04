@@ -571,8 +571,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If the normal form is invalid and the expanded form is valid then obviously we prefer
         // the expanded form. However, there may be error-reporting situations where we
         // prefer to report the error on the expanded form rather than the normal form. 
-        // For example, if you have something like Foo<T>(params T[]) and a call
-        // Foo(1, "") then the error for the normal form is "too many arguments"
+        // For example, if you have something like Goo<T>(params T[]) and a call
+        // Goo(1, "") then the error for the normal form is "too many arguments"
         // and the error for the expanded form is "failed to infer T". Clearly the
         // expanded form error is better.
         private static bool PreferExpandedFormOverNormalForm(MemberAnalysisResult normalResult, MemberAnalysisResult expandedResult)
@@ -904,21 +904,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Consider the following case:
             // 
-            // interface IFoo { string ToString(); }
+            // interface IGoo { string ToString(); }
             // class C { public override string ToString() { whatever } }
-            // class D : C, IFoo 
+            // class D : C, IGoo 
             // { 
             //     public override string ToString() { whatever }
-            //     string IFoo.ToString() { whatever }
+            //     string IGoo.ToString() { whatever }
             // }
             // ...
-            // void M<U>(U u) where U : C, IFoo { u.ToString(); } // ???
+            // void M<U>(U u) where U : C, IGoo { u.ToString(); } // ???
             // ...
             // M(new D());
             //
             // What should overload resolution do on the call to u.ToString()?
             // 
-            // We will have IFoo.ToString and C.ToString (which is an override of object.ToString)
+            // We will have IGoo.ToString and C.ToString (which is an override of object.ToString)
             // in the candidate set. Does the rule apply to eliminate all interface methods?  NO.  The
             // rule only applies if the candidate set contains a method which originally came from a
             // class type other than object. The method C.ToString is the "slot" for
@@ -1782,8 +1782,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   argument is more specific and no type argument is less specific than the
             //   corresponding type argument in the other. 
 
-            var n1 = t1 as NamedTypeSymbol;
-            var n2 = t2 as NamedTypeSymbol;
+            var n1 = t1.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
+            var n2 = t2.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
             Debug.Assert(((object)n1 == null) == ((object)n2 == null));
 
             if ((object)n1 == null)

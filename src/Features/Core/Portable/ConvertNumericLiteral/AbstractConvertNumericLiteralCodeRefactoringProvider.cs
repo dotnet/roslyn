@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             var numericToken = await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start,
                 token => syntaxFacts.IsNumericLiteralExpression(token.Parent), cancellationToken).ConfigureAwait(false);
 
-            if (numericToken == default(SyntaxToken))
+            if (numericToken == default)
             {
                 return;
             }

@@ -1241,4 +1241,10 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Convert_If_to_Select_Case" xml:space="preserve">
     <value>Convert 'If' to 'Select Case'</value>
   </data>
+  <data name="Use_Is_Nothing_check" xml:space="preserve">
+    <value>Use 'Is Nothing' check</value>
+  </data>
+  <data name="Use_IsNot_Nothing_check" xml:space="preserve">
+    <value>Use 'IsNot Nothing' check</value>
+  </data>
 </root>
