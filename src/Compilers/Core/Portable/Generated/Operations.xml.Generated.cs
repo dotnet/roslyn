@@ -1221,7 +1221,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         public bool IsExplicitInCode { get; }
         public bool IsTryCast { get; }
         public bool IsChecked { get; }
-        public abstract string LanguageName { get; }
         public bool UsesOperatorMethod => Conversion.IsUserDefined;
         public IMethodSymbol OperatorMethod => Conversion.MethodSymbol;
         public override IEnumerable<IOperation> Children

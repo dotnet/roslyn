@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Conversion ConversionInternal { get; }
 
         public override CommonConversion Conversion => ConversionInternal.ToCommonConversion();
-
-        public override string LanguageName => LanguageNames.CSharp;
     }
 
     internal sealed partial class CSharpConversionExpression : BaseCSharpConversionExpression

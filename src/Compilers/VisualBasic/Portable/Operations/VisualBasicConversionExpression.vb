@@ -16,8 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ConversionInternal As Conversion
 
         Public Overrides ReadOnly Property Conversion As CommonConversion = ConversionInternal.ToCommonConversion()
-
-        Public Overrides ReadOnly Property LanguageName As String = LanguageNames.VisualBasic
     End Class
 
     Friend NotInheritable Class VisualBasicConversionExpression
