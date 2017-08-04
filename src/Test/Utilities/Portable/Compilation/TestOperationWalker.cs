@@ -260,7 +260,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation)
         {
             var syntheticLocalKind = operation.SyntheticLocalKind;
-            var containingStatement = operation.ContainingStatement;
 
             base.VisitSyntheticLocalReferenceExpression(operation);
         }
@@ -544,11 +543,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitParenthesizedExpression(operation);
         }
 
-        public override void VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation)
+        public override void VisitDynamicMemberReferenceExpression(IDynamicMemberReferenceExpression operation)
         {
             var memberName = operation.MemberName;
+            var typeArgs = operation.TypeArguments;
+            var containingType = operation.ContainingType;
 
-            base.VisitLateBoundMemberReferenceExpression(operation);
+            base.VisitDynamicMemberReferenceExpression(operation);
         }
 
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)

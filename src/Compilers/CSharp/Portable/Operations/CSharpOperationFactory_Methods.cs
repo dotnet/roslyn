@@ -32,13 +32,16 @@ namespace Microsoft.CodeAnalysis.Semantics
             return ImmutableArray.Create(Create(statement));
         }
 
-        internal static IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
+        internal IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
         {
+            var value = Create(expression);
+
             return new Argument(kind,
                 parameter,
                 value,
                 inConversion: null,
                 outConversion: null,
+                semanticModel: _semanticModel,
                 syntax: value.Syntax,
                 type: value.Type,
                 constantValue: default);
@@ -72,14 +75,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             //      invocation instead.
             //      Note this check doesn't cover all scenarios. For example, when a parameter is a generic type but the type of the type argument 
             //      is undefined.
-            if ((object)optionalParametersMethod == null 
+            if ((object)optionalParametersMethod == null
                 || boundNode.HasAnyErrors
                 || parameters.Any(p => p.Type.IsErrorType())
                 || optionalParametersMethod.GetUseSiteDiagnostic()?.DefaultSeverity == DiagnosticSeverity.Error)
             {
                 // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
                 // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
-                return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, Create(arg)));
+                return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, arg));
             }
 
             return LocalRewriter.MakeArgumentsInEvaluationOrder(
@@ -113,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 SyntaxNode syntax = value.Syntax?.Parent ?? expression.Syntax;
                 ITypeSymbol type = target.Type;
                 Optional<object> constantValue = value.ConstantValue;
-                var assignment = new SimpleAssignmentExpression(target, value, syntax, type, constantValue);
+                var assignment = new SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue);
                 builder.Add(assignment);
             }
 
@@ -185,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                return (ISwitchCase)new SwitchCase(clauses, body, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+                return (ISwitchCase)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
             });
         }
 
@@ -196,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                return (ISwitchCase)new SwitchCase(clauses, body, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+                return (ISwitchCase)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
             });
         }
 

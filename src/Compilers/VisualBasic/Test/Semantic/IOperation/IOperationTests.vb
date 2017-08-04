@@ -222,7 +222,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b')
         Public Sub VerifyOperationTree_IfStatement()
             Dim source = <![CDATA[
 Class C
-    Sub Foo(x As Integer)
+    Sub F(x As Integer)
         If x <> 0 Then'BIND:"If x <> 0 Then"
             System.Console.Write(x)
         End If
@@ -256,7 +256,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
         Public Sub VerifyOperationTree_ForStatement()
             Dim source = <![CDATA[
 Class C
-    Sub Foo()
+    Sub F()
         For i = 0 To 10'BIND:"For i = 0 To 10"
             System.Console.Write(i)
         Next
@@ -375,6 +375,34 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
         Arguments(0)
         Initializer: null
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')")
+        End Sub
+
+        <Fact>
+        Public Sub TestClone()
+            Dim sourceCode = TestResource.AllInOneVisualBasicCode
+
+            Dim fileName = "a.vb"
+            Dim syntaxTree = Parse(sourceCode, fileName, options:=Nothing)
+
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
+            Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+            Dim model = compilation.GetSemanticModel(tree)
+
+            VerifyClone(model)
+        End Sub
+
+        <Fact>
+        Public Sub TestParentOperations()
+            Dim sourceCode = TestResource.AllInOneVisualBasicCode
+
+            Dim fileName = "a.vb"
+            Dim syntaxTree = Parse(sourceCode, fileName, options:=Nothing)
+
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
+            Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+            Dim model = compilation.GetSemanticModel(tree)
+
+            VerifyParentOperations(model)
         End Sub
     End Class
 End Namespace

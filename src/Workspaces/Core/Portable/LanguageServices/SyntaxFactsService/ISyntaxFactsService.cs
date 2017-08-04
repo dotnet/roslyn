@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
         bool IsNullLiteralExpression(SyntaxNode node);
+        bool IsDefaultLiteralExpression(SyntaxNode node);
         bool IsLiteralExpression(SyntaxNode node);
 
         string GetText(int kind);
@@ -131,6 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsNamedParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
+        SyntaxNode GetParameterList(SyntaxNode node);
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
 

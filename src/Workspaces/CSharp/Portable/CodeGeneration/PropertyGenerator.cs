@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     accessorList: GenerateAccessorList(property, destination, workspace, options, parseOptions));
             declaration = UseExpressionBodyIfDesired(workspace, declaration, parseOptions);
 
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 AddAnnotationsTo(property, declaration));
         }
 
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             propertyDeclaration = UseExpressionBodyIfDesired(
                 workspace, propertyDeclaration, parseOptions);
 
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 AddAnnotationsTo(property, propertyDeclaration));
         }
 

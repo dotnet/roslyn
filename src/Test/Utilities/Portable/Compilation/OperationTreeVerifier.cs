@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string actual = actualOperationTree.Trim(newLineChars);
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
             expectedOperationTree = Regex.Replace(expectedOperationTree, "([^\r])\n", "$1" + Environment.NewLine);
+
             AssertEx.AreEqual(expectedOperationTree, actual);
         }
 
@@ -200,10 +201,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($"{symbolStr}");
         }
 
-        private void LogType(ITypeSymbol type)
+        private void LogType(ITypeSymbol type, string header = "Type")
         {
             var typeStr = type != null ? type.ToTestDisplayString() : "null";
-            LogString($"Type: {typeStr}");
+            LogString($"{header}: {typeStr}");
         }
 
         private string FormatBoolProperty(string propertyName, bool value) => $"{propertyName}: {(value ? "True" : "False")}";
@@ -773,7 +774,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IUnaryOperatorExpression));
 
             var kindStr = $"{nameof(UnaryOperationKind)}.{operation.UnaryOperationKind}";
-            LogString($" ({kindStr})");
+            if (operation.IsLifted)
+            {
+                LogString($" ({kindStr}-IsLifted)");
+            }
+            else
+            {
+                LogString($" ({kindStr})");
+            }
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -785,7 +793,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IBinaryOperatorExpression));
 
             var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
-            LogString($" ({kindStr})");
+            if (operation.IsLifted)
+            {
+                LogString($" ({kindStr}-IsLifted)");
+            }
+            else
+            {
+                LogString($" ({kindStr})");
+            }
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1079,7 +1094,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(ICompoundAssignmentExpression));
 
             var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
-            LogString($" ({kindStr})");
+            if (operation.IsLifted)
+            {
+                LogString($" ({kindStr}-IsLifted)");
+            }
+            else
+            {
+                LogString($" ({kindStr})");
+            }
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1107,11 +1129,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Operand, "Operand");
         }
 
-        public override void VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation)
+        public override void VisitDynamicMemberReferenceExpression(IDynamicMemberReferenceExpression operation)
         {
-            LogString(nameof(ILateBoundMemberReferenceExpression));
-            LogString($" (Member name: {operation.MemberName})");
+            LogString(nameof(IDynamicMemberReferenceExpression));
+            // (Member Name: "quoted name", Containing Type: type)
+            LogString(" (");
+            LogConstant((object)operation.MemberName, "Member Name");
+            LogString(", ");
+            LogType(operation.ContainingType, "Containing Type");
+            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
+
+            VisitArrayCommon(operation.TypeArguments, "Type Arguments", true, VisitSymbolArrayElement);
 
             VisitInstanceExpression(operation.Instance);
         }

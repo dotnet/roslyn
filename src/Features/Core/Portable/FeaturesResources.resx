@@ -1277,6 +1277,12 @@ This version used in: {2}</value>
   <data name="in_0_project_1" xml:space="preserve">
     <value>in {0} (project {1})</value>
   </data>
+  <data name="Accessibility_modifiers_required" xml:space="preserve">
+    <value>Accessibility modifiers required</value>
+  </data>
+  <data name="Add_accessibility_modifiers" xml:space="preserve">
+    <value>Add accessibility modifiers</value>
+  </data>
   <data name="Use_local_function" xml:space="preserve">
     <value>Use local function</value>
   </data>
@@ -1285,5 +1291,8 @@ This version used in: {2}</value>
   </data>
   <data name="Move_declaration_near_reference" xml:space="preserve">
     <value>Move declaration near reference</value>
+  </data>
+  <data name="Generate_constructor_in_0_without_fields" xml:space="preserve">
+    <value>Generate constructor in '{0}' (without fields)</value>
   </data>
 </root>

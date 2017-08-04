@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Globalization
 Imports System.Linq
 Imports Roslyn.Test.Utilities
 
@@ -84,7 +85,22 @@ Public Class VisualBasicParseOptionsTests
             Max().
             ToDisplayString()
 
-        Assert.Equal(highest, PredefinedPreprocessorSymbols.CurrentVersionNumber.ToString())
+        Assert.Equal(highest, PredefinedPreprocessorSymbols.CurrentVersionNumber.ToString(CultureInfo.InvariantCulture))
+    End Sub
+
+    <Fact, WorkItem(21094, "https://github.com/dotnet/roslyn/issues/21094")>
+    Public Sub CurrentVersionNumberIsCultureIndependent()
+        Dim currentCulture = CultureInfo.CurrentCulture
+        Try
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture
+            Dim invariantCultureVersion = PredefinedPreprocessorSymbols.CurrentVersionNumber
+            ' cs-CZ uses decimal comma, which can cause issues
+            CultureInfo.CurrentCulture = New CultureInfo("cs-CZ")
+            Dim czechCultureVersion = PredefinedPreprocessorSymbols.CurrentVersionNumber
+            Assert.Equal(invariantCultureVersion, czechCultureVersion)
+        Finally
+            CultureInfo.CurrentCulture = currentCulture
+        End Try
     End Sub
 
     <Fact>

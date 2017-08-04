@@ -7,8 +7,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend MustInherit Class BaseVisualBasicConversionExpression
         Inherits BaseConversionExpression
 
-        Protected Sub New(conversion As Conversion, isExplicitInCode As Boolean, isTryCast As Boolean, isChecked As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
-            MyBase.New(isExplicitInCode, isTryCast, isChecked, syntax, type, constantValue)
+        Protected Sub New(conversion As Conversion, isExplicitInCode As Boolean, isTryCast As Boolean, isChecked As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
+            MyBase.New(isExplicitInCode, isTryCast, isChecked, semanticModel, syntax, type, constantValue)
 
             ConversionInternal = conversion
         End Sub
@@ -23,13 +23,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class VisualBasicConversionExpression
         Inherits BaseVisualBasicConversionExpression
 
-        Public Sub New(operand As IOperation, conversion As Conversion, isExplicitInCode As Boolean, isTryCast As Boolean, isChecked As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
-            MyBase.New(conversion, isExplicitInCode, isTryCast, isChecked, syntax, type, constantValue)
+        Public Sub New(operand As IOperation, conversion As Conversion, isExplicitInCode As Boolean, isTryCast As Boolean, isChecked As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
+            MyBase.New(conversion, isExplicitInCode, isTryCast, isChecked, semanticModel, syntax, type, constantValue)
 
-            Me.Operand = operand
+            Me.OperandImpl = operand
         End Sub
 
-        Public Overrides ReadOnly Property Operand As IOperation
+        Public Overrides ReadOnly Property OperandImpl As IOperation
     End Class
 
     Friend NotInheritable Class LazyVisualBasicConversionExpression
@@ -37,13 +37,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _operandLazy As Lazy(Of IOperation)
 
-        Public Sub New(operandLazy As Lazy(Of IOperation), conversion As Conversion, isExplicitInCode As Boolean, isTryCast As Boolean, isChecked As Boolean, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
-            MyBase.New(conversion, isExplicitInCode, isTryCast, isChecked, syntax, type, constantValue)
+        Public Sub New(operandLazy As Lazy(Of IOperation), conversion As Conversion, isExplicitInCode As Boolean, isTryCast As Boolean, isChecked As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object))
+            MyBase.New(conversion, isExplicitInCode, isTryCast, isChecked, semanticModel, syntax, type, constantValue)
 
             _operandLazy = operandLazy
         End Sub
 
-        Public Overrides ReadOnly Property Operand As IOperation
+        Public Overrides ReadOnly Property OperandImpl As IOperation
             Get
                 Return _operandLazy.Value
             End Get

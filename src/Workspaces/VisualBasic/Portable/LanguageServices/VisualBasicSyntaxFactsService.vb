@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -200,6 +201,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetDefaultOfParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetDefaultOfParameter
             Return TryCast(node, ParameterSyntax)?.Default
+        End Function
+
+        Public Function GetParameterList(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetParameterList
+            Return VisualBasicSyntaxGenerator.GetParameterList(node)
         End Function
 
         Public Function IsSkippedTokensTrivia(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSkippedTokensTrivia
@@ -1431,6 +1436,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsNullLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNullLiteralExpression
             Return node.Kind() = SyntaxKind.NothingLiteralExpression
+        End Function
+
+        Public Function IsDefaultLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDefaultLiteralExpression
+            Return IsNullLiteralExpression(node)
         End Function
 
         Public Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBinaryExpression
