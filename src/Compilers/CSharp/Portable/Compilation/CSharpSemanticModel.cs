@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal override T CloneOperation<T>(T operation)
+        internal override IOperation CloneOperationCore(IOperation operation)
         {
             return CSharpOperationCloner.Instance.Visit(operation);
         }

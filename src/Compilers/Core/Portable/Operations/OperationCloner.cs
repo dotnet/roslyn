@@ -7,9 +7,14 @@ namespace Microsoft.CodeAnalysis.Semantics
 {
     internal abstract class OperationCloner : OperationVisitor<object, IOperation>
     {
-        public T Visit<T>(T node) where T : IOperation
+        protected T Visit<T>(T node) where T : IOperation
         {
             return (T)Visit(node, argument: null);
+        }
+
+        public IOperation Visit(IOperation operation)
+        {
+            return Visit(operation, argument: null);
         }
 
         public override IOperation DefaultVisit(IOperation operation, object argument)

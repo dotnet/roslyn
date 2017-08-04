@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Friend Overrides Function CloneOperation(Of T As IOperation)(operation As T) As T
+        Friend Overrides Function CloneOperationCore(operation As IOperation) As IOperation
             Return VisualBasicOperationCloner.Instance.Visit(operation)
         End Function
 
