@@ -3702,8 +3702,8 @@ public static class Program
   IL_000d:  ldarg.0
   IL_000e:  call       ""bool Program.c1.T()""
   IL_0013:  brfalse.s  IL_002e
-  IL_0015:  ldarg.0
-  IL_0016:  ldftn      ""bool Program.c1.<Test>b__1_0(int)""
+  IL_0015:  ldloc.0
+  IL_0016:  ldftn      ""bool Program.c1.<>c__DisplayClass1_0.<Test>b__0(int)""
   IL_001c:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
   IL_0021:  ldc.i4.s   42
   IL_0023:  callvirt   ""bool System.Func<int, bool>.Invoke(int)""
