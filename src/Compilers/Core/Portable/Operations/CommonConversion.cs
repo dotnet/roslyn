@@ -40,19 +40,19 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// The existence of a conversion does not necessarily imply that the conversion is valid.
         /// For example, an ambiguous user-defined conversion may exist but may not be valid.
         /// </remarks>
-        public bool Exists => _conversionKind.HasFlag(ConversionKind.Exists);
+        public bool Exists => (_conversionKind & ConversionKind.Exists) == ConversionKind.Exists;
         /// <summary>
         /// Returns true if the conversion is an identity conversion.
         /// </summary>
-        public bool IsIdentity => _conversionKind.HasFlag(ConversionKind.IsIdentity);
+        public bool IsIdentity => (_conversionKind & ConversionKind.IsIdentity) == ConversionKind.IsIdentity;
         /// <summary>
         /// Returns true if the conversion is a numeric conversion.
         /// </summary>
-        public bool IsNumeric => _conversionKind.HasFlag(ConversionKind.IsNumeric);
+        public bool IsNumeric => (_conversionKind & ConversionKind.IsNumeric) == ConversionKind.IsNumeric;
         /// <summary>
         /// Returns true if the conversion is a reference conversion.
         /// </summary>
-        public bool IsReference => _conversionKind.HasFlag(ConversionKind.IsReference);
+        public bool IsReference => (_conversionKind & ConversionKind.IsReference) == ConversionKind.IsReference;
         /// <summary>
         /// Returns true if the conversion is a user-defined conversion.
         /// </summary>
