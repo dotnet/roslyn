@@ -290,18 +290,18 @@ public class Test
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-    // (13,30): error CS1657: Cannot use 'ro' as a ref or out value because it is a 'foreach iteration variable'
-    //             ref char r = ref ro;
-    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "ro").WithArguments("ro", "foreach iteration variable").WithLocation(13, 30),
-    // (18,24): error CS8168: Cannot return local 'ro' by reference because it is not a ref local
-    //             return ref ro;
-    Diagnostic(ErrorCode.ERR_RefReturnLocal, "ro").WithArguments("ro").WithLocation(18, 24),
-    // (23,30): error CS1655: Cannot use fields of 'ro' as a ref or out value because it is a 'foreach iteration variable'
-    //             ref char r = ref ro.x;
-    Diagnostic(ErrorCode.ERR_RefReadonlyLocal2Cause, "ro.x").WithArguments("ro", "foreach iteration variable").WithLocation(23, 30),
-    // (28,24): error CS8169: Cannot return a member of local 'ro' by reference because it is not a ref local
-    //             return ref ro.x;
-    Diagnostic(ErrorCode.ERR_RefReturnLocal2, "ro").WithArguments("ro").WithLocation(28, 24)
+                // (13,30): error CS1657: Cannot use 'ro' as a ref or out value because it is a 'foreach iteration variable'
+                //             ref char r = ref ro;
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "ro").WithArguments("ro", "foreach iteration variable").WithLocation(13, 30),
+                // (18,24): error CS1657: Cannot use 'ro' as a ref or out value because it is a 'foreach iteration variable'
+                //             return ref ro;
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "ro").WithArguments("ro", "foreach iteration variable").WithLocation(18, 24),
+                // (23,30): error CS1655: Cannot use fields of 'ro' as a ref or out value because it is a 'foreach iteration variable'
+                //             ref char r = ref ro.x;
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal2Cause, "ro.x").WithArguments("ro", "foreach iteration variable").WithLocation(23, 30),
+                // (28,24): error CS1655: Cannot use fields of 'ro' as a ref or out value because it is a 'foreach iteration variable'
+                //             return ref ro.x;
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal2Cause, "ro.x").WithArguments("ro", "foreach iteration variable").WithLocation(28, 24)
             );
         }
 

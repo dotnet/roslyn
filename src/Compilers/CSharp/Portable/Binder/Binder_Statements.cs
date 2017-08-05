@@ -2312,6 +2312,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
                 arg = BindValue(expressionSyntax, diagnostics, requiredValueKind);
+
+                if (refKind != RefKind.None)
+                {
+                    arg = CheckValue(arg, BindValueKind.ReturnableReference,diagnostics);
+                }
             }
             else
             {
@@ -2787,6 +2792,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
+
+            if (refKind != RefKind.None)
+            {
+                expression = CheckValue(expression, BindValueKind.ReturnableReference, diagnostics);
+            }
+
             return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
         }
 
@@ -2802,6 +2813,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expressionSyntax = body.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
+
+            if (refKind != RefKind.None)
+            {
+                expression = CheckValue(expression, BindValueKind.ReturnableReference, diagnostics);
+            }
+
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }
 
@@ -2813,7 +2830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetCurrentReturnType(out var sigRefKind);
                 requiredValueKind = sigRefKind == RefKind.Ref ?
                                         BindValueKind.RefReturn :
-                                        BindValueKind.RefReadonlyReturn;
+                                        BindValueKind.ReadonlyRef;
             }
 
             return requiredValueKind;

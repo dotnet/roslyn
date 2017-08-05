@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class Binder
     {
         // Some value kinds are semantically the same and the only distinction is how errors are reported
-        // for those purposes we reserve lowest 2 bits
-        private const int ValueKindInsignificantBits = 2;
+        // for those purposes we reserve lowest 3 bits
+        private const int ValueKindInsignificantBits = 3;
         private const BindValueKind ValueKindSignificantBitsMask = unchecked((BindValueKind)~((1 << ValueKindInsignificantBits)-1));
 
         /// <summary>
@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Same as CompoundAssignment, the distinction is really just for error reporting.
             /// </summary>
             IncrementDecrement = CompoundAssignment + 1,
+            
+            /// <summary>
+            /// Expression is a r/o reference.
+            /// </summary>
+            ReadonlyRef = RefersToLocation | RValue,
 
             /// <summary>
             /// Expression is passed as a ref or out parameter or assigned to a byref variable.
@@ -103,14 +108,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             FixedReceiver = RefOrOut + 2,
 
             /// <summary>
-            /// Expression is returned by a r/o reference.
-            /// </summary>
-            RefReadonlyReturn = RefersToLocation | ReturnableReference | RValue,
-
-            /// <summary>
             /// Expression is returned by an ordinary r/w reference.
+            /// Same as RefOrOut. The difference is just for error reporting.
             /// </summary>
-            RefReturn = RefersToLocation | ReturnableReference | RValue | Assignable,
+            RefReturn = RefOrOut + 3,
         }
 
         private static bool RequiresRValueOnly(BindValueKind kind)
@@ -401,15 +402,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Note: RValueOnly is checked at the beginning of this method. Since we are here we need more than readable.
                     //"this" is readonly in members of readonly structs, unless we are in a constructor.
-                    //"this" is not returnable by reference in a struct.
                     if (!thisref.Type.IsValueType ||
-                        (thisref.Type.IsReadOnly && (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor) ||
-                        RequiresReturnableReference(valueKind))
+                        (thisref.Type.IsReadOnly && (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor))
                     {
                         // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
                         Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
                         return false;
                     }
+
+                    //"this" is not returnable by reference in a struct.
+                    if(RequiresReturnableReference(valueKind))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefReturnStructThis, node, ThisParameterSymbol.SymbolName);
+                    }
+
                     return true;
 
                 case BoundKind.Call:
@@ -1024,17 +1030,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ErrorCode[] ReadOnlyLocalErrors =
             {
                 ErrorCode.ERR_RefReadonlyLocalCause,
-                // impossible since readonly locals are never byref, but would be a reasonable error otherwise
-                ErrorCode.ERR_RefReadonlyLocalCause,
                 ErrorCode.ERR_AssgReadonlyLocalCause,
 
-                ErrorCode.ERR_RefReadonlyLocal2Cause,
-                // impossible since readonly locals are never byref, but would be a reasonable error otherwise
                 ErrorCode.ERR_RefReadonlyLocal2Cause,
                 ErrorCode.ERR_AssgReadonlyLocal2Cause
             };
 
-            int index = (checkingReceiver ? 3 : 0) + (RequiresRefOrOut(kind) ? 0 : (kind == BindValueKind.RefReturn ? 1 : 2));
+            int index = (checkingReceiver ? 2 : 0) + (RequiresRefOrOut(kind) ? 0 : 1);
 
             Error(diagnostics, ReadOnlyLocalErrors[index], node, local, cause.Localize());
         }
@@ -1055,11 +1057,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BindValueKind.IncrementDecrement:
                     return ErrorCode.ERR_IncrementLvalueExpected;
-            }
 
-            if (RequiresReturnableReference(kind))
-            {
-                return ErrorCode.ERR_RefReturnStructThis;
+                case BindValueKind.RefReturn:
+                case BindValueKind.ReadonlyRef:
+                    return ErrorCode.ERR_RefReturnStructThis;
             }
 
             throw ExceptionUtilities.UnexpectedValue(kind);
@@ -1076,11 +1077,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BindValueKind.AddressOf:
                     return ErrorCode.ERR_InvalidAddrOp;
-            }
 
-            if (RequiresReturnableReference(kind))
-            {
-                return ErrorCode.ERR_RefReturnRangeVariable;
+                case BindValueKind.RefReturn:
+                case BindValueKind.ReadonlyRef:
+                    return ErrorCode.ERR_RefReturnRangeVariable;
             }
 
             if (RequiresReferenceToLocation(kind))
@@ -1123,6 +1123,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BindValueKind.FixedReceiver:
                     return ErrorCode.ERR_FixedNeedsLvalue;
+
+                case BindValueKind.RefReturn:
+                case BindValueKind.ReadonlyRef:
+                    return ErrorCode.ERR_RefReturnLvalueExpected;
             }
 
             if (RequiresReturnableReference(kind))
@@ -1134,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return ErrorCode.ERR_RefLvalueExpected;
             }
-
+            
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
@@ -1203,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ErrorCode.ERR_AssignReadonlyNotField2,
             };
 
-            int index = (checkingReceiver ? 3 : 0) + (RequiresRefOrOut(kind) ? 0 : (kind == BindValueKind.RefReturn ? 1 : 2));
+            int index = (checkingReceiver ? 3 : 0) + (RequiresRefOrOut(kind) ? 0 : (RequiresReturnableReference(kind) ? 1 : 2));
             Error(diagnostics, ReadOnlyErrors[index], node, symbolKind, symbol);
         }
 

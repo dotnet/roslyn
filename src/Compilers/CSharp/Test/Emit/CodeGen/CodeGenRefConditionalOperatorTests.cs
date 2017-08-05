@@ -625,12 +625,12 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (8,27): error CS1510: A ref or out value must be an assignable variable
+                // (8,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         (b? ref val1: ref 42) = 1;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "42").WithLocation(8, 27),
-                // (10,46): error CS1510: A ref or out value must be an assignable variable
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(8, 27),
+                // (10,46): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         ref var local = ref b? ref val1: ref 42;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "42").WithLocation(10, 46)
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(10, 46)
                );
         }
 
@@ -871,9 +871,9 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (8,47): error CS1510: A ref or out value must be an assignable variable
+                // (8,47): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         System.Console.Write(b? ref val1: ref ()=>1);
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "()=>1").WithLocation(8, 47)
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "()=>1").WithLocation(8, 47)
                );
         }
 
