@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         bool IsExplicitInCode { get; }
         /// <summary>
-        /// True if the conversion will fail with a <see cref="InvalidCastException"/> at runtime if the cast fails. This is false for C#'s
+        /// False if the conversion will fail with a <see cref="InvalidCastException"/> at runtime if the cast fails. This is true for C#'s
         /// <code>as</code> operator and for VB's <code>TryCast</code> operator.
         /// </summary>
         bool IsTryCast { get; }
