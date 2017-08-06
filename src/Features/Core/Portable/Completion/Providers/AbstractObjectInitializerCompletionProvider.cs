@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return true;
             }
 
-            return symbol.IsWriteableFieldOrProperty();
+            return symbol.IsWriteableFieldOrProperty() || CanSupportObjectInitializer(symbol);
         }
 
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
@@ -95,6 +95,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 !member.IsStatic &&
                 member.MatchesKind(SymbolKind.Field, SymbolKind.Property) &&
                 member.IsAccessibleWithin(containingType);
+        }
+
+        private static bool CanSupportObjectInitializer(ISymbol symbol)
+        {
+            if (symbol is IPropertySymbol propertySymbol)
+            {
+                return propertySymbol.GetMethod != null && !propertySymbol.Type.IsStructType();
+            }
+
+            return false;
         }
     }
 }
