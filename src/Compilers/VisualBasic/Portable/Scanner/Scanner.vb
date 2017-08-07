@@ -1673,6 +1673,7 @@ FullWidthRepeat:
             Dim IntegerLiteralStart As Integer
             Dim UnderscoreInWrongPlace As Boolean
             Dim UnderscoreUsed As Boolean = False
+            Dim LeadingUnderscoreUsed = False
 
             Dim Base As LiteralBase = LiteralBase.Decimal
             Dim literalKind As NumericLiteralKind = NumericLiteralKind.Integral
@@ -1696,7 +1697,7 @@ FullWidthRepeat:
                         Base = LiteralBase.Hexadecimal
 
                         If (CanGet(Here) AndAlso Peek(Here) = "_"c) Then
-                            ' TODO(leading-digit-separator): check feature flag
+                            LeadingUnderscoreUsed = True
                         End If
 
                         While CanGet(Here)
@@ -1717,7 +1718,7 @@ FullWidthRepeat:
                         Base = LiteralBase.Binary
 
                         If (CanGet(Here) AndAlso Peek(Here) = "_"c) Then
-                            ' TODO(leading-digit-separator): check feature flag
+                            LeadingUnderscoreUsed = True
                         End If
 
                         While CanGet(Here)
@@ -1738,7 +1739,7 @@ FullWidthRepeat:
                         Base = LiteralBase.Octal
 
                         If (CanGet(Here) AndAlso Peek(Here) = "_"c) Then
-                            ' TODO(leading-digit-separator): check feature flag
+                            LeadingUnderscoreUsed = True
                         End If
 
                         While CanGet(Here)
@@ -2104,7 +2105,9 @@ FullWidthRepeat2:
             If Base = LiteralBase.Binary Then
                 result = CheckFeatureAvailability(result, Feature.BinaryLiterals)
             End If
-
+            If LeadingUnderscoreUsed Then
+                result = CheckFeatureAvailability(result, Feature.LeadingDigitSeparator)
+            End If
             Return result
         End Function
 

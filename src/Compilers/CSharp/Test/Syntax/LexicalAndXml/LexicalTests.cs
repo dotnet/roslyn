@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private readonly CSharpParseOptions _options;
         private readonly CSharpParseOptions _options6;
+        private readonly CSharpParseOptions _options7;
+        private readonly CSharpParseOptions _options72;
         private readonly CSharpParseOptions _binaryOptions;
         private readonly CSharpParseOptions _underscoreOptions;
         private readonly CSharpParseOptions _binaryUnderscoreOptions;
@@ -24,8 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             _options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp3);
             _options6 = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6);
-            _binaryOptions = _options.WithLanguageVersion(LanguageVersion.CSharp7);
-            _underscoreOptions = _options.WithLanguageVersion(LanguageVersion.CSharp7);
+            _options7 = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp7);
+            _options72 = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp7_2);
+            _binaryOptions = _options7;
+            _underscoreOptions = _options7;
             _binaryUnderscoreOptions = _binaryOptions;
         }
 
@@ -2619,7 +2623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericWithLeadingUnderscores()
         {
             var text = "0x_A";
-            var token = LexToken(text, _underscoreOptions);
+            var token = LexToken(text, _options72);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
@@ -2628,15 +2632,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
 
             text = "0b_1";
-            token = LexToken(text, _binaryUnderscoreOptions);
+            token = LexToken(text, _options72);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             Assert.Equal(0, token.Errors().Length);
             Assert.Equal(1, token.Value);
             Assert.Equal(text, token.Text);
+        }
 
-            // TODO(leading-digit-separator): test feature flag
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumericWithLeadingUnderscoresWithoutFeatureFlag()
+        {
+            var text = "0x_A";
+            var token = LexToken(text, _options7);
+
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_FeatureNotAvailableInVersion7, errors[0].Code);
+            Assert.Equal(text, token.Text);
+
+            text = "0b_1";
+            token = LexToken(text, _options7);
+
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_FeatureNotAvailableInVersion7, errors[0].Code);
+            Assert.Equal(text, token.Text);
         }
 
         [Fact]

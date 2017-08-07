@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (isHex || isBinary)
                 {
-                    // TODO(leading-digit-separator): check feature flag
+                    CheckFeatureAvailability(MessageID.IDS_FeatureLeadingDigitSeparator);
                 }
                 else
                 {

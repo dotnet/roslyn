@@ -1049,6 +1049,20 @@ End If]]>.Value,
         Assert.Equal(&H1, tk.Value)
         Assert.Equal(" &H_1 ", tk.ToFullString())
 
+        Str = " &B_1 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Binary, tk.GetBase())
+        Assert.Equal(&B1, tk.Value)
+        Assert.Equal(" &B_1 ", tk.ToFullString())
+
+        Str = " &O_1 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Octal, tk.GetBase())
+        Assert.Equal(&O1, tk.Value)
+        Assert.Equal(" &O_1 ", tk.ToFullString())
+
         Str = " &H42L &H42& "
         Dim tks = ScanAllCheckDw(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tks(0).Kind)
