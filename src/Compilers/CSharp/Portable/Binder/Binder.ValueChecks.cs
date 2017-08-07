@@ -54,14 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             RefersToLocation = 4 << ValueKindInsignificantBits,
 
-            /// <summary>
-            /// Expression is free from references to the local frame.
-            /// 
-            /// As long as there are no types that can embed references, 
-            /// this bit is meaningful only to byref variables.
-            /// </summary>
-            ReturnableReference = 8 << ValueKindInsignificantBits,
-
             ///////////////////
             // The rest are just combinations of the above.
             //
@@ -132,11 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool RequiresReferenceToLocation(BindValueKind kind)
         {
             return (kind & BindValueKind.RefersToLocation) != 0;
-        }
-
-        private static bool RequiresReturnableReference(BindValueKind kind)
-        {
-            return (kind & BindValueKind.ReturnableReference) != 0;
         }
 
         private static bool RequiresAssignableVariable(BindValueKind kind)
@@ -360,24 +347,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.RefValueOperator:
                     // The undocumented __refvalue(tr, T) expression results in a variable of type T.
-                    // it is a readwrite variable, but could refer to local data
-                    if (!RequiresReturnableReference(valueKind))
-                    {
-                        return true;
-                    }
-                    break;
+                    // it is a readwrite variable.
+                    return true;
 
                 case BoundKind.DynamicMemberAccess:
                 case BoundKind.DynamicIndexerAccess:
                     // dynamic expressions can be read and written to
                     // can even be passed by reference (which is implemented via a temp)
-                    // it is not valid to return them by reference though.
-                    if (RequiresReturnableReference(valueKind))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnLvalueExpected, expr.Syntax);
-                        return false;
-                    }
-
                     return true;
 
                 case BoundKind.Parameter:
@@ -408,12 +384,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
                         Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
                         return false;
-                    }
-
-                    //"this" is not returnable by reference in a struct.
-                    if(RequiresReturnableReference(valueKind))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnStructThis, node, ThisParameterSymbol.SymbolName);
                     }
 
                     return true;
@@ -468,35 +438,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or declared in a foreach.
 
             LocalSymbol localSymbol = local.LocalSymbol;
-            if (RequiresReturnableReference(valueKind))
-            {
-                if (localSymbol.RefKind == RefKind.None)
-                {
-                    if (checkingReceiver)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnLocal2, local.Syntax, localSymbol);
-                    }
-                    else
-                    {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnLocal, node, localSymbol);
-                    }
-                    return false;
-                }
-
-                if (!localSymbol.IsReturnable)
-                {
-                    if (checkingReceiver)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnNonreturnableLocal2, local.Syntax, localSymbol);
-                    }
-                    else
-                    {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnNonreturnableLocal, node, localSymbol);
-                    }
-                    return false;
-                }
-            }
-
             if (RequiresAssignableVariable(valueKind))
             {
                 if (this.LockedOrDisposedVariables.Contains(localSymbol))
@@ -554,20 +495,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
             var paramKind = parameterSymbol.RefKind;
-
-            // byval parameters are not ref-returnable
-            if (RequiresReturnableReference(valueKind) && parameterSymbol.RefKind == RefKind.None)
-            {
-                if (checkingReceiver)
-                {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnParameter2, parameter.Syntax, parameterSymbol.Name);
-                }
-                else
-                {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnParameter, node, parameterSymbol.Name);
-                }
-                return false;
-            }
 
             // all parameters can be passed by ref/out or assigned to
             // except "in" parameters, which are readonly
@@ -746,11 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
                 {
-                    if (RequiresReturnableReference(valueKind) && !CheckIsValidReceiverForVariable(eventSyntax, receiver, valueKind, diagnostics))
-                    {
-                        return false;
-                    }
-                    else if (!CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignable, diagnostics))
+                    if (!CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignable, diagnostics))
                     {
                         return false;
                     }
@@ -1189,11 +1112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_RefReturnLvalueExpected;
             }
 
-            if (RequiresReturnableReference(kind))
-            {
-                return ErrorCode.ERR_RefReturnLvalueExpected;
-            }
-
             if (RequiresReferenceToLocation(kind))
             {
                 return ErrorCode.ERR_RefLvalueExpected;
@@ -1229,20 +1147,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ErrorCode[] ReadOnlyErrors =
             {
-                ErrorCode.ERR_RefReadonly,
                 ErrorCode.ERR_RefReturnReadonly,
+                ErrorCode.ERR_RefReadonly,
                 ErrorCode.ERR_AssgReadonly,
-                ErrorCode.ERR_RefReadonlyStatic,
                 ErrorCode.ERR_RefReturnReadonlyStatic,
+                ErrorCode.ERR_RefReadonlyStatic,
                 ErrorCode.ERR_AssgReadonlyStatic,
-                ErrorCode.ERR_RefReadonly2,
                 ErrorCode.ERR_RefReturnReadonly2,
+                ErrorCode.ERR_RefReadonly2,
                 ErrorCode.ERR_AssgReadonly2,
-                ErrorCode.ERR_RefReadonlyStatic2,
                 ErrorCode.ERR_RefReturnReadonlyStatic2,
+                ErrorCode.ERR_RefReadonlyStatic2,
                 ErrorCode.ERR_AssgReadonlyStatic2
             };
-            int index = (checkingReceiver ? 6 : 0) + (field.IsStatic ? 3 : 0) + (RequiresRefOrOut(kind) ? 0 : (RequiresReturnableReference(kind) ? 1 : 2));
+            int index = (checkingReceiver ? 6 : 0) + (field.IsStatic ? 3 : 0) + (kind == BindValueKind.RefReturn ? 0 : (RequiresRefOrOut(kind) ? 1 : 2));
             if (checkingReceiver)
             {
                 Error(diagnostics, ReadOnlyErrors[index], node, field);
@@ -1270,15 +1188,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ErrorCode[] ReadOnlyErrors =
             {
-                ErrorCode.ERR_RefReadonlyNotField,
                 ErrorCode.ERR_RefReturnReadonlyNotField,
+                ErrorCode.ERR_RefReadonlyNotField,
                 ErrorCode.ERR_AssignReadonlyNotField,
-                ErrorCode.ERR_RefReadonlyNotField2,
                 ErrorCode.ERR_RefReturnReadonlyNotField2,
+                ErrorCode.ERR_RefReadonlyNotField2,
                 ErrorCode.ERR_AssignReadonlyNotField2,
             };
 
-            int index = (checkingReceiver ? 3 : 0) + (RequiresRefOrOut(kind) ? 0 : (RequiresReturnableReference(kind) ? 1 : 2));
+            int index = (checkingReceiver ? 3 : 0) + (kind == BindValueKind.RefReturn ? 0 : (RequiresRefOrOut(kind) ? 1 : 2));
             Error(diagnostics, ReadOnlyErrors[index], node, symbolKind, symbol);
         }
 

@@ -515,27 +515,27 @@ public class Test
                 // (65,33): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
                 //             ref char temp = ref i1;
                 Diagnostic(ErrorCode.ERR_RefReadonly, "i1").WithLocation(65, 33),
-                // (68,24): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                // (68,24): error CS8160: A readonly field cannot be returned by writeable reference
                 //             return ref i1;
-                Diagnostic(ErrorCode.ERR_RefReadonly, "i1").WithLocation(68, 24),
+                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "i1").WithLocation(68, 24),
                 // (72,33): error CS1649: Members of readonly field 'Test.i2' cannot be used as a ref or out value (except in a constructor)
                 //             ref char temp = ref i2.x;
                 Diagnostic(ErrorCode.ERR_RefReadonly2, "i2.x").WithArguments("Test.i2").WithLocation(72, 33),
-                // (75,24): error CS1649: Members of readonly field 'Test.i2' cannot be used as a ref or out value (except in a constructor)
+                // (75,24): error CS8162: Members of readonly field 'Test.i2' cannot be returned by writeable reference
                 //             return ref i2.x;
-                Diagnostic(ErrorCode.ERR_RefReadonly2, "i2.x").WithArguments("Test.i2").WithLocation(75, 24),
+                Diagnostic(ErrorCode.ERR_RefReturnReadonly2, "i2.x").WithArguments("Test.i2").WithLocation(75, 24),
                 // (83,33): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
                 //             ref char temp = ref s1;
                 Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "s1").WithLocation(83, 33),
-                // (86,24): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
+                // (86,24): error CS8161: A static readonly field cannot be returned by writeable reference
                 //             return ref s1;
-                Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "s1").WithLocation(86, 24),
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyStatic, "s1").WithLocation(86, 24),
                 // (90,33): error CS1651: Fields of static readonly field 'Test.s2' cannot be used as a ref or out value (except in a static constructor)
                 //             ref char temp = ref s2.x;
                 Diagnostic(ErrorCode.ERR_RefReadonlyStatic2, "s2.x").WithArguments("Test.s2").WithLocation(90, 33),
-                // (93,24): error CS1651: Fields of static readonly field 'Test.s2' cannot be used as a ref or out value (except in a static constructor)
+                // (93,24): error CS8163: Fields of static readonly field 'Test.s2' cannot be returned by writeable reference
                 //             return ref s2.x;
-                Diagnostic(ErrorCode.ERR_RefReadonlyStatic2, "s2.x").WithArguments("Test.s2").WithLocation(93, 24)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyStatic2, "s2.x").WithArguments("Test.s2").WithLocation(93, 24)
             );
         }
 

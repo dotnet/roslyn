@@ -8459,7 +8459,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A readonly field cannot be returned by reference.
+        ///   Looks up a localized string similar to A readonly field cannot be returned by writeable reference.
         /// </summary>
         internal static string ERR_RefReturnReadonly {
             get {
@@ -8468,7 +8468,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; cannot be returned by reference.
+        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; cannot be returned by writeable reference.
         /// </summary>
         internal static string ERR_RefReturnReadonly2 {
             get {
@@ -8504,7 +8504,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return {0} &apos;{1}&apos; by reference because it is a readonly variable.
+        ///   Looks up a localized string similar to Cannot return {0} &apos;{1}&apos; by writeable reference because it is a readonly variable.
         /// </summary>
         internal static string ERR_RefReturnReadonlyNotField {
             get {
@@ -8513,7 +8513,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members of {0} &apos;{1}&apos; cannot be returned by reference because it is a readonly variable.
+        ///   Looks up a localized string similar to Members of {0} &apos;{1}&apos; cannot be returned by writeable reference because it is a readonly variable.
         /// </summary>
         internal static string ERR_RefReturnReadonlyNotField2 {
             get {
@@ -8522,7 +8522,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A static readonly field cannot be returned by reference.
+        ///   Looks up a localized string similar to A static readonly field cannot be returned by writeable reference.
         /// </summary>
         internal static string ERR_RefReturnReadonlyStatic {
             get {
@@ -8531,7 +8531,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fields of static readonly field &apos;{0}&apos; cannot be returned by reference.
+        ///   Looks up a localized string similar to Fields of static readonly field &apos;{0}&apos; cannot be returned by writeable reference.
         /// </summary>
         internal static string ERR_RefReturnReadonlyStatic2 {
             get {

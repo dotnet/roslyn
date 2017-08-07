@@ -436,6 +436,47 @@ class Program
         }
 
         [Fact]
+        public void ReadonlyParamCannotRefReturn()
+        {
+            var text = @"
+class Program
+{
+    static ref readonly int M1_baseline(in int arg1, in (int Alice, int Bob) arg2)
+    {
+        // valid
+        return ref arg1;
+    }
+
+    static ref readonly int M2_baseline(in int arg1, in (int Alice, int Bob) arg2)
+    {
+        // valid
+        return ref arg2.Alice;
+    }
+
+    static ref int M1(in int arg1, in (int Alice, int Bob) arg2)
+    {
+        return ref arg1;
+    }
+
+    static ref int M2(in int arg1, in (int Alice, int Bob) arg2)
+    {
+        return ref arg2.Alice;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (18,20): error CS8410: Cannot return variable 'in int' by writeable reference because it is a readonly variable
+                //         return ref arg1;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(18, 20),
+                // (23,20): error CS8411: Members of variable 'in (int Alice, int Bob)' cannot be returned by writeable reference because it is a readonly variable
+                //         return ref arg2.Alice;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(23, 20)
+            );
+        }
+
+        [Fact]
         public void ReadonlyParamCannotAssignByref()
         {
             var text = @"
@@ -522,12 +563,13 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (10,24): error CS8406: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (10,24): error CS8410: Cannot return variable 'in int' by writeable reference because it is a readonly variable
                 //             return ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg1").WithArguments("variable", "in int"),
-                // (14,24): error CS8407: Members of variable 'in (int Alice, int Bob)' cannot be used as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(10, 24),
+                // (14,24): error CS8411: Members of variable 'in (int Alice, int Bob)' cannot be returned by writeable reference because it is a readonly variable
                 //             return ref arg2.Alice;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)"));
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(14, 24)
+            );
         }
 
         [Fact]
@@ -640,12 +682,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (12,28): error CS8406: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (12,28): error CS8410: Cannot return variable 'in int' by writeable reference because it is a readonly variable
                 //                 return ref arg11;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg11").WithArguments("variable", "in int").WithLocation(12, 28),
-                // (16,28): error CS8407: Members of variable 'in (int Alice, int Bob)' cannot be used as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg11").WithArguments("variable", "in int").WithLocation(12, 28),
+                // (16,28): error CS8411: Members of variable 'in (int Alice, int Bob)' cannot be returned by writeable reference because it is a readonly variable
                 //                 return ref arg21.Alice;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg21.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(16, 28)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg21.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(16, 28)
                 );
         }
 

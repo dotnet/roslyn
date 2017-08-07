@@ -322,18 +322,18 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (12,28): error CS8406: Cannot use method 'Program.M()' as a ref or out value because it is a readonly variable
+                // (12,28): error CS8410: Cannot return method 'Program.M()' by writeable reference because it is a readonly variable
                 //                 return ref M();
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "M()").WithArguments("method", "Program.M()").WithLocation(12, 28),
-                // (16,28): error CS8407: Members of method 'Program.M1()' cannot be used as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "M()").WithArguments("method", "Program.M()").WithLocation(12, 28),
+                // (16,28): error CS8411: Members of method 'Program.M1()' cannot be returned by writeable reference because it is a readonly variable
                 //                 return ref M1().Alice;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "M1().Alice").WithArguments("method", "Program.M1()").WithLocation(16, 28),
-                // (23,28): error CS8406: Cannot use property 'Program.P' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "M1().Alice").WithArguments("method", "Program.M1()").WithLocation(16, 28),
+                // (23,28): error CS8410: Cannot return property 'Program.P' by writeable reference because it is a readonly variable
                 //                 return ref P;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "P").WithArguments("property", "Program.P").WithLocation(23, 28),
-                // (27,28): error CS8407: Members of property 'Program.P1' cannot be used as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "P").WithArguments("property", "Program.P").WithLocation(23, 28),
+                // (27,28): error CS8411: Members of property 'Program.P1' cannot be returned by writeable reference because it is a readonly variable
                 //                 return ref P1.Alice;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "P1.Alice").WithArguments("property", "Program.P1").WithLocation(27, 28)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "P1.Alice").WithArguments("property", "Program.P1").WithLocation(27, 28)
             );
         }
 
