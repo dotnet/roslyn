@@ -11,7 +11,7 @@
     <AssemblyName>Roslyn.Compilers.CSharp.Symbol.UnitTests</AssemblyName>
     <NoStdLib>true</NoStdLib>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
+    <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
