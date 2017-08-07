@@ -101,13 +101,13 @@ class Base
     public int y { get; set; }
     public static void Main()
     {
-        MemberInitializerTest<Base>.Foo();
+        MemberInitializerTest<Base>.Goo();
     }
 }
 
 class MemberInitializerTest<T> where T : Base, new()
 {
-    public static void Foo()
+    public static void Goo()
     {
         var i = /*<bind>*/new T() { x = 0, y = 0 }/*</bind>*/;
     }
@@ -1212,10 +1212,10 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: X, IsInvalid) (Syntax
             string source = @"
 static class Ext
 {
-    static int Width(this Foo f) { return 0; }
+    static int Width(this Goo f) { return 0; }
 }
 
-class Foo
+class Goo
 {
     void M()
     {
@@ -1365,37 +1365,37 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
 class MemberInitializerTest
 {
     public int x;
-    public MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    public MemberInitializerTest Goo() { return new MemberInitializerTest(); }
     public static void Main()
     {
-        var i = /*<bind>*/new MemberInitializerTest() { x = 0, Foo() = new MemberInitializerTest() }/*</bind>*/;
+        var i = /*<bind>*/new MemberInitializerTest() { x = 0, Goo() = new MemberInitializerTest() }/*</bind>*/;
     }
 }
 ";
 string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... zerTest() }')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 0, Fo ... zerTest() }')
+  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 0, Go ... zerTest() }')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = 0')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
                 Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
             Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Foo() = new ... lizerTest()')
-            Left: IInvocationExpression ( MemberInitializerTest MemberInitializerTest.Foo()) (OperationKind.InvocationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Foo()')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Foo')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo() = new ... lizerTest()')
+            Left: IInvocationExpression ( MemberInitializerTest MemberInitializerTest.Goo()) (OperationKind.InvocationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
+                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo')
                 Arguments(0)
             Right: IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... lizerTest()')
                 Arguments(0)
                 Initializer: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.Foo()'
-                //         var i = /*<bind>*/new MemberInitializerTest() { x = 0, Foo() = new MemberInitializerTest() }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Foo").WithArguments("MemberInitializerTest.Foo()").WithLocation(8, 64),
+                // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.Goo()'
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = 0, Goo() = new MemberInitializerTest() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Goo").WithArguments("MemberInitializerTest.Goo()").WithLocation(8, 64),
                 // CS0747: Invalid initializer member declarator
-                //         var i = /*<bind>*/new MemberInitializerTest() { x = 0, Foo() = new MemberInitializerTest() }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Foo() = new MemberInitializerTest()").WithLocation(8, 64)
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = 0, Goo() = new MemberInitializerTest() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Goo() = new MemberInitializerTest()").WithLocation(8, 64)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1409,35 +1409,35 @@ using System.Collections.Generic;
 class MemberInitializerTest
 {
     public int x;
-    static MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    static MemberInitializerTest Goo() { return new MemberInitializerTest(); }
 
     public static void Main()
     {
-        var i = /*<bind>*/new List<int> { 1, Foo().x = 1 }/*</bind>*/;
+        var i = /*<bind>*/new List<int> { 1, Goo().x = 1 }/*</bind>*/;
     }
 }
 ";
 string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: 'new List<in ... o().x = 1 }')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: '{ 1, Foo().x = 1 }')
+  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: '{ 1, Goo().x = 1 }')
       Initializers(2):
           ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '1')
             Arguments(1):
                 ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-          ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsInvalid) (Syntax: 'Foo().x = 1')
+          ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsInvalid) (Syntax: 'Goo().x = 1')
             Arguments(1):
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'Foo().x = 1')
-                  Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Foo().x')
-                      Instance Receiver: IInvocationExpression (MemberInitializerTest MemberInitializerTest.Foo()) (OperationKind.InvocationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Foo()')
+                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'Goo().x = 1')
+                  Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Goo().x')
+                      Instance Receiver: IInvocationExpression (MemberInitializerTest MemberInitializerTest.Goo()) (OperationKind.InvocationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
                           Instance Receiver: null
                           Arguments(0)
                   Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0747: Invalid initializer member declarator
-                //         var i = /*<bind>*/new List<int> { 1, Foo().x = 1 }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Foo().x = 1").WithLocation(10, 46)
+                //         var i = /*<bind>*/new List<int> { 1, Goo().x = 1 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Goo().x = 1").WithLocation(10, 46)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1485,30 +1485,30 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             string source = @"
 class MemberInitializerTest
 {
-    public MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    public MemberInitializerTest Goo() { return new MemberInitializerTest(); }
     public static void Main()
     {
-        var i = /*<bind>*/new MemberInitializerTest() { Foo = new MemberInitializerTest() }/*</bind>*/;
+        var i = /*<bind>*/new MemberInitializerTest() { Goo = new MemberInitializerTest() }/*</bind>*/;
     }
 }
 ";
 string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... zerTest() }')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ Foo = new ... zerTest() }')
+  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ Goo = new ... zerTest() }')
       Initializers(1):
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'Foo = new M ... lizerTest()')
-            Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Foo')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'Goo = new M ... lizerTest()')
+            Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Goo')
                 Children(1):
-                    IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Foo')
+                    IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Goo')
             Right: IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest) (Syntax: 'new MemberI ... lizerTest()')
                 Arguments(0)
                 Initializer: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1913: Member 'Foo' cannot be initialized. It is not a field or property.
-                //         var i = /*<bind>*/new MemberInitializerTest() { Foo = new MemberInitializerTest() }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "Foo").WithArguments("Foo").WithLocation(7, 57)
+                // CS1913: Member 'Goo' cannot be initialized. It is not a field or property.
+                //         var i = /*<bind>*/new MemberInitializerTest() { Goo = new MemberInitializerTest() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "Goo").WithArguments("Goo").WithLocation(7, 57)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1964,23 +1964,23 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             string source = @"
 class MemberInitializerTest
 {
-    public MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    public MemberInitializerTest Goo() { return new MemberInitializerTest(); }
     public static void Main()
     {
-        var i = /*<bind>*/new MemberInitializerTest() { Foo() = new MemberInitializerTest() }/*</bind>*/;
+        var i = /*<bind>*/new MemberInitializerTest() { Goo() = new MemberInitializerTest() }/*</bind>*/;
     }
 }
 ";
 string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... zerTest() }')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ Foo() = n ... zerTest() }')
+  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ Goo() = n ... zerTest() }')
       Initializers(1):
-          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Foo() = new ... lizerTest()')
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Goo() = new ... lizerTest()')
             Children(1):
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Foo() = new ... lizerTest()')
-                  Left: IInvocationExpression ( MemberInitializerTest MemberInitializerTest.Foo()) (OperationKind.InvocationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Foo()')
-                      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Foo')
+                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo() = new ... lizerTest()')
+                  Left: IInvocationExpression ( MemberInitializerTest MemberInitializerTest.Goo()) (OperationKind.InvocationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
+                      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo')
                       Arguments(0)
                   Right: IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... lizerTest()')
                       Arguments(0)
@@ -1988,14 +1988,14 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1922: Cannot initialize type 'MemberInitializerTest' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
-                //         var i = /*<bind>*/new MemberInitializerTest() { Foo() = new MemberInitializerTest() }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ Foo() = new MemberInitializerTest() }").WithArguments("MemberInitializerTest").WithLocation(7, 55),
+                //         var i = /*<bind>*/new MemberInitializerTest() { Goo() = new MemberInitializerTest() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ Goo() = new MemberInitializerTest() }").WithArguments("MemberInitializerTest").WithLocation(7, 55),
                 // CS0747: Invalid initializer member declarator
-                //         var i = /*<bind>*/new MemberInitializerTest() { Foo() = new MemberInitializerTest() }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Foo() = new MemberInitializerTest()").WithLocation(7, 57),
-                // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.Foo()'
-                //         var i = /*<bind>*/new MemberInitializerTest() { Foo() = new MemberInitializerTest() }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Foo").WithArguments("MemberInitializerTest.Foo()").WithLocation(7, 57)
+                //         var i = /*<bind>*/new MemberInitializerTest() { Goo() = new MemberInitializerTest() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Goo() = new MemberInitializerTest()").WithLocation(7, 57),
+                // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.Goo()'
+                //         var i = /*<bind>*/new MemberInitializerTest() { Goo() = new MemberInitializerTest() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Goo").WithArguments("MemberInitializerTest.Goo()").WithLocation(7, 57)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

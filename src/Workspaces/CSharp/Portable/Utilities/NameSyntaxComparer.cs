@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return compare;
                 }
 
-                // Foo goes before Foo<T>
+                // Goo goes before Goo<T>
                 return -1;
             }
             else if (x is GenericNameSyntax && y is IdentifierNameSyntax)
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return compare;
                 }
 
-                // Foo<T> goes after Foo
+                // Goo<T> goes after Goo
                 return 1;
             }
 

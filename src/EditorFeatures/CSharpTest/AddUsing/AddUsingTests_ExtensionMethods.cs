@@ -132,13 +132,13 @@ class Program
     {
         void Main()
         {
-            [|new C().Foo(4);|]
+            [|new C().Goo(4);|]
         }
     }
 
     class C
     {
-        public void Foo(string y)
+        public void Goo(string y)
         {
         }
     }
@@ -148,7 +148,7 @@ namespace NS2
 {
     static class CExt
     {
-        public static void Foo(this NS1.C c, int x)
+        public static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -161,13 +161,13 @@ namespace NS1
     {
         void Main()
         {
-            new C().Foo(4);
+            new C().Goo(4);
         }
     }
 
     class C
     {
-        public void Foo(string y)
+        public void Goo(string y)
         {
         }
     }
@@ -177,7 +177,7 @@ namespace NS2
 {
     static class CExt
     {
-        public static void Foo(this NS1.C c, int x)
+        public static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -196,13 +196,13 @@ namespace NS2
     {
         void Main()
         {
-            [|new C().Foo(4);|]
+            [|new C().Goo(4);|]
         }
     }
 
     class C
     {
-        private void Foo(int x)
+        private void Goo(int x)
         {
         }
     }
@@ -212,7 +212,7 @@ namespace NS2
 {
     static class CExt
     {
-        public static void Foo(this NS1.C c, int x)
+        public static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -225,13 +225,13 @@ namespace NS1
     {
         void Main()
         {
-            new C().Foo(4);
+            new C().Goo(4);
         }
     }
 
     class C
     {
-        private void Foo(int x)
+        private void Goo(int x)
         {
         }
     }
@@ -241,7 +241,7 @@ namespace NS2
 {
     static class CExt
     {
-        public static void Foo(this NS1.C c, int x)
+        public static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -262,7 +262,7 @@ namespace NS1
     {
         void Main()
         {
-            [|new C().Foo(4);|]
+            [|new C().Goo(4);|]
         }
     }
 
@@ -275,7 +275,7 @@ namespace NS2
 {
     static class CExt
     {
-        private static void Foo(this NS1.C c, int x)
+        private static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -285,7 +285,7 @@ namespace NS3
 {
     static class CExt
     {
-        public static void Foo(this NS1.C c, int x)
+        public static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -299,7 +299,7 @@ namespace NS1
     {
         void Main()
         {
-            new C().Foo(4);
+            new C().Goo(4);
         }
     }
 
@@ -312,7 +312,7 @@ namespace NS2
 {
     static class CExt
     {
-        private static void Foo(this NS1.C c, int x)
+        private static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -322,7 +322,7 @@ namespace NS3
 {
     static class CExt
     {
-        public static void Foo(this NS1.C c, int x)
+        public static void Goo(this NS1.C c, int x)
         {
         }
     }

@@ -122,12 +122,12 @@ End Enum</Code>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function ModuleBlock() As Task
             Dim code = <Code>        Module module1     
-Sub   foo()        
+Sub   goo()        
  End      Sub  
                 End                 Module        </Code>
 
             Dim expected = <Code>Module module1
-    Sub foo()
+    Sub goo()
     End Sub
 End Module</Code>
 
@@ -136,13 +136,13 @@ End Module</Code>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function InterfaceBlock() As Task
-            Dim code = <Code>      Interface        IFoo  
-    Sub   foo()  
+            Dim code = <Code>      Interface        IGoo  
+    Sub   goo()  
   End Interface    
 </Code>
 
-            Dim expected = <Code>Interface IFoo
-    Sub foo()
+            Dim expected = <Code>Interface IGoo
+    Sub goo()
 End Interface
 </Code>
 
@@ -334,7 +334,7 @@ End Class</Code>
                     Catch e As Exception When TypeOf e Is ArgumentNullException
                                                     Dim i As Integer = 1            
    Finally         
-  foo()
+  goo()
                         End         Try     
     End Sub
 End Class</Code>
@@ -351,7 +351,7 @@ End Class</Code>
         Catch e As Exception When TypeOf e Is ArgumentNullException
             Dim i As Integer = 1
         Finally
-            foo()
+            goo()
         End Try
     End Sub
 End Class</Code>
@@ -420,7 +420,7 @@ End Class</Code>
             Dim code = <Code>Class C
     Sub  Method()    
  Do  Until    False  
-   foo()    
+   goo()    
   Loop  
     End    Sub   
 End Class</Code>
@@ -428,7 +428,7 @@ End Class</Code>
             Dim expected = <Code>Class C
     Sub Method()
         Do Until False
-            foo()
+            goo()
         Loop
     End Sub
 End Class</Code>
@@ -525,7 +525,7 @@ End Class</Code>
         Dim a3 = +          1
         Dim a4 = 1+1
         Dim a5 = 2+(3*-2)
-        Foo(2,(3))
+        Goo(2,(3))
     End Sub
 End Class
 </Code>
@@ -537,7 +537,7 @@ End Class
         Dim a3 = +1
         Dim a4 = 1 + 1
         Dim a5 = 2 + (3 * -2)
-        Foo(2, (3))
+        Goo(2, (3))
     End Sub
 End Class
 </Code>
@@ -644,13 +644,13 @@ End Class</Code>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function Punctuation3() As Task
             Dim code = <Code><![CDATA[Class C
-    <Attribute(foo := "value")>
+    <Attribute(goo := "value")>
     Sub Method()
     End Sub
 End Class]]></Code>
 
             Dim expected = <Code><![CDATA[Class C
-    <Attribute(foo:="value")>
+    <Attribute(goo:="value")>
     Sub Method()
     End Sub
 End Class]]></Code>
@@ -874,19 +874,19 @@ End Class</Code>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function AnonType() As Task
-            Dim code = <Code>Class Foo
-    Sub FooMethod()
+            Dim code = <Code>Class Goo
+    Sub GooMethod()
                 Dim SomeAnonType = New With {
-                    .foo = "foo",
+                    .goo = "goo",
                  .answer = 42
                                 }
     End Sub
 End Class</Code>
 
-            Dim expected = <Code>Class Foo
-    Sub FooMethod()
+            Dim expected = <Code>Class Goo
+    Sub GooMethod()
         Dim SomeAnonType = New With {
-            .foo = "foo",
+            .goo = "goo",
          .answer = 42
                         }
     End Sub
@@ -897,8 +897,8 @@ End Class</Code>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function CollectionInitializer() As Task
-            Dim code = <Code>Class Foo
-    Sub FooMethod()
+            Dim code = <Code>Class Goo
+    Sub GooMethod()
         Dim somelist = New List(Of Integer) From {
             1,
                 2,
@@ -907,8 +907,8 @@ End Class</Code>
     End Sub
 End Class</Code>
 
-            Dim expected = <Code>Class Foo
-    Sub FooMethod()
+            Dim expected = <Code>Class Goo
+    Sub GooMethod()
         Dim somelist = New List(Of Integer) From {
             1,
                 2,
@@ -943,15 +943,15 @@ End Class</Code>
         Public Async Function Label2() As Task
             Dim code = <Code>Class C
     Sub Method()
-GoTo foofoofoofoofoo
-        foofoofoofoofoo:        Stop
+GoTo goofoofoofoofoo
+        goofoofoofoofoo:        Stop
     End Sub
 End Class</Code>
 
             Dim expected = <Code>Class C
     Sub Method()
-        GoTo foofoofoofoofoo
-foofoofoofoofoo: Stop
+        GoTo goofoofoofoofoo
+goofoofoofoofoo: Stop
     End Sub
 End Class</Code>
 
@@ -961,20 +961,20 @@ End Class</Code>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function Label3() As Task
             Dim code = <Code>Class C
-    Sub Foo()
-        foo()
-        x : foo()
+    Sub Goo()
+        goo()
+        x : goo()
         y :
-        foo()
+        goo()
     End Sub
 End Class</Code>
 
             Dim expected = <Code>Class C
-    Sub Foo()
-        foo()
-x:      foo()
+    Sub Goo()
+        goo()
+x:      goo()
 y:
-        foo()
+        goo()
     End Sub
 End Class</Code>
 
@@ -1310,13 +1310,13 @@ Imports System.
         Public Async Function AttributeOnClass1() As Task
             Dim code = <Code><![CDATA[Namespace SomeNamespace
 <SomeAttribute()>
-    Class Foo
+    Class Goo
     End Class
 End Namespace]]></Code>
 
             Dim expected = <Code><![CDATA[Namespace SomeNamespace
     <SomeAttribute()>
-    Class Foo
+    Class Goo
     End Class
 End Namespace]]></Code>
 
@@ -1329,14 +1329,14 @@ End Namespace]]></Code>
             Dim code = <Code><![CDATA[Namespace SomeNamespace
 <SomeAttribute()>
             <SomeAttribute2()>
-        Class Foo
+        Class Goo
     End Class
 End Namespace]]></Code>
 
             Dim expected = <Code><![CDATA[Namespace SomeNamespace
     <SomeAttribute()>
     <SomeAttribute2()>
-    Class Foo
+    Class Goo
     End Class
 End Namespace]]></Code>
 
@@ -1348,14 +1348,14 @@ End Namespace]]></Code>
         Public Async Function MultipleAttributesOnParameter_1() As Task
             Dim code = <Code><![CDATA[Class Program
     Sub P(
-                <Foo>
-                        <Foo>
+                <Goo>
+                        <Goo>
                     som As Integer)
     End Sub
 End Class
 
 
-Public Class Foo
+Public Class Goo
     Inherits Attribute
 End Class]]></Code>
 
@@ -1367,13 +1367,13 @@ End Class]]></Code>
         Public Async Function MultipleAttributesOnParameter_2() As Task
             Dim code = <Code><![CDATA[Class Program
     Sub P(
-                        <Foo>
+                        <Goo>
                     som As Integer)
     End Sub
 End Class
 
 
-Public Class Foo
+Public Class Goo
     Inherits Attribute
 End Class]]></Code>
 
@@ -1384,26 +1384,26 @@ End Class]]></Code>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function MultipleAttributesOnParameter_3() As Task
             Dim code = <Code><![CDATA[Class Program
-    Sub P(     <Foo>
-                        <Foo>
+    Sub P(     <Goo>
+                        <Goo>
                     som As Integer)
     End Sub
 End Class
 
 
-Public Class Foo
+Public Class Goo
     Inherits Attribute
 End Class]]></Code>
 
             Dim expected = <Code><![CDATA[Class Program
-    Sub P(<Foo>
-                        <Foo>
+    Sub P(<Goo>
+                        <Goo>
                     som As Integer)
     End Sub
 End Class
 
 
-Public Class Foo
+Public Class Goo
     Inherits Attribute
 End Class]]></Code>
 
@@ -1414,13 +1414,13 @@ End Class]]></Code>
         Public Async Function InheritsImplementsOnClass() As Task
             Dim code = <Code><![CDATA[Class SomeClass
 Inherits BaseClass
-        Implements IFoo
+        Implements IGoo
 
 End Class]]></Code>
 
             Dim expected = <Code><![CDATA[Class SomeClass
     Inherits BaseClass
-    Implements IFoo
+    Implements IGoo
 
 End Class]]></Code>
 
@@ -1431,14 +1431,14 @@ End Class]]></Code>
         Public Async Function InheritsImplementsWithGenericsOnClass() As Task
             Dim code = <Code><![CDATA[Class SomeClass(Of T)
 Inherits BaseClass      (Of         T)
-        Implements  IFoo     (      Of      String,
+        Implements  IGoo     (      Of      String,
                               T)
 
 End Class]]></Code>
 
             Dim expected = <Code><![CDATA[Class SomeClass(Of T)
     Inherits BaseClass(Of T)
-    Implements IFoo(Of String,
+    Implements IGoo(Of String,
                           T)
 
 End Class]]></Code>
@@ -1468,14 +1468,14 @@ End Interface</Code>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function WhitespaceMethodParens() As Task
             Dim code = <Code>Class SomeClass
-    Sub Foo  (  x  As  Integer  )  
-        Foo  (  42  )  
+    Sub Goo  (  x  As  Integer  )  
+        Goo  (  42  )  
     End Sub
 End Class</Code>
 
             Dim expected = <Code>Class SomeClass
-    Sub Foo(x As Integer)
-        Foo(42)
+    Sub Goo(x As Integer)
+        Goo(42)
     End Sub
 End Class</Code>
 
@@ -1485,13 +1485,13 @@ End Class</Code>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function WhitespaceKeywordParens() As Task
             Dim code = <Code>Class SomeClass
-    Sub Foo
+    Sub Goo
         If(x And(y Or(z)) Then Stop
     End Sub
 End Class</Code>
 
             Dim expected = <Code>Class SomeClass
-    Sub Foo
+    Sub Goo
         If (x And (y Or (z)) Then Stop
     End Sub
 End Class</Code>
@@ -1522,8 +1522,8 @@ End Class</Code>
         Dim someDate = #3/3/2011 12:42:00 AM#+#2/2/2011#
         Dim someChar = "x"c
         Dim someString$ = "42"+"42"
-        Dim r = Foo&()
-        Dim s = FooString$()
+        Dim r = Goo&()
+        Dim s = GooString$()
     End Sub
 End Class]]></Code>
 
@@ -1548,8 +1548,8 @@ End Class]]></Code>
         Dim someDate = #3/3/2011 12:42:00 AM# + #2/2/2011#
         Dim someChar = "x"c
         Dim someString$ = "42" + "42"
-        Dim r = Foo&()
-        Dim s = FooString$()
+        Dim r = Goo&()
+        Dim s = GooString$()
     End Sub
 End Class]]></Code>
 
@@ -1558,7 +1558,7 @@ End Class]]></Code>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function WhitespaceNullable() As Task
-            Dim code = <Code>Class Foo
+            Dim code = <Code>Class Goo
     Property someprop As Integer        ?
 
     Function Method(arg1        ? As Integer) As Integer            ?
@@ -1566,7 +1566,7 @@ End Class]]></Code>
     End Function
 End Class</Code>
 
-            Dim expected = <Code>Class Foo
+            Dim expected = <Code>Class Goo
     Property someprop As Integer?
 
     Function Method(arg1? As Integer) As Integer?
@@ -1579,13 +1579,13 @@ End Class</Code>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function WhitespaceArrayBraces() As Task
-            Dim code = <Code>Class Foo
+            Dim code = <Code>Class Goo
     Sub Method()
         Dim arr()   ={   1,      2,          3       }       
     End Sub
 End Class</Code>
 
-            Dim expected = <Code>Class Foo
+            Dim expected = <Code>Class Goo
     Sub Method()
         Dim arr() = {1, 2, 3}
     End Sub
@@ -1596,13 +1596,13 @@ End Class</Code>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function WhitespaceStatementSeparator() As Task
-            Dim code = <Code>Class Foo
+            Dim code = <Code>Class Goo
     Sub Method()
         Dim x=2:Dim y=3:Dim z=4  
     End Sub
 End Class</Code>
 
-            Dim expected = <Code>Class Foo
+            Dim expected = <Code>Class Goo
     Sub Method()
         Dim x = 2 : Dim y = 3 : Dim z = 4
     End Sub
@@ -1613,7 +1613,7 @@ End Class</Code>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function WhitespaceRemovedBeforeComment() As Task
-            Dim code = <Code>Class Foo
+            Dim code = <Code>Class Goo
     Sub Method()
         Dim a = 4                           ' This is a comment that doesn't move
                                             ' This is a comment that will have some preceding whitespace removed
@@ -1621,7 +1621,7 @@ End Class</Code>
     End Sub
 End Class</Code>
 
-            Dim expected = <Code>Class Foo
+            Dim expected = <Code>Class Goo
     Sub Method()
         Dim a = 4                           ' This is a comment that doesn't move
         ' This is a comment that will have some preceding whitespace removed
@@ -1636,15 +1636,15 @@ End Class</Code>
         Public Async Function ReFormatWithTabsEnabled1() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
-                "        Foo()" + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
+                "        Goo()" + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                vbTab + "Sub Foo()" + vbCrLf +
-                vbTab + vbTab + "Foo()" + vbCrLf +
+                vbTab + "Sub Goo()" + vbCrLf +
+                vbTab + vbTab + "Goo()" + vbCrLf +
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
@@ -1664,15 +1664,15 @@ End Class</Code>
 
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                vbTab + "Sub Foo()" + vbCrLf +
-                vbTab + vbTab + "Foo()" + vbTab + vbTab + "'comment" + vbCrLf +
+                vbTab + "Sub Goo()" + vbCrLf +
+                vbTab + vbTab + "Goo()" + vbTab + vbTab + "'comment" + vbCrLf +
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                vbTab + "Sub Foo()" + vbCrLf +
-                vbTab + vbTab + "Foo()       'comment" + vbCrLf +
+                vbTab + "Sub Goo()" + vbCrLf +
+                vbTab + vbTab + "Goo()       'comment" + vbCrLf +
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
@@ -1692,15 +1692,15 @@ End Class</Code>
 
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                "        Sub Foo()           ' Comment" + vbCrLf +
-                "  Foo()    " + vbCrLf +
+                "        Sub Goo()           ' Comment" + vbCrLf +
+                "  Goo()    " + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                vbTab + "Sub Foo()           ' Comment" + vbCrLf +
-                vbTab + vbTab + "Foo()" + vbCrLf +
+                vbTab + "Sub Goo()           ' Comment" + vbCrLf +
+                vbTab + vbTab + "Goo()" + vbCrLf +
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
@@ -1718,7 +1718,7 @@ End Class</Code>
         Public Async Function ReFormatWithTabsEnabled4() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
                 "        Dim abc = Sub()" + vbCrLf +
                 "                      Console.WriteLine(42)" + vbCrLf +
                 "                  End Sub" + vbCrLf +
@@ -1727,7 +1727,7 @@ End Class</Code>
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                vbTab + "Sub Foo()" + vbCrLf +
+                vbTab + "Sub Goo()" + vbCrLf +
                 vbTab + vbTab + "Dim abc = Sub()" + vbCrLf +
                 vbTab + vbTab + vbTab + vbTab + vbTab + "  Console.WriteLine(42)" + vbCrLf +
                 vbTab + vbTab + vbTab + vbTab + "  End Sub" + vbCrLf +
@@ -1748,7 +1748,7 @@ End Class</Code>
         Public Async Function ReFormatWithTabsEnabled5() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
                 "        Dim abc = 2 + " + vbCrLf +
                 "                    3 + " + vbCrLf +
                 "                   4 " + vbCrLf +
@@ -1757,7 +1757,7 @@ End Class</Code>
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                vbTab + "Sub Foo()" + vbCrLf +
+                vbTab + "Sub Goo()" + vbCrLf +
                 vbTab + vbTab + "Dim abc = 2 +" + vbCrLf +
                 vbTab + vbTab + vbTab + vbTab + vbTab + "3 +" + vbCrLf +
                 vbTab + vbTab + vbTab + vbTab + "   4" + vbCrLf +
@@ -1779,15 +1779,15 @@ End Class</Code>
         Public Async Function ReFormatWithTabsEnabled6() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo() ' Comment" + vbCrLf +
-                "        Foo()" + vbCrLf +
+                "    Sub Goo() ' Comment" + vbCrLf +
+                "        Goo()" + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                vbTab + "Sub Foo() ' Comment" + vbCrLf +
-                vbTab + vbTab + "Foo()" + vbCrLf +
+                vbTab + "Sub Goo() ' Comment" + vbCrLf +
+                vbTab + vbTab + "Goo()" + vbCrLf +
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
@@ -1805,15 +1805,15 @@ End Class</Code>
         Public Async Function ReFormatWithTabsDisabled() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                vbTab + "Sub Foo()" + vbCrLf +
-                vbTab + vbTab + "Foo()" + vbCrLf +
+                vbTab + "Sub Goo()" + vbCrLf +
+                vbTab + vbTab + "Goo()" + vbCrLf +
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
-                "        Foo()" + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
+                "        Goo()" + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
 
@@ -1831,15 +1831,15 @@ End Class</Code>
         Public Async Function ReFormatWithDifferentIndent1() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
-                "        Foo()" + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
+                "        Goo()" + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                "  Sub Foo()" + vbCrLf +
-                "    Foo()" + vbCrLf +
+                "  Sub Goo()" + vbCrLf +
+                "    Goo()" + vbCrLf +
                 "  End Sub" + vbCrLf +
                 "End Class"
 
@@ -1857,15 +1857,15 @@ End Class</Code>
         Public Async Function ReFormatWithDifferentIndent2() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
-                "        Foo()" + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
+                "        Goo()" + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                "      Sub Foo()" + vbCrLf +
-                "            Foo()" + vbCrLf +
+                "      Sub Goo()" + vbCrLf +
+                "            Goo()" + vbCrLf +
                 "      End Sub" + vbCrLf +
                 "End Class"
 
@@ -1883,15 +1883,15 @@ End Class</Code>
         Public Async Function ReFormatWithTabsEnabledSmallIndentAndLargeTab() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
-                "        Foo()" + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
+                "        Goo()" + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                "  Sub Foo()" + vbCrLf +
-                vbTab + " Foo()" + vbCrLf +
+                "  Sub Goo()" + vbCrLf +
+                vbTab + " Goo()" + vbCrLf +
                 "  End Sub" + vbCrLf +
                 "End Class"
 
@@ -1909,14 +1909,14 @@ End Class</Code>
         Public Async Function RegressionCommentFollowsSubsequentIndent4173() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
                 "        'comment" + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
                 "        'comment" + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
@@ -1928,15 +1928,15 @@ End Class</Code>
         Public Async Function FormatUsingOverloads() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
-                "Foo()    " + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
+                "Goo()    " + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
-                "        Foo()" + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
+                "        Goo()" + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
 
@@ -1955,15 +1955,15 @@ End Class</Code>
         <WorkItem(538533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix4173_2() As Task
-            Dim code = <Code>Class Foo
-        Sub Foo()           ' Comment
-  Foo()    
+            Dim code = <Code>Class Goo
+        Sub Goo()           ' Comment
+  Goo()    
     End Sub
 End Class</Code>
 
-            Dim expected = <Code>Class Foo
-	Sub Foo()           ' Comment
-		Foo()
+            Dim expected = <Code>Class Goo
+	Sub Goo()           ' Comment
+		Goo()
 	End Sub
 End Class</Code>
 
@@ -1979,15 +1979,15 @@ End Class</Code>
         Public Async Function FormatUsingAutoGeneratedCodeOperationProvider() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
-                "Foo()    " + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
+                "Goo()    " + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                "    Sub Foo()" + vbCrLf +
-                "        Foo()" + vbCrLf +
+                "    Sub Goo()" + vbCrLf +
+                "        Goo()" + vbCrLf +
                 "    End Sub" + vbCrLf +
                 "End Class"
 
@@ -2009,13 +2009,13 @@ End Class</Code>
             Dim code = <code>Class C
             Sub Main(args As String())
 Dim r = 2
-                    'foo
+                    'goo
 End Sub
             End Class</code>
             Dim expected = <code>Class C
     Sub Main(args As String())
         Dim r = 2
-        'foo
+        'goo
     End Sub
 End Class</code>
 
@@ -2026,7 +2026,7 @@ End Class</code>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix4173_5() As Task
             Dim code = <code>Module Module1
-    Public Sub foo
+    Public Sub goo
         ()
     End Sub
 End Module</code>
@@ -2039,7 +2039,7 @@ End Module</code>
         Public Async Function BugFix4173_6() As Task
             Dim code = <code>Module module1
 #If True Then
-#End If: foo()
+#End If: goo()
 End Module</code>
 
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
@@ -2097,7 +2097,7 @@ End Module</code>
             Dim code = <code>Module Module1
     Sub Main()
             #If True Then
-    Dim foo as Integer
+    Dim goo as Integer
                         #End If
         End Sub
 End Module</code>
@@ -2105,7 +2105,7 @@ End Module</code>
             Dim expected = <code>Module Module1
     Sub Main()
 #If True Then
-        Dim foo as Integer
+        Dim goo as Integer
 #End If
     End Sub
 End Module</code>
@@ -2253,7 +2253,7 @@ End Module</Code>
  
 	 End Structure
  
-	 Sub foo()
+	 Sub goo()
 		  Dim cc As C   ?   = New   C   ?   (   )   
 	 End Sub
 End Module</Code>
@@ -2263,7 +2263,7 @@ End Module</Code>
 
     End Structure
 
-    Sub foo()
+    Sub goo()
         Dim cc As C? = New C?()
     End Sub
 End Module</Code>
@@ -2569,7 +2569,7 @@ Imports System.Linq
 
 Module Program
     Sub Main()
-        Dim foo = New With {.foo = "foo",.bar = "bar"}
+        Dim goo = New With {.goo = "goo",.bar = "bar"}
     End Sub
 End Module</Code>
 
@@ -2579,7 +2579,7 @@ Imports System.Linq
 
 Module Program
     Sub Main()
-        Dim foo = New With {.foo = "foo", .bar = "bar"}
+        Dim goo = New With {.goo = "goo", .bar = "bar"}
     End Sub
 End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
@@ -2592,7 +2592,7 @@ End Module</Code>
             Dim code = <Code>Module module1
     Sub main()
         Dim var1 As New Class1
-        [|var1.foofoo = 42
+        [|var1.goofoo = 42
 
     End Sub
     Sub something()
@@ -2601,13 +2601,13 @@ End Module</Code>
 End Module
 
 Public Class Class1
-    Public foofoo As String|]
+    Public goofoo As String|]
 End Class</Code>
 
             Dim expected = <Code>Module module1
     Sub main()
         Dim var1 As New Class1
-        var1.foofoo = 42
+        var1.goofoo = 42
 
     End Sub
     Sub something()
@@ -2616,7 +2616,7 @@ End Class</Code>
 End Module
 
 Public Class Class1
-    Public foofoo As String
+    Public goofoo As String
 End Class</Code>
 
             Await AssertFormatSpanAsync(code.Value.Replace(vbLf, vbCrLf), expected.Value.Replace(vbLf, vbCrLf))
@@ -2947,7 +2947,7 @@ End Module
         Public Async Function BugFix7023_1() As Task
             Dim code = <Code>Module Program
     Public Operator +(x As Integer, y As Integer)
-        Console.WriteLine("FOO")
+        Console.WriteLine("GOO")
     End Operator
 End Module
 </Code>
@@ -3008,7 +3008,7 @@ End Module</Code>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function ColonTrivia() As Task
             Dim code = <Code>Module Program
-                        Sub Foo3()
+                        Sub Goo3()
                 : End Sub
 
     Sub Main()
@@ -3016,7 +3016,7 @@ End Module</Code>
 End Module</Code>
 
             Dim expected = <Code>Module Program
-    Sub Foo3()
+    Sub Goo3()
     : End Sub
 
     Sub Main()
@@ -3076,11 +3076,11 @@ Module Program
     Sub Main(args As String())
  
 #Const [PUBLIC]    =    3
-#Const     foo = 23
-#Const foo2=23
-#Const foo3 = 23
-#Const  foo4  =  23
-#Const     foo5    =           23
+#Const     goo = 23
+#Const goo2=23
+#Const goo3 = 23
+#Const  goo4  =  23
+#Const     goo5    =           23
  
  
     End Sub
@@ -3094,11 +3094,11 @@ Module Program
     Sub Main(args As String())
 
 #Const [PUBLIC] = 3
-#Const foo = 23
-#Const foo2 = 23
-#Const foo3 = 23
-#Const foo4 = 23
-#Const foo5 = 23
+#Const goo = 23
+#Const goo2 = 23
+#Const goo3 = 23
+#Const goo4 = 23
+#Const goo5 = 23
 
 
     End Sub
@@ -3111,8 +3111,8 @@ End Module</Code>
         <WorkItem(10027, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function RandomCode1() As Task
-            Dim code = <Code>'Imports alias 'foo' conflicts with 'foo' declared in the root namespace'</Code>
-            Dim expected = <Code>'Imports alias 'foo' conflicts with 'foo' declared in the root namespace'</Code>
+            Dim code = <Code>'Imports alias 'goo' conflicts with 'goo' declared in the root namespace'</Code>
+            Dim expected = <Code>'Imports alias 'goo' conflicts with 'goo' declared in the root namespace'</Code>
 
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
@@ -3121,9 +3121,9 @@ End Module</Code>
         <WorkItem(10027, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function RandomCode2() As Task
-            Dim code = <Code>'Imports alias 'foo' conflicts with 'foo' declared in the root 
+            Dim code = <Code>'Imports alias 'goo' conflicts with 'goo' declared in the root 
 namespace'</Code>
-            Dim expected = <Code>'Imports alias 'foo' conflicts with 'foo' declared in the root 
+            Dim expected = <Code>'Imports alias 'goo' conflicts with 'goo' declared in the root 
 namespace'</Code>
 
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
@@ -3189,14 +3189,14 @@ End Module
         Public Async Function KeyInAnonymousType() As Task
             Dim code = <Code>Class C
     Sub S()
-        Dim product = New With {Key.Name = "foo"}
+        Dim product = New With {Key.Name = "goo"}
     End Sub
 End Class
 </Code>
 
             Dim expected = <Code>Class C
     Sub S()
-        Dim product = New With {Key .Name = "foo"}
+        Dim product = New With {Key .Name = "goo"}
     End Sub
 End Class
 </Code>
@@ -3229,8 +3229,8 @@ End Class
         <WorkItem(539409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539409")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function StructuredTrivia() As Task
-            Dim code = <Code>#const foo=2.0d</Code>
-            Dim expected = <Code>#const foo = 2.0d</Code>
+            Dim code = <Code>#const goo=2.0d</Code>
+            Dim expected = <Code>#const goo = 2.0d</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
@@ -3497,20 +3497,20 @@ End Class</text>.Value.Replace(vbLf, vbCrLf)
 End Class</text>.Value.Replace(vbLf, vbCrLf)
             Dim root = SyntaxFactory.ParseCompilationUnit(text)
 
-            Dim foo As New SyntaxAnnotation()
+            Dim goo As New SyntaxAnnotation()
             Dim implementsStatement = DirectCast(root.Members(0), ClassBlockSyntax).Implements.First()
-            root = root.ReplaceNode(implementsStatement, implementsStatement.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(foo))
+            root = root.ReplaceNode(implementsStatement, implementsStatement.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(goo))
 
             Dim field = DirectCast(root.Members(0), ClassBlockSyntax).Members(0)
-            root = root.ReplaceNode(field, field.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(foo))
+            root = root.ReplaceNode(field, field.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(goo))
             Dim prop = DirectCast(root.Members(0), ClassBlockSyntax).Members(1)
-            root = root.ReplaceNode(prop, prop.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(foo))
+            root = root.ReplaceNode(prop, prop.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(goo))
 
             Dim method = DirectCast(root.Members(0), ClassBlockSyntax).Members(2)
-            root = root.ReplaceNode(method, method.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(foo))
+            root = root.ReplaceNode(method, method.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(goo))
 
             Using workspace = New AdhocWorkspace()
-                Dim result = (Await Formatter.FormatAsync(root, foo, workspace)).ToString()
+                Dim result = (Await Formatter.FormatAsync(root, goo, workspace)).ToString()
                 Assert.Equal(expected, result)
             End Using
         End Function
@@ -3544,7 +3544,7 @@ End Module</code>
             Dim code =
 <Code><![CDATA[Class C
     Sub Bar()
-        Dim foo = <Code>&lt;&gt;</Code>
+        Dim goo = <Code>&lt;&gt;</Code>
     End Sub
 End Class
 ]]></Code>
@@ -3772,7 +3772,7 @@ End Module
 Namespace NS
     Class CL
         Sub Method()
-            Dim foo = Sub(x) 'Comment
+            Dim goo = Sub(x) 'Comment
 ]]></Code>
 
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
@@ -3788,7 +3788,7 @@ Module Program
     Sub Main()
         Dim x As New Hashtable
         Dim y = x               !                    _
-        Foo
+        Goo
     End Sub
 End Module
 ]]></Code>
@@ -3801,7 +3801,7 @@ Module Program
     Sub Main()
         Dim x As New Hashtable
         Dim y = x ! _
-        Foo
+        Goo
     End Sub
 End Module
 ]]></Code>
@@ -3819,7 +3819,7 @@ Imports System.Collections
 Module Program
     Sub Main(args As String())
         Dim element = <element></element>
-        Dim foo = element.Single(Function(e) e.@Id = 1)
+        Dim goo = element.Single(Function(e) e.@Id = 1)
     End Sub
 End Module
 ]]></Code>
@@ -3832,7 +3832,7 @@ Imports System.Collections
 Module Program
     Sub Main(args As String())
         Dim element = <element></element>
-        Dim foo = element.Single(Function(e) e.@Id     =    1)
+        Dim goo = element.Single(Function(e) e.@Id     =    1)
     End Sub
 End Module
 ]]></Code>
@@ -3936,7 +3936,7 @@ End Module
 
             Dim solution = New AdhocWorkspace().CurrentSolution
             Dim project = solution.AddProject("proj", "proj", LanguageNames.VisualBasic)
-            Dim document = project.AddDocument("foo.vb", <text>Class C
+            Dim document = project.AddDocument("goo.vb", <text>Class C
     WriteOnly Property Prop As Integer
     End Property
 End Class</text>.Value)
@@ -4043,7 +4043,7 @@ End Class
 Class X
     Function F(x As Integer) As Integer
         Dim x As XElement
-        x.@Foo= "Hello"
+        x.@Goo= "Hello"
     End Function
 End Class
 </Code>
@@ -4052,7 +4052,7 @@ End Class
 Class X
     Function F(x As Integer) As Integer
         Dim x As XElement
-        x.@Foo = "Hello"
+        x.@Goo = "Hello"
     End Function
 End Class
 </Code>

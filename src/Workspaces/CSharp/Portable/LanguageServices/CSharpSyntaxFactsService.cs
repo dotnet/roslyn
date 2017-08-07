@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool SupportsThrowExpression(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
+        public SyntaxToken ParseToken(string text)
+            => SyntaxFactory.ParseToken(text);
+
         public bool IsAwaitKeyword(SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.AwaitKeyword);

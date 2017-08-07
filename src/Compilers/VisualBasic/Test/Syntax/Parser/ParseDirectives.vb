@@ -908,7 +908,7 @@ End Class
     Public Sub BC30012_ParsePreProcessorIfWithEnd()
         ParseAndVerify(<![CDATA[
             Module m1
-                Public Sub foo()
+                Public Sub goo()
 #If True Then
 #End
                 End Sub
@@ -939,7 +939,7 @@ Class MissingEnd
     Public Sub BC30012_ParsePreProcessorIfIncompleteExpression()
         ParseAndVerify(<![CDATA[
             Module m1
-            Public Sub foo()
+            Public Sub goo()
 #If Not
             End Sub
             End Module
@@ -1204,7 +1204,7 @@ true Then
     Public Sub BC30580ERR_NestedExternalSource()
         ParseAndVerify(<![CDATA[
 class c1
-    Sub foo()
+    Sub goo()
 #externalsource("",2)
 #externalsource("",2)
 #end externalsource

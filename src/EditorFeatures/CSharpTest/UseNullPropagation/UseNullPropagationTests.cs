@@ -330,7 +330,7 @@ using System;
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var c = new C();
         Action<string> a = [||]c != null ? c.M : (Action<string>)null;

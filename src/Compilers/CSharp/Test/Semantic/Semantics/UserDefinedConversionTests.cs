@@ -1371,7 +1371,7 @@ class C
         {
             // An ambiguous user-defined conversion should be considered a valid conversion
             // for the purposes of overload resolution; that is, this program should say that
-            // Foo(B) and Foo(C) are both applicable candidates, and that neither is better,
+            // Goo(B) and Goo(C) are both applicable candidates, and that neither is better,
             // even though the conversion from A to B is ambiguous.
 
             string source = @"
@@ -1380,11 +1380,11 @@ class C
             static void Main()
             {
                 A x = null;
-                Foo(x);
+                Goo(x);
             }
 
-            static void Foo(B x) { }
-            static void Foo(C x) { }
+            static void Goo(B x) { }
+            static void Goo(C x) { }
         }
 
         class A
@@ -1404,9 +1404,9 @@ class C
  ";
 
             var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(// (7,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Foo(B)' and 'Program.Foo(C)'
-                                   //                 Foo(x);
-                                   Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("Program.Foo(B)", "Program.Foo(C)"));
+            comp.VerifyDiagnostics(// (7,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(B)' and 'Program.Goo(C)'
+                                   //                 Goo(x);
+                                   Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Program.Goo(B)", "Program.Goo(C)"));
         }
 
         [Fact, WorkItem(543446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543446")]

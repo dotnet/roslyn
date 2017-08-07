@@ -1311,14 +1311,14 @@ Imports System.Runtime.CompilerServices
 
 Module M
     &lt;Extension()&gt;
-    Sub Foo(x As Exception)
+    Sub Goo(x As Exception)
     End Sub
 End Module
 
 Class E
     Inherits Exception
     Sub Bar()
-        Me.Foo() 'BIND:"Foo"
+        Me.Goo() 'BIND:"Goo"
     End Sub
 End Class
 
@@ -1339,13 +1339,13 @@ End Namespace
             Assert.Null(semanticInfo.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Sub System.Exception.Foo()", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub System.Exception.Goo()", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
             Assert.Equal(1, semanticInfo.MemberGroup.Length)
             Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub System.Exception.Foo()", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Sub System.Exception.Goo()", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
@@ -1360,14 +1360,14 @@ Imports System.Runtime.CompilerServices
 
 Module M
     &lt;Extension()&gt;
-    Sub Foo(x As Exception)
+    Sub Goo(x As Exception)
     End Sub
 End Module
 
 Class E
     Inherits Exception
     Sub Bar()
-        Foo() 'BIND:"Foo"
+        Goo() 'BIND:"Goo"
     End Sub
 End Class
 
@@ -1388,13 +1388,13 @@ End Namespace
             Assert.Null(semanticInfo.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Sub System.Exception.Foo()", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub System.Exception.Goo()", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
             Assert.Equal(1, semanticInfo.MemberGroup.Length)
             Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub System.Exception.Foo()", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Sub System.Exception.Goo()", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub

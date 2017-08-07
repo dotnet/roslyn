@@ -719,7 +719,7 @@ class C
 {
     public C()
     {
-        void Foo([||]string s)
+        void Goo([||]string s)
         {
         }
     }

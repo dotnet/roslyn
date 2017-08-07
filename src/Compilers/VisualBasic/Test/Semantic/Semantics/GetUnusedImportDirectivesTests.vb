@@ -42,8 +42,8 @@ Imports System.IO
 Imports System
 
 Public Class Blah
-    Sub Foo()
-        Foo() ' Comment
+    Sub Goo()
+        Goo() ' Comment
     End Sub
 End Class
     </file>
@@ -75,7 +75,7 @@ Imports System.Runtime.CompilerServices
 Namespace NamespaceContainingInternalsOnly
     Friend Module Extensions
         <Extension>
-        Sub Foo(x As Integer)
+        Sub Goo(x As Integer)
         End Sub
     End Module
 End Namespace
@@ -97,7 +97,7 @@ Imports NamespaceContainingInternalsOnly
 
 Public Class C
     Shared Sub F(x As Integer)
-        x.Foo()
+        x.Goo()
     End Sub
 End Class
     </file>

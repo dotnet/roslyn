@@ -95,7 +95,8 @@ namespace BuildBoss
 
             var allGood = true;
             allGood &= IsVsixCorrectlySpecified(textWriter, data);
-            allGood &= IsUnitTestCorrectlySpecified(textWriter, data);
+            allGood &= IsUnitTestNameCorrectlySpecified(textWriter, data);
+            allGood &= IsUnitTestPortableCorrectlySpecified(textWriter, data);
 
             return allGood;
         }
@@ -370,7 +371,7 @@ namespace BuildBoss
         /// suffixes: UnitTest and IntegrationTests. This check will verify that both test assemblies
         /// are properly named and non-test assemblies are not incorrectly named.
         /// </summary>
-        private bool IsUnitTestCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
+        private bool IsUnitTestNameCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
         {
             if (ProjectType != ProjectFileType.CSharp && ProjectType != ProjectFileType.Basic)
             {
@@ -407,6 +408,22 @@ namespace BuildBoss
             if (data.IsAnyUnitTest && !Regex.IsMatch(name, @".*(UnitTests|IntegrationTests)$", RegexOptions.IgnoreCase))
             {
                 textWriter.WriteLine($"Assembly {name} is a unit test that doesn't end with UnitTests.dll");
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool IsUnitTestPortableCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
+        {
+            if (!data.IsAnyUnitTest)
+            {
+                return true;
+            }
+
+            if (data.EffectiveKind == RoslynProjectKind.UnitTest && _projectUtil.GetTargetFrameworks() != null)
+            {
+                textWriter.WriteLine($"UnitTestPortable needs to be specified when using TargetFrameworks on a unit test project");
                 return false;
             }
 

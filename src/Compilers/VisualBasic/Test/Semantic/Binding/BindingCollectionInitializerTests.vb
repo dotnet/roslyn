@@ -362,10 +362,10 @@ Class C1
     Public a As String
 
     Public Shared Sub Main()'BIND:"Public Shared Sub Main()"
-        Dim a As New C2() With {.a = "foo"} From {"Hello World!"}
-        Dim b As New C2() From {"Hello World!"} With {.a = "foo"}
-        Dim c As C2 = New C2() From {"Hello World!"} With {.a = "foo"}
-        Dim d As C2 = New C2() With {.a = "foo"} From {"Hello World!"} 
+        Dim a As New C2() With {.a = "goo"} From {"Hello World!"}
+        Dim b As New C2() From {"Hello World!"} With {.a = "goo"}
+        Dim c As C2 = New C2() From {"Hello World!"} With {.a = "goo"}
+        Dim d As C2 = New C2() With {.a = "goo"} From {"Hello World!"} 
     End Sub
 End Class]]>.Value
 
@@ -375,17 +375,17 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
     Local_2: b As C2
     Local_3: c As C2
     Local_4: d As C2
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ne ... .a = "foo"}')
+  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ne ... .a = "goo"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
       Variables: Local_1: a As C2
-      Initializer: IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'New C2() Wi ... .a = "foo"}')
+      Initializer: IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'New C2() Wi ... .a = "goo"}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2) (Syntax: 'With {.a = "foo"}')
+          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2) (Syntax: 'With {.a = "goo"}')
               Initializers(1):
-                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '.a = "foo"')
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '.a = "goo"')
                     Left: IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'a')
-                        Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ... .a = "foo"}')
-                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "foo") (Syntax: '"foo"')
+                        Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim b As Ne ... lo World!"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b')
       Variables: Local_1: b As C2
@@ -406,17 +406,17 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
                   ICollectionElementInitializerExpression (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsInvalid) (Syntax: '"Hello World!"')
                     Arguments(1):
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim d As C2 ... .a = "foo"}')
+  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim d As C2 ... .a = "goo"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'd')
       Variables: Local_1: d As C2
-      Initializer: IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... .a = "foo"}')
+      Initializer: IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... .a = "goo"}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {.a = "foo"}')
+          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {.a = "goo"}')
               Initializers(1):
-                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: '.a = "foo"')
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: '.a = "goo"')
                     Left: IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'a')
-                        Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ... .a = "foo"}')
-                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "foo", IsInvalid) (Syntax: '"foo"')
+                        Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo", IsInvalid) (Syntax: '"goo"')
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
     LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
@@ -425,16 +425,16 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
 
             Dim expectedDiagnostics = <![CDATA[
 BC36720: An Object Initializer and a Collection Initializer cannot be combined in the same initialization.
-        Dim a As New C2() With {.a = "foo"} From {"Hello World!"}
+        Dim a As New C2() With {.a = "goo"} From {"Hello World!"}
                                             ~~~~
 BC36720: An Object Initializer and a Collection Initializer cannot be combined in the same initialization.
-        Dim b As New C2() From {"Hello World!"} With {.a = "foo"}
+        Dim b As New C2() From {"Hello World!"} With {.a = "goo"}
                                                 ~~~~
 BC36720: An Object Initializer and a Collection Initializer cannot be combined in the same initialization.
-        Dim c As C2 = New C2() From {"Hello World!"} With {.a = "foo"}
+        Dim c As C2 = New C2() From {"Hello World!"} With {.a = "goo"}
                                ~~~~~~~~~~~~~~~~~~~~~
 BC36720: An Object Initializer and a Collection Initializer cannot be combined in the same initialization.
-        Dim d As C2 = New C2() With {.a = "foo"} From {"Hello World!"} 
+        Dim d As C2 = New C2() With {.a = "goo"} From {"Hello World!"} 
                                ~~~~~~~~~~~~~~~~~
 ]]>.Value
 

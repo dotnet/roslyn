@@ -603,7 +603,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEnumAs() As Task
-            Await VerifyFalseAsync(CreateContent("Enum Foo As $$"))
+            Await VerifyFalseAsync(CreateContent("Enum Goo As $$"))
         End Function
 
     End Class

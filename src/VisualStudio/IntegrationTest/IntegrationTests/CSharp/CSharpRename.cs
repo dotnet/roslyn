@@ -426,7 +426,7 @@ class RenameRocks
             VisualStudio.Editor.SetText(@"
 class Program
 {
-    void Foo()
+    void Goo()
     {
         var ids = 1;
         ids = 2;
@@ -441,7 +441,7 @@ class Program
             VisualStudio.Editor.Verify.TextContains(@"
 class Program
 {
-    void Foo()
+    void Goo()
     {
         var y = 1;
         y = 2;
