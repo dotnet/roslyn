@@ -598,9 +598,9 @@ class Program
                 // (8,25): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //         return ref this[local];
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(8, 25),
-                // (8,24): error CS8164: Cannot return by reference a result of 'Program.this[in int]' because the argument passed to parameter 'x' cannot be returned by reference
+                // (8,20): error CS8164: Cannot return by reference a result of 'Program.this[in int]' because the argument passed to parameter 'x' cannot be returned by reference
                 //         return ref this[local];
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "[local]").WithArguments("Program.this[in int]", "x").WithLocation(8, 24)
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "this[local]").WithArguments("Program.this[in int]", "x").WithLocation(8, 20)
             );
         }
 
@@ -625,9 +625,9 @@ class Program
                 // (6,25): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref this[42];
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(6, 25),
-                // (6,24): error CS8164: Cannot return by reference a result of 'Program.this[in int]' because the argument passed to parameter 'x' cannot be returned by reference
+                // (6,20): error CS8164: Cannot return by reference a result of 'Program.this[in int]' because the argument passed to parameter 'x' cannot be returned by reference
                 //         return ref this[42];
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "[42]").WithArguments("Program.this[in int]", "x").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "this[42]").WithArguments("Program.this[in int]", "x").WithLocation(6, 20)
             );
         }
 

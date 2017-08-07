@@ -950,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (localSymbol.RefKind != RefKind.None && initializerOpt != null)
             {
                 var ignoredDiagnostics = DiagnosticBag.GetInstance();
-                if (this.CheckValueKind(initializerOpt.Syntax, initializerOpt, BindValueKind.ReturnableReference, checkingReceiver: false, diagnostics: ignoredDiagnostics))
+                if (this.CheckRefEscape(initializerOpt.Syntax, initializerOpt, ExternalScope, checkingReceiver: false, diagnostics: ignoredDiagnostics))
                 {
                     localSymbol.SetReturnable();
                 }
@@ -2315,7 +2315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (refKind != RefKind.None)
                 {
-                    arg = CheckValue(arg, BindValueKind.ReturnableReference,diagnostics);
+                    arg = CheckRefEscape(arg, ExternalScope, diagnostics);
                 }
             }
             else
@@ -2795,7 +2795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (refKind != RefKind.None)
             {
-                expression = CheckValue(expression, BindValueKind.ReturnableReference, diagnostics);
+                expression = CheckRefEscape(expression, ExternalScope, diagnostics);
             }
 
             return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
@@ -2816,7 +2816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (refKind != RefKind.None)
             {
-                expression = CheckValue(expression, BindValueKind.ReturnableReference, diagnostics);
+                expression = CheckRefEscape(expression, ExternalScope, diagnostics);
             }
 
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
