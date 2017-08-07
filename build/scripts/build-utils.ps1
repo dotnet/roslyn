@@ -107,7 +107,6 @@ function Exec-Script([string]$script, [string]$scriptArgs = "") {
     Exec-Command "powershell" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
 }
 
-
 # Ensure that NuGet is installed and return the path to the 
 # executable to use.
 function Ensure-NuGet() {
@@ -132,6 +131,45 @@ function Ensure-NuGet() {
     $webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/v$nugetVersion/NuGet.exe", $destFile)
     $nugetVersion | Out-File $versionFile
     return $destFile
+}
+
+# Checks to see if a particular version of the SDK is available on %PATH%. This is 
+# how MSBuild locates the SDK. 
+function Test-SdkInPath([string]$version) {
+    foreach ($part in ${env:PATH}.Split(';')) {
+        $dotnetExe = Join-Path $part "dotnet.exe"
+        if (Test-Path $dotnetExe) {
+            $sdkPath = Join-Path $part "sdk"
+            $sdkPath = Join-Path $sdkPath $version
+            return Test-Path $sdkPath
+        }
+    }
+
+    return $false
+}
+
+# Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
+# SDK.
+function Ensure-SdkInPath() { 
+    $sdkVersion = "2.0.0-preview3-006923"
+    if (Test-SdkInPath $sdkVersion) {
+        return        
+    }
+
+    $toolsDir = Join-Path $binariesDir "Tools"
+    $cliDir = Join-Path $toolsDir "dotnet"
+    $dotnetExe = Join-Path
+    if (-not (Test-Path $dotnetExe)) { 
+        Write-Host "Downloading CLI $sdkVersion"
+        Create-Directory $cliDir
+        Create-Directory $toolsDir
+        $destFile = Join-Path $toolsDir "dotnet-install.ps1"
+        $webClient = New-Object -TypeName "System.Net.WebClient"
+        $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
+        Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir }
+    }
+
+    ${env:PATH} = "$cliDir;${env:PATH}"
 }
 
 # Ensure a basic tool used for building our Repo is installed and 
@@ -165,6 +203,7 @@ function Ensure-MSBuild([switch]$xcopy = $false) {
     }
 
     $p = Join-Path $msbuildDir "msbuild.exe"
+    Ensure-SdkInPath
     return $p
 }
 
