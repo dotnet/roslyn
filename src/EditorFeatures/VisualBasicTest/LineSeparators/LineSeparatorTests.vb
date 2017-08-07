@@ -233,7 +233,7 @@ End Class")
                        },
                        "Imports System
 
-Class Foo
+Class Goo
 End Class")
         End Function
 

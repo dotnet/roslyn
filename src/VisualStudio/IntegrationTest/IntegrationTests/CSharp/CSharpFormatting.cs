@@ -50,7 +50,7 @@ class C
             SetUpEditor(@"
 public class C
 {
-    void Foo()
+    void Goo()
     {
         var x =        from a             in       new List<int>()
     where x % 2 = 0
@@ -62,7 +62,7 @@ public class C
             VisualStudio.Editor.Verify.TextContains(@"
 public class C
 {
-    void Foo()
+    void Goo()
     {
         var x = from a in new List<int>()
                 where x % 2 = 0

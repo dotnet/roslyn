@@ -663,23 +663,19 @@ namespace Microsoft.CodeAnalysis.Emit
             }
             else
             {
-                localSignatureHandle = default(StandaloneSignatureHandle);
+                localSignatureHandle = default;
             }
 
-            var method = body.MethodDefinition;
-            if (!method.IsImplicitlyDeclared)
-            {
-                var info = new AddedOrChangedMethodInfo(
-                    body.MethodId,
-                    encInfos.ToImmutable(),
-                    body.LambdaDebugInfo,
-                    body.ClosureDebugInfo,
-                    body.StateMachineTypeName,
-                    body.StateMachineHoistedLocalSlots,
-                    body.StateMachineAwaiterSlots);
+            var info = new AddedOrChangedMethodInfo(
+                body.MethodId,
+                encInfos.ToImmutable(),
+                body.LambdaDebugInfo,
+                body.ClosureDebugInfo,
+                body.StateMachineTypeName,
+                body.StateMachineHoistedLocalSlots,
+                body.StateMachineAwaiterSlots);
 
-                _addedOrChangedMethods.Add(method, info);
-            }
+            _addedOrChangedMethods.Add(body.MethodDefinition, info);
 
             encInfos.Free();
             return localSignatureHandle;

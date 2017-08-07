@@ -56,12 +56,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Public Module Module1
                     Public Sub Main()
                         Console.Writeline("Start")
-                        Foo()
+                        Goo()
                         Console.Writeline("End")
                     End Sub
 
-                    Sub Foo
-                        Console.Writeline("Foo")
+                    Sub Goo
+                        Console.Writeline("Goo")
                         Stop
                     End Sub
                 End Module
@@ -69,11 +69,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                          </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Foo",
+            Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Goo",
             <![CDATA[{
   // Code size       16 (0x10)
   .maxstack  1
-  IL_0000:  ldstr      "Foo"
+  IL_0000:  ldstr      "Goo"
   IL_0005:  call       "Sub System.Console.WriteLine(String)"
   IL_000a:  call       "Sub System.Diagnostics.Debugger.Break()"
   IL_000f:  ret
@@ -91,12 +91,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Public Module Module1
                     Public Sub Main()
                         Console.Writeline("Start")
-                        Foo() : Stop
+                        Goo() : Stop
                         Console.Writeline("End")
                     End Sub
 
-                    Sub Foo
-                        Console.Writeline("Foo")
+                    Sub Goo
+                        Console.Writeline("Goo")
                     End Sub
                 End Module
                     </file>
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   .maxstack  1
   IL_0000:  ldstr      "Start"
   IL_0005:  call       "Sub System.Console.WriteLine(String)"
-  IL_000a:  call       "Sub Module1.Foo()"
+  IL_000a:  call       "Sub Module1.Goo()"
   IL_000f:  call       "Sub System.Diagnostics.Debugger.Break()"
   IL_0014:  ldstr      "End"
   IL_0019:  call       "Sub System.Console.WriteLine(String)"
@@ -126,21 +126,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Module Module1
             Public Sub Main()
                 Console.Writeline("Start")
-                Foo()
+                Goo()
                 Console.Writeline("End")
             End Sub
 
-            Sub Foo
-                Console.Writeline("Foo")
+            Sub Goo
+                Console.Writeline("Goo")
                 Stop
             End Sub
         End Module
             </file>
-    </compilation>).VerifyIL("Module1.Foo",
+    </compilation>).VerifyIL("Module1.Goo",
             <![CDATA[{
   // Code size       16 (0x10)
   .maxstack  1
-  IL_0000:  ldstr      "Foo"
+  IL_0000:  ldstr      "Goo"
   IL_0005:  call       "Sub System.Console.WriteLine(String)"
   IL_000a:  call       "Sub System.Diagnostics.Debugger.Break()"
   IL_000f:  ret

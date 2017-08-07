@@ -196,7 +196,7 @@ class D
 
 public class C
 {
-    int Foo(bool x, bool y)
+    int Goo(bool x, bool y)
     {
         [||]if (x = y)
         {
@@ -215,7 +215,7 @@ public class C
 
 public class C
 {
-    int Foo(bool x, bool y)
+    int Goo(bool x, bool y)
     {
         return (x = y) ? 1 : 2;
     }
@@ -233,7 +233,7 @@ public class C
 
 public class C
 {
-    Func<int> Foo(bool x)
+    Func<int> Goo(bool x)
     {
         [||]if (x)
         {
@@ -252,7 +252,7 @@ public class C
 
 public class C
 {
-    Func<int> Foo(bool x)
+    Func<int> Goo(bool x)
     {
         return x ? (Func<int>)(() => 1) : () => 2;
     }

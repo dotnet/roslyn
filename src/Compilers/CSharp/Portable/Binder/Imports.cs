@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // define all of the extern aliases first. They may used by the target of a using
 
-            // using Bar=Foo::Bar;
-            // using Foo::Baz;
-            // extern alias Foo;
+            // using Bar=Goo::Bar;
+            // using Goo::Baz;
+            // extern alias Goo;
 
             var diagnostics = new DiagnosticBag();
 

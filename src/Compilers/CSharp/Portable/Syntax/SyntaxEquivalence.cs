@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 // NOTE(cyrusn): Do we want to avoid going down into attribute expressions?  I don't
                 // think we can avoid it as there are likely places in the compiler that use these
-                // expressions.  For example, if the user changes [InternalsVisibleTo("foo")] to
+                // expressions.  For example, if the user changes [InternalsVisibleTo("goo")] to
                 // [InternalsVisibleTo("bar")] then that must count as a top level change as it
                 // affects symbol visibility.  Perhaps we could enumerate the places in the compiler
                 // that use the values inside source attributes and we can check if we're in an

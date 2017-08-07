@@ -22,7 +22,7 @@ Task.Run(() => { return 1; });";
 
         private const string ExampleMultiline =
 @"namespace N {
-    void foo() {
+    void goo() {
         Console.WriteLine(
             $$""LLL"");
     }

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestBasicName()
         {
-            var text = "foo";
+            var text = "goo";
             var name = ParseName(text);
 
             Assert.NotNull(name);
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestBasicNameWithTrash()
         {
-            var text = "/*comment*/foo/*comment2*/ bar";
+            var text = "/*comment*/goo/*comment2*/ bar";
             var name = ParseName(text);
 
             Assert.NotNull(name);
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAliasedName()
         {
-            var text = "foo::bar";
+            var text = "goo::bar";
             var name = ParseName(text);
 
             Assert.NotNull(name);
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDottedName()
         {
-            var text = "foo.bar";
+            var text = "goo.bar";
             var name = ParseName(text);
 
             Assert.NotNull(name);
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAliasedDottedName()
         {
-            var text = "foo::bar.Zed";
+            var text = "goo::bar.Zed";
             var name = ParseName(text);
 
             Assert.NotNull(name);
@@ -169,16 +169,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             // In the original implementation of the parser this error case was parsed as 
             //
-            // (foo :: bar ) :: baz
+            // (goo :: bar ) :: baz
             //
             // However, we have decided that the left hand side of a :: should always be
             // an identifier, not a name, even in error cases. Therefore instead we 
             // parse this as though the error was that the user intended to make the 
             // second :: a dot; we parse this as
             //
-            // (foo :: bar ) . baz
+            // (goo :: bar ) . baz
 
-            var text = "foo::bar::baz";
+            var text = "goo::bar::baz";
             var name = ParseName(text);
 
             Assert.NotNull(name);
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGenericName()
         {
-            var text = "foo<bar>";
+            var text = "goo<bar>";
             var name = ParseName(text);
 
             Assert.NotNull(name);
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGenericNameWithTwoArguments()
         {
-            var text = "foo<bar,zed>";
+            var text = "goo<bar,zed>";
             var name = ParseName(text);
 
             Assert.NotNull(name);
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNestedGenericName()
         {
-            var text = "foo<bar<zed>>";
+            var text = "goo<bar<zed>>";
             var name = ParseName(text);
 
             Assert.NotNull(name);
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestOpenNameWithNoCommas()
         {
-            var text = "foo<>";
+            var text = "goo<>";
             var name = ParseName(text);
 
             Assert.NotNull(name);
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestOpenNameWithAComma()
         {
-            var text = "foo<,>";
+            var text = "goo<,>";
             var name = ParseName(text);
 
             Assert.NotNull(name);
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestBasicTypeName()
         {
-            var text = "foo";
+            var text = "goo";
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDottedTypeName()
         {
-            var text = "foo.bar";
+            var text = "goo.bar";
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGenericTypeName()
         {
-            var text = "foo<bar>";
+            var text = "goo<bar>";
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNestedGenericTypeName()
         {
-            var text = "foo<bar<zed>>";
+            var text = "goo<bar<zed>>";
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestOpenTypeNameWithNoCommas()
         {
-            var text = "foo<>";
+            var text = "goo<>";
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNullableTypeName()
         {
-            var text = "foo?";
+            var text = "goo?";
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestPointerTypeName()
         {
-            var text = "foo*";
+            var text = "goo*";
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestPointerTypeNameWithMultipleAsterisks()
         {
-            var text = "foo***";
+            var text = "goo***";
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestArrayTypeName()
         {
-            var text = "foo[]";
+            var text = "goo[]";
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestMultiDimensionalArrayTypeName()
         {
-            var text = "foo[,,]";
+            var text = "goo[,,]";
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestMultiRankedArrayTypeName()
         {
-            var text = "foo[][,][,,]";
+            var text = "goo[][,][,,]";
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestVarianceInNameBad()
         {
-            var text = "foo<in bar>";
+            var text = "goo<in bar>";
             var tname = ParseName(text);
 
             Assert.NotNull(tname);
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.GenericName, tname.Kind());
 
             var gname = (GenericNameSyntax)tname;
-            Assert.Equal("foo", gname.Identifier.ToString());
+            Assert.Equal("goo", gname.Identifier.ToString());
             Assert.Equal(false, gname.IsUnboundGenericName);
             Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAttributeInNameBad()
         {
-            var text = "foo<[My]bar>";
+            var text = "goo<[My]bar>";
             var tname = ParseName(text);
 
             Assert.NotNull(tname);
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.GenericName, tname.Kind());
 
             var gname = (GenericNameSyntax)tname;
-            Assert.Equal("foo", gname.Identifier.ToString());
+            Assert.Equal("goo", gname.Identifier.ToString());
             Assert.Equal(false, gname.IsUnboundGenericName);
             Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestConstantInGenericNameBad()
         {
-            var text = "foo<0>";
+            var text = "goo<0>";
             var tname = ParseName(text);
 
             Assert.NotNull(tname);
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.GenericName, tname.Kind());
 
             var gname = (GenericNameSyntax)tname;
-            Assert.Equal("foo", gname.Identifier.ToString());
+            Assert.Equal("goo", gname.Identifier.ToString());
             Assert.Equal(false, gname.IsUnboundGenericName);
             Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestConstantInGenericNamePartiallyBad()
         {
-            var text = "foo<0,bool>";
+            var text = "goo<0,bool>";
             var tname = ParseName(text);
 
             Assert.NotNull(tname);
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.GenericName, tname.Kind());
 
             var gname = (GenericNameSyntax)tname;
-            Assert.Equal("foo", gname.Identifier.ToString());
+            Assert.Equal("goo", gname.Identifier.ToString());
             Assert.Equal(false, gname.IsUnboundGenericName);
             Assert.Equal(2, gname.TypeArgumentList.Arguments.Count);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestKeywordInGenericNameBad()
         {
-            var text = "foo<static>";
+            var text = "goo<static>";
             var tname = ParseName(text);
 
             Assert.NotNull(tname);
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.GenericName, tname.Kind());
 
             var gname = (GenericNameSyntax)tname;
-            Assert.Equal("foo", gname.Identifier.ToString());
+            Assert.Equal("goo", gname.Identifier.ToString());
             Assert.Equal(false, gname.IsUnboundGenericName);
             Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAttributeAndVarianceInNameBad()
         {
-            var text = "foo<[My]in bar>";
+            var text = "goo<[My]in bar>";
             var tname = ParseName(text);
 
             Assert.NotNull(tname);
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.GenericName, tname.Kind());
 
             var gname = (GenericNameSyntax)tname;
-            Assert.Equal("foo", gname.Identifier.ToString());
+            Assert.Equal("goo", gname.Identifier.ToString());
             Assert.Equal(false, gname.IsUnboundGenericName);
             Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);

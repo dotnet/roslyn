@@ -16,10 +16,10 @@ public class C
 {
     $$void M()
     {
-        this.Foo();
+        this.Goo();
     }
 
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -37,7 +37,7 @@ public class C
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
             </MethodCall>
@@ -58,10 +58,10 @@ public class C
 {
     $$void M()
     {
-        this.Foo(1, 2);
+        this.Goo(1, 2);
     }
 
-    void Foo(int arg1, int arg2)
+    void Goo(int arg1, int arg2)
     {
     }
 }
@@ -79,7 +79,7 @@ public class C
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
                 <Argument>
@@ -114,10 +114,10 @@ public class C
 {
     $$void M()
     {
-        Foo();
+        Goo();
     }
 
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -135,7 +135,7 @@ public class C
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
             </MethodCall>
@@ -156,7 +156,7 @@ public class C
 {
     $$void M()
     {
-        this.list.AddRange(new object[] { "foo", "bar", "baz" });
+        this.list.AddRange(new object[] { "goo", "bar", "baz" });
     }
 
     System.Collections.ArrayList list;
@@ -201,7 +201,7 @@ public class C
                                     <Array>
                                         <Expression>
                                             <Literal>
-                                                <String>foo</String>
+                                                <String>goo</String>
                                             </Literal>
                                         </Expression>
                                         <Expression>

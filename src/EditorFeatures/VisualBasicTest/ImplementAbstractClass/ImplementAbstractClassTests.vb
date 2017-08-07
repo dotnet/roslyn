@@ -17,20 +17,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractC
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestSimpleCases() As Task
             Await TestInRegularAndScriptAsync(
-"Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+"Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
     Protected MustOverride Function Bar(s As String, ByRef d As Double) As Boolean
 End Class
 Public Class [|Bar|]
-    Inherits Foo
+    Inherits Goo
 End Class",
-"Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+"Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
     Protected MustOverride Function Bar(s As String, ByRef d As Double) As Boolean
 End Class
 Public Class Bar
-    Inherits Foo
-    Public Overrides Sub Foo(i As Integer)
+    Inherits Goo
+    Public Overrides Sub Goo(i As Integer)
         Throw New System.NotImplementedException()
     End Sub
     Protected Overrides Function Bar(s As String, ByRef d As Double) As Boolean
@@ -421,15 +421,15 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class [|C|] : Inherits D : End Class",
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class C : Inherits D
-    Public Overrides Sub Foo()
+    Public Overrides Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -441,15 +441,15 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class [|C|] : Inherits D : Implements IDisposable : End Class",
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class C : Inherits D : Implements IDisposable
-    Public Overrides Sub Foo()
+    Public Overrides Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -460,17 +460,17 @@ End Class")
         Public Async Function TestRenameTypeParameters() As Task
             Await TestInRegularAndScriptAsync(
 "MustInherit Class A(Of T)
-    MustOverride Sub Foo(Of S As T)()
+    MustOverride Sub Goo(Of S As T)()
 End Class
 Class [|C(Of S)|]
     Inherits A(Of S)
 End Class",
 "MustInherit Class A(Of T)
-    MustOverride Sub Foo(Of S As T)()
+    MustOverride Sub Goo(Of S As T)()
 End Class
 Class C(Of S)
     Inherits A(Of S)
-    Public Overrides Sub Foo(Of S1 As S)()
+    Public Overrides Sub Goo(Of S1 As S)()
         Throw New System.NotImplementedException()
     End Sub
 End Class")

@@ -39,11 +39,11 @@ Public Class LargeMethodTest
             a = New c1()
         End Sub
 
-        Friend Function foo(x As Integer) As Integer
+        Friend Function goo(x As Integer) As Integer
             Return 0
         End Function
 
-        Public Function foo(x As Object) As Boolean
+        Public Function goo(x As Object) As Boolean
             Return False
         End Function
 
@@ -132,7 +132,7 @@ Public Class LargeMethodTest
             Return Nothing
         End Function
 
-        Public Function foo(arg As Object) As Object
+        Public Function goo(arg As Object) As Object
             Return Nothing
         End Function
     End Class
@@ -141,7 +141,7 @@ Public Class LargeMethodTest
         Return Nothing
     End Function
 
-    Public Function foo(arg As Object) As Object
+    Public Function goo(arg As Object) As Object
         Return Nothing
     End Function
 
@@ -152,15 +152,15 @@ Public Class LargeMethodTest
             Console.WriteLine(str)
             If True Then
                 Dim a As c1 = New c1(i)
-                a.foo(i)
+                a.goo(i)
             End If
             Dim d As Double = 1.1
             If True Then
                 Dim sb As SByte = 1
                 Dim a As c1 = New c1(i + (i + i))
-                a.foo(sb)
+                a.goo(sb)
                 If True Then
-                    a.foo(d)
+                    a.goo(d)
                 End If
             End If
 
@@ -298,7 +298,7 @@ Public Class LargeMethodTest
                 o = f
                 l = ui
                 Dim c As c4 = New c4()
-                c.foo(sh)
+                c.goo(sh)
                 Me.bar(sh)
                 If b = False Then
                     Dim d As Double = f
@@ -318,12 +318,12 @@ Public Class LargeMethodTest
                         Dim f1 As Single = 1.2F
                         o = f1
                         l1 = ui1
-                        c.foo(b)
+                        c.goo(b)
                         b11 = l1
                         If Not False Then
                             Dim d1 As Double = f1
                             s1 = s
-                            c.foo(b1)
+                            c.goo(b1)
                         End If
 
                         If i <> 1000 Then

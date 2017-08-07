@@ -23,7 +23,7 @@ Public Class ConvertToAutoPropertyTests
         Dim code =
 <Code>Class C
     Private x As Integer
-    [|Public Property foo As Integer
+    [|Public Property goo As Integer
         Get
             Return x
         End Get
@@ -36,7 +36,7 @@ End Class</Code>
         Dim expected =
 <Code>Class C
 
-    Public Property foo As Integer
+    Public Property goo As Integer
 End Class</Code>
 
         Test(code, expected)
@@ -47,7 +47,7 @@ End Class</Code>
         Dim code =
 <Code>Class C
     Private x, y, z As Integer
-    [|Public Property foo As Integer
+    [|Public Property goo As Integer
         Get
             Return x
         End Get
@@ -60,7 +60,7 @@ End Class</Code>
         Dim expected =
 <Code>Class C
     Private y, z As Integer
-    Public Property foo As Integer
+    Public Property goo As Integer
 End Class</Code>
 
         Test(code, expected)
@@ -71,7 +71,7 @@ End Class</Code>
         Dim code =
 <Code>Class C
     Private x, y, z As Integer
-    [|Public Property foo As Integer
+    [|Public Property goo As Integer
         Get
             Return y
         End Get
@@ -84,7 +84,7 @@ End Class</Code>
         Dim expected =
 <Code>Class C
     Private x, z As Integer
-    Public Property foo As Integer
+    Public Property goo As Integer
 End Class</Code>
 
         Test(code, expected)
@@ -95,7 +95,7 @@ End Class</Code>
         Dim code =
 <Code>Class C
     Private x, y, z As Integer
-    [|Public Property foo As Integer
+    [|Public Property goo As Integer
         Get
             Return z
         End Get
@@ -108,7 +108,7 @@ End Class</Code>
         Dim expected =
 <Code>Class C
     Private x, y As Integer
-    Public Property foo As Integer
+    Public Property goo As Integer
 End Class</Code>
 
         Test(code, expected)

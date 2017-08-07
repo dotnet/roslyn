@@ -12,13 +12,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
                             Interface I
-                                Event Foo As EventHandler
+                                Event Goo As EventHandler
                             End Interface
                         </Document>
                     </Project>
                 </Workspace>,
                 Item("I", Glyph.InterfaceInternal, bolded:=True, children:={
-                    Item("Foo", Glyph.EventPublic, bolded:=True)}))
+                    Item("Goo", Glyph.EventPublic, bolded:=True)}))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544996")>
@@ -149,11 +149,11 @@ End Class
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Delegate Sub Foo()
+                            Delegate Sub Goo()
                         </Document>
                     </Project>
                 </Workspace>,
-                Item("Foo", Glyph.DelegateInternal, children:={}, bolded:=True))
+                Item("Goo", Glyph.DelegateInternal, children:={}, bolded:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544995"), WorkItem(545283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545283")>
@@ -409,16 +409,16 @@ End Class
                         </Document>
                         <Document>
 Partial Class C
-    Private Partial Sub Foo()
+    Private Partial Sub Goo()
     End Sub
 End Class
                         </Document>
                     </Project>
                 </Workspace>,
-                "C", "Foo",
+                "C", "Goo",
                 <Result>
 Partial Class C
-    Private Sub Foo()
+    Private Sub Goo()
 
     End Sub
 End Class
@@ -436,7 +436,7 @@ End Class
                         </Document>
                         <Document>
                             Partial Class C
-                                Sub Foo()
+                                Sub Goo()
                                 End Sub
                             End Class
                         </Document>
@@ -445,7 +445,7 @@ End Class
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
                      Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
-                     Item("Foo", Glyph.MethodPublic, grayed:=True)}))
+                     Item("Goo", Glyph.MethodPublic, grayed:=True)}))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544991")>
@@ -455,7 +455,7 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
                             Class C
-                                Private WithEvents foo As System.Console
+                                Private WithEvents goo As System.Console
                             End Class
                         </Document>
                     </Project>
@@ -463,7 +463,7 @@ End Class
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
                      Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
-                Item("foo", Glyph.FieldPrivate, bolded:=False, hasNavigationSymbolId:=False, indent:=1, children:={
+                Item("goo", Glyph.FieldPrivate, bolded:=False, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("CancelKeyPress", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
         End Function
 
@@ -675,17 +675,17 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
 Class C
-    Private WithEvents foo As System.Console
+    Private WithEvents goo As System.Console
 End Class
                         </Document>
                     </Project>
                 </Workspace>,
-                "foo", "CancelKeyPress",
+                "goo", "CancelKeyPress",
                 <Result>
 Class C
-    Private WithEvents foo As System.Console
+    Private WithEvents goo As System.Console
 
-    Private Sub foo_CancelKeyPress(sender As Object, e As ConsoleCancelEventArgs) Handles foo.CancelKeyPress
+    Private Sub goo_CancelKeyPress(sender As Object, e As ConsoleCancelEventArgs) Handles goo.CancelKeyPress
 
     End Sub
 End Class
@@ -1004,7 +1004,7 @@ End Class
                         <Document FilePath="Code.vb">
 Partial Class Program
     Private Sub S(value As Integer) 
-        $$' Foo
+        $$' Goo
     End Sub
 End Class
                         </Document>
