@@ -107,12 +107,31 @@ function Exec-Script([string]$script, [string]$scriptArgs = "") {
     Exec-Command "powershell" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
 }
 
+
 # Ensure that NuGet is installed and return the path to the 
 # executable to use.
 function Ensure-NuGet() {
-    Exec-Block { & (Join-Path $PSScriptRoot "download-nuget.ps1") } | Out-Host
-    $nuget = Join-Path $repoDir "NuGet.exe"
-    return $nuget
+    $nugetVersion = "4.1.0"
+    $toolsDir = Join-Path $binariesDir "Tools"
+    Create-Directory $toolsDir
+
+    $destFile = Join-Path $toolsDir "NuGet.exe"
+    $versionFile = Join-Path $toolsDir "NuGet.exe.version"
+
+    # Check and see if we already have a NuGet.exe which exists and is the correct
+    # version.
+    if ((Test-Path $destFile) -and (Test-Path $versionFile)) {
+        $scratchVersion = Get-Content $versionFile
+        if ($scratchVersion -eq $nugetVersion) {
+            return $destFile
+        }
+    }
+
+    Write-Host "Downloading NuGet.exe"
+    $webClient = New-Object -TypeName "System.Net.WebClient"
+    $webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/v$nugetVersion/NuGet.exe", $destFile)
+    $nugetVersion | Out-File $versionFile
+    return $destFile
 }
 
 # Ensure a basic tool used for building our Repo is installed and 
