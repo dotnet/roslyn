@@ -190,7 +190,7 @@
   </ItemGroup>
 
   <Import Project="$(MSBuildTargetsFilePath)" Condition="'$(RoslynSdkProject)' != 'true'" />
-  <Import Project="$(RoslynNetSdkRootPath)Sdk.targets" Condition="'$(RoslynSdkProject)' == 'true'" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" Condition="'$(RoslynSdkProject)' == 'true'" />
 
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
        directory separators from '\'to '/', even when the '\'
@@ -468,6 +468,10 @@
       MSBuildMinimumFileVersion="15.1.1012"
       MSBuildMinimumDisplayVersion="MSBuild 15.1"
       />
+
+    <Error 
+      Text="The 2.0 SDK is required to build this repo"
+      Condition="'$(UsingMicrosoftNETSdk)' == ''" />
   </Target> 
 
   <!-- Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
