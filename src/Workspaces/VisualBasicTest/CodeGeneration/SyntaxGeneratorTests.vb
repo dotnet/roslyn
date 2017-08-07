@@ -453,8 +453,8 @@ End Class
             VerifySyntax(Of TupleExpressionSyntax)(_g.TupleExpression(
                 {_g.IdentifierName("x"), _g.IdentifierName("y")}), "(x, y)")
             VerifySyntax(Of TupleExpressionSyntax)(_g.TupleExpression(
-                {_g.Argument("foo", RefKind.None, _g.IdentifierName("x")),
-                 _g.Argument("bar", RefKind.None, _g.IdentifierName("y"))}), "(foo:=x, bar:=y)")
+                {_g.Argument("goo", RefKind.None, _g.IdentifierName("x")),
+                 _g.Argument("bar", RefKind.None, _g.IdentifierName("y"))}), "(goo:=x, bar:=y)")
         End Sub
 
         <Fact>

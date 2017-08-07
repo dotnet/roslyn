@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
 {
     void Method()
     {
-        void [|Foo|]() { }
+        void [|Goo|]() { }
     }
 }",
 @"class Class

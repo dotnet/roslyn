@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         /// <summary>
         /// Returns true if this symbol contains anything unsafe within it.  for example
-        /// List&lt;int*[]&gt; is unsafe, as it "int* Foo { get; }"
+        /// List&lt;int*[]&gt; is unsafe, as it "int* Goo { get; }"
         /// </summary>
         public static bool IsUnsafe(this ISymbol member)
         {

@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // information for VB event handlers.  Namely, if you have:
             //
             // Event X]()
-            // Sub Foo()
+            // Sub Goo()
             //      Dim y = New $$XEventHandler(AddressOf bar)
             // End Sub
             //

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">
-void [|$$Foo|]()
+void [|$$Goo|]()
 {
 }
                     </Submission>

@@ -589,7 +589,7 @@ class C
     void M()
     {
         var c = [||]new List<int>();
-        c.Add(1); // Foo
+        c.Add(1); // Goo
         c.Add(2); // Bar
     }
 }",
@@ -601,7 +601,7 @@ class C
     {
         var c = new List<int>
         {
-            1, // Foo
+            1, // Goo
             2 // Bar
         };
     }
@@ -652,7 +652,7 @@ class C
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public static void Bar()
     {
@@ -666,7 +666,7 @@ public class Foo
 }",
 @"using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public static void Bar()
     {
@@ -853,7 +853,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         dynamic body = [||]new ExpandoObject();
         body[0] = new ExpandoObject();
@@ -869,7 +869,7 @@ class C
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -889,7 +889,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -902,7 +902,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -924,7 +924,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -936,7 +936,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -957,7 +957,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -969,7 +969,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {

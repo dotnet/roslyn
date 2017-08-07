@@ -25,7 +25,7 @@ Public Class AssemblyAttributeTests
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyVersion("1.2.3.4")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -124,7 +124,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyVersion("1.*")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -192,7 +192,7 @@ BC36976: The specified version string does not conform to the recommended format
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -209,7 +209,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("65535.65535.65535.65535")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -226,7 +226,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("1.2")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -243,7 +243,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("1.2.*")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -264,7 +264,7 @@ BC42366: The specified version string does not conform to the recommended format
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("1.65536")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -285,7 +285,7 @@ BC42366: The specified version string does not conform to the recommended format
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyTitle("One Hundred Years Of Solitude")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -303,7 +303,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyTitle(Nothing)>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -320,7 +320,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyDescription("A classic of magical realist literature")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -656,7 +656,7 @@ BC42371: Referenced assembly 'en_UK, Version=0.0.0.0, Culture=en-UK, PublicKeyTo
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyCompany("MossBrain")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -682,7 +682,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyProduct("Sound Cannon")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -714,7 +714,7 @@ End Structure
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyTrademark("circle r")>
-Interface IFoo
+Interface IGoo
 
 End Interface
 ]]>
@@ -731,7 +731,7 @@ End Interface
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyInformationalVersion("1.2.3garbage")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>

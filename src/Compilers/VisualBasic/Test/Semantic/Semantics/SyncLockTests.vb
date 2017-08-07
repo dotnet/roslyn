@@ -157,7 +157,7 @@ End Class
 <compilation name="NestedSyncLock">
     <file name="a.vb">
 Public Class Program
-    Public Sub foo()
+    Public Sub goo()
         Dim syncroot As Object = New Object
         SyncLock syncroot
             [|SyncLock syncroot.ToString()
@@ -188,7 +188,7 @@ End Class
 <compilation name="DataflowOfInnerStatement">
     <file name="a.vb">
 Public Class Program
-    Public Sub foo()
+    Public Sub goo()
         Dim syncroot As Object = New Object
         SyncLock syncroot.ToString()
             [|Dim x As Integer
@@ -295,7 +295,7 @@ End Class
     <file name="a.vb">
 Option Infer ON
 Class Program
-    Private Shared Sub Foo(Of T As D)(x As T)
+    Private Shared Sub Goo(Of T As D)(x As T)
         SyncLock x
         End SyncLock
     End Sub
@@ -450,7 +450,7 @@ End Class
 <compilation name="SyncLockMe">
     <file name="a.vb">
 Class Program
-    Sub foo()
+    Sub goo()
         SyncLock Me
         End SyncLock
     End Sub

@@ -416,7 +416,7 @@ End Class"
     ''' 
     ''' </summary>
     ''' [|<returns></returns>|]
-    Declare Sub Foo Lib ""User"" ()
+    Declare Sub Goo Lib ""User"" ()
 End Class"
 
             Dim expected =
@@ -424,7 +424,7 @@ End Class"
     ''' <summary>
     ''' 
     ''' </summary>
-    Declare Sub Foo Lib ""User"" ()
+    Declare Sub Goo Lib ""User"" ()
 End Class"
             
             Await TestAsync(initial, expected)

@@ -272,16 +272,16 @@ using System.Linq
 
 class Program
     sub M()
-        ' Comment [||]about foo!
-        ' Comment about foo!
-        ' Comment about foo!
-        ' Comment about foo!
-        ' Comment about foo!
-        ' Comment about foo!
-        ' Comment about foo!
-        dim foo = 0
+        ' Comment [||]about goo!
+        ' Comment about goo!
+        ' Comment about goo!
+        ' Comment about goo!
+        ' Comment about goo!
+        ' Comment about goo!
+        ' Comment about goo!
+        dim goo = 0
         Console.WriteLine()
-        Console.WriteLine(foo)
+        Console.WriteLine(goo)
     end sub
 end class")
         End Function

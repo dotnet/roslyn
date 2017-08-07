@@ -338,7 +338,7 @@ Class C1
     Public Shared field() As Integer
     Public Shared Property prop As Integer
 
-    Public Shared Function Foo() As Integer
+    Public Shared Function Goo() As Integer
         Return 23
     End Function
 
@@ -347,7 +347,7 @@ Class C1
         field(0) = 23
         field(1) = 42
 
-        For Each x As Integer In C1.Foo()'BIND:"C1.Foo()"
+        For Each x As Integer In C1.Goo()'BIND:"C1.Goo()"
         Next
     End Sub
 End Class
@@ -362,7 +362,7 @@ End Class
             Assert.Equal(TypeKind.Structure, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Function C1.Foo() As System.Int32", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Function C1.Goo() As System.Int32", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
@@ -388,7 +388,7 @@ Class C1
     Public Shared field() As Integer
     Public Shared Property prop As Integer
 
-    Public Shared Function Foo() As Integer
+    Public Shared Function Goo() As Integer
         Return 23
     End Function
 
@@ -438,7 +438,7 @@ Class C1
     Public Shared field() As Integer
     Public Shared Property prop As Integer
 
-    Public Shared Function Foo() As Integer
+    Public Shared Function Goo() As Integer
         Return 23
     End Function
 
@@ -488,7 +488,7 @@ Class C1
     Public Shared field() As Integer
     Public Shared Property prop As Integer
 
-    Public Shared Function Foo() As Integer
+    Public Shared Function Goo() As Integer
         Return 23
     End Function
 
@@ -538,7 +538,7 @@ Class C1
     Public Shared field() As Integer
     Public Shared Property prop As Integer
 
-    Public Shared Function Foo() As Integer
+    Public Shared Function Goo() As Integer
         Return 23
     End Function
 
@@ -629,11 +629,11 @@ Imports System
 
 Class C1
     Public Shared Sub Main()
-        for each foo1 in {1,2,3} 
+        for each goo1 in {1,2,3} 
         next 
 
-        dim foo2 as integer
-        for foo2 = 0 to 10
+        dim goo2 as integer
+        for goo2 = 0 to 10
         next 
     End Sub
 End Class
@@ -643,12 +643,12 @@ End Class
             Dim tree = compilation.SyntaxTrees(0)
 
             ' for each loop
-            Dim node = FindNodeFromText(tree, "for each foo1 in {1,2,3}")
+            Dim node = FindNodeFromText(tree, "for each goo1 in {1,2,3}")
             Dim symbol = compilation.GetSemanticModel(tree).GetDeclaredSymbol(node)
             Assert.Null(symbol)
 
             ' For loop
-            node = FindNodeFromText(tree, "for foo2 = 0 to 10")
+            node = FindNodeFromText(tree, "for goo2 = 0 to 10")
             symbol = compilation.GetSemanticModel(tree).GetDeclaredSymbol(node)
             Assert.Null(symbol)
         End Sub
@@ -667,10 +667,10 @@ Imports System
 Class C1
     Public Shared Sub Main()
 
-        for each foo in {1,2,3} 
+        for each goo in {1,2,3} 
         next 
 
-        for foo2 = 0 to 10
+        for goo2 = 0 to 10
         next 
     End Sub
 End Class
@@ -680,12 +680,12 @@ End Class
             Dim tree = compilation.SyntaxTrees(0)
 
             ' for each loop
-            Dim node = FindNodeFromText(tree, "for each foo in {1,2,3}")
+            Dim node = FindNodeFromText(tree, "for each goo in {1,2,3}")
             Dim symbol = compilation.GetSemanticModel(tree).GetDeclaredSymbol(node)
             Assert.Null(symbol)
 
             ' For loop
-            node = FindNodeFromText(tree, "for foo2 = 0 to 10")
+            node = FindNodeFromText(tree, "for goo2 = 0 to 10")
             symbol = compilation.GetSemanticModel(tree).GetDeclaredSymbol(node)
             Assert.Null(symbol)
         End Sub
@@ -737,9 +737,9 @@ Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 
-<A(TypeOf (Foo) Is Nullable)>'BIND:"Foo"
+<A(TypeOf (Goo) Is Nullable)>'BIND:"Goo"
 Module Program
-    Property Foo as Object
+    Property Goo as Object
         Get
             return nothing
         End Get
@@ -763,7 +763,7 @@ End Module
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Property Program.Foo As System.Object", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Property Program.Goo As System.Object", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Property, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
@@ -1304,16 +1304,16 @@ x = x               'BIND1:"x"
         <file name="a.vb">
 Module M1
     Public Sub Main(args As String())
-        Console.WriteLine(Global.Foo)     'BIND:"Global.Foo"
-        Console.WriteLine(Global.M2.Foo)  'BIND1:"Global.M2.Foo"
+        Console.WriteLine(Global.Goo)     'BIND:"Global.Goo"
+        Console.WriteLine(Global.M2.Goo)  'BIND1:"Global.M2.Goo"
     End Sub
 End Module
 
 Module M2
-    Public Foo as Integer = 23            
+    Public Goo as Integer = 23            
 
     Public Sub DoStuff()
-        Console.WriteLine(Foo)            'BIND2:"Foo"
+        Console.WriteLine(Goo)            'BIND2:"Goo"
     End Sub
 End Module
     </file>
@@ -1321,19 +1321,19 @@ End Module
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of MemberAccessExpressionSyntax)(compilation, "a.vb", 0)
             Dim sym = DirectCast(semanticInfo.Symbol, SourceFieldSymbol)
-            Assert.Equal("M2.Foo As System.Int32", sym.ToTestDisplayString())
+            Assert.Equal("M2.Goo As System.Int32", sym.ToTestDisplayString())
             Assert.Equal("M2", sym.ContainingType.ToTestDisplayString())
             Assert.Equal("M2", sym.ContainingSymbol.ToTestDisplayString())
 
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of MemberAccessExpressionSyntax)(compilation, "a.vb", 1)
             Dim sym2 = DirectCast(semanticInfo.Symbol, SourceFieldSymbol)
-            Assert.Equal("M2.Foo As System.Int32", sym.ToTestDisplayString())
+            Assert.Equal("M2.Goo As System.Int32", sym.ToTestDisplayString())
             Assert.Equal("M2", sym.ContainingType.ToTestDisplayString())
             Assert.Equal("M2", sym.ContainingSymbol.ToTestDisplayString())
 
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb", 2)
             Dim sym3 = DirectCast(semanticInfo.Symbol, SourceFieldSymbol)
-            Assert.Equal("M2.Foo As System.Int32", sym.ToTestDisplayString())
+            Assert.Equal("M2.Goo As System.Int32", sym.ToTestDisplayString())
             Assert.Equal("M2", sym.ContainingType.ToTestDisplayString())
             Assert.Equal("M2", sym.ContainingSymbol.ToTestDisplayString())
 
@@ -1484,7 +1484,7 @@ Imports System.Linq
 Imports System.Security.Permissions
 
 Module Program
-    <PermissionSet(SecurityAction.LinkDemand, FileAttr:="Foo")>'BIND:"PermissionSet"
+    <PermissionSet(SecurityAction.LinkDemand, FileAttr:="Goo")>'BIND:"PermissionSet"
     Sub Main(args As String())
         
     End Sub
@@ -1937,7 +1937,7 @@ Class cls1 : Implements I1
     Event E3(bar As Integer) Implements I1.E   '  bar means nothing here, only type matters.
 
     Sub moo()
-        ' binds to parameter on I1.EEventhandler.invoke(foo)
+        ' binds to parameter on I1.EEventhandler.invoke(goo)
         RaiseEvent E3(qwer:=123)  'BIND:"qwer"
     End Sub
 End Class
@@ -1986,7 +1986,7 @@ Class cls1
     End Event
 
     Sub moo()
-        RaiseEvent E1(objArg:=123)  ' foo binds to parameter on I1.EEventhandler.invoke(foo)'BIND:"objArg"
+        RaiseEvent E1(objArg:=123)  ' goo binds to parameter on I1.EEventhandler.invoke(goo)'BIND:"objArg"
     End Sub
 End Class
 
@@ -2118,7 +2118,7 @@ Imports System.Collections
 Imports System.Collections.Generic
 
 Public Class C2
-    Public Foo as Integer
+    Public Goo as Integer
     Public Bar as Integer
 End Class
 
@@ -2129,9 +2129,9 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        Dim foo As Byte = 23
-        Dim abcdef As New C2() With {.Foo = foo, .Bar = 23} 'BIND:"New C2() With {.Foo = foo, .Bar = 23}"
-        abcdef = New C3() With {.Foo = foo, .Bar = 23} 'BIND1:"New C3() With {.Foo = foo, .Bar = 23}"
+        Dim goo As Byte = 23
+        Dim abcdef As New C2() With {.Goo = goo, .Bar = 23} 'BIND:"New C2() With {.Goo = goo, .Bar = 23}"
+        abcdef = New C3() With {.Goo = goo, .Bar = 23} 'BIND1:"New C3() With {.Goo = goo, .Bar = 23}"
     End Sub
 End Class
 
@@ -2278,8 +2278,8 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        Dim foo As Byte = 23
-        Dim a As New C2() From {foo} 'BIND:"foo"    
+        Dim goo As Byte = 23
+        Dim a As New C2() From {goo} 'BIND:"goo"    
 
         const bar As Byte = 23
         Dim a As New C2() From {bar} 'BIND1:"bar"    
@@ -2295,7 +2295,7 @@ End Class
             Assert.Equal("System.Int64", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Structure, semanticSummary.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.WideningNumeric, semanticSummary.ImplicitConversion.Kind)
-            Assert.Equal("foo As System.Byte", semanticSummary.Symbol.ToTestDisplayString)
+            Assert.Equal("goo As System.Byte", semanticSummary.Symbol.ToTestDisplayString)
             Assert.Equal(CandidateReason.None, semanticSummary.CandidateReason)
             Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
             Assert.Null(semanticSummary.Alias)
@@ -2335,8 +2335,8 @@ End Interface
 
 Class C1
     Public Shared Sub DoStuff(Of T As {IAdd(Of Long), ICollection, New})()
-        Dim foo As Byte = 23
-        Dim a As New T() From {foo} 'BIND:"foo"    
+        Dim goo As Byte = 23
+        Dim a As New T() From {goo} 'BIND:"goo"    
 
         const bar As Byte = 23
         Dim a As New T() From {bar} 'BIND1:"bar" 
@@ -2354,7 +2354,7 @@ End Class
             Assert.Equal("System.Int64", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Structure, semanticSummary.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.WideningNumeric, semanticSummary.ImplicitConversion.Kind)
-            Assert.Equal("foo As System.Byte", semanticSummary.Symbol.ToTestDisplayString)
+            Assert.Equal("goo As System.Byte", semanticSummary.Symbol.ToTestDisplayString)
             Assert.Equal(CandidateReason.None, semanticSummary.CandidateReason)
             Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
             Assert.Null(semanticSummary.Alias)
@@ -2403,8 +2403,8 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        Dim foo As Byte = 23
-        Dim abcdef As New C2() From {foo} 'BIND:"New C2() From {foo}"    
+        Dim goo As Byte = 23
+        Dim abcdef As New C2() From {goo} 'BIND:"New C2() From {goo}"    
     End Sub
 End Class
 
@@ -2631,7 +2631,7 @@ Namespace Project1
     Class Sink
 
         Public WithEvents x As OuterClass
-        Sub foo() Handles x.SomeProperty.MyEvent   'BIND:"SomeProperty"
+        Sub goo() Handles x.SomeProperty.MyEvent   'BIND:"SomeProperty"
 
             Console.Write("Handled Event On SubObject!")
         End Sub
@@ -2716,7 +2716,7 @@ Namespace Project1
     Class Sink
 
         Public WithEvents x As OuterClass
-        Sub foo() Handles x.SomeProperty.MyEvent'BIND:"x"
+        Sub goo() Handles x.SomeProperty.MyEvent'BIND:"x"
 
             Console.Write("Handled Event On SubObject!")
         End Sub
@@ -2763,7 +2763,7 @@ Imports System.Linq
 Class cls1
     Shared Public Event e1()
 
-    Sub foo() Handles Me.e1'BIND:"e1"
+    Sub goo() Handles Me.e1'BIND:"e1"
     End Sub
 End Class
 
@@ -2811,7 +2811,7 @@ End Class
 Class cls1
     Inherits base
 
-    Shared Sub foo() Handles MyBase.e1'BIND:"e1"
+    Shared Sub goo() Handles MyBase.e1'BIND:"e1"
     End Sub
 End Class
 
@@ -2863,7 +2863,7 @@ End Class
 Class cls3
     Public WithEvents we As cls1
 
-    Public Sub foo() Handles we.e1'BIND:"e1"
+    Public Sub goo() Handles we.e1'BIND:"e1"
 
     End Sub
 End Class
@@ -2924,7 +2924,7 @@ End Class
 Class cls3
     Inherits C1
 
-    Public Sub foo() Handles we.e1'BIND:"e1"
+    Public Sub goo() Handles we.e1'BIND:"e1"
 
     End Sub
 End Class
@@ -2990,7 +2990,7 @@ End Class
 Class cls3
     Inherits C1
 
-    Public Sub foo() Handles we.e1'BIND:"we"
+    Public Sub goo() Handles we.e1'BIND:"we"
 
     End Sub
 End Class
@@ -3058,7 +3058,7 @@ Class cls3
     Inherits C1
     Public Shadows Event e1()
 
-    Public Sub foo() Handles we.e1, Me.e1, MyBase.e1, MyClass.e1
+    Public Sub goo() Handles we.e1, Me.e1, MyBase.e1, MyClass.e1
 
     End Sub
 End Class
@@ -3076,9 +3076,9 @@ End Module
             Dim globalNS = compilation.GlobalNamespace
             Dim class_cls2 = DirectCast(globalNS.GetMembers("cls3").Single(), NamedTypeSymbol)
             Assert.Null(class_cls2.AssociatedSymbol)
-            Dim meth_foo = DirectCast(class_cls2.GetMembers("foo").Single(), SourceMethodSymbol)
+            Dim meth_goo = DirectCast(class_cls2.GetMembers("goo").Single(), SourceMethodSymbol)
 
-            Dim handledEvents = meth_foo.HandledEvents
+            Dim handledEvents = meth_goo.HandledEvents
 
             Assert.Equal(4, handledEvents.Length)
 
@@ -3151,7 +3151,7 @@ End Class
 Class cls3
     Inherits C0
 
-    Public Sub foo() Handles we.e1'BIND:"we"
+    Public Sub goo() Handles we.e1'BIND:"we"
 
     End Sub
 End Class
@@ -3211,7 +3211,7 @@ End Class
 Class cls3
     Inherits C0
 
-    Public Sub foo() Handles we.e1'BIND:"we"
+    Public Sub goo() Handles we.e1'BIND:"we"
 
     End Sub
 End Class
@@ -3271,7 +3271,7 @@ End Class
 Class cls3
     Inherits C0
 
-    Public Sub foo() Handles we.P1'BIND:"P1"
+    Public Sub goo() Handles we.P1'BIND:"P1"
 
     End Sub
 End Class
@@ -3408,14 +3408,14 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Dim o As Object = 1
-        foo(o) 'BIND:"foo"
+        goo(o) 'BIND:"goo"
     End Sub
 
-    Sub foo(x As String)
+    Sub goo(x As String)
 
     End Sub
 
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
 
     End Sub
 End Module
@@ -3434,15 +3434,15 @@ End Module
             Assert.Equal(CandidateReason.LateBound, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
             Dim sortedSymbols = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub Program.foo(x As System.Int32)", sortedSymbols(0).ToTestDisplayString())
-            Assert.Equal("Sub Program.foo(x As System.String)", sortedSymbols(1).ToTestDisplayString())
+            Assert.Equal("Sub Program.goo(x As System.Int32)", sortedSymbols(0).ToTestDisplayString())
+            Assert.Equal("Sub Program.goo(x As System.String)", sortedSymbols(1).ToTestDisplayString())
 
             Assert.Null(semanticSummary.Alias)
 
             Assert.Equal(2, semanticSummary.MemberGroup.Length)
             Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub Program.foo(x As System.Int32)", sortedMethodGroup(0).ToTestDisplayString())
-            Assert.Equal("Sub Program.foo(x As System.String)", sortedMethodGroup(1).ToTestDisplayString())
+            Assert.Equal("Sub Program.goo(x As System.Int32)", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Sub Program.goo(x As System.String)", sortedMethodGroup(1).ToTestDisplayString())
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
@@ -3461,14 +3461,14 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Dim o As Object = 1
-        foo(o)'BIND:"foo(o)"
+        goo(o)'BIND:"goo(o)"
     End Sub
 
-    Sub foo(x As String)
+    Sub goo(x As String)
 
     End Sub
 
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
 
     End Sub
 End Module
@@ -3487,15 +3487,15 @@ End Module
             Assert.Equal(CandidateReason.LateBound, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
             Dim sortedSymbols = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub Program.foo(x As System.Int32)", sortedSymbols(0).ToTestDisplayString())
-            Assert.Equal("Sub Program.foo(x As System.String)", sortedSymbols(1).ToTestDisplayString())
+            Assert.Equal("Sub Program.goo(x As System.Int32)", sortedSymbols(0).ToTestDisplayString())
+            Assert.Equal("Sub Program.goo(x As System.String)", sortedSymbols(1).ToTestDisplayString())
 
             Assert.Null(semanticSummary.Alias)
 
             Assert.Equal(2, semanticSummary.MemberGroup.Length)
             Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub Program.foo(x As System.Int32)", sortedMethodGroup(0).ToTestDisplayString())
-            Assert.Equal("Sub Program.foo(x As System.String)", sortedMethodGroup(1).ToTestDisplayString())
+            Assert.Equal("Sub Program.goo(x As System.Int32)", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Sub Program.goo(x As System.String)", sortedMethodGroup(1).ToTestDisplayString())
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
@@ -3515,14 +3515,14 @@ Class Program
     Shared Sub Main(args As String())
         Dim o As Object = 1
         Dim c As New Program
-        c.foo(o)'BIND:"c.foo"
+        c.goo(o)'BIND:"c.goo"
     End Sub
 
-    Sub foo(x As String)
+    Sub goo(x As String)
 
     End Sub
 
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
 
     End Sub
 End Class
@@ -3541,15 +3541,15 @@ End Class
             Assert.Equal(CandidateReason.LateBound, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
             Dim sortedSymbols = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub Program.foo(x As System.Int32)", sortedSymbols(0).ToTestDisplayString())
-            Assert.Equal("Sub Program.foo(x As System.String)", sortedSymbols(1).ToTestDisplayString())
+            Assert.Equal("Sub Program.goo(x As System.Int32)", sortedSymbols(0).ToTestDisplayString())
+            Assert.Equal("Sub Program.goo(x As System.String)", sortedSymbols(1).ToTestDisplayString())
 
             Assert.Null(semanticSummary.Alias)
 
             Assert.Equal(2, semanticSummary.MemberGroup.Length)
             Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub Program.foo(x As System.Int32)", sortedMethodGroup(0).ToTestDisplayString())
-            Assert.Equal("Sub Program.foo(x As System.String)", sortedMethodGroup(1).ToTestDisplayString())
+            Assert.Equal("Sub Program.goo(x As System.Int32)", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Sub Program.goo(x As System.String)", sortedMethodGroup(1).ToTestDisplayString())
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
@@ -3571,11 +3571,11 @@ Module Program
         Dim x = o(o)'BIND:"o(o)"
     End Sub
 
-    Sub foo(x As String)
+    Sub goo(x As String)
 
     End Sub
 
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
 
     End Sub
 End Module
@@ -3729,7 +3729,7 @@ End Module
             <compilation>
                 <file name="a.vb">
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x As New |D(5) 'BIND:"Dim x As New |D(5)"
     End Sub
 End Class
@@ -3858,11 +3858,11 @@ Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 
-#Const foo = Nothing
+#Const goo = Nothing
 
 Module Program
     Sub Main(args As String())
-#If foo = 3 + 20 Then 'BIND:"20"
+#If goo = 3 + 20 Then 'BIND:"20"
         Console.WriteLine()
 #Else
         console.writeline()
@@ -3897,7 +3897,7 @@ End Module
         <WorkItem(541269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541269")>
         <Fact()>
         Public Sub GetDiagnosticsAddressOfOperatorWithoutMscorlibRef()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
 <compilation name="Compilation">
@@ -4027,13 +4027,13 @@ BC31143: Method 'Friend Sub TestSub(x As Integer)' does not have a signature com
         <WorkItem(541271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541271")>
         <Fact()>
         Public Sub GetDiagnosticsSubInsideAnInterfaceWithoutMscorlibRef()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
 <compilation name="Compilation">
     <file name="a.vb">
 Friend Interface I10
-    Sub foo()
+    Sub goo()
 End Interface
     </file>
 </compilation>, {})
@@ -4046,7 +4046,7 @@ End Interface
             AssertTheseDiagnostics(diagnostics,
 <expected>
 BC30002: Type 'System.Void' is not defined.
-    Sub foo()
+    Sub goo()
     ~~~~~~~~~                                               
 </expected>)
         End Sub
@@ -4054,7 +4054,7 @@ BC30002: Type 'System.Void' is not defined.
         <WorkItem(541304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541304")>
         <Fact()>
         Public Sub GetDiagnosticsDoLoopWithConditionAtBottomAndTopPart()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Compilation">
@@ -4088,7 +4088,7 @@ BC30201: Expression expected.
 
         <Fact()>
         Public Sub GetDiagnosticsDoLoopWithConditionAtBottomAndTopPart2()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Compilation">
@@ -4101,11 +4101,11 @@ Module Program
         Loop Until a = 23
 
         ' test that diagnostics get reported from both conditions
-        Do Until (foo() + 23)
-        Loop Until a = (foo() + 23)
+        Do Until (goo() + 23)
+        Loop Until a = (goo() + 23)
     End Sub
 
-    Sub foo()
+    Sub goo()
     end sub
 End Module
     </file>
@@ -4119,13 +4119,13 @@ BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
         Loop Until a = 23
              ~~~~~
 BC30491: Expression does not produce a value.
-        Do Until (foo() + 23)
+        Do Until (goo() + 23)
                   ~~~~~
 BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
-        Loop Until a = (foo() + 23)
+        Loop Until a = (goo() + 23)
              ~~~~~
 BC30491: Expression does not produce a value.
-        Loop Until a = (foo() + 23)
+        Loop Until a = (goo() + 23)
                         ~~~~~
 </expected>)
         End Sub
@@ -4155,7 +4155,7 @@ Namespace N1
     End Class
 End Namespace
     </file>
-</compilation>, options:=TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar"))
+</compilation>, options:=TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar"))
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim semanticModelA = compilation.GetSemanticModel(treeA)
@@ -4614,7 +4614,7 @@ End Class
 Class cls3
     Inherits C1
     Public Shadows Event e1()
-    Public Sub foo() Handles we.e1, Me.e1, MyBase.e1, MyClass.e1
+    Public Sub goo() Handles we.e1, Me.e1, MyBase.e1, MyClass.e1
     End Sub
 End Class
 
@@ -4738,7 +4738,7 @@ Module DelegateModule
 
         Public Class A
 
-            Public writeonly Property FFooX() As object
+            Public writeonly Property FGooX() As object
                 Set(ByVal value As Type)
                 End Set
             End Property
@@ -4946,7 +4946,7 @@ End Namespace
 #Const A = "SomeValue"
 
 Class C
-    Function Foo(A as Integer) As Integer
+    Function Goo(A as Integer) As Integer
         Return A 'BIND:"A"
     End Function
 End Class
@@ -5589,12 +5589,12 @@ Module M
     Sub Main()
         Try
             Dim x = 1
-            Foo(CObj(x)).GetHashCode() 'BIND:"Foo(CObj(x))"
+            Goo(CObj(x)).GetHashCode() 'BIND:"Goo(CObj(x))"
         Catch
             Console.WriteLine("Catch")
         End Try
     End Sub
-    Sub Foo(Of T, S)(x As Func(Of T))
+    Sub Goo(Of T, S)(x As Func(Of T))
     End Sub
 End Module
     ]]></file>
@@ -5609,7 +5609,7 @@ End Module
 
             Assert.NotNull(semanticSummary.Symbol)
             Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
-            Assert.Equal("Sub M.Foo(Of T, S)(x As System.Func(Of T))", semanticSummary.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub M.Goo(Of T, S)(x As System.Func(Of T))", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticSummary.Symbol.Kind)
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
@@ -5624,17 +5624,17 @@ Imports System
 
 Module Program
     Public Sub Main()
-        Call DirectCast((Sub(y) Call New X().Foo(y)), Action(Of Object))("HI")'BIND:"Sub(y) Call New X().Foo(y)"
+        Call DirectCast((Sub(y) Call New X().Goo(y)), Action(Of Object))("HI")'BIND:"Sub(y) Call New X().Goo(y)"
     End Sub
 
 End Module
 
 Public Class X
-    Public Sub Foo(x As Object)
+    Public Sub Goo(x As Object)
         Console.WriteLine(1)
     End Sub
 
-    Public Sub Foo(x As String)
+    Public Sub Goo(x As String)
         Console.WriteLine(2)
     End Sub
 End Class
@@ -5661,17 +5661,17 @@ Imports System
 
 Module Program
     Public Sub Main()
-        Call TryCast((Sub(y) Call New X().Foo(y)), Action(Of Object))("HI")'BIND:"Sub(y) Call New X().Foo(y)"
+        Call TryCast((Sub(y) Call New X().Goo(y)), Action(Of Object))("HI")'BIND:"Sub(y) Call New X().Goo(y)"
     End Sub
 
 End Module
 
 Public Class X
-    Public Sub Foo(x As Object)
+    Public Sub Goo(x As Object)
         Console.WriteLine(1)
     End Sub
 
-    Public Sub Foo(x As String)
+    Public Sub Goo(x As String)
         Console.WriteLine(2)
     End Sub
 End Class

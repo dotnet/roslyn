@@ -758,7 +758,7 @@ End Class
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
-Class Foo
+Class Goo
     Public Sub New(X As String)
 
     End Sub
@@ -776,8 +776,8 @@ Class C
     End Sub
 
     Public Sub M2()
-        Dim f1 = New Foo("""")
-        Dim f2 = New Foo(Nothing)
+        Dim f1 = New Goo("""")
+        Dim f2 = New Goo(Nothing)
     End Sub
 End Class
 ]]>
@@ -803,7 +803,7 @@ Class Bar
     Public Field As Boolean
 End Class
 
-Class Foo
+Class Goo
     Public Field As Integer
     Public Property Prop1 As String
     Public Property Prop2 As Bar
@@ -811,14 +811,14 @@ End Class
 
 Class C
     Public Sub M1()
-        Dim f1 = New Foo()
-        Dim f2 = New Foo() With {.Field = 10}
-        Dim f3 = New Foo With {.Prop1 = Nothing}
-        Dim f4 = New Foo With {.Field = 10, .Prop1 = Nothing}
-        Dim f5 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+        Dim f1 = New Goo()
+        Dim f2 = New Goo() With {.Field = 10}
+        Dim f3 = New Goo With {.Prop1 = Nothing}
+        Dim f4 = New Goo With {.Field = 10, .Prop1 = Nothing}
+        Dim f5 = New Goo With {.Prop2 = New Bar() With {.Field = True}}
 
-        Dim e1 = New Foo() With {.Prop1 = 10}
-        Dim e2 = New Foo With {10}
+        Dim e1 = New Goo() With {.Prop1 = 10}
+        Dim e2 = New Goo With {10}
     End Sub
 End Class
 ]]>
@@ -846,7 +846,7 @@ Class Bar
     Public Field As Boolean
 End Class
 
-Class Foo
+Class Goo
     Public Field As Integer
     Public Property Prop1 As String
     Public Property Prop2 As Bar
@@ -854,15 +854,15 @@ End Class
 
 Class C
     Public Sub M1()
-        Dim f1 = New Foo()
-        Dim f2 = New Foo() With {.Field = 10}
-        Dim f3 = New Foo With {.Prop1 = Nothing}
-        Dim f4 = New Foo With {.Field = 10, .Prop1 = Nothing}
-        Dim f5 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+        Dim f1 = New Goo()
+        Dim f2 = New Goo() With {.Field = 10}
+        Dim f3 = New Goo With {.Prop1 = Nothing}
+        Dim f4 = New Goo With {.Field = 10, .Prop1 = Nothing}
+        Dim f5 = New Goo With {.Prop2 = New Bar() With {.Field = True}}
     End Sub
 
     Public Sub M2()
-        Dim f1 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+        Dim f1 = New Goo With {.Prop2 = New Bar() With {.Field = True}}
         f1.Field = 0
         f1.Prop1 = Nothing
 
@@ -949,20 +949,20 @@ Class C
     Dim field1, field2, field3, field4 As Integer
     Public Sub M1()
         Dim a1 = 10
-        Dim b1 As New Integer, b2, b3, b4 As New Foo(1)         'too many
-        Dim c1, c2 As Integer, c3, c4 As Foo                    'too many
-        Dim d1() As Foo
+        Dim b1 As New Integer, b2, b3, b4 As New Goo(1)         'too many
+        Dim c1, c2 As Integer, c3, c4 As Goo                    'too many
+        Dim d1() As Goo
         Dim e1 As Integer = 10, e2 = {1, 2, 3}, e3, e4 As C     'too many
         Dim f1 = 10, f2 = 11, f3 As Integer
         Dim h1, h2, , h3 As Integer                             'too many
         Dim i1, i2, i3, i4 As New UndefType                     'too many
         Dim j1, j2, j3, j4 As UndefType                         'too many
-        Dim k1 As Integer, k2, k3, k4 As New Foo(1)             'too many
+        Dim k1 As Integer, k2, k3, k4 As New Goo(1)             'too many
     End Sub
 #Enable Warning BC42024
 End Class
 
-Class Foo
+Class Goo
     Public Sub New(X As Integer)
     End Sub
 End Class
@@ -983,12 +983,12 @@ End Class
                 Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(13, 31))
             comp.VerifyAnalyzerDiagnostics({New VariableDeclarationTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "a1").WithLocation(5, 13),
-                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim b1 As New Integer, b2, b3, b4 As New Foo(1)").WithLocation(6, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim b1 As New Integer, b2, b3, b4 As New Goo(1)").WithLocation(6, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "b1").WithLocation(6, 13),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "b2").WithLocation(6, 32),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "b3").WithLocation(6, 36),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "b4").WithLocation(6, 40),
-                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim c1, c2 As Integer, c3, c4 As Foo").WithLocation(7, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim c1, c2 As Integer, c3, c4 As Goo").WithLocation(7, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim e1 As Integer = 10, e2 = {1, 2, 3}, e3, e4 As C").WithLocation(9, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "e1").WithLocation(9, 13),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "e2").WithLocation(9, 33),
@@ -997,7 +997,7 @@ End Class
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim h1, h2, , h3 As Integer").WithLocation(11, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim i1, i2, i3, i4 As New UndefType").WithLocation(12, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim j1, j2, j3, j4 As UndefType").WithLocation(13, 9),
-                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim k1 As Integer, k2, k3, k4 As New Foo(1)").WithLocation(14, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim k1 As Integer, k2, k3, k4 As New Goo(1)").WithLocation(14, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "k2").WithLocation(14, 28),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "k3").WithLocation(14, 32),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "k4").WithLocation(14, 36))
@@ -1243,9 +1243,9 @@ End Class
 Class C
     Public F1 As Integer = 44
     Public F2 As String = "Hello"
-    Public F3 As Integer = Foo()
+    Public F3 As Integer = Goo()
 
-    Public Shared Function Foo()
+    Public Shared Function Goo()
         Return 10
     End Function
 
@@ -1262,7 +1262,7 @@ End Class
             comp.VerifyAnalyzerDiagnostics({New EqualsValueTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 44").WithLocation(2, 26),
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= ""Hello""").WithLocation(3, 25),
-                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Foo()").WithLocation(4, 26),
+                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Goo()").WithLocation(4, 26),
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 20").WithLocation(10, 84))
         End Sub
 
@@ -1441,7 +1441,7 @@ Class C
     Public Shared Sub Bar()
     End Sub
 
-    Public Sub Foo()
+    Public Sub Goo()
         AddHandler C.E, AddressOf D.Method
         RaiseEvent E()  ' Can't raise static event with type in VB
         C.Bar()
@@ -1940,7 +1940,7 @@ Module M1
             Return Nothing
         End Operator
     End Class
-    Sub foo()
+    Sub goo()
         For i As C1(Of Integer) = 1 To 10
         Next
     End Sub

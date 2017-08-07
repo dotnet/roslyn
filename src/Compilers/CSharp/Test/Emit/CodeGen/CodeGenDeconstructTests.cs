@@ -718,13 +718,13 @@ class C
     static void Main()
     {
         int y;
-        (Foo()[Bar()], y) = new C();
+        (Goo()[Bar()], y) = new C();
         System.Console.WriteLine($""Final array values[2] {array.values[2]}"");
     }
 
-    static SomeArray Foo()
+    static SomeArray Goo()
     {
-        System.Console.WriteLine($""Foo"");
+        System.Console.WriteLine($""Goo"");
         array = new SomeArray();
         return array;
     }
@@ -753,7 +753,7 @@ class SomeArray
 }
 ";
             var expected =
-@"Foo
+@"Goo
 Bar
 Deconstruct
 indexSet (with value 101)
@@ -6701,11 +6701,11 @@ class C
 
     static (int, (string, long)) M()
     {
-        return (5, (""Foo"", 34983490));
+        return (5, (""Goo"", 34983490));
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "5 (Foo, 34983490)", additionalRefs: s_valueTupleRefs);
+            var comp = CompileAndVerify(source, expectedOutput: "5 (Goo, 34983490)", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 

@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         /// 
         /// For instance, the following will create a TextView that has a multiline selection with the cursor at the end.
         /// 
-        /// Sub Foo
+        /// Sub Goo
         ///     {|Selection:SomeMethodCall()
         ///     AnotherMethodCall()$$|}
         /// End Sub
         ///
         /// You can use multiple selection spans to create box selections.
         ///
-        /// Sub Foo
+        /// Sub Goo
         ///     {|Selection:$$box|}11111
         ///     {|Selection:sel|}111
         ///     {|Selection:ect|}1

@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 var solution = workspace.CurrentSolution;
 
                 var document = new TestHostDocument(
-@"#if FOO
+@"#if GOO
 class C { }
 #else
 class D { }
@@ -189,7 +189,7 @@ class D { }
                 await VerifyRootTypeNameAsync(workspace, "D");
 
                 workspace.OnParseOptionsChanged(document.Id.ProjectId,
-                    new CSharpParseOptions(preprocessorSymbols: new[] { "FOO" }));
+                    new CSharpParseOptions(preprocessorSymbols: new[] { "GOO" }));
 
                 await VerifyRootTypeNameAsync(workspace, "C");
             }
@@ -203,7 +203,7 @@ class D { }
                 var solution = workspace.CurrentSolution;
 
                 var document = new TestHostDocument(
-@"#if FOO
+@"#if GOO
 class C { }
 #else
 class D { }
@@ -217,7 +217,7 @@ class D { }
                 await VerifyRootTypeNameAsync(workspace, "D");
 
                 workspace.OnParseOptionsChanged(document.Id.ProjectId,
-                    new CSharpParseOptions(preprocessorSymbols: new[] { "FOO" }));
+                    new CSharpParseOptions(preprocessorSymbols: new[] { "GOO" }));
 
                 await VerifyRootTypeNameAsync(workspace, "C");
 
@@ -877,8 +877,8 @@ class D { }
         {
             using (var workspace = CreateWorkspace())
             {
-                var startText = @"<setting value = ""foo""";
-                var newText = @"<setting value = ""foo1""";
+                var startText = @"<setting value = ""goo""";
+                var newText = @"<setting value = ""goo1""";
                 var document = new TestHostDocument("public class C { }");
                 var additionalDoc = new TestHostDocument(startText);
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
@@ -911,7 +911,7 @@ class D { }
         {
             using (var workspace = CreateWorkspace())
             {
-                var startText = @"<setting value = ""foo""";
+                var startText = @"<setting value = ""goo""";
                 var document = new TestHostDocument("public class C { }");
                 var additionalDoc = new TestHostDocument(startText);
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
@@ -942,7 +942,7 @@ class D { }
         {
             using (var workspace = CreateWorkspace())
             {
-                var startText = @"<setting value = ""foo""";
+                var startText = @"<setting value = ""goo""";
                 var document = new TestHostDocument("public class C { }");
                 var additionalDoc = new TestHostDocument(startText, "original.config");
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
@@ -980,7 +980,7 @@ class D { }
         {
             using (var workspace = CreateWorkspace())
             {
-                var startText = @"<setting value = ""foo""";
+                var startText = @"<setting value = ""goo""";
                 var document = new TestHostDocument("public class C { }");
                 var additionalDoc = new TestHostDocument(startText, "original.config");
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });

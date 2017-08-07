@@ -146,7 +146,7 @@ struct SafeBitVector
             _data = value ? _data | bit : _data & ~bit;
         }
     }
-    internal bool Foo(int bit)
+    internal bool Goo(int bit)
     {
         return this[bit];
     }
@@ -155,7 +155,7 @@ struct SafeBitVector
 class SectionInformation
 {
     SafeBitVector _flags;
-    internal bool Foo(int x)
+    internal bool Goo(int x)
     {
         return _flags[x];
     }
@@ -164,9 +164,9 @@ class SectionInformation
 class SectionInformation2
 {
     SafeBitVector _flags;
-    internal bool Foo(int x)
+    internal bool Goo(int x)
     {
-        return _flags.Foo(x);
+        return _flags.Goo(x);
     }
 }";
             var comp = CreateStandardCompilation(program);

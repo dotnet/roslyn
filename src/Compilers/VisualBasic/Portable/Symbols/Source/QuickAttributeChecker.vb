@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             _nameToAttributeMap(name) = newAttributes Or current
 
-            ' We allow "Foo" to bind to "FooAttribute".
+            ' We allow "Goo" to bind to "GooAttribute".
             If name.EndsWith("Attribute", StringComparison.OrdinalIgnoreCase) Then
                 _nameToAttributeMap(name.Substring(0, name.Length - "Attribute".Length)) = newAttributes Or current
             End If

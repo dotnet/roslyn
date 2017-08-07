@@ -31,7 +31,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        A.B.Foo$$ bar;
+        A.B.Goo$$ bar;
     }
 }
 
@@ -47,9 +47,9 @@ namespace A
             ' Test the default values
             Assert.Equal(0, viewModel.AccessSelectIndex)
             Assert.Equal(0, viewModel.KindSelectIndex)
-            Assert.Equal("Foo", viewModel.TypeName)
+            Assert.Equal("Goo", viewModel.TypeName)
 
-            Assert.Equal("Foo.cs", viewModel.FileName)
+            Assert.Equal("Goo.cs", viewModel.FileName)
 
             Assert.Equal(s_assembly1_Name, viewModel.SelectedProject.Name)
             Assert.Equal(s_test1_Name + ".cs", viewModel.SelectedDocument.Name)
@@ -67,7 +67,7 @@ namespace A
             Dim documentContentMarkup = <Text><![CDATA[
 Module Program
     Sub Main(args As String())
-        Dim x As A.B.Foo$$ = Nothing
+        Dim x As A.B.Goo$$ = Nothing
     End Sub
 End Module
 
@@ -80,9 +80,9 @@ End Namespace"]]></Text>
             ' Test the default values
             Assert.Equal(0, viewModel.AccessSelectIndex)
             Assert.Equal(0, viewModel.KindSelectIndex)
-            Assert.Equal("Foo", viewModel.TypeName)
+            Assert.Equal("Goo", viewModel.TypeName)
 
-            Assert.Equal("Foo.vb", viewModel.FileName)
+            Assert.Equal("Goo.vb", viewModel.FileName)
 
             Assert.Equal(s_assembly1_Name, viewModel.SelectedProject.Name)
             Assert.Equal(s_test1_Name + ".vb", viewModel.SelectedDocument.Name)
@@ -102,7 +102,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        A.B.Foo$$ bar;
+        A.B.Goo$$ bar;
     }
 }
 
@@ -124,23 +124,23 @@ namespace A
             Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.Equal("Wow.cs", viewModel.FileName)
 
-            viewModel.FileName = "Foo\Bar\Woow"
+            viewModel.FileName = "Goo\Bar\Woow"
 
             viewModel.UpdateFileNameExtension()
             Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.Equal("Woow.cs", viewModel.FileName)
             Assert.Equal(2, viewModel.Folders.Count)
-            Assert.Equal("Foo", viewModel.Folders(0))
+            Assert.Equal("Goo", viewModel.Folders(0))
             Assert.Equal("Bar", viewModel.Folders(1))
 
-            viewModel.FileName = "\    name has space \  Foo      \Bar\      Woow"
+            viewModel.FileName = "\    name has space \  Goo      \Bar\      Woow"
 
             viewModel.UpdateFileNameExtension()
             Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.Equal("Woow.cs", viewModel.FileName)
             Assert.Equal(3, viewModel.Folders.Count)
             Assert.Equal("name has space", viewModel.Folders(0))
-            Assert.Equal("Foo", viewModel.Folders(1))
+            Assert.Equal("Goo", viewModel.Folders(1))
             Assert.Equal("Bar", viewModel.Folders(2))
 
             ' Set it to invalid identifier
@@ -166,7 +166,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        A.B.Foo$$ bar;
+        A.B.Goo$$ bar;
     }
 }
 
@@ -223,7 +223,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        A.B.Foo$$ bar;
+        A.B.Goo$$ bar;
     }
 }
 
@@ -270,7 +270,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        A.B.Foo$$ bar;
+        A.B.Goo$$ bar;
     }
 }
 
@@ -314,7 +314,7 @@ namespace A
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeAllowClassTypeKindForAttribute_CSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
-[Foo$$]
+[Goo$$]
 class Program
 {
     static void Main(string[] args)
@@ -327,7 +327,7 @@ class Program
             Assert.Equal(1, viewModel.KindList.Count)
             Assert.Equal("class", viewModel.KindList(0))
 
-            Assert.Equal("FooAttribute", viewModel.TypeName)
+            Assert.Equal("GooAttribute", viewModel.TypeName)
         End Function
 
         <WorkItem(858815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858815")>
@@ -350,50 +350,50 @@ End Class]]></Text>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithCapsAttribute_VisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
-<FooAttribute$$>
+<GooAttribute$$>
 Public class CCC
 End class]]></Text>
             Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=False, isAttribute:=True)
 
-            Assert.Equal("FooAttribute", viewModel.TypeName)
+            Assert.Equal("GooAttribute", viewModel.TypeName)
         End Function
 
         <WorkItem(861544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861544")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithoutCapsAttribute_VisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
-<Fooattribute$$>
+<Gooattribute$$>
 Public class CCC
 End class]]></Text>
             Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=False, isAttribute:=True)
 
-            Assert.Equal("FooattributeAttribute", viewModel.TypeName)
+            Assert.Equal("GooattributeAttribute", viewModel.TypeName)
         End Function
 
         <WorkItem(861544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861544")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithCapsAttribute_CSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
-[FooAttribute$$]
+[GooAttribute$$]
 public class CCC
 {
 }]]></Text>
             Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.CSharp, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=False, isAttribute:=True)
 
-            Assert.Equal("FooAttribute", viewModel.TypeName)
+            Assert.Equal("GooAttribute", viewModel.TypeName)
         End Function
 
         <WorkItem(861544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861544")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithoutCapsAttribute_CSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
-[Fooattribute$$]
+[Gooattribute$$]
 public class CCC
 {
 }]]></Text>
             Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.CSharp, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=False, isAttribute:=True)
 
-            Assert.Equal("FooattributeAttribute", viewModel.TypeName)
+            Assert.Equal("GooattributeAttribute", viewModel.TypeName)
         End Function
 
 
@@ -531,7 +531,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Foo$$ bar;
+        Goo$$ bar;
     }
 }
                                        </Document>
@@ -545,30 +545,30 @@ class Program
             Dim viewModel = Await GetViewModelAsync(workspaceXml, "")
 
             ' Assert the current display
-            Assert.Equal(viewModel.FileName, "Foo.cs")
+            Assert.Equal(viewModel.FileName, "Goo.cs")
 
             ' Select the project CS2 which has no documents.
             Dim projectToSelect = viewModel.ProjectList.Where(Function(p) p.Name = "VB1").Single().Project
             viewModel.SelectedProject = projectToSelect
 
             ' Assert the new current display
-            Assert.Equal(viewModel.FileName, "Foo.vb")
+            Assert.Equal(viewModel.FileName, "Goo.vb")
 
             ' Switch back to the initial document
             projectToSelect = viewModel.ProjectList.Where(Function(p) p.Name = "CS1").Single().Project
             viewModel.SelectedProject = projectToSelect
 
             ' Assert the display is back to the way it was before
-            Assert.Equal(viewModel.FileName, "Foo.cs")
+            Assert.Equal(viewModel.FileName, "Goo.cs")
 
             ' Set the name with vb extension
-            viewModel.FileName = "Foo.vb"
+            viewModel.FileName = "Goo.vb"
 
             ' On focus change,we trigger this method
             viewModel.UpdateFileNameExtension()
 
             ' Assert that the filename changes accordingly
-            Assert.Equal(viewModel.FileName, "Foo.cs")
+            Assert.Equal(viewModel.FileName, "Goo.cs")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -598,7 +598,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Foo$$ bar;
+        Goo$$ bar;
     }
 }
                                        </Document>
@@ -611,8 +611,8 @@ class Program
             ' Test the default values
             Assert.Equal(0, viewModel.AccessSelectIndex)
             Assert.Equal(0, viewModel.KindSelectIndex)
-            Assert.Equal("Foo", viewModel.TypeName)
-            Assert.Equal("Foo.cs", viewModel.FileName)
+            Assert.Equal("Goo", viewModel.TypeName)
+            Assert.Equal("Goo.cs", viewModel.FileName)
             Assert.Equal("Test.generated.cs", viewModel.SelectedDocument.Name)
         End Function
 
@@ -625,7 +625,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Foo$$ bar;
+        Goo$$ bar;
     }
 }
                                        </Document>
@@ -643,7 +643,7 @@ class Program
             viewModel.IsNewFile = True
 
             ' Assert the current display
-            Assert.Equal(viewModel.FileName, "Foo.cs")
+            Assert.Equal(viewModel.FileName, "Goo.cs")
 
             ' Set the folder to \outer\
             viewModel.FileName = viewModel.ProjectFolders(0)
@@ -669,16 +669,16 @@ class Program
             Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename with keywords
-            viewModel.FileName = "com1\foo.cs"
+            viewModel.FileName = "com1\goo.cs"
             Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename with ".."
-            viewModel.FileName = "..\..\foo.cs"
+            viewModel.FileName = "..\..\goo.cs"
             viewModel.UpdateFileNameExtension()
             Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
 
             ' Set the Filename with ".."
-            viewModel.FileName = "..\.\..\.\foo.cs"
+            viewModel.FileName = "..\.\..\.\goo.cs"
             viewModel.UpdateFileNameExtension()
             Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
         End Function
@@ -691,7 +691,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        A.B.Foo$$ bar;
+        A.B.Goo$$ bar;
     }
 }
 
@@ -729,7 +729,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        A.B.Foo$$ bar;
+        A.B.Goo$$ bar;
     }
 }
 
@@ -785,7 +785,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        A.B.Foo$$ bar;
+        A.B.Goo$$ bar;
     }
 }
 

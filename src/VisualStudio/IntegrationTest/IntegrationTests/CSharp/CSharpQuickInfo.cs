@@ -60,7 +60,7 @@ class العربية123
 {
     static void Main()
     {
-         العربية123$$ foo;
+         العربية123$$ goo;
     }
 }");
             VisualStudio.Editor.InvokeQuickInfo();
