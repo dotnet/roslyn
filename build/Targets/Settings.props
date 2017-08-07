@@ -17,7 +17,7 @@
     <RoslynDiagnosticsNugetPackageVersion>$(MicrosoftNetRoslynDiagnosticsVersion)</RoslynDiagnosticsNugetPackageVersion>
     <!-- Disable analyzers if NuGet deviated from the expected restore location (e.g. by changing case on a case-sensitive file system) -->
     <UseRoslynAnalyzers Condition="!Exists('$(NuGetPackageRoot)\Microsoft.CodeQuality.Analyzers\$(RoslynDiagnosticsNugetPackageVersion)\analyzers\dotnet\cs\Analyzer.Utilities.dll')">False</UseRoslynAnalyzers>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\$(RoslynDiagnosticsNugetPackageVersion)\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/build/Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynRuntimeIdentifier Condition="'$(RoslynRuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7-x64</RoslynRuntimeIdentifier>
     <RoslynPortableTargetFrameworks>net46;netcoreapp2.0</RoslynPortableTargetFrameworks>
  
