@@ -37,6 +37,27 @@ namespace Roslyn.Utilities
             return true;
         }
 
+        public bool Insert(int index, T value)
+        {
+            if (_set == null)
+            {
+                if (index > 0)
+                {
+                    throw new IndexOutOfRangeException();
+                }
+                Add(value);
+            }
+            else
+            {
+                if (!_set.Add(value))
+                {
+                    return false;
+                }
+                _elements.Insert(index, value);
+            }
+            return true;
+        }
+
         public bool Remove(T value)
         {
             if (!_set.Remove(value))
@@ -57,5 +78,7 @@ namespace Roslyn.Utilities
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public ImmutableArray<T> AsImmutable() => _elements.ToImmutableArrayOrEmpty();
+
+        public T this[int i] => _elements[i];
     }
 }

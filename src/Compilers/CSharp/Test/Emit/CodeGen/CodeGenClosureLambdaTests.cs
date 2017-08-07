@@ -12,6 +12,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenClosureLambdaTests : CSharpTestBase
     {
         [Fact]
+        public void EnvironmentChainContainsUnusedEnvironment()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    void M(int x)
+    {
+        {
+            int y = 10;
+            Action f1 = () => Console.WriteLine(y);
+
+            {
+                int z = 5;
+                Action f2 = () => Console.WriteLine(z + x);
+                f2();
+            }
+            f1();
+        }
+    }
+    public static void Main() => new C().M(3);
+}", expectedOutput: @"8
+10");
+        }
+
+        [Fact]
+        public void CaptureThisAsFramePointer()
+        {
+            var comp = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    int _z = 0;
+    void M(IEnumerable<int> xs)
+    {
+        foreach (var x in xs)
+        {
+            Func<int, int> captureFunc = k => x + _z;
+        }
+    }
+}";
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
         public void StaticClosure01()
         {
             string source = @"using System;

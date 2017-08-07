@@ -31,6 +31,98 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        public void EnvironmentChainContainsStructEnvironment()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    void M(int x)
+    {
+        {
+            int y = 10;
+            void L() => Console.WriteLine(y);
+
+            {
+                int z = 5;
+                Action f2 = () => Console.WriteLine(z + x);
+                f2();
+            }
+            L();
+        }
+    }
+    public static void Main() => new C().M(3);
+}", expectedOutput: @"8
+10");
+        }
+
+        [Fact]
+        public void Repro20577()
+        {
+            var comp = CreateStandardCompilation(@"
+using System.Linq;
+
+public class Program {
+    public static void Main(string[] args) {
+        object v;
+
+        void AAA() {
+            object BBB(object v2) {
+                var a = v;
+                ((object[])v2).Select(i => BBB(i));
+                return null;
+            }
+        }
+    }
+}", references: new[] { LinqAssemblyRef });
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
+        public void Repro19033()
+        {
+            CompileAndVerify(@"
+using System;
+
+class Program
+{
+    void Q(int n = 0)
+    {
+        {
+            object mc;
+
+            string B(object map)
+            {
+                Action<int> a = _ => B(new object());
+                return n.ToString();
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void Repro19033_2()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    static void F(Action a)
+    {
+        object x = null;
+        {
+            object y = null;
+            void G(object z)
+            {
+                F(() => G(x));
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
         [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
         [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
         public void IntermediateStructClosures1()

@@ -4,9 +4,9 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class LambdaFrameConstructor : SynthesizedInstanceConstructor, ISynthesizedMethodBodyImplementationSymbol
+    internal sealed class SynthesizedClosureEnvironmentConstructor : SynthesizedInstanceConstructor, ISynthesizedMethodBodyImplementationSymbol
     {
-        internal LambdaFrameConstructor(ClosureEnvironment frame)
+        internal SynthesizedClosureEnvironmentConstructor(SynthesizedClosureEnvironment frame)
             : base(frame)
         {
         }
