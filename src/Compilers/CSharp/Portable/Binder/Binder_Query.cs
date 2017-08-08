@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result.Update(
                 result.ReceiverOpt, result.Method, arguments.ToImmutableAndFree(), default(ImmutableArray<string>),
                 default(ImmutableArray<RefKind>), result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod,
-                argsToParams.ToImmutableAndFree(), result.ResultKind, result.Type);
+                argsToParams.ToImmutableAndFree(), result.ResultKind, result.BinderOpt, result.Type);
         }
 
         private void ReduceQuery(QueryTranslationState state, DiagnosticBag diagnostics)
@@ -297,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (state.clauses.IsEmpty() && state.selectOrGroup.Kind() == SyntaxKind.SelectClause)
             {
-                var select = state.selectOrGroup as SelectClauseSyntax;
+                var select = (SelectClauseSyntax)state.selectOrGroup;
                 BoundCall invocation;
                 if (join.Into == null)
                 {

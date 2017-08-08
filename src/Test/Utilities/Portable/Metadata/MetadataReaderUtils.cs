@@ -11,6 +11,7 @@ using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using System.IO;
 using System.IO.Compression;

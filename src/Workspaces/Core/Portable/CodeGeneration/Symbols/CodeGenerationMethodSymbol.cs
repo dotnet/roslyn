@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers modifiers,
             ITypeSymbol returnType,
             bool returnsByRef,
-            IMethodSymbol explicitInterfaceSymbolOpt,
+            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations,
             string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters,
             ImmutableArray<IParameterSymbol> parameters,
@@ -38,10 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.Parameters = parameters.NullToEmpty();
             this.MethodKind = methodKind;
 
-            this.ExplicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
-                ? ImmutableArray.Create<IMethodSymbol>()
-                : ImmutableArray.Create(explicitInterfaceSymbolOpt);
-
+            this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
             this.OriginalDefinition = this;
         }
 
@@ -49,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var result = new CodeGenerationMethodSymbol(this.ContainingType,
                 this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
-                this.ReturnType, this.ReturnsByRef, this.ExplicitInterfaceImplementations.FirstOrDefault(),
+                this.ReturnType, this.ReturnsByRef, this.ExplicitInterfaceImplementations,
                 this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes());
 
             CodeGenerationMethodInfo.Attach(result,
@@ -66,12 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override int Arity => this.TypeParameters.Length;
 
         public override bool ReturnsVoid
-        {
-            get
-            {
-                return this.ReturnType == null || this.ReturnType.SpecialType == SpecialType.System_Void;
-            }
-        }
+            => this.ReturnType == null || this.ReturnType.SpecialType == SpecialType.System_Void;
 
         public override ImmutableArray<ITypeSymbol> TypeArguments
             => this.TypeParameters.As<ITypeSymbol>();

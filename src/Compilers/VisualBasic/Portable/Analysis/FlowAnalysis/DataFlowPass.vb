@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.PooledObjects
 #If DEBUG Then
 ' We use a struct rather than a class to represent the state for efficiency
 ' for data flow analysis, with 32 bits of data inline. Merely copying the state

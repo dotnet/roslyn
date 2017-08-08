@@ -43,7 +43,15 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
             SessionOpt?.PostFault(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
                 description: description,
-                exceptionObject: exception);
+                exceptionObject: exception,
+                gatherEventDetails: arg =>
+                {
+                    arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
+
+                    // 0 means send watson, otherwise, cancel watson
+                    // we always send watson since dump itself can have valuable data
+                    return 0;
+                });
         }
     }
 }

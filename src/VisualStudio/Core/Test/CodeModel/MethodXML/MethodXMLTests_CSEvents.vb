@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Roslyn.Test.Utilities
@@ -16,12 +16,12 @@ public class C
 {
     $$void M()
     {
-        this.Foo += Bar;
+        this.Goo += Bar;
     }
 
     private void Bar(object sender, System.EventArgs e) { }
 
-    public event System.EventHandler Foo;
+    public event System.EventHandler Goo;
 }
         </Document>
     </Project>
@@ -37,7 +37,7 @@ public class C
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
                 <Expression>
@@ -66,10 +66,10 @@ public class C
 {
     $$void M()
     {
-        this.Foo += Bar;
+        this.Goo += Bar;
     }
 
-    public event System.EventHandler Foo;
+    public event System.EventHandler Goo;
 }
         </Document>
     </Project>
@@ -87,7 +87,7 @@ public class C
                     <Expression>
                         <ThisReference/>
                     </Expression>
-                    <Name>Foo</Name>
+                    <Name>Goo</Name>
                 </NameRef>
             </Expression>
             <Expression>
@@ -113,10 +113,10 @@ public class C
 {
     $$void M()
     {
-        this.Foo += this.Bar;
+        this.Goo += this.Bar;
     }
 
-    public event System.EventHandler Foo;
+    public event System.EventHandler Goo;
 }
         </Document>
     </Project>
@@ -135,7 +135,7 @@ public class C
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
                 <Expression>
@@ -164,10 +164,10 @@ public class C
 {
     $$void M()
     {
-        this.Foo += new System.EventHandler(this.Bar);
+        this.Goo += new System.EventHandler(this.Bar);
     }
 
-    public event System.EventHandler Foo;
+    public event System.EventHandler Goo;
 }
         </Document>
     </Project>
@@ -183,7 +183,7 @@ public class C
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
                 <Expression>

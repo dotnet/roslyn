@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                        class Foo { }
+                                        class Goo { }
                                     </Document>
                            </Project>
                        </Workspace>

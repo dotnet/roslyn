@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     if (toggle)
                     {
                         var triviaToToggle = triviaList.ElementAt(indexOfTriviaToRemoveOrToggle);
-                        Contract.ThrowIfFalse(triviaToToggle != default(SyntaxTrivia));
+                        Contract.ThrowIfFalse(triviaToToggle != default);
                         var toggledTrivia = fixer.TogglePragmaDirective(triviaToToggle);
                         triviaList = triviaList.Replace(triviaToToggle, toggledTrivia);
                     }

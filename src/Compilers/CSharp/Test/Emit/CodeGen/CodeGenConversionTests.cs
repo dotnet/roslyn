@@ -96,20 +96,20 @@ class Program
 {
     static void Main()
     {
-        Foo(new A.C());
+        Goo(new A.C());
     }
 
-    static void Foo<T>(I<T> x)
+    static void Goo<T>(I<T> x)
     {
-        Console.WriteLine(""Foo<T>(I<T> x)"");
+        Console.WriteLine(""Goo<T>(I<T> x)"");
     }
-    static void Foo<T>(J<T> x)
+    static void Goo<T>(J<T> x)
     {
-        Console.WriteLine(""Foo<T>(J<T> x)"");
+        Console.WriteLine(""Goo<T>(J<T> x)"");
     }
 }
 ";
-            var compilationVerifier = CompileAndVerify(source, expectedOutput: @"Foo<T>(J<T> x)
+            var compilationVerifier = CompileAndVerify(source, expectedOutput: @"Goo<T>(J<T> x)
 ");
         }
 
@@ -689,10 +689,10 @@ class Program
 {
     static void Main()
     {
-        Foo(new G<int>.E(), new G<int>.E());
+        Goo(new G<int>.E(), new G<int>.E());
     }
 
-    static void Foo<T>(G<T>.E x, G<int>.E y)
+    static void Goo<T>(G<T>.E x, G<int>.E y)
     {
         Console.Write(x is G<int>.E);
         Console.Write(y is G<T>.E);
@@ -706,7 +706,7 @@ class G<T>
 ";
 
             var compilation = CompileAndVerify(source, expectedOutput: "TrueTrue");
-            compilation.VerifyIL("Program.Foo<T>(G<T>.E, G<int>.E)",
+            compilation.VerifyIL("Program.Goo<T>(G<T>.E, G<int>.E)",
 @"
 {
   // Code size       39 (0x27)

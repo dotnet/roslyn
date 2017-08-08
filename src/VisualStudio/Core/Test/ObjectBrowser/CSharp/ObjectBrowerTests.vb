@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
@@ -79,14 +79,14 @@ namespace N
 <Code>
 class A
 {
-    protected virtual void Foo()
+    protected virtual void Goo()
     {
     }
 }
 
 class B : A
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -97,7 +97,7 @@ class B : A
 
 class C : B
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -115,7 +115,7 @@ class C : B
                 list = list.GetMemberList(0)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "ToString()",
                     "Equals(object)",
                     "Equals(object, object)",
@@ -133,14 +133,14 @@ class C : B
 <Code>
 class A
 {
-    protected virtual void Foo()
+    protected virtual void Goo()
     {
     }
 }
 
 class B : A
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -151,7 +151,7 @@ class B : A
 
 class C : B
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -169,7 +169,7 @@ class C : B
                 list = list.GetMemberList(1)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "Bar()",
                     "ToString()",
                     "Equals(object)",
@@ -188,14 +188,14 @@ class C : B
 <Code>
 class A
 {
-    protected virtual void Foo()
+    protected virtual void Goo()
     {
     }
 }
 
 class B : A
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -206,7 +206,7 @@ class B : A
 
 class C : B
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -224,7 +224,7 @@ class C : B
                 list = list.GetMemberList(2)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "Bar()",
                     "ToString()",
                     "Equals(object)",

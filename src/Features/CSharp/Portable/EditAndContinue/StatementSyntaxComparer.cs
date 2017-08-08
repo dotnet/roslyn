@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -681,6 +681,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     distance = (leftNode.RawKind == rightNode.RawKind) ? 0.0 : 0.1;
                     return true;
 
+                case SyntaxKind.SingleVariableDesignation:
+                    distance = ComputeWeightedDistance((SingleVariableDesignationSyntax)leftNode, (SingleVariableDesignationSyntax)rightNode);
+                    return true;
+
                 default:
                     distance = 0;
                     return false;
@@ -835,6 +839,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     throw ExceptionUtilities.UnexpectedValue(leftBlock.Parent.Kind());
             }
+        }
+
+        private double ComputeWeightedDistance(SingleVariableDesignationSyntax leftNode, SingleVariableDesignationSyntax rightNode)
+        {
+            double distance = ComputeDistance(leftNode, rightNode);
+            double parentDistance;
+
+            if (leftNode.Parent != null && 
+                rightNode.Parent != null &&
+                GetLabel(leftNode.Parent) == GetLabel(rightNode.Parent))
+            {
+                parentDistance = ComputeDistance(leftNode.Parent, rightNode.Parent);
+            }
+            else
+            {
+                parentDistance = 1;
+            }
+
+            return 0.5 * parentDistance + 0.5 * distance;
         }
 
         private static double ComputeWeightedBlockDistance(BlockSyntax leftBlock, BlockSyntax rightBlock)

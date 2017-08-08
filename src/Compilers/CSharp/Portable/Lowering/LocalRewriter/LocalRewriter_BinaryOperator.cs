@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.RuntimeMembers;
@@ -1195,6 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(
                 syntax,
                 UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
+                null, 
                 unliftedOp);
         }
 
@@ -1484,6 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(
                 syntax,
                 UnsafeGetNullableMethod(syntax, nullableBoolType, SpecialMember.System_Nullable_T__ctor),
+                null,
                 MakeBooleanConstant(syntax, value.GetValueOrDefault()));
         }
 
@@ -1720,9 +1723,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member)
         {
+            return UnsafeGetNullableMethod(syntax, nullableType, member, _compilation, _diagnostics);
+        }
+
+        /// <summary>
+        /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
+        /// Recommendation: Do not use, use <see cref="TryGetNullableMethod"/> instead! 
+        /// If used, a unit-test with a missing member is absolutely a must have.
+        /// </summary>
+        private static MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
             var nullableType2 = nullableType as NamedTypeSymbol;
             Debug.Assert((object)nullableType2 != null);
-            return UnsafeGetSpecialTypeMethod(syntax, member).AsMember(nullableType2);
+            return UnsafeGetSpecialTypeMethod(syntax, member, compilation, diagnostics).AsMember(nullableType2);
         }
 
         private bool TryGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, out MethodSymbol result)
@@ -1807,24 +1820,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, call, ConstantValue.NotAvailable, null, LookupResultKind.Viable, returnType);
 
             return result;
-        }
-
-        private static MethodSymbol GetTruthOperator(TypeSymbol type, bool negative)
-        {
-            string name = negative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName;
-            var operators = ((NamedTypeSymbol)type.StrippedType()).GetOperators(name);
-            Debug.Assert(!operators.IsEmpty);
-            for (int i = 0; i < operators.Length; ++i)
-            {
-                Debug.Assert(operators[i].ParameterCount == 1);
-                if (operators[i].ParameterTypes[0] == type)
-                {
-                    return operators[i];
-                }
-            }
-
-            Debug.Assert(false, "How did we bind a user-defined logical operator or dynamic logical Boolean operator without operator false or operator true?");
-            return null;
         }
 
         private BoundExpression RewriteStringEquality(BoundBinaryOperator oldNode, SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)

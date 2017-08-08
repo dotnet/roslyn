@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateVariable
     Friend Class VisualBasicGenerateVariableCodeFixProvider
         Inherits AbstractGenerateMemberCodeFixProvider
 
-        Friend Const BC30456 As String = "BC30456" ' error BC30456: 'Foo' is not a member of 'P'.
-        Friend Const BC30401 As String = "BC30401" ' error BC30401: 'Item' cannot implement 'Item' because there is no matching property on interface 'IFoo'.
+        Friend Const BC30456 As String = "BC30456" ' error BC30456: 'Goo' is not a member of 'P'.
+        Friend Const BC30401 As String = "BC30401" ' error BC30401: 'Item' cannot implement 'Item' because there is no matching property on interface 'IGoo'.
         Friend Const BC30451 As String = "BC30451" ' error BC30451: 'xyz' is not declared. It may be inaccessible due to its protection level.
         Friend Const BC36610 As String = "BC36610" ' error BC36610: Name 'v' is either not declared or not in the current scope.
 

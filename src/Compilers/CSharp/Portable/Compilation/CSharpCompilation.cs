@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using static Microsoft.CodeAnalysis.CSharp.Binder;
 using Microsoft.CodeAnalysis.Text;
@@ -1001,8 +1002,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Return a list of assembly symbols than can be accessed without using an alias.
         /// For example:
         ///   1) /r:A.dll /r:B.dll -> A, B
-        ///   2) /r:Foo=A.dll /r:B.dll -> B
-        ///   3) /r:Foo=A.dll /r:A.dll -> A
+        ///   2) /r:Goo=A.dll /r:B.dll -> B
+        ///   3) /r:Goo=A.dll /r:A.dll -> A
         /// </summary>
         internal void GetUnaliasedReferencedAssemblies(ArrayBuilder<AssemblySymbol> assemblies)
         {
@@ -1252,7 +1253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (specialType <= SpecialType.None || specialType > SpecialType.Count)
             {
-                throw new ArgumentOutOfRangeException(nameof(specialType));
+                throw new ArgumentOutOfRangeException(nameof(specialType), $"Unexpected SpecialType: '{(int)specialType}'.");
             }
 
             var result = Assembly.GetSpecialType(specialType);

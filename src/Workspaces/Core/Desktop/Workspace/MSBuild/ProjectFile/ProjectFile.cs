@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             buildManager.BeginBuild(parameters);
 
             // enable cancellation of build
-            CancellationTokenRegistration registration = default(CancellationTokenRegistration);
+            CancellationTokenRegistration registration = default;
             if (cancellationToken.CanBeCanceled)
             {
                 registration = cancellationToken.Register(() =>
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </remarks>
         protected string GetAbsolutePath(string path)
         {
-            // TODO (tomat): should we report an error when drive-relative path (e.g. "C:foo.cs") is encountered?
+            // TODO (tomat): should we report an error when drive-relative path (e.g. "C:goo.cs") is encountered?
             return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, _loadedProject.DirectoryPath) ?? path);
         }
 

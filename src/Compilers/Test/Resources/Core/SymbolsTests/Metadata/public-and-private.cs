@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 // This relates to VSO bug 217681 https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681
 // The code below is compiled with a modified compiler such that MetadataWriter will set both public and private flags on M, F, C2 and M2.

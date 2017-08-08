@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.SQLite
 {
     internal partial class SQLitePersistentStorage
     {
-        public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default)
             => _documentAccessor.ReadStreamAsync((document, name), cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default)
             => _documentAccessor.WriteStreamAsync((document, name), stream, cancellationToken);
 
         /// <summary>
@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             protected override void BindFirstParameter(SqlStatement statement, long dataId)
                 => statement.BindInt64Parameter(parameterIndex: 1, value: dataId);
+
+            protected override bool TryGetRowId(SqlConnection connection, long dataId, out long rowId)
+                => GetAndVerifyRowId(connection, dataId, out rowId);
         }
     }
 }

@@ -1,7 +1,6 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26507.0
+VisualStudioVersion = 15.0.26621.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{A41D1B99-F489-4C43-BBDF-96D61B19A6B9}"
 EndProject
@@ -58,55 +57,49 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Perf", "Perf", "{DD13507E-D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CodeStyle", "CodeStyle", "{DC014586-8D07-4DE6-B28E-C0540C59C085}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeAnalysis", "src\Compilers\Core\Portable\CodeAnalysis.csproj", "{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompiler", "src\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj", "{9508F118-F62E-4C16-A6F4-7C3B56E166AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VBCSCompiler", "src\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj", "{9508F118-F62E-4C16-A6F4-7C3B56E166AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompilerTests", "src\Compilers\Server\VBCSCompilerTests\VBCSCompilerTests.csproj", "{F5CE416E-B906-41D2-80B9-0078E887A3F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VBCSCompilerTests", "src\Compilers\Server\VBCSCompilerTests\VBCSCompilerTests.csproj", "{F5CE416E-B906-41D2-80B9-0078E887A3F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "csc", "src\Compilers\CSharp\csc\csc.csproj", "{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "csc", "src\Compilers\CSharp\csc\csc.csproj", "{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCodeAnalysis", "src\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj", "{B501A547-C911-4A05-AC6E-274A50DFF30E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCommandLineTest", "src\Compilers\CSharp\Test\CommandLine\CSharpCommandLineTest.csproj", "{50D26304-0961-4A51-ABF6-6CAD1A56D203}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCommandLineTest", "src\Compilers\CSharp\Test\CommandLine\CSharpCommandLineTest.csproj", "{50D26304-0961-4A51-ABF6-6CAD1A56D203}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCompilerEmitTest", "src\Compilers\CSharp\Test\Emit\CSharpCompilerEmitTest.csproj", "{4462B57A-7245-4146-B504-D46FDE762948}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCompilerEmitTest", "src\Compilers\CSharp\Test\Emit\CSharpCompilerEmitTest.csproj", "{4462B57A-7245-4146-B504-D46FDE762948}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCompilerSemanticTest", "src\Compilers\CSharp\Test\Semantic\CSharpCompilerSemanticTest.csproj", "{B2C33A93-DB30-4099-903E-77D75C4C3F45}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCompilerSemanticTest", "src\Compilers\CSharp\Test\Semantic\CSharpCompilerSemanticTest.csproj", "{B2C33A93-DB30-4099-903E-77D75C4C3F45}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCompilerSymbolTest", "src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj", "{28026D16-EB0C-40B0-BDA7-11CAA2B97CCC}"
-	ProjectSection(ProjectDependencies) = postProject
-		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCompilerSyntaxTest", "src\Compilers\CSharp\Test\Syntax\CSharpCompilerSyntaxTest.csproj", "{50D26304-0961-4A51-ABF6-6CAD1A56D202}"
-	ProjectSection(ProjectDependencies) = postProject
-		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilerTestResources", "src\Compilers\Test\Resources\Core\CompilerTestResources.csproj", "{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCompilerTestUtilities", "src\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj", "{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCompilerTestUtilities", "src\Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj", "{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCompilerTestUtilities", "src\Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj", "{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCodeAnalysis", "src\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj", "{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCommandLineTest", "src\Compilers\VisualBasic\Test\CommandLine\BasicCommandLineTest.vbproj", "{E3B32027-3362-41DF-9172-4D3B623F42A5}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCommandLineTest", "src\Compilers\VisualBasic\Test\CommandLine\BasicCommandLineTest.vbproj", "{E3B32027-3362-41DF-9172-4D3B623F42A5}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCompilerEmitTest", "src\Compilers\VisualBasic\Test\Emit\BasicCompilerEmitTest.vbproj", "{190CE348-596E-435A-9E5B-12A689F9FC29}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCompilerEmitTest", "src\Compilers\VisualBasic\Test\Emit\BasicCompilerEmitTest.vbproj", "{190CE348-596E-435A-9E5B-12A689F9FC29}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCompilerSemanticTest", "src\Compilers\VisualBasic\Test\Semantic\BasicCompilerSemanticTest.vbproj", "{BF180BD2-4FB7-4252-A7EC-A00E0C7A028A}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCompilerSemanticTest", "src\Compilers\VisualBasic\Test\Semantic\BasicCompilerSemanticTest.vbproj", "{BF180BD2-4FB7-4252-A7EC-A00E0C7A028A}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCompilerSymbolTest", "src\Compilers\VisualBasic\Test\Symbol\BasicCompilerSymbolTest.vbproj", "{BDA5D613-596D-4B61-837C-63554151C8F5}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCompilerSymbolTest", "src\Compilers\VisualBasic\Test\Symbol\BasicCompilerSymbolTest.vbproj", "{BDA5D613-596D-4B61-837C-63554151C8F5}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCompilerSyntaxTest", "src\Compilers\VisualBasic\Test\Syntax\BasicCompilerSyntaxTest.vbproj", "{91F6F646-4F6E-449A-9AB4-2986348F329D}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCompilerSyntaxTest", "src\Compilers\VisualBasic\Test\Syntax\BasicCompilerSyntaxTest.vbproj", "{91F6F646-4F6E-449A-9AB4-2986348F329D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PdbUtilities", "src\Test\PdbUtilities\PdbUtilities.csproj", "{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtilities.Desktop", "src\Test\Utilities\Desktop\TestUtilities.Desktop.csproj", "{76C6F005-C89D-4348-BB4A-391898DBEB52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestUtilities.Desktop", "src\Test\Utilities\Desktop\TestUtilities.Desktop.csproj", "{76C6F005-C89D-4348-BB4A-391898DBEB52}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workspaces", "src\Workspaces\Core\Portable\Workspaces.csproj", "{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}"
 EndProject
@@ -118,21 +111,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpSyntaxGenerator", "sr
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VisualBasicSyntaxGenerator", "src\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj", "{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicesTest", "src\Workspaces\CoreTest\ServicesTest.csproj", "{C50166F1-BABC-40A9-95EB-8200080CD701}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServicesTest", "src\Workspaces\CoreTest\ServicesTest.csproj", "{C50166F1-BABC-40A9-95EB-8200080CD701}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpServicesTest", "src\Workspaces\CSharpTest\CSharpServicesTest.csproj", "{E195A63F-B5A4-4C5A-96BD-8E7ED6A181B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpServicesTest", "src\Workspaces\CSharpTest\CSharpServicesTest.csproj", "{E195A63F-B5A4-4C5A-96BD-8E7ED6A181B7}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "VisualBasicServicesTest", "src\Workspaces\VisualBasicTest\VisualBasicServicesTest.vbproj", "{E3FDC65F-568D-4E2D-A093-5132FD3793B7}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VisualBasicServicesTest", "src\Workspaces\VisualBasicTest\VisualBasicServicesTest.vbproj", "{E3FDC65F-568D-4E2D-A093-5132FD3793B7}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VisualBasicErrorFactsGenerator", "src\Tools\Source\CompilerGeneratorTools\Source\VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj", "{909B656F-6095-4AC2-A5AB-C3F032315C45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workspaces.Desktop", "src\Workspaces\Core\Desktop\Workspaces.Desktop.csproj", "{2E87FA96-50BB-4607-8676-46521599F998}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workspaces.Desktop", "src\Workspaces\Core\Desktop\Workspaces.Desktop.csproj", "{2E87FA96-50BB-4607-8676-46521599F998}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpWorkspace", "src\Workspaces\CSharp\Portable\CSharpWorkspace.csproj", "{21B239D0-D144-430F-A394-C066D58EE267}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicWorkspace", "src\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj", "{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunTests", "src\Tools\Source\RunTests\RunTests.csproj", "{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RunTests", "src\Tools\Source\RunTests\RunTests.csproj", "{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicFeatures", "src\Features\VisualBasic\Portable\BasicFeatures.vbproj", "{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}"
 EndProject
@@ -140,113 +133,107 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpFeatures", "src\Featu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Features", "src\Features\Core\Portable\Features.csproj", "{EDC68A0E-C68D-4A74-91B7-BF38EC909888}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextEditorFeatures", "src\EditorFeatures\Text\TextEditorFeatures.csproj", "{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TextEditorFeatures", "src\EditorFeatures\Text\TextEditorFeatures.csproj", "{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicEditorFeatures", "src\EditorFeatures\VisualBasic\BasicEditorFeatures.vbproj", "{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicEditorFeatures", "src\EditorFeatures\VisualBasic\BasicEditorFeatures.vbproj", "{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpEditorFeatures", "src\EditorFeatures\CSharp\CSharpEditorFeatures.csproj", "{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpEditorFeatures", "src\EditorFeatures\CSharp\CSharpEditorFeatures.csproj", "{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EditorFeatures", "src\EditorFeatures\Core\EditorFeatures.csproj", "{3CDEEAB7-2256-418A-BEB2-620B5CB16302}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EditorFeatures", "src\EditorFeatures\Core\EditorFeatures.csproj", "{3CDEEAB7-2256-418A-BEB2-620B5CB16302}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicEditorServicesTest", "src\EditorFeatures\VisualBasicTest\BasicEditorServicesTest.vbproj", "{0BE66736-CDAA-4989-88B1-B3F46EBDCA4A}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicEditorServicesTest", "src\EditorFeatures\VisualBasicTest\BasicEditorServicesTest.vbproj", "{0BE66736-CDAA-4989-88B1-B3F46EBDCA4A}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicScripting", "src\Scripting\VisualBasic\BasicScripting.vbproj", "{3E7DEA65-317B-4F43-A25D-62F18D96CFD7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scripting", "src\Scripting\Core\Scripting.csproj", "{12A68549-4E8C-42D6-8703-A09335F97997}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptingTest", "src\Scripting\CoreTest\ScriptingTest.csproj", "{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}"
-	ProjectSection(ProjectDependencies) = postProject
-		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpScripting", "src\Scripting\CSharp\CSharpScripting.csproj", "{066F0DBD-C46C-4C20-AFEC-99829A172625}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpScriptingTest", "src\Scripting\CSharpTest\CSharpScriptingTest.csproj", "{2DAE4406-7A89-4B5F-95C3-BC5422CE47CE}"
-	ProjectSection(ProjectDependencies) = postProject
-		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteractiveFeatures", "src\Interactive\Features\InteractiveFeatures.csproj", "{8E2A252E-A140-45A6-A81A-2652996EA589}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveFeatures", "src\Interactive\Features\InteractiveFeatures.csproj", "{8E2A252E-A140-45A6-A81A-2652996EA589}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpEditorServicesTest", "src\EditorFeatures\CSharpTest\CSharpEditorServicesTest.csproj", "{AC2BCEFB-9298-4621-AC48-1FF5E639E48D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpEditorServicesTest", "src\EditorFeatures\CSharpTest\CSharpEditorServicesTest.csproj", "{AC2BCEFB-9298-4621-AC48-1FF5E639E48D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpEditorServicesTest2", "src\EditorFeatures\CSharpTest2\CSharpEditorServicesTest2.csproj", "{16E93074-4252-466C-89A3-3B905ABAF779}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpEditorServicesTest2", "src\EditorFeatures\CSharpTest2\CSharpEditorServicesTest2.csproj", "{16E93074-4252-466C-89A3-3B905ABAF779}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EditorServicesTest", "src\EditorFeatures\Test\EditorServicesTest.csproj", "{8CEE3609-A5A9-4A9B-86D7-33118F5D6B33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EditorServicesTest", "src\EditorFeatures\Test\EditorServicesTest.csproj", "{8CEE3609-A5A9-4A9B-86D7-33118F5D6B33}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "EditorServicesTest2", "src\EditorFeatures\Test2\EditorServicesTest2.vbproj", "{3CEA0D69-00D3-40E5-A661-DC41EA07269B}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "EditorServicesTest2", "src\EditorFeatures\Test2\EditorServicesTest2.vbproj", "{3CEA0D69-00D3-40E5-A661-DC41EA07269B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicesTestUtilities", "src\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj", "{76C6F005-C89D-4348-BB4A-39189DDBEB52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServicesTestUtilities", "src\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj", "{76C6F005-C89D-4348-BB4A-39189DDBEB52}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicInteractiveEditorFeatures", "src\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj", "{849E516A-595F-474B-ADB4-E099F921CEDF}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicInteractiveEditorFeatures", "src\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj", "{849E516A-595F-474B-ADB4-E099F921CEDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpInteractiveEditorFeatures", "src\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj", "{FE2CBEA6-D121-4FAA-AA8B-FC9900BF8C83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpInteractiveEditorFeatures", "src\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj", "{FE2CBEA6-D121-4FAA-AA8B-FC9900BF8C83}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteractiveEditorFeatures", "src\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj", "{92412D1A-0F23-45B5-B196-58839C524917}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveEditorFeatures", "src\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj", "{92412D1A-0F23-45B5-B196-58839C524917}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteractiveHost", "src\Interactive\Host\InteractiveHost.csproj", "{EBA4DFA1-6DED-418F-A485-A3B608978906}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost", "src\Interactive\Host\InteractiveHost.csproj", "{EBA4DFA1-6DED-418F-A485-A3B608978906}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteractiveHostTest", "src\Interactive\HostTest\InteractiveHostTest.csproj", "{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHostTest", "src\Interactive\HostTest\InteractiveHostTest.csproj", "{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "csi", "src\Interactive\csi\csi.csproj", "{14118347-ED06-4608-9C45-18228273C712}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "csi", "src\Interactive\csi\csi.csproj", "{14118347-ED06-4608-9C45-18228273C712}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "vbi", "src\Interactive\vbi\vbi.vbproj", "{6E62A0FF-D0DC-4109-9131-AB8E60CDFF7B}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "vbi", "src\Interactive\vbi\vbi.vbproj", "{6E62A0FF-D0DC-4109-9131-AB8E60CDFF7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicesVisualStudio", "src\VisualStudio\Core\Def\ServicesVisualStudio.csproj", "{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServicesVisualStudio", "src\VisualStudio\Core\Def\ServicesVisualStudio.csproj", "{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicesVisualStudioImpl", "src\VisualStudio\Core\Impl\ServicesVisualStudioImpl.csproj", "{C0E80510-4FBE-4B0C-AF2C-4F473787722C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServicesVisualStudioImpl", "src\VisualStudio\Core\Impl\ServicesVisualStudioImpl.csproj", "{C0E80510-4FBE-4B0C-AF2C-4F473787722C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SolutionExplorerShim", "src\VisualStudio\Core\SolutionExplorerShim\SolutionExplorerShim.csproj", "{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SolutionExplorerShim", "src\VisualStudio\Core\SolutionExplorerShim\SolutionExplorerShim.csproj", "{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicVisualStudio", "src\VisualStudio\VisualBasic\Impl\BasicVisualStudio.vbproj", "{D49439D7-56D2-450F-A4F0-74CB95D620E6}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicVisualStudio", "src\VisualStudio\VisualBasic\Impl\BasicVisualStudio.vbproj", "{D49439D7-56D2-450F-A4F0-74CB95D620E6}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicVisualStudioRepl", "src\VisualStudio\VisualBasic\Repl\BasicVisualStudioRepl.vbproj", "{B4A38526-5F15-4CA8-B5E9-0BA04E547023}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicVisualStudioRepl", "src\VisualStudio\VisualBasic\Repl\BasicVisualStudioRepl.vbproj", "{B4A38526-5F15-4CA8-B5E9-0BA04E547023}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpVisualStudio", "src\VisualStudio\CSharp\Impl\CSharpVisualStudio.csproj", "{5DEFADBD-44EB-47A2-A53E-F1282CC9E4E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpVisualStudio", "src\VisualStudio\CSharp\Impl\CSharpVisualStudio.csproj", "{5DEFADBD-44EB-47A2-A53E-F1282CC9E4E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpVisualStudioRepl", "src\VisualStudio\CSharp\Repl\CSharpVisualStudioRepl.csproj", "{737FF62C-F068-4317-84D0-BFB210C17A4E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpVisualStudioRepl", "src\VisualStudio\CSharp\Repl\CSharpVisualStudioRepl.csproj", "{737FF62C-F068-4317-84D0-BFB210C17A4E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpVisualStudioTest", "src\VisualStudio\CSharp\Test\CSharpVisualStudioTest.csproj", "{91C574AD-0352-47E9-A019-EE02CC32A396}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpVisualStudioTest", "src\VisualStudio\CSharp\Test\CSharpVisualStudioTest.csproj", "{91C574AD-0352-47E9-A019-EE02CC32A396}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ServicesVisualStudioTest", "src\VisualStudio\Core\Test\ServicesVisualStudioTest.vbproj", "{A1455D30-55FC-45EF-8759-3AEBDB13D940}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ServicesVisualStudioTest", "src\VisualStudio\Core\Test\ServicesVisualStudioTest.vbproj", "{A1455D30-55FC-45EF-8759-3AEBDB13D940}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSetup", "src\VisualStudio\Setup\VisualStudioSetup.csproj", "{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioSetup", "src\VisualStudio\Setup\VisualStudioSetup.csproj", "{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioInteractiveComponents", "src\VisualStudio\VisualStudioInteractiveComponents\VisualStudioInteractiveComponents.csproj", "{2169F526-8A88-435D-8732-486ACA095A6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioInteractiveComponents", "src\VisualStudio\VisualStudioInteractiveComponents\VisualStudioInteractiveComponents.csproj", "{2169F526-8A88-435D-8732-486ACA095A6A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioInteractiveServices", "src\VisualStudio\InteractiveServices\VisualStudioInteractiveServices.csproj", "{A31228BB-F05C-4D4A-B98A-0E681D876B7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioInteractiveServices", "src\VisualStudio\InteractiveServices\VisualStudioInteractiveServices.csproj", "{A31228BB-F05C-4D4A-B98A-0E681D876B7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioDiagnosticsWindow", "src\VisualStudio\VisualStudioDiagnosticsToolWindow\VisualStudioDiagnosticsWindow.csproj", "{A486D7DE-F614-409D-BB41-0FFDF582E35C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioDiagnosticsWindow", "src\VisualStudio\VisualStudioDiagnosticsToolWindow\VisualStudioDiagnosticsWindow.csproj", "{A486D7DE-F614-409D-BB41-0FFDF582E35C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpressionEvaluatorPackage", "src\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj", "{B617717C-7881-4F01-AB6D-B1B6CC0483A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpressionEvaluatorPackage", "src\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj", "{B617717C-7881-4F01-AB6D-B1B6CC0483A0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpExpressionCompiler", "src\ExpressionEvaluator\CSharp\Source\ExpressionCompiler\CSharpExpressionCompiler.csproj", "{FD6BA96C-7905-4876-8BCC-E38E2CA64F31}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpExpressionCompilerTest", "src\ExpressionEvaluator\CSharp\Test\ExpressionCompiler\CSharpExpressionCompilerTest.csproj", "{AE297965-4D56-4BA9-85EB-655AC4FC95A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpExpressionCompilerTest", "src\ExpressionEvaluator\CSharp\Test\ExpressionCompiler\CSharpExpressionCompilerTest.csproj", "{AE297965-4D56-4BA9-85EB-655AC4FC95A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpResultProviderTest", "src\ExpressionEvaluator\CSharp\Test\ResultProvider\CSharpResultProviderTest.csproj", "{60DB272A-21C9-4E8D-9803-FF4E132392C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpResultProviderTest", "src\ExpressionEvaluator\CSharp\Test\ResultProvider\CSharpResultProviderTest.csproj", "{60DB272A-21C9-4E8D-9803-FF4E132392C8}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicExpressionCompiler", "src\ExpressionEvaluator\VisualBasic\Source\ExpressionCompiler\BasicExpressionCompiler.vbproj", "{73242A2D-6300-499D-8C15-FADF7ECB185C}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicExpressionCompilerTest", "src\ExpressionEvaluator\VisualBasic\Test\ExpressionCompiler\BasicExpressionCompilerTest.vbproj", "{AC5E3515-482C-4C6A-92D9-D0CEA687DFC2}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicExpressionCompilerTest", "src\ExpressionEvaluator\VisualBasic\Test\ExpressionCompiler\BasicExpressionCompilerTest.vbproj", "{AC5E3515-482C-4C6A-92D9-D0CEA687DFC2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpressionCompiler", "src\ExpressionEvaluator\Core\Source\ExpressionCompiler\ExpressionCompiler.csproj", "{B8DA3A90-A60C-42E3-9D8E-6C67B800C395}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicResultProviderTest", "src\ExpressionEvaluator\VisualBasic\Test\ResultProvider\BasicResultProviderTest.vbproj", "{ACE53515-482C-4C6A-E2D2-4242A687DFEE}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicResultProviderTest", "src\ExpressionEvaluator\VisualBasic\Test\ResultProvider\BasicResultProviderTest.vbproj", "{ACE53515-482C-4C6A-E2D2-4242A687DFEE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpressionCompilerTestUtilities", "src\ExpressionEvaluator\Core\Test\ExpressionCompiler\ExpressionCompilerTestUtilities.csproj", "{21B80A31-8FF9-4E3A-8403-AABD635AEED9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpressionCompilerTestUtilities", "src\ExpressionEvaluator\Core\Test\ExpressionCompiler\ExpressionCompilerTestUtilities.csproj", "{21B80A31-8FF9-4E3A-8403-AABD635AEED9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResultProviderTestUtilities", "src\ExpressionEvaluator\Core\Test\ResultProvider\ResultProviderTestUtilities.csproj", "{ABDBAC1E-350E-4DC3-BB45-3504404545EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResultProviderTestUtilities", "src\ExpressionEvaluator\Core\Test\ResultProvider\ResultProviderTestUtilities.csproj", "{ABDBAC1E-350E-4DC3-BB45-3504404545EE}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "AnalyzerDriver", "src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.shproj", "{D0BC9BE7-24F6-40CA-8DC6-FCB93BD44B34}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpWinRTTest", "src\Compilers\CSharp\Test\WinRT\CSharpWinRTTest.csproj", "{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpWinRTTest", "src\Compilers\CSharp\Test\WinRT\CSharpWinRTTest.csproj", "{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTaskTests", "src\Compilers\Core\MSBuildTaskTests\MSBuildTaskTests.csproj", "{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSBuildTaskTests", "src\Compilers\Core\MSBuildTaskTests\MSBuildTaskTests.csproj", "{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BasicResultProvider", "src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.shproj", "{3140FE61-0856-4367-9AA3-8081B9A80E35}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicResultProvider.NetFX20", "src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\NetFX20\BasicResultProvider.NetFX20.vbproj", "{76242A2D-2600-49DD-8C15-FEA07ECB1842}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicResultProvider.NetFX20", "src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\NetFX20\BasicResultProvider.NetFX20.vbproj", "{76242A2D-2600-49DD-8C15-FEA07ECB1842}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicResultProvider.Portable", "src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\Portable\BasicResultProvider.Portable.vbproj", "{76242A2D-2600-49DD-8C15-FEA07ECB1843}"
 EndProject
@@ -262,7 +249,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResultProvider.NetFX20", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResultProvider.Portable", "src\ExpressionEvaluator\Core\Source\ResultProvider\Portable\ResultProvider.Portable.csproj", "{FA0E905D-EC46-466D-B7B2-3B5557F9428C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vbc", "src\Compilers\VisualBasic\vbc\vbc.csproj", "{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vbc", "src\Compilers\VisualBasic\vbc\vbc.csproj", "{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CscCore", "src\Compilers\CSharp\CscCore\CscCore.csproj", "{E3CD2895-76A8-4D11-A316-EA67CB5EA42C}"
 EndProject
@@ -270,18 +257,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VbcCore", "src\Compilers\Vi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestUtilities", "src\Test\Utilities\Portable\TestUtilities.csproj", "{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptingTest.Desktop", "src\Scripting\CoreTest.Desktop\ScriptingTest.Desktop.csproj", "{6FD1CC3E-6A99-4736-9B8D-757992DDE75D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptingTest.Desktop", "src\Scripting\CoreTest.Desktop\ScriptingTest.Desktop.csproj", "{6FD1CC3E-6A99-4736-9B8D-757992DDE75D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpScriptingTest.Desktop", "src\Scripting\CSharpTest.Desktop\CSharpScriptingTest.Desktop.csproj", "{286B01F3-811A-40A7-8C1F-10C9BB0597F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpScriptingTest.Desktop", "src\Scripting\CSharpTest.Desktop\CSharpScriptingTest.Desktop.csproj", "{286B01F3-811A-40A7-8C1F-10C9BB0597F7}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicScriptingTest.Desktop", "src\Scripting\VisualBasicTest.Desktop\BasicScriptingTest.Desktop.vbproj", "{24973B4C-FD09-4EE1-97F4-EA03E6B12040}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicScriptingTest.Desktop", "src\Scripting\VisualBasicTest.Desktop\BasicScriptingTest.Desktop.vbproj", "{24973B4C-FD09-4EE1-97F4-EA03E6B12040}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicScriptingTest", "src\Scripting\VisualBasicTest\BasicScriptingTest.vbproj", "{ABC7262E-1053-49F3-B846-E3091BB92E8C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diagnostics", "src\Test\Diagnostics\Diagnostics.csproj", "{E2E889A5-2489-4546-9194-47C63E49EAEB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Diagnostics", "src\Test\Diagnostics\Diagnostics.csproj", "{E2E889A5-2489-4546-9194-47C63E49EAEB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CsiCore", "src\Interactive\CsiCore\CsiCore.csproj", "{D1B051A4-F2A1-4E97-9747-C41D13E475FD}"
 EndProject
@@ -297,81 +281,79 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PortableServer", "src\Compi
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ServerShared", "src\Compilers\Server\ServerShared\ServerShared.shproj", "{32691768-AF9C-4CAE-9D0F-10721091B9AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompilerExtension", "src\Compilers\Extension\CompilerExtension.csproj", "{43026D51-3083-4850-928D-07E1883D5B1A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilerExtension", "src\Compilers\Extension\CompilerExtension.csproj", "{43026D51-3083-4850-928D-07E1883D5B1A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeployCoreClrTestRuntime", "src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj", "{59BABFC3-C19B-4472-A93D-3DD3835BC219}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCompilerTestUtilities.Desktop", "src\Compilers\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj", "{7A4B2176-7BFD-4B75-A61A-E25A1FDD0A1E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCompilerTestUtilities.Desktop", "src\Compilers\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj", "{7A4B2176-7BFD-4B75-A61A-E25A1FDD0A1E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeployDesktopTestRuntime", "src\Test\DeployDesktopTestRuntime\DeployDesktopTestRuntime.csproj", "{23683607-168A-4189-955E-908F0E80E60D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessWatchdog", "src\Tools\ProcessWatchdog\ProcessWatchdog.csproj", "{1553DE60-A2B0-4FAF-B1B8-C0A7313781CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessWatchdog", "src\Tools\ProcessWatchdog\ProcessWatchdog.csproj", "{1553DE60-A2B0-4FAF-B1B8-C0A7313781CC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeployCompilerGeneratorToolsRuntime", "src\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj", "{6DA08F12-32F2-4DD9-BBAD-982EB71A2C9B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioIntegrationTestSetup", "src\VisualStudio\IntegrationTest\TestSetup\VisualStudioIntegrationTestSetup.csproj", "{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioIntegrationTestSetup", "src\VisualStudio\IntegrationTest\TestSetup\VisualStudioIntegrationTestSetup.csproj", "{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioIntegrationTests", "src\VisualStudio\IntegrationTest\IntegrationTests\VisualStudioIntegrationTests.csproj", "{E5A55C16-A5B9-4874-9043-A5266DC02F58}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioIntegrationTests", "src\VisualStudio\IntegrationTest\IntegrationTests\VisualStudioIntegrationTests.csproj", "{E5A55C16-A5B9-4874-9043-A5266DC02F58}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioIntegrationTestUtilities", "src\VisualStudio\IntegrationTest\TestUtilities\VisualStudioIntegrationTestUtilities.csproj", "{3BED15FD-D608-4573-B432-1569C1026F6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioIntegrationTestUtilities", "src\VisualStudio\IntegrationTest\TestUtilities\VisualStudioIntegrationTestUtilities.csproj", "{3BED15FD-D608-4573-B432-1569C1026F6D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Perf.Tests", "src\Test\Perf\tests\Perf.Tests.csproj", "{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Perf.Tests", "src\Test\Perf\tests\Perf.Tests.csproj", "{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roslyn", "src\Deployment\Roslyn.csproj", "{600AF682-E097-407B-AD85-EE3CED37E680}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn", "src\Deployment\Roslyn.csproj", "{600AF682-E097-407B-AD85-EE3CED37E680}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EditorFeatures.Next", "src\EditorFeatures\Next\EditorFeatures.Next.csproj", "{366BBCDC-B05F-4677-9B5B-78BA816A1484}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EditorFeatures.Next", "src\EditorFeatures\Next\EditorFeatures.Next.csproj", "{366BBCDC-B05F-4677-9B5B-78BA816A1484}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSetup.Next", "src\VisualStudio\Setup.Next\VisualStudioSetup.Next.csproj", "{143FE684-6E1C-41DF-9C60-84C7772DC49C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioSetup.Next", "src\VisualStudio\Setup.Next\VisualStudioSetup.Next.csproj", "{143FE684-6E1C-41DF-9C60-84C7772DC49C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XamlVisualStudio", "src\VisualStudio\Xaml\Impl\XamlVisualStudio.csproj", "{971E832B-7471-48B5-833E-5913188EC0E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XamlVisualStudio", "src\VisualStudio\Xaml\Impl\XamlVisualStudio.csproj", "{971E832B-7471-48B5-833E-5913188EC0E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Perf.Utilities", "src\Test\Perf\Utilities\Perf.Utilities.csproj", "{59AD474E-2A35-4E8A-A74D-E33479977FBF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Perf.Utilities", "src\Test\Perf\Utilities\Perf.Utilities.csproj", "{59AD474E-2A35-4E8A-A74D-E33479977FBF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Perf.Runner", "src\Test\Perf\Runner\Perf.Runner.csproj", "{1AA6D2F0-2C40-4AF6-BB79-50AFDCC62720}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Perf.Runner", "src\Test\Perf\Runner\Perf.Runner.csproj", "{1AA6D2F0-2C40-4AF6-BB79-50AFDCC62720}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Metadata", "src\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.shproj", "{D73ADF7D-2C1C-42AE-B2AB-EDC9497E4B71}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Debugging", "src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.shproj", "{D73ADF7D-2C1C-42AE-B2AB-EDC9497E4B71}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.PooledObjects", "src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.shproj", "{C1930979-C824-496B-A630-70F5369A636F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteWorkspaces", "src\Workspaces\Remote\Core\RemoteWorkspaces.csproj", "{F822F72A-CC87-4E31-B57D-853F65CBEBF3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteWorkspaces", "src\Workspaces\Remote\Core\RemoteWorkspaces.csproj", "{F822F72A-CC87-4E31-B57D-853F65CBEBF3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceHub", "src\Workspaces\Remote\ServiceHub\ServiceHub.csproj", "{80FDDD00-9393-47F7-8BAF-7E87CE011068}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceHub", "src\Workspaces\Remote\ServiceHub\ServiceHub.csproj", "{80FDDD00-9393-47F7-8BAF-7E87CE011068}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepoUtil", "src\Tools\RepoUtil\RepoUtil.csproj", "{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RepoUtil", "src\Tools\RepoUtil\RepoUtil.csproj", "{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSBuildTask", "src\Compilers\Core\MSBuildTask\MSBuildTask.csproj", "{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteHostClientMock", "src\VisualStudio\RemoteHostClientMock\RemoteHostClientMock.csproj", "{7259740A-FD0E-480F-A7D4-08BE90AC9051}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteHostClientMock", "src\VisualStudio\RemoteHostClientMock\RemoteHostClientMock.csproj", "{7259740A-FD0E-480F-A7D4-08BE90AC9051}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicesVisualStudio.Next", "src\VisualStudio\Core\Next\ServicesVisualStudio.Next.csproj", "{FE0D4BDD-1C30-488E-A870-854F5B8C5014}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServicesVisualStudio.Next", "src\VisualStudio\Core\Next\ServicesVisualStudio.Next.csproj", "{FE0D4BDD-1C30-488E-A870-854F5B8C5014}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioTest.Next", "src\VisualStudio\Core\Test.Next\VisualStudioTest.Next.csproj", "{2E1658E2-5045-4F85-A64C-C0ECCD39F719}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioTest.Next", "src\VisualStudio\Core\Test.Next\VisualStudioTest.Next.csproj", "{2E1658E2-5045-4F85-A64C-C0ECCD39F719}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildBoss", "src\Tools\BuildBoss\BuildBoss.csproj", "{9C0660D9-48CA-40E1-BABA-8F6A1F11FE10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildBoss", "src\Tools\BuildBoss\BuildBoss.csproj", "{9C0660D9-48CA-40E1-BABA-8F6A1F11FE10}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptingTestUtilities", "src\Scripting\CoreTestUtilities\ScriptingTestUtilities.csproj", "{21A01C2D-2501-4619-8144-48977DD22D9C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkspacesTestUtilities", "src\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj", "{3F2FDC1C-DC6F-44CB-B4A1-A9026F25D66E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkspacesTestUtilities", "src\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj", "{3F2FDC1C-DC6F-44CB-B4A1-A9026F25D66E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolset", "build\Toolset\Toolset.csproj", "{57557F32-0635-421A-BCF8-549AED50F764}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolset", "build\Toolset\Toolset.csproj", "{57557F32-0635-421A-BCF8-549AED50F764}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ServicesTestUtilities2", "src\EditorFeatures\TestUtilities2\ServicesTestUtilities2.vbproj", "{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ServicesTestUtilities2", "src\EditorFeatures\TestUtilities2\ServicesTestUtilities2.vbproj", "{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "VisualStudioTestUtilities2", "src\VisualStudio\TestUtilities2\VisualStudioTestUtilities2.vbproj", "{69F853E5-BD04-4842-984F-FC68CC51F402}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VisualStudioTestUtilities2", "src\VisualStudio\TestUtilities2\VisualStudioTestUtilities2.vbproj", "{69F853E5-BD04-4842-984F-FC68CC51F402}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionResolver", "src\ExpressionEvaluator\Core\Source\FunctionResolver\FunctionResolver.csproj", "{6FC8E6F5-659C-424D-AEB5-331B95883E29}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunctionResolverTest", "src\ExpressionEvaluator\Core\Test\FunctionResolver\FunctionResolverTest.csproj", "{DD317BE1-42A1-4795-B1D4-F370C40D649A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionResolverTest", "src\ExpressionEvaluator\Core\Test\FunctionResolver\FunctionResolverTest.csproj", "{DD317BE1-42A1-4795-B1D4-F370C40D649A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorVisualStudio", "src\VisualStudio\Razor\RazorVisualStudio.csproj", "{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RazorVisualStudio", "src\VisualStudio\Razor\RazorVisualStudio.csproj", "{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorServiceHub", "src\Workspaces\Remote\Razor\RazorServiceHub.csproj", "{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RazorServiceHub", "src\Workspaces\Remote\Razor\RazorServiceHub.csproj", "{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestUtilities.CoreClr", "src\Test\Utilities\CoreClr\TestUtilities.CoreClr.csproj", "{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSetup.Dependencies", "src\VisualStudio\Setup.Dependencies\VisualStudioSetup.Dependencies.csproj", "{1688E1E5-D510-4E06-86F3-F8DB10B1393D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioSetup.Dependencies", "src\VisualStudio\Setup.Dependencies\VisualStudioSetup.Dependencies.csproj", "{1688E1E5-D510-4E06-86F3-F8DB10B1393D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackDepthTest", "src\Test\Perf\StackDepthTest\StackDepthTest.csproj", "{F040CEC5-5E11-4DBD-9F6A-250478E28177}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackDepthTest", "src\Test\Perf\StackDepthTest\StackDepthTest.csproj", "{F040CEC5-5E11-4DBD-9F6A-250478E28177}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeStyle", "src\CodeStyle\Core\Analyzers\CodeStyle.csproj", "{275812EE-DEDB-4232-9439-91C9757D2AE4}"
 EndProject
@@ -386,19 +368,12 @@ EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCodeStyleFixes", "src\CodeStyle\VisualBasic\CodeFixes\BasicCodeStyleFixes.vbproj", "{0141285D-8F6C-42C7-BAF3-3C0CCD61C716}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeStyleTests", "src\CodeStyle\Core\Tests\CodeStyleTests.csproj", "{9FF1205F-1D7C-4EE4-B038-3456FE6EBEAF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCodeStyleTests", "src\CodeStyle\CSharp\Tests\CSharpCodeStyleTests.csproj", "{5018D049-5870-465A-889B-C742CE1E31CB}"
-	ProjectSection(ProjectDependencies) = postProject
-		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
-	EndProjectSection
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicCodeStyleTests", "src\CodeStyle\VisualBasic\Tests\BasicCodeStyleTests.vbproj", "{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}"
-	ProjectSection(ProjectDependencies) = postProject
-		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
-	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynPublish", "src\Tools\RoslynPublish\RoslynPublish.csproj", "{2D36C343-BB6A-4CB5-902B-E2145ACCB58F}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -411,7 +386,7 @@ Global
 		src\ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{60db272a-21c9-4e8d-9803-ff4e132392c8}*SharedItemsImports = 4
 		src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.projitems*{76242a2d-2600-49dd-8c15-fea07ecb1842}*SharedItemsImports = 4
 		src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.projitems*{76242a2d-2600-49dd-8c15-fea07ecb1843}*SharedItemsImports = 4
-		src\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems*{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}*SharedItemsImports = 4
+		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}*SharedItemsImports = 4
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{9508f118-f62e-4c16-a6f4-7c3b56e166ad}*SharedItemsImports = 4
 		src\Compilers\Server\ServerShared\ServerShared.projitems*{9508f118-f62e-4c16-a6f4-7c3b56e166ad}*SharedItemsImports = 4
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}*SharedItemsImports = 4
@@ -421,7 +396,7 @@ Global
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{bb3ca047-5d00-48d4-b7d3-233c1265c065}*SharedItemsImports = 13
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{c1930979-c824-496b-a630-70f5369a636f}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
-		src\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems*{d73adf7d-2c1c-42ae-b2ab-edc9497e4b71}*SharedItemsImports = 13
+		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{d73adf7d-2c1c-42ae-b2ab-edc9497e4b71}*SharedItemsImports = 13
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}*SharedItemsImports = 4
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{e8f0baa5-7327-43d1-9a51-644e81ae55f1}*SharedItemsImports = 13
 	EndGlobalSection
@@ -662,10 +637,10 @@ Global
 		{EBA4DFA1-6DED-418F-A485-A3B608978906}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBA4DFA1-6DED-418F-A485-A3B608978906}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBA4DFA1-6DED-418F-A485-A3B608978906}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}.Debug|Any CPU.Build.0 = Debug|x86
-		{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}.Release|Any CPU.ActiveCfg = Release|x86
-		{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}.Release|Any CPU.Build.0 = Release|x86
+		{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}.Release|Any CPU.Build.0 = Release|Any CPU
 		{14118347-ED06-4608-9C45-18228273C712}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{14118347-ED06-4608-9C45-18228273C712}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14118347-ED06-4608-9C45-18228273C712}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -858,10 +833,6 @@ Global
 		{7A4B2176-7BFD-4B75-A61A-E25A1FDD0A1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A4B2176-7BFD-4B75-A61A-E25A1FDD0A1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A4B2176-7BFD-4B75-A61A-E25A1FDD0A1E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1553DE60-A2B0-4FAF-B1B8-C0A7313781CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1553DE60-A2B0-4FAF-B1B8-C0A7313781CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1553DE60-A2B0-4FAF-B1B8-C0A7313781CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -870,18 +841,18 @@ Global
 		{6DA08F12-32F2-4DD9-BBAD-982EB71A2C9B}.Debug|Any CPU.Build.0 = Debug|x64
 		{6DA08F12-32F2-4DD9-BBAD-982EB71A2C9B}.Release|Any CPU.ActiveCfg = Release|x64
 		{6DA08F12-32F2-4DD9-BBAD-982EB71A2C9B}.Release|Any CPU.Build.0 = Release|x64
-		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}.Debug|Any CPU.Build.0 = Debug|x86
-		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}.Release|Any CPU.ActiveCfg = Release|x86
-		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}.Release|Any CPU.Build.0 = Release|x86
-		{E5A55C16-A5B9-4874-9043-A5266DC02F58}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{E5A55C16-A5B9-4874-9043-A5266DC02F58}.Debug|Any CPU.Build.0 = Debug|x86
-		{E5A55C16-A5B9-4874-9043-A5266DC02F58}.Release|Any CPU.ActiveCfg = Release|x86
-		{E5A55C16-A5B9-4874-9043-A5266DC02F58}.Release|Any CPU.Build.0 = Release|x86
-		{3BED15FD-D608-4573-B432-1569C1026F6D}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{3BED15FD-D608-4573-B432-1569C1026F6D}.Debug|Any CPU.Build.0 = Debug|x86
-		{3BED15FD-D608-4573-B432-1569C1026F6D}.Release|Any CPU.ActiveCfg = Release|x86
-		{3BED15FD-D608-4573-B432-1569C1026F6D}.Release|Any CPU.Build.0 = Release|x86
+		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5A55C16-A5B9-4874-9043-A5266DC02F58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5A55C16-A5B9-4874-9043-A5266DC02F58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5A55C16-A5B9-4874-9043-A5266DC02F58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5A55C16-A5B9-4874-9043-A5266DC02F58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BED15FD-D608-4573-B432-1569C1026F6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BED15FD-D608-4573-B432-1569C1026F6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BED15FD-D608-4573-B432-1569C1026F6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BED15FD-D608-4573-B432-1569C1026F6D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1026,6 +997,10 @@ Global
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D36C343-BB6A-4CB5-902B-E2145ACCB58F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D36C343-BB6A-4CB5-902B-E2145ACCB58F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D36C343-BB6A-4CB5-902B-E2145ACCB58F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D36C343-BB6A-4CB5-902B-E2145ACCB58F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1161,7 +1136,6 @@ Global
 		{43026D51-3083-4850-928D-07E1883D5B1A} = {3F40F71B-7DCF-44A1-B15C-38CA34824143}
 		{59BABFC3-C19B-4472-A93D-3DD3835BC219} = {CAD2965A-19AB-489F-BE2E-7649957F914A}
 		{7A4B2176-7BFD-4B75-A61A-E25A1FDD0A1E} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
-		{23683607-168A-4189-955E-908F0E80E60D} = {CAD2965A-19AB-489F-BE2E-7649957F914A}
 		{1553DE60-A2B0-4FAF-B1B8-C0A7313781CC} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{6DA08F12-32F2-4DD9-BBAD-982EB71A2C9B} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2} = {CC126D03-7EAC-493F-B187-DCDEE1EF6A70}
@@ -1204,5 +1178,9 @@ Global
 		{9FF1205F-1D7C-4EE4-B038-3456FE6EBEAF} = {DC014586-8D07-4DE6-B28E-C0540C59C085}
 		{5018D049-5870-465A-889B-C742CE1E31CB} = {DC014586-8D07-4DE6-B28E-C0540C59C085}
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510} = {DC014586-8D07-4DE6-B28E-C0540C59C085}
+		{2D36C343-BB6A-4CB5-902B-E2145ACCB58F} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
 	EndGlobalSection
 EndGlobal

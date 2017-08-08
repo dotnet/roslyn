@@ -769,7 +769,7 @@ public class C
     public delegate (int, int) F();
 }";
             var source1 = @"
-public struct C
+public class C
 {
     public delegate (int, bool) F();
 }";
@@ -799,7 +799,7 @@ public class C
     public delegate (int, int) F();
 }";
             var source1 = @"
-public struct C
+public class C
 {
     public delegate (int x, int y) F();
 }";

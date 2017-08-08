@@ -22,13 +22,7 @@ try {
                 $name = [IO.Path]::ChangeExtension($v, ".pdb")
                 $pdbPath = Join-Path $configDir $name
                 Write-Host "`t$pdbPath"
-
-                $output = & $gitlink -u "https://github.com/dotnet/roslyn" $pdbPath
-                if (-not $?) {
-                    Write-Host "Error!!!"
-                    Write-Host $output
-                    exit 1
-                }
+                Exec-Block { & $gitlink -u "https://github.com/dotnet/roslyn" --baseDir $repoDir $pdbPath } | Write-Host
             }
         }
     }
@@ -36,6 +30,6 @@ try {
     exit 0
 }
 catch [exception] {
-    write-host $_.Exception
+    Write-Host $_.Exception
     exit 1
 }

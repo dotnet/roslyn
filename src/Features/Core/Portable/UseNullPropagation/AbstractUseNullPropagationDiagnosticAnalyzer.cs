@@ -8,6 +8,11 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.UseNullPropagation
 {
+    internal static class UseNullPropagationConstants
+    {
+        public const string WhenPartIsNullable = nameof(WhenPartIsNullable);
+    }
+
     internal abstract class AbstractUseNullPropagationDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
@@ -147,10 +152,18 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 conditionPartToCheck.GetLocation(),
                 whenPartToCheck.GetLocation());
 
+            var properties = ImmutableDictionary<string, string>.Empty;
+            var whenPartIsNullable = semanticModel.GetTypeInfo(whenPartMatch).Type?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+            if (whenPartIsNullable)
+            {
+                properties = properties.Add(UseNullPropagationConstants.WhenPartIsNullable, "");
+            }
+
             context.ReportDiagnostic(Diagnostic.Create(
                 this.GetDescriptorWithSeverity(option.Notification.Value),
                 conditionalExpression.GetLocation(),
-                locations));
+                locations,
+                properties));
         }
 
         internal static SyntaxNode GetWhenPartMatch(

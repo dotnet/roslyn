@@ -38,11 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return (CSharpCompilation)base.GetCompilationForEmit(source, additionalRefs, options, parseOptions);
         }
 
-        internal new IEnumerable<ModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public)
-        {
-            return base.ReferencesToModuleSymbols(references, importOptions).Cast<ModuleSymbol>();
-        }
-
         private Action<IModuleSymbol> Translate2(Action<ModuleSymbol> action)
         {
             if (action != null)
@@ -217,24 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CSharpTestBase.CreateCompilation(text,
                                                     WinRtRefs.Concat(additionalRefs ?? Enumerable.Empty<MetadataReference>()),
                                                     TestOptions.ReleaseExe);
-        }
-
-        internal override IEnumerable<IModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public)
-        {
-            var options = TestOptions.ReleaseDll.WithMetadataImportOptions(importOptions);
-            var tc1 = CSharpCompilation.Create("Dummy", new SyntaxTree[0], references, options);
-            return references.Select(r =>
-            {
-                if (r.Properties.Kind == MetadataImageKind.Assembly)
-                {
-                    var assemblySymbol = tc1.GetReferencedAssemblySymbol(r);
-                    return (object)assemblySymbol == null ? null : assemblySymbol.Modules[0];
-                }
-                else
-                {
-                    return tc1.GetReferencedModuleSymbol(r);
-                }
-            });
         }
 
         protected override CompilationOptions CompilationOptionsReleaseDll
@@ -666,16 +643,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 return CompileAndVerify(c, expectedOutput: expectedOutput);
             }
 
-            MetadataReference reference = null;
-            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
-            {
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
-            }
+            MetadataReference reference = CreateMetadataReferenceFromIlSource(ilSource);
 
             var compilation = CreateStandardCompilation(cSharpSource, new[] { reference }, compilationOptions);
             compilationVerifier?.Invoke(compilation);
 
             return CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        public static MetadataReference CreateMetadataReferenceFromIlSource(string ilSource)
+        {                                        
+            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
+            {
+                return MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
+            }
         }
 
         protected override Compilation GetCompilationForEmit(

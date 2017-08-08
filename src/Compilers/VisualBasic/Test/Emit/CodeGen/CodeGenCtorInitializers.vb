@@ -324,11 +324,11 @@ Module Program
     Class c1
         Public shared readonly Property p1 As Integer
         Shared Sub New()
-            p1 += Foo
+            p1 += Goo
         End Sub
     End Class
 
-    function Foo() as integer
+    function Goo() as integer
         System.Console.Write("hello")
         return 42
     end function
@@ -348,7 +348,7 @@ expectedOutput:=<![CDATA[hello42]]>
   // Code size       17 (0x11)
   .maxstack  2
   IL_0000:  call       "Function Program.c1.get_p1() As Integer"
-  IL_0005:  call       "Function Program.Foo() As Integer"
+  IL_0005:  call       "Function Program.Goo() As Integer"
   IL_000a:  add.ovf
   IL_000b:  stsfld     "Program.c1._p1 As Integer"
   IL_0010:  ret
@@ -365,11 +365,11 @@ Module Program
     Class c1
         Public readonly Property p1 As Integer
         Public Sub New()
-            foo(p1)
+            goo(p1)
         End Sub
     End Class
 
-    sub foo(byref x as integer)
+    sub goo(byref x as integer)
         x = 42
     end sub
 
@@ -394,7 +394,7 @@ expectedOutput:=<![CDATA[42]]>
   IL_0007:  call       "Function Program.c1.get_p1() As Integer"
   IL_000c:  stloc.0
   IL_000d:  ldloca.s   V_0
-  IL_000f:  call       "Sub Program.foo(ByRef Integer)"
+  IL_000f:  call       "Sub Program.goo(ByRef Integer)"
   IL_0014:  ldarg.0
   IL_0015:  ldloc.0
   IL_0016:  stfld      "Program.c1._p1 As Integer"
@@ -411,10 +411,10 @@ expectedOutput:=<![CDATA[42]]>
 Module Program
     class c1
         Public readonly Property p1 As Integer
-        Public readonly Property p2 As Integer = foo(p1)
+        Public readonly Property p2 As Integer = goo(p1)
     End class
 
-    function foo(byref x as integer)
+    function goo(byref x as integer)
         x = 42
         return 1
     end function
@@ -441,7 +441,7 @@ expectedOutput:=<![CDATA[42]]>
   IL_0008:  call       "Function Program.c1.get_p1() As Integer"
   IL_000d:  stloc.0
   IL_000e:  ldloca.s   V_0
-  IL_0010:  call       "Function Program.foo(ByRef Integer) As Object"
+  IL_0010:  call       "Function Program.goo(ByRef Integer) As Object"
   IL_0015:  ldarg.0
   IL_0016:  ldloc.0
   IL_0017:  stfld      "Program.c1._p1 As Integer"
@@ -460,10 +460,10 @@ expectedOutput:=<![CDATA[42]]>
 Module Program
     class c1
         Public shared readonly Property p1 As Integer = 3
-        Public shared readonly p2 As Integer = foo(p1)
+        Public shared readonly p2 As Integer = goo(p1)
     End class
 
-    function foo(byref x as integer)
+    function goo(byref x as integer)
         x = 42
         return 1
     end function
@@ -487,7 +487,7 @@ expectedOutput:=<![CDATA[42]]>
   IL_0006:  call       "Function Program.c1.get_p1() As Integer"
   IL_000b:  stloc.0
   IL_000c:  ldloca.s   V_0
-  IL_000e:  call       "Function Program.foo(ByRef Integer) As Object"
+  IL_000e:  call       "Function Program.goo(ByRef Integer) As Object"
   IL_0013:  ldloc.0
   IL_0014:  stsfld     "Program.c1._p1 As Integer"
   IL_0019:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
@@ -505,10 +505,10 @@ expectedOutput:=<![CDATA[42]]>
 Module Program
     class c1
         Public shared readonly Property p1 As Integer = 3
-        Public readonly property p2 As Integer = foo(p1)
+        Public readonly property p2 As Integer = goo(p1)
     End class
 
-    function foo(byref x as integer)
+    function goo(byref x as integer)
         x = 42
         return 1
     end function
@@ -534,7 +534,7 @@ expectedOutput:=<![CDATA[3]]>
   IL_0007:  call       "Function Program.c1.get_p1() As Integer"
   IL_000c:  stloc.0
   IL_000d:  ldloca.s   V_0
-  IL_000f:  call       "Function Program.foo(ByRef Integer) As Object"
+  IL_000f:  call       "Function Program.goo(ByRef Integer) As Object"
   IL_0014:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_0019:  stfld      "Program.c1._p2 As Integer"
   IL_001e:  ret
@@ -554,7 +554,7 @@ Module Program
         Public readonly Property p1 As Integer
         Public Sub New()
             Dim o as object = new Late
-            o.foo(p1)
+            o.goo(p1)
         End Sub
     End Class
 
@@ -564,7 +564,7 @@ Module Program
     End Sub
 
     class Late
-        sub foo(byref x as integer)
+        sub goo(byref x as integer)
             x = 42
         end sub
     end class
@@ -585,7 +585,7 @@ expectedOutput:=<![CDATA[42]]>
   IL_0001:  call       "Sub Object..ctor()"
   IL_0006:  newobj     "Sub Program.Late..ctor()"
   IL_000b:  ldnull
-  IL_000c:  ldstr      "foo"
+  IL_000c:  ldstr      "goo"
   IL_0011:  ldc.i4.1
   IL_0012:  newarr     "Object"
   IL_0017:  dup

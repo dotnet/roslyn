@@ -6,22 +6,26 @@ using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Tags;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private partial class MetadataSymbolReference : SymbolReference
         {
+            private readonly ProjectId _referenceProjectId;
             private readonly PortableExecutableReference _reference;
 
             public MetadataSymbolReference(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 SymbolResult<INamespaceOrTypeSymbol> symbolResult,
+                ProjectId referenceProjectId,
                 PortableExecutableReference reference)
                 : base(provider, symbolResult)
             {
+                _referenceProjectId = referenceProjectId;
                 _reference = reference;
             }
 
@@ -45,8 +49,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         hasExistingImport);
             }
 
-            protected override Solution GetUpdatedSolution(Document newDocument)
-                => newDocument.Project.AddMetadataReference(_reference).Solution;
+            protected override AddImportFixData GetFixData(
+                Document document, ImmutableArray<TextChange> textChanges, string description, 
+                ImmutableArray<string> tags, CodeActionPriority priority)
+            {
+                return AddImportFixData.CreateForMetadataSymbol(
+                    textChanges, description, tags, priority,
+                    _referenceProjectId, _reference.FilePath);
+            }
 
             // Adding metadata references should be considered lower pri than anything else.
             protected override CodeActionPriority GetPriority(Document document)

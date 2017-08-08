@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices.ProjectInfoService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
@@ -109,8 +110,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: true));
                 }
 
-                // If they just are generating "Foo" then we want to offer to generate it into the
-                // namespace in the same file.  However, if they are generating "SomeNS.Foo", then we
+                // If they just are generating "Goo" then we want to offer to generate it into the
+                // namespace in the same file.  However, if they are generating "SomeNS.Goo", then we
                 // only want to allow them to generate if "SomeNS" is the namespace they are
                 // currently in.
                 var isSimpleName = state.SimpleName == state.NameOrMemberAccessExpression;

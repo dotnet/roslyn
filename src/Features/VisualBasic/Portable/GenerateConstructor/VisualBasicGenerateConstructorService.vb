@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -152,33 +152,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
         Protected Overrides Function IsConversionImplicit(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
             Return compilation.ClassifyConversion(sourceType, targetType).IsWidening
-        End Function
-
-        Protected Overrides Function IsClassDeclarationGeneration(document As SemanticDocument,
-                                                                  node As SyntaxNode,
-                                                                  cancellationToken As CancellationToken) As Boolean
-            Return TypeOf node Is ClassBlockSyntax
-        End Function
-
-        Protected Overrides Function TryInitializeClassDeclarationGenerationState(
-                document As SemanticDocument,
-                classDeclaration As SyntaxNode,
-                cancellationToken As CancellationToken,
-                ByRef token As SyntaxToken,
-                ByRef delegatedConstructor As IMethodSymbol,
-                ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
-            Dim semanticModel = document.SemanticModel
-            Dim classBlock = DirectCast(classDeclaration, ClassBlockSyntax)
-            Dim classSymbol = semanticModel.GetDeclaredSymbol(classBlock.BlockStatement, cancellationToken)
-            Dim constructor = classSymbol?.BaseType?.Constructors.FirstOrDefault(Function(c) IsSymbolAccessible(c, document))
-            If constructor Is Nothing Then
-                Return False
-            End If
-
-            typeToGenerateIn = classSymbol
-            delegatedConstructor = constructor
-            token = classBlock.BlockStatement.Identifier
-            Return True
         End Function
 
         Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation

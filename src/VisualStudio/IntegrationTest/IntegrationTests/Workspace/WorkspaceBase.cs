@@ -5,6 +5,8 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
+#pragma warning disable xUnit1013 // currently there are public virtual methods that are overridden by derived types
+
 namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 {
     public abstract class WorkspaceBase : AbstractEditorTest
@@ -86,6 +88,21 @@ End Module");
             VisualStudio.Workspace.SetOptionInfer(project.Name, false);
             VisualStudio.Editor.InvokeQuickInfo();
             Assert.Equal("Sub‎ Program.M‎(p‎ As‎ Object‎)‎ ‎(‎+‎ 1‎ overload‎)", VisualStudio.Editor.GetQuickInfo());
+        }
+
+        [Fact]
+        public void RenamingOpenFiles()
+        {
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddFile(project, "BeforeRename.cs", open: true);
+            
+            // Verify we are connected to the project before...
+            Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());
+
+            VisualStudio.SolutionExplorer.RenameFile(project, "BeforeRename.cs", "AfterRename.cs");
+
+            // ...and after.
+            Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());
         }
     }
 }

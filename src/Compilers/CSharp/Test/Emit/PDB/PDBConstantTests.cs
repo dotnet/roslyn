@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Globalization;
 using System.IO;
@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBConstantTests : CSharpTestBase
     {
-        private CultureInfo _testCulture = new CultureInfo("en-US");
-
         [Fact]
         public void StringsWithSurrogateChar()
         {
@@ -492,8 +490,8 @@ class C
 {
     static void Main()
     {
-        const string foo = """ + longStringValue + @""";
-        Console.Write(foo);
+        const string goo = """ + longStringValue + @""";
+        Console.Write(goo);
     }
 }
 ";
@@ -507,8 +505,8 @@ class C
 
             /*
              * old behavior. This new warning was abandoned
-            result.Diagnostics.Verify(// warning CS7063: Constant string value of 'foo' is too long to be used in a PDB file. Only the debug experience may be affected.
-                                      Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("foo", longStringValue.Substring(0, 20) + "..."));
+            result.Diagnostics.Verify(// warning CS7063: Constant string value of 'goo' is too long to be used in a PDB file. Only the debug experience may be affected.
+                                      Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "..."));
 
             //make sure that this warning is suppressable
             compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
@@ -524,7 +522,7 @@ class C
             result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
             Assert.False(result.Success);
             result.Diagnostics.Verify(
-                                      Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("foo", longStringValue.Substring(0, 20) + "...").WithWarningAsError(true));
+                                      Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "...").WithWarningAsError(true));
              * */
         }
 

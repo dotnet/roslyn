@@ -80,7 +80,10 @@ public class Test
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (23,18): error CS0037: Cannot convert null to 'Test.eTypes' because it is a non-nullable value type
                 //             case null:
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("Test.eTypes").WithLocation(23, 18)
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("Test.eTypes").WithLocation(23, 18),
+                // (24,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(24, 17)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (23,18): error CS0037: Cannot convert null to 'Test.eTypes' because it is a non-nullable value type
@@ -97,7 +100,7 @@ public class Test
 {
     public static void Main()
     { }
-    void foo(color color1)
+    void goo(color color1)
     {
         switch (color)
         {
@@ -161,7 +164,13 @@ public class Test
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (11,18): error CS0150: A constant value is expected
                 //             case test:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 ret = 1;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "ret").WithLocation(12, 17),
+                // (8,13): warning CS0219: The variable 'test' is assigned but its value is never used
+                //         int test = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "test").WithArguments("test").WithLocation(8, 13)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (11,18): error CS0150: A constant value is expected
@@ -189,7 +198,7 @@ public class A
         return 1;
     }
 
-    public void foo(char c)
+    public void goo(char c)
     {
         switch (c)
         {
@@ -251,7 +260,7 @@ public class A
         return 1;
     }
 
-    public void foo(int i)
+    public void goo(int i)
     {
         switch (i)
         {
@@ -262,7 +271,7 @@ public class A
         }
     }
 
-    public void foo2(char i)
+    public void goo2(char i)
     {
         switch (i)
         {
@@ -315,7 +324,16 @@ public class A
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97.0f").WithArguments("float", "char").WithLocation(34, 18),
                 // (38,18): error CS0266: Cannot implicitly convert type 'int' to 'char'. An explicit conversion exists (are you missing a cast?)
                 //             case 97:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97").WithArguments("int", "char").WithLocation(38, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97").WithArguments("int", "char"),
+                // (33,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(33, 17),
+                // (35,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(35, 17),
+                // (39,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(39, 17)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
@@ -1138,7 +1156,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
                 // (12,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case 0:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13),
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 M();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "M").WithLocation(9, 17)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
@@ -1149,7 +1170,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
                 // (12,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case 0:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13),
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 M();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "M").WithLocation(9, 17)
                 );
         }
 
@@ -1183,7 +1207,10 @@ public class Test
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (10,12): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //       case 1.2f:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12),
+                // (11,9): warning CS0162: Unreachable code detected
+                //         return 1;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(11, 9)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (10,12): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -2771,9 +2798,9 @@ namespace Test
         public void CS0165_SwitchScopeUnassignedVariable()
         {
             var text = @"
-public class Foo
+public class Goo
 {
-    public Foo() { i = 99; }
+    public Goo() { i = 99; }
     public void Bar() { i = 0; }
     public int GetI() { return(i); }
     int i;
@@ -2787,7 +2814,7 @@ public class Test
         switch (s) {
         case 21:
             int j = 0;
-            Foo f = new Foo();
+            Goo f = new Goo();
             j++;
             break;
         case 23:
@@ -2821,52 +2848,52 @@ class SwitchTest
 {
     public static int Main()
     {
-        int foo;        // unassigned foo
+        int goo;        // unassigned goo
         switch (3)
         {
             case 1:
-                foo = 1;
+                goo = 1;
                 break;
             case 2:
-                foo = 2;
+                goo = 2;
                 goto case 1;
         }
 
-        Console.WriteLine(foo);
+        Console.WriteLine(goo);
 
         return 1;
     }
 }";
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (10,17): warning CS0162: Unreachable code detected
-                //                 foo = 1;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "foo").WithLocation(10, 17),
+                //                 goo = 1;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goo").WithLocation(10, 17),
                 // (13,17): warning CS0162: Unreachable code detected
-                //                 foo = 2;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "foo").WithLocation(13, 17),
-                // (17,27): error CS0165: Use of unassigned local variable 'foo'
-                //         Console.WriteLine(foo);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "foo").WithArguments("foo").WithLocation(17, 27));
+                //                 goo = 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goo").WithLocation(13, 17),
+                // (17,27): error CS0165: Use of unassigned local variable 'goo'
+                //         Console.WriteLine(goo);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "goo").WithArguments("goo").WithLocation(17, 27));
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (10,17): warning CS0162: Unreachable code detected
-                //                 foo = 1;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "foo").WithLocation(10, 17),
+                //                 goo = 1;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goo").WithLocation(10, 17),
                 // (13,17): warning CS0162: Unreachable code detected
-                //                 foo = 2;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "foo").WithLocation(13, 17),
-                // (17,27): error CS0165: Use of unassigned local variable 'foo'
-                //         Console.WriteLine(foo);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "foo").WithArguments("foo").WithLocation(17, 27));
+                //                 goo = 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goo").WithLocation(13, 17),
+                // (17,27): error CS0165: Use of unassigned local variable 'goo'
+                //         Console.WriteLine(goo);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "goo").WithArguments("goo").WithLocation(17, 27));
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (10,17): warning CS0162: Unreachable code detected
-                //                 foo = 1;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "foo").WithLocation(10, 17),
+                //                 goo = 1;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goo").WithLocation(10, 17),
                 // (13,17): warning CS0162: Unreachable code detected
-                //                 foo = 2;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "foo").WithLocation(13, 17),
-                // (17,27): error CS0165: Use of unassigned local variable 'foo'
-                //         Console.WriteLine(foo);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "foo").WithArguments("foo").WithLocation(17, 27));
+                //                 goo = 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goo").WithLocation(13, 17),
+                // (17,27): error CS0165: Use of unassigned local variable 'goo'
+                //         Console.WriteLine(goo);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "goo").WithArguments("goo").WithLocation(17, 27));
         }
 
         [Fact]
@@ -2878,7 +2905,7 @@ class SwitchTest
     public static int Main()
     {
         int i = 3;
-        int foo;        // unassigned foo
+        int goo;        // unassigned goo
 
         switch (i)
         {
@@ -2889,13 +2916,13 @@ class SwitchTest
                 {
                     if (i > 0)
                     {
-                        break; // foo is not definitely assigned here
+                        break; // goo is not definitely assigned here
                     }
                     throw new System.ApplicationException();
                 }
                 catch(Exception)
                 {
-                    foo = 1;
+                    goo = 1;
                     break;
                 }
             case 2:
@@ -2903,31 +2930,31 @@ class SwitchTest
             case 3:
                 if (true)
                 {
-                    foo = 1;
+                    goo = 1;
                     goto case 2;
                 }
             default:
-                foo = 1;
+                goo = 1;
                 break;
         }
 
-        Console.WriteLine(foo);    // CS0165
-        return foo;
+        Console.WriteLine(goo);    // CS0165
+        return goo;
     }
 }
 ";
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (40,27): error CS0165: Use of unassigned local variable 'foo'
-                //         Console.WriteLine(foo);    // CS0165
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "foo").WithArguments("foo").WithLocation(40, 27));
+                // (40,27): error CS0165: Use of unassigned local variable 'goo'
+                //         Console.WriteLine(goo);    // CS0165
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "goo").WithArguments("goo").WithLocation(40, 27));
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (40,27): error CS0165: Use of unassigned local variable 'foo'
-                //         Console.WriteLine(foo);    // CS0165
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "foo").WithArguments("foo").WithLocation(40, 27));
+                // (40,27): error CS0165: Use of unassigned local variable 'goo'
+                //         Console.WriteLine(goo);    // CS0165
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "goo").WithArguments("goo").WithLocation(40, 27));
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (40,27): error CS0165: Use of unassigned local variable 'foo'
-                //         Console.WriteLine(foo);    // CS0165
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "foo").WithArguments("foo").WithLocation(40, 27));
+                // (40,27): error CS0165: Use of unassigned local variable 'goo'
+                //         Console.WriteLine(goo);    // CS0165
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "goo").WithArguments("goo").WithLocation(40, 27));
         }
 
         #endregion
@@ -2973,6 +3000,9 @@ class SwitchTest
                 // (11,22): error CS0159: No such label 'System' within the scope of the goto statement
                 //                 goto System;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "System").WithArguments("System").WithLocation(11, 22),
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(9, 17),
                 // (10,13): error CS8070: Control cannot fall out of switch from final case label ('case 5:')
                 //             case 5:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 5:").WithArguments("case 5:").WithLocation(10, 13)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    public class LineEditTests : RudeEditTestBase
+    public class LineEditTests : EditingTestBase
     {
         #region Methods
 
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             string src1 = @"
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         Console.ReadLine(1);
     }
@@ -37,7 +37,7 @@ class C
         Console.ReadLine(2);
     }
 
-    static void Foo()
+    static void Goo()
     {
         Console.ReadLine(1);
     }
@@ -56,11 +56,11 @@ class Program
 {
     static void Main()
     {
-        Foo();
+        Goo();
         Bar();
     }
 
-    static int Foo()
+    static int Goo()
     {
         return 1;
     }
@@ -73,14 +73,14 @@ class Program
             string src2 = @"
 class Program
 {
-    static int Foo()
+    static int Goo()
     {
         return 1;
     }
 
     static void Main()
     {
-        Foo();
+        Goo();
         Bar();
     }
 
@@ -803,13 +803,13 @@ class C
             string src1 = @"
 class C
 {
-    const int Foo = 1;
+    const int Goo = 1;
 }
 ";
             string src2 = @"
 class C
 {
-    const int Foo = 
+    const int Goo = 
                     1;
 }";
             var edits = GetTopEdits(src1, src2);
@@ -824,14 +824,14 @@ class C
             string src1 = @"
 class C
 {
-    int Foo;
+    int Goo;
 }
 ";
             string src2 = @"
 class C
 {
     int 
-        Foo;
+        Goo;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
@@ -845,7 +845,7 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
     static int Bar = 2;
 }
 ";
@@ -853,7 +853,7 @@ class C
 class C
 {
     static int Bar = 2;
-    static int Foo = 1;
+    static int Goo = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
@@ -867,7 +867,7 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
             string src2 = @"
@@ -876,7 +876,7 @@ class C
 
 
 
-    static int Foo = 1;
+    static int Goo = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
@@ -890,13 +890,13 @@ class C
             string src1 = @"
 class C
 {
-    int Foo = 1, Bar = 2;
+    int Goo = 1, Bar = 2;
 }
 ";
             string src2 = @"
 class C
 {
-    int Foo = 1,
+    int Goo = 1,
                  Bar = 2;
 }";
             var edits = GetTopEdits(src1, src2);
@@ -911,14 +911,14 @@ class C
             string src1 = @"
 class C
 {
-    [A]static int Foo = 1, Bar = 2;
+    [A]static int Goo = 1, Bar = 2;
 }
 ";
             string src2 = @"
 class C
 {
     [A]
-       static int Foo = 1, Bar = 2;
+       static int Goo = 1, Bar = 2;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
@@ -932,19 +932,19 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
             string src2 = @"
 class C
 {
-    static int Foo = 
+    static int Goo = 
                      1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = " });
+                new string[] { "Goo = " });
         }
 
         [Fact]
@@ -953,19 +953,19 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
             string src2 = @"
 class C
 {
-    static int Foo 
+    static int Goo 
                    = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo " });
+                new string[] { "Goo " });
         }
 
         [Fact]
@@ -974,19 +974,19 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
             string src2 = @"
 class C
 {
     static int 
-               Foo = 1;
+               Goo = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1" });
+                new string[] { "Goo = 1" });
         }
 
         [Fact]
@@ -995,19 +995,19 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
             string src2 = @"
 class C
 {
     static 
-           int Foo = 1;
+           int Goo = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1" });
+                new string[] { "Goo = 1" });
         }
 
         [Fact]
@@ -1016,19 +1016,19 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
             string src2 = @"
 class C
 {
-    static int Foo = 1
+    static int Goo = 1
                       ;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1" });
+                new string[] { "Goo = 1" });
         }
 
         [Fact]
@@ -1037,18 +1037,18 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1 + 1;
+    static int Goo = 1 + 1;
 }
 ";
             string src2 = @"
 class C
 {
-    static int Foo = 1 +  1;
+    static int Goo = 1 +  1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1 +  1" });
+                new string[] { "Goo = 1 +  1" });
         }
 
         [Fact]
@@ -1057,18 +1057,18 @@ class C
             string src1 = @"
 class C<T>
 {
-    static int Foo = 1 + 1;
+    static int Goo = 1 + 1;
 }
 ";
             string src2 = @"
 class C<T>
 {
-    static int Foo = 1 +  1;
+    static int Goo = 1 +  1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1 +  1" },
+                new string[] { "Goo = 1 +  1" },
                 Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.field));
         }
 

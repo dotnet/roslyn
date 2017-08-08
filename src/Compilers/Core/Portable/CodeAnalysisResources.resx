@@ -339,6 +339,9 @@
   <data name="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream" xml:space="preserve">
     <value>Including private members should not be used when emitting to the secondary assembly output.</value>
   </data>
+  <data name="MustIncludePrivateMembersUnlessRefAssembly" xml:space="preserve">
+    <value>Must include private members unless emitting a ref assembly.</value>
+  </data>
   <data name="EmbeddingPdbUnexpectedWhenEmittingMetadata" xml:space="preserve">
     <value>Embedding PDB is not allowed when emitting metadata.</value>
   </data>
@@ -614,5 +617,8 @@
   </data>
   <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
     <value>A language name must be specified for this option.</value>
+  </data>
+  <data name="InvalidDiagnosticSpanReported" xml:space="preserve">
+    <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
   </data>
 </root>

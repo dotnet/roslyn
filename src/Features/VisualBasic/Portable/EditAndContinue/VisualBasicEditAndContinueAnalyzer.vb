@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                             ' Dim [|a = 0|], [|b = 0|]
                             ' Dim [|b as Integer = 0|]
                             ' Dim [|v1 As New C|]
-                            ' Dim v1, v2 As New C(Sub [|Foo()|])
+                            ' Dim v1, v2 As New C(Sub [|Goo()|])
                             Return node
                         End If
 
@@ -2172,7 +2172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ClassifyDelete(oldNode As ParameterListSyntax)
-                ' Sub Foo() -> Sub Foo is ok
+                ' Sub Goo() -> Sub Goo is ok
                 If oldNode.Parameters.Count = 0 Then
                     Return
                 End If
@@ -3171,9 +3171,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
-        End Sub
-
-        Friend Overrides Sub ReportMemberBodySemanticRudeEdits(oldModel As SemanticModel, oldNode As SyntaxNode, newModel As SemanticModel, newNode As SyntaxNode, diagnostics As List(Of RudeEditDiagnostic))
         End Sub
 
 #End Region

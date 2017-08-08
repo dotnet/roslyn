@@ -183,16 +183,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             awaiterSlotCount = maxAwaiterSlotIndex + 1;
         }
 
-        protected override ImmutableArray<EncLocalInfo> TryGetLocalSlotMapFromMetadata(MethodDefinitionHandle handle, EditAndContinueMethodDebugInformation debugInfo)
+        protected override ImmutableArray<EncLocalInfo> GetLocalSlotMapFromMetadata(StandaloneSignatureHandle handle, EditAndContinueMethodDebugInformation debugInfo)
         {
-            ImmutableArray<LocalInfo<TypeSymbol>> slotMetadata;
-            if (!_metadataDecoder.TryGetLocals(handle, out slotMetadata))
-            {
-                return default(ImmutableArray<EncLocalInfo>);
-            }
+            Debug.Assert(!handle.IsNil);
 
-            var result = CreateLocalSlotMap(debugInfo, slotMetadata);
-            Debug.Assert(result.Length == slotMetadata.Length);
+            var localInfos = _metadataDecoder.GetLocalsOrThrow(handle);
+            var result = CreateLocalSlotMap(debugInfo, localInfos);
+            Debug.Assert(result.Length == localInfos.Length);
             return result;
         }
 

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     if (!TryGetNextPartitionIndex(index, perPartition, out index))
                     {
                         // reached end of operation pairs
-                        return default(SyntaxToken);
+                        return default;
                     }
                 }
             }

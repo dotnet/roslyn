@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
             return
 @"class A
 {
-  void Foo()
+  void Goo()
   {
 " + initial + @"
   }
@@ -108,16 +108,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         public async Task TestIs()
         {
             await TestFixOneAsync(
-@"[||]if (a is Foo) { a(); } else { b(); }",
-@"if (!(a is Foo)) { b(); } else { a(); }");
+@"[||]if (a is Goo) { a(); } else { b(); }",
+@"if (!(a is Goo)) { b(); } else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestCall()
         {
             await TestFixOneAsync(
-@"[||]if (a.Foo()) { a(); } else { b(); }",
-@"if (!a.Foo()) { b(); } else { a(); }");
+@"[||]if (a.Goo()) { a(); } else { b(); }",
+@"if (!a.Goo()) { b(); } else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]

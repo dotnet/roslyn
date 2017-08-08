@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
 using System.Linq;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var text = @"
 class Program
 {
-    System.Collections.Generic.IEnumerable<int> Foo()
+    System.Collections.Generic.IEnumerable<int> Goo()
     {
         yield break;
     }
@@ -32,12 +32,12 @@ class Program
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Program"" name=""Foo"">
+    <method containingType=""Program"" name=""Goo"">
       <customDebugInfo>
-        <forwardIterator name=""&lt;Foo&gt;d__0"" />
+        <forwardIterator name=""&lt;Goo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
+    <method containingType=""Program+&lt;Goo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -63,7 +63,7 @@ class Program
             var text = @"
 class Program
 {
-    System.Collections.Generic.IEnumerable<int> Foo()
+    System.Collections.Generic.IEnumerable<int> Goo()
     {
         yield break;
     }
@@ -74,12 +74,12 @@ class Program
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Program"" name=""Foo"">
+    <method containingType=""Program"" name=""Goo"">
       <customDebugInfo>
-        <forwardIterator name=""&lt;Foo&gt;d__0"" />
+        <forwardIterator name=""&lt;Goo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
+    <method containingType=""Program+&lt;Goo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -105,7 +105,7 @@ class Program
             var text = @"
 class Program
 {
-    System.Collections.Generic.IEnumerable<int> Foo()
+    System.Collections.Generic.IEnumerable<int> Goo()
     {
         yield return 1; //hidden sequence point after this.
     }
@@ -116,12 +116,12 @@ class Program
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Program"" name=""Foo"">
+    <method containingType=""Program"" name=""Goo"">
       <customDebugInfo>
-        <forwardIterator name=""&lt;Foo&gt;d__0"" />
+        <forwardIterator name=""&lt;Goo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
+    <method containingType=""Program+&lt;Goo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -403,6 +403,7 @@ class C
         <entry offset=""0x18"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""41"" />
         <entry offset=""0x1d"" startLine=""21"" startColumn=""24"" endLine=""21"" endColumn=""26"" />
         <entry offset=""0x27"" hidden=""true"" />
+        <entry offset=""0x30"" hidden=""true"" />
         <entry offset=""0x31"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x32"">
@@ -555,6 +556,7 @@ public class Test
         <entry offset=""0x17"" startLine=""46"" startColumn=""49"" endLine=""46"" endColumn=""50"" />
         <entry offset=""0x18"" startLine=""46"" startColumn=""24"" endLine=""46"" endColumn=""26"" />
         <entry offset=""0x22"" hidden=""true"" />
+        <entry offset=""0x2c"" hidden=""true"" />
         <entry offset=""0x2d"" startLine=""47"" startColumn=""5"" endLine=""47"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2e"">

@@ -48,7 +48,7 @@ End Class");
             VisualStudio.Editor.Verify.CompletionItemDoNotExist("ToString");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void AddControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -61,7 +61,7 @@ End Class");
             Assert.Contains(@"Friend WithEvents SomeButton As Button", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlProperty()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -74,7 +74,7 @@ End Class");
             Assert.Contains(@"Me.SomeButton.Text = ""NewButtonText""", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlPropertyInCode()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -101,7 +101,7 @@ End Class");
             Assert.Equal(expectedPropertyValue, actualPropertyValue);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void AddClickHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -152,14 +152,14 @@ End Class");
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
-            VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "FooHandler");
+            VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "GooHandler");
             //  Remove the event handler
             VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "");
             VisualStudio.ErrorList.Verify.NoBuildErrors();
             //  Verify that the handler is removed
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.vb");
             var actualText = VisualStudio.Editor.GetText();
-            Assert.DoesNotContain(@"Private Sub FooHandler(sender As Object, e As EventArgs) Handles SomeButton.Click", actualText);
+            Assert.DoesNotContain(@"Private Sub GooHandler(sender As Object, e As EventArgs) Handles SomeButton.Click", actualText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]

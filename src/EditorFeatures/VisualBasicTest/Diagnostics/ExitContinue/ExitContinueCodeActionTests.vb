@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ExitCo
             Dim code =
 <File>
 Class C
-    Sub foo()
+    Sub goo()
         [|Exit|]
     End Sub
 End Class
@@ -27,7 +27,7 @@ End Class
             Dim expected =
 <File>
 Class C
-    Sub foo()
+    Sub goo()
         Exit Sub
     End Sub
 End Class
@@ -41,7 +41,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub foo()
+    Sub goo()
         While True
             [|Exit|]
         End While
@@ -52,7 +52,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub foo()
+    Sub goo()
         While True
             Exit While
         End While
@@ -68,7 +68,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub foo()
+    Sub goo()
         For x as Integer = 1 to 10
             [|Exit|]
         Next
@@ -79,7 +79,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub foo()
+    Sub goo()
         For x as Integer = 1 to 10
             Exit For
         Next
@@ -95,7 +95,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub foo()
+    Sub goo()
         Do While True
             [|Exit|]
         Loop
@@ -106,7 +106,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub foo()
+    Sub goo()
         Do While True
             Exit Do
         Loop
@@ -153,7 +153,7 @@ Exit Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Try
             [|Exit|]
         Catch ex As Exception
@@ -166,7 +166,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Try
             Exit Try
         Catch ex As Exception
@@ -230,7 +230,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         [|Exit Function|]
     End Sub
 End Class
@@ -239,7 +239,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Exit Sub
     End Sub
 End Class
@@ -253,7 +253,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         While True
             [|Exit Do|]
         End While
@@ -264,7 +264,7 @@ End Class
             Dim expected =
      <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         While True
             Exit While
         End While
@@ -280,7 +280,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         For x as Integer = 1 to 10
             [|Exit Do|]
         Next
@@ -291,7 +291,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         For x as Integer = 1 to 10
             Exit For
         Next
@@ -307,7 +307,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Do While True
             [|Exit While|]
         Loop
@@ -318,7 +318,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Do While True
             Exit Do
         Loop
@@ -335,7 +335,7 @@ End Class
     <File>
 Imports System
 Class C
-    Sub Foo()
+    Sub Goo()
         Try
             [|Exit Do|]
         Catch ex As Exception
@@ -349,7 +349,7 @@ End Class
     <File>
 Imports System
 Class C
-    Sub Foo()
+    Sub Goo()
         Try
             Exit Try
         Catch ex As Exception
@@ -367,7 +367,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         [|Exit Try|]
     End Sub
 End Class
@@ -376,7 +376,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Exit Sub
     End Sub
 End Class
@@ -390,7 +390,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -403,7 +403,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -421,7 +421,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -434,7 +434,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -451,7 +451,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -464,7 +464,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -481,7 +481,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -494,7 +494,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -511,7 +511,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         While True
             [|Continue|]
         End While
@@ -522,7 +522,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         While True
             Continue While
         End While
@@ -538,7 +538,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         For x as integer = 1 to 10
             [|Continue|]
         Next
@@ -549,7 +549,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         For x as integer = 1 to 10
             Continue For
         Next
@@ -565,7 +565,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         For Each x in {1}
             [|Continue|]
         Next
@@ -576,7 +576,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         For Each x in {1}
             Continue For
         Next
@@ -592,7 +592,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Do While True
             [|Continue|]
         Loop
@@ -603,7 +603,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Do While True
             Continue Do
         Loop
@@ -619,7 +619,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Do While True
             [|Continue For|]
         Loop
@@ -630,7 +630,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Do While True
             Continue Do
         Loop
@@ -646,7 +646,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Do While True
             [|Exit|]
         Loop
@@ -657,7 +657,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Do While True
             Exit Sub
         Loop
@@ -675,7 +675,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Try
 
         Catch ex As Exception
@@ -691,7 +691,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Try
 
         Catch ex As Exception
@@ -711,7 +711,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Try
             If True Then
                 [|Exit|]
@@ -728,7 +728,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Try
             If True Then
                 Exit Try
@@ -788,7 +788,7 @@ End Module",
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Try
             If True Then
                 [|Exit |]blah
@@ -805,7 +805,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Try
             If True Then
                 Exit Try
@@ -827,7 +827,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Do
             [|Continue |]blah
         Loop
@@ -839,7 +839,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Do
             Continue Do
         Loop
@@ -854,7 +854,7 @@ End Class
             Dim code =
 <File>
 Class C
-    Sub foo()
+    Sub goo()
         [|Exit Function|]
     End Sub
 End Class
@@ -869,7 +869,7 @@ End Class
             Dim code =
 <File>
 Class C
-    Sub foo()
+    Sub goo()
         [|Exit    |]
     End Sub
 End Class

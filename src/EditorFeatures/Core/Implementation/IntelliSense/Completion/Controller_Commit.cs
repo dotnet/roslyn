@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     using (var textEdit = this.SubjectBuffer.CreateEdit(editOptions, reiteratedVersionNumber: null, editTag: null))
                     {
                         textEdit.Replace(mappedSpan.Span, adjustedNewText);
-                        textEdit.Apply();
+                        textEdit.ApplyAndLogExceptions();
                     }
 
                     // If the completion change requested a new position for the caret to go,
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         textEdit.Replace(change.NewSpan, change.OldText);
                     }
 
-                    textEdit.Apply();
+                    textEdit.ApplyAndLogExceptions();
                 }
             }
         }

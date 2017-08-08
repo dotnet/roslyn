@@ -24,8 +24,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
 
         protected override bool IsEndOfLine(SyntaxTrivia trivia)
             => trivia.Kind() == SyntaxKind.EndOfLineTrivia;
-
-        protected override bool IsNewLine(char ch)
-            => SyntaxFacts.IsNewLine(ch);
     }
 }

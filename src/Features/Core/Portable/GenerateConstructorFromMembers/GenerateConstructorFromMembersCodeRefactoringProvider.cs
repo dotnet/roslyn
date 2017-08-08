@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -6,16 +6,30 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PickMembers;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
+    /// <summary>
+    /// This <see cref="CodeRefactoringProvider"/> is responsible for allowing a user to pick a 
+    /// set of members from a class or struct, and then generate a constructor for that takes in
+    /// matching parameters and assigns them to those members.  The members can be picked using 
+    /// a actual selection in the editor, or they can be picked using a picker control that will
+    /// then display all the viable members and allow the user to pick which ones they want to
+    /// use.
+    /// 
+    /// Importantly, this type is not responsible for generating constructors when the user types
+    /// something like "new MyType(x, y, z)", nor is it responsible for generating constructors
+    /// in a derived type that delegate to a base type. Both of those are handled by other services.
+    /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), Shared]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)]
@@ -93,26 +107,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             // Find all the possible writable instance fields/properties.  If there are any, then
             // show a dialog to the user to select the ones they want.  Otherwise, if there are none
-            // just offer to generate the no-param constructor if they don't already have one.
+            // don't offer to generate anything.
             var viableMembers = containingType.GetMembers().WhereAsArray(IsWritableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
-                var noParamConstructor = containingType.InstanceConstructors.FirstOrDefault(c => c.Parameters.Length == 0);
-                if (noParamConstructor == null ||
-                    noParamConstructor.IsImplicitlyDeclared)
-                {
-                    // Offer to just make the no-param-constructor directly.
-                    var state = State.TryGenerate(this, document, textSpan, containingType,
-                        ImmutableArray<ISymbol>.Empty, cancellationToken);
-
-                    if (state != null)
-                    {
-                        context.RegisterRefactoring(
-                            new FieldDelegatingCodeAction(this, document, state, addNullChecks: false));
-                    }
-                }
-
-                // already had an explicit, no-param constructor.  No need to offer anything.
                 return;
             }
 
@@ -152,7 +150,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
+                return default;
             }
         }
 
@@ -167,6 +165,27 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             return result.ToImmutableAndFree();
+        }
+
+        private static async Task<Document> AddNavigationAnnotationAsync(Document document, CancellationToken cancellationToken)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var nodes = root.GetAnnotatedNodes(CodeGenerator.Annotation);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            foreach (var node in nodes)
+            {
+                var parameterList = syntaxFacts.GetParameterList(node);
+                if (parameterList != null)
+                {
+                    var closeParen = parameterList.GetLastToken();
+                    var newRoot = root.ReplaceToken(closeParen, closeParen.WithAdditionalAnnotations(NavigationAnnotation.Create()));
+                    return document.WithSyntaxRoot(newRoot);
+                }
+            }
+
+            return document;
         }
     }
 }

@@ -13,6 +13,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -3027,7 +3028,7 @@ namespace Microsoft.CodeAnalysis
             // we shouldn't ask for method IL if we don't have PE image
             Debug.Assert(_peReaderOpt != null);
 
-            MethodDefinition method = this.MetadataReader.GetMethodDefinition(methodHandle);
+            MethodDefinition method = MetadataReader.GetMethodDefinition(methodHandle);
             if ((method.ImplAttributes & MethodImplAttributes.CodeTypeMask) != MethodImplAttributes.IL ||
                  method.RelativeVirtualAddress == 0)
             {

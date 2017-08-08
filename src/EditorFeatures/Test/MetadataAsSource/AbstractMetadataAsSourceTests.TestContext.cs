@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -27,7 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             private readonly IMetadataAsSourceFileService _metadataAsSourceService;
             private readonly ITextBufferFactoryService _textBufferFactoryService;
 
-            public static TestContext Create(string projectLanguage = null, IEnumerable<string> metadataSources = null, bool includeXmlDocComments = false, string sourceWithSymbolReference = null)
+            public static TestContext Create(
+                string projectLanguage = null,
+                IEnumerable<string> metadataSources = null,
+                bool includeXmlDocComments = false,
+                string sourceWithSymbolReference = null,
+                string languageVersion = null)
             {
                 projectLanguage = projectLanguage ?? LanguageNames.CSharp;
                 metadataSources = metadataSources ?? SpecializedCollections.EmptyEnumerable<string>();
@@ -35,7 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     ? new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource }
                     : metadataSources;
 
-                var workspace = CreateWorkspace(projectLanguage, metadataSources, includeXmlDocComments, sourceWithSymbolReference);
+                var workspace = CreateWorkspace(
+                    projectLanguage, metadataSources, includeXmlDocComments, 
+                    sourceWithSymbolReference, languageVersion);
                 return new TestContext(workspace);
             }
 
@@ -214,11 +221,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     ? LanguageNames.VisualBasic : LanguageNames.CSharp;
             }
 
-            private static TestWorkspace CreateWorkspace(string projectLanguage, IEnumerable<string> metadataSources, bool includeXmlDocComments, string sourceWithSymbolReference)
+            private static TestWorkspace CreateWorkspace(
+                string projectLanguage, IEnumerable<string> metadataSources, 
+                bool includeXmlDocComments, string sourceWithSymbolReference,
+                string languageVersion)
             {
                 var xmlString = string.Concat(@"
 <Workspace>
-    <Project Language=""", projectLanguage, @""" CommonReferences=""true"">");
+    <Project Language=""", projectLanguage, @""" CommonReferences=""true""");
+
+                if (languageVersion != null)
+                {
+                    xmlString += $@" LanguageVersion=""{languageVersion}""";
+                }
+
+                xmlString += ">";
 
                 metadataSources = metadataSources ?? new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource };
 

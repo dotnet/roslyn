@@ -8,9 +8,9 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -384,6 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   the "value" parameter for a property setter,
         ///   the parameters on indexer accessor methods (not on the indexer itself),
         ///   methods in anonymous types,
+        ///   anonymous functions
         /// </summary>
         public virtual bool IsImplicitlyDeclared
         {
@@ -1095,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SymbolDisplay.ToMinimalDisplayParts(this, semanticModel, position, format);
         }
 
-        protected static void ReportErrorIfHasConstraints(
+        internal static void ReportErrorIfHasConstraints(
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, DiagnosticBag diagnostics)
         {
             if (constraintClauses.Count > 0)

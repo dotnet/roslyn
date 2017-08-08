@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 {
     internal sealed class CustomCommitCompletion : Completion3, ICustomCommit
     {
-        private static readonly string s_glyphCompletionWarning = "GlyphCompletionWarning";
+        private const string s_glyphCompletionWarning = "GlyphCompletionWarning";
         private readonly CompletionPresenterSession _completionPresenterSession;
         internal readonly CompletionItem CompletionItem;
         private readonly ImageMoniker _imageMoniker;

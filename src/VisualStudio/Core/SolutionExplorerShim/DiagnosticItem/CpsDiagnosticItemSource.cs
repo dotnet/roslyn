@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Internal.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -13,15 +14,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     internal partial class CpsDiagnosticItemSource : BaseDiagnosticItemSource, INotifyPropertyChanged
     {
         private readonly IVsHierarchyItem _item;
+        private readonly string _projectDirectoryPath;
 
         private AnalyzerReference _analyzerReference;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public CpsDiagnosticItemSource(Workspace workspace, ProjectId projectId, IVsHierarchyItem item, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService analyzerService)
+        public CpsDiagnosticItemSource(Workspace workspace, string projectPath, ProjectId projectId, IVsHierarchyItem item, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService analyzerService)
             : base(workspace, projectId, commandHandler, analyzerService)
         {
             _item = item;
+            _projectDirectoryPath = Path.GetDirectoryName(projectPath);
 
             _analyzerReference = TryGetAnalyzerReference(_workspace.CurrentSolution);
             if (_analyzerReference == null)
@@ -91,12 +94,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return null;
             }
 
-            if (!_item.HierarchyIdentity.NestedHierarchy.TryGetItemName(_item.HierarchyIdentity.NestedItemID, out string name))
+            var canonicalName = _item.CanonicalName;
+            var analyzerFilePath = CpsUtilities.ExtractAnalyzerFilePath(_projectDirectoryPath, canonicalName);
+
+            if (string.IsNullOrEmpty(analyzerFilePath))
             {
                 return null;
             }
 
-            return project.AnalyzerReferences.FirstOrDefault(r => r.Display.Equals(name));
+            return project.AnalyzerReferences.FirstOrDefault(r => r.FullPath.Equals(analyzerFilePath, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

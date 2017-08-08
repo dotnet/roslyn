@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -17,33 +18,27 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private static int s_instanceId;
 
-        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly CancellationTokenSource _shutdownCancellationSource;
 
         protected readonly int InstanceId;
 
         protected readonly JsonRpc Rpc;
         protected readonly TraceSource Logger;
         protected readonly AssetStorage AssetStorage;
-        protected readonly CancellationToken CancellationToken;
+        protected readonly CancellationToken ShutdownCancellationToken;
 
         /// <summary>
-        /// Session Id of this service. caller and callee share this id which one
-        /// can use to find matching caller and callee when debugging or logging
-        /// </summary>
-        private int _sessionId;
-
-        /// <summary>
-        /// Mark whether the solution checksum it got is for primary branch or not 
+        /// PinnedSolutionInfo.ScopeId. scope id of the solution. caller and callee share this id which one
+        /// can use to find matching caller and callee while exchanging data
+        /// 
+        /// PinnedSolutionInfo.FromPrimaryBranch Marks whether the solution checksum it got is for primary branch or not 
         /// 
         /// this flag will be passed down to solution controller to help
         /// solution service's cache policy. for more detail, see <see cref="SolutionService"/>
+        /// 
+        /// PinnedSolutionInfo.SolutionChecksum indicates solution this connection belong to
         /// </summary>
-        private bool _fromPrimaryBranch;
-
-        /// <summary>
-        /// solution this connection belong to
-        /// </summary>
-        private Checksum _solutionChecksumOpt;
+        private PinnedSolutionInfo _solutionInfo;
 
         private RoslynServices _lazyRoslynServices;
 
@@ -58,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Remote
             Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
             Logger.TraceInformation($"{DebugInstanceString} Service instance created");
 
-            _cancellationTokenSource = new CancellationTokenSource();
-            CancellationToken = _cancellationTokenSource.Token;
+            _shutdownCancellationSource = new CancellationTokenSource();
+            ShutdownCancellationToken = _shutdownCancellationSource.Token;
 
             Rpc = JsonRpc.Attach(stream, this);
             Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
@@ -77,8 +72,8 @@ namespace Microsoft.CodeAnalysis.Remote
             Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
             Logger.TraceInformation($"{DebugInstanceString} Service instance created");
 
-            _cancellationTokenSource = new CancellationTokenSource();
-            CancellationToken = _cancellationTokenSource.Token;
+            _shutdownCancellationSource = new CancellationTokenSource();
+            ShutdownCancellationToken = _shutdownCancellationSource.Token;
 
             // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
             // all sub type must explicitly start JsonRpc once everything is
@@ -96,19 +91,24 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (_lazyRoslynServices == null)
                 {
-                    _lazyRoslynServices = new RoslynServices(_sessionId, AssetStorage);
+                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage);
                 }
 
                 return _lazyRoslynServices;
             }
         }
 
-        protected Task<Solution> GetSolutionAsync()
+        protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_solutionChecksumOpt);
+            Contract.ThrowIfNull(_solutionInfo);
 
-            var solutionController = (ISolutionController)RoslynServices.SolutionService;
-            return solutionController.GetSolutionAsync(_solutionChecksumOpt, _fromPrimaryBranch, CancellationToken);
+            return GetSolutionAsync(RoslynServices, _solutionInfo, cancellationToken);
+        }
+
+        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage);
+            return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -121,21 +121,18 @@ namespace Microsoft.CodeAnalysis.Remote
             Log(TraceEventType.Error, message);
         }
 
-        public virtual void Initialize(int sessionId, bool fromPrimaryBranch, Checksum solutionChecksum)
+        public virtual void Initialize(PinnedSolutionInfo info)
         {
-            // set session related information
-            _sessionId = sessionId;
-            _fromPrimaryBranch = fromPrimaryBranch;
-
-            if (solutionChecksum != null)
-            {
-                _solutionChecksumOpt = solutionChecksum;
-            }
+            // set pinned solution info
+            _lazyRoslynServices = null;
+            _solutionInfo = info;
         }
 
         public void Dispose()
         {
             Rpc.Dispose();
+            _shutdownCancellationSource.Dispose();
+
             Dispose(false);
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
@@ -154,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             // raise cancellation
-            _cancellationTokenSource.Cancel();
+            _shutdownCancellationSource.Cancel();
 
             OnDisconnected(e);
 
@@ -165,6 +162,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 // servicehub\log files. one can still make this to write logs by opting in.
                 Log(TraceEventType.Warning, $"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
             }
+        }
+
+        private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            var solutionController = (ISolutionController)roslynService.SolutionService;
+            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, cancellationToken);
         }
     }
 }

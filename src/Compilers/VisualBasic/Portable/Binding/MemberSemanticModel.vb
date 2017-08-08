@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -1946,7 +1947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' and returns it instead of rebinding it. 
         ''' 
         ''' FOr example, we might have:
-        '''    While x > foo()
+        '''    While x > goo()
         '''      y = y * x
         '''      z = z + y
         '''    End While

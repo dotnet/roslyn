@@ -580,15 +580,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // and HostDocuments implicitly have an immutable filename. Therefore, we choose to close 
             // all files associated with this docCookie, so they are no longer associated with an RDT document that
             // no longer matches their filenames. This removes all tracking information and associations
-            // between cookies and documents in this class. When the project system comes along and adds the
-            // files with the new name, they will ask the DocumentProvider for the documents under the
-            // new name. At that point, since we've removed all tracking, these will appear as new files
-            // and we'll hand out new HostDocuments that are properly tracking the already open files.
+            // between cookies and documents in this class.
 
             // In the case of miscellaneous files, we're also watching the RDT. If that saw the RDT event
             // before we did, it's possible we've already updated state to handle the rename. Therefore, we
             // should only handle the close if the moniker we had was out of date.
             CloseDocuments(docCookie, monikerToKeep: newMoniker);
+
+            // We might also have new documents that now need to be opened, so handle them too. If the document
+            // isn't initialized we will wait until it's actually initialized to trigger the open; we see
+            // from the OnAfterAttributeChangeEx notification.
+            if (_runningDocumentTable.IsDocumentInitialized(docCookie))
+            {
+                TryProcessOpenForDocCookie(docCookie, CancellationToken.None);
+            }
         }
 
         private void RenameFileCodeModelInstances(uint docCookie, string oldMoniker, string newMoniker)

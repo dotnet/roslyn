@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -255,6 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 node.InvokedAsExtensionMethod,
                 node.ArgsToParamsOpt,
                 node.ResultKind,
+                node.BinderOpt,
                 rewrittenType);
         }
 
@@ -471,6 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     rewritten.ArgsToParamsOpt,
                     rewritten.ConstantValueOpt,
                     rewritten.InitializerExpressionOpt,
+                    rewritten.BinderOpt,
                     rewritten.Type);
             }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_4, //s
                 int V_5,
                 object V_6,
-                int? V_7)
+                object V_7)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_4, //s
                 int V_5,
                 object V_6,
-                int? V_7)
+                object V_7)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_4, //s
                 int V_5,
                 object V_6,
-                int? V_7)
+                object V_7)
   IL_0000:  ldloc.3
   IL_0001:  ret
 }");
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_4, //s
                 int V_5,
                 object V_6,
-                int? V_7)
+                object V_7)
   IL_0000:  ldloc.s    V_4
   IL_0002:  ret
 }");
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_4,
                 int V_5, //s
                 object V_6,
-                int? V_7)
+                object V_7)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -257,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_4,
                 int V_5, //s
                 object V_6,
-                int? V_7)
+                object V_7)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -272,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_4,
                 int V_5, //s
                 object V_6,
-                int? V_7)
+                object V_7)
   IL_0000:  ldloc.3
   IL_0001:  ret
 }");
@@ -287,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_4,
                 int V_5, //s
                 object V_6,
-                int? V_7)
+                object V_7)
   IL_0000:  ldloc.s    V_5
   IL_0002:  ret
 }");
@@ -348,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_2,
                 int V_3,
                 object V_4,
-                int? V_5,
+                object V_5,
                 System.Action V_6)
   IL_0000:  ldarg.0
   IL_0001:  ret
@@ -362,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_2,
                 int V_3,
                 object V_4,
-                int? V_5,
+                object V_5,
                 System.Action V_6)
   IL_0000:  ldarg.1
   IL_0001:  ret
@@ -376,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_2,
                 int V_3,
                 object V_4,
-                int? V_5,
+                object V_5,
                 System.Action V_6)
   IL_0000:  ldloc.0
   IL_0001:  ldfld      ""string C.<>c__DisplayClass0_0.a""
@@ -421,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_2,
                 int V_3,
                 object V_4,
-                int? V_5,
+                object V_5,
                 System.Action V_6)
   IL_0000:  ldarg.0
   IL_0001:  ret
@@ -435,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_2,
                 int V_3,
                 object V_4,
-                int? V_5,
+                object V_5,
                 System.Action V_6)
   IL_0000:  ldarg.1
   IL_0001:  ret
@@ -449,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_2,
                 int V_3,
                 object V_4,
-                int? V_5,
+                object V_5,
                 System.Action V_6)
   IL_0000:  ldloc.0
   IL_0001:  ldfld      ""string C.<>c__DisplayClass0_0.a""
@@ -590,11 +591,12 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                int? V_4,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                bool V_4,
+                object V_5,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
+                C.<M>d__1 V_7,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
+                System.Exception V_9)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -607,11 +609,12 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                int? V_4,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                bool V_4,
+                object V_5,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
+                C.<M>d__1 V_7,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
+                System.Exception V_9)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -624,11 +627,12 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                int? V_4,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                bool V_4,
+                object V_5,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
+                C.<M>d__1 V_7,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
+                System.Exception V_9)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
   IL_0006:  ret
@@ -641,11 +645,12 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                int? V_4,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                bool V_4,
+                object V_5,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
+                C.<M>d__1 V_7,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
+                System.Exception V_9)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<s>5__5""
   IL_0006:  ret
@@ -669,11 +674,12 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                int? V_4,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                bool V_4,
+                object V_5,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
+                C.<M>d__1 V_7,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
+                System.Exception V_9)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -686,11 +692,12 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                int? V_4,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                bool V_4,
+                object V_5,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
+                C.<M>d__1 V_7,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
+                System.Exception V_9)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -703,11 +710,12 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                int? V_4,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                bool V_4,
+                object V_5,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
+                C.<M>d__1 V_7,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
+                System.Exception V_9)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
   IL_0006:  ret
@@ -720,11 +728,12 @@ class C
                 object V_1,
                 object V_2,
                 string V_3,
-                int? V_4,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                C.<M>d__1 V_6,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
-                System.Exception V_8)
+                bool V_4,
+                object V_5,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
+                C.<M>d__1 V_7,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
+                System.Exception V_9)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__1.<s>5__6""
   IL_0006:  ret
@@ -1376,7 +1385,7 @@ class P
             var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
-                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass1_1.<M>b__0");
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass1_0.<M>b__0");
                 var testData = new CompilationTestData();
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
@@ -1386,17 +1395,17 @@ class P
 @"{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
+  .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
                 object V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C C.<>c__DisplayClass1_1.<>4__this""
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass1_0.<>4__this""
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "_1", expectedILOpt:
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
+  .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
                 object V_1)
   IL_0000:  ldarg.1
   IL_0001:  ret
@@ -1405,20 +1414,20 @@ class P
 @"{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
+  .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
   object V_1)
   IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""object C.<>c__DisplayClass1_0.y""
+  IL_0001:  ldfld      ""object C.<>c__DisplayClass1_1.y""
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "x", expectedILOpt:
 @"{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
+  .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
   object V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""object C.<>c__DisplayClass1_1.x""
+  IL_0001:  ldfld      ""object C.<>c__DisplayClass1_0.x""
   IL_0006:  ret
 }");
                 Assert.Equal(locals.Count, 4);
@@ -1426,12 +1435,11 @@ class P
             });
         }
 
-        [Fact(Skip = "18273"), WorkItem(18273, "https://github.com/dotnet/roslyn/issues/18273")]
+        [Fact, WorkItem(18273, "https://github.com/dotnet/roslyn/issues/18273")]
         public void CapturedLocalInNestedLambda()
         {
             var source = @"
 using System;
-
 class C
 {
     void M() { }
@@ -1440,11 +1448,69 @@ class C
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
-
                 var testData = new CompilationTestData();
                 context.CompileExpression("new Action(() => { int x; new Func<int>(() => x).Invoke(); }).Invoke()", out var error, testData);
                 Assert.Null(error);
-                testData.GetMethodData("<>x.<>m0").VerifyIL("");
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       37 (0x25)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""void <>x.<>c.<<>m0>b__0_0()""
+  IL_0014:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Action <>x.<>c.<>9__0_0""
+  IL_001f:  callvirt   ""void System.Action.Invoke()""
+  IL_0024:  ret
+}");
+            });
+        }
+
+        [Fact, WorkItem(18273, "https://github.com/dotnet/roslyn/issues/18273")]
+        public void CapturedLocalInNestedLocalFunction()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M() { }
+}";
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+@"new Action<int>(x =>
+{
+    int y;
+    int F() => x + y;
+    F();
+}).Invoke(1)",
+                    out var error,
+                    testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       38 (0x26)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<int> <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""void <>x.<>c.<<>m0>b__0_0(int)""
+  IL_0014:  newobj     ""System.Action<int>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Action<int> <>x.<>c.<>9__0_0""
+  IL_001f:  ldc.i4.1
+  IL_0020:  callvirt   ""void System.Action<int>.Invoke(int)""
+  IL_0025:  ret
+}");
             });
         }
 
@@ -3729,7 +3795,7 @@ class Program
                     (int bufferLength, out int count, byte[] name) =>
                     {
                         count = 0;
-                        return DiaSymReader.SymUnmanagedReaderExtensions.E_NOTIMPL;
+                        return HResult.E_NOTIMPL;
                     });
                 var debugInfo = new MethodDebugInfoBytes.Builder(constants: new[] { badConst }).Build();
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();

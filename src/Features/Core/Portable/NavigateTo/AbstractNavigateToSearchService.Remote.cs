@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
@@ -16,12 +17,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var solution = document.Project.Solution;
 
-            var serializableResults = await client.RunCodeAnalysisServiceOnRemoteHostAsync<SerializableNavigateToSearchResult[]>(
+            var serializableResults = await client.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableNavigateToSearchResult>>(
                 solution, nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
                 new object[] { document.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
 
-            serializableResults = serializableResults ?? Array.Empty<SerializableNavigateToSearchResult>();
-            return serializableResults.Select(r => r.Rehydrate(solution)).ToImmutableArray();
+            return serializableResults.NullToEmpty().SelectAsArray(r => r.Rehydrate(solution));
         }
 
         private async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInRemoteProcessAsync(
@@ -29,23 +29,22 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var solution = project.Solution;
 
-            var serializableResults = await client.RunCodeAnalysisServiceOnRemoteHostAsync<SerializableNavigateToSearchResult[]>(
+            var serializableResults = await client.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableNavigateToSearchResult>>(
                 solution, nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
                 new object[] { project.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
 
-            serializableResults = serializableResults ?? Array.Empty<SerializableNavigateToSearchResult>();
-            return serializableResults.Select(r => r.Rehydrate(solution)).ToImmutableArray();
+            return serializableResults.NullToEmpty().SelectAsArray(r => r.Rehydrate(solution));
         }
 
-        private static async Task<RemoteHostClient> GetRemoteHostClientAsync(Project project, CancellationToken cancellationToken)
+        private static async Task<RemoteHostClient> TryGetRemoteHostClientAsync(Project project, CancellationToken cancellationToken)
         {
-            var outOfProcessAllowed = project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed);
-            if (!outOfProcessAllowed)
+            // This service is only defined for C# and VB, but we'll be a bit paranoid.
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
             {
                 return null;
             }
 
-            return await project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            return await project.Solution.Workspace.TryGetRemoteHostClientAsync(RemoteFeatureOptions.NavigateToEnabled, cancellationToken).ConfigureAwait(false);
         }
     }
 }

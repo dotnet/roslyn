@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         metadataBuilder.Add(metadata);
                     }
                 }
-                catch (Exception e) when (IsBadMetadataException(e))
+                catch (BadImageFormatException)
                 {
                     // Ignore modules with "bad" metadata.
                 }
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         }
                     }
                 }
-                catch (Exception e) when (IsBadMetadataException(e))
+                catch (BadImageFormatException)
                 {
                     // Ignore modules with "bad" metadata.
                 }
