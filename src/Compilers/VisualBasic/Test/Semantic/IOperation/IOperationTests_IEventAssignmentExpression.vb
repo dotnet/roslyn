@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -8,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AddEventHandler()
             Dim source = <![CDATA[
@@ -40,6 +42,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
             VerifyOperationTreeAndDiagnosticsForTest(Of AddRemoveHandlerStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub RemoveEventHandler()
             Dim source = <![CDATA[
@@ -72,6 +75,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl .
             VerifyOperationTreeAndDiagnosticsForTest(Of AddRemoveHandlerStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AddEventHandler_StaticEvent()
             Dim source = <![CDATA[
@@ -104,6 +108,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
             VerifyOperationTreeAndDiagnosticsForTest(Of AddRemoveHandlerStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub RemoveEventHandler_StaticEvent()
             Dim source = <![CDATA[
@@ -136,6 +141,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl .
             VerifyOperationTreeAndDiagnosticsForTest(Of AddRemoveHandlerStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub RemoveEventHandler_DelegateTypeMismatch()
             Dim source = <![CDATA[
@@ -170,6 +176,7 @@ BC31143: Method 'Public Sub M(x As Integer)' does not have a signature compatibl
             VerifyOperationTreeAndDiagnosticsForTest(Of AddRemoveHandlerStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AddEventHandler_AssignToSharedEventOnInstance()
             Dim source = <![CDATA[
@@ -204,6 +211,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
             VerifyOperationTreeAndDiagnosticsForTest(Of AddRemoveHandlerStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         <WorkItem(8909, "https://github.com/dotnet/roslyn/issues/8909")>
         Public Sub AddEventHandler_AssignToNonSharedEventOnType()

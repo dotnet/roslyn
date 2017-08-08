@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -8,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AddEventHandler()
         {
@@ -48,6 +50,7 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void RemoveEventHandler()
         {
@@ -84,6 +87,7 @@ IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpressi
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AddEventHandler_StaticEvent()
         {
@@ -123,6 +127,7 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void RemoveEventHandler_StaticEvent()
         {
@@ -162,6 +167,7 @@ IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpressi
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AddEventHandler_DelegateTypeMismatch()
         {
@@ -205,6 +211,7 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AddEventHandler_AssignToStaticEventOnInstance()
         {
@@ -248,6 +255,7 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(8909, "https://github.com/dotnet/roslyn/issues/8909")]
         public void AddEventHandler_AssignToNonStaticEventOnType()
@@ -290,6 +298,7 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AddEventHandler_AssignToEventWithoutExplicitReceiver()
         {
