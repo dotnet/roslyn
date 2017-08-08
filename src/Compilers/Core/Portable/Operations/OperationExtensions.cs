@@ -104,14 +104,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             return arrayBuilder.ToImmutableAndFree();
         }
-
-        /// <summary>
-        /// Deep Clone given IOperation
-        /// </summary>
-        internal static T Clone<T>(this T operation) where T : IOperation
-        {
-            return Cloner.Instance.Visit(operation);
-        }
     }
 
     internal interface ISymbolWithOperation

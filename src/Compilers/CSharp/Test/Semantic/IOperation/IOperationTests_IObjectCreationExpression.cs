@@ -121,7 +121,8 @@ IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B, IsInvalid) (Syntax: 'Property2 = 1')
                     Left: IPropertyReferenceExpression: B F.Property2 { get; set; } (OperationKind.PropertyReferenceExpression, Type: B) (Syntax: 'Property2')
                         Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 'Property2')
-                    Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: B, IsInvalid) (Syntax: '1')
+                    Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B, IsInvalid) (Syntax: '1')
+                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var e2 = new F() { """" };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'var e2 = new F() { """" };')
@@ -220,7 +221,8 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.C
                   Instance Receiver: null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument) (Syntax: 'new[] { x, y }')
-                        IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'new[] { x, y }')
+                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'new[] { x, y }')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                           Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new[] { x, y }')
                               Dimension Sizes(1):
                                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'new[] { x, y }')

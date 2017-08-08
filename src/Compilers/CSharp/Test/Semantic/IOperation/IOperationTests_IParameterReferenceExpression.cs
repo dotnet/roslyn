@@ -78,7 +78,8 @@ IOperation:  (OperationKind.None) (Syntax: 'var (x, y) = point')
         Elements(2):
             ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
             ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-      IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'point')
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'point')
+        Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IParameterReferenceExpression: point (OperationKind.ParameterReferenceExpression, Type: Point) (Syntax: 'point')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -148,13 +149,15 @@ IQueryExpression (OperationKind.QueryExpression, Type: System.Collections.Generi
           Instance Receiver: null
           Arguments(2):
               IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument) (Syntax: 'from cust in customers')
-                IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<Customer>) (Syntax: 'from cust in customers')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<Customer>) (Syntax: 'from cust in customers')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: IFromQueryClause (Clause kind: FromClause) (OperationKind.QueryClause) (Syntax: 'from cust in customers')
                       ReducedExpression: IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List<Customer>) (Syntax: 'customers')
                 InConversion: null
                 OutConversion: null
               IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'cust.Name')
-                IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Func<Customer, System.String>) (Syntax: 'cust.Name')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<Customer, System.String>) (Syntax: 'cust.Name')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'cust.Name')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'cust.Name')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'cust.Name')
@@ -842,9 +845,11 @@ class P
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'x && y')
   Children(2):
-      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: B) (Syntax: 'x')
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B) (Syntax: 'x')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')
-      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: B) (Syntax: 'y')
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B) (Syntax: 'y')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -985,7 +990,8 @@ class Class
 ILocalFunctionStatement (Local Function: System.Collections.Generic.IEnumerable<T> Iterator()) (OperationKind.LocalFunctionStatement) (Syntax: 'IEnumerable ... }')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IForEachLoopStatement (Iteration variable: T element) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... rn element;')
-      Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
+      Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
+          Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: IParameterReferenceExpression: source (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
       Body: IIfStatement (OperationKind.IfStatement) (Syntax: 'if (predica ... rn element;')
           Condition: IInvocationExpression (virtual System.Boolean System.Func<T, System.Boolean>.Invoke(T arg)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'predicate(element)')

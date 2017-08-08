@@ -66,6 +66,18 @@ namespace Microsoft.CodeAnalysis
         public ITypeSymbol Type { get; }
 
         /// <summary>
+        /// The source language of the IOperation. Possible values are <see cref="LanguageNames.CSharp"/> and <see cref="LanguageNames.VisualBasic"/>.
+        /// </summary>
+
+        public string Language
+        {
+            // It is an eventual goal to support analyzing IL. At that point, we'll need to detect a null
+            // syntax and add a new field to LanguageNames for IL. Until then, though, we'll just assume that
+            // syntax is not null and return its language.
+            get => Syntax.Language;
+        }
+
+        /// <summary>
         /// If the operation is an expression that evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression. Otherwise, <see cref="Optional{Object}.HasValue"/> is false.
         /// </summary>
         public Optional<object> ConstantValue { get; }
