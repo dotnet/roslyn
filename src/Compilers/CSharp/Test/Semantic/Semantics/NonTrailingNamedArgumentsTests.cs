@@ -316,6 +316,15 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
+                // (16,23): error CS8322: Named argument 'b' is used out-of-position but is followed by an unnamed argument
+                //         var c = new C(b: 1, 2);
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "b").WithArguments("b").WithLocation(16, 23),
+                // (17,15): error CS8322: Named argument 'b' is used out-of-position but is followed by an unnamed argument
+                //         _ = c[b: 1, 2];
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "b").WithArguments("b").WithLocation(17, 15),
+                // (18,15): error CS8322: Named argument 'b' is used out-of-position but is followed by an unnamed argument
+                //         local(b: 1, 2);
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "b").WithArguments("b").WithLocation(18, 15)
                 );
         }
 
