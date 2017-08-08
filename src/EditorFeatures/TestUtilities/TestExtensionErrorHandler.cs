@@ -16,7 +16,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public void HandleError(object sender, Exception exception)
         {
-            _exceptions.Add(exception);
+            if (exception == null)
+            {
+                // Log an exception saying we didn't get an exception. I'd consider throwing here, but double-faults are just caught and consumed by
+                // the editor so that won't give a good debugging experience either.
+                _exceptions.Add(new Exception($"{nameof(TestExtensionErrorHandler)}.{nameof(HandleError)} called with null exception"));
+            }
+            else
+            {
+                _exceptions.Add(exception);
+            }
         }
 
         public ICollection<Exception> GetExceptions()
