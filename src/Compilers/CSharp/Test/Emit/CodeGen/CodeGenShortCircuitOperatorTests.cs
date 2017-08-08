@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -7221,6 +7222,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void ConditionalAccessOffReadOnlyNullable1()
         {
             var source = @"
@@ -7236,33 +7238,58 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"");
+            var comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", verify: false);
 
-            verifier.VerifyIL("Program.Main", @"
-	{
-	  // Code size       47 (0x2f)
-	  .maxstack  2
-	  .locals init (System.Guid? V_0,
-	                System.Guid V_1)
-	  IL_0000:  nop
-	  IL_0001:  ldsfld     ""System.Guid? Program.g""
-	  IL_0006:  stloc.0
-	  IL_0007:  ldloca.s   V_0
-	  IL_0009:  dup
-	  IL_000a:  call       ""bool System.Guid?.HasValue.get""
-	  IL_000f:  brtrue.s   IL_0015
-	  IL_0011:  pop
-	  IL_0012:  ldnull
-	  IL_0013:  br.s       IL_0028
-	  IL_0015:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
-	  IL_001a:  stloc.1
-	  IL_001b:  ldloca.s   V_1
-	  IL_001d:  constrained. ""System.Guid""
-	  IL_0023:  callvirt   ""string object.ToString()""
-	  IL_0028:  call       ""void System.Console.WriteLine(string)""
-	  IL_002d:  nop
-	  IL_002e:  ret
-	}");
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (System.Guid V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""System.Guid? Program.g""
+  IL_0006:  dup
+  IL_0007:  call       ""bool System.Guid?.HasValue.get""
+  IL_000c:  brtrue.s   IL_0012
+  IL_000e:  pop
+  IL_000f:  ldnull
+  IL_0010:  br.s       IL_0025
+  IL_0012:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  constrained. ""System.Guid""
+  IL_0020:  callvirt   ""string object.ToString()""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  nop
+  IL_002b:  ret
+}");
+
+            comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature(), verify: true);
+
+            comp.VerifyIL("Program.Main", @"
+{
+	// Code size       47 (0x2f)
+	.maxstack  2
+	.locals init (System.Guid? V_0,
+	            System.Guid V_1)
+	IL_0000:  nop
+	IL_0001:  ldsfld     ""System.Guid? Program.g""
+	IL_0006:  stloc.0
+	IL_0007:  ldloca.s   V_0
+	IL_0009:  dup
+	IL_000a:  call       ""bool System.Guid?.HasValue.get""
+	IL_000f:  brtrue.s   IL_0015
+	IL_0011:  pop
+	IL_0012:  ldnull
+	IL_0013:  br.s       IL_0028
+	IL_0015:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
+	IL_001a:  stloc.1
+	IL_001b:  ldloca.s   V_1
+	IL_001d:  constrained. ""System.Guid""
+	IL_0023:  callvirt   ""string object.ToString()""
+	IL_0028:  call       ""void System.Console.WriteLine(string)""
+	IL_002d:  nop
+	IL_002e:  ret
+}");
         }
 
         [Fact]

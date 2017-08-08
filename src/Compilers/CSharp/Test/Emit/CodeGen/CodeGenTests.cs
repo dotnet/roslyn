@@ -11973,6 +11973,7 @@ class B<T> : A<T>
         #endregion
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void MutateReadonlyNested()
         {
             string source = @"
@@ -12024,10 +12025,42 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"42", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: @"42", verify: false);
 
-            // Dev10
-            compilation.VerifyIL("Program.Main",
+            comp.VerifyIL("Program.Main",
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  3
+  .locals init (MyManagedStruct V_0,
+                MyManagedStruct.Nested.Nested1 V_1)
+  IL_0000:  newobj     ""cls1..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""MyManagedStruct cls1.y""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  call       ""void MyManagedStruct.mutate(int)""
+  IL_0015:  dup
+  IL_0016:  ldflda     ""MyManagedStruct cls1.y""
+  IL_001b:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_0020:  ldfld      ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0025:  stloc.1
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  ldc.i4     0x1c8
+  IL_002d:  call       ""void MyManagedStruct.Nested.Nested1.mutate(int)""
+  IL_0032:  ldflda     ""MyManagedStruct cls1.y""
+  IL_0037:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_003c:  ldflda     ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0041:  ldfld      ""int MyManagedStruct.Nested.Nested1.num""
+  IL_0046:  call       ""void System.Console.WriteLine(int)""
+  IL_004b:  ret
+}
+");
+
+            comp = CompileAndVerify(source, expectedOutput: @"42", verify: true, parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            comp.VerifyIL("Program.Main",
 @"
 {
   // Code size       76 (0x4c)
@@ -12048,13 +12081,127 @@ struct MyManagedStruct
   IL_0023:  ldflda     ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
   IL_0028:  ldc.i4     0x1c8
   IL_002d:  call       ""void MyManagedStruct.Nested.Nested1.mutate(int)""
-  IL_0032:  ldflda     ""MyManagedStruct cls1.y""
-  IL_0037:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
-  IL_003c:  ldflda     ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0032:  ldfld      ""MyManagedStruct cls1.y""
+  IL_0037:  ldfld      ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_003c:  ldfld      ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
   IL_0041:  ldfld      ""int MyManagedStruct.Nested.Nested1.num""
   IL_0046:  call       ""void System.Console.WriteLine(int)""
   IL_004b:  ret
 }
+");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        public void MutateReadonlyNested1()
+        {
+            string source = @"
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            GetRoRef().ro.ro.ro.ro.ToString();
+            System.Console.Write(GetRoRef().ro.ro.ro.ro.x);
+        }
+
+        private static ref readonly Largest GetRoRef()
+        {
+            return ref (new Largest[1])[0];
+        }
+    }
+
+    struct Largest
+    {
+        public int x;
+        public readonly Large ro;
+    }
+
+    struct Large
+    {
+        public int x;
+        public Medium ro;
+    }
+
+    struct Medium
+    {
+        public int x;
+        public Small ro;
+    }
+
+    struct Small
+    {
+        public int x;
+        public Smallest ro;
+    }
+
+    struct Smallest
+    {
+        public int x;
+
+        public override string ToString()
+        {
+            x = -1;
+            System.Console.Write(x);
+            return null;
+        }
+    }";
+            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: false);
+
+            comp.VerifyIL("Program.Main",
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  1
+  .locals init (Smallest V_0)
+  IL_0000:  call       ""ref readonly Largest Program.GetRoRef()""
+  IL_0005:  ldflda     ""Large Largest.ro""
+  IL_000a:  ldflda     ""Medium Large.ro""
+  IL_000f:  ldflda     ""Small Medium.ro""
+  IL_0014:  ldfld      ""Smallest Small.ro""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  constrained. ""Smallest""
+  IL_0022:  callvirt   ""string object.ToString()""
+  IL_0027:  pop
+  IL_0028:  call       ""ref readonly Largest Program.GetRoRef()""
+  IL_002d:  ldflda     ""Large Largest.ro""
+  IL_0032:  ldflda     ""Medium Large.ro""
+  IL_0037:  ldflda     ""Small Medium.ro""
+  IL_003c:  ldflda     ""Smallest Small.ro""
+  IL_0041:  ldfld      ""int Smallest.x""
+  IL_0046:  call       ""void System.Console.Write(int)""
+  IL_004b:  ret
+}
+");
+
+            comp = CompileAndVerify(source, expectedOutput: @"-10", verify: true, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            comp.VerifyIL("Program.Main",
+@"
+	{
+	  // Code size       76 (0x4c)
+	  .maxstack  1
+	  .locals init (Large V_0)
+	  IL_0000:  call       ""ref readonly Largest Program.GetRoRef()""
+	  IL_0005:  ldfld      ""Large Largest.ro""
+	  IL_000a:  stloc.0
+	  IL_000b:  ldloca.s   V_0
+	  IL_000d:  ldflda     ""Medium Large.ro""
+	  IL_0012:  ldflda     ""Small Medium.ro""
+	  IL_0017:  ldflda     ""Smallest Small.ro""
+	  IL_001c:  constrained. ""Smallest""
+	  IL_0022:  callvirt   ""string object.ToString()""
+	  IL_0027:  pop
+	  IL_0028:  call       ""ref readonly Largest Program.GetRoRef()""
+	  IL_002d:  ldfld      ""Large Largest.ro""
+	  IL_0032:  ldfld      ""Medium Large.ro""
+	  IL_0037:  ldfld      ""Small Medium.ro""
+	  IL_003c:  ldfld      ""Smallest Small.ro""
+	  IL_0041:  ldfld      ""int Smallest.x""
+	  IL_0046:  call       ""void System.Console.Write(int)""
+	  IL_004b:  ret
+	}
 ");
         }
 

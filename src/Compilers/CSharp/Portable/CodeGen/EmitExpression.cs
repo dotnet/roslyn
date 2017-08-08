@@ -424,9 +424,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    //PROTOTYPE(verifier): this does not need to be writeable
-                    //                         we may call "HasValue" on this, but it is not mutating
-                    receiverTemp = EmitReceiverRef(receiver, AddressKind.Writeable);
+                    // this does not need to be writeable
+                    // we may call "HasValue" on this, but it is not mutating 
+                    // (however verification does not know that and considers all calls mutating)
+                    var addressKind = EnablePEVerifyCompat()? 
+                                            AddressKind.Writeable: 
+                                            AddressKind.ReadOnly;
+
+                    receiverTemp = EmitReceiverRef(receiver, addressKind);
                     _builder.EmitOpCode(ILOpCode.Dup);
                     // here we have loaded two copies of a reference   { O, O }  or  {&nub, &nub}
                 }

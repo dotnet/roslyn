@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenReadOnlyStructTests : CompilingTestBase
     {
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void InvokeOnReadOnlyStaticField()
         {
             var text = @"
@@ -57,9 +58,31 @@ class Program
   IL_001f:  call       ""void System.Console.Write(string)""
   IL_0024:  ret
 }");
+
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: true, expectedOutput: @"12");
+
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  1
+  .locals init (Program.S1 V_0)
+  IL_0000:  ldsfld     ""Program.S1 Program.sf""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       ""string Program.S1.M1()""
+  IL_000d:  call       ""void System.Console.Write(string)""
+  IL_0012:  ldsfld     ""Program.S1 Program.sf""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  constrained. ""Program.S1""
+  IL_0020:  callvirt   ""string object.ToString()""
+  IL_0025:  call       ""void System.Console.Write(string)""
+  IL_002a:  ret
+}");
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void InvokeOnReadOnlyStaticFieldMetadata()
         {
             var text1 = @"
@@ -106,9 +129,31 @@ class Program
   IL_001f:  call       ""void System.Console.Write(string)""
   IL_0024:  ret
 }");
+
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: true, expectedOutput: @"12");
+
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldsfld     ""S1 Program.sf""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       ""string S1.M1()""
+  IL_000d:  call       ""void System.Console.Write(string)""
+  IL_0012:  ldsfld     ""S1 Program.sf""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  constrained. ""S1""
+  IL_0020:  callvirt   ""string object.ToString()""
+  IL_0025:  call       ""void System.Console.Write(string)""
+  IL_002a:  ret
+}");
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void InvokeOnReadOnlyInstanceField()
         {
             var text = @"
@@ -152,9 +197,33 @@ class Program
   IL_0025:  call       ""void System.Console.Write(string)""
   IL_002a:  ret
 }");
+
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: true, expectedOutput: @"12");
+
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (Program.S1 V_0)
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""Program.S1 Program.f""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       ""string Program.S1.M1()""
+  IL_0013:  call       ""void System.Console.Write(string)""
+  IL_0018:  ldfld      ""Program.S1 Program.f""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  constrained. ""Program.S1""
+  IL_0026:  callvirt   ""string object.ToString()""
+  IL_002b:  call       ""void System.Console.Write(string)""
+  IL_0030:  ret
+}");
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void InvokeOnReadOnlyInstanceFieldGeneric()
         {
             var text = @"
@@ -202,9 +271,34 @@ class Program
   IL_002a:  call       ""void System.Console.Write(string)""
   IL_002f:  ret
 }");
+
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: true, expectedOutput: @"hello2");
+
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  3
+  .locals init (Program.S1<string> V_0)
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""Program.S1<string> Program.f""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldstr      ""hello""
+  IL_0013:  call       ""string Program.S1<string>.M1(string)""
+  IL_0018:  call       ""void System.Console.Write(string)""
+  IL_001d:  ldfld      ""Program.S1<string> Program.f""
+  IL_0022:  stloc.0
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  constrained. ""Program.S1<string>""
+  IL_002b:  callvirt   ""string object.ToString()""
+  IL_0030:  call       ""void System.Console.Write(string)""
+  IL_0035:  ret
+}");
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void InvokeOnReadOnlyInstanceFieldGenericMetadata()
         {
             var text1 = @"
@@ -256,6 +350,30 @@ class Program
   IL_0025:  callvirt   ""string object.ToString()""
   IL_002a:  call       ""void System.Console.Write(string)""
   IL_002f:  ret
+}");
+
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: true, expectedOutput: @"hello2");
+
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  3
+  .locals init (S1<string> V_0)
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""S1<string> Program.f""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldstr      ""hello""
+  IL_0013:  call       ""string S1<string>.M1(string)""
+  IL_0018:  call       ""void System.Console.Write(string)""
+  IL_001d:  ldfld      ""S1<string> Program.f""
+  IL_0022:  stloc.0
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  constrained. ""S1<string>""
+  IL_002b:  callvirt   ""string object.ToString()""
+  IL_0030:  call       ""void System.Console.Write(string)""
+  IL_0035:  ret
 }");
         }
 

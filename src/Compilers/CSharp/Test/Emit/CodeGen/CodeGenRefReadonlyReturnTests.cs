@@ -408,6 +408,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void ReadonlyFieldCanReturnByRefReadonly()
         {
             var text = @"
@@ -485,6 +486,48 @@ class Program
   IL_002e:  ldflda     ""(int Alice, int Bob) Program.S.F1""
   IL_0033:  ldflda     ""int System.ValueTuple<int, int>.Item1""
   IL_0038:  ret
+}");
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: false);
+
+            comp.VerifyIL("Program.Test", @"
+{
+  // Code size       70 (0x46)
+  .maxstack  1
+  .locals init (bool V_0, //b
+                int V_1,
+                System.ValueTuple<int, int> V_2,
+                int V_3,
+                System.ValueTuple<int, int> V_4)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0020
+  IL_0005:  ldloc.0
+  IL_0006:  brfalse.s  IL_0012
+  IL_0008:  ldarg.0
+  IL_0009:  ldfld      ""int Program.F""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ret
+  IL_0012:  ldsfld     ""(int Alice, int Bob) Program.F1""
+  IL_0017:  stloc.2
+  IL_0018:  ldloca.s   V_2
+  IL_001a:  ldflda     ""int System.ValueTuple<int, int>.Item1""
+  IL_001f:  ret
+  IL_0020:  ldloc.0
+  IL_0021:  brfalse.s  IL_0032
+  IL_0023:  ldarg.0
+  IL_0024:  ldfld      ""Program.S Program.S1""
+  IL_0029:  ldfld      ""int Program.S.F""
+  IL_002e:  stloc.3
+  IL_002f:  ldloca.s   V_3
+  IL_0031:  ret
+  IL_0032:  ldsfld     ""Program.S Program.S2""
+  IL_0037:  ldfld      ""(int Alice, int Bob) Program.S.F1""
+  IL_003c:  stloc.s    V_4
+  IL_003e:  ldloca.s   V_4
+  IL_0040:  ldflda     ""int System.ValueTuple<int, int>.Item1""
+  IL_0045:  ret
 }");
         }
 
