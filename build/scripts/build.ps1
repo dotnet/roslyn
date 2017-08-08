@@ -348,7 +348,7 @@ function Test-XUnit() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*netcoreapp.*") }
 
     # Exclude out the ref assemblies
-    $dlls = $dlls | ?{ -not ($_.FullName -match ".*\ref\.*") }
+    $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
     if ($cibuild) {
