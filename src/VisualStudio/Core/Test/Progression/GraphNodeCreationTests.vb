@@ -186,7 +186,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
                                 class C { 
-                                    static void $$Foo(string[] args) {}
+                                    static void $$Goo(string[] args) {}
                                 }
                             ]]></Document>
                         </Project>
@@ -194,18 +194,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
                 Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
-                Assert.Equal("Foo(string[]) : void", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
-                Assert.Equal("Foo", graphNode.Label)
+                Assert.Equal("Goo(string[]) : void", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
+                Assert.Equal("Goo", graphNode.Label)
             End Using
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestReferenceParameterSymbolTest() As Task
-            Await AssertCreatedNodeIsAsync("namespace N { class C { void $$Foo(ref int i) { i = i + 1; } } }",
-                    "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=Foo OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32 ParamKind=Ref)]))",
+            Await AssertCreatedNodeIsAsync("namespace N { class C { void $$Goo(ref int i) { i = i + 1; } } }",
+                    "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=Goo OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32 ParamKind=Ref)]))",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
-                            <Node Id="(@1 Namespace=N Type=C Member=(Name=Foo OverloadingParameters=[(@2 Namespace=System Type=Int32 ParamKind=Ref)]))" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Foo" Icon="Microsoft.VisualStudio.Method.Private" Label="Foo"/>
+                            <Node Id="(@1 Namespace=N Type=C Member=(Name=Goo OverloadingParameters=[(@2 Namespace=System Type=Int32 ParamKind=Ref)]))" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Goo" Icon="Microsoft.VisualStudio.Method.Private" Label="Goo"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
@@ -217,11 +217,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestReferenceOutParameterSymbolTest() As Task
-            Await AssertCreatedNodeIsAsync("namespace N { class C { void $$Foo(out int i) { i = 1; } } }",
-                    "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=Foo OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32 ParamKind=Ref)]))",
+            Await AssertCreatedNodeIsAsync("namespace N { class C { void $$Goo(out int i) { i = 1; } } }",
+                    "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=Goo OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32 ParamKind=Ref)]))",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
-                            <Node Id="(@1 Namespace=N Type=C Member=(Name=Foo OverloadingParameters=[(@2 Namespace=System Type=Int32 ParamKind=Ref)]))" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Foo" Icon="Microsoft.VisualStudio.Method.Private" Label="Foo"/>
+                            <Node Id="(@1 Namespace=N Type=C Member=(Name=Goo OverloadingParameters=[(@2 Namespace=System Type=Int32 ParamKind=Ref)]))" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Goo" Icon="Microsoft.VisualStudio.Method.Private" Label="Goo"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
@@ -594,7 +594,7 @@ End Module
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
                                 class C<T,K> { 
-                                    void $$Foo<T,K>() {}
+                                    void $$Goo<T,K>() {}
                                 }
                             ]]></Document>
                         </Project>
@@ -602,8 +602,8 @@ End Module
 
                 Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
-                Assert.Equal("Foo<T, K>() : void", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
-                Assert.Equal("Foo", graphNode.Label)
+                Assert.Equal("Goo<T, K>() : void", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
+                Assert.Equal("Goo", graphNode.Label)
             End Using
         End Function
 
@@ -676,8 +676,8 @@ End Module
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
                                 Module Module1
-                                    Public Class Foo(Of T)
-                                        Public Sub $$Foo(ByVal x As T)
+                                    Public Class Goo(Of T)
+                                        Public Sub $$Goo(ByVal x As T)
                                         End Sub
                                     End Class
                                 End Module
@@ -687,8 +687,8 @@ End Module
 
                 Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
-                Assert.Equal("Foo(T)", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
-                Assert.Equal("Foo", graphNode.Label)
+                Assert.Equal("Goo(T)", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
+                Assert.Equal("Goo", graphNode.Label)
             End Using
         End Function
 
@@ -699,7 +699,7 @@ End Module
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
                                 Module Module1
-                                    Public Class $$Foo(Of T)
+                                    Public Class $$Goo(Of T)
                                     End Class
                                 End Module
                             </Document>
@@ -708,8 +708,8 @@ End Module
 
                 Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
-                Assert.Equal("Foo(Of T)", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
-                Assert.Equal("Foo(Of T)", graphNode.Label)
+                Assert.Equal("Goo(Of T)", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
+                Assert.Equal("Goo(Of T)", graphNode.Label)
 
                 Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
@@ -717,7 +717,7 @@ End Module
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
-                            <Node Id="(@1 Type=(Name=Foo GenericParameterCount=1 ParentType=Module1))" Category="CodeSchema_Class" CodeSchemaProperty_IsPublic="True" CommonLabel="Foo&lt;T&gt;" Icon="Microsoft.VisualStudio.Class.Public" Label="Foo(Of T)"/>
+                            <Node Id="(@1 Type=(Name=Goo GenericParameterCount=1 ParentType=Module1))" Category="CodeSchema_Class" CodeSchemaProperty_IsPublic="True" CommonLabel="Goo&lt;T&gt;" Icon="Microsoft.VisualStudio.Class.Public" Label="Goo(Of T)"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
@@ -734,7 +734,7 @@ End Module
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
                                 Module Module1
-                                    Public Class $$Foo(Of T, X)
+                                    Public Class $$Goo(Of T, X)
                                     End Class
                                 End Module
                             </Document>
@@ -743,8 +743,8 @@ End Module
 
                 Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
-                Assert.Equal("Foo(Of T, X)", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
-                Assert.Equal("Foo(Of T, X)", graphNode.Label)
+                Assert.Equal("Goo(Of T, X)", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
+                Assert.Equal("Goo(Of T, X)", graphNode.Label)
 
                 Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
@@ -752,7 +752,7 @@ End Module
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
-                            <Node Id="(@1 Type=(Name=Foo GenericParameterCount=2 ParentType=Module1))" Category="CodeSchema_Class" CodeSchemaProperty_IsPublic="True" CommonLabel="Foo&lt;T, X&gt;" Icon="Microsoft.VisualStudio.Class.Public" Label="Foo(Of T, X)"/>
+                            <Node Id="(@1 Type=(Name=Goo GenericParameterCount=2 ParentType=Module1))" Category="CodeSchema_Class" CodeSchemaProperty_IsPublic="True" CommonLabel="Goo&lt;T, X&gt;" Icon="Microsoft.VisualStudio.Class.Public" Label="Goo(Of T, X)"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>

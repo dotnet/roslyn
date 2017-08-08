@@ -180,20 +180,21 @@ End Module");
             VisualStudio.Editor.Verify.CurrentParameter("b", "");
         }
 
+        [WorkItem(741415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?id=741415&fullScreen=true&_a=edit")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void BufferTextReplacedWithSigHelpActiveWithLengthOfUpdatedTextLessThanPositionOfInvocationExpression()
+        public void HandleBufferTextChangesDuringComputation()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
     Sub Test()
         $$
     End Sub
 End Class");
 
-            VisualStudio.Editor.SendKeys("Foo(");
-            VisualStudio.Editor.Verify.CurrentSignature("C.Foo()");
+            VisualStudio.Editor.SendKeys("Goo(");
+            VisualStudio.Editor.Verify.CurrentSignature("C.Goo()");
 
             VisualStudio.Editor.SetText(@"
 Class C

@@ -9,7 +9,8 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteSymbolSearchUpdateEngine : ServiceHubServiceBase, IRemoteSymbolSearchUpdateEngine
+    internal partial class RemoteSymbolSearchUpdateEngine : 
+        ServiceHubServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
     {
         private readonly SymbolSearchUpdateEngine _updateEngine;
 
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
             : base(serviceProvider, stream)
         {
             _updateEngine = new SymbolSearchUpdateEngine(
-                new LogService(this), updateCancellationToken: ShutdownCancellationToken);
+                logService: this, progressService: this);
 
             Rpc.StartListening();
         }
@@ -51,20 +52,26 @@ namespace Microsoft.CodeAnalysis.Remote
             return results;
         }
 
-        private class LogService : ISymbolSearchLogService
-        {
-            private readonly RemoteSymbolSearchUpdateEngine _service;
+        #region Messages to forward from here to VS
 
-            public LogService(RemoteSymbolSearchUpdateEngine service)
-            {
-                _service = service;
-            }
+        public Task LogExceptionAsync(string exception, string text)
+            => this.Rpc.InvokeAsync(nameof(LogExceptionAsync), exception, text);
 
-            public Task LogExceptionAsync(string exception, string text)
-                => _service.Rpc.InvokeAsync(nameof(LogExceptionAsync), exception, text);
+        public Task LogInfoAsync(string text)
+            => this.Rpc.InvokeAsync(nameof(LogInfoAsync), text);
 
-            public Task LogInfoAsync(string text)
-                => _service.Rpc.InvokeAsync(nameof(LogInfoAsync), text);
-        }
+        public Task OnDownloadFullDatabaseStartedAsync(string title)
+            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), title);
+
+        public Task OnDownloadFullDatabaseSucceededAsync()
+            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync));
+
+        public Task OnDownloadFullDatabaseCanceledAsync()
+            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync));
+
+        public Task OnDownloadFullDatabaseFailedAsync(string message)
+            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), message);
+
+        #endregion
     }
 }

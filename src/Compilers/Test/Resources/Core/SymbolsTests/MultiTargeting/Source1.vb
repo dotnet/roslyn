@@ -5,7 +5,7 @@
 
 Public Class C1(Of T)
     Public Class C2(Of S)
-        Public Function Foo() As C1(Of T).C2(Of S)
+        Public Function Goo() As C1(Of T).C2(Of S)
             Return Nothing
         End Function
     End Class

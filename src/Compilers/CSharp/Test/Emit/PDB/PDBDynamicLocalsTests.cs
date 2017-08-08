@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 class Helper
 {
 	int x;
-	public void foo(int y){}
+	public void goo(int y){}
 	public Helper(){}
 	public Helper(int x){}
 }
@@ -32,7 +32,7 @@ class Test
   {
 		dynamic d1 = new Helper();
 		dynamic d2 = new Point(); 
-		D d4 = new D(d1.foo); 
+		D d4 = new D(d1.goo); 
 		Helper d5 = new Helper(d1); 
 		
   }
@@ -41,7 +41,7 @@ class Test
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Helper"" name=""foo"" parameterNames=""y"">
+    <method containingType=""Helper"" name=""goo"" parameterNames=""y"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -54,7 +54,7 @@ class Test
     </method>
     <method containingType=""Helper"" name="".ctor"">
       <customDebugInfo>
-        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""2"" endLine=""6"" endColumn=""17"" />
@@ -64,7 +64,7 @@ class Test
     </method>
     <method containingType=""Helper"" name="".ctor"" parameterNames=""x"">
       <customDebugInfo>
-        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""22"" />
@@ -74,7 +74,7 @@ class Test
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
-        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
         <dynamicLocals>
           <bucket flags=""1"" slotId=""0"" localName=""d1"" />
           <bucket flags=""1"" slotId=""1"" localName=""d2"" />
@@ -463,7 +463,7 @@ class Test
 class Helper
 {
 	int x;
-	public void foo(int y){}
+	public void goo(int y){}
 	public Helper(){}
 	public Helper(int x){}
 }
@@ -479,14 +479,14 @@ class Test
   {
 		Helper staticObj = new Helper();
 		dynamic d1 = new Helper();
-		dynamic d3 = new D(staticObj.foo);
+		dynamic d3 = new D(staticObj.goo);
   }
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Helper"" name=""foo"" parameterNames=""y"">
+    <method containingType=""Helper"" name=""goo"" parameterNames=""y"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -499,7 +499,7 @@ class Test
     </method>
     <method containingType=""Helper"" name="".ctor"">
       <customDebugInfo>
-        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""2"" endLine=""6"" endColumn=""17"" />
@@ -509,7 +509,7 @@ class Test
     </method>
     <method containingType=""Helper"" name="".ctor"" parameterNames=""x"">
       <customDebugInfo>
-        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""22"" />
@@ -519,7 +519,7 @@ class Test
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
-        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
         <dynamicLocals>
           <bucket flags=""1"" slotId=""1"" localName=""d1"" />
           <bucket flags=""1"" slotId=""2"" localName=""d3"" />
@@ -1841,11 +1841,11 @@ class Program
     static void Main(string[] args)
     {
         dynamic yyy;
-        Foo<dynamic> zzz;
+        Goo<dynamic> zzz;
     }
 }
 
-class Foo<T>
+class Goo<T>
 {
 
 }
@@ -1896,11 +1896,11 @@ class Program
     static void Main(string[] args)
     {
         dynamic yyy;
-        Foo<dynamic, Foo<dynamic,dynamic>> zzz;
+        Goo<dynamic, Goo<dynamic,dynamic>> zzz;
     }
 }
 
-class Foo<T,V>
+class Goo<T,V>
 {
 
 }
@@ -1952,11 +1952,11 @@ class Program
     {
         dynamic yyy;
         int dummy = 0;
-        Foo<dynamic, Foo<dynamic,dynamic>> zzz;
+        Goo<dynamic, Goo<dynamic,dynamic>> zzz;
     }
 }
 
-class Foo<T,V>
+class Goo<T,V>
 {
 
 }

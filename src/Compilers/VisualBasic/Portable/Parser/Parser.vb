@@ -4200,7 +4200,7 @@ checkNullable:
                 End If
             End If
 
-            ' ===== Parse the property's type (e.g. Property Foo(params) AS type )
+            ' ===== Parse the property's type (e.g. Property Goo(params) AS type )
 
             Dim asClause As AsClauseSyntax = Nothing
             Dim initializer As EqualsValueSyntax = Nothing

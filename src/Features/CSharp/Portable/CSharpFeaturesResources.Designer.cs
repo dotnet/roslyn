@@ -1127,6 +1127,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use &apos;is null&apos; check.
+        /// </summary>
+        internal static string Use_is_null_check {
+            get {
+                return ResourceManager.GetString("Use_is_null_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to use &apos;var&apos; instead of explicit type.
         /// </summary>
         internal static string use_var_instead_of_explicit_type {

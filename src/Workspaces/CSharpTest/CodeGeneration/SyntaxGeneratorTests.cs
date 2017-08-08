@@ -476,8 +476,8 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 new[] { _g.IdentifierName("x"), _g.IdentifierName("y") }), "(x, y)");
 
             VerifySyntax<TupleExpressionSyntax>(_g.TupleExpression(
-                new[] { _g.Argument("foo", RefKind.None, _g.IdentifierName("x")),
-                        _g.Argument("bar", RefKind.None, _g.IdentifierName("y")) }), "(foo: x, bar: y)");
+                new[] { _g.Argument("goo", RefKind.None, _g.IdentifierName("x")),
+                        _g.Argument("bar", RefKind.None, _g.IdentifierName("y")) }), "(goo: x, bar: y)");
         }
 
         [Fact]

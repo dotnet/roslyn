@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateEvent
                 <Document>
 Class c
     Implements i
-    Event a(x As Integer) Implements $$i.foo
+    Event a(x As Integer) Implements $$i.goo
 End Class
                 </Document>
             </Project>
@@ -37,10 +37,10 @@ public interface i
             Dim expected =
                 <text>public interface i
 {
-    event fooEventHandler foo;
+    event gooEventHandler goo;
 }
 
-public delegate void fooEventHandler(int x);
+public delegate void gooEventHandler(int x);
                 </text>.Value.Trim()
 
             Await TestAsync(input, expected)
@@ -55,7 +55,7 @@ public delegate void fooEventHandler(int x);
                 <Document>
 Class c
     Implements i
-    Event a as EventHandler Implements $$i.foo
+    Event a as EventHandler Implements $$i.goo
 End Class
                 </Document>
             </Project>
@@ -73,7 +73,7 @@ public interface i
 
 public interface i
 {
-    event EventHandler foo;
+    event EventHandler goo;
 }</text>.Value.Trim()
 
             Await TestAsync(input, expected)
@@ -89,7 +89,7 @@ public interface i
                 <Document>
 Class c
     WithEvents field as Program
-    Sub Foo(x as Integer) Handles field.Ev$$
+    Sub Goo(x as Integer) Handles field.Ev$$
     End Sub
 End Class
                 </Document>
@@ -126,7 +126,7 @@ public delegate void EvHandler(int x);
                 <Document>
 Class c
     WithEvents field as UserControl1
-    Sub Foo(x as Integer) Handles field.Ev$$
+    Sub Goo(x as Integer) Handles field.Ev$$
     End Sub
 End Class
                 </Document>

@@ -133,7 +133,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             service.Enable();
 
-            var mock = new MockLogService();
+            var mock = new MockLogAndProgressService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None);
@@ -214,10 +214,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
-        private class MockLogService : ISymbolSearchLogService
+        private class MockLogAndProgressService : ISymbolSearchLogService, ISymbolSearchProgressService
         {
             public Task LogExceptionAsync(string exception, string text) => SpecializedTasks.EmptyTask;
             public Task LogInfoAsync(string text) => SpecializedTasks.EmptyTask;
+
+            public Task OnDownloadFullDatabaseStartedAsync(string title) => SpecializedTasks.EmptyTask;
+            public Task OnDownloadFullDatabaseSucceededAsync() => SpecializedTasks.EmptyTask;
+            public Task OnDownloadFullDatabaseCanceledAsync() => SpecializedTasks.EmptyTask;
+            public Task OnDownloadFullDatabaseFailedAsync(string message) => SpecializedTasks.EmptyTask;
         }
     }
 }

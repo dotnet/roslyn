@@ -36,7 +36,7 @@ End Class</text>.Value
         Public Sub TestNoActionOnMethod()
             Dim code As String = <text>
 Public Class C
-    Public Function [|Foo|]() As Integer
+    Public Function [|Goo|]() As Integer
     End Function
 End Class
 </text>.Value

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // For example, if were binding attributes on delegate type symbol for below code snippet:
         //      [A1]
         //      [return: A2]
-        //      public delegate void Foo();
+        //      public delegate void Goo();
         // attributesToBind will only contain first attribute syntax.
         internal static void BindAttributeTypes(ImmutableArray<Binder> binders, ImmutableArray<AttributeSyntax> attributesToBind, Symbol ownerSymbol, NamedTypeSymbol[] boundAttributeTypes, DiagnosticBag diagnostics)
         {
@@ -527,9 +527,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// if named constructor arguments are used.
         /// 
         /// For example:
-        ///     void Foo(int x, int y, int z, int w = 3);
+        ///     void Goo(int x, int y, int z, int w = 3);
         /// 
-        ///     Foo(0, z: 2, y: 1);
+        ///     Goo(0, z: 2, y: 1);
         ///     
         ///     Arguments returned: 0, 1, 2, 3
         /// </summary>

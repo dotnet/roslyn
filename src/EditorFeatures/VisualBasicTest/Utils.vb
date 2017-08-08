@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
 
                 Case "EnumDeclaration"
                     Return importStatements & vbCrLf &
-                        "Enum Foo" & vbCrLf &
+                        "Enum Goo" & vbCrLf &
                         SurroundAndJoinLines(lines, "    ", vbCrLf) &
                         "End Enum"
 

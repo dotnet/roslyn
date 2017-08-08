@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool SupportsIndexingInitializer(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
 
+        SyntaxToken ParseToken(string text);
+
         bool IsAwaitKeyword(SyntaxToken token);
         bool IsIdentifier(SyntaxToken token);
         bool IsGlobalNamespaceKeyword(SyntaxToken token);
@@ -55,6 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
         bool IsNullLiteralExpression(SyntaxNode node);
+        bool IsDefaultLiteralExpression(SyntaxNode node);
         bool IsLiteralExpression(SyntaxNode node);
 
         string GetText(int kind);
@@ -131,6 +134,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsNamedParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
+        SyntaxNode GetParameterList(SyntaxNode node);
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
 
@@ -301,6 +305,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode;
 
         ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
+        ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxToken firstToken);
 
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);

@@ -230,8 +230,8 @@ End Module</Document>
                                <Document>$$</Document>
 
                                <Document>Module Program
-    Sub Self(Of T)(foo as T)
-        Return foo
+    Sub Self(Of T)(goo as T)
+        Return goo
     End Sub
 
     Sub Main(args As String())
@@ -256,8 +256,8 @@ End Module</Document>
                                <Document>$$</Document>
 
                                <Document>Module Program
-    Sub Self(Of T)(foo as T)
-        Return foo
+    Sub Self(Of T)(goo as T)
+        Return goo
     End Sub
 
     Sub Main(args As String())
@@ -314,8 +314,8 @@ End Class
                                <Document>$$</Document>
 
                                <Document>Module Program
-    Sub Self(Of T)(foo as T)
-        Return foo
+    Sub Self(Of T)(goo as T)
+        Return goo
     End Sub
 
     Sub Main(args As String())

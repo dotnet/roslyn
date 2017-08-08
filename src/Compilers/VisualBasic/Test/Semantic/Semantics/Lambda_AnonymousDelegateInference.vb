@@ -596,7 +596,7 @@ End Module
 Imports System
 
 Module S1
-    Public Function Foo(Of T)() As System.Func(Of System.Func(Of T))
+    Public Function Goo(Of T)() As System.Func(Of System.Func(Of T))
         Dim x2 = Function()
                      Return Function() As T
                                 Return Nothing
@@ -607,7 +607,7 @@ Module S1
     End Function
 
     Sub Main()
-        Console.WriteLine(Foo(Of Integer)()()())
+        Console.WriteLine(Goo(Of Integer)()()())
     End Sub
 End Module
     </file>

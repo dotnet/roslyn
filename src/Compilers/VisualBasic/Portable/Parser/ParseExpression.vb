@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' 6. end element without begin </
                     ' 7. error case <>, element missing name
 
-                    ' /* Dev10_427764 : Allow an implicit line continuation for XML after '(', e.g. foo(
+                    ' /* Dev10_427764 : Allow an implicit line continuation for XML after '(', e.g. goo(
 
                     Dim tokenHasFullWidthChars As Boolean = TokenContainsFullWidthChars(start)
 

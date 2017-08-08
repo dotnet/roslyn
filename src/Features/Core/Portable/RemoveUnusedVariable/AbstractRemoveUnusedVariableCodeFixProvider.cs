@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var root = editor.OriginalRoot;
             foreach (var diagnostic in diagnostics)
             {
@@ -58,12 +60,38 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
                 else
                 {
                     var variableDeclarator = token.GetAncestor<TVariableDeclarator>();
-
                     var variableDeclarators = token.GetAncestor<TVariableDeclaration>().ChildNodes().Where(x => x is TVariableDeclarator);
 
                     if (variableDeclarators.Count() == 1)
                     {
-                        editor.RemoveNode(token.GetAncestor<TLocalDeclarationStatement>());
+                        var localDeclaration = token.GetAncestor<TLocalDeclarationStatement>();
+                        var removeOptions = SyntaxGenerator.DefaultRemoveOptions;
+
+                        if (localDeclaration.GetLeadingTrivia().Contains(t => t.IsDirective))
+                        {
+                            removeOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
+                        }
+                        else
+                        {
+                            var statementParent = localDeclaration.Parent;
+                            if (syntaxFacts.IsExecutableBlock(statementParent))
+                            {
+                                var siblings = syntaxFacts.GetExecutableBlockStatements(statementParent);
+                                var localDeclarationIndex = siblings.IndexOf(localDeclaration);
+                                if (localDeclarationIndex != 0)
+                                {
+                                    // if we're removing hte first statement in a block, then we
+                                    // want to have the elastic marker on it so that the next statement
+                                    // properly formats with the space left behind.  But if it's
+                                    // not the first statement then just keep the trivia as is
+                                    // so that the statement before and after it stay appropriately
+                                    // spaced apart.
+                                    removeOptions &= ~SyntaxRemoveOptions.AddElasticMarker;
+                                }
+                            }
+                        }
+
+                        editor.RemoveNode(localDeclaration, removeOptions);
                     }
                     else if (variableDeclarators.Count() > 1)
                     {

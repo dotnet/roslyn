@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         protected override bool IsInAttributeArgumentInitializer(ExpressionSyntax expression)
         {
             // Don't call the base here.  We want to let the user extract a constant if they've
-            // said "Foo(a = 10)"
+            // said "Goo(a = 10)"
             var attributeArgument = expression.GetAncestorOrThis<AttributeArgumentSyntax>();
             if (attributeArgument != null)
             {
