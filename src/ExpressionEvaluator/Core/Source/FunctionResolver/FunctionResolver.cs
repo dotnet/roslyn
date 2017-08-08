@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.FunctionResolution;
 using Microsoft.VisualStudio.Debugger.Symbols;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 ptr = module.GetMetaDataBytesPtr(out length);
             }
-            catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+            catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
             {
                 return null;
             }
