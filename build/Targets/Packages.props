@@ -195,6 +195,7 @@
     <SystemSecurityAccessControlVersion>4.3.0</SystemSecurityAccessControlVersion>
     <SystemSecurityCryptographyAlgorithmsVersion>4.3.0</SystemSecurityCryptographyAlgorithmsVersion>
     <SystemSecurityCryptographyEncodingVersion>4.3.0</SystemSecurityCryptographyEncodingVersion>
+    <SystemSecurityCryptographyCspVersion>4.3.0</SystemSecurityCryptographyCspVersion>
     <SystemSecurityCryptographyPrimitivesVersion>4.3.0</SystemSecurityCryptographyPrimitivesVersion>
     <SystemSecurityCryptographyX509CertificatesVersion>4.3.0</SystemSecurityCryptographyX509CertificatesVersion>
     <SystemSecurityPrincipalWindowsVersion>4.3.0</SystemSecurityPrincipalWindowsVersion>

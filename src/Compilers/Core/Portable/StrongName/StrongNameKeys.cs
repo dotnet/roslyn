@@ -5,8 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Roslyn.Utilities;
-using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis
@@ -23,6 +22,11 @@ namespace Microsoft.CodeAnalysis
         /// Determines source assembly identity.
         /// </summary>
         internal readonly ImmutableArray<byte> PublicKey;
+
+        /// <summary> 
+        /// The Private key information that will exist if it was a private key file that was parsed.
+        /// </summary>
+        internal readonly RSAParameters? PrivateKey;
 
         /// <summary>
         /// A diagnostic created in the process of determining the key.
@@ -60,24 +64,25 @@ namespace Microsoft.CodeAnalysis
             this.DiagnosticOpt = diagnostic;
         }
 
-        internal StrongNameKeys(ImmutableArray<byte> keyPair, ImmutableArray<byte> publicKey, string keyContainerName, string keyFilePath)
+        internal StrongNameKeys(ImmutableArray<byte> keyPair, ImmutableArray<byte> publicKey, RSAParameters? privateKey, string keyContainerName, string keyFilePath)
         {
             Debug.Assert(keyContainerName == null || keyPair.IsDefault);
             Debug.Assert(keyPair.IsDefault || keyFilePath != null);
 
             this.KeyPair = keyPair;
             this.PublicKey = publicKey;
+            this.PrivateKey = privateKey;
             this.KeyContainer = keyContainerName;
             this.KeyFilePath = keyFilePath;
         }
 
-        internal static StrongNameKeys Create(ImmutableArray<byte> publicKey, CommonMessageProvider messageProvider)
+        internal static StrongNameKeys Create(ImmutableArray<byte> publicKey, RSAParameters? privateKey, CommonMessageProvider messageProvider)
         {
             Debug.Assert(!publicKey.IsDefaultOrEmpty);
 
             if (MetadataHelpers.IsValidPublicKey(publicKey))
             {
-                return new StrongNameKeys(default(ImmutableArray<byte>), publicKey, null, null);
+                return new StrongNameKeys(default(ImmutableArray<byte>), publicKey, privateKey, null, null);
             }
             else
             {
@@ -96,7 +101,6 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 var fileContent = ImmutableArray.Create(File.ReadAllBytes(keyFilePath));
-
                 return CreateHelper(fileContent, keyFilePath);
             }
             catch (IOException ex)
@@ -116,6 +120,7 @@ namespace Microsoft.CodeAnalysis
         {
             ImmutableArray<byte> keyPair;
             ImmutableArray<byte> publicKey;
+            RSAParameters? privateKey = null;
 
             // Check the key pair cache
             var cachedKeyPair = s_lastSeenKeyPair;
@@ -131,7 +136,7 @@ namespace Microsoft.CodeAnalysis
                     publicKey = keyFileContent;
                     keyPair = default(ImmutableArray<byte>);
                 }
-                else if (CryptoBlobParser.TryGetPublicKey(keyFileContent, out publicKey))
+                else if (CryptoBlobParser.TryParseKey(keyFileContent, out publicKey, out privateKey))
                 {
                     keyPair = keyFileContent;
                 }
@@ -146,7 +151,7 @@ namespace Microsoft.CodeAnalysis
                 Interlocked.Exchange(ref s_lastSeenKeyPair, cachedKeyPair);
             }
 
-            return new StrongNameKeys(keyPair, publicKey, null, keyFilePath);
+            return new StrongNameKeys(keyPair, publicKey, privateKey, null, keyFilePath);
         }
 
         internal static StrongNameKeys Create(StrongNameProvider providerOpt, string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider)

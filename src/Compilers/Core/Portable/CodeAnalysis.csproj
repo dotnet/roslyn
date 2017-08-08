@@ -50,6 +50,7 @@
     <PackageReference Include="System.Runtime.Numerics" Version="$(SystemRuntimeNumericsVersion)" />
     <PackageReference Include="System.Security.Cryptography.Algorithms" Version="$(SystemSecurityCryptographyAlgorithmsVersion)" />
     <PackageReference Include="System.Security.Cryptography.Encoding" Version="$(SystemSecurityCryptographyEncodingVersion)" />
+    <PackageReference Include="System.Security.Cryptography.Csp" Version="$(SystemSecurityCryptographyCspVersion)" />
     <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="$(SystemSecurityCryptographyX509CertificatesVersion)" />
     <PackageReference Include="System.Text.Encoding" Version="$(SystemTextEncodingVersion)" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />

@@ -4,10 +4,10 @@ using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Linq;
 using System.Reflection.Metadata;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -154,7 +154,14 @@ namespace Microsoft.CodeAnalysis
         // PUBLICKEYSTRUC and RSAPUBKEY and then start the key data
         private const int s_offsetToKeyData = BlobHeaderSize + RsaPubKeySize;
 
-        private static ImmutableArray<byte> CreateSnPublicKeyBlob(byte type, byte version, ushort reserved, uint algId, uint magic, uint bitLen, uint pubExp, byte[] pubKeyData)
+        private static ImmutableArray<byte> CreateSnPublicKeyBlob(
+            byte type, 
+            byte version, 
+            uint algId, 
+            uint magic, 
+            uint bitLen, 
+            uint pubExp, 
+            byte[] pubKeyData)
         {
             var w = new BlobWriter(3 * sizeof(uint) + s_offsetToKeyData + pubKeyData.Length);
             w.WriteUInt32(AlgorithmId.RsaSign);
@@ -163,11 +170,13 @@ namespace Microsoft.CodeAnalysis
 
             w.WriteByte(type);
             w.WriteByte(version);
-            w.WriteUInt16(reserved);
+            w.WriteUInt16(0 /* 16 bits of reserved space in the spec */);
             w.WriteUInt32(algId);
 
             w.WriteUInt32(magic);
             w.WriteUInt32(bitLen);
+
+            // re-add padding for exponent
             w.WriteUInt32(pubExp);
 
             w.WriteBytes(pubKeyData);
@@ -181,62 +190,72 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Can be either a PUBLICKEYBLOB or PRIVATEKEYBLOB. The BLOB must be unencrypted.
         /// </remarks>
-        public unsafe static bool TryGetPublicKey(ImmutableArray<byte> blob, out ImmutableArray<byte> publicKey)
+        public unsafe static bool TryParseKey(ImmutableArray<byte> blob, out ImmutableArray<byte> snKey, out RSAParameters? privateKey)
         {
-            // Is this already a strong name PublicKeyBlob?
+            privateKey = null;
+            snKey = default(ImmutableArray<byte>);
+
+            var asArray = blob.ToArray();
+
             if (IsValidPublicKey(blob))
             {
-                publicKey = blob;
+                snKey = blob;
                 return true;
             }
 
-            publicKey = ImmutableArray<byte>.Empty;
-
-            // Must be at least as large as header + RSA info
             if (blob.Length < BlobHeaderSize + RsaPubKeySize)
             {
                 return false;
             }
 
-            fixed (byte* ptr = blob.DangerousGetUnderlyingArray())
+            try
             {
-                var blobReader = new BlobReader(ptr, blob.Length);
+                BinaryReader br = new BinaryReader(new MemoryStream(asArray));
 
-                // Header (corresponds to PUBLICKEYSTRUC struct in wincrypt.h)
-                var type = blobReader.ReadByte();
-                var version = blobReader.ReadByte();
-                var reserved = blobReader.ReadUInt16();
-                var algId = blobReader.ReadUInt32();
+                byte bType = br.ReadByte();    // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
+                byte bVersion = br.ReadByte(); // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
+                br.ReadUInt16();               // BLOBHEADER.wReserved
+                uint algId = br.ReadUInt32();  // BLOBHEADER.aiKeyAlg
+                uint magic = br.ReadUInt32();  // RSAPubKey.magic: Expected to be 0x31415352 ('RSA1') or 0x32415352 ('RSA2') 
+                var bitLen = br.ReadUInt32();  // Bit Length for Modulus
+                var pubExp = br.ReadUInt32();  // Exponent 
+                var modulusLength = (int) (bitLen / 8);
 
-                // Info (corresponds to RSAPUBKEY struct in wincrypt.h)
-                var magic = blobReader.ReadUInt32();
-                var bitLen = blobReader.ReadUInt32();
-                var pubExp = blobReader.ReadUInt32();
 
-                var modulusLength = (int)(bitLen >> 3);
-                // The key blob data just contains the modulus
                 if (blob.Length - s_offsetToKeyData < modulusLength)
                 {
                     return false;
                 }
 
-                byte[] pubKeyData = blobReader.ReadBytes(modulusLength);
+                var modulus = br.ReadBytes((int) bitLen / 8);
 
-                // The RSA magic key must match the blob id
-                if (type == PrivateKeyBlobId && magic == RSA2)
+                if (!(bType == PrivateKeyBlobId && magic == RSA2) && !(bType == PublicKeyBlobId && magic == RSA1))
                 {
-                    publicKey = CreateSnPublicKeyBlob(PublicKeyBlobId, version, 0, AlgorithmId.RsaSign, RSA1, bitLen, pubExp, pubKeyData);
-                    return true;
+                    return false;
                 }
 
-                if (type == PublicKeyBlobId && magic == RSA1)
+                if (bType == PrivateKeyBlobId)
                 {
-                    publicKey = CreateSnPublicKeyBlob(type, version, reserved, algId, magic, bitLen, pubExp, pubKeyData);
-                    return true;
-                }
+                    RSAParameters rsaParameters;
+                    using (var rsa = new RSACryptoServiceProvider())
+                    {
+                        rsa.ImportCspBlob(asArray);
+                        rsaParameters = rsa.ExportParameters(true);
+                    }
+                    privateKey = rsaParameters;
+
+                    // For snKey, rewrite some of the the parameters
+                    algId = AlgorithmId.RsaSign;
+                    magic = RSA1;
+                } 
+
+                snKey = CreateSnPublicKeyBlob(PublicKeyBlobId, bVersion, algId, RSA1, bitLen, pubExp, modulus);
+                return true;
             }
-
-            return false;
+            catch (EndOfStreamException)
+            {
+                return false;
+            }
         }
     }
 }

@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new StrongNameKeys(keyPair, publicKey, container, keyFilePath);
+            return new StrongNameKeys(keyPair, publicKey, null, container, keyFilePath);
         }
 
         internal virtual void ReadKeysFromContainer(string keyContainer, out ImmutableArray<byte> publicKey)
