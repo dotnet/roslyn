@@ -826,6 +826,30 @@ class C
         }
 
         [Fact]
+        public void TestInvocationWithDynamicInLocalFunctionParams()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        dynamic d = new object[] { 0 };
+        local(x: 1, d); 
+        void local(int x, params object[] y) { }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8108: Cannot pass argument with dynamic type to params parameter 'y' of local function 'local'.
+                //         local(x: 1, d); 
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "local(x: 1, d)").WithArguments("y", "local").WithLocation(7, 9),
+                // (7,21): error CS8323: Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.
+                //         local(x: 1, d); 
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, "d").WithLocation(7, 21)
+                );
+        }
+
+        [Fact]
         public void TestDynamicInvocationWithOldLangVersion()
         {
             var source = @"
