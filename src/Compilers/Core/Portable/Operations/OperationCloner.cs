@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitEventAssignmentExpression(IEventAssignmentExpression operation, object argument)
         {
-            return new EventAssignmentExpression(operation.Event, Visit(operation.EventInstance), Visit(operation.HandlerValue), operation.Adds, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+            return new EventAssignmentExpression(Visit(operation.EventReference), Visit(operation.HandlerValue), operation.Adds, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
         public override IOperation VisitConditionalAccessExpression(IConditionalAccessExpression operation, object argument)
