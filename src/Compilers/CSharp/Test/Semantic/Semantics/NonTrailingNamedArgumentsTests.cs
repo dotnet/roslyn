@@ -817,12 +817,56 @@ class C
         d.M(a: 1, 2);
     }
 }";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics(
+                // (7,19): error CS8323: Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.
+                //         d.M(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, "2").WithLocation(7, 19)
+                );
+        }
+
+        [Fact]
+        public void TestDynamicInvocationWithOldLangVersion()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        dynamic d = new object();
+        d.M(a: 1, 2);
+    }
+}";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (7,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         d.M(a: 1, 2);
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(7, 19)
                 );
+        }
+
+        [Fact]
+        public void TestDynamicWhenNotInvocation()
+        {
+            var source = @"
+class C
+{
+    int this[int a, int b]
+    {
+        get
+        {
+            System.Console.Write($""{a} {b}."");
+            return 0;
+        }
+    }
+    void M(C c)
+    {
+        dynamic d = new object();
+        c[a: 1, d] = d;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1016,6 +1060,60 @@ class C
                 // (6,33): error CS0226: An __arglist expression may only appear inside of a call or new expression
                 //         M(__arglist(x: 1, x: 2, __arglist()));
                 Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist()").WithLocation(6, 33)
+                );
+        }
+
+        [Fact]
+        public void TestSimpleArglist()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void M(int x, int y, __arglist)
+    {
+        System.Console.Write($""{x} {y} {ArgListToString(new ArgIterator(__arglist))}. "");
+    }
+    static void Main()
+    {
+        M(1, 2, __arglist(3, 4));
+        M(x: 1, 2, __arglist(5, 6));
+    }
+
+    static string ArgListToString(ArgIterator args)
+    {
+        int argCount = args.GetRemainingCount();
+        string result = """";
+
+        for (int i = 0; i < argCount; i++)
+        {
+            TypedReference tr = args.GetNextArg();
+            result += TypedReference.ToObject(tr);
+        }
+
+        return result;
+    }
+}";
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 34. 1 2 56.", parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestSimpleArglistAfterOutOfPositionArg()
+        {
+            var source = @"
+class C
+{
+    static void M(int x, int y, __arglist)
+    {
+        M(y: 1, x: 2, __arglist(3));
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics(
+                // (6,11): error CS8322: Named argument 'y' is used out-of-position but is followed by an unnamed argument
+                //         M(y: 1, x: 2, __arglist(3));
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "y").WithArguments("y").WithLocation(6, 11)
                 );
         }
 

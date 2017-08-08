@@ -1498,6 +1498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnreferencedLocalFunction = 8321,
         ERR_DynamicLocalFunctionTypeParameter = 8322,
         ERR_BadNonTrailingNamedArgument = 8323,
+        ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation = 8324,
         #endregion diagnostics introduced for C# 7.2
     }
 }
