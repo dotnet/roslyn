@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task AlwaysVisibleAtAnyLevelItems1()
         {
             await VerifyItemsExistAsync(@"
-public class foo
+public class goo
 {
     /// $$
     public void bar() { }
@@ -69,7 +69,7 @@ public class foo
         public async Task AlwaysVisibleAtAnyLevelItems2()
         {
             await VerifyItemsExistAsync(@"
-public class foo
+public class goo
 {
     /// <summary> $$ </summary>
     public void bar() { }
@@ -80,7 +80,7 @@ public class foo
         public async Task AlwaysVisibleNotTopLevelItems1()
         {
             await VerifyItemsExistAsync(@"
-public class foo
+public class goo
 {
     /// <summary> $$ </summary>
     public void bar() { }
@@ -91,7 +91,7 @@ public class foo
         public async Task AlwaysVisibleNotTopLevelItems2()
         {
             await VerifyItemsAbsentAsync(@"
-public class foo
+public class goo
 {
     /// $$ 
     public void bar() { }
@@ -102,7 +102,7 @@ public class foo
         public async Task AlwaysVisibleTopLevelOnlyItems1()
         {
             await VerifyItemsExistAsync(@"
-public class foo
+public class goo
 {
     /// $$ 
     public void bar() { }
@@ -113,7 +113,7 @@ public class foo
         public async Task AlwaysVisibleTopLevelOnlyItems2()
         {
             await VerifyItemsAbsentAsync(@"
-public class foo
+public class goo
 {
     /// <summary> $$ </summary>
     public void bar() { }
@@ -124,7 +124,7 @@ public class foo
         public async Task TopLevelSingleUseItems1()
         {
             await VerifyItemsExistAsync(@"
-public class foo
+public class goo
 {
     ///  $$
     public void bar() { }
@@ -135,7 +135,7 @@ public class foo
         public async Task TopLevelSingleUseItems2()
         {
             await VerifyItemsAbsentAsync(@"
-public class foo
+public class goo
 {
     ///  <summary> $$ </summary>
     public void bar() { }
@@ -146,7 +146,7 @@ public class foo
         public async Task TopLevelSingleUseItems3()
         {
             await VerifyItemsAbsentAsync(@"
-public class foo
+public class goo
 {
     ///  <summary> $$ </summary>
     /// <example></example>
@@ -160,7 +160,7 @@ public class foo
         public async Task OnlyInListItems()
         {
             await VerifyItemsAbsentAsync(@"
-public class foo
+public class goo
 {
     ///  <summary> $$ </summary>
     /// <example></example>
@@ -174,7 +174,7 @@ public class foo
         public async Task OnlyInListItems2()
         {
             await VerifyItemsAbsentAsync(@"
-public class foo
+public class goo
 {
     ///   $$ 
     
@@ -186,7 +186,7 @@ public class foo
         public async Task OnlyInListItems3()
         {
             await VerifyItemsExistAsync(@"
-public class foo
+public class goo
 {
     ///   <list>$$</list>
     
@@ -198,7 +198,7 @@ public class foo
         public async Task OnlyInListItems4()
         {
             await VerifyItemsExistAsync(@"
-public class foo
+public class goo
 {
     ///   <list><$$</list>
     
@@ -210,7 +210,7 @@ public class foo
         public async Task ListHeaderItems()
         {
             await VerifyItemsExistAsync(@"
-public class foo
+public class goo
 {
     ///  <summary>
     ///  <list><listheader> $$ </listheader></list>
@@ -226,7 +226,7 @@ public class foo
         public async Task VoidMethodDeclarationItems()
         {
             await VerifyItemIsAbsentAsync(@"
-public class foo
+public class goo
 {
     
     /// $$
@@ -238,7 +238,7 @@ public class foo
         public async Task MethodReturns()
         {
             await VerifyItemExistsAsync(@"
-public class foo
+public class goo
 {
     
     /// $$
@@ -250,7 +250,7 @@ public class foo
         public async Task MethodParamTypeParam()
         {
             await VerifyItemsExistAsync(@"
-public class foo<T>
+public class goo<T>
 {
     
     /// $$
@@ -262,7 +262,7 @@ public class foo<T>
         public async Task IndexerParamTypeParam()
         {
             await VerifyItemsExistAsync(@"
-public class foo<T>
+public class goo<T>
 {
 
     /// $$
@@ -274,7 +274,7 @@ public class foo<T>
         public async Task MethodParamRefName()
         {
             await VerifyItemsExistAsync(@"
-public class foo<T>
+public class goo<T>
 {
     
     /// <summary>
@@ -291,7 +291,7 @@ public class foo<T>
 /// <summary>
 /// $$
 /// </summary>
-public class foo<T>
+public class goo<T>
 {
     public int bar<T>(T green) { }
 }", "typeparamref name=\"T\"");
@@ -302,7 +302,7 @@ public class foo<T>
         {
             await VerifyItemsExistAsync(@"
 /// $$
-public class foo<T>
+public class goo<T>
 {
     public int bar<T>(T green) { }
 }", "typeparam name=\"T\"");
@@ -314,13 +314,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// summary$$
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit);
@@ -332,13 +332,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// summary$$
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '\t');
@@ -350,13 +350,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// summary>$$
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
@@ -368,13 +368,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <summary$$
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit);
@@ -386,13 +386,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <summary$$
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '\t');
@@ -404,13 +404,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <summary>$$
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
@@ -422,13 +422,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// remarks>$$
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "remarks", expectedCodeAfterCommit, commitChar: '>');
@@ -440,13 +440,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <remarks>$$
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "remarks", expectedCodeAfterCommit, commitChar: '>');
@@ -458,13 +458,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        int foo() { }
+        int goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// returns>$$
-        int foo() { }
+        int goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "returns", expectedCodeAfterCommit, commitChar: '>');
@@ -476,13 +476,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        int foo() { }
+        int goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <returns>$$
-        int foo() { }
+        int goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "returns", expectedCodeAfterCommit, commitChar: '>');
@@ -494,13 +494,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// example>$$
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "example", expectedCodeAfterCommit, commitChar: '>');
@@ -512,13 +512,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <example>$$
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "example", expectedCodeAfterCommit, commitChar: '>');
@@ -530,13 +530,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <exception cref=""$$""
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "exception", expectedCodeAfterCommit);
@@ -548,13 +548,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <exception cref="">$$""
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "exception", expectedCodeAfterCommit, commitChar: '>');
@@ -566,13 +566,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <!--$$-->
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "!--", expectedCodeAfterCommit);
@@ -584,13 +584,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <!-->$$-->
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "!--", expectedCodeAfterCommit, commitChar: '>');
@@ -602,13 +602,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <![CDATA[$$]]>
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "![CDATA[", expectedCodeAfterCommit);
@@ -620,13 +620,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <![CDATA[>$$]]>
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "![CDATA[", expectedCodeAfterCommit, commitChar: '>');
@@ -638,13 +638,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <include file='$$' path='[@name=""""]'/>
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "include", expectedCodeAfterCommit);
@@ -656,13 +656,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <include file='>$$' path='[@name=""""]'/>
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "include", expectedCodeAfterCommit, commitChar: '>');
@@ -674,13 +674,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <permission cref=""$$""
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "permission", expectedCodeAfterCommit);
@@ -692,13 +692,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <permission cref="">$$""
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "permission", expectedCodeAfterCommit, commitChar: '>');
@@ -710,13 +710,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <see cref=""$$""/>
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "see", expectedCodeAfterCommit);
@@ -728,13 +728,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <see cref="">$$""/>
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "see", expectedCodeAfterCommit, commitChar: '>');
@@ -746,13 +746,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <seealso cref=""$$""/>
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "seealso", expectedCodeAfterCommit);
@@ -764,13 +764,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// <$$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <seealso cref="">$$""/>
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "seealso", expectedCodeAfterCommit, commitChar: '>');
@@ -782,13 +782,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c<T>
 {
         /// $$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             var expectedCodeAfterCommit = @"class c<T>
 {
         /// param name=""bar""$$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "param name=\"bar\"", expectedCodeAfterCommit);
@@ -800,13 +800,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c<T>
 {
         /// $$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             var expectedCodeAfterCommit = @"class c<T>
 {
         /// param name=""bar""$$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "param name=\"bar\"", expectedCodeAfterCommit, commitChar: '\t');
@@ -818,13 +818,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c<T>
 {
         /// $$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             var expectedCodeAfterCommit = @"class c<T>
 {
         /// param name=""bar"">$$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "param name=\"bar\"", expectedCodeAfterCommit, commitChar: '>');
@@ -836,13 +836,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c<T>
 {
         /// <$$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             var expectedCodeAfterCommit = @"class c<T>
 {
         /// <param name=""bar""$$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "param name=\"bar\"", expectedCodeAfterCommit);
@@ -854,13 +854,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c<T>
 {
         /// <$$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             var expectedCodeAfterCommit = @"class c<T>
 {
         /// <param name=""bar""$$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "param name=\"bar\"", expectedCodeAfterCommit, commitChar: '\t');
@@ -872,13 +872,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c<T>
 {
         /// <$$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             var expectedCodeAfterCommit = @"class c<T>
 {
         /// <param name=""bar"">$$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "param name=\"bar\"", expectedCodeAfterCommit, commitChar: '>');
@@ -890,13 +890,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c<T>
 {
         /// <$$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             var expectedCodeAfterCommit = @"class c<T>
 {
         /// <typeparam name=""T"">$$
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "typeparam name=\"T\"", expectedCodeAfterCommit, commitChar: '>');
@@ -910,7 +910,7 @@ public class foo<T>
         /// <summary>
         /// $$
         /// </summary>
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             var expectedCodeAfterCommit = @"class c<T>
@@ -918,7 +918,7 @@ public class foo<T>
         /// <summary>
         /// <list type=""$$""
         /// </summary>
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "list", expectedCodeAfterCommit);
@@ -932,7 +932,7 @@ public class foo<T>
         /// <summary>
         /// $$
         /// </summary>
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             var expectedCodeAfterCommit = @"class c<T>
@@ -940,7 +940,7 @@ public class foo<T>
         /// <summary>
         /// <list type="">$$""
         /// </summary>
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "list", expectedCodeAfterCommit, commitChar: '>');
@@ -953,14 +953,14 @@ public class foo<T>
 {
         /// <$$
         /// </summary>
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             var expectedCodeAfterCommit = @"class c<T>
 {
         /// <summary>$$
         /// </summary>
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
@@ -974,7 +974,7 @@ public class foo<T>
         /// <$$
         /// <remarks></remarks>
         /// </summary>
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             var expectedCodeAfterCommit = @"class c<T>
@@ -982,7 +982,7 @@ public class foo<T>
         /// <summary>$$
         /// <remarks></remarks>
         /// </summary>
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
@@ -996,7 +996,7 @@ public class foo<T>
         /// <$$
         /// <remarks>
         /// </summary>
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             var expectedCodeAfterCommit = @"class c<T>
@@ -1004,7 +1004,7 @@ public class foo<T>
         /// <summary>$$
         /// <remarks>
         /// </summary>
-        void foo<T>(T bar) { }
+        void goo<T>(T bar) { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
@@ -1017,13 +1017,13 @@ public class foo<T>
             var markupBeforeCommit = @"class c
 {
         /// $$
-        void foo() { }
+        void goo() { }
 }";
 
             var expectedCodeAfterCommit = @"class c
 {
         /// <see cref=""$$""/>
-        void foo() { }
+        void goo() { }
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "see", expectedCodeAfterCommit, commitChar: ' ');
@@ -1034,7 +1034,7 @@ public class foo<T>
         public async Task TagsAfterSameLineClosedTag()
         {
             var text = @"/// <summary>
-/// <foo></foo>$$
+/// <goo></goo>$$
 /// 
 /// </summary>
 ";
@@ -1065,7 +1065,7 @@ public class foo<T>
         {
             await VerifyItemExistsAsync(@"
 /// $$
-public class foo
+public class goo
 {
 }", "completionlist");
         }
@@ -1089,7 +1089,7 @@ static void Main(string[] args)
         public async Task PartialTagCompletion()
         {
             await VerifyItemsExistAsync(@"
-public class foo
+public class goo
 {
     /// <r$$
     public void bar() { }
@@ -1101,7 +1101,7 @@ public class foo
         public async Task PartialTagCompletionNestedTags()
         {
             await VerifyItemsExistAsync(@"
-public class foo
+public class goo
 {
     /// <summary>
     /// <r$$
@@ -1118,7 +1118,7 @@ public class foo
 /// <summary>
 /// $$
 /// </summary>
-public class Foo<T>
+public class Goo<T>
 {
 }", "typeparam name=\"T\"");
         }
@@ -1131,7 +1131,7 @@ public class Foo<T>
 /// <summary>
 /// $$
 /// </summary>
-static void Foo(string str)
+static void Goo(string str)
 {
 }", "param name=\"str\"");
         }

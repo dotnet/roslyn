@@ -645,7 +645,7 @@ Base.Method(9)
             var source = @"
 interface I1
 {
-    void foo();
+    void goo();
 }
 
 interface I2 : I1
@@ -655,17 +655,17 @@ interface I2 : I1
 
 class X : I1
 {
-    void I1.foo()
+    void I1.goo()
     {
-        System.Console.WriteLine(""X::I1.foo"");
+        System.Console.WriteLine(""X::I1.goo"");
     }
 }
 
 class Y : X, I2
 {
-    public virtual void foo()
+    public virtual void goo()
     {
-        System.Console.WriteLine(""Y.foo"");
+        System.Console.WriteLine(""Y.goo"");
     }
 
     void I2.bar()
@@ -678,11 +678,11 @@ class Program
     static void Main()
     {
         I2 b = new Y();
-        b.foo();
+        b.goo();
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "Y.foo");
+            CompileAndVerify(source, expectedOutput: "Y.goo");
         }
 
         /// <summary>
@@ -788,37 +788,37 @@ class C1 : IBase1, IBase2
             var source = @"
 interface IBase1
 {
-    void BaseFoo();
+    void BaseGoo();
 }
 interface IBase2
 {
-    void BaseFoo();
+    void BaseGoo();
 }
 interface IInterface : IBase1, IBase2
 {
-    void InterfaceFoo();
+    void InterfaceGoo();
 }
 class C1 : IInterface
 {
-    public void BaseFoo() { System.Console.Write(""BaseFoo "");}
-    public void InterfaceFoo() { System.Console.Write(""InterfaceFoo ""); }
+    public void BaseGoo() { System.Console.Write(""BaseGoo "");}
+    public void InterfaceGoo() { System.Console.Write(""InterfaceGoo ""); }
     public void Test()
     {
         C1 c = new C1();
-        c.BaseFoo();
-        c.InterfaceFoo();
-        ((IBase1)c).BaseFoo();
-        ((IBase2)c).BaseFoo();
-        ((IInterface)c).InterfaceFoo();
-        ((IInterface)c).BaseFoo();
+        c.BaseGoo();
+        c.InterfaceGoo();
+        ((IBase1)c).BaseGoo();
+        ((IBase2)c).BaseGoo();
+        ((IInterface)c).InterfaceGoo();
+        ((IInterface)c).BaseGoo();
     }
 }
 ";
             CreateStandardCompilation(source)
                 .VerifyDiagnostics(
-                    // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'IBase1.BaseFoo()' and 'IBase2.BaseFoo()'
-                    //         ((IInterface)c).BaseFoo();
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "BaseFoo").WithArguments("IBase1.BaseFoo()", "IBase2.BaseFoo()"));
+                    // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'IBase1.BaseGoo()' and 'IBase2.BaseGoo()'
+                    //         ((IInterface)c).BaseGoo();
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "BaseGoo").WithArguments("IBase1.BaseGoo()", "IBase2.BaseGoo()"));
         }
 
         [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
@@ -828,11 +828,11 @@ class C1 : IInterface
             var source = @"
 interface IBase
 {
-    void Foo();
+    void Goo();
 }
 interface ILeft : IBase
 {
-    new void Foo();
+    new void Goo();
 }
 interface IRight : IBase
 {
@@ -843,18 +843,18 @@ class C1 : IDerived
 {
     public void Bar() { }
 
-    void IBase.Foo() { System.Console.Write(""IBase "");}
+    void IBase.Goo() { System.Console.Write(""IBase "");}
 
-    void ILeft.Foo() { System.Console.Write(""ILeft ""); }
+    void ILeft.Goo() { System.Console.Write(""ILeft ""); }
 }
 public static class MainClass
 {
     static void Test(IDerived d)
     {
-        d.Foo();           // Invokes ileft.foo()
-        ((IBase)d).Foo();  // Invokes ibase.foo()
-        ((ILeft)d).Foo();  // Invokes ileft.foo()
-        ((IRight)d).Foo(); // Invokes ibase.foo()
+        d.Goo();           // Invokes ileft.goo()
+        ((IBase)d).Goo();  // Invokes ibase.goo()
+        ((ILeft)d).Goo();  // Invokes ileft.goo()
+        ((IRight)d).Goo(); // Invokes ibase.goo()
     }
     public static void Main()
     {
@@ -869,13 +869,13 @@ public static class MainClass
   // Code size       25 (0x19)
   .maxstack  1
   IL_0000:  ldarg.0   
-  IL_0001:  callvirt   ""void ILeft.Foo()""
+  IL_0001:  callvirt   ""void ILeft.Goo()""
   IL_0006:  ldarg.0   
-  IL_0007:  callvirt   ""void IBase.Foo()""
+  IL_0007:  callvirt   ""void IBase.Goo()""
   IL_000c:  ldarg.0   
-  IL_000d:  callvirt   ""void ILeft.Foo()""
+  IL_000d:  callvirt   ""void ILeft.Goo()""
   IL_0012:  ldarg.0   
-  IL_0013:  callvirt   ""void IBase.Foo()""
+  IL_0013:  callvirt   ""void IBase.Goo()""
   IL_0018:  ret       
 }");
         }

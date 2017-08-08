@@ -119,11 +119,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public override async Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
+            var dataRpc = _remotableDataRpc.TryAddReference();
+            if (dataRpc == null)
+            {
+                // dataRpc is disposed. this can happen if someone killed remote host process while there is
+                // no other one holding the data connection.
+                // in those error case, don't crash but return null. this method is TryCreate since caller expects it to return null
+                // on such error situation.
+                return null;
+            }
+
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information
             var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
-            return new JsonRpcConnection(callbackTarget, serviceStream, _remotableDataRpc.TryAddReference());
+            return new JsonRpcConnection(callbackTarget, serviceStream, dataRpc);
         }
 
         protected override void OnStarted()
@@ -152,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             string serviceName,
             HostGroup hostGroup,
             TimeSpan timeout,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             const int max_retry = 10;
             const int retry_delayInMS = 50;
@@ -195,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static async Task<Stream> RequestServiceAsync(HubClient client, ServiceDescriptor descriptor, TimeSpan timeout, CancellationToken cancellationToken = default(CancellationToken))
+        private static async Task<Stream> RequestServiceAsync(HubClient client, ServiceDescriptor descriptor, TimeSpan timeout, CancellationToken cancellationToken = default)
         {
             // we are wrapping HubClient.RequestServiceAsync since we can't control its internal timeout value ourselves.
             // we have bug opened to track the issue.

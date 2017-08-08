@@ -1,12 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{8CEE3609-A5A9-4A9B-86D7-33118F5D6B33}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.UnitTests</AssemblyName>
@@ -15,124 +14,39 @@
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
-      <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
-      <Name>InteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
-      <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
-      <Name>CSharpInteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj">
-      <Project>{849e516a-595f-474b-adb4-e099f921cedf}</Project>
-      <Name>BasicInteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
-      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
-      <Name>Workspaces.Desktop</Name>
       <Aliases>global</Aliases>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
-      <Project>{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}</Project>
-      <Name>BasicFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
-      <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
-      <Name>WorkspacesTestUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj" />
+    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
-      <Name>Workspaces</Name>
       <Aliases>global,WORKSPACES</Aliases>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
-      <Project>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</Project>
-      <Name>CSharpFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
-      <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
-      <Name>CSharpWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
-      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
-      <Name>Features</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\Features\InteractiveFeatures.csproj">
-      <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
-      <Name>InteractiveFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
-      <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
-      <Name>TextEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
-      <Project>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</Project>
-      <Name>BasicWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj">
-      <Project>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</Project>
-      <Name>CSharpEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\VisualBasic\BasicEditorFeatures.vbproj">
-      <Project>{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}</Project>
-      <Name>BasicEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj">
-      <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
-      <Name>EditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
-      <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
-      <Name>Scripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
-      <Name>ServicesTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj">
-      <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
-      <Name>BasicScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
-      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
-      <Name>CSharpScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj">
-      <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
-      <Name>InteractiveHost</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
-      <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
-      <Name>RemoteWorkspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
-      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
-      <Name>ServiceHub</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
+    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj" />
+    <ProjectReference Include="..\..\Interactive\Features\InteractiveFeatures.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
+    <ProjectReference Include="..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\VisualBasic\BasicEditorFeatures.vbproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj" />
+    <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj" />
+    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj" />
+    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj" />
+    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -166,95 +80,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Attributes\AttributeTests.cs" />
-    <Compile Include="CodeActions\CodeActionSmartTagProducerTests.cs" />
-    <Compile Include="CodeAnalysisResources.cs" />
-    <Compile Include="CodeFixes\CodeFixServiceTests.cs" />
-    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds.cs" />
-    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds2.cs" />
-    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInGetFixAllProvider.cs" />
-    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethod.cs" />
-    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethodAsync.cs" />
-    <Compile Include="CodeGeneration\AbstractCodeGenerationTests.cs" />
-    <Compile Include="CodeGeneration\CodeGenerationTests.cs" />
-    <Compile Include="CodeGeneration\CodeGenerationTests.CSharp.cs" />
-    <Compile Include="CodeGeneration\CodeGenerationTests.Shared.cs" />
-    <Compile Include="CodeGeneration\CodeGenerationTests.VisualBasic.cs" />
-    <Compile Include="CodeGeneration\ExpressionGenerationTests.cs" />
-    <Compile Include="CodeGeneration\ExpressionPrecedenceGenerationTests.cs" />
-    <Compile Include="CodeGeneration\NameGenerationTests.cs" />
-    <Compile Include="CodeGeneration\StatementGenerationTests.cs" />
-    <Compile Include="CodeRefactorings\CodeRefactoringServiceTest.cs" />
-    <Compile Include="CodeRefactorings\ErrorCases\CodeRefactoringExceptionInComputeRefactorings.cs" />
-    <Compile Include="CodeRefactorings\ErrorCases\CodeRefactoringExceptionInComputeRefactoringsAsync.cs" />
-    <Compile Include="Collections\Immutable\Maps\BidirectionalMapTests.cs" />
-    <Compile Include="Collections\Immutable\Maps\MapTests.cs" />
-    <Compile Include="Collections\IntervalTreeTests.cs" />
-    <Compile Include="Commands\CommandArgsTests.cs" />
-    <Compile Include="Commands\TypeCharCommandArgsTests.cs" />
-    <Compile Include="CommentSelection\CommentUncommentSelectionCommandHandlerTests.cs" />
-    <Compile Include="Completion\FileSystemCompletionHelperTests.cs" />
-    <Compile Include="Completion\GlobalAssemblyCacheCompletionHelperTests.cs" />
-    <Compile Include="Completion\TestFileSystemCompletionHelper.cs" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerServiceTests.cs" />
-    <Compile Include="Diagnostics\DiagnosticDataSerializerTests.cs" />
-    <Compile Include="Diagnostics\DiagnosticDataTests.cs" />
-    <Compile Include="Diagnostics\DiagnosticServiceTests.cs" />
-    <Compile Include="Diagnostics\DiagnosticsSquiggleTaggerProviderTests.cs" />
-    <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
-    <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
-    <Compile Include="EditAndContinue\TraceLogTests.cs" />
-    <Compile Include="EditAndContinue\EditAndContinueDiagnosticUpdateSourceTests.cs" />
-    <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
-    <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
-    <Compile Include="Structure\BlockStructureServiceTests.cs" />
-    <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
-    <Compile Include="EditAndContinue\RudeEditDiagnosticTests.cs" />
-    <Compile Include="EditorAdapter\SpanExtensionsTest.cs" />
-    <Compile Include="EditorAdapter\TextSnapshotImplementationTest.cs" />
-    <Compile Include="EditorAdapter\TextSpanExtensionsTest.cs" />
-    <Compile Include="Extensions\CollectionExtensionsTest.cs" />
-    <Compile Include="Extensions\EnumerableExtensionTests.cs" />
-    <Compile Include="Extensions\IProjectionBufferFactoryServiceExtensionsTests.cs" />
-    <Compile Include="Extensions\ISemanticSnapshotExtensionTests.cs" />
-    <Compile Include="Extensions\ISymbolExtensionsTests.cs" />
-    <Compile Include="Extensions\ITextExtensionsTests.cs" />
-    <Compile Include="Extensions\ITextLineExtensionsTests.cs" />
-    <Compile Include="Extensions\ITextSnapshotExtensionsTests.cs" />
-    <Compile Include="Extensions\ITextSnapshotLineExtensionsTests.cs" />
-    <Compile Include="Extensions\SetExtensionTests.cs" />
-    <Compile Include="LineSeparators\AdornmentManagerTests.cs" />
-    <Compile Include="LinkedFiles\LinkedFileDiffMergingEditorTests.cs" />
-    <Compile Include="MetadataAsSource\AbstractMetadataAsSourceTests.cs" />
-    <Compile Include="MetadataAsSource\AbstractMetadataAsSourceTests.TestContext.cs" />
-    <Compile Include="MetadataAsSource\DocCommentFormatterTests.cs" />
-    <Compile Include="MetadataAsSource\MetadataAsSourceTests.cs" />
-    <Compile Include="MetadataAsSource\MetadataAsSourceTests.CSharp.cs" />
-    <Compile Include="MetadataAsSource\MetadataAsSourceTests.VisualBasic.cs" />
-    <Compile Include="Structure\BlockSpanTests.cs" />
-    <Compile Include="Structure\StructureTaggerTests.cs" />
-    <Compile Include="Preview\PreviewWorkspaceTests.cs" />
-    <Compile Include="RenameTracking\RenameTrackingTaggerProviderTests.cs" />
-    <Compile Include="RenameTracking\RenameTrackingTestState.cs" />
-    <Compile Include="RenameTracking\RenameTrackingWaiter.cs" />
-    <Compile Include="SolutionCrawler\WorkCoordinatorTests.cs" />
-    <Compile Include="Tagging\AsynchronousTaggerTests.cs" />
-    <Compile Include="Tagging\TagSpanIntervalTreeTests.cs" />
-    <Compile Include="TextEditor\TextBufferAssociatedViewServiceTests.cs" />
-    <Compile Include="TextEditor\TryGetDocumentTests.cs" />
-    <Compile Include="Threading\AsynchronousWorkerTests.cs" />
-    <Compile Include="Threading\ForegroundNotificationServiceTests.cs" />
-    <Compile Include="Utilities\EditorServicesUtil.cs" />
-    <Compile Include="Utilities\AsynchronousOperationListenerTests.cs" />
-    <Compile Include="Utilities\AsyncLazyTests.cs" />
-    <Compile Include="Utilities\BloomFilterTests.cs" />
-    <Compile Include="Utilities\PatternMatcherTests.cs" />
-    <Compile Include="Utilities\SymbolEquivalenceComparerTests.cs" />
-    <Compile Include="Workspaces\ProjectCacheHostServiceFactoryTests.cs" />
-    <Compile Include="Workspaces\TextFactoryTests.cs" />
-    <Compile Include="Workspaces\WorkspaceTests.cs" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PerfTests\ResetRoslynOptions.xml">

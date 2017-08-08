@@ -625,7 +625,7 @@ class C
 <Code>
 class C
 {
-    public event System.EventHandler $$Foo;
+    public event System.EventHandler $$Goo;
 }
 </Code>
 
@@ -644,7 +644,7 @@ class C
 <Code>
 class C
 {
-    public event System.EventHandler Foo, $$Bar;
+    public event System.EventHandler Goo, $$Bar;
 }
 </Code>
 
@@ -663,7 +663,7 @@ class C
 <Code>
 class C
 {
-    public event System.EventHandler $$Foo
+    public event System.EventHandler $$Goo
     {
         add { }
         remove { }
@@ -690,7 +690,7 @@ class C
 <Code>
 class C
 {
-    event System.EventHandler $$Foo;
+    event System.EventHandler $$Goo;
 }
 </Code>
 
@@ -698,7 +698,7 @@ class C
 <Code>
 class C
 {
-    event System.EventHandler Foo;
+    event System.EventHandler Goo;
 }
 </Code>
 
@@ -711,7 +711,7 @@ class C
 <Code>
 class C
 {
-    event System.EventHandler $$Foo;
+    event System.EventHandler $$Goo;
 }
 </Code>
 
@@ -719,7 +719,7 @@ class C
 <Code>
 class C
 {
-    static event System.EventHandler Foo;
+    static event System.EventHandler Goo;
 }
 </Code>
 
@@ -732,7 +732,7 @@ class C
 <Code>
 class C
 {
-    static event System.EventHandler $$Foo;
+    static event System.EventHandler $$Goo;
 }
 </Code>
 
@@ -740,7 +740,7 @@ class C
 <Code>
 class C
 {
-    static event System.EventHandler Foo;
+    static event System.EventHandler Goo;
 }
 </Code>
 
@@ -753,7 +753,7 @@ class C
 <Code>
 class C
 {
-    static event System.EventHandler $$Foo;
+    static event System.EventHandler $$Goo;
 }
 </Code>
 
@@ -761,7 +761,7 @@ class C
 <Code>
 class C
 {
-    event System.EventHandler Foo;
+    event System.EventHandler Goo;
 }
 </Code>
 
@@ -778,7 +778,7 @@ class C
 <Code>
 class C
 {
-    event System.EventHandler $$Foo;
+    event System.EventHandler $$Goo;
 }
 </Code>
 
@@ -803,7 +803,7 @@ class C
 <Code>
 class C
 {
-    public event System.EventHandler $$Foo;
+    public event System.EventHandler $$Goo;
 }
 </Code>
 
@@ -811,7 +811,7 @@ class C
 <Code>
 class C
 {
-    public event System.ConsoleCancelEventHandler Foo;
+    public event System.ConsoleCancelEventHandler Goo;
 }
 </Code>
 
@@ -824,7 +824,7 @@ class C
 <Code>
 class C
 {
-    public event System.EventHandler Foo, $$Bar;
+    public event System.EventHandler Goo, $$Bar;
 }
 </Code>
 
@@ -832,7 +832,7 @@ class C
 <Code>
 class C
 {
-    public event System.ConsoleCancelEventHandler Foo, Bar;
+    public event System.ConsoleCancelEventHandler Goo, Bar;
 }
 </Code>
 
@@ -845,7 +845,7 @@ class C
 <Code>
 class C
 {
-    public event System.EventHandler $$Foo
+    public event System.EventHandler $$Goo
     {
         add { }
         remove { }
@@ -857,7 +857,7 @@ class C
 <Code>
 class C
 {
-    public event System.ConsoleCancelEventHandler Foo
+    public event System.ConsoleCancelEventHandler Goo
     {
         add { }
         remove { }

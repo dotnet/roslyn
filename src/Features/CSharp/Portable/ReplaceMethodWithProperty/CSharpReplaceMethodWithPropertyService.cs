@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                     }
                     else if (getAccessor.Body != null &&
                              getAccessor.Body.TryConvertToExpressionBody(
-                                 parseOptions, expressionBodyPreference,
+                                 propertyDeclaration.Kind(), parseOptions, expressionBodyPreference,
                                  out var arrowExpression, out var semicolonToken))
                     {
                         return propertyDeclaration.WithExpressionBody(arrowExpression)
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             if (accessorDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (accessorDeclaration.Body.TryConvertToExpressionBody(
-                        parseOptions, expressionBodyPreference,
+                        accessorDeclaration.Kind(), parseOptions, expressionBodyPreference,
                         out var arrowExpression, out var semicolonToken))
                 {
                     return accessorDeclaration.WithBody(null)
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 editor.ReplaceNode(invocation, (i, g) =>
                 {
                     var currentInvocation = (InvocationExpressionSyntax)i;
-                    // looks like   a.b.Foo(arg)   =>     a.b.NewName = arg
+                    // looks like   a.b.Goo(arg)   =>     a.b.NewName = arg
                     nameNode = currentInvocation.Expression.GetRightmostName();
                     currentInvocation = (InvocationExpressionSyntax)g.ReplaceNode(currentInvocation, nameNode, newName);
 

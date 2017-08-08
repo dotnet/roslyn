@@ -279,10 +279,10 @@ Class C1
     public a as string
 
     Public Shared Sub Main()
-        Dim a As New C2() with {.a = "foo"} From {"Hello World!"}
-        Dim b As New C2() From {"Hello World!"} with {.a = "foo"}
-        Dim c As C2 = New C2() From {"Hello World!"} with {.a = "foo"}
-        Dim d As C2 = New C2() with {.a = "foo"} From {"Hello World!"} 
+        Dim a As New C2() with {.a = "goo"} From {"Hello World!"}
+        Dim b As New C2() From {"Hello World!"} with {.a = "goo"}
+        Dim c As C2 = New C2() From {"Hello World!"} with {.a = "goo"}
+        Dim d As C2 = New C2() with {.a = "goo"} From {"Hello World!"} 
     End Sub
 End Class        
     </file>
@@ -291,16 +291,16 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC36720: An Object Initializer and a Collection Initializer cannot be combined in the same initialization.
-        Dim a As New C2() with {.a = "foo"} From {"Hello World!"}
+        Dim a As New C2() with {.a = "goo"} From {"Hello World!"}
                                             ~~~~
 BC36720: An Object Initializer and a Collection Initializer cannot be combined in the same initialization.
-        Dim b As New C2() From {"Hello World!"} with {.a = "foo"}
+        Dim b As New C2() From {"Hello World!"} with {.a = "goo"}
                                                 ~~~~
 BC36720: An Object Initializer and a Collection Initializer cannot be combined in the same initialization.
-        Dim c As C2 = New C2() From {"Hello World!"} with {.a = "foo"}
+        Dim c As C2 = New C2() From {"Hello World!"} with {.a = "goo"}
                                ~~~~~~~~~~~~~~~~~~~~~
 BC36720: An Object Initializer and a Collection Initializer cannot be combined in the same initialization.
-        Dim d As C2 = New C2() with {.a = "foo"} From {"Hello World!"} 
+        Dim d As C2 = New C2() with {.a = "goo"} From {"Hello World!"} 
                                ~~~~~~~~~~~~~~~~~                                                   
                                                </expected>)
         End Sub

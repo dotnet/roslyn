@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             buildManager.BeginBuild(parameters);
 
             // enable cancellation of build
-            CancellationTokenRegistration registration = default(CancellationTokenRegistration);
+            CancellationTokenRegistration registration = default;
             if (cancellationToken.CanBeCanceled)
             {
                 registration = cancellationToken.Register(() =>
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </remarks>
         protected string GetAbsolutePath(string path)
         {
-            // TODO (tomat): should we report an error when drive-relative path (e.g. "C:foo.cs") is encountered?
+            // TODO (tomat): should we report an error when drive-relative path (e.g. "C:goo.cs") is encountered?
             return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, _loadedProject.DirectoryPath) ?? path);
         }
 

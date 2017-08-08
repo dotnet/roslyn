@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 triviaAtIndex = index >= 0 && index < triviaList.Length ?
                     triviaList[index] :
-                    default(SyntaxTrivia);
+                    default;
 
                 return index;
             }
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var isEndTokenEOF = fixer.IsEndOfFileToken(endToken);
 
                 var previousOfStart = startToken.GetPreviousToken(includeZeroWidth: true);
-                var nextOfEnd = !isEndTokenEOF ? endToken.GetNextToken(includeZeroWidth: true) : default(SyntaxToken);
+                var nextOfEnd = !isEndTokenEOF ? endToken.GetNextToken(includeZeroWidth: true) : default;
                 if (!previousOfStart.HasTrailingTrivia && !nextOfEnd.HasLeadingTrivia)
                 {
                     return;

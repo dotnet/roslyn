@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 // Placing the last parameter on its own line.  Get the indentation of the 
                 // curent last parameter and give the new last parameter the same indentation.
                 var leadingIndentation = GetDesiredLeadingIndentation(
-                    generator, syntaxFacts, existingParameters.Last(), includeLeadingNewLine: true);
+                    generator, syntaxFacts, existingParameters[existingParameters.Count - 1], includeLeadingNewLine: true);
                 parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation)
                                                             .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -440,19 +440,27 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     // Now check the type of the argument versus the type of the parameter.  If they
                     // don't match, then this is the argument we should make the parameter for.
-                    var argumentTypeInfo = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(argument));
+                    var expressionOfArgumment = syntaxFacts.GetExpressionOfArgument(argument);
+                    var argumentTypeInfo = semanticModel.GetTypeInfo(expressionOfArgumment);
+                    var isNullLiteral = syntaxFacts.IsNullLiteralExpression(expressionOfArgumment);
+                    var isDefaultLiteral = syntaxFacts.IsDefaultLiteralExpression(expressionOfArgumment);
+
                     if (argumentTypeInfo.Type == null && argumentTypeInfo.ConvertedType == null)
                     {
                         // Didn't know the type of the argument.  We shouldn't assume it doesn't
-                        // match a parameter. 
-                        continue;
+                        // match a parameter.  However, if the user wrote 'null' and it didn't
+                        // match anything, then this is the problem argument.
+                        if (!isNullLiteral && !isDefaultLiteral)
+                        {
+                            continue;
+                        }
                     }
 
                     var parameter = method.Parameters[i];
 
-                    if (!TypeInfoMatchesType(argumentTypeInfo, parameter.Type))
+                    if (!TypeInfoMatchesType(argumentTypeInfo, parameter.Type, isNullLiteral, isDefaultLiteral))
                     {
-                        if (TypeInfoMatchesWithParamsExpansion(argumentTypeInfo, parameter))
+                        if (TypeInfoMatchesWithParamsExpansion(argumentTypeInfo, parameter, isNullLiteral, isDefaultLiteral))
                         {
                             // The argument matched if we expanded out the params-parameter.
                             // As the params-parameter has to be last, there's nothing else to 
@@ -468,11 +476,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return null;
         }
 
-        private bool TypeInfoMatchesWithParamsExpansion(TypeInfo argumentTypeInfo, IParameterSymbol parameter)
+        private bool TypeInfoMatchesWithParamsExpansion(
+            TypeInfo argumentTypeInfo, IParameterSymbol parameter, 
+            bool isNullLiteral, bool isDefaultLiteral)
         {
             if (parameter.IsParams && parameter.Type is IArrayTypeSymbol arrayType)
             {
-                if (TypeInfoMatchesType(argumentTypeInfo, arrayType.ElementType))
+                if (TypeInfoMatchesType(argumentTypeInfo, arrayType.ElementType, isNullLiteral, isDefaultLiteral))
                 {
                     return true;
                 }
@@ -481,8 +491,27 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return false;
         }
 
-        private bool TypeInfoMatchesType(TypeInfo argumentTypeInfo, ITypeSymbol type)
-            => type.Equals(argumentTypeInfo.Type) || type.Equals(argumentTypeInfo.ConvertedType);
+        private bool TypeInfoMatchesType(
+            TypeInfo argumentTypeInfo, ITypeSymbol type,
+            bool isNullLiteral, bool isDefaultLiteral)
+        {
+            if (type.Equals(argumentTypeInfo.Type) || type.Equals(argumentTypeInfo.ConvertedType))
+            {
+                return true;
+            }
+
+            if (isDefaultLiteral)
+            {
+                return true;
+            }
+
+            if (isNullLiteral)
+            {
+                return type.IsReferenceType || type.IsNullable();
+            }
+
+            return false;
+        }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

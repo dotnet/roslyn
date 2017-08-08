@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private readonly IDelayService _delayService;
         private readonly IIOService _ioService;
         private readonly ISymbolSearchLogService _logService;
+        private readonly ISymbolSearchProgressService _progressService;
         private readonly IRemoteControlService _remoteControlService;
         private readonly IPatchService _patchService;
         private readonly IDatabaseFactoryService _databaseFactoryService;
@@ -131,17 +132,17 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             private string ConvertToFileName(string source)
             {
                 // Replace all occurrences of a single underscore with a double underscore.
-                // Now we know any single underscores in the text come from escapaing some
+                // Now we know any single underscores in the text come from escaping some
                 // character.
                 source = source.Replace("_", "__");
 
                 var invalidChars = new HashSet<char>(Path.GetInvalidFileNameChars());
                 var builder = new StringBuilder();
 
-                // Excape any character not allowed in a path.  Escaping is simple, we just
-                // use a single underscore followed by the ascii numeric value of the character,
-                // followed by another undersscoe.
-                // i.e. ":" is 58 is ascii, and becomes _58_ in the final name.
+                // Escape any character not allowed in a path.  Escaping is simple, we just
+                // use a single underscore followed by the ASCII numeric value of the character,
+                // followed by another underscore.
+                // i.e. ":" is 58 is ASCII, and becomes _58_ in the final name.
                 foreach (var c in source)
                 {
                     if (invalidChars.Contains(c))
@@ -222,25 +223,60 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             private async Task<TimeSpan> DownloadFullDatabaseAsync()
             {
+                try
+                {
+                    var title = string.Format(WorkspaceDesktopResources.Downloading_IntelliSense_index_for_0, _source);
+                    await _service._progressService.OnDownloadFullDatabaseStartedAsync(title).ConfigureAwait(false);
+
+                    var (succeeded, delay) = await DownloadFullDatabaseWorkerAsync().ConfigureAwait(false);
+                    if (succeeded)
+                    {
+                        await _service._progressService.OnDownloadFullDatabaseSucceededAsync().ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await _service._progressService.OnDownloadFullDatabaseFailedAsync(
+                            WorkspaceDesktopResources.Downloading_index_failed).ConfigureAwait(false);
+                    }
+
+                    return delay;
+                }
+                catch (OperationCanceledException)
+                {
+                    await _service._progressService.OnDownloadFullDatabaseCanceledAsync().ConfigureAwait(false);
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    var message = string.Format(
+                        WorkspaceDesktopResources.Downloading_index_failed_0,
+                        "\r\n" + e.ToString());
+                    await _service._progressService.OnDownloadFullDatabaseFailedAsync(message).ConfigureAwait(false);
+                    throw;
+                }
+            }
+
+            private async Task<(bool succeeded, TimeSpan delay)> DownloadFullDatabaseWorkerAsync()
+            {
                 var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/Latest.xml");
 
                 await _service.LogInfoAsync($"Downloading and processing full database: {serverPath}").ConfigureAwait(false);
 
                 var element = await DownloadFileAsync(serverPath).ConfigureAwait(false);
-                var delayUntilNextUpdate = await ProcessFullDatabaseXElementAsync(element).ConfigureAwait(false);
+                var result = await ProcessFullDatabaseXElementAsync(element).ConfigureAwait(false);
 
                 await _service.LogInfoAsync("Downloading and processing full database completed").ConfigureAwait(false);
-                return delayUntilNextUpdate;
+                return result;
             }
 
-            private async Task<TimeSpan> ProcessFullDatabaseXElementAsync(XElement element)
+            private async Task<(bool succeeded, TimeSpan delay)> ProcessFullDatabaseXElementAsync(XElement element)
             {
                 await _service.LogInfoAsync("Processing full database element").ConfigureAwait(false);
 
-                // Convert the database contents in the xml to a byte[].
+                // Convert the database contents in the XML to a byte[].
                 var result = await TryParseDatabaseElementAsync(element).ConfigureAwait(false);
 
-                if (!result.Item1)
+                if (!result.succeeded)
                 {
                     // Something was wrong with the full database.  Trying again soon after won't
                     // really help.  We'll just get the same busted XML from the remote service
@@ -249,10 +285,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                     var failureDelay = _service._delayService.CatastrophicFailureDelay;
                     await _service.LogInfoAsync($"Unable to parse full database element. Update again in {failureDelay}").ConfigureAwait(false);
-                    return failureDelay;
+                    return (succeeded: false, failureDelay);
                 }
 
-                var bytes = result.Item2;
+                var bytes = result.contentBytes;
 
                 // Make a database out of that and set it to our in memory database that we'll be 
                 // searching.
@@ -263,12 +299,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
                     // We retrieved bytes from the server, but we couldn't make a DB
-                    // out of it.  That's very bad.  Just trying again one minute later
+                   // out of it.  That's very bad.  Just trying again one minute later
                     // isn't going to help.  We need to wait until there is good data
                     // on the server for us to download.
                     var failureDelay = _service._delayService.CatastrophicFailureDelay;
                     await _service.LogInfoAsync($"Unable to create database from full database element. Update again in {failureDelay}").ConfigureAwait(false);
-                    return failureDelay;
+                    return (succeeded: false, failureDelay);
                 }
 
                 // Write the file out to disk so we'll have it the next time we launch VS.  Do this
@@ -278,7 +314,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                 var delay = _service._delayService.UpdateSucceededDelay;
                 await _service.LogInfoAsync($"Processing full database element completed. Update again in {delay}").ConfigureAwait(false);
-                return delay;
+                return (succeeded: true, delay);
             }
 
             private async Task WriteDatabaseFile(byte[] bytes)
@@ -323,7 +359,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         }
                         finally
                         {
-                            // Try to delete the tmp file if it is still around.
+                            // Try to delete the temp file if it is still around.
                             // If this fails, that's unfortunately, but just proceed.
                             IOUtilities.PerformIO(() => _service._ioService.Delete(new FileInfo(tempFilePath)));
                         }
@@ -537,7 +573,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // We're reading in our own XML file, but even so, use conservative settings
                     // just to be on the safe side.  First, disallow DTDs entirely (we will never
                     // have one ourself).  And also, prevent any external resolution of files when
-                    // processing the xml.
+                    // processing the XML.
                     var settings = new XmlReaderSettings
                     {
                         DtdProcessing = DtdProcessing.Prohibit,
@@ -580,7 +616,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            private async Task<ValueTuple<bool, byte[]>> TryParseDatabaseElementAsync(XElement element)
+            private async Task<(bool succeeded, byte[] contentBytes)> TryParseDatabaseElementAsync(XElement element)
             {
                 await _service.LogInfoAsync("Parsing database element").ConfigureAwait(false);
                 var contentsAttribute = element.Attribute(ContentAttributeName);
@@ -588,7 +624,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 {
                     _service._reportAndSwallowException(new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute"));
 
-                    return ValueTuple.Create(false, (byte[])null);
+                    return (succeeded: false, (byte[])null);
                 }
 
                 var contentBytes = await ConvertContentAttributeAsync(contentsAttribute).ConfigureAwait(false);
@@ -607,11 +643,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     {
                         _service._reportAndSwallowException(new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"));
 
-                        return ValueTuple.Create(false, (byte[])null);
+                        return (succeeded: false, (byte[])null);
                     }
                 }
 
-                return ValueTuple.Create(true, contentBytes);
+                return (succeeded: true, contentBytes);
             }
 
             private async Task<byte[]> ConvertContentAttributeAsync(XAttribute contentsAttribute)

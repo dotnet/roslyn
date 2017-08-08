@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                         generator.IdentifierName(right));
 
                 return CodeGenerationSymbolFactory.CreateOperatorSymbol(
-                    default(ImmutableArray<AttributeData>),
+                    default,
                     Accessibility.Public,
                     new DeclarationModifiers(isStatic: true),
                     compilation.GetSpecialType(SpecialType.System_Boolean),
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                         generator.IdentifierName(right)));
 
                 return CodeGenerationSymbolFactory.CreateOperatorSymbol(
-                    default(ImmutableArray<AttributeData>),
+                    default,
                     Accessibility.Public,
                     new DeclarationModifiers(isStatic: true),
                     compilation.GetSpecialType(SpecialType.System_Boolean),

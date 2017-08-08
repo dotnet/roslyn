@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     setMethod,
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: accessibility,
                     explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property.SetMethod) : default,
                     statements: GetSetAccessorStatements(
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     getMethod,
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: accessibility,
                     explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property.GetMethod) : default,
                     statements: GetGetAccessorStatements(
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 if (generateAbstractly)
                 {
-                    return default(ImmutableArray<SyntaxNode>);
+                    return default;
                 }
 
                 var factory = this.Document.GetLanguageService<SyntaxGenerator>();
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 return propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                    ? default(ImmutableArray<SyntaxNode>)
+                    ? default
                     : factory.CreateThrowNotImplementedStatementBlock(compilation);
             }
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 if (generateAbstractly)
                 {
-                    return default(ImmutableArray<SyntaxNode>);
+                    return default;
                 }
 
                 var factory = this.Document.GetLanguageService<SyntaxGenerator>();
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 return propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                    ? default(ImmutableArray<SyntaxNode>)
+                    ? default
                     : factory.CreateThrowNotImplementedStatementBlock(compilation);
             }
         }

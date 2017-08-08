@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (!_solutionAdded)
                 {
                     string solutionFilePath = null;
-                    VersionStamp? version = default(VersionStamp?);
+                    VersionStamp? version = default;
                     // Figure out the solution version
                     if (ErrorHandler.Succeeded(_tracker._vsSolution.GetSolutionInfo(out var solutionDirectory, out var solutionFileName, out var userOptsFile)) && solutionFileName != null)
                     {

@@ -3323,7 +3323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var containingMember = binder.ContainingMember();
 
                         var thisParam = GetThisParameter(boundNode.Type, containingType, containingMember, out resultKind);
-                        symbols = ImmutableArray.Create<Symbol>(thisParam);
+                        symbols = thisParam != null ? ImmutableArray.Create<Symbol>(thisParam) : ImmutableArray<Symbol>.Empty;
                     }
                     break;
 

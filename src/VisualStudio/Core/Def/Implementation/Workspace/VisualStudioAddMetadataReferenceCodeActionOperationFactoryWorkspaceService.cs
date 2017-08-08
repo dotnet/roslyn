@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _assemblyIdentity = assemblyIdentity;
             }
 
-            public override void Apply(Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
+            public override void Apply(Workspace workspace, CancellationToken cancellationToken = default)
             {
                 var visualStudioWorkspace = (VisualStudioWorkspaceImpl)workspace;
                 if (!visualStudioWorkspace.TryAddReferenceToProject(_projectId, "*" + _assemblyIdentity.GetDisplayName()))

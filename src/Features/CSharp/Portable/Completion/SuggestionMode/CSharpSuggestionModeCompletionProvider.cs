@@ -168,6 +168,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 return false;
             }
 
+            // async lambda: 
+            //    Goo(async($$
+            //    Goo(async(p1, $$
+            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.ArgumentList)
+                && token.Parent.Parent is InvocationExpressionSyntax invocation
+                && invocation.Expression is IdentifierNameSyntax identifier)
+            {
+                if (identifier.Identifier.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword))
+                {
+                    return true;
+                }
+            }
+
             // If we're an argument to a function with multiple overloads, 
             // open the builder if any overload takes a delegate at our argument position
             var inferredTypeInfo = typeInferrer.GetTypeInferenceInfo(semanticModel, position, cancellationToken: cancellationToken);

@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Open a solution file and all referenced projects.
         /// </summary>
-        public async Task<Solution> OpenSolutionAsync(string solutionFilePath, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Solution> OpenSolutionAsync(string solutionFilePath, CancellationToken cancellationToken = default)
         {
             if (solutionFilePath == null)
             {
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Open a project file and all referenced projects.
         /// </summary>
-        public async Task<Project> OpenProjectAsync(string projectFilePath, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Project> OpenProjectAsync(string projectFilePath, CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
             {

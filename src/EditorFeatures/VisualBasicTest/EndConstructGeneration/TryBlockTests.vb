@@ -7,13 +7,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         Public Sub ApplyAfterTryStatement()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-Sub foo()
+Sub goo()
 Try
 End Sub
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-Sub foo()
+Sub goo()
 Try
 
 Catch ex As Exception
@@ -28,7 +28,7 @@ End Class",
         Public Sub DontApplyForMatchedTryWithCatch()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-Sub foo()
+Sub goo()
 Try
 Catch ex As Exception
 End Try
@@ -41,7 +41,7 @@ End Class",
         Public Sub DontApplyForMatchedTryWithoutCatch()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-Sub foo()
+Sub goo()
 Try
 End Try
 End Sub

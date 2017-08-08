@@ -17,7 +17,8 @@ namespace BuildBoss
         internal XmlNamespaceManager Manager { get; }
         internal XNamespace Namespace { get; }
 
-        public bool IsNewSdk => Document.XPathSelectElements("//mb:TargetFramework", Manager).FirstOrDefault() != null;
+        public bool IsNewSdk => GetTargetFramework() != null || GetTargetFrameworks() != null;
+
         public bool IsDesktopProject => Document.XPathSelectElements("//mb:TargetFrameworkVersion", Manager).FirstOrDefault() != null;
 
         public bool IsPclProject
@@ -119,6 +120,10 @@ namespace BuildBoss
                 return null;
             }
         }
+
+        internal XElement GetTargetFramework() => Document.XPathSelectElements("//mb:TargetFramework", Manager).FirstOrDefault();
+
+        internal XElement GetTargetFrameworks() => Document.XPathSelectElements("//mb:TargetFrameworks", Manager).FirstOrDefault();
 
         internal IEnumerable<XElement> GetAllPropertyGroupElements()
         {

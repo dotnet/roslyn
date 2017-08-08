@@ -192,8 +192,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsGeneratedCode(this Document document, CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
-            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
+            var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
             return generatedCodeRecognitionService?.IsGeneratedCode(document, cancellationToken) == true;
         }
     }

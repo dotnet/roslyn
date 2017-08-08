@@ -547,19 +547,19 @@ a.vb
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
 
-            args = {"/win32manifest:foo.win32data:bar.win32data2"}
+            args = {"/win32manifest:goo.win32data:bar.win32data2"}
             parsedArgs = DefaultParse(args, _baseDirectory)
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToReadUacManifest2, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
-            args = {"/Win32icon:foo.win32data:bar.win32data2"}
+            args = {"/Win32icon:goo.win32data:bar.win32data2"}
             parsedArgs = DefaultParse(args, _baseDirectory)
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
-            args = {"/Win32Resource:foo.win32data:bar.win32data2"}
+            args = {"/Win32Resource:goo.win32data:bar.win32data2"}
             parsedArgs = DefaultParse(args, _baseDirectory)
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
@@ -747,74 +747,74 @@ End Module").Path
             Dim diags = New List(Of Diagnostic)()
             Dim desc As ResourceDescription
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.foo.bar", _baseDirectory, diags, embedded:=False)
+            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar", _baseDirectory, diags, embedded:=False)
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.foo.bar", desc.FileName)
-            Assert.Equal("someFile.foo.bar", desc.ResourceName)
+            Assert.Equal("someFile.goo.bar", desc.FileName)
+            Assert.Equal("someFile.goo.bar", desc.ResourceName)
             Assert.True(desc.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.foo.bar,someName", _baseDirectory, diags, embedded:=False)
+            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName", _baseDirectory, diags, embedded:=False)
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.foo.bar", desc.FileName)
+            Assert.Equal("someFile.goo.bar", desc.FileName)
             Assert.Equal("someName", desc.ResourceName)
             Assert.True(desc.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.foo.bar,someName,public", _baseDirectory, diags, embedded:=False)
+            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName,public", _baseDirectory, diags, embedded:=False)
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.foo.bar", desc.FileName)
+            Assert.Equal("someFile.goo.bar", desc.FileName)
             Assert.Equal("someName", desc.ResourceName)
             Assert.True(desc.IsPublic)
 
             ' use file name in place of missing resource name
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.foo.bar,,private", _baseDirectory, diags, embedded:=False)
+            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded:=False)
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.foo.bar", desc.FileName)
-            Assert.Equal("someFile.foo.bar", desc.ResourceName)
+            Assert.Equal("someFile.goo.bar", desc.FileName)
+            Assert.Equal("someFile.goo.bar", desc.ResourceName)
             Assert.False(desc.IsPublic)
 
             ' quoted accessibility is fine
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.foo.bar,,""private""", _baseDirectory, diags, embedded:=False)
+            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,,""private""", _baseDirectory, diags, embedded:=False)
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.foo.bar", desc.FileName)
-            Assert.Equal("someFile.foo.bar", desc.ResourceName)
+            Assert.Equal("someFile.goo.bar", desc.FileName)
+            Assert.Equal("someFile.goo.bar", desc.ResourceName)
             Assert.False(desc.IsPublic)
 
             ' leading commas are ignored...
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", ",,\somepath\someFile.foo.bar,,private", _baseDirectory, diags, embedded:=False)
+            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", ",,\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded:=False)
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.foo.bar", desc.FileName)
-            Assert.Equal("someFile.foo.bar", desc.ResourceName)
+            Assert.Equal("someFile.goo.bar", desc.FileName)
+            Assert.Equal("someFile.goo.bar", desc.ResourceName)
             Assert.False(desc.IsPublic)
 
             ' ...as long as there's no whitespace between them
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", ", ,\somepath\someFile.foo.bar,,private", _baseDirectory, diags, embedded:=False)
+            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", ", ,\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded:=False)
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
             ' trailing commas are ignored...
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.foo.bar,,private", _baseDirectory, diags, embedded:=False)
+            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded:=False)
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.foo.bar", desc.FileName)
-            Assert.Equal("someFile.foo.bar", desc.ResourceName)
+            Assert.Equal("someFile.goo.bar", desc.FileName)
+            Assert.Equal("someFile.goo.bar", desc.ResourceName)
             Assert.False(desc.IsPublic)
 
             ' ...even if there's whitespace between them
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.foo.bar,,private, ,", _baseDirectory, diags, embedded:=False)
+            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private, ,", _baseDirectory, diags, embedded:=False)
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.foo.bar", desc.FileName)
-            Assert.Equal("someFile.foo.bar", desc.ResourceName)
+            Assert.Equal("someFile.goo.bar", desc.FileName)
+            Assert.Equal("someFile.goo.bar", desc.ResourceName)
             Assert.False(desc.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.foo.bar,someName,publi", _baseDirectory, diags, embedded:=False)
+            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName,publi", _baseDirectory, diags, embedded:=False)
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", "publi"))
             diags.Clear()
             Assert.Null(desc)
@@ -1849,16 +1849,16 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal("[global]", parsedArgs.CompilationOptions.RootNamespace)
 
-            parsedArgs = DefaultParse({"/rootnamespace:foo.[global].bar", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:goo.[global].bar", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("foo.[global].bar", parsedArgs.CompilationOptions.RootNamespace)
+            Assert.Equal("goo.[global].bar", parsedArgs.CompilationOptions.RootNamespace)
 
-            parsedArgs = DefaultParse({"/rootnamespace:foo.[bar]", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:goo.[bar]", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("foo.[bar]", parsedArgs.CompilationOptions.RootNamespace)
+            Assert.Equal("goo.[bar]", parsedArgs.CompilationOptions.RootNamespace)
 
-            parsedArgs = DefaultParse({"/rootnamespace:foo$", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("foo$"))
+            parsedArgs = DefaultParse({"/rootnamespace:goo$", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("goo$"))
 
             parsedArgs = DefaultParse({"/rootnamespace:I(", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("I("))
@@ -2063,25 +2063,25 @@ End Module").Path
 
         <Fact>
         Public Sub ParseAnalyzers()
-            Dim parsedArgs = DefaultParse({"/a:foo.dll", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/a:goo.dll", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(1, parsedArgs.AnalyzerReferences.Length)
-            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
+            Assert.Equal("goo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
 
-            parsedArgs = DefaultParse({"/analyzer:foo.dll", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/analyzer:goo.dll", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(1, parsedArgs.AnalyzerReferences.Length)
-            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
+            Assert.Equal("goo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
 
-            parsedArgs = DefaultParse({"/analyzer:""foo.dll""", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/analyzer:""goo.dll""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(1, parsedArgs.AnalyzerReferences.Length)
-            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
+            Assert.Equal("goo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
 
-            parsedArgs = DefaultParse({"/a:foo.dll,bar.dll", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/a:goo.dll,bar.dll", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(2, parsedArgs.AnalyzerReferences.Length)
-            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
+            Assert.Equal("goo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
             Assert.Equal("bar.dll", parsedArgs.AnalyzerReferences(1).FilePath)
 
             parsedArgs = DefaultParse({"/a:", "a.vb"}, _baseDirectory)
@@ -2282,7 +2282,7 @@ End Module").Path
 
         <Fact>
         Public Sub Analyzers_WithRuleSetIncludeAll()
-            Dim source = "Imports System \r\n Public Class Tester \r\n Public Sub Foo() \r\n Dim x As Integer \r\n End Sub \r\n End Class"
+            Dim source = "Imports System \r\n Public Class Tester \r\n Public Sub Goo() \r\n Dim x As Integer \r\n End Sub \r\n End Class"
 
             Dim dir = Temp.CreateDirectory()
 
@@ -3909,9 +3909,9 @@ End Class
             Assert.Null(parsedArgs.CompilationOptions.CryptoKeyContainer)
 
             ' KEYFILE
-            parsedArgs = DefaultParse({"/keyfile:\somepath\s""ome Fil""e.foo.bar", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/keyfile:\somepath\s""ome Fil""e.goo.bar", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("\somepath\some File.foo.bar", parsedArgs.CompilationOptions.CryptoKeyFile)
+            Assert.Equal("\somepath\some File.goo.bar", parsedArgs.CompilationOptions.CryptoKeyFile)
 
             parsedArgs = DefaultParse({"/keyFile", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("keyfile", ":<file>"))
@@ -4615,9 +4615,9 @@ Class C
 
         <Fact>
         Public Sub ResourceOnlyCompile()
-            Dim parsedArgs = DefaultParse({"/resource:foo.vb,ed", "/out:e.dll"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/resource:goo.vb,ed", "/out:e.dll"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            parsedArgs = DefaultParse({"/resource:foo.vb,ed"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/resource:goo.vb,ed"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSourcesOut))
         End Sub
 
@@ -4776,8 +4776,8 @@ End Class
             CheckOutputFileName(
                 source1, source2,
                 inputName1:="p.cs", inputName2:="q.cs",
-                commandLineArguments:={"/target:library", "/out:foo"},
-                expectedOutputName:="foo.dll")
+                commandLineArguments:={"/target:library", "/out:goo"},
+                expectedOutputName:="goo.dll")
         End Sub
 
         <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
@@ -4799,8 +4799,8 @@ End Class
             CheckOutputFileName(
                 source1, source2,
                 inputName1:="p.cs", inputName2:="q.cs",
-                commandLineArguments:={"/target:library", "/out:foo. "},
-                expectedOutputName:="foo.dll")
+                commandLineArguments:={"/target:library", "/out:goo. "},
+                expectedOutputName:="goo.dll")
         End Sub
 
         <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
@@ -4822,8 +4822,8 @@ End Class
             CheckOutputFileName(
                 source1, source2,
                 inputName1:="p.cs", inputName2:="q.cs",
-                commandLineArguments:={"/target:library", "/out:foo.a"},
-                expectedOutputName:="foo.a.dll")
+                commandLineArguments:={"/target:library", "/out:goo.a"},
+                expectedOutputName:="goo.a.dll")
         End Sub
 
         <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
@@ -4845,8 +4845,8 @@ End Class
             CheckOutputFileName(
                 source1, source2,
                 inputName1:="p.cs", inputName2:="q.cs",
-                commandLineArguments:={"/target:module", "/out:foo.a"},
-                expectedOutputName:="foo.a")
+                commandLineArguments:={"/target:module", "/out:goo.a"},
+                expectedOutputName:="goo.a")
         End Sub
 
         <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
@@ -4868,8 +4868,8 @@ End Class
             CheckOutputFileName(
                 source1, source2,
                 inputName1:="p.cs", inputName2:="q.cs",
-                commandLineArguments:={"/target:module", "/out:foo.a . . . . "},
-                expectedOutputName:="foo.a")
+                commandLineArguments:={"/target:module", "/out:goo.a . . . . "},
+                expectedOutputName:="goo.a")
         End Sub
 
         <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
@@ -4891,8 +4891,8 @@ End Class
             CheckOutputFileName(
                 source1, source2,
                 inputName1:="p.cs", inputName2:="q.cs",
-                commandLineArguments:={"/target:module", "/out:foo. . . . . "},
-                expectedOutputName:="foo.netmodule")
+                commandLineArguments:={"/target:module", "/out:goo. . . . . "},
+                expectedOutputName:="goo.netmodule")
         End Sub
 
         <Fact>
@@ -5108,7 +5108,7 @@ Module Program
         Const zzz As Long = 0
     End Sub
 
-    Function foo()
+    Function goo()
     End Function
 End Module
                     </file>
@@ -5130,7 +5130,7 @@ PATH(7) : warning BC42099: Unused local constant: 'zzz'.
 
         Const zzz As Long = 0
               ~~~            
-PATH(11) : warning BC42105: Function 'foo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+PATH(11) : warning BC42105: Function 'goo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
 
     End Function
     ~~~~~~~~~~~~
@@ -5167,11 +5167,11 @@ Module Module1
 
     Sub main()
         Dim a As ArgIterator = Nothing
-        Dim d As delegateType = AddressOf a.Foo
+        Dim d As delegateType = AddressOf a.Goo
     End Sub
 
     <Extension()> _
-    Public Function Foo(ByVal x As ArgIterator) as Integer
+    Public Function Goo(ByVal x As ArgIterator) as Integer
 	Return 1
     End Function
 End Module
@@ -5185,7 +5185,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be used in a lambda expression.
 
-        Dim d As delegateType = AddressOf a.Foo
+        Dim d As delegateType = AddressOf a.Goo
                                           ~    
 </file>
 
@@ -6743,40 +6743,40 @@ src.vb(14) : error BC36716: Visual Basic 9.0 does not support implicit line cont
             Dim source = "
 Class C
     Sub Main()
-        Foo(0)
+        Goo(0)
 #ExternalSource(""c:\temp\a\1.vb"", 10)
-        Foo(1)
+        Goo(1)
 #End ExternalSource
 #ExternalSource(""C:\a\..\b.vb"", 20)
-        Foo(2)
+        Goo(2)
 #End ExternalSource
 #ExternalSource(""C:\a\../B.vb"", 30)
-        Foo(3)
+        Goo(3)
 #End ExternalSource
 #ExternalSource(""../b.vb"", 40)
-        Foo(4)
+        Goo(4)
 #End ExternalSource
 #ExternalSource(""..\b.vb"", 50)
-        Foo(5)
+        Goo(5)
 #End ExternalSource
 #ExternalSource(""C:\X.vb"", 60)
-        Foo(6)
+        Goo(6)
 #End ExternalSource
 #ExternalSource(""C:\x.vb"", 70)
-        Foo(7)
+        Goo(7)
 #End ExternalSource
 #ExternalSource(""      "", 90)
-		Foo(9)
+		Goo(9)
 #End ExternalSource
 #ExternalSource(""C:\*.vb"", 100)
-		Foo(10)
+		Goo(10)
 #End ExternalSource
 #ExternalSource("""", 110)
-		Foo(11)
+		Goo(11)
 #End ExternalSource
-        Foo(12)
+        Goo(12)
 #ExternalSource(""***"", 140)
-        Foo(14)
+        Goo(14)
 #End ExternalSource
     End Sub
 End Class
@@ -6791,44 +6791,44 @@ End Class
 
             ' with /fullpaths off
             Dim expected =
-    file.Path & "(4) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(0)
+    file.Path & "(4) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(0)
         ~~~   
-c:\temp\a\1.vb(10) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(1)
+c:\temp\a\1.vb(10) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(1)
         ~~~   
-C:\b.vb(20) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(2)
+C:\b.vb(20) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(2)
         ~~~   
-C:\B.vb(30) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(3)
+C:\B.vb(30) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(3)
         ~~~   
-" & Path.GetFullPath(Path.Combine(dir.Path, "..\b.vb")) & "(40) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(4)
+" & Path.GetFullPath(Path.Combine(dir.Path, "..\b.vb")) & "(40) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(4)
         ~~~   
-" & Path.GetFullPath(Path.Combine(dir.Path, "..\b.vb")) & "(50) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(5)
+" & Path.GetFullPath(Path.Combine(dir.Path, "..\b.vb")) & "(50) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(5)
         ~~~   
-C:\X.vb(60) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(6)
+C:\X.vb(60) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(6)
         ~~~   
-C:\x.vb(70) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(7)
+C:\x.vb(70) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(7)
         ~~~   
-      (90) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(9)
+      (90) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(9)
         ~~~   
-C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(10)
+C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(10)
         ~~~    
-(110) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(11)
+(110) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(11)
         ~~~    
-" & file.Path & "(35) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(12)
+" & file.Path & "(35) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(12)
         ~~~    
-***(140) : error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
-        Foo(14)
+***(140) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
+        Goo(14)
         ~~~    
 "
             AssertOutput(expected.Replace(vbCrLf, vbLf), outWriter.ToString())
@@ -8444,24 +8444,24 @@ a
 
         <WorkItem(13681, "https://github.com/dotnet/roslyn/issues/13681")>
         <Theory()>
-        <InlineData("/t:exe", "/out:foo.dll", "foo.dll", "foo.dll.exe")>                                'Output with known but different extension
-        <InlineData("/t:exe", "/out:foo.dLL", "foo.dLL", "foo.dLL.exe")>                                'Output with known but different extension (different casing)
-        <InlineData("/t:library", "/out:foo.exe", "foo.exe", "foo.exe.dll")>                            'Output with known but different extension
-        <InlineData("/t:library", "/out:foo.eXe", "foo.eXe", "foo.eXe.dll")>                            'Output with known but different extension (different casing)
-        <InlineData("/t:module", "/out:foo.dll", "foo.dll", "foo.dll.netmodule")>                       'Output with known but different extension
-        <InlineData("/t:winmdobj", "/out:foo.netmodule", "foo.netmodule", "foo.netmodule.winmdobj")>    'Output with known but different extension
-        <InlineData("/t:exe", "/out:foo.netmodule", "foo.netmodule", "foo.netmodule.exe")>              'Output with known but different extension
-        <InlineData("/t:library", "/out:foo.txt", "foo.txt.dll", "foo.dll")>                            'Output with unknown extension (.txt)
-        <InlineData("/t:exe", "/out:foo.md", "foo.md.exe", "foo.exe")>                                  'Output with unknown extension (.md)
-        <InlineData("/t:exe", "/out:foo", "foo.exe", "foo")>                                            'Output without extension
-        <InlineData("/t:library", "/out:foo", "foo.dll", "foo")>                                        'Output without extension
-        <InlineData("/t:module", "/out:foo", "foo.netmodule", "foo")>                                   'Output without extension
-        <InlineData("/t:winmdobj", "/out:foo", "foo.winmdobj", "foo")>                                  'Output without extension
-        <InlineData("/t:exe", "/out:foo.exe", "foo.exe", "foo.exe.exe")>                                'Output with correct extension (.exe)
-        <InlineData("/t:library", "/out:foo.dll", "foo.dll", "foo.dll.dll")>                            'Output with correct extension (.dll)
-        <InlineData("/t:module", "/out:foo.netmodule", "foo.netmodule", "foo.netmodule.netmodule")>     'Output with correct extension (.netmodule)
-        <InlineData("/t:module", "/out:foo.NetModule", "foo.NetModule", "foo.NetModule.netmodule")>     'Output with correct extension (.netmodule) (different casing)
-        <InlineData("/t:winmdobj", "/out:foo.winmdobj", "foo.winmdobj", "foo.winmdobj.winmdobj")>       'Output with correct extension (.winmdobj)
+        <InlineData("/t:exe", "/out:goo.dll", "goo.dll", "goo.dll.exe")>                                'Output with known but different extension
+        <InlineData("/t:exe", "/out:goo.dLL", "goo.dLL", "goo.dLL.exe")>                                'Output with known but different extension (different casing)
+        <InlineData("/t:library", "/out:goo.exe", "goo.exe", "goo.exe.dll")>                            'Output with known but different extension
+        <InlineData("/t:library", "/out:goo.eXe", "goo.eXe", "goo.eXe.dll")>                            'Output with known but different extension (different casing)
+        <InlineData("/t:module", "/out:goo.dll", "goo.dll", "goo.dll.netmodule")>                       'Output with known but different extension
+        <InlineData("/t:winmdobj", "/out:goo.netmodule", "goo.netmodule", "goo.netmodule.winmdobj")>    'Output with known but different extension
+        <InlineData("/t:exe", "/out:goo.netmodule", "goo.netmodule", "goo.netmodule.exe")>              'Output with known but different extension
+        <InlineData("/t:library", "/out:goo.txt", "goo.txt.dll", "goo.dll")>                            'Output with unknown extension (.txt)
+        <InlineData("/t:exe", "/out:goo.md", "goo.md.exe", "goo.exe")>                                  'Output with unknown extension (.md)
+        <InlineData("/t:exe", "/out:goo", "goo.exe", "goo")>                                            'Output without extension
+        <InlineData("/t:library", "/out:goo", "goo.dll", "goo")>                                        'Output without extension
+        <InlineData("/t:module", "/out:goo", "goo.netmodule", "goo")>                                   'Output without extension
+        <InlineData("/t:winmdobj", "/out:goo", "goo.winmdobj", "goo")>                                  'Output without extension
+        <InlineData("/t:exe", "/out:goo.exe", "goo.exe", "goo.exe.exe")>                                'Output with correct extension (.exe)
+        <InlineData("/t:library", "/out:goo.dll", "goo.dll", "goo.dll.dll")>                            'Output with correct extension (.dll)
+        <InlineData("/t:module", "/out:goo.netmodule", "goo.netmodule", "goo.netmodule.netmodule")>     'Output with correct extension (.netmodule)
+        <InlineData("/t:module", "/out:goo.NetModule", "goo.NetModule", "goo.NetModule.netmodule")>     'Output with correct extension (.netmodule) (different casing)
+        <InlineData("/t:winmdobj", "/out:goo.winmdobj", "goo.winmdobj", "goo.winmdobj.winmdobj")>       'Output with correct extension (.winmdobj)
         Public Sub OutputingFilesWithDifferentExtensions(targetArg As String, outArg As String, expectedFile As String, unexpectedFile As String)
             Dim source =
                 <compilation>
