@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub InvalidUserDefinedOperators()
             Dim source = <compilation>
@@ -136,6 +137,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
 ")
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub SimpleCompoundAssignment()
             Dim source = <compilation>
@@ -218,11 +220,12 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b')
 ")
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyOperationTree_IfStatement()
             Dim source = <![CDATA[
 Class C
-    Sub Foo(x As Integer)
+    Sub F(x As Integer)
         If x <> 0 Then'BIND:"If x <> 0 Then"
             System.Console.Write(x)
         End If
@@ -230,7 +233,7 @@ Class C
 End Class
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerNotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
       Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -252,11 +255,12 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyOperationTree_ForStatement()
             Dim source = <![CDATA[
 Class C
-    Sub Foo()
+    Sub F()
         For i = 0 To 10'BIND:"For i = 0 To 10"
             System.Console.Write(i)
         Next
@@ -295,6 +299,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i =
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         <WorkItem(382240, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")>
         Public Sub NothingOrAddressOfInPlaceOfParamArray()
@@ -373,6 +378,36 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
         Arguments(0)
         Initializer: null
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')")
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestClone()
+            Dim sourceCode = TestResource.AllInOneVisualBasicCode
+
+            Dim fileName = "a.vb"
+            Dim syntaxTree = Parse(sourceCode, fileName, options:=Nothing)
+
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
+            Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+            Dim model = compilation.GetSemanticModel(tree)
+
+            VerifyClone(model)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestParentOperations()
+            Dim sourceCode = TestResource.AllInOneVisualBasicCode
+
+            Dim fileName = "a.vb"
+            Dim syntaxTree = Parse(sourceCode, fileName, options:=Nothing)
+
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
+            Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+            Dim model = compilation.GetSemanticModel(tree)
+
+            VerifyParentOperations(model)
         End Sub
     End Class
 End Namespace

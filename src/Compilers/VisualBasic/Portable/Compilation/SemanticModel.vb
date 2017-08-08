@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' The root node of the syntax tree that this binding is based on.
         ''' </summary> 
-        Friend MustOverride ReadOnly Property Root As SyntaxNode
+        Friend MustOverride Shadows ReadOnly Property Root As SyntaxNode
 
         ''' <summary>
         ''' Gets symbol information about an expression syntax node. This is the worker
@@ -141,6 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function GetOperationCore(node As SyntaxNode, cancellationToken As CancellationToken) As IOperation
             Dim vbnode = DirectCast(node, VisualBasicSyntaxNode)
             CheckSyntaxNode(vbnode)
+
             Return GetOperationWorker(vbnode, GetOperationOptions.Highest, cancellationToken)
         End Function
 
@@ -2786,7 +2787,7 @@ _Default:
         '''    Event E3(bar As Integer) Implements I1.E   '  "bar" means nothing here. Only type matters.
         '''
         '''    Sub moo()
-        '''        RaiseEvent E3(qwer:=123)  ' qwer binds to parameter on I1.EEventhandler.invoke(foo)
+        '''        RaiseEvent E3(qwer:=123)  ' qwer binds to parameter on I1.EEventhandler.invoke(goo)
         '''    End Sub
         '''End Class
         ''' 
@@ -3058,6 +3059,12 @@ _Default:
         Protected NotOverridable Overrides ReadOnly Property CompilationCore As Compilation
             Get
                 Return Me.Compilation
+            End Get
+        End Property
+
+        Protected NotOverridable Overrides ReadOnly Property RootCore As SyntaxNode
+            Get
+                Return Me.Root
             End Get
         End Property
 

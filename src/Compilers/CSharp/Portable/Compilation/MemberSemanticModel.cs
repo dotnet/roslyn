@@ -986,7 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory
             // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
             // UnboundLambda.BindForErrorRecovery() when it encounters an UnboundLambda node.
-            Debug.Assert(result.Kind != BoundKind.UnboundLambda);
+            Debug.Assert(result?.Kind != BoundKind.UnboundLambda);
             return _operationFactory.Create(result);
         }
 
@@ -1087,6 +1087,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetBoundNodes(CSharpSyntaxNode node, out CSharpSyntaxNode bindableNode, out BoundNode lowestBoundNode, out BoundNode highestBoundNode, out BoundNode boundParent)
         {
             bindableNode = this.GetBindableSyntaxNode(node);
+
+            // PROTOTYPE(IOperation)
+            // remove this check once we fix this issue
+            // https://github.com/dotnet/roslyn/issues/21180
+            if (!Root.FullSpan.Contains(bindableNode.FullSpan))
+            {
+                bindableNode = null;
+                lowestBoundNode = null;
+                highestBoundNode = null;
+                boundParent = null;
+                return;
+            }
+            ////
+
             CSharpSyntaxNode bindableParent = this.GetBindableParentNode(bindableNode);
 
             // Special handling for the Color Color case.
@@ -1882,7 +1896,7 @@ done:
         /// and returns it instead of rebinding it. 
         /// 
         /// For example, we might have:
-        ///    while (x > foo())
+        ///    while (x > goo())
         ///    {
         ///      y = y * x;
         ///      z = z + y;

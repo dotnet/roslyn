@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(382240, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")]
         public void NullInPlaceOfParamArray()
@@ -69,6 +70,7 @@ public class Cls
         OutConversion: null");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructionAssignmentFromTuple()
         {
@@ -110,6 +112,32 @@ public class C
             Assert.NotNull(operation3);
             Assert.Equal(OperationKind.None, operation3.Kind);
             Assert.False(operation3 is ISimpleAssignmentExpression);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestClone()
+        {
+            var sourceCode = TestResource.AllInOneCSharpCode;
+
+            var compilation = CreateStandardCompilation(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            VerifyClone(model);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParentOperations()
+        {
+            var sourceCode = TestResource.AllInOneCSharpCode;
+
+            var compilation = CreateStandardCompilation(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            VerifyParentOperations(model);
         }
     }
 }

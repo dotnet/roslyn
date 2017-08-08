@@ -1,18 +1,18 @@
-﻿^{END}{UP}{UP}{UP}{UP}{UP}{END}{ENTER}
+^{END}{UP}{UP}{UP}{UP}{UP}{END}{ENTER}
         str = "c4.Test()"
         If True Then
             Dim i As Integer = 2
             Console.WriteLine(str)
             If True Then
                 Dim a As c1 = New c1(i)
-                a.foo(i) {ESC}{DOWN}
+                a.goo(i) {ESC}{DOWN}
             Dim d As Double = 1.1
             If True Then
                 Dim sb As SByte = 1
                 Dim a As c1 = New c1(i + (i + i))
-                a.foo(sb)
+                a.goo(sb)
                 If True Then
-                    a.foo(d) {ESC}{DOWN}{DOWN}
+                    a.goo(d) {ESC}{DOWN}{DOWN}
 
             ' Nested scopes
             If True Then
@@ -133,7 +133,7 @@
                 o = f
                 l = ui
                 Dim c As c4 = New c4()
-                c.foo(sh)
+                c.goo(sh)
                 Me.bar(sh)
 				If b = False Then
                     Dim d As Double = f
@@ -152,12 +152,12 @@
                         Dim f1 As Single = 1.2F
                         o = f1
                         l1 = ui1
-                        c.foo(b)
+                        c.goo(b)
                         b11 = l1
                         If Not False Then
                             Dim d1 As Double = f1
                             s1 = s
-                            c.foo(b1) {ESC}{DOWN}
+                            c.goo(b1) {ESC}{DOWN}
 
                         If i <> 1000 Then
                             Dim ui2 As UInteger = 1

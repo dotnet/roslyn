@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestLocalFunction_ContainingMethodParameterReference()
         {
@@ -25,7 +26,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... }')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return x++;')
@@ -37,6 +38,7 @@ ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (O
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestLocalFunction_ContainingMethodParameterReference_ExpressionBodied()
         {
@@ -50,7 +52,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... p1) => x++;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x++')
@@ -62,6 +64,7 @@ ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (O
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestLocalFunction_LocalFunctionParameterReference()
         {
@@ -75,7 +78,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 x)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(int x) => x++;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x++')
@@ -87,6 +90,7 @@ ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 x)) (Op
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestLocalFunction_ContainingLocalFunctionParameterReference()
         {
@@ -105,7 +109,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 y)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... ) => x + y;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x + y')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + y')
@@ -118,6 +122,7 @@ ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 y)) (Op
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestLocalFunction_LocalFunctionReference()
         {
@@ -135,7 +140,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ILocalFunctionStatement (Local Function: System.Int32 Local3(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local3( ... Local2(p1);')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x + Local2(p1)')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + Local2(p1)')
@@ -154,6 +159,7 @@ ILocalFunctionStatement (Local Function: System.Int32 Local3(System.Int32 p1)) (
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestLocalFunction_Recursion()
         {
@@ -166,7 +172,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... al(x + p1);')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> Local(x + p1)')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Local(x + p1)')
@@ -185,6 +191,7 @@ ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (O
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestLocalFunction_Async()
         {
@@ -205,7 +212,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ILocalFunctionStatement (Local Function: System.Threading.Tasks.Task<System.Int32> LocalAsync(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'async Task< ... }')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'await Task.Delay(0);')
@@ -227,6 +234,7 @@ ILocalFunctionStatement (Local Function: System.Threading.Tasks.Task<System.Int3
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestLocalFunction_CaptureForEachVar()
         {
@@ -243,7 +251,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ILocalFunctionStatement (Local Function: System.Int32 Local()) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local() => x;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
@@ -254,6 +262,7 @@ ILocalFunctionStatement (Local Function: System.Int32 Local()) (OperationKind.Lo
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestLocalFunction_UseOfUnusedVar()
         {
@@ -262,14 +271,14 @@ class C
 {
     void M()
     {
-        Foo();
+        F();
         int x = 0;
-        /*<bind>*/void Foo() => x++;/*</bind>*/
+        /*<bind>*/void F() => x++;/*</bind>*/
     }
 }
 ";
-string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: void Foo()) (OperationKind.LocalFunctionStatement) (Syntax: 'void Foo() => x++;')
+            string expectedOperationTree = @"
+ILocalFunctionStatement (Local Function: void F()) (OperationKind.LocalFunctionStatement) (Syntax: 'void F() => x++;')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x++')
       Expression: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
@@ -279,13 +288,14 @@ ILocalFunctionStatement (Local Function: void Foo()) (OperationKind.LocalFunctio
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0165: Use of unassigned local variable 'x'
-                //         Foo();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo()").WithArguments("x").WithLocation(6, 9)
+                //         F();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "F()").WithArguments("x").WithLocation(6, 9)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestLocalFunction_OutVar()
         {
@@ -295,26 +305,26 @@ class C
     void M(int p)
     {
         int x;
-        /*<bind>*/void Foo(out int y) => y = p;/*</bind>*/
-        Foo(out x);
+        /*<bind>*/void F(out int y) => y = p;/*</bind>*/
+        F(out x);
     }
 }
 ";
-string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: void Foo(out System.Int32 y)) (OperationKind.LocalFunctionStatement) (Syntax: 'void Foo(ou ... ) => y = p;')
+            string expectedOperationTree = @"
+ILocalFunctionStatement (Local Function: void F(out System.Int32 y)) (OperationKind.LocalFunctionStatement) (Syntax: 'void F(out  ... ) => y = p;')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '=> y = p')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y = p')
       Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y = p')
           Left: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
           Right: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: '=> y = p')
-      ReturnedValue: null
-";
+      ReturnedValue: null";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestInvalidLocalFunction_MissingBody()
         {
@@ -323,12 +333,12 @@ class C
 {
     void M(int p)
     {
-        /*<bind>*/void Foo(out int y) => ;/*</bind>*/
+        /*<bind>*/void F(out int y) => ;/*</bind>*/
     }
 }
 ";
-string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: void Foo(out System.Int32 y)) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void Foo(out int y) => ;')
+            string expectedOperationTree = @"
+ILocalFunctionStatement (Local Function: void F(out System.Int32 y)) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void F(out int y) => ;')
   IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '=> ')
     IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
       Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
@@ -337,20 +347,21 @@ ILocalFunctionStatement (Local Function: void Foo(out System.Int32 y)) (Operatio
       ReturnedValue: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1525: Invalid expression term ';'
-                //         /*<bind>*/void Foo(out int y) => ;/*</bind>*/
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 42),
-                // CS0177: The out parameter 'y' must be assigned to before control leaves the current method
-                //         /*<bind>*/void Foo(out int y) => ;/*</bind>*/
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "Foo").WithArguments("y").WithLocation(6, 24),
-                // CS8321: The local function 'Foo' is declared but never used
-                //         /*<bind>*/void Foo(out int y) => ;/*</bind>*/
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(6, 24)
+                // file.cs(6,40): error CS1525: Invalid expression term ';'
+                //         /*<bind>*/void F(out int y) => ;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 40),
+                // file.cs(6,24): error CS0177: The out parameter 'y' must be assigned to before control leaves the current method
+                //         /*<bind>*/void F(out int y) => ;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "F").WithArguments("y").WithLocation(6, 24),
+                // file.cs(6,24): warning CS8321: The local function 'F' is declared but never used
+                //         /*<bind>*/void F(out int y) => ;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 24)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestInvalidLocalFunction_MissingParameters()
         {
@@ -359,28 +370,29 @@ class C
 {
     void M(int p)
     {
-        /*<bind>*/void Foo( { }/*</bind>*/;
+        /*<bind>*/void F( { }/*</bind>*/;
     }
 }
 ";
-string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: void Foo()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void Foo( { }')
+            string expectedOperationTree = @"
+ILocalFunctionStatement (Local Function: void F()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void F( { }')
   IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
     IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '{ }')
       ReturnedValue: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1026: ) expected
-                //         /*<bind>*/void Foo( { }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(6, 29),
-                // CS8321: The local function 'Foo' is declared but never used
-                //         /*<bind>*/void Foo( { }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(6, 24)
+                // file.cs(6,27): error CS1026: ) expected
+                //         /*<bind>*/void F( { }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(6, 27),
+                // file.cs(6,24): warning CS8321: The local function 'F' is declared but never used
+                //         /*<bind>*/void F( { }/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 24)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestInvalidLocalFunction_InvalidReturnType()
         {
@@ -389,24 +401,24 @@ class C
 {
     void M(int p)
     {
-        /*<bind>*/X Foo() { }/*</bind>*/;
+        /*<bind>*/X F() { }/*</bind>*/;
     }
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: X Foo()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'X Foo() { }')
+ILocalFunctionStatement (Local Function: X F()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'X F() { }')
   IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0161: 'Foo()': not all code paths return a value
-                //         /*<bind>*/X Foo() { }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "Foo").WithArguments("Foo()").WithLocation(6, 21),
+                // CS0161: 'F()': not all code paths return a value
+                //         /*<bind>*/X F() { }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("F()").WithLocation(6, 21),
                 // CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
-                //         /*<bind>*/X Foo() { }/*</bind>*/;
+                //         /*<bind>*/X F() { }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 19),
-                // CS8321: The local function 'Foo' is declared but never used
-                //         /*<bind>*/X Foo() { }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(6, 21)
+                // CS8321: The local function 'F' is declared but never used
+                //         /*<bind>*/X F() { }/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 21)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);

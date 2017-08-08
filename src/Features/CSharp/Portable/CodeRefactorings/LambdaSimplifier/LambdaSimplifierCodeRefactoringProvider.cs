@@ -220,12 +220,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
         // Ensure that if we replace the invocation with its expression that its expression will
         // bind unambiguously.  This can happen with awesome cases like:
 #if false
-    static void Foo<T>(T x) where T : class { }
+    static void Goo<T>(T x) where T : class { }
     static void Bar(Action<int> x) { }
     static void Bar(Action<string> x) { }
     static void Main()
     {
-        Bar(x => Foo(x)); // error CS0121: The call is ambiguous between the following methods or properties: 'A.Bar(System.Action<int>)' and 'A.Bar(System.Action<string>)'
+        Bar(x => Goo(x)); // error CS0121: The call is ambiguous between the following methods or properties: 'A.Bar(System.Action<int>)' and 'A.Bar(System.Action<string>)'
     }
 #endif
         private static bool WouldCauseAmbiguity(

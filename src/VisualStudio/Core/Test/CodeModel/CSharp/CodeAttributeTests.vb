@@ -157,11 +157,11 @@ class C { }
 <Code>
 using System;
 
-[assembly: $$Foo(0, y: 42, Z = 42)]
+[assembly: $$Goo(0, y: 42, Z = 42)]
 
-class FooAttribute : Attribute
+class GooAttribute : Attribute
 {
-    public FooAttribute(int x, int y = 0) { }
+    public GooAttribute(int x, int y = 0) { }
 
     public int Z { get; set; }
 }
@@ -196,11 +196,11 @@ class FooAttribute : Attribute
 <Code>
 using System;
 
-[assembly: $$Foo(0, y: 42, Z = 42)]
+[assembly: $$Goo(0, y: 42, Z = 42)]
 
-class FooAttribute : Attribute
+class GooAttribute : Attribute
 {
-    public FooAttribute(int x, int y = 0) { }
+    public GooAttribute(int x, int y = 0) { }
 
     public int Z { get; set; }
 }
@@ -235,11 +235,11 @@ class FooAttribute : Attribute
 <Code>
 using System;
 
-[assembly: $$Foo(0, y: 42, Z = 42)]
+[assembly: $$Goo(0, y: 42, Z = 42)]
 
-class FooAttribute : Attribute
+class GooAttribute : Attribute
 {
-    public FooAttribute(int x, int y = 0) { }
+    public GooAttribute(int x, int y = 0) { }
 
     public int Z { get; set; }
 }
@@ -278,11 +278,11 @@ class FooAttribute : Attribute
 <Code>
 using System;
 
-[assembly: $$Foo(0, y: 42, Z = 42)]
+[assembly: $$Goo(0, y: 42, Z = 42)]
 
-class FooAttribute : Attribute
+class GooAttribute : Attribute
 {
-    public FooAttribute(int x, int y = 0) { }
+    public GooAttribute(int x, int y = 0) { }
 
     public int Z { get; set; }
 }
@@ -318,11 +318,11 @@ End Class
 <Code>
 using System;
 
-[assembly: $$Foo(0, y: 42, Z = 42)]
+[assembly: $$Goo(0, y: 42, Z = 42)]
 
-class FooAttribute : Attribute
+class GooAttribute : Attribute
 {
-    public FooAttribute(int x, int y = 0) { }
+    public GooAttribute(int x, int y = 0) { }
 
     public int Z { get; set; }
 }
@@ -358,11 +358,11 @@ End Class
 <Code>
 using System;
 
-[assembly: $$Foo(0, y: 42, Z = 42)]
+[assembly: $$Goo(0, y: 42, Z = 42)]
 
-class FooAttribute : Attribute
+class GooAttribute : Attribute
 {
-    public FooAttribute(int x, int y = 0) { }
+    public GooAttribute(int x, int y = 0) { }
 
     public int Z { get; set; }
 }
@@ -668,7 +668,7 @@ class C
         Public Async Function TestDelete1() As Task
             Dim code =
 <Code>
-[$$Foo]
+[$$Goo]
 class C
 {
 }
@@ -688,7 +688,7 @@ class C
         Public Async Function TestDelete2() As Task
             Dim code =
 <Code>
-[$$Foo, Bar]
+[$$Goo, Bar]
 class C { }
 </Code>
 
@@ -705,14 +705,14 @@ class C { }
         Public Async Function TestDelete3() As Task
             Dim code =
 <Code>
-[Foo]
+[Goo]
 [$$Bar]
 class C { }
 </Code>
 
             Dim expected =
 <Code>
-[Foo]
+[Goo]
 class C { }
 </Code>
 
@@ -723,7 +723,7 @@ class C { }
         Public Async Function TestDelete4() As Task
             Dim code =
 <Code>
-[assembly: $$Foo]
+[assembly: $$Goo]
 </Code>
 
             Dim expected =
@@ -737,7 +737,7 @@ class C { }
         Public Async Function TestDelete5() As Task
             Dim code =
 <Code>
-[assembly: $$Foo, Bar]
+[assembly: $$Goo, Bar]
 </Code>
 
             Dim expected =
@@ -752,13 +752,13 @@ class C { }
         Public Async Function TestDelete6() As Task
             Dim code =
 <Code>
-[assembly: Foo]
+[assembly: Goo]
 [assembly: $$Bar]
 </Code>
 
             Dim expected =
 <Code>
-[assembly: Foo]
+[assembly: Goo]
 </Code>
 
             Await TestDelete(code, expected)
@@ -771,7 +771,7 @@ class C { }
 /// <summary>
 /// Doc comment.
 /// </summary>
-[$$Foo]
+[$$Goo]
 class C { }
 ]]></Code>
 
@@ -790,7 +790,7 @@ class C { }
         Public Async Function TestDelete8() As Task
             Dim code =
 <Code><![CDATA[
-[$$Foo] // Comment comment comment
+[$$Goo] // Comment comment comment
 class C { }
 ]]></Code>
 
@@ -864,7 +864,7 @@ class CAttribute : Attribute { }
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
-[$$Foo]
+[$$Goo]
 class C { }
 </Code>
 

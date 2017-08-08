@@ -191,7 +191,11 @@ var errors = new List<string>();
 void ReportError(string message)
 {
     errors.Add(message);
+    PrintError(message);
+}
 
+void PrintError(string message)
+{
     var color = Console.ForegroundColor;
     Console.ForegroundColor = ConsoleColor.Red;
     Console.Error.WriteLine(message);
@@ -392,7 +396,7 @@ catch
 
 foreach (var error in errors)
 {
-    ReportError(error);
+    PrintError(error);
 }
 
 Environment.Exit(exit);

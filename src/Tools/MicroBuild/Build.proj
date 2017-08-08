@@ -8,7 +8,8 @@
     <ScriptArgs></ScriptArgs>
     <ScriptArgs Condition="'$(Configuration)' == 'Release'">-release</ScriptArgs>
     <ScriptArgs Condition="'$(BUILD_SOURCEBRANCH)' != ''">$(ScriptArgs) -branch $(BUILD_SOURCEBRANCH)</ScriptArgs>
-    <ScriptArgs Condition="'$(RoslynNuGetApiKey)' != ''">$(ScriptArgs) -nugetApiKey $(RoslynNuGetApiKey)</ScriptArgs>
+    <ScriptArgs Condition="'$(RoslynNuGetApiKey)' != ''">$(ScriptArgs) -myGetApiKey $(RoslynNuGetApiKey)</ScriptArgs>
+    <ScriptArgs Condition="'$(RoslynGitHubToken)' != ''">$(ScriptArgs) -gitHubUserName $(RoslynGitHubUserName) -gitHubToken $(RoslynGitHubToken) -gitHubEmail $(RoslynGitHubEmail)</ScriptArgs>
     <ScriptArgs Condition="'$(SkipTest)' != 'true'">$(ScriptArgs) -testDesktop</ScriptArgs>
     <ScriptArgs Condition="'$(SkipPublish)' != 'true'">$(ScriptArgs) -publish</ScriptArgs>
   </PropertyGroup>

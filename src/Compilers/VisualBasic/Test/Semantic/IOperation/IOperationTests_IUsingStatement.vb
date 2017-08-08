@@ -2,12 +2,14 @@
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         <WorkItem(19819, "https://github.com/dotnet/roslyn/issues/19819")>
         Public Sub UsingDeclarationSyntaxNotNull()
@@ -42,6 +44,7 @@ End Module
             Assert.Same(node.UsingStatement, op.Declaration.Syntax)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         <WorkItem(19887, "https://github.com/dotnet/roslyn/issues/19887")>
         Public Sub UsingDeclarationIncompleteUsingNullDeclaration()
@@ -80,6 +83,7 @@ BC30201: Expression expected.
             Assert.Null(op.Declaration)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         <WorkItem(19887, "https://github.com/dotnet/roslyn/issues/19887")>
         Public Sub UsingDeclarationExistingVariableNullDeclaration()

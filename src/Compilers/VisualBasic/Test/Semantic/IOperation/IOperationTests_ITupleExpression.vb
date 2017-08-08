@@ -1,6 +1,7 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -8,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NoConversions()
             Dim source = <![CDATA[
@@ -31,6 +33,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int
             VerifyOperationTreeAndDiagnosticsForTest(Of TupleExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NoConversions_ParentVariableDeclaration()
             Dim source = <![CDATA[
@@ -57,6 +60,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_ImplicitConversions()
             Dim source = <![CDATA[
@@ -68,7 +72,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
   Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
       Elements(2):
@@ -83,6 +87,7 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
             VerifyOperationTreeAndDiagnosticsForTest(Of TupleExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_ImplicitConversions_ParentVariableDeclaration()
             Dim source = <![CDATA[
@@ -94,7 +99,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (U ... r) = (1, 2)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.UInt32, System.UInt32)
@@ -112,6 +117,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_ImplicitConversionFromNull()
             Dim source = <![CDATA[
@@ -123,7 +129,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, Nothing)')
   Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, Nothing)')
       Elements(2):
@@ -138,6 +144,7 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
             VerifyOperationTreeAndDiagnosticsForTest(Of TupleExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_ImplicitConversionFromNull_ParentVariableDeclaration()
             Dim source = <![CDATA[
@@ -149,7 +156,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (U ... 1, Nothing)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.UInt32, System.String)
@@ -167,6 +174,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NamedArguments()
             Dim source = <![CDATA[
@@ -191,6 +199,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (A As System.Int32, B As 
             VerifyOperationTreeAndDiagnosticsForTest(Of TupleExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NamedArguments_ParentVariableDeclaration()
             Dim source = <![CDATA[
@@ -218,6 +227,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NamedElementsInTupleType()
             Dim source = <![CDATA[
@@ -230,7 +240,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (A As System.Int32, B As System.Int32)) (Syntax: '(1, 2)')
   Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
       Elements(2):
@@ -243,6 +253,7 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
             VerifyOperationTreeAndDiagnosticsForTest(Of TupleExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NamedElementsInTupleType_ParentVariableDeclaration()
             Dim source = <![CDATA[
@@ -255,7 +266,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (A ... r) = (1, 2)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int32, B As System.Int32)
@@ -271,6 +282,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NamedElementsAndImplicitConversions()
             Dim source = <![CDATA[
@@ -283,7 +295,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(A:=1, B:=Nothing)')
   Operand: ITupleExpression (OperationKind.TupleExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(A:=1, B:=Nothing)')
       Elements(2):
@@ -298,6 +310,7 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
             VerifyOperationTreeAndDiagnosticsForTest(Of TupleExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_NamedElementsAndImplicitConversions_ParentVariableDeclaration()
             Dim source = <![CDATA[
@@ -310,7 +323,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (A ... B:=Nothing)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int16, B As System.String)
@@ -328,6 +341,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_UserDefinedConversionsForArguments()
             Dim source = <![CDATA[
@@ -356,7 +370,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(New C(0), c1)')
   Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String)) (Syntax: '(New C(0), c1)')
       Elements(2):
@@ -379,6 +393,7 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
             VerifyOperationTreeAndDiagnosticsForTest(Of TupleExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_UserDefinedConversionsForArguments_ParentVariableDeclaration()
             Dim source = <![CDATA[
@@ -407,7 +422,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (A ... w C(0), c1)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int16, B As System.String)
@@ -433,6 +448,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_UserDefinedConversionFromTupleExpression()
             Dim source = <![CDATA[
@@ -457,7 +473,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: C) (Syntax: '(0, Nothing)')
   Operand: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function C.op_Implicit(x As (System.Int32, System.String)) As C) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object)) (Syntax: '(0, Nothing)')
       Operand: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object)) (Syntax: '(0, Nothing)')
@@ -473,6 +489,7 @@ IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.C
             VerifyOperationTreeAndDiagnosticsForTest(Of TupleExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_UserDefinedConversionFromTupleExpression_ParentVariableDeclaration()
             Dim source = <![CDATA[
@@ -497,7 +514,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As C  ... 0, Nothing)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As C
@@ -516,6 +533,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_UserDefinedConversionToTupleType()
             Dim source = <![CDATA[
@@ -540,7 +558,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.ConversionExpression, Type: (System.Int32, System.String)) (Syntax: 'c1')
   Operand: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: Function C.op_Implicit(c As C) As (System.Int32, System.String)) (OperationKind.ConversionExpression, Type: C) (Syntax: 'c1')
       Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
@@ -551,6 +569,7 @@ IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperationKind.C
             VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_UserDefinedConversionToTupleType_ParentVariableDeclaration()
             Dim source = <![CDATA[
@@ -575,7 +594,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (I ... tring) = c1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.Int32, System.String)
@@ -589,6 +608,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_InvalidConversion()
             Dim source = <![CDATA[
@@ -615,7 +635,7 @@ Class C
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String), IsInvalid) (Syntax: '(New C(0), c1)')
   Elements(2):
       IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int16, IsInvalid) (Syntax: 'New C(0)')
@@ -640,6 +660,7 @@ BC30311: Value of type 'C' cannot be converted to 'Short'.
             VerifyOperationTreeAndDiagnosticsForTest(Of TupleExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")>
         Public Sub TupleExpression_InvalidConversion_ParentVariableDeclaration()
             Dim source = <![CDATA[
@@ -668,7 +689,7 @@ End Class
 
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim t As (S ... w C(0), c1)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.Int16, System.String)

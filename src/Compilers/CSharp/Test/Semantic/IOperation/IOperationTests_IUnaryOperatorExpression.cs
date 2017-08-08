@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -8,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17591")]
         public void Test_UnaryOperatorExpression_Type_Plus_System_SByte()
         {
@@ -22,7 +24,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '+i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.SByte, IsInvalid) (Syntax: 'i')
@@ -30,6 +32,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_Byte()
         {
@@ -44,7 +47,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '+i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Byte, IsInvalid) (Syntax: 'i')
@@ -52,6 +55,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_Int16()
         {
@@ -66,7 +70,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '+i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int16, IsInvalid) (Syntax: 'i')
@@ -74,6 +78,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_UInt16()
         {
@@ -88,7 +93,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '+i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt16, IsInvalid) (Syntax: 'i')
@@ -96,6 +101,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_Int32()
         {
@@ -110,13 +116,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_UInt32()
         {
@@ -131,13 +138,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.UInt32) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_Int64()
         {
@@ -152,13 +160,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int64) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_UInt64()
         {
@@ -173,13 +182,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.UInt64) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt64) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_Char()
         {
@@ -194,7 +204,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '+i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Char, IsInvalid) (Syntax: 'i')
@@ -202,6 +212,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_Decimal()
         {
@@ -216,13 +227,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.DecimalPlus) (OperationKind.UnaryOperatorExpression, Type: System.Decimal) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Decimal) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_Single()
         {
@@ -237,13 +249,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryOperatorExpression, Type: System.Single) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Single) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_Double()
         {
@@ -258,13 +271,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryOperatorExpression, Type: System.Double) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_Boolean()
         {
@@ -279,13 +293,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Boolean, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_System_Object()
         {
@@ -300,13 +315,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_SByte()
         {
@@ -321,7 +337,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '-i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.SByte, IsInvalid) (Syntax: 'i')
@@ -329,6 +345,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_Byte()
         {
@@ -343,7 +360,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '-i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Byte, IsInvalid) (Syntax: 'i')
@@ -351,6 +368,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_Int16()
         {
@@ -365,7 +383,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '-i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int16, IsInvalid) (Syntax: 'i')
@@ -373,6 +391,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_UInt16()
         {
@@ -387,7 +406,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '-i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt16, IsInvalid) (Syntax: 'i')
@@ -395,6 +414,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_Int32()
         {
@@ -409,13 +429,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_UInt32()
         {
@@ -430,7 +451,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int64, IsInvalid) (Syntax: '-i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int64, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt32, IsInvalid) (Syntax: 'i')
@@ -438,6 +459,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_Int64()
         {
@@ -452,13 +474,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int64) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_UInt64()
         {
@@ -473,13 +496,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt64, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_Char()
         {
@@ -494,7 +518,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '-i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Char, IsInvalid) (Syntax: 'i')
@@ -502,6 +526,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_Decimal()
         {
@@ -516,13 +541,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.DecimalMinus) (OperationKind.UnaryOperatorExpression, Type: System.Decimal) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Decimal) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_Single()
         {
@@ -537,13 +563,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.UnaryOperatorExpression, Type: System.Single) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Single) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_Double()
         {
@@ -558,13 +585,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.UnaryOperatorExpression, Type: System.Double) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_Boolean()
         {
@@ -579,13 +607,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Boolean, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_System_Object()
         {
@@ -600,13 +629,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_SByte()
         {
@@ -621,7 +651,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '+Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.SByte A.Method()) (OperationKind.InvocationExpression, Type: System.SByte, IsInvalid) (Syntax: 'Method()')
@@ -631,6 +661,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_Byte()
         {
@@ -645,7 +676,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '+Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.Byte A.Method()) (OperationKind.InvocationExpression, Type: System.Byte, IsInvalid) (Syntax: 'Method()')
@@ -655,6 +686,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_Int16()
         {
@@ -669,7 +701,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '+Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.Int16 A.Method()) (OperationKind.InvocationExpression, Type: System.Int16, IsInvalid) (Syntax: 'Method()')
@@ -679,6 +711,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_UInt16()
         {
@@ -693,7 +726,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '+Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.UInt16 A.Method()) (OperationKind.InvocationExpression, Type: System.UInt16, IsInvalid) (Syntax: 'Method()')
@@ -703,6 +736,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_Int32()
         {
@@ -717,7 +751,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '+Method()')
   Operand: IInvocationExpression ( System.Int32 A.Method()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -726,6 +760,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_UInt32()
         {
@@ -740,7 +775,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.UInt32) (Syntax: '+Method()')
   Operand: IInvocationExpression ( System.UInt32 A.Method()) (OperationKind.InvocationExpression, Type: System.UInt32) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -749,6 +784,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_Int64()
         {
@@ -763,7 +799,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int64) (Syntax: '+Method()')
   Operand: IInvocationExpression ( System.Int64 A.Method()) (OperationKind.InvocationExpression, Type: System.Int64) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -772,6 +808,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_UInt64()
         {
@@ -786,7 +823,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.UInt64) (Syntax: '+Method()')
   Operand: IInvocationExpression ( System.UInt64 A.Method()) (OperationKind.InvocationExpression, Type: System.UInt64) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -795,6 +832,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_Char()
         {
@@ -809,7 +847,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '+Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.Char A.Method()) (OperationKind.InvocationExpression, Type: System.Char, IsInvalid) (Syntax: 'Method()')
@@ -819,6 +857,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_Decimal()
         {
@@ -833,7 +872,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.DecimalPlus) (OperationKind.UnaryOperatorExpression, Type: System.Decimal) (Syntax: '+Method()')
   Operand: IInvocationExpression ( System.Decimal A.Method()) (OperationKind.InvocationExpression, Type: System.Decimal) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -842,6 +881,7 @@ IUnaryOperatorExpression (UnaryOperationKind.DecimalPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_Single()
         {
@@ -856,7 +896,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryOperatorExpression, Type: System.Single) (Syntax: '+Method()')
   Operand: IInvocationExpression ( System.Single A.Method()) (OperationKind.InvocationExpression, Type: System.Single) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -865,6 +905,7 @@ IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_Double()
         {
@@ -879,7 +920,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryOperatorExpression, Type: System.Double) (Syntax: '+Method()')
   Operand: IInvocationExpression ( System.Double A.Method()) (OperationKind.InvocationExpression, Type: System.Double) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -888,6 +929,7 @@ IUnaryOperatorExpression (UnaryOperationKind.FloatingPlus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_Boolean()
         {
@@ -902,7 +944,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+Method()')
   Operand: IInvocationExpression ( System.Boolean A.Method()) (OperationKind.InvocationExpression, Type: System.Boolean, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A, IsInvalid) (Syntax: 'Method')
@@ -911,6 +953,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_System_Object()
         {
@@ -925,7 +968,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+Method()')
   Operand: IInvocationExpression ( System.Object A.Method()) (OperationKind.InvocationExpression, Type: System.Object, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A, IsInvalid) (Syntax: 'Method')
@@ -934,6 +977,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_SByte()
         {
@@ -948,7 +992,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '-Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.SByte A.Method()) (OperationKind.InvocationExpression, Type: System.SByte, IsInvalid) (Syntax: 'Method()')
@@ -958,6 +1002,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_Byte()
         {
@@ -972,7 +1017,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '-Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.Byte A.Method()) (OperationKind.InvocationExpression, Type: System.Byte, IsInvalid) (Syntax: 'Method()')
@@ -982,6 +1027,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_Int16()
         {
@@ -996,7 +1042,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '-Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.Int16 A.Method()) (OperationKind.InvocationExpression, Type: System.Int16, IsInvalid) (Syntax: 'Method()')
@@ -1006,6 +1052,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_UInt16()
         {
@@ -1020,7 +1067,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '-Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.UInt16 A.Method()) (OperationKind.InvocationExpression, Type: System.UInt16, IsInvalid) (Syntax: 'Method()')
@@ -1030,6 +1077,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_Int32()
         {
@@ -1044,7 +1092,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-Method()')
   Operand: IInvocationExpression ( System.Int32 A.Method()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1053,6 +1101,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_UInt32()
         {
@@ -1067,7 +1116,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int64, IsInvalid) (Syntax: '-Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int64, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.UInt32 A.Method()) (OperationKind.InvocationExpression, Type: System.UInt32, IsInvalid) (Syntax: 'Method()')
@@ -1077,6 +1126,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_Int64()
         {
@@ -1091,7 +1141,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int64) (Syntax: '-Method()')
   Operand: IInvocationExpression ( System.Int64 A.Method()) (OperationKind.InvocationExpression, Type: System.Int64) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1100,6 +1150,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_UInt64()
         {
@@ -1114,7 +1165,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-Method()')
   Operand: IInvocationExpression ( System.UInt64 A.Method()) (OperationKind.InvocationExpression, Type: System.UInt64, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A, IsInvalid) (Syntax: 'Method')
@@ -1123,6 +1174,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_Char()
         {
@@ -1137,7 +1189,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '-Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.Char A.Method()) (OperationKind.InvocationExpression, Type: System.Char, IsInvalid) (Syntax: 'Method()')
@@ -1147,6 +1199,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_Decimal()
         {
@@ -1161,7 +1214,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.DecimalMinus) (OperationKind.UnaryOperatorExpression, Type: System.Decimal) (Syntax: '-Method()')
   Operand: IInvocationExpression ( System.Decimal A.Method()) (OperationKind.InvocationExpression, Type: System.Decimal) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1170,6 +1223,7 @@ IUnaryOperatorExpression (UnaryOperationKind.DecimalMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_Single()
         {
@@ -1184,7 +1238,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.UnaryOperatorExpression, Type: System.Single) (Syntax: '-Method()')
   Operand: IInvocationExpression ( System.Single A.Method()) (OperationKind.InvocationExpression, Type: System.Single) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1193,6 +1247,7 @@ IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.Unary
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_Double()
         {
@@ -1207,7 +1262,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.UnaryOperatorExpression, Type: System.Double) (Syntax: '-Method()')
   Operand: IInvocationExpression ( System.Double A.Method()) (OperationKind.InvocationExpression, Type: System.Double) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1216,6 +1271,7 @@ IUnaryOperatorExpression (UnaryOperationKind.FloatingMinus) (OperationKind.Unary
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_Boolean()
         {
@@ -1230,7 +1286,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-Method()')
   Operand: IInvocationExpression ( System.Boolean A.Method()) (OperationKind.InvocationExpression, Type: System.Boolean, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A, IsInvalid) (Syntax: 'Method')
@@ -1239,6 +1295,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_System_Object()
         {
@@ -1253,7 +1310,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-Method()')
   Operand: IInvocationExpression ( System.Object A.Method()) (OperationKind.InvocationExpression, Type: System.Object, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A, IsInvalid) (Syntax: 'Method')
@@ -1262,6 +1319,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_LogicalNot_System_Boolean()
         {
@@ -1276,13 +1334,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.BooleanLogicalNot) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: '!i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_LogicalNot_System_Boolean()
         {
@@ -1297,7 +1356,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.BooleanLogicalNot) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: '!Method()')
   Operand: IInvocationExpression ( System.Boolean A.Method()) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1306,6 +1365,7 @@ IUnaryOperatorExpression (UnaryOperationKind.BooleanLogicalNot) (OperationKind.U
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_SByte()
         {
@@ -1320,7 +1380,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '~i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.SByte, IsInvalid) (Syntax: 'i')
@@ -1328,6 +1388,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_Byte()
         {
@@ -1342,7 +1403,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '~i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Byte, IsInvalid) (Syntax: 'i')
@@ -1350,6 +1411,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_Int16()
         {
@@ -1364,7 +1426,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '~i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int16, IsInvalid) (Syntax: 'i')
@@ -1372,6 +1434,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_UInt16()
         {
@@ -1386,7 +1449,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '~i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt16, IsInvalid) (Syntax: 'i')
@@ -1394,6 +1457,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_Int32()
         {
@@ -1408,13 +1472,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '~i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_UInt32()
         {
@@ -1429,13 +1494,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.UInt32) (Syntax: '~i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_Int64()
         {
@@ -1450,13 +1516,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int64) (Syntax: '~i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_UInt64()
         {
@@ -1471,13 +1538,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.UInt64) (Syntax: '~i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt64) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_Char()
         {
@@ -1492,7 +1560,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '~i')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Char, IsInvalid) (Syntax: 'i')
@@ -1500,6 +1568,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_Decimal()
         {
@@ -1514,13 +1583,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Decimal, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_Single()
         {
@@ -1535,13 +1605,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Single, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_Double()
         {
@@ -1556,13 +1627,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_Boolean()
         {
@@ -1577,13 +1649,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Boolean, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_System_Object()
         {
@@ -1598,13 +1671,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_SByte()
         {
@@ -1619,7 +1693,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '~Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.SByte A.Method()) (OperationKind.InvocationExpression, Type: System.SByte, IsInvalid) (Syntax: 'Method()')
@@ -1629,6 +1703,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_Byte()
         {
@@ -1643,7 +1718,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '~Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.Byte A.Method()) (OperationKind.InvocationExpression, Type: System.Byte, IsInvalid) (Syntax: 'Method()')
@@ -1653,6 +1728,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_Int16()
         {
@@ -1667,7 +1743,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '~Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.Int16 A.Method()) (OperationKind.InvocationExpression, Type: System.Int16, IsInvalid) (Syntax: 'Method()')
@@ -1677,6 +1753,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_UInt16()
         {
@@ -1691,7 +1768,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '~Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.UInt16 A.Method()) (OperationKind.InvocationExpression, Type: System.UInt16, IsInvalid) (Syntax: 'Method()')
@@ -1701,6 +1778,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_Int32()
         {
@@ -1715,7 +1793,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '~Method()')
   Operand: IInvocationExpression ( System.Int32 A.Method()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1724,6 +1802,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_UInt32()
         {
@@ -1738,7 +1817,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.UInt32) (Syntax: '~Method()')
   Operand: IInvocationExpression ( System.UInt32 A.Method()) (OperationKind.InvocationExpression, Type: System.UInt32) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1747,6 +1826,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_Int64()
         {
@@ -1761,7 +1841,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int64) (Syntax: '~Method()')
   Operand: IInvocationExpression ( System.Int64 A.Method()) (OperationKind.InvocationExpression, Type: System.Int64) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1770,6 +1850,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_UInt64()
         {
@@ -1784,7 +1865,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.UInt64) (Syntax: '~Method()')
   Operand: IInvocationExpression ( System.UInt64 A.Method()) (OperationKind.InvocationExpression, Type: System.UInt64) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -1793,6 +1874,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_Char()
         {
@@ -1807,7 +1889,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: '~Method()')
   Operand: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Method()')
       Operand: IInvocationExpression ( System.Char A.Method()) (OperationKind.InvocationExpression, Type: System.Char, IsInvalid) (Syntax: 'Method()')
@@ -1817,6 +1899,7 @@ IUnaryOperatorExpression (UnaryOperationKind.IntegerBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_Decimal()
         {
@@ -1831,7 +1914,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~Method()')
   Operand: IInvocationExpression ( System.Decimal A.Method()) (OperationKind.InvocationExpression, Type: System.Decimal, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A, IsInvalid) (Syntax: 'Method')
@@ -1840,6 +1923,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_Single()
         {
@@ -1854,7 +1938,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~Method()')
   Operand: IInvocationExpression ( System.Single A.Method()) (OperationKind.InvocationExpression, Type: System.Single, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A, IsInvalid) (Syntax: 'Method')
@@ -1863,6 +1947,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_Double()
         {
@@ -1877,7 +1962,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~Method()')
   Operand: IInvocationExpression ( System.Double A.Method()) (OperationKind.InvocationExpression, Type: System.Double, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A, IsInvalid) (Syntax: 'Method')
@@ -1886,6 +1971,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_Boolean()
         {
@@ -1900,7 +1986,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~Method()')
   Operand: IInvocationExpression ( System.Boolean A.Method()) (OperationKind.InvocationExpression, Type: System.Boolean, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A, IsInvalid) (Syntax: 'Method')
@@ -1909,6 +1995,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_System_Object()
         {
@@ -1923,7 +2010,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~Method()')
   Operand: IInvocationExpression ( System.Object A.Method()) (OperationKind.InvocationExpression, Type: System.Object, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A, IsInvalid) (Syntax: 'Method')
@@ -1932,6 +2019,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_dynamic()
         {
@@ -1946,13 +2034,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.DynamicPlus) (OperationKind.UnaryOperatorExpression, Type: dynamic) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_dynamic()
         {
@@ -1967,13 +2056,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.DynamicMinus) (OperationKind.UnaryOperatorExpression, Type: dynamic) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_dynamic()
         {
@@ -1988,13 +2078,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.DynamicBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: dynamic) (Syntax: '~i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_LogicalNot_dynamic()
         {
@@ -2009,13 +2100,14 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.DynamicLogicalNot) (OperationKind.UnaryOperatorExpression, Type: dynamic) (Syntax: '!i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_dynamic()
         {
@@ -2030,7 +2122,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.DynamicPlus) (OperationKind.UnaryOperatorExpression, Type: dynamic) (Syntax: '+Method()')
   Operand: IInvocationExpression ( dynamic A.Method()) (OperationKind.InvocationExpression, Type: dynamic) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -2039,6 +2131,7 @@ IUnaryOperatorExpression (UnaryOperationKind.DynamicPlus) (OperationKind.UnaryOp
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_dynamic()
         {
@@ -2053,7 +2146,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.DynamicMinus) (OperationKind.UnaryOperatorExpression, Type: dynamic) (Syntax: '-Method()')
   Operand: IInvocationExpression ( dynamic A.Method()) (OperationKind.InvocationExpression, Type: dynamic) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -2062,6 +2155,7 @@ IUnaryOperatorExpression (UnaryOperationKind.DynamicMinus) (OperationKind.UnaryO
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_dynamic()
         {
@@ -2076,7 +2170,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.DynamicBitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: dynamic) (Syntax: '~Method()')
   Operand: IInvocationExpression ( dynamic A.Method()) (OperationKind.InvocationExpression, Type: dynamic) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -2085,6 +2179,7 @@ IUnaryOperatorExpression (UnaryOperationKind.DynamicBitwiseNegation) (OperationK
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_LogicalNot_dynamic()
         {
@@ -2099,7 +2194,7 @@ class A
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.DynamicLogicalNot) (OperationKind.UnaryOperatorExpression, Type: dynamic) (Syntax: '!Method()')
   Operand: IInvocationExpression ( dynamic A.Method()) (OperationKind.InvocationExpression, Type: dynamic) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -2108,6 +2203,7 @@ IUnaryOperatorExpression (UnaryOperationKind.DynamicLogicalNot) (OperationKind.U
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_Enum()
         {
@@ -2122,13 +2218,14 @@ class A
 }
 enum Enum { A, B }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: Enum, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_Enum()
         {
@@ -2143,13 +2240,14 @@ class A
 }
 enum Enum { A, B }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: Enum, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_Enum()
         {
@@ -2164,13 +2262,14 @@ class A
 }
 enum Enum { A, B }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: Enum) (Syntax: '~i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: Enum) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_Enum()
         {
@@ -2185,7 +2284,7 @@ class A
 }
 enum Enum { A, B }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+Method()')
   Operand: IInvocationExpression ( Enum A.Method()) (OperationKind.InvocationExpression, Type: Enum, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A, IsInvalid) (Syntax: 'Method')
@@ -2194,6 +2293,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_Enum()
         {
@@ -2208,7 +2308,7 @@ class A
 }
 enum Enum { A, B }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-Method()')
   Operand: IInvocationExpression ( Enum A.Method()) (OperationKind.InvocationExpression, Type: Enum, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A, IsInvalid) (Syntax: 'Method')
@@ -2217,6 +2317,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_Enum()
         {
@@ -2231,7 +2332,7 @@ class A
 }
 enum Enum { A, B }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: Enum) (Syntax: '~Method()')
   Operand: IInvocationExpression ( Enum A.Method()) (OperationKind.InvocationExpression, Type: Enum) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -2240,6 +2341,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Plus_CustomType()
         {
@@ -2272,13 +2374,14 @@ public struct CustomType
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodPlus) (OperatorMethod: CustomType CustomType.op_UnaryPlus(CustomType x)) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_Minus_CustomType()
         {
@@ -2311,13 +2414,14 @@ public struct CustomType
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperatorMethod: CustomType CustomType.op_UnaryNegation(CustomType x)) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: '-i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_BitwiseNot_CustomType()
         {
@@ -2350,13 +2454,14 @@ public struct CustomType
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodBitwiseNegation) (OperatorMethod: CustomType CustomType.op_OnesComplement(CustomType x)) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: '~i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Type_LogicalNot_CustomType()
         {
@@ -2389,13 +2494,14 @@ public struct CustomType
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodLogicalNot) (OperatorMethod: CustomType CustomType.op_LogicalNot(CustomType x)) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: '!i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Plus_CustomType()
         {
@@ -2428,7 +2534,7 @@ public struct CustomType
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodPlus) (OperatorMethod: CustomType CustomType.op_UnaryPlus(CustomType x)) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: '+Method()')
   Operand: IInvocationExpression ( CustomType A.Method()) (OperationKind.InvocationExpression, Type: CustomType) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -2437,6 +2543,7 @@ IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodPlus) (OperatorMethod
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_Minus_CustomType()
         {
@@ -2469,7 +2576,7 @@ public struct CustomType
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperatorMethod: CustomType CustomType.op_UnaryNegation(CustomType x)) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: '-Method()')
   Operand: IInvocationExpression ( CustomType A.Method()) (OperationKind.InvocationExpression, Type: CustomType) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -2478,6 +2585,7 @@ IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperatorMetho
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_BitwiseNot_CustomType()
         {
@@ -2510,7 +2618,7 @@ public struct CustomType
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodBitwiseNegation) (OperatorMethod: CustomType CustomType.op_OnesComplement(CustomType x)) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: '~Method()')
   Operand: IInvocationExpression ( CustomType A.Method()) (OperationKind.InvocationExpression, Type: CustomType) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -2519,6 +2627,7 @@ IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodBitwiseNegation) (Ope
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Method_LogicalNot_CustomType()
         {
@@ -2551,7 +2660,7 @@ public struct CustomType
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodLogicalNot) (OperatorMethod: CustomType CustomType.op_LogicalNot(CustomType x)) (OperationKind.UnaryOperatorExpression, Type: CustomType) (Syntax: '!Method()')
   Operand: IInvocationExpression ( CustomType A.Method()) (OperationKind.InvocationExpression, Type: CustomType) (Syntax: 'Method()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'Method')
@@ -2560,6 +2669,7 @@ IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodLogicalNot) (Operator
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(18135, "https://github.com/dotnet/roslyn/issues/18135")]
         [WorkItem(18160, "https://github.com/dotnet/roslyn/issues/18160")]
         public void Test_UnaryOperatorExpression_Type_And_TrueFalse()
@@ -2602,7 +2712,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (x && y) { }')
   Condition: IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodTrue) (OperatorMethod: System.Boolean S.op_True(S x)) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'x && y')
       Operand: IOperation:  (OperationKind.None) (Syntax: 'x && y')
@@ -2615,6 +2725,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (x && y) { }')
             VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(18135, "https://github.com/dotnet/roslyn/issues/18135")]
         [WorkItem(18160, "https://github.com/dotnet/roslyn/issues/18160")]
         public void Test_UnaryOperatorExpression_Type_Or_TrueFalse()
@@ -2657,7 +2768,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (x || y) { }')
   Condition: IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodTrue) (OperatorMethod: System.Boolean S.op_True(S x)) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'x || y')
       Operand: IOperation:  (OperationKind.None) (Syntax: 'x || y')
@@ -2670,6 +2781,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (x || y) { }')
             VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_With_CustomType_NoRightOperator()
         {
@@ -2686,13 +2798,14 @@ public struct CustomType
 {
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_With_CustomType_DerivedTypes()
         {
@@ -2717,7 +2830,7 @@ public class DerivedType : BaseType
 {
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodPlus) (OperatorMethod: BaseType BaseType.op_UnaryPlus(BaseType x)) (OperationKind.UnaryOperatorExpression, Type: BaseType) (Syntax: '+i')
   Operand: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: BaseType) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType) (Syntax: 'i')
@@ -2725,6 +2838,7 @@ IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodPlus) (OperatorMethod
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_With_CustomType_ImplicitConversion()
         {
@@ -2753,13 +2867,14 @@ public class DerivedType
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType, IsInvalid) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_With_CustomType_ExplicitConversion()
         {
@@ -2788,7 +2903,7 @@ public class DerivedType
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType, IsInvalid) (Syntax: 'i')
 ";
@@ -2796,6 +2911,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_With_CustomType_Malformed_Operator()
         {
@@ -2816,7 +2932,7 @@ public class BaseType
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
   Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: BaseType, IsInvalid) (Syntax: 'i')
 ";
@@ -2824,6 +2940,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(18160, "https://github.com/dotnet/roslyn/issues/18160")]
         public void Test_BinaryExpressionSyntax_Type_And_TrueFalse_Condition()
@@ -2864,7 +2981,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'x && y')
   Children(2):
       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'x')
@@ -2873,6 +2990,7 @@ IOperation:  (OperationKind.None) (Syntax: 'x && y')
             VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_IncrementExpression()
         {
@@ -2894,6 +3012,7 @@ IIncrementExpression (UnaryOperandKind.IntegerPrefixIncrement) (OperationKind.In
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_DecrementExpression()
         {
@@ -2914,6 +3033,7 @@ IIncrementExpression (UnaryOperandKind.IntegerPrefixDecrement) (OperationKind.In
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Nullable()
         {
@@ -2926,13 +3046,14 @@ class A
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: System.Int32?) (Syntax: '(int?)1')
   Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             VerifyOperationTreeForTest<CastExpressionSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void Test_UnaryOperatorExpression_Pointer()
         {
@@ -2951,10 +3072,92 @@ class A
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenceExpression, Type: System.Int32) (Syntax: '*p2')
   Pointer: ILocalReferenceExpression: p2 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p2')
 ";
+
+            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void VerifyLiftedUnaryOperators1()
+        {
+            var source = @"
+ class C
+ {
+     void F(int? x)
+     {
+         var y = /*<bind>*/-x/*</bind>*/;
+     }
+ }";
+
+            string expectedOperationTree =
+@"IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus-IsLifted) (OperationKind.UnaryOperatorExpression, Type: System.Int32?) (Syntax: '-x')
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'x')";
+
+            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void VerifyNonLiftedUnaryOperators1()
+        {
+            var source = @"
+class C
+{
+    void F(int x)
+    {
+        var y = /*<bind>*/-x/*</bind>*/;
+    }
+}";
+
+            string expectedOperationTree =
+@"IUnaryOperatorExpression (UnaryOperationKind.IntegerMinus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-x')
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')";
+
+            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void VerifyLiftedUserDefinedUnaryOperators1()
+        {
+            var source = @"
+struct C
+{
+    public static C operator -(C c) { }
+    void F(C? x)
+    {
+        var y = /*<bind>*/-x/*</bind>*/;
+    }
+}";
+
+            string expectedOperationTree =
+@"IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus-IsLifted) (OperatorMethod: C C.op_UnaryNegation(C c)) (OperationKind.UnaryOperatorExpression, Type: C?) (Syntax: '-x')
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C?) (Syntax: 'x')";
+
+            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void VerifyNonLiftedUserDefinedUnaryOperators1()
+        {
+            var source = @"
+struct C
+{
+    public static C operator -(C c) { }
+    void F(C x)
+    {
+        var y = /*<bind>*/-x/*</bind>*/;
+    }
+}";
+
+            string expectedOperationTree =
+@"IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperatorMethod: C C.op_UnaryNegation(C c)) (OperationKind.UnaryOperatorExpression, Type: C) (Syntax: '-x')
+  Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')";
 
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }

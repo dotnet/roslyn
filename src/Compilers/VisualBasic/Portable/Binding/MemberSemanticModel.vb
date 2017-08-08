@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _parentSemanticModelOpt = parentSemanticModelOpt
             _speculatedPosition = speculatedPosition
 
-            _operationFactory = New VisualBasicOperationFactory()
+            _operationFactory = New VisualBasicOperationFactory(Me)
         End Sub
 
         Friend ReadOnly Property RootBinder As Binder
@@ -1951,7 +1951,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' and returns it instead of rebinding it. 
         ''' 
         ''' FOr example, we might have:
-        '''    While x > foo()
+        '''    While x > goo()
         '''      y = y * x
         '''      z = z + y
         '''    End While

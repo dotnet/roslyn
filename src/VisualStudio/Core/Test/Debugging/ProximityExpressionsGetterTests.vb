@@ -199,7 +199,7 @@ End Module</text>.Value, "local", True)
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValidNoTypeSymbol() As Task
-            Await TestIsValidAsync("namespace Namespace$$ { }", "foo", False)
+            Await TestIsValidAsync("namespace Namespace$$ { }", "goo", False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
@@ -282,9 +282,9 @@ Module Program
         dim k = 6
         dim m = 6
         dim n = 6
-        $$Foo(i) : Bar(j)
+        $$Goo(i) : Bar(j)
     End Sub
-End Module</text>.NormalizedValue, "Foo", "i", "n", "Bar", "j")
+End Module</text>.NormalizedValue, "Goo", "i", "n", "Bar", "j")
 
         End Function
 

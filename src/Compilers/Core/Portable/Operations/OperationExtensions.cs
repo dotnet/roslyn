@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
-    public static class OperationExtensions
+    public static partial class OperationExtensions
     {
         /// <summary>
         /// This will check whether context around the operation has any error such as syntax or semantic error
@@ -29,27 +30,52 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public static IEnumerable<IOperation> Descendants(this IOperation operation)
         {
-            if (operation == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<IOperation>();
-            }
-            var list = new List<IOperation>();
-            var collector = new OperationCollector(list);
-            collector.Visit(operation);
-            list.RemoveAt(0);
-            return list;
+            return Descendants(operation, includeSelf: false);
         }
 
         public static IEnumerable<IOperation> DescendantsAndSelf(this IOperation operation)
         {
+            return Descendants(operation, includeSelf: true);
+        }
+
+        private static IEnumerable<IOperation> Descendants(IOperation operation, bool includeSelf)
+        {
             if (operation == null)
             {
-                return SpecializedCollections.EmptyEnumerable<IOperation>();
+                yield break;
             }
-            var list = new List<IOperation>();
-            var collector = new OperationCollector(list);
-            collector.Visit(operation);
-            return list;
+
+            if (includeSelf)
+            {
+                yield return operation;
+            }
+
+            var stack = ArrayBuilder<IEnumerator<IOperation>>.GetInstance();
+            stack.Push(operation.Children.GetEnumerator());
+
+            while (stack.Any())
+            {
+                var iterator = stack.Pop();
+
+                if (!iterator.MoveNext())
+                {
+                    continue;
+                }
+
+                var current = iterator.Current;
+
+                // push current iterator back in to the stack
+                stack.Push(iterator);
+
+                // push children iterator to the stack
+                if (current != null)
+                {
+                    yield return current;
+                    stack.Push(current.Children.GetEnumerator());
+                }
+            }
+
+            stack.Free();
         }
 
         public static IOperation GetRootOperation(this ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
@@ -79,23 +105,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             return arrayBuilder.ToImmutableAndFree();
         }
 
-        private sealed class OperationCollector : OperationWalker
+        /// <summary>
+        /// Deep Clone given IOperation
+        /// </summary>
+        internal static T Clone<T>(this T operation) where T : IOperation
         {
-            private readonly List<IOperation> _list;
-
-            public OperationCollector(List<IOperation> list)
-            {
-                _list = list;
-            }
-
-            public override void Visit(IOperation operation)
-            {
-                if (operation != null)
-                {
-                    _list.Add(operation);
-                }
-                base.Visit(operation);
-            }
+            return Cloner.Instance.Visit(operation);
         }
     }
 

@@ -65,7 +65,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SyntaxKind.ElseIfStatement
                     ' ElseIf without a preceding If.
-                    Debug.Assert(node.ContainsDiagnostics)
+                    '
+                    ' PROTOTYPE(IOperation)
+                    ' re-enable the assert once this issue is fixed
+                    ' https://github.com/dotnet/roslyn/issues/21180
+                    ' Debug.Assert(node.ContainsDiagnostics)
                     Dim condition = BindBooleanExpression(DirectCast(node, ElseIfStatementSyntax).Condition, diagnostics)
                     Return New BoundBadStatement(node, ImmutableArray.Create(Of BoundNode)(condition), hasErrors:=True)
 
@@ -196,27 +200,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '     where only the ones that can appear in a method body have been selected).
                     '
                     '   We simply need to ignore this, the error is already created by the parser.
-                    Debug.Assert(node.ContainsDiagnostics OrElse
-                                 (node.IsMissing AndAlso
-                                  (node.Parent.Kind = SyntaxKind.MultiLineSubLambdaExpression OrElse
-                                   node.Parent.Kind = SyntaxKind.MultiLineFunctionLambdaExpression OrElse
-                                   node.Parent.Kind = SyntaxKind.AddHandlerAccessorBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.RemoveHandlerAccessorBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.RaiseEventAccessorBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.MultiLineIfBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.ElseIfBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.ElseBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.SimpleDoLoopBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.DoWhileLoopBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.DoUntilLoopBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.WhileBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.WithBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.ForBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.ForEachBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.SyncLockBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.SelectBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.TryBlock OrElse
-                                   node.Parent.Kind = SyntaxKind.UsingBlock)))
+                    ' 
+                    ' PROTOTYPE(IOperation)
+                    ' re-enable the assert once this issue is fixed
+                    ' https://github.com/dotnet/roslyn/issues/21180
+                    'Debug.Assert(node.ContainsDiagnostics OrElse
+                    '             (node.IsMissing AndAlso
+                    '              (node.Parent.Kind = SyntaxKind.MultiLineSubLambdaExpression OrElse
+                    '               node.Parent.Kind = SyntaxKind.MultiLineFunctionLambdaExpression OrElse
+                    '               node.Parent.Kind = SyntaxKind.AddHandlerAccessorBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.RemoveHandlerAccessorBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.RaiseEventAccessorBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.MultiLineIfBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.ElseIfBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.ElseBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.SimpleDoLoopBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.DoWhileLoopBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.DoUntilLoopBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.WhileBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.WithBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.ForBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.ForEachBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.SyncLockBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.SelectBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.TryBlock OrElse
+                    '               node.Parent.Kind = SyntaxKind.UsingBlock)))
 
                     Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
 
@@ -264,7 +272,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' not handling here and then throwing ExceptionUtilities.UnexpectedValue in the else case, but
             ' there are just too many statement SyntaxKinds in VB (e.g. declarations, statements corresponding
             ' to blocks handled above, etc).
-            Debug.Assert(node.ContainsDiagnostics)
+            '
+            ' PROTOTYPE(IOperation)
+            ' re-enable the assert once this issue is fixed
+            ' https://github.com/dotnet/roslyn/issues/21180
+            ' Debug.Assert(node.ContainsDiagnostics)
             Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
         End Function
 
@@ -2343,7 +2355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          <Out()> ByRef eventSymbol As EventSymbol) As BoundExpression
 
             ' event must be a simple name that could be qualified and perhaps parenthesized
-            ' Examples:  foo , (foo) , (bar.foo) , baz.moo(of T).goo
+            ' Examples:  goo , (goo) , (bar.goo) , baz.moo(of T).goo
             Dim notParenthesizedSyntax = node
             While notParenthesizedSyntax.Kind = SyntaxKind.ParenthesizedExpression
                 notParenthesizedSyntax = DirectCast(notParenthesizedSyntax, ParenthesizedExpressionSyntax).Expression
@@ -3032,7 +3044,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If Not TypeOf currentBinder Is ForOrForEachBlockBinder Then
                             ' this happens for broken code, e.g.
                             ' for each a in arr1
-                            '   if foo() then
+                            '   if goo() then
                             '     for each b in arr2
                             '     next b, a
                             '   end if

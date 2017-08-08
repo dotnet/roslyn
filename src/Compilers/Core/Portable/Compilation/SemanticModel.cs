@@ -876,5 +876,15 @@ namespace Microsoft.CodeAnalysis
         {
             return declaringSyntax;
         }
+
+        /// <summary>
+        /// Root of this semantic model
+        /// </summary>
+        internal SyntaxNode Root => RootCore;
+
+        /// <summary>
+        /// Root of this semantic model
+        /// </summary>
+        protected abstract SyntaxNode RootCore { get; }
     }
 }

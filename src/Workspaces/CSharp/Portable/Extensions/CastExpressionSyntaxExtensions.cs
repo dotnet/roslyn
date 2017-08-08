@@ -151,15 +151,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //
             // IOW, given the following method...
             //
-            // static void Foo(params object[] x) { }
+            // static void Goo(params object[] x) { }
             //
             // ...we should remove this cast...
             //
-            // Foo((object[])null);
+            // Goo((object[])null);
             //
             // ...but not this cast...
             //
-            // Foo((object)null);
+            // Goo((object)null);
 
             var argument = cast.WalkUpParentheses().Parent as ArgumentSyntax;
             if (argument != null)

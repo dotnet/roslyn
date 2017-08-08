@@ -128,7 +128,7 @@ End Module")
     End Sub
 
     &lt;Obsolete&gt;
-    Sub Foo
+    Sub Goo
     End Sub
 End Module
 </Text>.Value.Replace(vbLf, vbCrLf),
@@ -142,7 +142,7 @@ End Module
     End Function
 
     &lt;Obsolete&gt;
-    Sub Foo
+    Sub Goo
     End Sub
 End Module
 </Text>.Value.Replace(vbLf, vbCrLf),

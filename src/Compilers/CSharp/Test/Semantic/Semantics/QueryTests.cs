@@ -2376,8 +2376,8 @@ class Program
 {
     static int Main()
     {
-        int [] foo = new int [] {1};
-        var q = from x in foo
+        int [] goo = new int [] {1};
+        var q = from x in goo
                 select x + 1 into z
                     select z.T
 ";
