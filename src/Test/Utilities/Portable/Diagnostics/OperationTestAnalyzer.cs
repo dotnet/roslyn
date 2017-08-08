@@ -1950,9 +1950,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var conversion = (IConversionExpression)operationContext.Operation;
-                     if (conversion.ConversionKind == ConversionKind.Invalid)
+                     if (conversion.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                      {
-                         Debug.Assert(conversion.HasErrors(operationContext.Compilation, operationContext.CancellationToken) == true);
                          operationContext.ReportDiagnostic(Diagnostic.Create(InvalidConversionExpressionDescriptor, conversion.Syntax.GetLocation()));
                      }
                  },

@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -37,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var syntax = operation.Syntax;
                 var type = operation.Type;
                 var constantValue = operation.ConstantValue;
+                var language = operation.Language;
             }
             base.Visit(operation);
         }
@@ -343,8 +347,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var converisionKind = operation.ConversionKind;
-            var isExplicit = operation.IsExplicit;
+            var conversion = operation.Conversion;
+            var isExplicitInCode = operation.IsExplicitInCode;
+            var isChecked = operation.IsChecked;
+            var isTryCast = operation.IsTryCast;
+            switch (operation.Language)
+            {
+                case LanguageNames.CSharp:
+                    CSharp.Conversion csharpConversion = CSharp.CSharpExtensions.GetConversion(operation);
+                    break;
+                case LanguageNames.VisualBasic:
+                    VisualBasic.Conversion visualBasicConversion = VisualBasic.VisualBasicExtensions.GetConversion(operation);
+                    break;
+                default:
+                    Debug.Fail($"Language {operation.Language} is unknown!");
+                    break;
+            }
 
             base.VisitConversionExpression(operation);
         }

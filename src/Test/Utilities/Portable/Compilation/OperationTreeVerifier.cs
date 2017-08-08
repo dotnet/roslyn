@@ -177,6 +177,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($"{header}: {valueStr}");
         }
 
+        private void LogConversion(CommonConversion conversion, string header = "Conversion")
+        {
+            var exists = FormatBoolProperty(nameof(conversion.Exists), conversion.Exists);
+            var isIdentity = FormatBoolProperty(nameof(conversion.IsIdentity), conversion.IsIdentity);
+            var isNumeric = FormatBoolProperty(nameof(conversion.IsNumeric), conversion.IsNumeric);
+            var isReference = FormatBoolProperty(nameof(conversion.IsReference), conversion.IsReference);
+            var isUserDefined = FormatBoolProperty(nameof(conversion.IsUserDefined), conversion.IsUserDefined);
+
+            LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}) (");
+            LogSymbol(conversion.MethodSymbol, nameof(conversion.MethodSymbol));
+            LogString(")");
+        }
+
         private void LogSymbol(ISymbol symbol, string header, bool logDisplayString = true)
         {
             if (!string.IsNullOrEmpty(header))
@@ -193,6 +206,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var typeStr = type != null ? type.ToTestDisplayString() : "null";
             LogString($"{header}: {typeStr}");
         }
+
+        private static string FormatBoolProperty(string propertyName, bool value) => $"{propertyName}: {(value ? "True" : "False")}";
 
         #endregion
 
@@ -809,12 +824,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IConversionExpression));
 
-            var kindStr = $"{nameof(ConversionKind)}.{operation.ConversionKind}";
-            var isExplicitStr = operation.IsExplicit ? "Explicit" : "Implicit";
-            LogString($" ({kindStr}, {isExplicitStr})");
+            var isExplicitStr = operation.IsExplicitInCode ? "Explicit" : "Implicit";
+            var isTryCast = $"TryCast: {(operation.IsTryCast ? "True" : "False")}";
+            var isChecked = operation.IsChecked ? "Checked" : "Unchecked";
+            LogString($" ({isExplicitStr}, {isTryCast}, {isChecked})");
 
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
+            Indent();
+            LogConversion(operation.Conversion);
+            Unindent();
+            LogNewLine();
 
             Visit(operation.Operand, "Operand");
         }
@@ -1127,7 +1147,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         {
             LogString(nameof(IDefaultValueExpression));
-            LogCommonPropertiesAndNewLine(operation);            
+            LogCommonPropertiesAndNewLine(operation);
         }
 
         public override void VisitTypeParameterObjectCreationExpression(ITypeParameterObjectCreationExpression operation)

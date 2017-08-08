@@ -9854,6 +9854,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} is not a valid C# conversion expression.
+        /// </summary>
+        internal static string IConversionExpressionIsNotCSharpConversion {
+            get {
+                return ResourceManager.GetString("IConversionExpressionIsNotCSharpConversion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous method.
         /// </summary>
         internal static string IDS_AnonMethod {

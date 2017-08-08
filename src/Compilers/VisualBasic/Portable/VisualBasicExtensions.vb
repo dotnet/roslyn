@@ -7,6 +7,7 @@ Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -1357,6 +1358,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return vbmodel.GetConversion(expression, cancellationToken)
             Else
                 Return Nothing
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information from an <see cref="IConversionExpression"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="conversionExpression">The conversion expression to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/>.</returns>
+        ''' <exception cref="InvalidCastException">If the <see cref="IConversionExpression"/> was not created from Visual Basic code.</exception>
+        <Extension>
+        Public Function GetConversion(conversionExpression As IConversionExpression) As Conversion
+            Dim basicConversionExpression = TryCast(conversionExpression, BaseVisualBasicConversionExpression)
+            If basicConversionExpression IsNot Nothing Then
+                Return basicConversionExpression.ConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
+                                                          NameOf(IConversionExpression)),
+                                            NameOf(conversionExpression))
             End If
         End Function
 

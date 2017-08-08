@@ -655,28 +655,29 @@ namespace Microsoft.CodeAnalysis.Semantics
             else
             {
                 Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
-
-                bool isExplicit = boundConversion.ExplicitCastInCode;
-                bool usesOperatorMethod = boundConversion.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || boundConversion.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined;
-                IMethodSymbol operatorMethod = boundConversion.SymbolOpt;
                 SyntaxNode syntax = boundConversion.Syntax;
+                Conversion conversion = _semanticModel.GetConversion(syntax);
+                bool isExplicit = boundConversion.ExplicitCastInCode;
+                bool isTryCast = false;
+                // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
+                bool isChecked = conversion.IsNumeric && boundConversion.Checked;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+                return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue);
             }
         }
 
         private IConversionExpression CreateBoundAsOperatorOperation(BoundAsOperator boundAsOperator)
         {
             Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundAsOperator.Operand));
-            ConversionKind conversionKind = Semantics.ConversionKind.TryCast;
-            bool isExplicit = true;
-            bool usesOperatorMethod = false;
-            IMethodSymbol operatorMethod = null;
             SyntaxNode syntax = boundAsOperator.Syntax;
+            Conversion conversion = _semanticModel.GetConversion(syntax);
+            bool isExplicit = true;
+            bool isTryCast = true;
+            bool isChecked = false;
             ITypeSymbol type = boundAsOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAsOperator.ConstantValue);
-            return new LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+            return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue);
         }
 
         private IIsTypeExpression CreateBoundIsOperatorOperation(BoundIsOperator boundIsOperator)
