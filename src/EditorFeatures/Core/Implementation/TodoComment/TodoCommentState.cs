@@ -1,56 +1,127 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.SolutionCrawler.State;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 {
     internal partial class TodoCommentIncrementalAnalyzer : IIncrementalAnalyzer
     {
-        private class TodoCommentState : AbstractDocumentAnalyzerState<Data>
+        private class TodoCommentState
         {
-            private const string FormatVersion = "1";
+            private readonly ConcurrentDictionary<DocumentId, CacheEntry> _dataCache = new ConcurrentDictionary<DocumentId, CacheEntry>(concurrencyLevel: 2, capacity: 10);
 
-            protected override string StateName => "<TodoComments>";
+            public ImmutableArray<DocumentId> GetDocumentIds()
+            {
+                return _dataCache.Keys.ToImmutableArrayOrEmpty();
+            }
 
-            protected override int GetCount(Data data)
+            public ImmutableArray<TodoItem> GetItems_TestingOnly(DocumentId documentId)
+            {
+                if (this._dataCache.TryGetValue(documentId, out var entry) && entry.HasCachedData)
+                {
+                    return entry.Data.Items;
+                }
+
+                return ImmutableArray<TodoItem>.Empty;
+            }
+
+            public async Task<Data> TryGetExistingDataAsync(Document document, CancellationToken cancellationToken)
+            {
+                if (!_dataCache.TryGetValue(document.Id, out var entry))
+                {
+                    // we don't have data
+                    return default;
+                }
+
+                // we have in memory cache for the document
+                if (entry.HasCachedData)
+                {
+                    return entry.Data;
+                }
+
+                try
+                {
+                    var storage = entry.Storage;
+                    if (storage == null)
+                    {
+                        return default;
+                    }
+
+                    using (var stream = await storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        return TryGetExistingData(stream, document, cancellationToken);
+                    }
+                }
+                catch (Exception e) when (IOUtilities.IsNormalIOException(e))
+                {
+                }
+
+                return default;
+            }
+
+            public async Task PersistAsync(Document document, Data data, CancellationToken cancellationToken)
+            {
+                var id = document.Id;
+
+                // get existing one if there is one
+                CacheEntry existing;
+                _dataCache.TryGetValue(id, out existing);
+
+                // save data
+                var storage = await WriteToStreamAsync(document, data, cancellationToken).ConfigureAwait(false);
+
+                // if data is for opened document or if persistence failed, 
+                // we keep small cache so that we don't pay cost of deserialize/serializing data that keep changing
+                _dataCache[id] = (storage == null || ShouldCache(document)) ? new CacheEntry(data, storage, GetCount(data)) : new CacheEntry(storage, GetCount(data));
+
+                // let old one go
+                existing.Storage?.Dispose();
+            }
+
+            private bool ShouldCache(Document value)
+            {
+                return value.IsOpen();
+            }
+
+            private int GetCount(Data data)
             {
                 return data.Items.Length;
             }
 
-            protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
+            private Data TryGetExistingData(Stream stream, Document document, CancellationToken cancellationToken)
             {
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
-                    if (reader != null)
+                    if (reader == null)
                     {
-                        var format = reader.ReadString();
-                        if (string.Equals(format, FormatVersion))
-                        {
-                            var textVersion = VersionStamp.ReadFrom(reader);
-                            var dataVersion = VersionStamp.ReadFrom(reader);
-
-                            var list = ArrayBuilder<TodoItem>.GetInstance();
-                            AppendItems(reader, value, list, cancellationToken);
-
-                            return new Data(textVersion, dataVersion, list.ToImmutableAndFree());
-                        }
+                        return null;
                     }
-                }
 
-                return null;
+                    var textVersion = VersionStamp.ReadFrom(reader);
+                    var dataVersion = VersionStamp.ReadFrom(reader);
+
+                    var list = ArrayBuilder<TodoItem>.GetInstance();
+                    AppendItems(reader, document, list, cancellationToken);
+
+                    return new Data(textVersion, dataVersion, list.ToImmutableAndFree());
+                }
             }
 
-            protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
+            private void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
             {
                 using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                 {
-                    writer.WriteString(FormatVersion);
                     data.TextVersion.WriteTo(writer);
                     data.SyntaxVersion.WriteTo(writer);
 
@@ -72,21 +143,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                         writer.WriteInt32(item.MappedColumn);
                     }
                 }
-            }
-
-            public ImmutableArray<DocumentId> GetDocumentIds()
-            {
-                return DataCache.Keys.ToImmutableArrayOrEmpty();
-            }
-
-            public ImmutableArray<TodoItem> GetItems_TestingOnly(DocumentId documentId)
-            {
-                if (this.DataCache.TryGetValue(documentId, out var entry) && entry.HasCachedData)
-                {
-                    return entry.Data.Items;
-                }
-
-                return ImmutableArray<TodoItem>.Empty;
             }
 
             private void AppendItems(ObjectReader reader, Document document, ArrayBuilder<TodoItem> list, CancellationToken cancellationToken)
@@ -112,6 +168,57 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                         document.Project.Solution.Workspace, document.Id,
                         mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile));
                 }
+            }
+
+            public bool Remove(DocumentId id)
+            {
+                if (this._dataCache.TryRemove(id, out var entry))
+                {
+                    // let temp storage go away when item is removed.
+                    entry.Storage?.Dispose();
+                    return true;
+                }
+
+                return false;
+            }
+
+            private async Task<ITemporaryStreamStorage> WriteToStreamAsync(Document document, Data data, CancellationToken cancellationToken)
+            {
+                using (var stream = SerializableBytes.CreateWritableStream())
+                {
+                    WriteTo(stream, data, cancellationToken);
+                    stream.Position = 0;
+
+                    var storageService = document.Project.Solution.Workspace.Services.GetService<ITemporaryStorageService>();
+
+                    var storage = storageService.CreateTemporaryStreamStorage(cancellationToken);
+                    await storage.WriteStreamAsync(stream, cancellationToken).ConfigureAwait(false);
+
+                    return storage;
+                }
+            }
+
+            private struct CacheEntry
+            {
+                public readonly Data Data;
+                public readonly int Count;
+                public readonly ITemporaryStreamStorage Storage;
+
+                public CacheEntry(Data data, ITemporaryStreamStorage storage, int count)
+                {
+                    Data = data;
+                    Storage = storage;
+                    Count = count;
+                }
+
+                public CacheEntry(ITemporaryStreamStorage storage, int count)
+                {
+                    Data = default;
+                    Storage = storage;
+                    Count = count;
+                }
+
+                public bool HasCachedData => !object.Equals(Data, default);
             }
         }
     }
