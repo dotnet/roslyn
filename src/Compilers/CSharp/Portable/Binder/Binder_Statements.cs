@@ -950,10 +950,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (localSymbol.RefKind != RefKind.None && initializerOpt != null)
             {
                 var ignoredDiagnostics = DiagnosticBag.GetInstance();
-                if (this.CheckRefEscape(initializerOpt.Syntax, initializerOpt, ExternalScope, checkingReceiver: false, diagnostics: ignoredDiagnostics))
+
+                //TODO: VS current scope
+                if (this.GetRefEscape(initializerOpt, TopLevelScope) == ExternalScope)
                 {
                     localSymbol.SetReturnable();
                 }
+
                 ignoredDiagnostics.Free();
             }
 
