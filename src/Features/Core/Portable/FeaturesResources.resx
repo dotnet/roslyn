@@ -1295,4 +1295,7 @@ This version used in: {2}</value>
   <data name="Generate_constructor_in_0_without_fields" xml:space="preserve">
     <value>Generate constructor in '{0}' (without fields)</value>
   </data>
+  <data name="Add_file_banner" xml:space="preserve">
+    <value>Add file banner</value>
+  </data>
 </root>
