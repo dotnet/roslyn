@@ -16,13 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public void HandleError(object sender, Exception exception)
         {
-            if (exception is ArgumentOutOfRangeException && ((ArgumentOutOfRangeException)exception).ParamName == "span")
-            {
-                // TODO: this is known bug 655591, fixed by Jack in changeset 931906
-                // Remove this workaround once the fix reaches the DP branch and we all move over.
-                return;
-            }
-
             _exceptions.Add(exception);
         }
 
