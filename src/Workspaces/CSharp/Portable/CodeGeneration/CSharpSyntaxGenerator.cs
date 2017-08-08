@@ -475,6 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // C# interface implementations are implicit/not-specified -- so they are just named the name as the interface member
             return PreserveTrivia(declaration, d =>
             {
+                d = WithInterfaceSpecifier(d, null);
                 d = this.AsImplementation(d, Accessibility.Public);
 
                 if (interfaceMemberName != null)
@@ -482,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     d = this.WithName(d, interfaceMemberName);
                 }
 
-                return WithInterfaceSpecifier(d, null);
+                return d;
             });
         }
 
@@ -1408,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private bool CanHaveAccessibility(SyntaxNode declaration)
+        internal override bool CanHaveAccessibility(SyntaxNode declaration)
         {
             switch (declaration.Kind())
             {
@@ -1417,27 +1418,50 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
-                case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.FieldDeclaration:
-                case SyntaxKind.PropertyDeclaration:
-                case SyntaxKind.IndexerDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
-                case SyntaxKind.EventDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                     return true;
+
                 case SyntaxKind.VariableDeclaration:
                 case SyntaxKind.VariableDeclarator:
-                    return this.GetDeclarationKind(declaration) == DeclarationKind.Field;
-                case SyntaxKind.EnumMemberDeclaration:
-                case SyntaxKind.Parameter:
-                case SyntaxKind.LocalDeclarationStatement:
-                case SyntaxKind.DestructorDeclaration:
+                    var declarationKind = this.GetDeclarationKind(declaration);
+                    return declarationKind == DeclarationKind.Field || declarationKind == DeclarationKind.Event;
+
+                case SyntaxKind.ConstructorDeclaration:
+                    // Static constructor can't have accessibility
+                    return !((ConstructorDeclarationSyntax)declaration).Modifiers.Any(SyntaxKind.StaticKeyword);
+
+                case SyntaxKind.PropertyDeclaration:
+                    return ((PropertyDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
+
+                case SyntaxKind.IndexerDeclaration:
+                    return ((IndexerDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
+
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    if (method.ExplicitInterfaceSpecifier != null)
+                    {
+                        // explicit interface methods can't have accessibility.
+                        return false;
+                    }
+
+                    if (method.Modifiers.Any(SyntaxKind.PartialKeyword))
+                    {
+                        // partial methods can't have accessibility modifiers.
+                        return false;
+                    }
+
+                    return true;
+
+                case SyntaxKind.EventDeclaration:
+                    return ((EventDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
+
                 default:
                     return false;
             }
@@ -1457,7 +1481,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode WithAccessibility(SyntaxNode declaration, Accessibility accessibility)
         {
-            if (!this.CanHaveAccessibility(declaration))
+            if (!this.CanHaveAccessibility(declaration) &&
+                accessibility != Accessibility.NotApplicable)
             {
                 return declaration;
             }
@@ -2585,7 +2610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private static BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
+        internal static BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
         {
             switch (declaration.Kind())
             {
@@ -3122,9 +3147,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        #endregion
+#endregion
 
-        #region Remove, Replace, Insert
+#region Remove, Replace, Insert
 
         public override SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode declaration, SyntaxNode newDeclaration)
         {
@@ -3352,7 +3377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.FieldDeclaration:
                     return ((FieldDeclarationSyntax)declaration).Declaration.Variables;
                 case SyntaxKind.EventFieldDeclaration:
-                    return ((FieldDeclarationSyntax)declaration).Declaration.Variables;
+                    return ((EventFieldDeclarationSyntax)declaration).Declaration.Variables;
                 case SyntaxKind.LocalDeclarationStatement:
                     return ((LocalDeclarationStatementSyntax)declaration).Declaration.Variables;
                 case SyntaxKind.VariableDeclaration:
@@ -3461,9 +3486,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override bool IsRegularOrDocComment(SyntaxTrivia trivia)
             => trivia.IsRegularOrDocComment();
 
-        #endregion
+#endregion
 
-        #region Statements and Expressions
+#region Statements and Expressions
 
         public override SyntaxNode AddEventHandler(SyntaxNode @event, SyntaxNode handler)
         {
@@ -4152,6 +4177,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AsArgument)));
 
-        #endregion
+#endregion
     }
 }

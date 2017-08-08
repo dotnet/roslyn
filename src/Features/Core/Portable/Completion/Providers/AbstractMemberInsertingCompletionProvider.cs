@@ -163,9 +163,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 // In order to produce to correct undo stack, completion lets the commit
                 // character enter the buffer. That means we can get ambiguity.
-                // partial class C { partial void foo() }
-                // partial class C { partial foo($$
-                // Committing with the open paren will create a second, ambiguous foo.
+                // partial class C { partial void goo() }
+                // partial class C { partial goo($$
+                // Committing with the open paren will create a second, ambiguous goo.
                 // We'll try to prefer the symbol whose declaration doesn't intersect our position
                 var nonIntersectingMember = resolution.CandidateSymbols.First(s => s.DeclaringSyntaxReferences.Any(d => !d.Span.IntersectsWith(span)));
                 if (nonIntersectingMember != null)
@@ -188,15 +188,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // DevDiv 958235: 
             //
-            // void foo()
+            // void goo()
             // {
             // }
             // override $$
             //
-            // If our text edit includes the trailing trivia of the close brace of foo(),
+            // If our text edit includes the trailing trivia of the close brace of goo(),
             // that token will be reconstructed. The ensuing tree diff will then count
             // the { } as replaced even though we didn't want it to. If the user
-            // has collapsed the outline for foo, that means we'll edit the outlined 
+            // has collapsed the outline for goo, that means we'll edit the outlined 
             // region and weird stuff will happen. Therefore, we'll start with the first
             // token on the line in order to leave the token and its trivia alone.
             var firstToken = insertionRoot.FindToken(line.GetFirstNonWhitespacePosition().Value);

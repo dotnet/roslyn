@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckId);
+            => ImmutableArray.Create(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

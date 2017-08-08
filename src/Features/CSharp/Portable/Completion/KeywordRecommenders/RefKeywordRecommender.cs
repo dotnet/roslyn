@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             // 
-            //  ref Foo(int x, ...
+            //  ref Goo(int x, ...
             // 
             if (context.IsGlobalStatementContext)
             {

@@ -650,6 +650,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         return false;
                     }
 
+                    // Also make sure the range is from the same buffer that this source was created for
+                    Contract.ThrowIfFalse(
+                        range.Snapshot.TextBuffer.Equals(_subjectBuffer),
+                        $"Invalid text buffer passed to {nameof(HasSuggestedActionsAsync)}");
+
                     // Next, before we do any async work, acquire the user's selection, directly grabbing
                     // it from the UI thread if htat's what we're on. That way we don't have any reentrancy
                     // blocking concerns if VS wants to block on this call (for example, if the user 

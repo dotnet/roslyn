@@ -35,7 +35,7 @@ class C
             const string code = @"
 class C
 {
-    {|span1:// Foo
+    {|span1:// Goo
     // Bar|}
     {|hint2:$$public static explicit operator C(byte i){|textspan2:
     {
@@ -43,7 +43,7 @@ class C
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("span1", "// Goo ...", autoCollapse: true),
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }

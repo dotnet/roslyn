@@ -418,7 +418,7 @@ asas
 using System;
 sadasdasd]
 
-[assembly: foo]
+[assembly: goo]
 
 class C
 {
@@ -5902,7 +5902,7 @@ class C
         [Fact]
         public void TestMemberAfterOrderingStart()
         {
-            var text = "class c { void m() { var q = from x in y orderby public int Foo; }";
+            var text = "class c { void m() { var q = from x in y orderby public int Goo; }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -5950,7 +5950,7 @@ class C
         [Fact]
         public void TestMemberAfterOrderingExpression()
         {
-            var text = "class c { void m() { var q = from x in y orderby e public int Foo; }";
+            var text = "class c { void m() { var q = from x in y orderby e public int Goo; }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -5997,7 +5997,7 @@ class C
         [Fact]
         public void TestMemberAfterOrderingExpressionAndComma()
         {
-            var text = "class c { void m() { var q = from x in y orderby e, public int Foo; }";
+            var text = "class c { void m() { var q = from x in y orderby e, public int Goo; }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -6098,7 +6098,7 @@ class C
         {
             var text = @"public class Test
                          {
-                             public void Foo()
+                             public void Goo()
                              {
                                  var x = ((x, this
                              }
@@ -6238,7 +6238,7 @@ class A
         [Fact]
         public void TestNamespaceDeclarationInUsingDirective()
         {
-            var text = @"using namespace Foo";
+            var text = @"using namespace Goo";
             var file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
@@ -6481,12 +6481,12 @@ public class QueryExpressionTest
             var text = @"
 interface I<T>
 {
-    void Foo();
+    void Goo();
 }
  
 class C : I<int>
 {
-    void I<.Foo() { }
+    void I<.Goo() { }
 }
 ";
             var file = this.ParseTree(text);

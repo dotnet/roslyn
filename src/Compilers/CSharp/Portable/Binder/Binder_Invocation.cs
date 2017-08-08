@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (HasApplicableConditionalMethod(resolution.OverloadResolutionResult))
                             {
-                                // warning CS1974: The dynamically dispatched call to method 'Foo' may fail at runtime
+                                // warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime
                                 // because one or more applicable overloads are conditional methods
                                 Error(diagnostics, ErrorCode.WRN_DynamicDispatchToConditionalMethod, syntax, methodGroup.Name);
                             }

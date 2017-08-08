@@ -617,7 +617,7 @@ Imports System
         Public Async Function TestTestHiddenRegion() As Task
             Dim code =
 <File>
-#ExternalSource ("Foo", 1)
+#ExternalSource ("Goo", 1)
     Imports System
 #End ExternalSource
 

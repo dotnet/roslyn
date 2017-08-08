@@ -464,11 +464,11 @@ Option Strict On
 
             Dim changedCode =
 <Code>
-Option Strict Foo
+Option Strict Goo
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Rename("Option Strict Foo"))
+                 Rename("Option Strict Goo"))
         End Function
 
 #End Region
@@ -654,8 +654,8 @@ Imports System.Reflection
         Public Async Function TestFileLevelAttribute_OmitArgument1() As Task
             Dim code =
 <Code>
-&lt;Foo("hello", Baz:=True)&gt;
-Class FooAttribute
+&lt;Goo("hello", Baz:=True)&gt;
+Class GooAttribute
     Inherits Attribute
 
     Sub New(Optional bar As String = Nothing)
@@ -675,8 +675,8 @@ End Class
 
             Dim changedCode =
 <Code>
-&lt;Foo(, Baz:=True)&gt;
-Class FooAttribute
+&lt;Goo(, Baz:=True)&gt;
+Class GooAttribute
     Inherits Attribute
 
     Sub New(Optional bar As String = Nothing)
@@ -696,7 +696,7 @@ End Class
 
             Await TestAsync(code, changedCode,
                  Change(CodeModelEventType.Rename Or CodeModelEventType.Unknown, ""),
-                 ArgChange("Foo"))
+                 ArgChange("Goo"))
         End Function
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
@@ -749,17 +749,17 @@ Imports System.Reflection
         Public Async Function TestFileLevelAttribute_ChangeArgument2() As Task
             Dim code =
 <Code>
-&lt;Assembly: Foo("")&gt;
+&lt;Assembly: Goo("")&gt;
 </Code>
 
             Dim changedCode =
 <Code>
-&lt;Assembly: Foo(0)&gt;
+&lt;Assembly: Goo(0)&gt;
 </Code>
 
             Await TestAsync(code, changedCode,
                  Unknown(""),
-                 ArgChange("Foo"))
+                 ArgChange("Goo"))
         End Function
 
 #End Region
@@ -1177,19 +1177,19 @@ End Class
 
             Dim changedCode =
 <Code>
-Enum Foo
+Enum Goo
 End Enum
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Add("Foo"))
+                 Add("Goo"))
         End Function
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestEnum_Rename1() As Task
             Dim code =
 <Code>
-Enum Foo
+Enum Goo
 End Enum
 </Code>
 
@@ -1413,7 +1413,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Dim foo As Integer
+    Dim goo As Integer
 End Class
 </Code>
 
@@ -1421,12 +1421,12 @@ End Class
 <Code>
 Class C
     &lt;System.CLSCompliant(True)&gt;
-    Dim foo As Integer
+    Dim goo As Integer
 End Class
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Add("System.CLSCompliant", "foo"))
+                 Add("System.CLSCompliant", "goo"))
         End Function
 
         <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
@@ -1435,7 +1435,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Dim foo, bar As Integer
+    Dim goo, bar As Integer
 End Class
 </Code>
 
@@ -1443,12 +1443,12 @@ End Class
 <Code>
 Class C
     &lt;System.CLSCompliant(True)&gt;
-    Dim foo, bar As Integer
+    Dim goo, bar As Integer
 End Class
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Add("System.CLSCompliant", "foo"),
+                 Add("System.CLSCompliant", "goo"),
                  Add("System.CLSCompliant", "bar"))
         End Function
 
@@ -1459,19 +1459,19 @@ End Class
 <Code>
 Class C
     &lt;System.CLSCompliant(True)&gt;
-    Dim foo As Integer
+    Dim goo As Integer
 End Class
 </Code>
 
             Dim changedCode =
 <Code>
 Class C
-    Dim foo As Integer
+    Dim goo As Integer
 End Class
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Remove("System.CLSCompliant", "foo"))
+                 Remove("System.CLSCompliant", "goo"))
         End Function
 
         <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
@@ -1481,19 +1481,19 @@ End Class
 <Code>
 Class C
     &lt;System.CLSCompliant(True)&gt;
-    Dim foo, bar As Integer
+    Dim goo, bar As Integer
 End Class
 </Code>
 
             Dim changedCode =
 <Code>
 Class C
-    Dim foo, bar As Integer
+    Dim goo, bar As Integer
 End Class
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Remove("System.CLSCompliant", "foo"),
+                 Remove("System.CLSCompliant", "goo"),
                  Remove("System.CLSCompliant", "bar"))
         End Function
 
@@ -1504,7 +1504,7 @@ End Class
 <Code>
 Class C
     &lt;System.CLSCompliant(True)&gt;
-    Dim foo As Integer
+    Dim goo As Integer
 End Class
 </Code>
 
@@ -1512,7 +1512,7 @@ End Class
 <Code>
 Class C
     &lt;System.CLSCompliant(False)&gt;
-    Dim foo As Integer
+    Dim goo As Integer
 End Class
 </Code>
 
@@ -1531,7 +1531,7 @@ End Class
 <Code>
 Class C
     &lt;System.CLSCompliant(False)&gt;
-    Dim foo, bar As Integer
+    Dim goo, bar As Integer
 End Class
 </Code>
 
@@ -1539,7 +1539,7 @@ End Class
 <Code>
 Class C
     &lt;System.CLSCompliant(True)&gt;
-    Dim foo, bar As Integer
+    Dim goo, bar As Integer
 End Class
 </Code>
 
@@ -1547,7 +1547,7 @@ End Class
 
             Await TestAsync(code, changedCode,
                  Unknown(""),
-                 ArgChange("System.CLSCompliant", "foo"),
+                 ArgChange("System.CLSCompliant", "goo"),
                  ArgChange("System.CLSCompliant", "bar"))
         End Function
 
@@ -1558,7 +1558,7 @@ End Class
 <Code>
 Class C
     &lt;System.CLSCompliant(False)&gt;
-    Dim foo, bar As Integer
+    Dim goo, bar As Integer
 End Class
 </Code>
 
@@ -1566,11 +1566,11 @@ End Class
 <Code>
 Class C
     &lt;System.CLSCompliant(False), System.NonSerialized()&gt;
-    Dim foo, bar As Integer
+    Dim goo, bar As Integer
 End Class
 </Code>
             Await TestAsync(code, changedCode,
-                 Add("System.NonSerialized", "foo"),
+                 Add("System.NonSerialized", "goo"),
                  Add("System.NonSerialized", "bar"))
         End Function
 
@@ -1581,18 +1581,18 @@ End Class
 <Code>
 Class C
     &lt;System.CLSCompliant(False), System.NonSerialized()&gt;
-    Dim foo, bar As Integer
+    Dim goo, bar As Integer
 End Class
 </Code>
             Dim changedCode =
 <Code>
 Class C
     &lt;System.CLSCompliant(False)&gt;
-    Dim foo, bar As Integer
+    Dim goo, bar As Integer
 End Class
 </Code>
             Await TestAsync(code, changedCode,
-                 Remove("System.NonSerialized", "foo"),
+                 Remove("System.NonSerialized", "goo"),
                  Remove("System.NonSerialized", "bar"))
         End Function
 
@@ -1928,19 +1928,19 @@ End Class
         Public Async Function TestRenameInterfaceMethod() As Task
             Dim code =
 <Code>
-Interface IFoo
-    Sub Foo()
+Interface IGoo
+    Sub Goo()
     Function Bar() As Integer
 End Interface
 
 Class C
-    Implements IFoo
+    Implements IGoo
 
-    Public Sub Foo() Implements IFoo.Foo
+    Public Sub Goo() Implements IGoo.Goo
         Throw New NotImplementedException()
     End Sub
 
-    Public Function Bar() As Integer Implements IFoo.Bar
+    Public Function Bar() As Integer Implements IGoo.Bar
         Throw New NotImplementedException()
     End Function
 End Class
@@ -1948,19 +1948,19 @@ End Class
 
             Dim changedCode =
 <Code>
-Interface IFoo
-    Sub Foo()
+Interface IGoo
+    Sub Goo()
     Function Baz() As Integer
 End Interface
 
 Class C
-    Implements IFoo
+    Implements IGoo
 
-    Public Sub Foo() Implements IFoo.Foo
+    Public Sub Goo() Implements IGoo.Goo
         Throw New NotImplementedException()
     End Sub
 
-    Public Function Bar() As Integer Implements IFoo.Baz
+    Public Function Bar() As Integer Implements IGoo.Baz
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2002,11 +2002,11 @@ End Class
             Dim code =
 <Code>
 Partial Class SomeClass
-    Partial Private Sub Foo()
+    Partial Private Sub Goo()
 
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
 
     End Sub
 End Class
@@ -2015,11 +2015,11 @@ End Class
             Dim changedCode =
 <Code>
 Partial Class SomeClass
-    Partial Private Sub Foo()
+    Partial Private Sub Goo()
 
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
 
     End Sub
 End Class

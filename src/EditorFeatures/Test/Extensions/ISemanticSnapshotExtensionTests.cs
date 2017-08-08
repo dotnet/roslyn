@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                     static void Main()
                     {
                         $$#pragma warning disable 612
-                        Foo();
+                        Goo();
                         #pragma warning restore 612
                     }
                 }"))

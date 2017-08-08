@@ -950,17 +950,17 @@ class C
         {
             const string cSharpSource = @"
 interface IA {
-    string get_Foo();
+    string get_Goo();
 }
 
 interface IB : IA {
-    int Foo { get; }
+    int Goo { get; }
 }
 
 class Program {
     static void Main() {
         IB x = null;
-        string s = x.get_Foo().ToLower();
+        string s = x.get_Goo().ToLower();
     }
 }
 ";
@@ -973,11 +973,11 @@ class Program {
         {
             const string cSharpSource = @"
 interface IA {
-    string get_Foo();
+    string get_Goo();
 }
 
 interface IB {
-    int Foo { get; }
+    int Goo { get; }
 }
 
 interface IC : IA, IB { }
@@ -985,7 +985,7 @@ interface IC : IA, IB { }
 class Program {
     static void Main() {
         IC x = null;
-        string s = x.get_Foo().ToLower();
+        string s = x.get_Goo().ToLower();
     }
 }
 ";
@@ -998,20 +998,20 @@ class Program {
         {
             const string cSharpSource = @"
 interface I {
-    int Foo { get; }
+    int Goo { get; }
 }
 
 class Program {
     static void Main() {
         I x = null;
-        string s = x.get_Foo();
+        string s = x.get_Goo();
     }
 }
 ";
             CreateStandardCompilation(cSharpSource).VerifyDiagnostics(
-                // (9,22): error CS0571: 'I.Foo.get': cannot explicitly call operator or accessor
-                //         string s = x.get_Foo();
-                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_Foo").WithArguments("I.Foo.get"));
+                // (9,22): error CS0571: 'I.Goo.get': cannot explicitly call operator or accessor
+                //         string s = x.get_Goo();
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_Goo").WithArguments("I.Goo.get"));
         }
 
         [WorkItem(538992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538992")]
@@ -1040,14 +1040,14 @@ class Program
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property instance int32 Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property instance int32 Goo() { .get int32 A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    int x = A.Foo;
+    int x = A.Goo;
   }
 }
 ";
@@ -1059,22 +1059,22 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property instance int32 Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property instance int32 Goo() { .get int32 A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
     A a = null;
-    int x = a.Foo;
+    int x = a.Goo;
   }
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
-                // (5,13): error CS0176: Member 'A.Foo' cannot be accessed with an instance reference; qualify it with a type name instead
-                //     int x = a.Foo;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "a.Foo").WithArguments("A.Foo"));
+                // (5,13): error CS0176: Member 'A.Goo' cannot be accessed with an instance reference; qualify it with a type name instead
+                //     int x = a.Goo;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "a.Goo").WithArguments("A.Goo"));
         }
 
         [WorkItem(527658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527658")]
@@ -1083,21 +1083,21 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property instance int32 pinned Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property instance int32 pinned Goo() { .get int32 A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    object x = A.Foo;
+    object x = A.Goo;
   }
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,18): error CS1546: Property, indexer, or event 'A.Foo' is not supported by the language; try directly calling accessor method 'A.get_Foo()'
-                //     object x = A.Foo;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Foo").WithArguments("A.Foo", "A.get_Foo()"));
+                // (4,18): error CS1546: Property, indexer, or event 'A.Goo' is not supported by the language; try directly calling accessor method 'A.get_Goo()'
+                //     object x = A.Goo;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
         }
 
         [WorkItem(538850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538850")]
@@ -1106,21 +1106,21 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property string Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property string Goo() { .get int32 A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    object x = A.Foo;
+    object x = A.Goo;
   }
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,18): error CS1546: Property, indexer, or event 'A.Foo' is not supported by the language; try directly calling accessor method 'A.get_Foo()'
-                //     object x = A.Foo;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Foo").WithArguments("A.Foo", "A.get_Foo()"));
+                // (4,18): error CS1546: Property, indexer, or event 'A.Goo' is not supported by the language; try directly calling accessor method 'A.get_Goo()'
+                //     object x = A.Goo;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
         }
 
         [WorkItem(527659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527659")]
@@ -1131,29 +1131,29 @@ class B {
 .class public E extends E { }
 
 .class public A {
-  .method public static class E get_Foo() { ldnull throw }
-  .property class E Foo() { .get class E A::get_Foo() }
+  .method public static class E get_Goo() { ldnull throw }
+  .property class E Goo() { .get class E A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    object x = A.Foo;
-    B y = A.Foo; 
+    object x = A.Goo;
+    B y = A.Goo; 
   }
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
     // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
-    //     B y = A.Foo; 
-    Diagnostic(ErrorCode.ERR_ImportedCircularBase, "A.Foo").WithArguments("E", "E"),
+    //     B y = A.Goo; 
+    Diagnostic(ErrorCode.ERR_ImportedCircularBase, "A.Goo").WithArguments("E", "E"),
     // (5,11): error CS0029: Cannot implicitly convert type 'E' to 'B'
-    //     B y = A.Foo; 
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Foo").WithArguments("E", "B")
+    //     B y = A.Goo; 
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Goo").WithArguments("E", "B")
                 );
             // Dev10 errors:
             // error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
-            // error CS0570: 'A.Foo' is not supported by the language
+            // error CS0570: 'A.Goo' is not supported by the language
         }
 
         [WorkItem(527664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527664")]
@@ -1164,14 +1164,14 @@ class B {
 .class public E<T> { }
 
 .class public A {
-  .method public static class E<class E> get_Foo() { ldnull throw }
-  .property class E<class E> Foo() { .get class E<class E> A::get_Foo() }
+  .method public static class E<class E> get_Goo() { ldnull throw }
+  .property class E<class E> Goo() { .get class E<class E> A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    object x = A.Foo;
+    object x = A.Goo;
   }
 }
 ";
@@ -1185,14 +1185,14 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property int32 Foo(...) { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property int32 Goo(...) { .get int32 A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    int x = A.Foo;
+    int x = A.Goo;
   }
 }
 ";
@@ -1204,14 +1204,14 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 modopt(int32) get_Foo() { ldnull throw }
-  .property int32 modopt(int32) Foo() { .get int32 modopt(int32) A::get_Foo() }
+  .method public static int32 modopt(int32) get_Goo() { ldnull throw }
+  .property int32 modopt(int32) Goo() { .get int32 modopt(int32) A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    int x = A.Foo;
+    int x = A.Goo;
   }
 }
 ";
@@ -1226,15 +1226,15 @@ class B {
 .class public E extends class [mscorlib]System.Collections.Generic.List`1<int32> modopt(int8) { }
 
 .class public A  {
-  .method public static class E get_Foo() { ldnull throw }
-  .property class E Foo() { .get class E A::get_Foo() }
+  .method public static class E get_Goo() { ldnull throw }
+  .property class E Goo() { .get class E A::get_Goo() }
 }
 
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    object x = A.Foo;
+    object x = A.Goo;
   }
 }
 ";
@@ -1246,14 +1246,14 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 modopt(int32)[] get_Foo() { ldnull throw }
-  .property int32 modopt(int32)[] Foo() { .get int32 modopt(int32)[] A::get_Foo() }
+  .method public static int32 modopt(int32)[] get_Goo() { ldnull throw }
+  .property int32 modopt(int32)[] Goo() { .get int32 modopt(int32)[] A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    int[] x = A.Foo;
+    int[] x = A.Goo;
   }
 }
 ";
@@ -1265,14 +1265,14 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property int32 modopt(int32) Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property int32 modopt(int32) Goo() { .get int32 A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    int x = A.Foo;
+    int x = A.Goo;
   }
 }
 ";
@@ -1285,14 +1285,14 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 modopt(class [mscorlib]System.IComparable`1) get_Foo() { ldnull throw }
-  .property int32 Foo() { .get int32 modopt(class [mscorlib]System.IComparable`1) A::get_Foo() }
+  .method public static int32 modopt(class [mscorlib]System.IComparable`1) get_Goo() { ldnull throw }
+  .property int32 Goo() { .get int32 modopt(class [mscorlib]System.IComparable`1) A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    int x = A.Foo;
+    int x = A.Goo;
   }
 }
 ";
@@ -1304,14 +1304,14 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 modopt(int32) get_Foo() { ldnull throw }
-  .property int32 Foo() { .get int32 modopt(int32) A::get_Foo() }
+  .method public static int32 modopt(int32) get_Goo() { ldnull throw }
+  .property int32 Goo() { .get int32 modopt(int32) A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    int x = A.Foo;
+    int x = A.Goo;
   }
 }
 ";
@@ -1323,14 +1323,14 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 modopt(int32) get_Foo() { ldnull throw }
-  .property int32 modopt(string) Foo() { .get int32 modopt(int32) A::get_Foo() }
+  .method public static int32 modopt(int32) get_Goo() { ldnull throw }
+  .property int32 modopt(string) Goo() { .get int32 modopt(int32) A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    int x = A.Foo;
+    int x = A.Goo;
   }
 }
 ";
@@ -1343,21 +1343,21 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 modopt(int32) get_Foo() { ldnull throw }
-  .property int32 modopt(int8) modopt(native int modopt(uint8)*[] modopt(void)) Foo() { .get int32 modopt(int32) A::get_Foo() }
+  .method public static int32 modopt(int32) get_Goo() { ldnull throw }
+  .property int32 modopt(int8) modopt(native int modopt(uint8)*[] modopt(void)) Goo() { .get int32 modopt(int32) A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    int x = A.Foo;
+    int x = A.Goo;
   }
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,15): error CS1546: Property, indexer, or event 'A.Foo' is not supported by the language; try directly calling accessor method 'A.get_Foo()'
-                //     int x = A.Foo;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Foo").WithArguments("A.Foo", "A.get_Foo()"));
+                // (4,15): error CS1546: Property, indexer, or event 'A.Goo' is not supported by the language; try directly calling accessor method 'A.get_Goo()'
+                //     int x = A.Goo;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1365,21 +1365,21 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 modopt(int32) get_Foo() { ldnull throw }
-  .property int32 modopt(class [mscorlib]System.IComparable`1<method void*()[]> modreq(bool)) Foo() { .get int32 modopt(int32) A::get_Foo() }
+  .method public static int32 modopt(int32) get_Goo() { ldnull throw }
+  .property int32 modopt(class [mscorlib]System.IComparable`1<method void*()[]> modreq(bool)) Goo() { .get int32 modopt(int32) A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    int x = A.Foo;
+    int x = A.Goo;
   }
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,15): error CS1546: Property, indexer, or event 'A.Foo' is not supported by the language; try directly calling accessor method 'A.get_Foo()'
-                //     int x = A.Foo;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Foo").WithArguments("A.Foo", "A.get_Foo()"));
+                // (4,15): error CS1546: Property, indexer, or event 'A.Goo' is not supported by the language; try directly calling accessor method 'A.get_Goo()'
+                //     int x = A.Goo;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
         }
 
         [WorkItem(538846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538846")]
@@ -1388,21 +1388,21 @@ class B {
         {
             const string ilSource = @"
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property int32 modreq(int8) Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property int32 modreq(int8) Goo() { .get int32 A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    object x = A.Foo;
+    object x = A.Goo;
   }
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,18): error CS1546: Property, indexer, or event 'A.Foo' is not supported by the language; try directly calling accessor method 'A.get_Foo()'
-                //     object x = A.Foo;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Foo").WithArguments("A.Foo", "A.get_Foo()"));
+                // (4,18): error CS1546: Property, indexer, or event 'A.Goo' is not supported by the language; try directly calling accessor method 'A.get_Goo()'
+                //     object x = A.Goo;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
         }
 
         [WorkItem(527662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527662")]
@@ -1413,14 +1413,14 @@ class B {
 .class public E extends class [mscorlib]System.Collections.Generic.List`1<int32 modreq(int8)[]> { }
 
 .class public A {
-  .method public static class E get_Foo() { ldnull throw }
-  .property class E Foo() { .get class E A::get_Foo() }
+  .method public static class E get_Goo() { ldnull throw }
+  .property class E Goo() { .get class E A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    object x = A.Foo;
+    object x = A.Goo;
   }
 }
 ";
@@ -1440,28 +1440,28 @@ class B {
     call instance void class System.Object::.ctor()
     ret
   }
-  .method public static method void*()[] get_Foo()
+  .method public static method void*()[] get_Goo()
   {
     ldnull
     ret
   }
-  .property method void*()[] Foo()
+  .property method void*()[] Goo()
   {
-    .get method void*()[] B::get_Foo()
+    .get method void*()[] B::get_Goo()
   }
 }
 ";
             const string cSharpSource = @"
 class C {
     static void Main() {
-        object foo = B.Foo;
+        object goo = B.Goo;
     }
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,24): error CS1546: Property, indexer, or event 'B.Foo' is not supported by the language; try directly calling accessor method 'B.get_Foo()'
-                //         object foo = B.Foo;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Foo").WithArguments("B.Foo", "B.get_Foo()"));
+                // (4,24): error CS1546: Property, indexer, or event 'B.Goo' is not supported by the language; try directly calling accessor method 'B.get_Goo()'
+                //         object goo = B.Goo;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("B.Goo", "B.get_Goo()"));
         }
 
         [WorkItem(538791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538791")]
@@ -1477,37 +1477,37 @@ class C {
     call instance void class System.Object::.ctor()
     ret
   }
-  .method public static int32 get_Foo()
+  .method public static int32 get_Goo()
   {
     ldnull
     throw
   }
-  .method public static int32[] get_Foo()
+  .method public static int32[] get_Goo()
   {
     ldnull
     throw
   }
-  .property int32 Foo()
+  .property int32 Goo()
   {
-    .get int32 B::get_Foo()
+    .get int32 B::get_Goo()
   }
-  .property int32[] Foo()
+  .property int32[] Goo()
   {
-    .get int32[] B::get_Foo()
+    .get int32[] B::get_Goo()
   }
 }
 ";
             const string cSharpSource = @"
 class C {
     static void Main() {
-        object foo = B.Foo;
+        object goo = B.Goo;
     }
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,24): error CS0229: Ambiguity between 'B.Foo' and 'B.Foo'
-                //         object foo = B.Foo;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "Foo").WithArguments("B.Foo", "B.Foo"));
+                // (4,24): error CS0229: Ambiguity between 'B.Goo' and 'B.Goo'
+                //         object goo = B.Goo;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Goo").WithArguments("B.Goo", "B.Goo"));
         }
 
         [Fact]
@@ -1515,26 +1515,26 @@ class C {
         {
             const string ilSource = @"
 .class public B {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property int32 Foo() { .get int32 B::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property int32 Goo() { .get int32 B::get_Goo() }
 }
 
 .class public A extends B {
-  .method public static void get_Foo() { ldnull throw }
-  .property void Foo() { .get void A::get_Foo() }
+  .method public static void get_Goo() { ldnull throw }
+  .property void Goo() { .get void A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    object x = A.Foo;
+    object x = A.Goo;
   }
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (4,16): error CS0029: Cannot implicitly convert type 'void' to 'object'
-                //     object x = A.Foo;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Foo").WithArguments("void", "object"));
+                //     object x = A.Goo;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Goo").WithArguments("void", "object"));
         }
 
         [WorkItem(527663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527663")]
@@ -1543,25 +1543,25 @@ class B {
         {
             const string ilSource = @"
 .class public A`1<T> {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property int32 Foo() { .get int32 A`1::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property int32 Goo() { .get int32 A`1::get_Goo() }
 }
 
 .class public A<T> {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property int32 Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property int32 Goo() { .get int32 A::get_Goo() }
 }
 ";
             const string cSharpSource = @"
 class B {
   static void Main() {
-    object x = A<int>.Foo;
+    object x = A<int>.Goo;
   }
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (4,16): error CS0104: 'A<>' is an ambiguous reference between 'A<T>' and 'A<T>'
-                //     object x = A<int>.Foo;
+                //     object x = A<int>.Goo;
                 Diagnostic(ErrorCode.ERR_AmbigContext, "A<int>").WithArguments("A<>", "A<T>", "A<T>").WithLocation(4, 16));
         }
 
@@ -1577,20 +1577,20 @@ class B {
     ret
   }
 
-  .property int32 Foo() { }
+  .property int32 Goo() { }
 }
 ";
             const string cSharpSource = @"
 class C {
     static void Main() {
-        object foo = B.Foo;
+        object goo = B.Goo;
     }
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,24): error CS0117: 'B' does not contain a definition for 'Foo'
-                //         object foo = B.Foo;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "Foo").WithArguments("B", "Foo"));
+                // (4,24): error CS0117: 'B' does not contain a definition for 'Goo'
+                //         object goo = B.Goo;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Goo").WithArguments("B", "Goo"));
         }
 
         [WorkItem(538946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538946")]
@@ -1600,7 +1600,7 @@ class C {
             const string text = @"
 interface IA
 {
-    int Foo { get; }
+    int Goo { get; }
 }
  
 interface IB<T> : IA { }
@@ -1612,7 +1612,7 @@ class C
     static void Main()
     {
         IC x = null;
-        int y = x.Foo;
+        int y = x.Goo;
     }
 }
 ";

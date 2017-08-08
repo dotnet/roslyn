@@ -90,8 +90,8 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestMethod()
         {
-            var metadataSource = "public class C { public void Foo() {} }";
-            var symbolName = "C.Foo";
+            var metadataSource = "public class C { public void Goo() {} }";
+            var symbolName = "C.Goo";
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
 #region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -102,7 +102,7 @@ public class C
 {{
     public C();
 
-    public void [|Foo|]();
+    public void [|Goo|]();
 }}");
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
 #Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
@@ -112,7 +112,7 @@ public class C
 Public Class C
     Public Sub New()
 
-    Public Sub [|Foo|]()
+    Public Sub [|Goo|]()
 End Class");
         }
 
@@ -1047,16 +1047,16 @@ End Class";
             var source = @"
 using System;
 
-/// <summary>T:IFoo</summary>
-public interface IFoo
+/// <summary>T:IGoo</summary>
+public interface IGoo
 {
-    /// <summary>P:IFoo.Prop1</summary>
+    /// <summary>P:IGoo.Prop1</summary>
     Uri Prop1 { get; set; }
-    /// <summary>M:IFoo.Method1</summary>
+    /// <summary>M:IGoo.Method1</summary>
     Uri Method1();
 }
 ";
-            var symbolName = "IFoo";
+            var symbolName = "IGoo";
             var expectedCS = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
@@ -1065,17 +1065,17 @@ using System;
 
 //
 // {FeaturesResources.Summary_colon}
-//     T:IFoo
-public interface [|IFoo|]
+//     T:IGoo
+public interface [|IGoo|]
 {{
     //
     // {FeaturesResources.Summary_colon}
-    //     P:IFoo.Prop1
+    //     P:IGoo.Prop1
     Uri Prop1 {{ get; set; }}
 
     //
     // {FeaturesResources.Summary_colon}
-    //     M:IFoo.Method1
+    //     M:IGoo.Method1
     Uri Method1();
 }}
 ";
@@ -1089,16 +1089,16 @@ Imports System
 
 '
 ' {FeaturesResources.Summary_colon}
-'     T:IFoo
-Public Interface [|IFoo|]
+'     T:IGoo
+Public Interface [|IGoo|]
     '
     ' {FeaturesResources.Summary_colon}
-    '     P:IFoo.Prop1
+    '     P:IGoo.Prop1
     Property Prop1 As Uri
 
     '
     ' {FeaturesResources.Summary_colon}
-    '     M:IFoo.Method1
+    '     M:IGoo.Method1
     Function Method1() As Uri
 End Interface
 ";
@@ -1114,7 +1114,7 @@ using System.IO;
 
 public class Test
 {
-    public void foo(FileOptions options = 0) {}
+    public void goo(FileOptions options = 0) {}
 }
 ";
             var symbolName = "Test";
@@ -1127,7 +1127,7 @@ using System.IO;
 public class [|Test|] 
 {{
     public Test(); 
-    public void foo(FileOptions options = FileOptions.None);
+    public void goo(FileOptions options = FileOptions.None);
 }}
 ";
             await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS);
@@ -1139,7 +1139,7 @@ Imports System.IO
 
 Public Class [|Test|] 
     Public Sub New() 
-    Public Sub foo(Optional options As FileOptions = FileOptions.None) 
+    Public Sub goo(Optional options As FileOptions = FileOptions.None) 
 End Class";
             await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB);
         }

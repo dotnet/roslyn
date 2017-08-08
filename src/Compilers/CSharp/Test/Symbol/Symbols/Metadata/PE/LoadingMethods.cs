@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var source = @"
 class Invoke
 {
-    void Foo(MetadataModifiers m)
+    void Goo(MetadataModifiers m)
     {
         m.M00();
         m.M01();

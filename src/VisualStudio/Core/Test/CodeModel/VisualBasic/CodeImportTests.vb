@@ -221,10 +221,10 @@ Imports $$System
         Public Sub TestName1()
             Dim code =
 <Code>
-Imports $$Foo
+Imports $$Goo
 </Code>
 
-            TestName(code, "Foo")
+            TestName(code, "Goo")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -277,10 +277,10 @@ Imports System, S = System.Linq$$
         Public Sub TestNamespace1()
             Dim code =
 <Code>
-Imports $$Foo
+Imports $$Goo
 </Code>
 
-            TestNamespace(code, "Foo")
+            TestNamespace(code, "Goo")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
