@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_SimpleForLoopsTest()
             Dim source = <![CDATA[
@@ -26,7 +27,7 @@ Class C
 End Class
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each s  ... Next')
   Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'arr')
       Operand: ILocalReferenceExpression: arr (OperationKind.LocalReferenceExpression, Type: System.String()) (Syntax: 'arr')
@@ -44,6 +45,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithList()
             Dim source = <![CDATA[
@@ -61,7 +63,7 @@ Class Program
 End Class
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each it ... Next')
   Collection: ILocalReferenceExpression: list (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List(Of System.String)) (Syntax: 'list')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each it ... Next')
@@ -78,6 +80,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithBreak()
             Dim source = <![CDATA[
@@ -98,7 +101,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each y  ... Next')
   Collection: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each y  ... Next')
@@ -122,6 +125,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithContinue()
             Dim source = <![CDATA[
@@ -140,7 +144,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next y, x')
   Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'S')
       Operand: ILocalReferenceExpression: S (OperationKind.LocalReferenceExpression, Type: System.String()) (Syntax: 'S')
@@ -168,6 +172,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Nested()
             Dim source = <![CDATA[
@@ -188,7 +193,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each y  ... Next')
   Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'x')
       Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'x')
@@ -206,6 +211,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Nested1()
             Dim source = <![CDATA[
@@ -222,7 +228,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next')
   Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'S')
       Operand: ILocalReferenceExpression: S (OperationKind.LocalReferenceExpression, Type: System.String()) (Syntax: 'S')
@@ -243,6 +249,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Interface()
             Dim source = <![CDATA[
@@ -268,7 +275,7 @@ Class Enumerable
 End Class
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next')
   Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'New Enumerable()')
       Operand: IObjectCreationExpression (Constructor: Sub Enumerable..ctor()) (OperationKind.ObjectCreationExpression, Type: Enumerable) (Syntax: 'New Enumerable()')
@@ -288,6 +295,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_String()
             Dim source = <![CDATA[
@@ -319,6 +327,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_IterateStruct()
             Dim source = <![CDATA[
@@ -339,7 +348,7 @@ Structure Enumerable
 End Structure
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next')
   Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'New Enumerable()')
       Operand: IObjectCreationExpression (Constructor: Sub Enumerable..ctor()) (OperationKind.ObjectCreationExpression, Type: Enumerable) (Syntax: 'New Enumerable()')
@@ -359,6 +368,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_QueryExpression()
             Dim source = <![CDATA[
@@ -456,6 +466,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
 
 
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Multidimensional()
             Dim source = <![CDATA[
@@ -480,7 +491,7 @@ End Module
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each [C ... Next')
   Collection: ILocalReferenceExpression: k (OperationKind.LocalReferenceExpression, Type: System.Int32(,)) (Syntax: 'k')
   Body: IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'For Each [C ... Next')
@@ -526,6 +537,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_LateBinding()
             Dim source = <![CDATA[
@@ -542,7 +554,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next')
   Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'o')
       Operand: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
@@ -560,6 +572,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Pattern()
             Dim source = <![CDATA[
@@ -610,6 +623,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_lamda()
             Dim source = <![CDATA[
@@ -646,7 +660,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each el ... ambda_local')
   Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'arr')
       Operand: ILocalReferenceExpression: arr (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'arr')
@@ -664,6 +678,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_InvalidConversion()
             Dim source = <![CDATA[
@@ -695,6 +710,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Throw()
             Dim source = <![CDATA[
@@ -714,7 +730,7 @@ Class C
 End Class
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each s  ... Next')
   Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'arr')
       Operand: ILocalReferenceExpression: arr (OperationKind.LocalReferenceExpression, Type: System.String()) (Syntax: 'arr')
@@ -743,6 +759,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithReturn()
             Dim source = <![CDATA[

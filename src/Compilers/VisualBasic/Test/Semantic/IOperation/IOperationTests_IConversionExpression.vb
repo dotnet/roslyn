@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -10,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
 #Region "Widening Conversions"
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningNothingToClass()
             Dim source = <![CDATA[
@@ -20,7 +22,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim s As St ... g = Nothing')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's')
     Variables: Local_1: s As System.String
@@ -34,6 +36,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningNothingToStruct()
             Dim source = <![CDATA[
@@ -44,7 +47,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim s As In ... r = Nothing')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's')
     Variables: Local_1: s As System.Int32
@@ -58,6 +61,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningNumberToNumber()
             Dim source = <![CDATA[
@@ -68,7 +72,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim s As Double = 1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's')
     Variables: Local_1: s As System.Double
@@ -82,6 +86,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningZeroAsEnum()
             Dim source = <![CDATA[
@@ -96,7 +101,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As A = 0')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As Program.A
@@ -110,6 +115,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_NarrowingOneAsEnum()
             Dim source = <![CDATA[
@@ -123,7 +129,7 @@ Module Program
     End Enum
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As A = 1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As Program.A
@@ -136,6 +142,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_NarrowingOneAsEnum_InvalidOptionStrictOn()
             Dim source = <![CDATA[
@@ -151,7 +158,7 @@ Module Program
     End Enum
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As A = 1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As Program.A
@@ -169,6 +176,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Prog
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_NarrowingIntAsEnum()
             Dim source = <![CDATA[
@@ -183,7 +191,7 @@ Module Program
     End Enum
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As A = i')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As Program.A
@@ -197,6 +205,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_NarrowingIntAsEnum_InvalidOptionStrictOn()
             Dim source = <![CDATA[
@@ -213,7 +222,7 @@ Module Program
     End Enum
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As A = i')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As Program.A
@@ -231,6 +240,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Prog
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_InvalidStatement_NoIdentifier()
             Dim source = <![CDATA[
@@ -245,7 +255,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As A =')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As Program.A
@@ -264,6 +274,7 @@ BC30201: Expression expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_InvalidStatement_InvalidIdentifier()
             Dim source = <![CDATA[
@@ -274,7 +285,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Integer = b + c')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Int32
@@ -299,6 +310,7 @@ BC30451: 'c' is not declared. It may be inaccessible due to its protection level
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningEnumToUnderlyingType()
             Dim source = <![CDATA[
@@ -315,7 +327,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i As Integer = A.Two')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
     Variables: Local_1: i As System.Int32
@@ -330,6 +342,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningEnumToUnderlyingTypeConversion()
             Dim source = <![CDATA[
@@ -346,7 +359,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i As Single = A.Two')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
     Variables: Local_1: i As System.Single
@@ -360,6 +373,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_NarrowingEnumToUnderlyingTypeConversion_InvalidOptionStrictConversion()
             Dim source = <![CDATA[
@@ -376,7 +390,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i As Integer = A.Two')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
     Variables: Local_1: i As System.Int32
@@ -394,6 +408,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Program.A' to 'In
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningConstantExpressionNarrowing()
             Dim source = <![CDATA[
@@ -404,7 +419,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i As Single = 1.0')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
     Variables: Local_1: i As System.Single
@@ -418,6 +433,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_NarrowingBooleanConversion()
             Dim source = <![CDATA[
@@ -428,7 +444,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim s As String = b')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's')
     Variables: Local_1: s As System.String
@@ -442,6 +458,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_NarrowingBooleanConversion_InvalidOptionStrictOn()
             Dim source = <![CDATA[
@@ -453,7 +470,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim s As String = b')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's')
     Variables: Local_1: s As System.String
@@ -471,6 +488,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Boolean' to 'Stri
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningClassToBaseClass()
             Dim source = <![CDATA[
@@ -489,7 +507,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim c1 As C1 = c2')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
     Variables: Local_1: c1 As Program.C1
@@ -503,6 +521,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningClassToBaseClass_InvalidNoConversion()
             Dim source = <![CDATA[
@@ -520,7 +539,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim c1 As C1 = c2')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
     Variables: Local_1: c1 As Program.C1
@@ -538,6 +557,7 @@ BC30311: Value of type 'Program.C2' cannot be converted to 'Program.C1'.
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningClassToInterface()
             Dim source = <![CDATA[
@@ -556,7 +576,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 As I1 = c1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As Program.I1
@@ -570,6 +590,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningClassToInterface_InvalidNoImplementation()
             Dim source = <![CDATA[
@@ -587,7 +608,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i1 As I1 = c1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As Program.I1
@@ -605,6 +626,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Program.C1' to 'P
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_NarrowingClassToInterface_OptionStrictOff()
             Dim source = <![CDATA[
@@ -621,7 +643,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 As I1 = c1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As Program.I1
@@ -635,6 +657,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningInterfaceToObject()
             Dim source = <![CDATA[
@@ -663,6 +686,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningVarianceConversion()
             Dim source = <![CDATA[
@@ -682,7 +706,7 @@ Module Program
     End Interface
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1List  ... 1) = i2List')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1List')
     Variables: Local_1: i1List As System.Collections.Generic.IEnumerable(Of Program.I1)
@@ -696,6 +720,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningLambdaToDelegate()
             Dim source = <![CDATA[
@@ -708,7 +733,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... End Sub')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action(Of System.Int32)
@@ -727,6 +752,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningLambdaToDelegate_RelaxationOfArguments()
             Dim source = <![CDATA[
@@ -739,7 +765,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... End Sub')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action(Of System.Int32)
@@ -758,6 +784,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningLambdaToDelegate_RelaxationOfArguments_InvalidConversion()
             Dim source = <![CDATA[
@@ -770,7 +797,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... End Sub')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
@@ -793,6 +820,7 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningLambdaToDelegate_ReturnConversion()
             Dim source = <![CDATA[
@@ -806,7 +834,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Fu ... nd Function')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Func(Of System.Int64)
@@ -828,6 +856,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningLambdaToDelegate_RelaxationOfReturn()
             Dim source = <![CDATA[
@@ -863,6 +892,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningLambdaToDelegate_RelaxationOfReturn_InvalidConversion()
             Dim source = <![CDATA[
@@ -898,6 +928,7 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningMethodGroupToDelegate()
             Dim source = <![CDATA[
@@ -923,6 +954,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningMethodGroupToDelegate_RelaxationArguments()
             Dim source = <![CDATA[
@@ -948,6 +980,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningMethodGroupToDelegate_RelaxationArguments_InvalidConversion()
             Dim source = <![CDATA[
@@ -979,6 +1012,7 @@ BC31143: Method 'Public Sub M2(i As Integer)' does not have a signature compatib
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningMethodGroupToDelegate_RelaxationReturnType()
             Dim source = <![CDATA[
@@ -1006,6 +1040,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningMethodGroupToDelegate_ReturnConversion()
             Dim source = <![CDATA[
@@ -1033,6 +1068,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningMethodGroupToDelegate_RelaxationReturnType_InvalidConversion()
             Dim source = <![CDATA[
@@ -1047,7 +1083,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Fu ... ddressOf M2')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Func(Of System.Int64)
@@ -1064,6 +1100,7 @@ BC31143: Method 'Public Sub M2()' does not have a signature compatible with dele
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_InvalidMethodGroupToDelegateSyntax()
             Dim source = <![CDATA[
@@ -1079,7 +1116,7 @@ Module Program
     End Function
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... = AddressOf')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
@@ -1099,6 +1136,7 @@ BC30201: Expression expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningArrayToSystemArrayConversion()
             Dim source = <![CDATA[
@@ -1110,7 +1148,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ar ... teger(1) {}')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Array
@@ -1130,6 +1168,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningArrayToSystemArrayConversion_MultiDimensionalArray()
             Dim source = <![CDATA[
@@ -1141,7 +1180,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ar ... ger(1)() {}')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Array
@@ -1161,6 +1200,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningArrayToSystemArray_InvalidNotArray()
             Dim source = <![CDATA[
@@ -1172,7 +1212,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ar ...  New Object')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Array
@@ -1191,6 +1231,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Array
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningArrayToArray()
             Dim source = <![CDATA[
@@ -1210,7 +1251,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim c1List  ... () = c2List')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1List')
     Variables: Local_1: c1List As Program.C1()
@@ -1224,6 +1265,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningArrayToArray_InvalidDimensionMismatch()
             Dim source = <![CDATA[
@@ -1243,7 +1285,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim c1List  ... () = c2List')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1List')
     Variables: Local_1: c1List As Program.C1()
@@ -1261,6 +1303,7 @@ BC30332: Value of type 'Program.C2()()' cannot be converted to 'Program.C1()' be
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningArrayToArray_InvalidNoConversion()
             Dim source = <![CDATA[
@@ -1279,7 +1322,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim c1List  ... () = c2List')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1List')
     Variables: Local_1: c1List As Program.C1()
@@ -1297,6 +1340,7 @@ BC30332: Value of type 'Program.C2()' cannot be converted to 'Program.C1()' beca
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningArrayToSystemIEnumerable()
             Dim source = <![CDATA[
@@ -1316,7 +1360,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim c1List  ... 1) = c2List')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1List')
     Variables: Local_1: c1List As System.Collections.Generic.IEnumerable(Of Program.C1)
@@ -1330,6 +1374,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningArrayToSystemIEnumerable_InvalidNoConversion()
             Dim source = <![CDATA[
@@ -1348,7 +1393,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim c1List  ... 1) = c2List')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1List')
     Variables: Local_1: c1List As System.Collections.Generic.IEnumerable(Of Program.C1)
@@ -1366,6 +1411,7 @@ BC36754: 'Program.C2()' cannot be converted to 'IEnumerable(Of Program.C1)' beca
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningStructureToInterface()
             Dim source = <![CDATA[
@@ -1383,7 +1429,7 @@ Module Program
     End Structure
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 As I1 = s1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As Program.I1
@@ -1396,6 +1442,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningStructureToValueType()
             Dim source = <![CDATA[
@@ -1411,7 +1458,7 @@ Module Program
     End Structure
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim v1 As ValueType = s1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v1')
     Variables: Local_1: v1 As System.ValueType
@@ -1424,6 +1471,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningStructureToInterface_InvalidNoConversion()
             Dim source = <![CDATA[
@@ -1442,7 +1490,7 @@ Module Program
     End Structure
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i1 As I1 = s1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As Program.I1
@@ -1459,6 +1507,7 @@ BC30311: Value of type 'Program.S1' cannot be converted to 'Program.I1'.
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningValueToNullableValue()
             Dim source = <![CDATA[
@@ -1469,7 +1518,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i As Integer? = 1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
     Variables: Local_1: i As System.Nullable(Of System.Int32)
@@ -1483,6 +1532,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningNullableValueToNullableValue()
             Dim source = <![CDATA[
@@ -1494,7 +1544,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim l As Long? = i')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'l')
     Variables: Local_1: l As System.Nullable(Of System.Int64)
@@ -1507,6 +1557,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningValueToNullableValue_MultipleConversion()
             Dim source = <![CDATA[
@@ -1517,7 +1568,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim l As Long? = 1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'l')
     Variables: Local_1: l As System.Nullable(Of System.Int64)
@@ -1531,6 +1582,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningNullableValueToImplementedInterface()
             Dim source = <![CDATA[
@@ -1549,7 +1601,7 @@ Module Program
     End Structure
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 As I1 = s1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As Program.I1
@@ -1563,6 +1615,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningCharArrayToString()
             Dim source = <![CDATA[
@@ -1573,7 +1626,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim s1 As S ...  Char(1) {}')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's1')
     Variables: Local_1: s1 As System.String
@@ -1592,6 +1645,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningCharToStringConversion()
             Dim source = <![CDATA[
@@ -1602,7 +1656,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim s1 As String = "a"c')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's1')
     Variables: Local_1: s1 As System.String
@@ -1616,6 +1670,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningTransitiveConversion()
             Dim source = <![CDATA[
@@ -1641,7 +1696,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim c1 As C1 = c3')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
     Variables: Local_1: c1 As Module1.C1
@@ -1655,6 +1710,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningTypeParameterConversion()
             Dim source = <![CDATA[
@@ -1675,7 +1731,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim c1 As C1 = New T')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
     Variables: Local_1: c1 As Module1.C1
@@ -1689,6 +1745,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningTypeParameterConversion_InvalidNoConversion()
             Dim source = <![CDATA[
@@ -1709,7 +1766,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim c1 As C1 = New T')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
     Variables: Local_1: c1 As Module1.C1
@@ -1727,6 +1784,7 @@ BC30311: Value of type 'T' cannot be converted to 'Module1.C1'.
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningTypeParameterConversion_ToInterface()
             Dim source = <![CDATA[
@@ -1747,7 +1805,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 As I1 = New T')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As Module1.I1
@@ -1761,6 +1819,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningTypeParameterToTypeParameterConversion()
             Dim source = <![CDATA[
@@ -1774,7 +1833,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t1 As T = New U')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't1')
     Variables: Local_1: t1 As T
@@ -1788,6 +1847,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningTypeParameterToTypeParameterConversion_InvalidNoConversion()
             Dim source = <![CDATA[
@@ -1801,7 +1861,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim t1 As T = New U')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't1')
     Variables: Local_1: t1 As T
@@ -1819,6 +1879,7 @@ BC30311: Value of type 'U' cannot be converted to 'T'.
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningTypeParameterFromNothing()
             Dim source = <![CDATA[
@@ -1832,7 +1893,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t1 As T = Nothing')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't1')
     Variables: Local_1: t1 As T
@@ -1846,6 +1907,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpressin_Implicit_WideningConstantConversion()
             Dim source = <![CDATA[
@@ -1860,7 +1922,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Const l As Long = i')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'l')
     Variables: Local_1: l As System.Int64
@@ -1878,6 +1940,7 @@ BC42099: Unused local constant: 'l'.
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningConstantExpressionConversion_InvalidConstantTooLarge()
             Dim source = <![CDATA[
@@ -1892,7 +1955,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const s As SByte = i')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's')
     Variables: Local_1: s As System.SByte
@@ -1910,6 +1973,7 @@ BC30439: Constant expression not representable in type 'SByte'.
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningConstantExpressionConversion_InvalidNonConstant()
             Dim source = <![CDATA[
@@ -1924,7 +1988,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const s As SByte = i')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's')
     Variables: Local_1: s As System.SByte
@@ -1953,6 +2017,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'SByt
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningLambdaToExpressionTree()
             Dim source = <![CDATA[
@@ -1967,7 +2032,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim expr As ... um) num < 5')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'expr')
     Variables: Local_1: expr As System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))
@@ -1991,6 +2056,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningLambdaToExpressionTree_InvalidLambda()
             Dim source = <![CDATA[
@@ -2005,7 +2071,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim expr As ... on(num) num')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'expr')
     Variables: Local_1: expr As System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))
@@ -2032,6 +2098,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Bool
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningReturnTypeConversion()
             Dim source = <![CDATA[
@@ -2045,7 +2112,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return i')
   ReturnedValue: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -2057,6 +2124,7 @@ IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return i')
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningReturnTypeConversion_InvalidConversion()
             Dim source = <![CDATA[
@@ -2070,7 +2138,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return i')
   ReturnedValue: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid) (Syntax: 'i')
       Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
@@ -2086,6 +2154,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'SByt
                 additionalOperationTreeVerifier:=AddressOf New ExpectedSymbolVerifier().Verify)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningInterpolatedStringToIFormattable()
             Dim source = <![CDATA[
@@ -2096,7 +2165,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim formatt ... o world!"}"')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'formattable')
     Variables: Local_1: formattable As System.IFormattable
@@ -2114,6 +2183,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningUserConversion()
             Dim source = <![CDATA[
@@ -2130,7 +2200,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim c1 As C1 = i')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
     Variables: Local_1: c1 As Program.C1
@@ -2144,6 +2214,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningUserConversionMultiStepConversion()
             Dim source = <![CDATA[
@@ -2160,7 +2231,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim c1 As C1 = i')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
     Variables: Local_1: c1 As Program.C1
@@ -2174,6 +2245,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningUserConversionImplicitAndExplicitConversion()
             Dim source = <![CDATA[
@@ -2196,7 +2268,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim c2 As C ... 1, Integer)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2')
     Variables: Local_1: c2 As Program.C2

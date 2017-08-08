@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidInvocationExpression_BadReceiver()
         {
@@ -25,7 +26,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvocationExpression ( ? ?.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2()')
   Instance Receiver: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2')
       Children(1):
@@ -41,6 +42,7 @@ IInvocationExpression ( ? ?.()) (OperationKind.InvocationExpression, Type: ?, Is
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidInvocationExpression_OverloadResolutionFailureBadArgument()
         {
@@ -59,7 +61,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvocationExpression ( void Program.F(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F(string.Empty)')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'F')
   Arguments(1):
@@ -78,6 +80,7 @@ IInvocationExpression ( void Program.F(System.Int32 x)) (OperationKind.Invocatio
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8813"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidInvocationExpression_OverloadResolutionFailureExtraArgument()
         {
@@ -109,6 +112,7 @@ IInvocationExpression ( void Program.F()) (OperationKind.InvocationExpression, T
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidFieldReferenceExpression()
         {
@@ -128,7 +132,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var y /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'var y /*<bi ... *</bind>*/;')
     Variables: Local_1: ? y
@@ -145,6 +149,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidConversionExpression_ImplicitCast()
         {
@@ -165,7 +170,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'string y /* ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'string y /* ... *</bind>*/;')
     Variables: Local_1: System.String y
@@ -185,6 +190,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidConversionExpression_ExplicitCast()
         {
@@ -205,7 +211,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Program y / ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Program y / ... *</bind>*/;')
     Variables: Local_1: Program y
@@ -225,6 +231,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18056"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidUnaryExpression()
         {
@@ -258,6 +265,7 @@ IIncrementExpression (UnaryOperandKind.Invalid) (BinaryOperationKind.Invalid) (O
             VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidBinaryExpression()
         {
@@ -277,7 +285,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'x + (y * args.Length)')
   Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
   Right: IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
@@ -295,6 +303,7 @@ IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOpe
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18057"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidLambdaBinding_UnboundLambda()
         {
@@ -331,6 +340,7 @@ IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationSt
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidLambdaBinding_LambdaExpression()
         {
@@ -349,7 +359,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: '() => F()')
   IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'F()')
     IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'F()')
@@ -366,6 +376,7 @@ ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression
             VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedLambdaExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidFieldInitializer()
         {
@@ -379,7 +390,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 Program.x) (OperationKind.FieldInitializer, IsInvalid) (Syntax: '= Program')
   IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
     Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid) (Syntax: 'Program')
@@ -398,6 +409,7 @@ IFieldInitializer (Field: System.Int32 Program.x) (OperationKind.FieldInitialize
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidArrayInitializer()
         {
@@ -410,7 +422,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ { { 1, 1  ...  { 2, 2 } }')
   Element Values(2):
       IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ { 1, 1 } }')
@@ -441,6 +453,7 @@ IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Synt
             VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidArrayCreation()
         {
@@ -453,7 +466,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpression, Type: X[], IsInvalid) (Syntax: 'new X[Program] { { 1 } }')
   Dimension Sizes(1):
       IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid) (Syntax: 'Program')
@@ -484,6 +497,7 @@ IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpressio
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18059"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidParameterDefaultValueInitializer()
         {

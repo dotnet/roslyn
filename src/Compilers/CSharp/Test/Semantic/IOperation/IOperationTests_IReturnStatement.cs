@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void SimpleReturnFromRegularMethod()
         {
@@ -23,7 +24,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return;')
   ReturnedValue: null
 ";
@@ -31,6 +32,7 @@ IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return;')
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ReturnWithValueFromRegularMethod()
         {
@@ -43,7 +45,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return true;')
   ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
 ";
@@ -52,6 +54,7 @@ IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return true;')
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void YieldReturnFromRegularMethod()
         {
@@ -65,7 +68,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return 0;')
   ReturnedValue: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
@@ -74,6 +77,7 @@ IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return 0;'
             VerifyOperationTreeAndDiagnosticsForTest<YieldStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void YieldBreakFromRegularMethod()
         {
@@ -88,7 +92,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IReturnStatement (OperationKind.YieldBreakStatement) (Syntax: 'yield break;')
   ReturnedValue: null
 ";

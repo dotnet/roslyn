@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_TupleExpression()
         {
@@ -39,6 +40,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.I
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_TupleDeconstruction()
         {
@@ -69,7 +71,7 @@ class Class1
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'var (x, y) = point')
   Children(2):
       ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
@@ -84,6 +86,7 @@ IOperation:  (OperationKind.None) (Syntax: 'var (x, y) = point')
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_AnonymousObjectCreation()
         {
@@ -112,13 +115,14 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_QueryExpression()
-{
-    string source = @"
+        public void ParameterReference_QueryExpression()
+        {
+            string source = @"
 using System.Linq;
 using System.Collections.Generic;
 
@@ -137,7 +141,7 @@ class Class1
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'from cust i ... t cust.Name')
   Children(1):
       IOperation:  (OperationKind.None) (Syntax: 'select cust.Name')
@@ -162,15 +166,16 @@ IOperation:  (OperationKind.None) (Syntax: 'from cust i ... t cust.Name')
                     InConversion: null
                     OutConversion: null
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_ObjectAndCollectionInitializer()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_ObjectAndCollectionInitializer()
+        {
+            string source = @"
 using System.Collections.Generic;
 
 internal class Class
@@ -186,7 +191,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCreationExpression, Type: Class) (Syntax: 'new Class() ... { X = z } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Class) (Syntax: '{ X = x, Y  ... { X = z } }')
@@ -228,15 +233,16 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
                           Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'X')
                       Right: IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_DelegateCreationExpressionWithLambdaArgument()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DelegateCreationExpressionWithLambdaArgument()
+        {
+            string source = @"
 using System;
 
 class Class
@@ -251,7 +257,7 @@ class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
   Children(1):
       ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => ... }')
@@ -263,15 +269,16 @@ IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
           IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ ... }')
             ReturnedValue: null
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_DelegateCreationExpressionWithMethodArgument()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DelegateCreationExpressionWithMethodArgument()
+        {
+            string source = @"
 using System;
 
 class Class
@@ -288,20 +295,21 @@ class Class
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'new Delegate(Method2)')
   Children(1):
       IOperation:  (OperationKind.None) (Syntax: 'Method2')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_DelegateCreationExpressionWithInvalidArgument()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DelegateCreationExpressionWithInvalidArgument()
+        {
+            string source = @"
 using System;
 
 class Class
@@ -314,24 +322,25 @@ class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: Class.Delegate, IsInvalid) (Syntax: 'new Delegate(x)')
   Children(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
-    var expectedDiagnostics = new DiagnosticDescription[] {
+            var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0149: Method name expected
                 //         var a = /*<bind>*/new Delegate(x)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "x").WithLocation(10, 40)
             };
 
-    VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_DynamicCollectionInitializer()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DynamicCollectionInitializer()
+        {
+            string source = @"
 using System.Collections.Generic;
 
 internal class Class
@@ -344,7 +353,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Class) (Syntax: '{ X = { { x, y } } }')
   Initializers(1):
       IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: dynamic) (Syntax: 'X = { { x, y } }')
@@ -357,15 +366,16 @@ IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitia
                       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
                       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_NameOfExpression()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_NameOfExpression()
+        {
+            string source = @"
 class Class1
 {
     public string M(int x)
@@ -374,19 +384,20 @@ class Class1
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 INameOfExpression (OperationKind.NameOfExpression, Type: System.String, Constant: ""x"") (Syntax: 'nameof(x)')
   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_PointerIndirectionExpression()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_PointerIndirectionExpression()
+        {
+            string source = @"
 class Class1
 {
     public unsafe int M(int *x)
@@ -395,23 +406,24 @@ class Class1
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenceExpression, Type: System.Int32) (Syntax: '*x')
   Pointer: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32*) (Syntax: 'x')
 ";
-    var expectedDiagnostics = new DiagnosticDescription[] {
+            var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     public unsafe int M(int *x)
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(4, 23)
             };
 
-    VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_FixedLocalInitializer()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_FixedLocalInitializer()
+        {
+            string source = @"
 using System.Collections.Generic;
 
 internal class Class
@@ -425,7 +437,7 @@ internal class Class
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'p /*<bind>*/= array')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p /*<bind>*/= array')
     Variables: Local_1: System.Int32* p
@@ -433,19 +445,20 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Children(1):
             IParameterReferenceExpression: array (OperationKind.ParameterReferenceExpression, Type: System.Int32[]) (Syntax: 'array')
 ";
-    var expectedDiagnostics = new DiagnosticDescription[] {
+            var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     public unsafe void M(int[] array)
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 24)
             };
 
-    VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_RefTypeOperator()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_RefTypeOperator()
+        {
+            string source = @"
 class Class1
 {
     public System.Type M(System.TypedReference x)
@@ -454,20 +467,21 @@ class Class1
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: '__reftype(x)')
   Children(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.TypedReference) (Syntax: 'x')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<RefTypeExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<RefTypeExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_MakeRefOperator()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_MakeRefOperator()
+        {
+            string source = @"
 class Class1
 {
     public void M(System.Type x)
@@ -476,20 +490,21 @@ class Class1
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: '__makeref(x)')
   Children(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Type) (Syntax: 'x')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<MakeRefExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<MakeRefExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_RefValueOperator()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_RefValueOperator()
+        {
+            string source = @"
 class Class1
 {
     public void M(System.TypedReference x)
@@ -498,20 +513,21 @@ class Class1
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: '__refvalue(x, int)')
   Children(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.TypedReference) (Syntax: 'x')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<RefValueExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<RefValueExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_DynamicIndexerAccess()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DynamicIndexerAccess()
+        {
+            string source = @"
 class Class1
 {
     public void M(dynamic d, int x)
@@ -520,7 +536,7 @@ class Class1
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var y /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'var y /*<bi ... *</bind>*/;')
     Variables: Local_1: dynamic y
@@ -529,15 +545,16 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
             IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_DynamicMemberAccess()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DynamicMemberAccess()
+        {
+            string source = @"
 class Class1
 {
     public void M(dynamic x, int y)
@@ -546,7 +563,7 @@ class Class1
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'x.M(y)')
   Children(2):
       IDynamicMemberReferenceExpression (Member Name: ""M"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'x.M')
@@ -554,15 +571,16 @@ IOperation:  (OperationKind.None) (Syntax: 'x.M(y)')
         Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_DynamicInvocation()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DynamicInvocation()
+        {
+            string source = @"
 class Class1
 {
     public void M(dynamic x, int y)
@@ -571,21 +589,22 @@ class Class1
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'x(y)')
   Children(2):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_DynamicObjectCreation()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DynamicObjectCreation()
+        {
+            string source = @"
 internal class Class
 {
     public Class(Class x) { }
@@ -597,7 +616,7 @@ internal class Class
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IDynamicObjectCreationExpression (Name: Class) (OperationKind.TypeParameterObjectCreationExpression, Type: Class) (Syntax: 'new Class(x)')
   ApplicableSymbols(2):
     Symbol: Class..ctor(Class x)
@@ -608,15 +627,16 @@ IDynamicObjectCreationExpression (Name: Class) (OperationKind.TypeParameterObjec
   ArgumentRefKinds(0)
   Initializer: null
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_StackAllocArrayCreation()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_StackAllocArrayCreation()
+        {
+            string source = @"
 using System.Collections.Generic;
 
 internal class Class
@@ -627,24 +647,25 @@ internal class Class
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'stackalloc int[x]')
   Children(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
-    var expectedDiagnostics = new DiagnosticDescription[] {
+            var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     public unsafe void M(int x)
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 24)
             };
 
-    VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_InterpolatedStringExpression()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_InterpolatedStringExpression()
+        {
+            string source = @"
 using System;
 
 internal class Class
@@ -655,7 +676,7 @@ internal class Class
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
   Parts(6):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -677,15 +698,16 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
         Alignment: null
         FormatString: null
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_ThrowExpression()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_ThrowExpression()
+        {
+            string source = @"
 using System;
 
 internal class Class
@@ -696,7 +718,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IThrowExpression (OperationKind.ThrowExpression, Type: null) (Syntax: 'throw new A ... (nameof(x))')
   IObjectCreationExpression (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreationExpression, Type: System.ArgumentNullException) (Syntax: 'new Argumen ... (nameof(x))')
     Arguments(1):
@@ -707,15 +729,16 @@ IThrowExpression (OperationKind.ThrowExpression, Type: null) (Syntax: 'throw new
           OutConversion: null
     Initializer: null
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<ThrowExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<ThrowExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_PatternSwitchStatement()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_PatternSwitchStatement()
+        {
+            string source = @"
 internal class Class
 {
     public void M(int x)
@@ -728,7 +751,7 @@ internal class Class
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Sections:
@@ -742,15 +765,16 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
           Body:
               IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<SwitchSectionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchSectionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_DefaultPatternSwitchStatement()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DefaultPatternSwitchStatement()
+        {
+            string source = @"
 internal class Class
 {
     public void M(int x)
@@ -766,7 +790,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Sections:
@@ -785,15 +809,16 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
           Body:
               IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<DefaultSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<DefaultSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_UserDefinedLogicalConditionalOperator()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_UserDefinedLogicalConditionalOperator()
+        {
+            string source = @"
 class A<T>
 {
     public static bool operator true(A<T> o) { return true; }
@@ -817,7 +842,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'x && y')
   Children(2):
       IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: B) (Syntax: 'x')
@@ -825,15 +850,16 @@ IOperation:  (OperationKind.None) (Syntax: 'x && y')
       IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: B) (Syntax: 'y')
         Operand: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_NoPiaObjectCreation()
-{
-    var sources0 = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_NoPiaObjectCreation()
+        {
+            var sources0 = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -854,7 +880,7 @@ public class C
     }
 }
 ";
-    var sources1 = @"
+            var sources1 = @"
 struct S
 {
 	public I F(object x)
@@ -863,29 +889,30 @@ struct S
     }
 }
 ";
-    var compilation0 = CreateStandardCompilation(sources0);
-    compilation0.VerifyDiagnostics();
+            var compilation0 = CreateStandardCompilation(sources0);
+            compilation0.VerifyDiagnostics();
 
-    var compilation1 = CreateStandardCompilation(
-        sources1,
-        references: new[] { MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes: true) });
+            var compilation1 = CreateStandardCompilation(
+                sources1,
+                references: new[] { MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes: true) });
 
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'new I(x)')
 ";
-    var expectedDiagnostics = new DiagnosticDescription[] {
+            var expectedDiagnostics = new DiagnosticDescription[] {
                     // (6,25): error CS1729: 'I' does not contain a constructor that takes 1 arguments
                     // 		return /*<bind>*/new I(x)/*</bind>*/;
                     Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(x)").WithArguments("I", "1").WithLocation(6, 25)
             };
 
-    VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation1, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation1, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-public void ParameterReference_ArgListOperator()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_ArgListOperator()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -899,21 +926,22 @@ class C
     } 
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: '__arglist(x, y)')
   Children(2):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Boolean) (Syntax: 'y')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(19790, "https://github.com/dotnet/roslyn/issues/19790")]
-public void ParameterReference_IsPatternExpression()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(19790, "https://github.com/dotnet/roslyn/issues/19790")]
+        public void ParameterReference_IsPatternExpression()
+        {
+            string source = @"
 class Class1
 {
     public void Method1(object x)
@@ -922,20 +950,21 @@ class Class1
     }
 }
 ";
-    string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'x is int y')
   Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern) (Syntax: 'int y')
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-[Fact, WorkItem(19902, "https://github.com/dotnet/roslyn/issues/19902")]
-public void ParameterReference_LocalFunctionStatement()
-{
-    string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(19902, "https://github.com/dotnet/roslyn/issues/19902")]
+        public void ParameterReference_LocalFunctionStatement()
+        {
+            string source = @"
 using System;
 using System.Collections.Generic;
 
@@ -955,7 +984,7 @@ class Class
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ILocalFunctionStatement (Local Function: System.Collections.Generic.IEnumerable<T> Iterator()) (OperationKind.LocalFunctionStatement) (Syntax: 'IEnumerable ... }')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IForEachLoopStatement (Iteration variable: T element) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... rn element;')
@@ -975,9 +1004,9 @@ ILocalFunctionStatement (Local Function: System.Collections.Generic.IEnumerable<
     IReturnStatement (OperationKind.YieldBreakStatement) (Syntax: '{ ... }')
       ReturnedValue: null
 ";
-    var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-    VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-}
+            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
