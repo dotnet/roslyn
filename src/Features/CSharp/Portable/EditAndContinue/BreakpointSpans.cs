@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             var line = source.Lines.GetLineFromPosition(position);
             if (IsBlank(line))
             {
-                breakpointSpan = default(TextSpan);
+                breakpointSpan = default;
                 return false;
             }
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // breakpoint there.
             if (tree.IsInInactiveRegion(position, cancellationToken))
             {
-                breakpointSpan = default(TextSpan);
+                breakpointSpan = default;
                 return true;
             }
 
@@ -66,13 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 if (breakpointSpan.HasValue)
                 {
                     span = breakpointSpan.Value;
-                    return span != default(TextSpan);
+                    return span != default;
                 }
 
                 node = node.Parent;
             }
 
-            span = default(TextSpan);
+            span = default;
             return false;
         }
 
@@ -98,14 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static TextSpan CreateSpan(SyntaxTokenList startOpt, SyntaxNodeOrToken startFallbackOpt, SyntaxNodeOrToken endOpt)
         {
-            Debug.Assert(startFallbackOpt != default(SyntaxNodeOrToken) || endOpt != default(SyntaxNodeOrToken));
+            Debug.Assert(startFallbackOpt != default || endOpt != default);
 
             int startPos;
             if (startOpt.Count > 0)
             {
                 startPos = startOpt.First().SpanStart;
             }
-            else if (startFallbackOpt != default(SyntaxNodeOrToken))
+            else if (startFallbackOpt != default)
             {
                 startPos = startFallbackOpt.SpanStart;
             }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             int endPos;
-            if (endOpt != default(SyntaxNodeOrToken))
+            if (endOpt != default)
             {
                 endPos = GetEndPosition(endOpt);
             }
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var expression = node as ExpressionSyntax;
                     if (expression != null)
                     {
-                        return IsBreakableExpression(expression) ? CreateSpan(expression) : default(TextSpan?);
+                        return IsBreakableExpression(expression) ? CreateSpan(expression) : default;
                     }
 
                     var statement = node as StatementSyntax;
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         // for (int i = 0; ...
                         var firstVariable = forStatement.Declaration.Variables.FirstOrDefault();
-                        return CreateSpan(default(SyntaxTokenList), forStatement.Declaration.Type, firstVariable);
+                        return CreateSpan(default, forStatement.Declaration.Type, firstVariable);
                     }
                     else if (forStatement.Initializers.Count > 0)
                     {
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return null;
             }
 
-            return TryCreateSpanForVariableDeclaration(declaration, default(SyntaxTokenList), default(SyntaxToken), position);
+            return TryCreateSpanForVariableDeclaration(declaration, default, default, position);
         }
 
         private static TextSpan? TryCreateSpanForVariableDeclaration(
@@ -596,20 +596,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (modifiersOpt.Any(SyntaxKind.ConstKeyword))
             {
                 // no sequence points are emitted for const fields/locals
-                return default(TextSpan);
+                return default;
             }
 
             if (variableDeclaration.Variables.Count == 1)
             {
                 if (variableDeclaration.Variables[0].Initializer == null)
                 {
-                    return default(TextSpan);
+                    return default;
                 }
 
                 return CreateSpan(modifiersOpt, variableDeclaration, semicolonOpt);
             }
 
-            if (semicolonOpt != default(SyntaxToken) && position > semicolonOpt.SpanStart)
+            if (semicolonOpt != default && position > semicolonOpt.SpanStart)
             {
                 position = variableDeclaration.SpanStart;
             }
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             var declarator = FindClosestDeclaratorWithInitializer(variableDeclaration.Variables, position);
             if (declarator == null)
             {
-                return default(TextSpan);
+                return default;
             }
 
             if (declarator == variableDeclaration.Variables[0])
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return localDeclaration.Modifiers;
             }
 
-            return default(SyntaxTokenList);
+            return default;
         }
 
         private static TextSpan CreateSpanForCatchClause(CatchClauseSyntax catchClause, int position)

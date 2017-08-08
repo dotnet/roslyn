@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private SyntaxTriviaList GetTriviaToPreserve(SyntaxTriviaList syntaxTriviaList)
         {
-            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default(SyntaxTriviaList);
+            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default;
         }
 
         private static bool ShouldPreserve(SyntaxTriviaList trivia)

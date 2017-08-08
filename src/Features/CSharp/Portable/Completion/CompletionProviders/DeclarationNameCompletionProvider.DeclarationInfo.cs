@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return result;
                 }
 
-                return default(NameDeclarationInfo);
+                return default;
             }
 
             private static bool IsPossibleOutVariableDeclaration(SyntaxToken token, SemanticModel semanticModel, int position,
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 result = IsLastTokenOfType<ExpressionStatementSyntax>(
                     token, semanticModel,
                     e => e.Expression,
-                    _ => default(SyntaxTokenList),
+                    _ => default,
                     _ => ImmutableArray.Create(SymbolKind.Local),
                     cancellationToken);
                 return result.Type != null;
@@ -150,24 +150,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 if (!IsPossibleTypeToken(token) && !token.IsKind(SyntaxKind.CommaToken))
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var target = token.GetAncestor<TSyntaxNode>();
                 if (target == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 if (token.IsKind(SyntaxKind.CommaToken) && token.Parent != target)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var typeSyntax = typeSyntaxGetter(target);
                 if (typeSyntax == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 if (!token.IsKind(SyntaxKind.CommaToken) && token != typeSyntax.GetLastToken())
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (modifiers == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var alias = semanticModel.GetAliasInfo(typeSyntax, cancellationToken);
@@ -203,25 +203,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 if (!IsPossibleTypeToken(token))
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var target = token.GetAncestor<TSyntaxNode>();
                 if (target == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var typeSyntax = typeSyntaxGetter(target);
                 if (typeSyntax == null || token != typeSyntax.GetLastToken())
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var modifiers = modifierGetter(target);
                 if (modifiers == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 return new NameDeclarationInfo(
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 result = IsFollowingTypeOrComma<VariableDeclarationSyntax>(token, semanticModel,
                     v => v.Type,
-                    v => v.Parent is FieldDeclarationSyntax f ? f.Modifiers : default(SyntaxTokenList?),
+                    v => v.Parent is FieldDeclarationSyntax f ? f.Modifiers : default,
                     GetPossibleDeclarations,
                     cancellationToken);
                 return result.Type != null;
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 result = IsFollowingTypeOrComma<VariableDeclarationSyntax>(token, semanticModel,
                      v => v.Type,
-                     v => v.Parent is LocalDeclarationStatementSyntax l ? l.Modifiers : default(SyntaxTokenList?),
+                     v => v.Parent is LocalDeclarationStatementSyntax l ? l.Modifiers : default,
                      d => ImmutableArray.Create(SymbolKind.Local),
                      cancellationToken);
                 return result.Type != null;
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return true;
                 }
 
-                result = default(NameDeclarationInfo);
+                result = default;
                 return false;
             }
 
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 result = IsLastTokenOfType<ParameterSyntax>(
                     token, semanticModel,
                     p => p.Type,
-                    _ => default(SyntaxTokenList),
+                    _ => default,
                     _ => ImmutableArray.Create(SymbolKind.Parameter),
                     cancellationToken);
                 return result.Type != null;
