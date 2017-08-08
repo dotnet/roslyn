@@ -172,7 +172,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     return "null";
                 case string s:
                     if (quoteString)
+                    {
                         return @"""" + s + @"""";
+                    }
                     return s;
                 case IFormattable formattable:
                     return formattable.ToString(null, CultureInfo.InvariantCulture);
