@@ -3367,6 +3367,7 @@ IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return f;'
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_CheckedOnlyAppliesToNumeric()
         {
@@ -5364,6 +5365,7 @@ IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return (in
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_CheckedOnlyAppliesToNumeric()
         {
