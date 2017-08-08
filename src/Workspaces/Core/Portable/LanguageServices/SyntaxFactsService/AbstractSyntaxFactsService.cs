@@ -373,8 +373,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root)
         {
             Debug.Assert(root.FullSpan.Start == 0);
+            return GetFileBanner(root.GetFirstToken(includeZeroWidth: true));
+        }
 
-            var leadingTrivia = root.GetLeadingTrivia();
+        public ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxToken firstToken)
+        {
+            Debug.Assert(firstToken.FullSpan.Start == 0);
+
+            var leadingTrivia = firstToken.LeadingTrivia;
             var index = 0;
             _fileBannerMatcher.TryMatch(leadingTrivia.ToList(), ref index);
 

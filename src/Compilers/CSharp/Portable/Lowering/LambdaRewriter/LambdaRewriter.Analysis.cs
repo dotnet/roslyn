@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -30,12 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                         || MethodsConvertedToDelegates.Contains(closure));
 
             /// <summary>
-            /// Any scope that a method that <see cref="CanTakeRefParameters(MethodSymbol)"/> doesn't close over.
-            /// If a scope is in this set, don't use a struct closure.
-            /// </summary>
-            public readonly PooledHashSet<BoundNode> ScopesThatCantBeStructs = PooledHashSet<BoundNode>.GetInstance();
-
-            /// <summary>
             /// Blocks that are positioned between a block declaring some lifted variables
             /// and a block that contains the lambda that lifts said variables.
             /// If such block itself requires a closure, then it must lift parent frame pointer into the closure
@@ -45,28 +42,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly PooledHashSet<BoundNode> NeedsParentFrame = PooledHashSet<BoundNode>.GetInstance();
 
             /// <summary>
-            /// Optimized locations of lambdas. 
-            /// 
-            /// Lambda does not need to be placed in a frame that corresponds to its lexical scope if lambda does not reference any local state in that scope.
-            /// It is advantageous to place lambdas higher in the scope tree, ideally in the innermost scope of all scopes that contain variables captured by a given lambda.
-            /// Doing so reduces indirections needed when captured locals are accessed. For example locals from the innermost scope can be accessed with no indirection at all.
-            /// <see cref="ComputeLambdaScopesAndFrameCaptures"/> needs to be called to compute this.
-            /// </summary>
-            public readonly SmallDictionary<MethodSymbol, BoundNode> LambdaScopes =
-                new SmallDictionary<MethodSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
-
-            /// <summary>
             /// The root of the scope tree for this method.
             /// </summary>
             public readonly Scope ScopeTree;
 
-            private Analysis(Scope scopeTree, PooledHashSet<MethodSymbol> methodsConvertedToDelegates)
+            private readonly MethodSymbol _topLevelMethod;
+            private readonly int _topLevelMethodOrdinal;
+            private readonly MethodSymbol _substitutedSourceMethod; 
+            private readonly VariableSlotAllocator _slotAllocatorOpt;
+            private readonly TypeCompilationState _compilationState;
+
+            private Analysis(
+                Scope scopeTree,
+                PooledHashSet<MethodSymbol> methodsConvertedToDelegates,
+                MethodSymbol topLevelMethod,
+                int topLevelMethodOrdinal,
+                MethodSymbol substitutedSourceMethod,
+                VariableSlotAllocator slotAllocatorOpt,
+                TypeCompilationState compilationState)
             {
                 ScopeTree = scopeTree;
                 MethodsConvertedToDelegates = methodsConvertedToDelegates;
+                _topLevelMethod = topLevelMethod;
+                _topLevelMethodOrdinal = topLevelMethodOrdinal;
+                _substitutedSourceMethod = substitutedSourceMethod;
+                _slotAllocatorOpt = slotAllocatorOpt;
+                _compilationState = compilationState;
             }
 
-            public static Analysis Analyze(BoundNode node, MethodSymbol method, DiagnosticBag diagnostics)
+            public static Analysis Analyze(
+                BoundNode node,
+                MethodSymbol method,
+                int topLevelMethodOrdinal,
+                MethodSymbol substitutedSourceMethod,
+                VariableSlotAllocator slotAllocatorOpt,
+                TypeCompilationState compilationState,
+                ArrayBuilder<ClosureDebugInfo> closureDebugInfo,
+                DiagnosticBag diagnostics)
             {
                 var methodsConvertedToDelegates = PooledHashSet<MethodSymbol>.GetInstance();
                 var scopeTree = ScopeTreeBuilder.Build(
@@ -74,7 +86,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method,
                     methodsConvertedToDelegates,
                     diagnostics);
-                return new Analysis(scopeTree, methodsConvertedToDelegates);
+                Debug.Assert(scopeTree != null);
+
+                var analysis = new Analysis(
+                    scopeTree,
+                    methodsConvertedToDelegates,
+                    method,
+                    topLevelMethodOrdinal,
+                    substitutedSourceMethod,
+                    slotAllocatorOpt,
+                    compilationState);
+
+                analysis.RemoveUnneededReferences(method.ThisParameter);
+                analysis.MakeAndAssignEnvironments(closureDebugInfo);
+                analysis.ComputeLambdaScopesAndFrameCaptures(method.ThisParameter);
+                return analysis;
             }
 
             private static BoundNode FindNodeToAnalyze(BoundNode node)
@@ -107,12 +133,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Create the optimized plan for the location of lambda methods and whether scopes need access to parent scopes
-            ///  </summary>
-            internal void ComputeLambdaScopesAndFrameCaptures(ParameterSymbol thisParam)
+            /// Must be called only after <see cref="Closure.CapturedEnvironments"/>
+            /// has been calculated.
+            ///
+            /// Finds the most optimal capture environment to place a closure in. 
+            /// This roughly corresponds to the 'highest' Scope in the tree where all
+            /// the captured variables for this closure are in scope. This minimizes
+            /// the number of indirections we may have to traverse to access captured
+            /// variables.
+            /// </summary>
+            private void ComputeLambdaScopesAndFrameCaptures(ParameterSymbol thisParam)
             {
-                RemoveUnneededReferences(thisParam);
-
                 VisitClosures(ScopeTree, (scope, closure) =>
                 {
                     if (closure.CapturedVariables.Count > 0)
@@ -124,6 +155,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 (Scope innermost, Scope outermost) FindLambdaScopeRange(Closure closure, Scope closureScope)
                 {
+                    // If the closure only captures this, put the method directly in the
+                    // top-level method's containing type
+                    if (closure.CapturedVariables.Count == 1 &&
+                        closure.CapturedVariables.Single() is ParameterSymbol param &&
+                        param.IsThis)
+                    {
+                        return (null, null);
+                    }
+
                     Scope innermost = null;
                     Scope outermost = null;
 
@@ -149,8 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                          curScope != null && capturedVars.Count > 0;
                          curScope = curScope.Parent)
                     {
-                        if (!(capturedVars.Overlaps(curScope.DeclaredVariables) ||
-                              capturedVars.Overlaps(curScope.Closures.Select(c => c.OriginalMethodSymbol))))
+                        if (!(capturedVars.RemoveAll(curScope.DeclaredVariables) ||
+                              capturedVars.RemoveAll(curScope.Closures.Select(c => c.OriginalMethodSymbol))))
                         {
                             continue;
                         }
@@ -160,9 +200,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             innermost = curScope;
                         }
-
-                        capturedVars.RemoveAll(curScope.DeclaredVariables);
-                        capturedVars.RemoveAll(curScope.Closures.Select(c => c.OriginalMethodSymbol));
                     }
 
                     // If any captured variables are left, they're captured above method scope
@@ -183,33 +220,119 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //
                     // Example: 
                     //   if a lambda captures a method's parameter and `this`, 
-                    //   its innermost scope depth is 0 (method locals and parameters) 
-                    //   and outermost scope is -1
+                    //   its innermost scope is the root Scope (method locals and parameters) 
+                    //   and outermost Scope is null
                     //   Such lambda will be placed in a closure frame that corresponds to the method's outer block
                     //   and this frame will also lift original `this` as a field when created by its parent.
                     //   Note that it is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
                     if (innermost != null)
                     {
-                        LambdaScopes.Add(closure.OriginalMethodSymbol, innermost.BoundNode);
-
-                        // Disable struct closures on methods converted to delegates, as well as on async and iterator methods.
-                        var markAsNoStruct = !CanTakeRefParameters(closure.OriginalMethodSymbol);
-                        if (markAsNoStruct)
-                        {
-                            ScopesThatCantBeStructs.Add(innermost.BoundNode);
-                        }
+                        closure.ContainingEnvironmentOpt = innermost.DeclaredEnvironments[0];
 
                         while (innermost != outermost)
                         {
                             NeedsParentFrame.Add(innermost.BoundNode);
                             innermost = innermost.Parent;
-                            if (markAsNoStruct && innermost != null)
-                            {
-                                ScopesThatCantBeStructs.Add(innermost.BoundNode);
-                            }
                         }
                     }
                 }
+            }
+
+            private void MakeAndAssignEnvironments(ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
+            {
+                VisitScopeTree(ScopeTree, scope =>
+                {
+                    if (scope.DeclaredVariables.Count > 0)
+                    {
+                        // First walk the nested scopes to find all closures which
+                        // capture variables from this scope. They all need to capture
+                        // this environment. This includes closures which captured local
+                        // functions that capture those variables, so multiple passes may
+                        // be needed. This will also decide if the environment is a struct
+                        // or a class.
+                        bool isStruct = true;
+                        var closures = new SetWithInsertionOrder<Closure>();
+                        bool addedItem;
+                        do
+                        {
+                            addedItem = false;
+                            VisitClosures(scope, (closureScope, closure) =>
+                            {
+                                if (!closures.Contains(closure) &&
+                                    (closure.CapturedVariables.Overlaps(scope.DeclaredVariables) ||
+                                     closure.CapturedVariables.Overlaps(closures.Select(c => c.OriginalMethodSymbol))))
+                                {
+                                    closures.Add(closure);
+                                    addedItem = true;
+                                    isStruct &= CanTakeRefParameters(closure.OriginalMethodSymbol);
+                                }
+                            });
+                        } while (addedItem == true);
+
+                        // Next create the environment and add it to the declaration scope
+                        // Currently all variables declared in the same scope are added
+                        // to the same closure environment
+                        var env = MakeEnvironment(scope, scope.DeclaredVariables, isStruct);
+                        scope.DeclaredEnvironments.Add(env);
+
+                        foreach (var closure in closures)
+                        {
+                            closure.CapturedEnvironments.Add(env);
+                        }
+                    }
+                });
+
+                ClosureEnvironment MakeEnvironment(Scope scope, IEnumerable<Symbol> capturedVariables, bool isStruct)
+                {
+                    var scopeBoundNode = scope.BoundNode;
+
+                    var syntax = scopeBoundNode.Syntax;
+                    Debug.Assert(syntax != null);
+
+                    DebugId methodId = GetTopLevelMethodId();
+                    DebugId closureId = GetClosureId(syntax, closureDebugInfo);
+
+                    var containingMethod = scope.ContainingClosureOpt?.OriginalMethodSymbol ?? _topLevelMethod;
+                    if ((object)_substitutedSourceMethod != null && containingMethod == _topLevelMethod)
+                    {
+                        containingMethod = _substitutedSourceMethod;
+                    }
+
+                    return new ClosureEnvironment(
+                        capturedVariables,
+                        _topLevelMethod,
+                        containingMethod,
+                        isStruct,
+                        syntax,
+                        methodId,
+                        closureId);
+                }
+            }
+
+            internal DebugId GetTopLevelMethodId()
+            {
+                return _slotAllocatorOpt?.MethodId ?? new DebugId(_topLevelMethodOrdinal, _compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
+            }
+
+            private DebugId GetClosureId(SyntaxNode syntax, ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
+            {
+                Debug.Assert(syntax != null);
+
+                DebugId closureId;
+                DebugId previousClosureId;
+                if (_slotAllocatorOpt != null && _slotAllocatorOpt.TryGetPreviousClosure(syntax, out previousClosureId))
+                {
+                    closureId = previousClosureId;
+                }
+                else
+                {
+                    closureId = new DebugId(closureDebugInfo.Count, _compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
+                }
+
+                int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
+                closureDebugInfo.Add(new ClosureDebugInfo(syntaxOffset, closureId));
+
+                return closureId;
             }
 
             /// <summary>
@@ -347,7 +470,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public void Free()
             {
                 MethodsConvertedToDelegates.Free();
-                ScopesThatCantBeStructs.Free();
                 NeedsParentFrame.Free();
                 ScopeTree.Free();
             }
