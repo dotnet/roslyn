@@ -166,7 +166,7 @@ function Ensure-SdkInPath() {
         $destFile = Join-Path $toolsDir "dotnet-install.ps1"
         $webClient = New-Object -TypeName "System.Net.WebClient"
         $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
-        Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir }
+        Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
     }
 
     ${env:PATH} = "$cliDir;${env:PATH}"
