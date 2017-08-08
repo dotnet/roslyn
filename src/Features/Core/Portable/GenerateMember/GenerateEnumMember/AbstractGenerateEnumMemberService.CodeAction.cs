@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                     _document.Project.Solution,
                     _state.TypeToGenerateIn,
                     CodeGenerationSymbolFactory.CreateFieldSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: Accessibility.Public,
-                        modifiers: default(DeclarationModifiers),
+                        modifiers: default,
                         type: _state.TypeToGenerateIn,
                         name: _state.IdentifierToken.ValueText,
                         hasConstantValue: value != null,

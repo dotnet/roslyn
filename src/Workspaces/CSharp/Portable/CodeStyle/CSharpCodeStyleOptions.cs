@@ -142,6 +142,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_simple_default_expression"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferSimpleDefaultExpression)}")});
 
+        public static readonly Option<CodeStyleOption<bool>> PreferInferredTupleNames = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferInferredTupleNames), defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_inferred_tuple_names"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferInferredTupleNames)}")});
+
+        public static readonly Option<CodeStyleOption<bool>> PreferInferredAnonymousTypeMemberNames = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferInferredAnonymousTypeMemberNames), defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_inferred_anonymous_type_member_names"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferInferredAnonymousTypeMemberNames)}")});
+
         private static readonly SyntaxKind[] s_preferredModifierOrderDefault =
             {
                 SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,
@@ -162,6 +174,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForStringCodeStyleOption("csharp_preferred_modifier_order"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredModifierOrder)}")});
 
+        public static readonly Option<CodeStyleOption<bool>> PreferLocalOverAnonymousFunction = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferLocalOverAnonymousFunction), defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_local_over_anonymous_function"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}")});
+
         public static IEnumerable<Option<CodeStyleOption<bool>>> GetCodeStyleOptions()
         {
             yield return UseImplicitTypeForIntrinsicTypes;
@@ -172,6 +190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferPatternMatchingOverIsWithCastCheck;
             yield return PreferBraces;
             yield return PreferSimpleDefaultExpression;
+            yield return PreferInferredTupleNames;
+            yield return PreferInferredAnonymousTypeMemberNames;
+            yield return PreferLocalOverAnonymousFunction;
         }
 
         public static IEnumerable<Option<CodeStyleOption<ExpressionBodyPreference>>> GetExpressionBodyOptions()

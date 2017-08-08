@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -58,14 +58,14 @@ $$");
         public async Task TestNotAfterExpr()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = foo $$"));
+@"var q = goo $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterDottedName()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = foo.Current $$"));
+@"var q = goo.Current $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -131,7 +131,7 @@ $$");
             await VerifyKeywordAsync(AddInsideMethod(
 @"switch (expr) {
     default:
-      if (foo) {
+      if (goo) {
       } else {
       }
     $$"));
@@ -162,7 +162,7 @@ $$");
             await VerifyKeywordAsync(AddInsideMethod(
 @"switch (expr) {
     default:
-      if (foo)
+      if (goo)
         Console.WriteLine();
     $$"));
         }
@@ -173,7 +173,7 @@ $$");
             await VerifyAbsenceAsync(AddInsideMethod(
 @"switch (expr) {
     default:
-      if (foo)
+      if (goo)
         $$"));
         }
 

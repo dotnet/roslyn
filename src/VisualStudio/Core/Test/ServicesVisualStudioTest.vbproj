@@ -1,12 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{A1455D30-55FC-45EF-8759-3AEBDB13D940}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.VisualStudio.Services.UnitTests</AssemblyName>
     <TargetFramework>net46</TargetFramework>
@@ -16,158 +15,44 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities2\ServicesTestUtilities2.vbproj">
-      <Project>{3dfb4701-e3d6-4435-9f70-a6e35822c4f2}</Project>
-      <Name>ServicesTestUtilities2</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
-      <Project>{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}</Project>
-      <Name>BasicFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
-      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
-      <Name>Workspaces.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
-      <Project>{21b239d0-d144-430f-a394-c066d58ee267}</Project>
-      <Name>CSharpWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
-      <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
-      <Name>BasicWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
-      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
-      <Name>Features</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
-      <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
-      <Name>TextEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
-      <Name>Workspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
-      <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
-      <Name>EditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj">
-      <Project>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</Project>
-      <Name>CSharpEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\VisualBasic\BasicEditorFeatures.vbproj">
-      <Project>{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}</Project>
-      <Name>BasicEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj">
-      <Project>{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}</Project>
-      <Name>ServicesVisualStudio</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CSharp\Impl\CSharpVisualStudio.csproj">
-      <Project>{5DEFADBD-44EB-47A2-A53E-F1282CC9E4E9}</Project>
-      <Name>CSharpVisualStudio</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\VisualStudio\Core\SolutionExplorerShim\SolutionExplorerShim.csproj">
-      <Project>{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}</Project>
-      <Name>SolutionExplorerShim</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\TestUtilities2\VisualStudioTestUtilities2.vbproj">
-      <Project>{69f853e5-bd04-4842-984f-fc68cc51f402}</Project>
-      <Name>VisualStudioTestUtilities2</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\VisualBasic\Impl\BasicVisualStudio.vbproj">
-      <Project>{D49439D7-56D2-450F-A4F0-74CB95D620E6}</Project>
-      <Name>BasicVisualStudio</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
-      <Name>ServicesTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\VisualStudio\Core\Impl\ServicesVisualStudioImpl.csproj">
-      <Project>{C0E80510-4FBE-4B0C-AF2C-4F473787722C}</Project>
-      <Name>ServicesVisualStudioImpl</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj">
-      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f8}</Project>
-      <Name>BasicCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj">
-      <Project>{849e516a-595f-474b-adb4-e099f921cedf}</Project>
-      <Name>BasicInteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Scripting\VisualBasic\BasicScripting.vbproj">
-      <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
-      <Name>BasicScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
-      <Project>{3973b09a-4fbf-44a5-8359-3d22ceb71f71}</Project>
-      <Name>CSharpFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
-      <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
-      <Name>CSharpInteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Scripting\CSharp\CSharpScripting.csproj">
-      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
-      <Name>CSharpScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
-      <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
-      <Name>InteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Interactive\Features\InteractiveFeatures.csproj">
-      <Project>{8e2a252e-a140-45a6-a81a-2652996ea589}</Project>
-      <Name>InteractiveFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Interactive\Host\InteractiveHost.csproj">
-      <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
-      <Name>InteractiveHost</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
-      <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
-      <Name>RemoteWorkspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Scripting\Core\Scripting.csproj">
-      <Project>{12a68549-4e8c-42d6-8703-a09335f97997}</Project>
-      <Name>Scripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
-      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
-      <Name>ServiceHub</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
-      <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
-      <Name>WorkspacesTestUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities2\ServicesTestUtilities2.vbproj" />
+    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\VisualBasic\BasicEditorFeatures.vbproj" />
+    <ProjectReference Include="..\..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj" />
+    <ProjectReference Include="..\..\CSharp\Impl\CSharpVisualStudio.csproj" />
+    <ProjectReference Include="..\..\..\VisualStudio\Core\SolutionExplorerShim\SolutionExplorerShim.csproj" />
+    <ProjectReference Include="..\..\TestUtilities2\VisualStudioTestUtilities2.vbproj" />
+    <ProjectReference Include="..\..\VisualBasic\Impl\BasicVisualStudio.vbproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\VisualStudio\Core\Impl\ServicesVisualStudioImpl.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj" />
+    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj" />
+    <ProjectReference Include="..\..\..\Scripting\VisualBasic\BasicScripting.vbproj" />
+    <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Scripting\CSharp\CSharpScripting.csproj" />
+    <ProjectReference Include="..\..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Interactive\Features\InteractiveFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Interactive\Host\InteractiveHost.csproj" />
+    <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj" />
+    <ProjectReference Include="..\..\..\Scripting\Core\Scripting.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -202,6 +87,7 @@
     <PackageReference Include="Microsoft.VisualStudio.GraphModel" Version="$(MicrosoftVisualStudioGraphModelVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Xml.Linq" />
@@ -211,212 +97,16 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AbstractTextViewFilterTests.vb" />
-    <Compile Include="AnalyzerSupport\AnalyzerDependencyCheckerTests.vb" />
-    <Compile Include="ChangeSignature\ChangeSignatureViewModelTests.vb" />
-    <Compile Include="ChangeSignature\ChangeSignatureViewModelTestState.vb" />
-    <Compile Include="ClassView\MockNavigationTool.vb" />
-    <Compile Include="ClassView\MockVsServiceProvider.vb" />
-    <Compile Include="ClassView\MockSyncClassViewCommandHandler.vb" />
-    <Compile Include="ClassView\SyncClassViewTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeAttributeTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeClassTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeDelegateTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeElementTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeElementTests`1.vb" />
-    <Compile Include="CodeModel\AbstractCodeEnumTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeEventTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeFunctionTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeImportTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeInterfaceTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.AttributeArgumentData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.AttributeData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.ClassData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.CodeTypeRefData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.DelegateData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.EnumData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.EnumMemberData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.EventData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.FunctionData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.ImportData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.InterfaceData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.NamespaceData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.ParameterData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.PropertyData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.StructData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.VariableData.vb" />
-    <Compile Include="CodeModel\AbstractCodeModelObjectTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeNamespaceTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeParameterTests.vb" />
-    <Compile Include="CodeModel\AbstractCodePropertyTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeStructTests.vb" />
-    <Compile Include="CodeModel\AbstractCodeVariableTests.vb" />
-    <Compile Include="CodeModel\AbstractEventCollectorTests.vb" />
-    <Compile Include="CodeModel\AbstractFileCodeModelTests.vb" />
-    <Compile Include="CodeModel\AbstractRootCodeModelTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeAccessorFunctionTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeAttributeTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeClassTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeDelegateTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeEnumTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeEventTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeFunctionTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeImportTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeInterfaceTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeNamespaceTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeParameterTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodePropertyTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeStructTests.vb" />
-    <Compile Include="CodeModel\CSharp\CodeVariableTests.vb" />
-    <Compile Include="CodeModel\CSharp\EventCollectorTests.vb" />
-    <Compile Include="CodeModel\CSharp\ExternalCodeClassTests.vb" />
-    <Compile Include="CodeModel\CSharp\ExternalCodeFunctionTests.vb" />
-    <Compile Include="CodeModel\CSharp\ExternalCodeParameterTests.vb" />
-    <Compile Include="CodeModel\CSharp\ExternalCodePropertyTests.vb" />
-    <Compile Include="CodeModel\CSharp\FileCodeModelTests.vb" />
-    <Compile Include="CodeModel\CSharp\RootCodeModelTests.vb" />
-    <Compile Include="CodeModel\CSharp\SyntaxNodeKeyTests.vb" />
-    <Compile Include="CodeModel\MethodXML\MethodXMLTests.vb" />
-    <Compile Include="CodeModel\MethodXML\MethodXMLTests_CSAssignments.vb" />
-    <Compile Include="CodeModel\MethodXML\MethodXMLTests_CSEvents.vb" />
-    <Compile Include="CodeModel\MethodXML\MethodXMLTests_CSInvocations.vb" />
-    <Compile Include="CodeModel\MethodXML\MethodXMLTests_CSLocalDeclarations.vb" />
-    <Compile Include="CodeModel\MethodXML\MethodXMLTests_CSQuotes.vb" />
-    <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBAssignments.vb" />
-    <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBInitializeComponent.vb" />
-    <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBInitializeComponent_TestContent.vb" />
-    <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBInvocations.vb" />
-    <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBLocalDeclarations.vb" />
-    <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBStatements.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodeAccessorFunctionTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodeAttributeTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodeClassTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodeDelegateTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodeEnumTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodeEventTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodeFunctionTests.vb" />
-    <!--<Compile Include="ExtractInterface\ExtractInterfaceViewModelTests.vb" />-->
-    <Compile Include="CodeModel\VisualBasic\CodeImportTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodeInterfaceTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodeNamespaceTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodeParameterTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodePropertyTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodeStructTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\CodeVariableTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\EventCollectorTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\ExternalCodeClassTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\ExternalCodeFunctionTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\ExternalCodeParameterTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\ExternalCodePropertyTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\FileCodeModelTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\ImplementsStatementTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\InheritsStatementTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\OptionsStatementTests.vb" />
-    <Compile Include="CodeModel\VisualBasic\RootCodeModelTests.vb" />
-    <Compile Include="Completion\CSharpCompletionSnippetNoteTests.vb" />
-    <Compile Include="Completion\MockCompletionProvider.vb" />
-    <Compile Include="Completion\TestCSharpSnippetInfoService.vb" />
-    <Compile Include="Completion\TestVisualBasicSnippetInfoService.vb" />
-    <Compile Include="Completion\VisualBasicCompletionSnippetNoteTests.vb" />
-    <Compile Include="DebuggerIntelliSense\CompletionWaiter.vb" />
-    <Compile Include="DebuggerIntelliSense\CSharpDebuggerIntelliSenseTests.vb" />
-    <Compile Include="DebuggerIntelliSense\OrderableLanguageMetadata.vb" />
-    <Compile Include="DebuggerIntelliSense\SignatureHelpWaiter.vb" />
-    <Compile Include="DebuggerIntelliSense\TestState.vb" />
-    <Compile Include="DebuggerIntelliSense\VisualBasicDebuggerIntelliSenseTests.vb" />
-    <Compile Include="Debugging\DataTipInfoGetterTests.vb" />
-    <Compile Include="Debugging\LocationInfoGetterTests.vb" />
-    <Compile Include="Debugging\NameResolverTests.vb" />
     <Content Include="Debugging\ProximityExpressionsGetterTestFile.vb" />
-    <Compile Include="Debugging\ProximityExpressionsGetterTests.Statements.vb" />
-    <Compile Include="Debugging\ProximityExpressionsGetterTests.vb" />
-    <Compile Include="Debugging\Resources.Designer.vb">
+    <Compile Remove="Debugging\ProximityExpressionsGetterTestFile.vb" />
+    <Compile Update="Debugging\Resources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Debugging\VisualBasicBreakpointResolutionServiceTests.vb" />
-    <Compile Include="Diagnostics\DiagnosticTableDataSourceTests.vb" />
-    <Compile Include="Diagnostics\ExternalDiagnosticUpdateSourceTests.vb" />
-    <Compile Include="Diagnostics\DefaultDiagnosticUpdateSourceTests.vb" />
-    <Compile Include="Diagnostics\MockExtensionManager.vb" />
-    <Compile Include="Diagnostics\TestTableManagerProvider.vb" />
-    <Compile Include="Diagnostics\TodoListTableDataSourceTests.vb" />
-    <Compile Include="Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderServiceTests.vb" />
-    <Compile Include="EditAndContinue\EditAndContinueTestHelper.vb" />
-    <Compile Include="EditAndContinue\EditAndContinueWorkspaceServiceTests.vb" />
-    <Compile Include="EditAndContinue\VsReadOnlyDocumentTrackerTests.vb" />
-    <Compile Include="ExtractInterface\ExtractInterfaceViewModelTests.vb" />
-    <Compile Include="GenerateType\GenerateTypeViewModelTests.vb" />
-    <Compile Include="GoToDefinition\GoToDefinitionApiTests.vb" />
-    <Compile Include="Help\HelpTests.vb" />
-    <Compile Include="LanguageBlockTests.vb" />
-    <Compile Include="SolutionExplorer\CpsDiagnosticItemTests.vb" />
-    <Compile Include="SolutionExplorer\CpsUtilitiesTests.vb" />
-    <Compile Include="SymbolSearch\SymbolSearchUpdateEngineTests.vb" />
-    <Compile Include="Telemetry\VSTelemetryLoggerTest.vb" />
-    <Compile Include="Utilities\VsNavInfoHelpers.vb" />
-    <Compile Include="VsNavInfo\VsNavInfoTests.vb" />
-    <Compile Include="ObjectBrowser\AbstractObjectBrowserTests.vb" />
-    <Compile Include="ObjectBrowser\CSharp\ObjectBrowerTests.vb" />
-    <Compile Include="ObjectBrowser\Helpers.vb" />
-    <Compile Include="ObjectBrowser\NavInfoNodeDescriptor.vb" />
-    <Compile Include="ObjectBrowser\VisualBasic\ObjectBrowerTests.vb" />
-    <Compile Include="Progression\GraphProviderTests.vb" />
-    <Compile Include="ProjectSystemShim\ConvertedVisualBasicProjectOptionsTests.vb" />
-    <Compile Include="ProjectSystemShim\DeferredProjectLoadingTests.vb" />
-    <Compile Include="ProjectSystemShim\MockRuleSetFile.vb" />
-    <Compile Include="ProjectSystemShim\VisualBasicProjectTests.vb" />
-    <Compile Include="Snippets\SnippetServiceWaiter.vb" />
-    <Compile Include="SolutionExplorer\FakeAnalyzersCommandHandler.vb" />
-    <Compile Include="SolutionExplorer\RuleSetDocumentExtensionsTests.vb" />
-    <Compile Include="Preview\PreviewChangesTests.vb" />
-    <Compile Include="Progression\CallsGraphQueryTests.vb" />
-    <Compile Include="Progression\ContainsChildrenGraphQueryTests.vb" />
-    <Compile Include="Progression\ContainsGraphQueryTests.vb" />
-    <Compile Include="Progression\CSharpSymbolLabelTests.vb" />
-    <Compile Include="Progression\GraphNodeCreationTests.vb" />
-    <Compile Include="Progression\GraphNodeIdTests.vb" />
-    <Compile Include="Progression\ImplementedByGraphQueryTests.vb" />
-    <Compile Include="Progression\ImplementsGraphQueryTests.vb" />
-    <Compile Include="Progression\InheritedByGraphQueryTests.vb" />
-    <Compile Include="Progression\InheritsFromGraphQueryTests.vb" />
-    <Compile Include="Progression\IsCalledByGraphQueryTests.vb" />
-    <Compile Include="Progression\IsUsedByGraphQueryTests.vb" />
-    <Compile Include="Progression\MockGraphContext.vb" />
-    <Compile Include="Progression\OverriddenByGraphQueryTests.vb" />
-    <Compile Include="Progression\OverridesGraphQueryTests.vb" />
-    <Compile Include="Progression\ProgressionTestHelpers.vb" />
-    <Compile Include="Progression\ProgressionTestState.vb" />
-    <Compile Include="Progression\SearchGraphQueryTests.vb" />
-    <Compile Include="Progression\VisualBasicSymbolLabelTests.vb" />
-    <Compile Include="ProjectSystemShim\VisualBasicCompilerOptionsTests.vb" />
-    <Compile Include="ProjectSystemShim\VisualBasicSpecialReferencesTests.vb" />
-    <Compile Include="ProjectSystemShim\VisualStudioAnalyzerTests.vb" />
-    <Compile Include="ProjectSystemShim\VisualStudioRuleSetTests.vb" />
-    <Compile Include="RQName\RQNameTests.vb" />
-    <Compile Include="Snippets\CSharpSnippetCommandHandlerTests.vb" />
-    <Compile Include="Snippets\CSharpSnippetExpansionClientTests.vb" />
-    <Compile Include="Snippets\SnippetCompletionProviderTests.vb" />
-    <Compile Include="Snippets\SnippetExpansionClientTestsHelper.vb" />
-    <Compile Include="Snippets\SnippetTestState.vb" />
-    <Compile Include="Snippets\TestExpansionClient.vb" />
-    <Compile Include="Snippets\VisualBasicSnippetCommandHandlerTests.vb" />
-    <Compile Include="Snippets\VisualBasicSnippetExpansionClientTests.vb" />
-    <Compile Include="SolutionExplorer\AnalyzerItemsSourceTests.vb" />
-    <Compile Include="SolutionExplorer\AnalyzerItemTests.vb" />
-    <Compile Include="SolutionExplorer\AnalyzersFolderItemTests.vb" />
-    <Compile Include="SolutionExplorer\AnalyzersFolderProviderTests.vb" />
-    <Compile Include="SolutionExplorer\DiagnosticDescriptorComparerTests.vb" />
-    <Compile Include="SolutionExplorer\LegacyDiagnosticItemTests.vb" />
-    <Compile Include="Venus\AbstractContainedLanguageCodeSupportTests.vb" />
-    <Compile Include="Venus\ContainedDocumentTests_AdjustIndentation.vb" />
-    <Compile Include="Venus\ContainedDocumentTests_UpdateText.vb" />
-    <Compile Include="Venus\CSharpContainedLanguageSupportTests.vb" />
-    <Compile Include="Venus\VisualBasicContainedLanguageSupportTests.vb" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Debugging\Resources.resx">
+    <EmbeddedResource Update="Debugging\Resources.resx">
       <CustomToolNamespace>Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>

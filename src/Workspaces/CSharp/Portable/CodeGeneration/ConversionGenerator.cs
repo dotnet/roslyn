@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             ParseOptions parseOptions)
         {
             var declaration = GenerateConversionDeclarationWorker(method, destination, workspace, options, parseOptions);
-            return AddCleanupAnnotationsTo(AddAnnotationsTo(method,
+            return AddFormatterAndCodeGeneratorAnnotationsTo(AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options)));
         }
 
@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
 
                 if (declaration.Body.TryConvertToExpressionBody(
-                        options, expressionBodyPreference, out var expressionBody, out var semicolonToken))
+                        declaration.Kind(), options, expressionBodyPreference,
+                        out var expressionBody, out var semicolonToken))
                 {
                     return declaration.WithBody(null)
                                       .WithExpressionBody(expressionBody)

@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// 
     /// </summary>
     /// <param name=""j""></param>
-    public delegate int Foo(int [|i|], int j, int k);
+    public delegate int Goo(int [|i|], int j, int k);
 }
 ";
 
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// <param name=""i""></param>
     /// <param name=""j""></param>
     /// <param name=""k""></param>
-    public delegate int Foo(int [|i|], int j, int k);
+    public delegate int Goo(int [|i|], int j, int k);
 }
 ";
             await TestAsync(initial, expected);

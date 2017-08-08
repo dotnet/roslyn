@@ -1556,14 +1556,14 @@ struct TestCase
         try
         {
             MyStruct<int> ms = new MyStruct<int>();
-            var x = ms[index: await Foo()];
+            var x = ms[index: await Goo()];
         }
         finally
         {
             Driver.CompletedSignal.Set();
         }
     }
-    public async Task<int> Foo()
+    public async Task<int> Goo()
     {
         await Task.Delay(1);
         return 1;
@@ -1847,7 +1847,7 @@ class TestCase
             int[][] arr2 = new[]
                 {
                     new []{await GetVal(2),await GetVal(3)},
-                    await Foo()
+                    await Goo()
                 };
             if (arr2[0][1] == 3 && arr2[1][1] == 2)
                 Driver.Count++;
@@ -1860,7 +1860,7 @@ class TestCase
         }
     }
 
-    public async Task<int[]> Foo()
+    public async Task<int[]> Goo()
     {
         await Task.Delay(1);
         return new int[] { 1, 2, 3 };
@@ -1994,7 +1994,7 @@ class TestCase
             dynamic arr2 = new[]
                 {
                     new []{await GetVal(2),3},
-                    await Foo()
+                    await Goo()
                 };
             if (arr2[0][1] == 3 && arr2[1][1] == 2)
                 Driver.Count++;
@@ -2007,7 +2007,7 @@ class TestCase
         }
     }
 
-    public async Task<int[]> Foo()
+    public async Task<int[]> Goo()
     {
         await Task.Delay(1);
         return new int[] { 1, 2, 3 };
@@ -2337,7 +2337,7 @@ using System.Threading.Tasks;
 
 class BaseTestCase
 {
-    public void FooRef(ref decimal d, int x, out decimal od)
+    public void GooRef(ref decimal d, int x, out decimal od)
     {
         od = d;
         d++;
@@ -2361,7 +2361,7 @@ class TestCase : BaseTestCase
             decimal od;
 
             tests++;
-            base.FooRef(ref d, await base.GetVal(4), out od);
+            base.GooRef(ref d, await base.GetVal(4), out od);
             if (d == 2 && od == 1) Driver.Count++;
         }
         finally
@@ -2513,15 +2513,15 @@ using System;
 using System.Threading.Tasks;
 public class mc<T>
 {
-    async public System.Threading.Tasks.Task<dynamic> Foo<V>(T t, V u) { await Task.Delay(1); return u; }
+    async public System.Threading.Tasks.Task<dynamic> Goo<V>(T t, V u) { await Task.Delay(1); return u; }
 }
 
 class Test
 {
-    static async Task<int> Foo()
+    static async Task<int> Goo()
     {
         dynamic mc = new mc<string>();
-        var rez = await mc.Foo<string>(null, await ((Func<Task<string>>)(async () => { await Task.Delay(1); return ""Test""; }))());
+        var rez = await mc.Goo<string>(null, await ((Func<Task<string>>)(async () => { await Task.Delay(1); return ""Test""; }))());
         if (rez == ""Test"")
             return 0;
         return 1;
@@ -2529,7 +2529,7 @@ class Test
 
     static void Main()
     {
-        Console.WriteLine(Foo().Result);
+        Console.WriteLine(Goo().Result);
     }
 }";
             CompileAndVerify(source, "0", references: new[] { CSharpRef });
@@ -2649,7 +2649,7 @@ class TestCase
         }
     }
 
-    public int Foo { get; set; }
+    public int Goo { get; set; }
 }
 
 class Driver
@@ -2686,14 +2686,14 @@ class MyClass
 
 class TestCase
 {
-    public static int Foo(ref int x, int y)
+    public static int Goo(ref int x, int y)
     {
         return x + y;
     }
 
     public async Task<int> Run()
     {
-        return Foo(
+        return Goo(
             ref (new MyClass() { Field = 21 }.Field),
             await Task.Factory.StartNew(() => 21));
     }
@@ -2853,12 +2853,12 @@ struct s1
 {
     public int X;
 
-    public async void Foo1()
+    public async void Goo1()
     {
         Bar(ref this, await Task<int>.FromResult(42));
     }
 
-    public void Foo2()
+    public void Goo2()
     {
         Bar(ref this, 42);
     }
@@ -2873,12 +2873,12 @@ class c1
 {
     public int X;
 
-    public async void Foo1()
+    public async void Goo1()
     {
         Bar(this, await Task<int>.FromResult(42));
     }
 
-    public void Foo2()
+    public void Goo2()
     {
         Bar(this, 42);
     }
@@ -2896,28 +2896,28 @@ class C
         {
             s1 s;
             s.X = -1;
-            s.Foo1();
+            s.Goo1();
             Console.WriteLine(s.X);
         }
 
         {
             s1 s;
             s.X = -1;
-            s.Foo2();
+            s.Goo2();
             Console.WriteLine(s.X);
         }
 
         {
             c1 c = new c1();
             c.X = -1;
-            c.Foo1();
+            c.Goo1();
             Console.WriteLine(c.X);
         }
 
         {
             c1 c = new c1();
             c.X = -1;
-            c.Foo2();
+            c.Goo2();
             Console.WriteLine(c.X);
         }
     }

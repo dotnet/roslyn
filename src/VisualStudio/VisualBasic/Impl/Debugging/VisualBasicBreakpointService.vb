@@ -23,7 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
             ' Non-zero length means that the span is passed by the debugger and we may need validate it.
             ' In a rare VB case, this span may contain multiple methods, e.g., 
             '
-            '    [Sub Foo() Handles A
+            '    [Sub Goo() Handles A
             '
             '     End Sub
             '

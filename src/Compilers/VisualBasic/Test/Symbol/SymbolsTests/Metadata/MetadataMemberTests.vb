@@ -433,9 +433,9 @@ End Class
       IL_0000:  ldc.i4.s   23
       IL_0002:  stsfld     int32 C3::bar
       IL_0007:  ret
-    } // end of method foo::.cctor
+    } // end of method goo::.cctor
 
-  } // end of class foo
+  } // end of class goo
 
 .class public auto ansi beforefieldinit C1
        extends [mscorlib]System.Object

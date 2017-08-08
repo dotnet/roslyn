@@ -1613,11 +1613,38 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer inferred anonymous type member names.
+        /// </summary>
+        internal static string Prefer_inferred_anonymous_type_member_names {
+            get {
+                return ResourceManager.GetString("Prefer_inferred_anonymous_type_member_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer inferred tuple element names.
+        /// </summary>
+        internal static string Prefer_inferred_tuple_names {
+            get {
+                return ResourceManager.GetString("Prefer_inferred_tuple_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer inlined variable declaration.
         /// </summary>
         internal static string Prefer_inlined_variable_declaration {
             get {
                 return ResourceManager.GetString("Prefer_inlined_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefere local function over anonymous function.
+        /// </summary>
+        internal static string Prefer_local_function_over_anonymous_function {
+            get {
+                return ResourceManager.GetString("Prefer_local_function_over_anonymous_function", resourceCulture);
             }
         }
         

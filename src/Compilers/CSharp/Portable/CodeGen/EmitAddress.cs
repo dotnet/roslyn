@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // when a sequence is happened to be a byref receiver
             // we may need to extend the life time of the target until we are done accessing it
-            // {.v ; v = Foo(); v}.Bar()     // v should be released only after Bar() is done.
+            // {.v ; v = Goo(); v}.Bar()     // v should be released only after Bar() is done.
             LocalSymbol doNotRelease = null;
             if (tempOpt == null)
             {

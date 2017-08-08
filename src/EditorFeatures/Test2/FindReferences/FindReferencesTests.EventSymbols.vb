@@ -153,7 +153,7 @@ public class MainClass
         <Document>
 Class B
     Event {|Definition:$$X|}()
-    Sub Foo()
+    Sub Goo()
         [|XEvent|]()
     End Sub
 End Class
@@ -172,7 +172,7 @@ End Class
         <Document>
 Class B
     Event {|Definition:X|}()
-    Sub Foo()
+    Sub Goo()
         [|$$XEvent|]()
     End Sub
 End Class

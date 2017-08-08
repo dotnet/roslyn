@@ -127,7 +127,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyKeyName("roslynTestContainer")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -144,7 +144,7 @@ End Class
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -163,7 +163,7 @@ End Class
 
         Dim source = <![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -199,7 +199,7 @@ End Class
             <compilation>
                 <file name="Clavelle.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -218,7 +218,7 @@ End Class
 
         Dim source = <![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -257,17 +257,17 @@ End Class
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
     </file>
 </compilation>,
-        options:=TestOptions.ReleaseExe.WithCryptoKeyFile("foo").WithStrongNameProvider(s_defaultProvider))
+        options:=TestOptions.ReleaseExe.WithCryptoKeyFile("goo").WithStrongNameProvider(s_defaultProvider))
 
         CompilationUtils.AssertTheseDeclarationDiagnostics(other,
             <errors>
-BC36980: Error extracting public key from file 'foo': <%= CodeAnalysisResources.FileNotFound %>
+BC36980: Error extracting public key from file 'goo': <%= CodeAnalysisResources.FileNotFound %>
             </errors>)
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
@@ -280,7 +280,7 @@ BC36980: Error extracting public key from file 'foo': <%= CodeAnalysisResources.
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyKeyFile("")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
     End Sub
 End Class
 ]]>
@@ -298,7 +298,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyKeyName("")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -433,7 +433,7 @@ BC2046: Compilation options 'CryptoPublicKey' and 'CryptoKeyFile' can't both be 
     <file>
         <![CDATA[
 Public Class C
-Friend Sub Foo()
+Friend Sub Goo()
 End Sub
 End Class
 ]]>
@@ -453,22 +453,22 @@ End Class
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithCryptoKeyContainer("foo").WithStrongNameProvider(s_defaultProvider))
+</compilation>, options:=TestOptions.ReleaseExe.WithCryptoKeyContainer("goo").WithStrongNameProvider(s_defaultProvider))
 
         '        CompilationUtils.AssertTheseDeclarationDiagnostics(other,
         '            <errors>
-        'BC36981: Error extracting public key from container 'foo': Keyset does not exist (Exception from HRESULT: 0x80090016)                    
+        'BC36981: Error extracting public key from container 'goo': Keyset does not exist (Exception from HRESULT: 0x80090016)                    
         '                </errors>)
         Dim err = other.GetDeclarationDiagnostics().Single()
 
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
-        Assert.Equal("foo", DirectCast(err.Arguments(0), String))
+        Assert.Equal("goo", DirectCast(err.Arguments(0), String))
         Dim errorText = DirectCast(err.Arguments(1), String)
         Assert.True(
             errorText.Contains("HRESULT") AndAlso
@@ -486,7 +486,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("WantsIVTAccess")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -501,7 +501,7 @@ End Class
 Public Class A
     Friend Class B
         Protected Sub New(o As C)
-          o.Foo()
+          o.Goo()
         End Sub
     End Class
 End Class
@@ -513,8 +513,8 @@ End Class
         c.GetDiagnostics()
 
         CompilationUtils.AssertTheseDiagnostics(c, <error>
-BC30390: 'C.Friend Sub Foo()' is not accessible in this context because it is 'Friend'.
-          o.Foo()
+BC30390: 'C.Friend Sub Goo()' is not accessible in this context because it is 'Friend'.
+          o.Goo()
           ~~~~~
 </error>)
 
@@ -524,7 +524,7 @@ BC30390: 'C.Friend Sub Foo()' is not accessible in this context because it is 'F
 Public Class A
     Friend Class B
         Protected Sub New(o As C)
-          o.Foo()
+          o.Goo()
         End Sub
     End Class
 End Class
@@ -542,7 +542,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("WantsIVTAccess")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -557,7 +557,7 @@ End Class
 Public Class A
     Friend Class B
         Protected Sub New(o As C)
-          o.Foo()
+          o.Goo()
         End Sub
     End Class
 End Class
@@ -571,8 +571,8 @@ End Class
         'gives "is not a member" error because internals were not imported because no IVT was found
         'on HasIVTToCompilation that referred to WantsIVTAccessButCantHave
         CompilationUtils.AssertTheseDiagnostics(c, <error>
-BC30456: 'Foo' is not a member of 'C'.
-          o.Foo()
+BC30456: 'Goo' is not a member of 'C'.
+          o.Goo()
           ~~~~~
 </error>)
 
@@ -582,7 +582,7 @@ BC30456: 'Foo' is not a member of 'C'.
 Public Class A
     Friend Class B
         Protected Sub New(o As C)
-          o.Foo()
+          o.Goo()
         End Sub
     End Class
 End Class
@@ -664,7 +664,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
 Friend Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -678,7 +678,7 @@ End Class
     <file name="a.vb"><![CDATA[
 Public Class A
     Private Sub New(o As C)
-        o.Foo()
+        o.Goo()
     End Sub
 End Class
 ]]>
@@ -697,7 +697,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
 Friend Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -711,7 +711,7 @@ End Class
     <file name="a.vb"><![CDATA[
 Public Class A
     Private Sub New(o As C)
-        o.Foo()
+        o.Goo()
     End Sub
 End Class
 ]]>
@@ -734,7 +734,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
 Friend Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -765,7 +765,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
 Friend Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -798,7 +798,7 @@ End Class
 'key is wrong in the first digit
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=10240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
 Friend Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -831,7 +831,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
 Friend Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -861,7 +861,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
 Friend Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -893,7 +893,7 @@ End Class
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb")>
 Namespace ClassLibrary
     Friend Class FriendClass
-     Public Sub Foo()
+     Public Sub Goo()
      End Sub
     End Class
 end Namespace
@@ -928,7 +928,7 @@ End Class
 Imports System.Runtime.CompilerServices
 <Assembly: InternalsVisibleTo("WantsIVTAccess, Culture=neutral")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -951,7 +951,7 @@ BC31534: Friend assembly reference 'WantsIVTAccess, Culture=neutral' is invalid.
 Imports System.Runtime.CompilerServices
 <Assembly: InternalsVisibleTo("WantsIVTAccess")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1031,7 +1031,7 @@ options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyF
 <compilation name="Sam">
     <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1049,7 +1049,7 @@ End Class
 <compilation name="Sam">
     <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1093,7 +1093,7 @@ BC36961: Key file '<%= s_publicKeyFile %>' is missing the private key needed for
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyDelaySign(True)>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1111,7 +1111,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyDelaySign(True)>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1132,7 +1132,7 @@ End Class
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1203,7 +1203,7 @@ End Class
 <Assembly: System.Reflection.AssemblyDelaySign(True)>
 <Assembly: System.Reflection.AssemblySignatureKey("002400000c800000140100000602000000240000525341310008000001000100613399aff18ef1a2c2514a273a42d9042b72321f1757102df9ebada69923e2738406c21e5b801552ab8d200a65a235e001ac9adc25f2d811eb09496a4c6a59d4619589c69f5baf0c4179a47311d92555cd006acc8b5959f2bd6e10e360c34537a1d266da8085856583c85d81da7f3ec01ed9564c58d93d713cd0172c8e23a10f0239b80c96b07736f5d8b022542a4e74251a5f432824318b3539a5a087f8e53d2f135f9ca47f3bb2e10aff0af0849504fb7cea3ff192dc8de0edad64c68efde34c56d302ad55fd6e80f302d5efcdeae953658d3452561b5f36c542efdbdd9f888538d374cef106acf7d93a4445c3c73cd911f0571aaf3d54da12b11ddec375b3", "a5a866e1ee186f807668209f3b11236ace5e21f117803a3143abb126dd035d7d2f876b6938aaf2ee3414d5420d753621400db44a49c486ce134300a2106adb6bdb433590fef8ad5c43cba82290dc49530effd86523d9483c00f458af46890036b0e2c61d077d7fbac467a506eba29e467a87198b053c749aa2a4d2840c784e6d")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
     End Sub
 End Class
 ]]>
@@ -1482,7 +1482,7 @@ End Class
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
     Dim x as New System.Guid()
     System.Console.WriteLine(x)
  End Sub
@@ -1514,7 +1514,7 @@ End Class
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
     Dim x as New C1()
     System.Console.WriteLine(x)
  End Sub
@@ -1551,7 +1551,7 @@ BC41997: Referenced assembly 'Unsigned, Version=0.0.0.0, Culture=neutral, Public
 "bc6402e37ad723580b576953f40475ceae4b784d3661b90c3c6f5a1f7283388a7880683e0821610bee977f70506bb75584080e01b2ec97483c4d601ce1c981752a07276b420d78594d0ef28f8ec016d0a5b6d56cfc22e9f25a2ed9545942ccbf2d6295b9528641d98776e06a3273ab233271a3c9f53099b4d4e029582a6d5819")>
 
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1573,7 +1573,7 @@ End Class
 "bc6402e37ad723580b576953f40475ceae4b784d3661b90c3c6f5a1f7283388a7880683e0821610bee977f70506bb75584080e01b2ec97483c4d601ce1c981752a07276b420d78594d0ef28f8ec016d0a5b6d56cfc22e9f25a2ed9545942ccbf2d6295b9528641d98776e06a3273ab233271a3c9f53099b4d4e029582a6d5819")>
 
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1604,7 +1604,7 @@ BC37209: Invalid signature public key specified in AssemblySignatureKeyAttribute
 "FFFFbc6402e37ad723580b576953f40475ceae4b784d3661b90c3c6f5a1f7283388a7880683e0821610bee977f70506bb75584080e01b2ec97483c4d601ce1c981752a07276b420d78594d0ef28f8ec016d0a5b6d56cfc22e9f25a2ed9545942ccbf2d6295b9528641d98776e06a3273ab233271a3c9f53099b4d4e029582a6d5819")>
 
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1642,7 +1642,7 @@ End Class
 "bc6402e37ad723580b576953f40475ceae4b784d3661b90c3c6f5a1f7283388a7880683e0821610bee977f70506bb75584080e01b2ec97483c4d601ce1c981752a07276b420d78594d0ef28f8ec016d0a5b6d56cfc22e9f25a2ed9545942ccbf2d6295b9528641d98776e06a3273ab233271a3c9f53099b4d4e029582a6d5819")>
 
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1673,7 +1673,7 @@ BC37209: Invalid signature public key specified in AssemblySignatureKeyAttribute
 "FFFFbc6402e37ad723580b576953f40475ceae4b784d3661b90c3c6f5a1f7283388a7880683e0821610bee977f70506bb75584080e01b2ec97483c4d601ce1c981752a07276b420d78594d0ef28f8ec016d0a5b6d56cfc22e9f25a2ed9545942ccbf2d6295b9528641d98776e06a3273ab233271a3c9f53099b4d4e029582a6d5819")>
 
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1694,7 +1694,7 @@ Nothing,
 "bc6402e37ad723580b576953f40475ceae4b784d3661b90c3c6f5a1f7283388a7880683e0821610bee977f70506bb75584080e01b2ec97483c4d601ce1c981752a07276b420d78594d0ef28f8ec016d0a5b6d56cfc22e9f25a2ed9545942ccbf2d6295b9528641d98776e06a3273ab233271a3c9f53099b4d4e029582a6d5819")>
 
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1725,7 +1725,7 @@ Nothing,
 Nothing)>
 
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>

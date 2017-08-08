@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return _state.DelegateMethodSymbol.Parameters;
                 }
 
-                return default(ImmutableArray<IParameterSymbol>);
+                return default;
             }
 
             private ImmutableArray<ISymbol> DetermineMembers(GenerateTypeOptionsResult options = null)
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
 
                     parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         refKind: refKind,
                         isParams: false,
                         type: parameterType,
@@ -242,12 +242,14 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Empty Constructor for Struct is not allowed
                 if (!(parameters.Count == 0 && options != null && (options.TypeKind == TypeKind.Struct || options.TypeKind == TypeKind.Structure)))
                 {
-                    members.AddRange(factory.CreateFieldDelegatingConstructor(
+                    var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
                         _document.SemanticModel.Compilation,
-                        DetermineName(), null, parameters.ToImmutable(), 
-                        parameterToExistingFieldMap, parameterToNewFieldMap, 
+                        DetermineName(), null, parameters.ToImmutable(),
+                        parameterToExistingFieldMap, parameterToNewFieldMap,
                         addNullChecks: false, preferThrowExpression: false,
-                        cancellationToken: _cancellationToken));
+                        cancellationToken: _cancellationToken);
+                    members.AddRange(fields);
+                    members.Add(constructor);
                 }
 
                 parameters.Free();
@@ -261,14 +263,14 @@ namespace Microsoft.CodeAnalysis.GenerateType
                    exceptionType.InstanceConstructors
                        .Where(c => c.DeclaredAccessibility == Accessibility.Public || c.DeclaredAccessibility == Accessibility.Protected)
                        .Select(c => CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                           attributes: default(ImmutableArray<AttributeData>),
+                           attributes: default,
                            accessibility: c.DeclaredAccessibility,
-                           modifiers: default(DeclarationModifiers),
+                           modifiers: default,
                            typeName: DetermineName(),
                            parameters: c.Parameters,
-                           statements: default(ImmutableArray<SyntaxNode>),
+                           statements: default,
                            baseConstructorArguments: c.Parameters.Length == 0
-                                ? default(ImmutableArray<SyntaxNode>)
+                                ? default
                                 : factory.CreateArguments(c.Parameters)));
                 members.AddRange(constructors);
             }
@@ -285,7 +287,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                return default(ImmutableArray<AttributeData>);
+                return default;
             }
 
             private Accessibility DetermineAccessibility()
@@ -295,7 +297,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private DeclarationModifiers DetermineModifiers()
             {
-                return default(DeclarationModifiers);
+                return default;
             }
 
             private INamedTypeSymbol DetermineBaseType()
