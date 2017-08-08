@@ -34,6 +34,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsUpgradeProject = "CodeActions.UpgradeProject";
             public const string CodeActionsAddAccessibilityModifiers = "CodeActions.AddAccessibilityModifiers";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
+            public const string CodeActionsAddFileBanner = "CodeActions.AddFileBanner";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
             public const string CodeActionsAddParameter = "CodeActions.AddParameter";

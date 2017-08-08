@@ -2900,7 +2900,7 @@ public class C
             );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
+        [Fact]
         [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic003()
         {
@@ -2930,13 +2930,12 @@ public class C
 ";
 
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
-                // (14,28): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                // (14,26): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref G(ref d.Length);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d.Length").WithLocation(14, 28),
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d.Length").WithLocation(14, 26),
                 // (14,20): error CS8164: Cannot return by reference a result of 'C.G(ref dynamic)' because the argument passed to parameter 'd' cannot be returned by reference
                 //         return ref G(ref d.Length);
                 Diagnostic(ErrorCode.ERR_RefReturnCall, "G(ref d.Length)").WithArguments("C.G(ref dynamic)", "d").WithLocation(14, 20)
-
             );
         }
 
