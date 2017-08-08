@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis
         public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLoggerOpt);
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
+        public abstract void PrintLangVersions(TextWriter consoleOutput);
 
         /// <summary>
         /// Print compiler version
@@ -521,6 +522,12 @@ namespace Microsoft.CodeAnalysis
                 return Succeeded;
             }
 
+            if (Arguments.DisplayLangVersions)
+            {
+                PrintLangVersions(consoleOutput);
+                return Succeeded;
+            }
+
             if (Arguments.DisplayLogo)
             {
                 PrintLogo(consoleOutput);
@@ -578,7 +585,7 @@ namespace Microsoft.CodeAnalysis
                 if (!analyzers.IsEmpty)
                 {
                     analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    analyzerManager = new AnalyzerManager();
+                    analyzerManager = new AnalyzerManager(analyzers);
                     analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                     Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
@@ -607,16 +614,10 @@ namespace Microsoft.CodeAnalysis
                     // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
                     var emitOptions = Arguments.EmitOptions.
                         WithOutputNameOverride(outputName).
-                        WithPdbFilePath(finalPdbFilePath);
+                        WithPdbFilePath(PathUtilities.NormalizePathPrefix(finalPdbFilePath, Arguments.PathMap));
 
-                    // The PDB path is emitted in it's entirety into the PE.  This makes it impossible to have deterministic
-                    // builds that occur in different source directories.  To enable this we shave all path information from
-                    // the PDB when specified by the user.  
-                    //
-                    // This is a temporary work around to allow us to make progress with determinism.  The following issue 
-                    // tracks getting an official solution here.
-                    //
-                    // https://github.com/dotnet/roslyn/issues/9813
+                    // This feature flag is being maintained until our next major release to avoid unnecessary 
+                    // compat breaks with customers.
                     if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
                     {
                         emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
@@ -767,7 +768,7 @@ namespace Microsoft.CodeAnalysis
                                     metadataOnly: emitOptions.EmitMetadataOnly,
                                     includePrivateMembers: emitOptions.IncludePrivateMembers,
                                     emitTestCoverageData: emitOptions.EmitTestCoverageData,
-                                    pdbFilePath: emitOptions.PdbFilePath,
+                                    pePdbFilePath: emitOptions.PdbFilePath,
                                     cancellationToken: cancellationToken);
                             }
                             finally
@@ -845,12 +846,6 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerCts != null)
                 {
                     analyzerCts.Cancel();
-
-                    if (analyzerManager != null)
-                    {
-                        // Clear cached analyzer descriptors and unregister exception handlers hooked up to the LocalizableString fields of the associated descriptors.
-                        analyzerManager.ClearAnalyzerState(analyzers);
-                    }
 
                     if (reportAnalyzer)
                     {

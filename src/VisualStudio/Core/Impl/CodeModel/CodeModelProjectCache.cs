@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -220,9 +220,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     if (comHandleToRename != null)
                     {
                         // We might already have a code model for this new filename. This can happen if
-                        // we were to rename Foo.cs to Foocs, which will call this method, and then rename
-                        // it back, which does not call this method. This results in both Foo.cs and Foocs
-                        // being in the cache. We could fix that "correctly", but the zombied Foocs code model
+                        // we were to rename Goo.cs to Goocs, which will call this method, and then rename
+                        // it back, which does not call this method. This results in both Goo.cs and Goocs
+                        // being in the cache. We could fix that "correctly", but the zombied Goocs code model
                         // is pretty broken, so there's no point in trying to reuse it.
                         if (_cache.TryGetValue(newFileName, out cacheEntry))
                         {

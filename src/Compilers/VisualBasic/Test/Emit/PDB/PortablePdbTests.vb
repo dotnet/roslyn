@@ -71,7 +71,7 @@ Class C
     End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib(Parse(source, "foo.vb"), options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib(Parse(source, "goo.vb"), options:=TestOptions.DebugDll)
             Dim peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithPdbFilePath("a/b/c/d.pdb"))
 
             Using peReader = New PEReader(peBlob)
@@ -90,7 +90,7 @@ End Class
                 Dim pdbId As BlobContentId
                 Using embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded)
                     Dim mdReader = embeddedMetadataProvider.GetMetadataReader()
-                    AssertEx.Equal({"foo.vb"}, mdReader.Documents.Select(Function(doc) mdReader.GetString(mdReader.GetDocument(doc).Name)))
+                    AssertEx.Equal({"goo.vb"}, mdReader.Documents.Select(Function(doc) mdReader.GetString(mdReader.GetDocument(doc).Name)))
                     pdbId = New BlobContentId(mdReader.DebugMetadataHeader.Id)
                 End Using
 
@@ -115,7 +115,7 @@ Class C
     End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib(Parse(source, "foo.vb"), options:=TestOptions.DebugDll.WithDeterministic(True))
+            Dim c = CreateCompilationWithMscorlib(Parse(source, "goo.vb"), options:=TestOptions.DebugDll.WithDeterministic(True))
             Dim peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithPdbFilePath("a/b/c/d.pdb"))
 
             Using peReader = New PEReader(peBlob)
@@ -135,7 +135,7 @@ End Class
                 Dim pdbId As BlobContentId
                 Using embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded)
                     Dim mdReader = embeddedMetadataProvider.GetMetadataReader()
-                    AssertEx.Equal({"foo.vb"}, mdReader.Documents.Select(Function(doc) mdReader.GetString(mdReader.GetDocument(doc).Name)))
+                    AssertEx.Equal({"goo.vb"}, mdReader.Documents.Select(Function(doc) mdReader.GetString(mdReader.GetDocument(doc).Name)))
                     pdbId = New BlobContentId(mdReader.DebugMetadataHeader.Id)
                 End Using
 
@@ -173,7 +173,7 @@ End Class
   }
 }
 ")
-            Dim c = CreateCompilationWithMscorlib(Parse(source, "f:/build/foo.vb"), options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib(Parse(source, "f:/build/goo.vb"), options:=TestOptions.DebugDll)
 
             Dim pdbStream = New MemoryStream()
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream:=pdbStream, sourceLinkStream:=New MemoryStream(sourceLinkBlob))
@@ -209,7 +209,7 @@ End Class
   }
 }
 ")
-            Dim c = CreateCompilationWithMscorlib(Parse(source, "f:/build/foo.vb"), options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib(Parse(source, "f:/build/goo.vb"), options:=TestOptions.DebugDll)
             Dim peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded), sourceLinkStream:=New MemoryStream(sourceLinkBlob))
 
             Using peReader = New PEReader(peBlob)
@@ -244,7 +244,7 @@ End Class
                                                                                Throw New Exception("Error!")
                                                                            End Function)
 
-            Dim c = CreateCompilationWithMscorlib(Parse(source, "f:/build/foo.vb"), options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib(Parse(source, "f:/build/goo.vb"), options:=TestOptions.DebugDll)
             Dim result = c.Emit(New MemoryStream(), New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), sourceLinkStream:=sourceLinkStream)
 
             result.Diagnostics.Verify(
@@ -262,7 +262,7 @@ Class C
     End Sub
 End Class
 "
-            Dim tree = Parse(source, "f:/build/foo.cs")
+            Dim tree = Parse(source, "f:/build/goo.cs")
             Dim c = CreateCompilationWithMscorlib(tree, options:=TestOptions.DebugDll)
 
             Dim pdbStream = New MemoryStream()
@@ -284,7 +284,7 @@ End Class
                          .Text = pdbReader.GetEmbeddedSource(documentHandle)
                      }).Single()
 
-                Assert.Equal(embeddedSource.FilePath, "f:/build/foo.cs")
+                Assert.Equal(embeddedSource.FilePath, "f:/build/goo.cs")
                 Assert.Equal(source, embeddedSource.Text.ToString())
             End Using
         End Sub
@@ -300,7 +300,7 @@ Class C
     End Sub
 End Class
 "
-            Dim tree = Parse(source, "f:/build/foo.cs")
+            Dim tree = Parse(source, "f:/build/goo.cs")
             Dim c = CreateCompilationWithMscorlib(tree, options:=TestOptions.DebugDll)
 
             Dim pdbStream = New MemoryStream()
@@ -324,7 +324,7 @@ End Class
                              .Text = pdbReader.GetEmbeddedSource(documentHandle)
                          }).Single()
 
-                    Assert.Equal(embeddedSource.FilePath, "f:/build/foo.cs")
+                    Assert.Equal(embeddedSource.FilePath, "f:/build/goo.cs")
                     Assert.Equal(source, embeddedSource.Text.ToString())
                 End Using
             End Using

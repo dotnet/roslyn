@@ -75,6 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp7_1 = 701,
 
         /// <summary>
+        /// C# language version 7.2
+        /// </summary>
+        CSharp7_2 = 702,
+
+        /// <summary>
         /// The latest version of the language supported.
         /// </summary>
         Latest = int.MaxValue,
@@ -94,6 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp6:
                 case LanguageVersion.CSharp7:
                 case LanguageVersion.CSharp7_1:
+                case LanguageVersion.CSharp7_2:
                     return true;
             }
 
@@ -120,6 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion7;
                 case LanguageVersion.CSharp7_1:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion7_1;
+                case LanguageVersion.CSharp7_2:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion7_2;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
@@ -161,9 +169,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp6:
                     return "6";
                 case LanguageVersion.CSharp7:
-                    return "7";
+                    return "7.0";
                 case LanguageVersion.CSharp7_1:
                     return "7.1";
+                case LanguageVersion.CSharp7_2:
+                    return "7.2";
                 case LanguageVersion.Default:
                     return "default";
                 case LanguageVersion.Latest:
@@ -184,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            switch (version.ToLowerInvariant())
+            switch (CaseInsensitiveComparison.ToLower(version))
             {
                 case "default":
                     result = LanguageVersion.Default;
@@ -235,6 +245,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = LanguageVersion.CSharp7_1;
                     return true;
 
+                case "7.2":
+                    result = LanguageVersion.CSharp7_2;
+                    return true;
+
                 default:
                     result = LanguageVersion.Default;
                     return false;
@@ -249,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (version)
             {
                 case LanguageVersion.Latest:
-                    return LanguageVersion.CSharp7_1;
+                    return LanguageVersion.CSharp7_2;
                 case LanguageVersion.Default:
                     return LanguageVersion.CSharp7;
                 default:

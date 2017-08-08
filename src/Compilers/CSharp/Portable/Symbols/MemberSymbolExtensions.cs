@@ -402,20 +402,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsPartialMethod(this Symbol member)
         {
-            var sms = member as SourceMethodSymbol;
+            var sms = member as SourceMemberMethodSymbol;
             return sms?.IsPartial == true;
         }
 
         internal static bool IsPartialImplementation(this Symbol member)
         {
-            var sms = member as SourceMemberMethodSymbol;
+            var sms = member as SourceOrdinaryMethodSymbol;
             return sms?.IsPartialImplementation == true;
         }
 
         internal static bool IsPartialDefinition(this Symbol member)
         {
-            var sms = member as SourceMemberMethodSymbol;
+            var sms = member as SourceOrdinaryMethodSymbol;
             return sms?.IsPartialDefinition == true;
+        }
+
+        internal static bool ContainsTupleNames(this Symbol member)
+        {
+            switch (member.Kind)
+            {
+                case SymbolKind.Method:
+                    var method = (MethodSymbol)member;
+                    return method.ReturnType.ContainsTupleNames() || method.Parameters.Any(p => p.Type.ContainsTupleNames());
+                case SymbolKind.Property:
+                    return ((PropertySymbol)member).Type.ContainsTupleNames();
+                case SymbolKind.Event:
+                    return ((EventSymbol)member).Type.ContainsTupleNames();
+                default:
+                    // We currently don't need to use this method for fields or locals
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
+            }
         }
 
         internal static ImmutableArray<Symbol> GetExplicitInterfaceImplementations(this Symbol member)

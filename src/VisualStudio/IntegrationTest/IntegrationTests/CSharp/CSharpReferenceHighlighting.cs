@@ -3,11 +3,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -42,7 +41,7 @@ class {|definition:C|}
             VerifyNone("void");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19059"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void WrittenReference()
         {
             var markup = @"
@@ -90,16 +89,17 @@ class C
                FeatureAttribute.DiagnosticService,
                FeatureAttribute.Classification,
                FeatureAttribute.ReferenceHighlighting));
-            AssertEx.SetEqual(spans["definition"], VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId));
+
+            AssertEx.SetEqual(spans["definition"], VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId), message: "Testing 'definition'\r\n");
 
             if (spans.ContainsKey("reference"))
             {
-                AssertEx.SetEqual(spans["reference"], VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId));
+                AssertEx.SetEqual(spans["reference"], VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId), message: "Testing 'reference'\r\n");
             }
 
             if (spans.ContainsKey("writtenreference"))
             {
-                AssertEx.SetEqual(spans["writtenreference"], VisualStudio.Editor.GetTagSpans(WrittenReferenceHighlightTag.TagId));
+                AssertEx.SetEqual(spans["writtenreference"], VisualStudio.Editor.GetTagSpans(WrittenReferenceHighlightTag.TagId), message: "Testing 'writtenreference'\r\n");
             }
         }
 

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.Desktop;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -295,10 +296,10 @@ public class Test
         {
             string s = "public class C {}";
             var other = CreateStandardCompilation(s,
-                options: TestOptions.ReleaseDll.WithCryptoKeyFile("foo").WithStrongNameProvider(s_defaultProvider));
+                options: TestOptions.ReleaseDll.WithCryptoKeyFile("goo").WithStrongNameProvider(s_defaultProvider));
 
             other.VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("foo", CodeAnalysisResources.FileNotFound));
+                Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("goo", CodeAnalysisResources.FileNotFound));
 
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
@@ -322,14 +323,14 @@ public class Test
         {
             string s = "public class C {}";
             var other = CreateStandardCompilation(s,
-                options: TestOptions.ReleaseDll.WithCryptoKeyContainer("foo").WithStrongNameProvider(s_defaultProvider));
+                options: TestOptions.ReleaseDll.WithCryptoKeyContainer("goo").WithStrongNameProvider(s_defaultProvider));
 
-            // error CS7028: Error signing output with public key from container 'foo' -- Keyset does not exist (Exception from HRESULT: 0x80090016)
+            // error CS7028: Error signing output with public key from container 'goo' -- Keyset does not exist (Exception from HRESULT: 0x80090016)
             var err = other.GetDiagnostics().Single();
 
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
-            Assert.Equal("foo", err.Arguments[0]);
+            Assert.Equal("goo", err.Arguments[0]);
             Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
 
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
@@ -683,7 +684,7 @@ public class C {}",
         public void IVTBasicCompilation()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
-            public class C { internal void Foo() {} }";
+            public class C { internal void Goo() {} }";
 
             var other = CreateStandardCompilation(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
@@ -694,7 +695,7 @@ public class C {}",
     {
         protected B(C o)
         {
-            o.Foo();
+            o.Goo();
         }
     }
 }",
@@ -703,7 +704,7 @@ public class C {}",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
             //compilation should not succeed, and internals should not be imported.
-            c.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadAccess, "Foo").WithArguments("C.Foo()"));
+            c.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadAccess, "Goo").WithArguments("C.Goo()"));
 
             var c2 = CreateStandardCompilation(
     @"public class A
@@ -712,7 +713,7 @@ public class C {}",
     {
         protected B(C o)
         {
-            o.Foo();
+            o.Goo();
         }
     }
 }",
@@ -727,7 +728,7 @@ public class C {}",
         public void IVTBasicMetadata()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
-            public class C { internal void Foo() {} }";
+            public class C { internal void Goo() {} }";
 
             var otherStream = CreateStandardCompilation(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider)).EmitToStream();
 
@@ -738,7 +739,7 @@ public class C {}",
     {
         protected B(C o)
         {
-            o.Foo();
+            o.Goo();
         }
     }
 }",
@@ -747,7 +748,7 @@ public class C {}",
             options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
             //compilation should not succeed, and internals should not be imported.
-            c.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Foo").WithArguments("C", "Foo"));
+            c.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Goo").WithArguments("C", "Goo"));
 
             otherStream.Position = 0;
 
@@ -758,7 +759,7 @@ public class C {}",
     {
         protected B(C o)
         {
-            o.Foo();
+            o.Goo();
         }
     }
 }",
@@ -773,7 +774,7 @@ public class C {}",
         public void IVTSigned()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
-            public class C { internal void Foo() {} }";
+            public class C { internal void Goo() {} }";
 
             var other = CreateStandardCompilation(s,
                 options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider),
@@ -788,7 +789,7 @@ public class C {}",
     {
         protected B(C o)
         {
-            o.Foo();
+            o.Goo();
         }
     }
 }",
@@ -803,7 +804,7 @@ public class C {}",
         public void IVTErrorNotBothSigned()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
-            public class C { internal void Foo() {} }";
+            public class C { internal void Goo() {} }";
 
             var other = CreateStandardCompilation(s, assemblyName: "Paul", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
             other.VerifyDiagnostics();
@@ -815,7 +816,7 @@ public class C {}",
     {
         protected B(C o)
         {
-            o.Foo();
+            o.Goo();
         }
     }
 }",
@@ -823,7 +824,7 @@ public class C {}",
                 assemblyName: "John",
                 options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
-            // We allow John to access Paul's internal Foo even though strong-named John should not be referencing weak-named Paul.
+            // We allow John to access Paul's internal Goo even though strong-named John should not be referencing weak-named Paul.
             // Paul has, after all, specifically granted access to John.
 
             // TODO: During emit time we should produce an error that says that a strong-named assembly cannot reference
@@ -989,7 +990,7 @@ namespace ClassLibrary2
 {
     internal class A
     {
-        public void Foo(ClassLibrary1.Class1 a)
+        public void Goo(ClassLibrary1.Class1 a)
         {   
         }
     }
@@ -1014,7 +1015,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo(""WantsIVTAccess, Culture=neutral"")]
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }
 ", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
@@ -1110,7 +1111,7 @@ options: TestOptions.ReleaseExe
             @"
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }",
       options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
@@ -1353,7 +1354,7 @@ public class C {}";
             @"
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }",
       options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithStrongNameProvider(s_defaultProvider));
 
@@ -1378,7 +1379,7 @@ public class C
 [assembly: System.Reflection.AssemblyDelaySign(true)]
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }", options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithStrongNameProvider(s_defaultProvider));
 
             using (var outStrm = new MemoryStream())
@@ -1396,7 +1397,7 @@ public class C
 [assembly: System.Reflection.AssemblyDelaySign(true)]
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }",
       options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
@@ -1416,7 +1417,7 @@ public class C
                 @"
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }",
     options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
             var outStrm = new MemoryStream();
@@ -1432,7 +1433,7 @@ public class C
 [assembly: System.Reflection.AssemblyDelaySign(true)]
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }", options: TestOptions.ReleaseDll.WithDelaySign(false).WithStrongNameProvider(s_defaultProvider));
 
             var outStrm = new MemoryStream();
@@ -1450,7 +1451,7 @@ public class C
 [assembly: System.Reflection.AssemblyDelaySign(true)]
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }", options: TestOptions.ReleaseDll.WithDelaySign(true).WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
             var outStrm = new MemoryStream();
@@ -1477,7 +1478,7 @@ public class C
 [assembly: System.Reflection.AssemblySignatureKey(""002400000c800000140100000602000000240000525341310008000001000100613399aff18ef1a2c2514a273a42d9042b72321f1757102df9ebada69923e2738406c21e5b801552ab8d200a65a235e001ac9adc25f2d811eb09496a4c6a59d4619589c69f5baf0c4179a47311d92555cd006acc8b5959f2bd6e10e360c34537a1d266da8085856583c85d81da7f3ec01ed9564c58d93d713cd0172c8e23a10f0239b80c96b07736f5d8b022542a4e74251a5f432824318b3539a5a087f8e53d2f135f9ca47f3bb2e10aff0af0849504fb7cea3ff192dc8de0edad64c68efde34c56d302ad55fd6e80f302d5efcdeae953658d3452561b5f36c542efdbdd9f888538d374cef106acf7d93a4445c3c73cd911f0571aaf3d54da12b11ddec375b3"", ""a5a866e1ee186f807668209f3b11236ace5e21f117803a3143abb126dd035d7d2f876b6938aaf2ee3414d5420d753621400db44a49c486ce134300a2106adb6bdb433590fef8ad5c43cba82290dc49530effd86523d9483c00f458af46890036b0e2c61d077d7fbac467a506eba29e467a87198b053c749aa2a4d2840c784e6d"")]
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }",
                 new MetadataReference[] { MscorlibRef_v4_0_30316_17626 },
                 options: TestOptions.ReleaseDll.WithDelaySign(true).WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
@@ -1896,7 +1897,7 @@ public class C1
     @"
 public class C
 {
-    internal void Foo()
+    internal void Goo()
     {
         var x = new System.Guid();
         System.Console.WriteLine(x);
@@ -1923,7 +1924,7 @@ public class C1
     @"
 public class C
 {
-    internal void Foo()
+    internal void Goo()
     {
         var x = new C1();
         System.Console.WriteLine(x);
@@ -1995,7 +1996,7 @@ e29df38b5c72727c1333f32001949a0a0e2c10f8af0a344300ab2123052840cb16e30176c7281810
 
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }",
       options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
@@ -2021,7 +2022,7 @@ public class C
 
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }",
       options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
@@ -2049,7 +2050,7 @@ public class C
 
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }",
       options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
@@ -2076,7 +2077,7 @@ public class C
 
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }",
       options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
@@ -2105,7 +2106,7 @@ public class C
 
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }",
       options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
@@ -2129,7 +2130,7 @@ null,
 
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }",
       options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
@@ -2158,7 +2159,7 @@ null)]
 
 public class C
 {
-  static void Foo() {}
+  static void Goo() {}
 }",
       options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 

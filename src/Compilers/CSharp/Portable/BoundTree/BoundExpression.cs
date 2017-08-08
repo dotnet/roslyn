@@ -424,6 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: default(ImmutableArray<int>),
                 constantValueOpt: ConstantValueOpt,
                 initializerExpressionOpt: newInitializerExpression,
+                binderOpt: BinderOpt,
                 type: changeTypeOpt ?? Type);
         }
     }

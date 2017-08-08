@@ -1017,24 +1017,24 @@ class C : Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatColonInThisConstructor()
         {
-            var code = @"class Foo
+            var code = @"class Goo
 {
-    Foo(int s)   :$$   this()
+    Goo(int s)   :$$   this()
     {
     }
 
-    Foo()
+    Goo()
     {
     }
 }";
 
-            var expected = @"class Foo
+            var expected = @"class Goo
 {
-    Foo(int s)   :   this()
+    Goo(int s)   :   this()
     {
     }
 
-    Foo()
+    Goo()
     {
     }
 }";
@@ -1050,7 +1050,7 @@ class C : Attribute
 {
     static void Main(string[] args)
     {
-        var vari = foo()     ?    true  :$$  false;
+        var vari = goo()     ?    true  :$$  false;
     }
 }";
 
@@ -1058,7 +1058,7 @@ class C : Attribute
 {
     static void Main(string[] args)
     {
-        var vari = foo()     ?    true  :  false;
+        var vari = goo()     ?    true  :  false;
     }
 }";
             AssertFormatAfterTypeChar(code, expected);
@@ -1591,7 +1591,7 @@ class C
         }
 
         [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatLockStatementWithEmbeddedStatementOnSemicolonDifferentLine()
         {
             var code = @"class C
@@ -1616,7 +1616,7 @@ class C
         }
 
         [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatLockStatementWithEmbeddedStatementOnSemicolonSameLine()
         {
             var code = @"class C

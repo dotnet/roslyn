@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -178,6 +179,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeKind typeKind = declaration.Kind.ToTypeKind();
             var modifiers = MakeModifiers(typeKind, diagnostics);
 
+            foreach (var singleDeclaration in declaration.Declarations)
+            {
+                diagnostics.AddRange(singleDeclaration.Diagnostics);
+            }
+
             int access = (int)(modifiers & DeclarationModifiers.AccessibilityMask);
             if ((access & (access - 1)) != 0)
             {   // more than one access modifier
@@ -227,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? DeclarationModifiers.Internal
                 : DeclarationModifiers.Private;
 
-            var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Partial;
+            var allowedModifiers = DeclarationModifiers.AccessibilityMask;
 
             if (ContainingSymbol is TypeSymbol)
             {
@@ -245,11 +251,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Submission:
-                    // static, sealed, and abstract allowed if a class
-                    allowedModifiers |= DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe;
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe;
                     break;
                 case TypeKind.Struct:
                 case TypeKind.Interface:
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+                    break;
                 case TypeKind.Delegate:
                     allowedModifiers |= DeclarationModifiers.Unsafe;
                     break;
@@ -326,7 +333,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result |= mods;
             }
 
-            result = ModifierUtils.CheckModifiers(result, allowedModifiers, self.Locations[0], diagnostics, out modifierErrors);
+            result = ModifierUtils.CheckModifiers(
+                result, allowedModifiers, self.Locations[0], diagnostics, 
+                modifierTokensOpt: null, modifierErrors: out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
             {
@@ -1349,8 +1358,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckIndexerNameConflicts(diagnostics, membersByName);
 
             // key and value will be the same object in these dictionaries.
-            var methodsBySignature = new Dictionary<SourceMethodSymbol, SourceMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
-            var conversionsAsMethods = new Dictionary<SourceMethodSymbol, SourceMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
+            var methodsBySignature = new Dictionary<SourceMemberMethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
+            var conversionsAsMethods = new Dictionary<SourceMemberMethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
             var conversionsAsConversions = new HashSet<SourceUserDefinedConversionSymbol>(ConversionSignatureComparer.Comparer);
 
             // SPEC: The signature of an operator must differ from the signatures of all other
@@ -1465,7 +1474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // second and third categories as follows:
 
                     var conversion = symbol as SourceUserDefinedConversionSymbol;
-                    var method = symbol as SourceMethodSymbol;
+                    var method = symbol as SourceMemberMethodSymbol;
                     if ((object)conversion != null)
                     {
                         // Does this conversion collide *as a conversion* with any previously-seen
@@ -1489,7 +1498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Does this conversion collide *as a method* with any previously-seen
                         // non-conversion method?
 
-                        SourceMethodSymbol previousMethod;
+                        SourceMemberMethodSymbol previousMethod;
                         if (methodsBySignature.TryGetValue(conversion, out previousMethod))
                         {
                             ReportMethodSignatureCollision(diagnostics, conversion, previousMethod);
@@ -1502,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Does this method collide *as a method* with any previously-seen
                         // conversion?
 
-                        SourceMethodSymbol previousConversion;
+                        SourceMemberMethodSymbol previousConversion;
                         if (conversionsAsMethods.TryGetValue(method, out previousConversion))
                         {
                             ReportMethodSignatureCollision(diagnostics, method, previousConversion);
@@ -1512,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Does this method collide *as a method* with any previously-seen
                         // non-conversion method?
 
-                        SourceMethodSymbol previousMethod;
+                        SourceMemberMethodSymbol previousMethod;
                         if (methodsBySignature.TryGetValue(method, out previousMethod))
                         {
                             ReportMethodSignatureCollision(diagnostics, method, previousMethod);
@@ -1530,7 +1539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Report a name conflict; the error is reported on the location of method1.
         // UNDONE: Consider adding a secondary location pointing to the second method.
-        private void ReportMethodSignatureCollision(DiagnosticBag diagnostics, SourceMethodSymbol method1, SourceMethodSymbol method2)
+        private void ReportMethodSignatureCollision(DiagnosticBag diagnostics, SourceMemberMethodSymbol method1, SourceMemberMethodSymbol method2)
         {
             // Partial methods are allowed to collide by signature.
             if (method1.IsPartial && method2.IsPartial)
@@ -2337,24 +2346,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             //key and value will be the same object
-            var methodsBySignature = new Dictionary<MethodSymbol, SourceMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
+            var methodsBySignature = new Dictionary<MethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
 
             foreach (var name in memberNames)
             {
                 methodsBySignature.Clear();
                 foreach (var symbol in membersByName[name])
                 {
-                    var method = symbol as SourceMethodSymbol;
+                    var method = symbol as SourceMemberMethodSymbol;
                     if ((object)method == null || !method.IsPartial)
                     {
                         continue; // only partial methods need to be merged
                     }
 
-                    SourceMethodSymbol prev;
+                    SourceMemberMethodSymbol prev;
                     if (methodsBySignature.TryGetValue(method, out prev))
                     {
-                        var prevPart = (SourceMemberMethodSymbol)prev;
-                        var methodPart = (SourceMemberMethodSymbol)method;
+                        var prevPart = (SourceOrdinaryMethodSymbol)prev;
+                        var methodPart = (SourceOrdinaryMethodSymbol)method;
 
                         bool hasImplementation = (object)prevPart.OtherPartOfPartial != null || prevPart.IsPartialImplementation;
                         bool hasDefinition = (object)prevPart.OtherPartOfPartial != null || prevPart.IsPartialDefinition;
@@ -2380,7 +2389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                foreach (SourceMemberMethodSymbol method in methodsBySignature.Values)
+                foreach (SourceOrdinaryMethodSymbol method in methodsBySignature.Values)
                 {
                     // partial implementations not paired with a definition
                     if (method.IsPartialImplementation && (object)method.OtherPartOfPartial == null)
@@ -2403,10 +2412,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="part1">One of the two declarations</param>
         /// <param name="part2">The other declaration</param>
         /// <returns>An updated symbols array containing only one method symbol representing the two parts</returns>
-        private static ImmutableArray<Symbol> FixPartialMember(ImmutableArray<Symbol> symbols, SourceMemberMethodSymbol part1, SourceMemberMethodSymbol part2)
+        private static ImmutableArray<Symbol> FixPartialMember(ImmutableArray<Symbol> symbols, SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
         {
-            SourceMemberMethodSymbol definition;
-            SourceMemberMethodSymbol implementation;
+            SourceOrdinaryMethodSymbol definition;
+            SourceOrdinaryMethodSymbol implementation;
             if (part1.IsPartialDefinition)
             {
                 definition = part1;
@@ -2418,7 +2427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 implementation = part1;
             }
 
-            SourceMemberMethodSymbol.InitializePartialMethodParts(definition, implementation);
+            SourceOrdinaryMethodSymbol.InitializePartialMethodParts(definition, implementation);
 
             // a partial method is represented in the member list by its definition part:
             return Remove(symbols, implementation);
@@ -2437,7 +2446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
-        private static bool DifferByOutOrRef(SourceMethodSymbol m1, SourceMethodSymbol m2)
+        private static bool DifferByOutOrRef(SourceMemberMethodSymbol m1, SourceMemberMethodSymbol m2)
         {
             var pl1 = m1.Parameters;
             var pl2 = m2.Parameters;
@@ -2917,7 +2926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     new SourceLocation(methodSyntax.Identifier));
                             }
 
-                            var method = SourceMemberMethodSymbol.CreateMethodSymbol(this, bodyBinder, methodSyntax, diagnostics);
+                            var method = SourceOrdinaryMethodSymbol.CreateMethodSymbol(this, bodyBinder, methodSyntax, diagnostics);
                             builder.NonTypeNonIndexerMembers.Add(method);
                         }
                         break;

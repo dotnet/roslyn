@@ -160,7 +160,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         int a = 1, b = 2;
         Func<int, int, int> d = (x, y) => a*x+b*y; 
@@ -190,7 +190,7 @@ class C
             string source = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         var x = new { X = 1, Y = 2 };
     }
@@ -257,7 +257,7 @@ class C
             string source = @"
 public class C
 {
-   public void Foo() 
+   public void Goo() 
    {
 	  var _0 = new { };
 	  var _1 = new { X0 = 1 };
@@ -380,11 +380,11 @@ using System.Threading.Tasks;
 
 class C
 {
-    public async Task<int> Foo()
+    public async Task<int> Goo()
     {
         for (int x = 1; x < 10; x++)
         {
-            await Foo();
+            await Goo();
         }
         
         return 1;
@@ -397,12 +397,12 @@ class C
 
                 CompileAndVerify(comp, symbolValidator: m =>
                 {
-                    var foo = m.GlobalNamespace.GetMember<MethodSymbol>("C.Foo");
+                    var goo = m.GlobalNamespace.GetMember<MethodSymbol>("C.Goo");
                     AssertEx.SetEqual(options.OptimizationLevel == OptimizationLevel.Debug ?
                                         new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" } :
-                                        new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(foo.GetAttributes()));
+                                        new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(goo.GetAttributes()));
 
-                    var iter = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Foo>d__0");
+                    var iter = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Goo>d__0");
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
 
                     foreach (var member in iter.GetMembers().Where(s => s.Kind == SymbolKind.Method))

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // We act as a source of events ourselves.  When the diagnostics service tells
                 // us about new diagnostics, we'll use that to kick of the asynchronous tagging
                 // work.
-                
+
                 var eventSource = TaggerEventSources.Compose(
                     TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.Medium),
                     this);
@@ -83,75 +84,83 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private void ProduceTags(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
             {
-                if (!_owner.IsEnabled)
+                try
                 {
-                    return;
-                }
-
-                var document = spanToTag.Document;
-                if (document == null)
-                {
-                    return;
-                }
-
-                // See if we've marked any spans as those we want to suppress diagnostics for.
-                // This can happen for buffers used in the preview workspace where some feature
-                // is generating code that it doesn't want errors shown for.
-                var buffer = spanToTag.SnapshotSpan.Snapshot.TextBuffer;
-                var suppressedDiagnosticsSpans = default(NormalizedSnapshotSpanCollection);
-                buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
-
-                // Producing tags is simple.  We just grab the diagnostics we were already told about,
-                // and we convert them to tag spans.
-                object id;
-                ImmutableArray<DiagnosticData> diagnostics;
-                SourceText sourceText;
-                ITextSnapshot editorSnapshot;
-                lock (_gate)
-                {
-                    id = _latestId;
-                    diagnostics = _latestDiagnostics;
-                    sourceText = _latestSourceText;
-                    editorSnapshot = _latestEditorSnapshot;
-                }
-
-                if (sourceText == null || editorSnapshot == null)
-                {
-                    return;
-                }
-
-                var project = document.Project;
-
-                var requestedSnapshot = spanToTag.SnapshotSpan.Snapshot;
-                var requestedSpan = spanToTag.SnapshotSpan;
-                var isLiveUpdate = id is ISupportLiveUpdate;
-
-                foreach (var diagnosticData in diagnostics)
-                {
-                    if (_owner.IncludeDiagnostic(diagnosticData))
+                    if (!_owner.IsEnabled)
                     {
-                        var actualSpan = diagnosticData
-                            .GetExistingOrCalculatedTextSpan(sourceText)
-                            .ToSnapshotSpan(editorSnapshot)
-                            .TranslateTo(requestedSnapshot, SpanTrackingMode.EdgeExclusive);
+                        return;
+                    }
 
-                        if (actualSpan.IntersectsWith(requestedSpan) &&
-                            !IsSuppressed(suppressedDiagnosticsSpans, actualSpan))
+                    var document = spanToTag.Document;
+                    if (document == null)
+                    {
+                        return;
+                    }
+
+                    // See if we've marked any spans as those we want to suppress diagnostics for.
+                    // This can happen for buffers used in the preview workspace where some feature
+                    // is generating code that it doesn't want errors shown for.
+                    var buffer = spanToTag.SnapshotSpan.Snapshot.TextBuffer;
+                    var suppressedDiagnosticsSpans = default(NormalizedSnapshotSpanCollection);
+                    buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
+
+                    // Producing tags is simple.  We just grab the diagnostics we were already told about,
+                    // and we convert them to tag spans.
+                    object id;
+                    ImmutableArray<DiagnosticData> diagnostics;
+                    SourceText sourceText;
+                    ITextSnapshot editorSnapshot;
+                    lock (_gate)
+                    {
+                        id = _latestId;
+                        diagnostics = _latestDiagnostics;
+                        sourceText = _latestSourceText;
+                        editorSnapshot = _latestEditorSnapshot;
+                    }
+
+                    if (sourceText == null || editorSnapshot == null)
+                    {
+                        return;
+                    }
+
+                    var project = document.Project;
+
+                    var requestedSnapshot = spanToTag.SnapshotSpan.Snapshot;
+                    var requestedSpan = spanToTag.SnapshotSpan;
+                    var isLiveUpdate = id is ISupportLiveUpdate;
+
+                    foreach (var diagnosticData in diagnostics)
+                    {
+                        if (_owner.IncludeDiagnostic(diagnosticData))
                         {
-                            var tagSpan = _owner.CreateTagSpan(isLiveUpdate, actualSpan, diagnosticData);
-                            if (tagSpan != null)
+                            var actualSpan = diagnosticData
+                                .GetExistingOrCalculatedTextSpan(sourceText)
+                                .ToSnapshotSpan(editorSnapshot)
+                                .TranslateTo(requestedSnapshot, SpanTrackingMode.EdgeExclusive);
+
+                            if (actualSpan.IntersectsWith(requestedSpan) &&
+                                !IsSuppressed(suppressedDiagnosticsSpans, actualSpan))
                             {
-                                context.AddTag(tagSpan);
+                                var tagSpan = _owner.CreateTagSpan(isLiveUpdate, actualSpan, diagnosticData);
+                                if (tagSpan != null)
+                                {
+                                    context.AddTag(tagSpan);
+                                }
                             }
                         }
                     }
                 }
+                catch (ArgumentOutOfRangeException ex) when (FatalError.ReportWithoutCrash(ex))
+                {
+                    // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=428328&_a=edit&triage=false
+                    // explicitly report NFW to find out what is causing us for out of range.
+                    // stop crashing on such occations
+                    return;
+                }
             }
 
             private bool IsSuppressed(NormalizedSnapshotSpanCollection suppressedSpans, SnapshotSpan span)
-            {
-                return suppressedSpans != null && suppressedSpans.IntersectsWith(span);
-            }
+                => suppressedSpans != null && suppressedSpans.IntersectsWith(span);
 
             internal void OnDiagnosticsUpdated(DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
             {

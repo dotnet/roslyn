@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1311,7 +1312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 MakeDeclaredInterfacesInPart(syntaxRef.SyntaxTree, syntaxRef.GetVisualBasicSyntax(), interfaces, basesBeingResolved, diagnostics)
             Next
 
-            Return interfaces.InInsertionOrder.AsImmutable
+            Return interfaces.AsImmutable
         End Function
 
         Private Function GetInheritsLocation(base As NamedTypeSymbol) As Location

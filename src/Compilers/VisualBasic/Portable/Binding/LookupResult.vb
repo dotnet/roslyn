@@ -3,6 +3,7 @@
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -219,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     '''    
     '''    Dim result = LookupResult.GetInstance()
     '''  
-    '''    scope.Lookup(result, "foo")
+    '''    scope.Lookup(result, "goo")
     '''    ... use result ...
     '''         
     '''    result.Clear()

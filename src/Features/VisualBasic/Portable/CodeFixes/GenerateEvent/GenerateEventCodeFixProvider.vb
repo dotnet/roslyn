@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
     Partial Friend Class GenerateEventCodeFixProvider
         Inherits CodeFixProvider
 
-        Friend Const BC30401 As String = "BC30401" ' error BC30401: 'foo' cannot implement 'E' because there is no matching event on interface 'MyInterface'.
+        Friend Const BC30401 As String = "BC30401" ' error BC30401: 'goo' cannot implement 'E' because there is no matching event on interface 'MyInterface'.
         Friend Const BC30590 As String = "BC30590" ' error BC30590: Event 'MyEvent' cannot be found.
         Friend Const BC30456 As String = "BC30456" ' error BC30456: 'x' is not a member of 'y'.
         Friend Const BC30451 As String = "BC30451" ' error BC30451: 'x' is not declared, it may be inaccessible due to its protection level.
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
                 attributes:=ImmutableArray(Of AttributeData).Empty,
                 accessibility:=Accessibility.Public, modifiers:=Nothing,
-                explicitInterfaceSymbol:=Nothing,
+                explicitInterfaceImplementations:=Nothing,
                 type:=delegateType, name:=actualEventName)
 
             ' Point the delegate back at the event symbol.  This way the generators know to generate parameters
@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
                 Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
                     boundEvent.GetAttributes(), boundEvent.DeclaredAccessibility,
-                    modifiers:=Nothing, type:=eventHandlerType, explicitInterfaceSymbol:=Nothing,
+                    modifiers:=Nothing, type:=eventHandlerType, explicitInterfaceImplementations:=Nothing,
                     name:=actualEventName)
 
                 ' Point the delegate back at the event symbol.  This way the generators know to generate parameters
@@ -381,7 +381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
                 attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
-                explicitInterfaceSymbol:=Nothing,
+                explicitInterfaceImplementations:=Nothing,
                 type:=delegateType, name:=actualEventName)
 
             ' Point the delegate back at the event symbol.  This way the generators know to generate parameters

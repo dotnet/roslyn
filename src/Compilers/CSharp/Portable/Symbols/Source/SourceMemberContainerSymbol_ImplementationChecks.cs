@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -375,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else
                             {
-                                var sourceMethod = method as SourceMethodSymbol;
+                                var sourceMethod = method as SourceMemberMethodSymbol;
                                 if ((object)sourceMethod != null) // skip submission initializer
                                 {
                                     var isNew = sourceMethod.IsNew;
@@ -667,8 +668,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_CantChangeAccessOnOverride, overridingMemberLocation, overridingMember, accessibility, overriddenMember);
                         suppressAccessors = true;
                     }
-                    else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(overridingMember, overriddenMember))
+                    else if (overridingMember.ContainsTupleNames() &&
+                        MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(overridingMember, overriddenMember))
                     {
+                        // it is ok to override with no tuple names, for compatibility with C# 6, but otherwise names should match
                         diagnostics.Add(ErrorCode.ERR_CantChangeTupleNamesOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                     }
                     else
@@ -1063,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ReferenceEquals(this.ContainingModule, implementingMethodOriginalDefinition.ContainingModule))
                 {
-                    SourceMethodSymbol sourceImplementMethodOriginalDefinition = implementingMethodOriginalDefinition as SourceMethodSymbol;
+                    SourceMemberMethodSymbol sourceImplementMethodOriginalDefinition = implementingMethodOriginalDefinition as SourceMemberMethodSymbol;
                     if ((object)sourceImplementMethodOriginalDefinition != null)
                     {
                         sourceImplementMethodOriginalDefinition.EnsureMetadataVirtual();

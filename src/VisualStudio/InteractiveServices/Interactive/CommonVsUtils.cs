@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -17,19 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
     internal static class CommonVsUtils
     {
         internal const string OutputWindowId = "34e76e81-ee4a-11d0-ae2e-00a0c90fffc3";
-
-        internal static string GetWorkingDirectory()
-        {
-            var startupProject = GetStartupProject();
-            if (startupProject != null)
-            {
-                return Path.GetDirectoryName(startupProject.FullName);
-            }
-            else
-            {
-                return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            }
-        }
 
         internal static string GetFilePath(ITextBuffer textBuffer)
         {
@@ -93,31 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
 
             return null;
-        }
-
-        private static EnvDTE.Project GetStartupProject()
-        {
-            var buildMgr = (IVsSolutionBuildManager)Package.GetGlobalService(typeof(IVsSolutionBuildManager));
-            IVsHierarchy hierarchy;
-            if (buildMgr != null && ErrorHandler.Succeeded(buildMgr.get_StartupProject(out hierarchy)) && hierarchy != null)
-            {
-                return GetProject(hierarchy);
-            }
-
-            return null;
-        }
-
-        internal static EnvDTE.Project GetProject(IVsHierarchy hierarchy)
-        {
-            object project;
-
-            ErrorHandler.ThrowOnFailure(
-                hierarchy.GetProperty(
-                    VSConstants.VSITEMID_ROOT,
-                    (int)__VSHPROPID.VSHPROPID_ExtObject,
-                    out project));
-
-            return project as EnvDTE.Project;
         }
     }
 }

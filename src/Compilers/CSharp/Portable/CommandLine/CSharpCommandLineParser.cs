@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpCommandLineParser Default { get; } = new CSharpCommandLineParser();
 
         internal static CSharpCommandLineParser ScriptRunner { get; } = new CSharpCommandLineParser(isScriptRunner: true);
+        private readonly static char[] s_quoteOrEquals = new[] { '"', '=' };
 
         internal CSharpCommandLineParser(bool isScriptRunner = false)
             : base(CSharp.MessageProvider.Instance, isScriptRunner)
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool displayLogo = true;
             bool displayHelp = false;
             bool displayVersion = false;
+            bool displayLangVersions = false;
             bool optimize = false;
             bool checkOverflow = false;
             bool allowUnsafe = false;
@@ -837,6 +840,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // treat them as identifiers (behaviour in native compiler). This error helps users identify that breaking change.
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes, value);
                             }
+                            else if (value == "?")
+                            {
+                                displayLangVersions = true;
+                            }
                             else if (!value.TryParse(out languageVersion))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadCompatMode, value);
@@ -1359,6 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DisplayLogo = displayLogo,
                 DisplayHelp = displayHelp,
                 DisplayVersion = displayVersion,
+                DisplayLangVersions = displayLangVersions,
                 ManifestResources = managedResources.AsImmutable(),
                 CompilationOptions = options,
                 ParseOptions = parseOptions,
@@ -1662,7 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // /r:alias=reference;reference      ... error 2034
             // /r:nonidf=reference               ... error 1679
 
-            int eqlOrQuote = value.IndexOfAny(new[] { '"', '=' });
+            int eqlOrQuote = value.IndexOfAny(s_quoteOrEquals);
 
             string alias;
             if (eqlOrQuote >= 0 && value[eqlOrQuote] == '=')

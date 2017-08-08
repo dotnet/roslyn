@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -645,7 +645,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Foo
+    int [||]Goo
     {
         get
         {
@@ -660,7 +660,7 @@ class D
 }",
 @"class C
 {
-    private int GetFoo()
+    private int GetGoo()
     {
         int count;
         foreach (var x in y)
@@ -1153,17 +1153,17 @@ ignoreTrivia: false);
         public async Task TestWithConditionalBinding1()
         {
             await TestInRegularAndScriptAsync(
-@"public class Foo
+@"public class Goo
 {
     public bool [||]Any { get; } // Replace 'Any' with method
 
     public static void Bar()
     {
-        var foo = new Foo();
-        bool f = foo?.Any == true;
+        var goo = new Goo();
+        bool f = goo?.Any == true;
     }
 }",
-@"public class Foo
+@"public class Goo
 {
     private readonly bool any;
 
@@ -1174,8 +1174,8 @@ ignoreTrivia: false);
 
     public static void Bar()
     {
-        var foo = new Foo();
-        bool f = foo?.GetAny() == true;
+        var goo = new Goo();
+        bool f = goo?.GetAny() == true;
     }
 }");
         }
@@ -1643,6 +1643,50 @@ internal struct AStruct
 #endif
 }", ignoreTrivia: false,
     options: PreferExpressionBodiedMethods);
+        }
+
+        [WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestExplicitInterfaceImplementation()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface IGoo
+{
+    int [||]Goo { get; set; }
+}
+
+class C : IGoo
+{
+    int IGoo.Goo
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+
+        set
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}",
+@"interface IGoo
+{
+    int GetGoo();
+    void SetGoo(int value);
+}
+
+class C : IGoo
+{
+    int IGoo.GetGoo()
+    {
+        throw new System.NotImplementedException();
+    }
+    void IGoo.SetGoo(int value)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
         }
 
         private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>

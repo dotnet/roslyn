@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             var helpLinkToolTipText = string.Empty;
             Uri helpLink = GetHelpLink(diagnostic, language, projectType, out helpLinkToolTipText);
 
-            Guid optionPageGuid = default(Guid);
+            Guid optionPageGuid = default;
             if (diagnostic.Properties.TryGetValue("OptionName", out var optionName))
             {
                 diagnostic.Properties.TryGetValue("OptionLanguage", out var optionLanguage);
@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 }
             }
 
-            return default(Guid);
+            return default;
         }
     }
 }

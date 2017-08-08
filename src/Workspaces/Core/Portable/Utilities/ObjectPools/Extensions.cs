@@ -2,8 +2,9 @@
 
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis
 {
     internal static class SharedPoolExtensions
     {

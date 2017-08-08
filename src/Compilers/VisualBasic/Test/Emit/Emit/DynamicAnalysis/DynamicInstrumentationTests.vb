@@ -49,6 +49,7 @@ End Module
                 True().
                 True().
                 True().
+                True().
                 True()
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, checker.ExpectedOutput)
@@ -56,8 +57,7 @@ End Module
 
             verifier.VerifyIL(
                 "Program.TestMain",
-            <![CDATA[
-{
+            <![CDATA[{
   // Code size       57 (0x39)
   .maxstack  5
   .locals init (Boolean() V_0)
@@ -83,6 +83,7 @@ End Module
   IL_0038:  ret
 }
                 ]]>.Value)
+
             verifier.VerifyIL(
                 ".cctor",
             <![CDATA[
@@ -136,6 +137,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -233,6 +235,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -309,6 +312,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -448,6 +452,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -465,15 +470,15 @@ Module Program
     End Sub
 
     Sub TestMain()                                                      ' Method 2
-        For Each number In Foo()
+        For Each number In Goo()
             System.Console.WriteLine(number)
         Next                                                     
-        For Each number In Foo()
+        For Each number In Goo()
             System.Console.WriteLine(number)
         Next
     End Sub
 
-    Public Iterator Function Foo() As System.Collections.Generic.IEnumerable(Of Integer)      ' Method 3
+    Public Iterator Function Goo() As System.Collections.Generic.IEnumerable(Of Integer)      ' Method 3
         For counter = 1 To 5
             Yield counter
         Next
@@ -527,12 +532,13 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
 
             verifier.VerifyIL(
-                "Program.VB$StateMachine_2_Foo.MoveNext()",
+                "Program.VB$StateMachine_2_Goo.MoveNext()",
             <![CDATA[
 {
   // Code size      149 (0x95)
@@ -540,7 +546,7 @@ True
   .locals init (Integer V_0,
                 Boolean() V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Program.VB$StateMachine_2_Foo.$State As Integer"
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Goo.$State As Integer"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0010
@@ -553,18 +559,18 @@ True
   IL_0011:  ldc.i4.m1
   IL_0012:  dup
   IL_0013:  stloc.0
-  IL_0014:  stfld      "Program.VB$StateMachine_2_Foo.$State As Integer"
+  IL_0014:  stfld      "Program.VB$StateMachine_2_Goo.$State As Integer"
   IL_0019:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
-  IL_001e:  ldtoken    "Function Program.Foo() As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_001e:  ldtoken    "Function Program.Goo() As System.Collections.Generic.IEnumerable(Of Integer)"
   IL_0023:  ldelem.ref
   IL_0024:  stloc.1
   IL_0025:  ldloc.1
   IL_0026:  brtrue.s   IL_004d
   IL_0028:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
-  IL_002d:  ldtoken    "Function Program.Foo() As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_002d:  ldtoken    "Function Program.Goo() As System.Collections.Generic.IEnumerable(Of Integer)"
   IL_0032:  ldtoken    Source Document 0
   IL_0037:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
-  IL_003c:  ldtoken    "Function Program.Foo() As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_003c:  ldtoken    "Function Program.Goo() As System.Collections.Generic.IEnumerable(Of Integer)"
   IL_0041:  ldelema    "Boolean()"
   IL_0046:  ldc.i4.2
   IL_0047:  call       "Function Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, Integer, Integer, ByRef Boolean(), Integer) As Boolean()"
@@ -579,31 +585,31 @@ True
   IL_0054:  stelem.i1
   IL_0055:  ldarg.0
   IL_0056:  ldc.i4.1
-  IL_0057:  stfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_0057:  stfld      "Program.VB$StateMachine_2_Goo.$VB$ResumableLocal_counter$0 As Integer"
   IL_005c:  ldarg.0
   IL_005d:  ldarg.0
-  IL_005e:  ldfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
-  IL_0063:  stfld      "Program.VB$StateMachine_2_Foo.$Current As Integer"
+  IL_005e:  ldfld      "Program.VB$StateMachine_2_Goo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_0063:  stfld      "Program.VB$StateMachine_2_Goo.$Current As Integer"
   IL_0068:  ldarg.0
   IL_0069:  ldc.i4.1
   IL_006a:  dup
   IL_006b:  stloc.0
-  IL_006c:  stfld      "Program.VB$StateMachine_2_Foo.$State As Integer"
+  IL_006c:  stfld      "Program.VB$StateMachine_2_Goo.$State As Integer"
   IL_0071:  ldc.i4.1
   IL_0072:  ret
   IL_0073:  ldarg.0
   IL_0074:  ldc.i4.m1
   IL_0075:  dup
   IL_0076:  stloc.0
-  IL_0077:  stfld      "Program.VB$StateMachine_2_Foo.$State As Integer"
+  IL_0077:  stfld      "Program.VB$StateMachine_2_Goo.$State As Integer"
   IL_007c:  ldarg.0
   IL_007d:  ldarg.0
-  IL_007e:  ldfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_007e:  ldfld      "Program.VB$StateMachine_2_Goo.$VB$ResumableLocal_counter$0 As Integer"
   IL_0083:  ldc.i4.1
   IL_0084:  add.ovf
-  IL_0085:  stfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_0085:  stfld      "Program.VB$StateMachine_2_Goo.$VB$ResumableLocal_counter$0 As Integer"
   IL_008a:  ldarg.0
-  IL_008b:  ldfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_008b:  ldfld      "Program.VB$StateMachine_2_Goo.$VB$ResumableLocal_counter$0 As Integer"
   IL_0090:  ldc.i4.5
   IL_0091:  ble.s      IL_005c
   IL_0093:  ldc.i4.0
@@ -701,6 +707,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1022,6 +1029,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -1092,6 +1100,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1188,6 +1197,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -1244,6 +1254,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1330,22 +1341,23 @@ True
 True
 True
 True
-Method 9
+True
+Method 10
 File 1
 True
-True
-Method 14
-File 1
 True
 Method 15
 File 1
 True
-True
-True
-True
-True
-True
 Method 16
+File 1
+True
+True
+True
+True
+True
+True
+Method 17
 File 1
 True
 True
@@ -1411,6 +1423,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1503,6 +1516,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1623,6 +1637,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -1703,6 +1718,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1835,6 +1851,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -2443,6 +2460,7 @@ End Module
                 True().
                 True().
                 True().
+                True().
                 True()
 
             Dim expectedOutput = "Test
@@ -2518,6 +2536,7 @@ End Module
                 True().
                 True().
                 True().
+                True().
                 True()
 
             Dim expectedOutput = "Test
@@ -2530,6 +2549,244 @@ Method2: x = 1
 
             verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.DebugExe)
             checker.CompleteCheck(verifier.Compilation, testSource)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestSynthesizedConstructorWithSpansInMultipleFilesCoverage()
+            Dim source1 = <file name="aa.vb">
+                              <![CDATA[
+Imports System
+
+Partial Class Class1
+    Dim a As Action(Of Integer) =
+            Sub(i As Integer)
+                Console.WriteLine(i)
+            End Sub
+End Class
+
+Module Program
+    Public Sub Main()
+        Test()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub Test()
+        Console.WriteLine("Test")
+        Dim c = new Class1()
+        c.Method1(1)
+    End Sub
+End Module
+]]>
+                          </file>
+
+            Dim source2 = <file name="bb.vb">
+                              <![CDATA[
+Imports System
+
+Partial Class Class1
+    Dim x As Integer = 1
+
+    Sub Method1(i As Integer)
+        a(i)
+        Console.WriteLine(x)
+        Console.WriteLine(y)
+        Console.WriteLine(z)
+    End Sub
+End Class
+]]>
+                          </file>
+
+            Dim source3 = <file name="cc.vb">
+                              <![CDATA[
+Partial Class Class1
+    Dim y As Integer = 2
+    Dim z As Integer = 3
+End Class
+]]>
+                          </file>
+
+            Dim source = <compilation>
+                             <%= source1 %>
+                             <%= source2 %>
+                             <%= source3 %>
+                             <%= InstrumentationHelperSource %>
+                         </compilation>
+
+            Dim expectedOutput = <![CDATA[Test
+1
+1
+2
+3
+Flushing
+Method 1
+File 1
+File 2
+File 3
+True
+True
+True
+True
+True
+Method 2
+File 2
+True
+True
+True
+True
+True
+Method 3
+File 1
+True
+True
+True
+Method 4
+File 1
+True
+True
+True
+True
+Method 7
+File 4
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            Dim verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.ReleaseExe)
+            verifier.VerifyDiagnostics()
+
+            verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.DebugExe)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestSynthesizedStaticConstructorWithSpansInMultipleFilesCoverage()
+            Dim source1 = <file name="aa.vb">
+                              <![CDATA[
+Imports System
+
+Partial Class Class1
+    Shared Dim a As Action(Of Integer) =
+            Sub(i As Integer)
+                Console.WriteLine(i)
+            End Sub
+End Class
+
+Module Program
+    Public Sub Main()
+        Test()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub Test()
+        Console.WriteLine("Test")
+        Dim c = new Class1()
+        Class1.Method1(1)
+    End Sub
+End Module
+]]>
+                          </file>
+
+            Dim source2 = <file name="bb.vb">
+                              <![CDATA[
+Imports System
+
+Partial Class Class1
+    Shared Dim x As Integer = 1
+
+    Shared Sub Method1(i As Integer)
+        a(i)
+        Console.WriteLine(x)
+        Console.WriteLine(y)
+        Console.WriteLine(z)
+    End Sub
+End Class
+]]>
+                          </file>
+
+            Dim source3 = <file name="cc.vb">
+                              <![CDATA[
+Partial Class Class1
+    Shared Dim y As Integer = 2
+    Shared Dim z As Integer = 3
+End Class
+]]>
+                          </file>
+
+            Dim source = <compilation>
+                             <%= source1 %>
+                             <%= source2 %>
+                             <%= source3 %>
+                             <%= InstrumentationHelperSource %>
+                         </compilation>
+
+            Dim expectedOutput = <![CDATA[Test
+1
+1
+2
+3
+Flushing
+Method 1
+File 1
+File 2
+File 3
+True
+True
+True
+True
+True
+Method 2
+File 1
+Method 3
+File 2
+True
+True
+True
+True
+True
+Method 4
+File 1
+True
+True
+True
+Method 5
+File 1
+True
+True
+True
+True
+Method 8
+File 4
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            Dim verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.ReleaseExe)
+            verifier.VerifyDiagnostics()
+
+            verifier = CompileAndVerify(source, expectedOutput, options:=TestOptions.DebugExe)
             verifier.VerifyDiagnostics()
         End Sub
 

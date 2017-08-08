@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.BaseExpression:
                     // an op term is ok if it's a "this" or "base" op it allows us to see
-                    // "this.foo" in the autos window note: it's not a VALIDTERM since we don't
+                    // "this.goo" in the autos window note: it's not a VALIDTERM since we don't
                     // want "this" showing up in the auto's window twice.
                     expressionType = ExpressionType.ValidExpression;
                     return;

@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -145,9 +146,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             this.AssertIsForeground();
 
-            PackageSources = _packageServices.GetSources(includeUnOfficial: true, includeDisabled: false)
-                .Select(r => new PackageSource(r.Key, r.Value))
-                .ToImmutableArrayOrEmpty();
+            try
+            {
+                PackageSources = _packageServices.GetSources(includeUnOfficial: true, includeDisabled: false)
+                    .Select(r => new PackageSource(r.Key, r.Value))
+                    .ToImmutableArrayOrEmpty();
+            }
+            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
+            {
+                // These exceptions can happen when the nuget.config file is broken.
+                PackageSources = ImmutableArray<PackageSource>.Empty;
+            }
 
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -448,14 +457,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
-            var installedPackages = new Dictionary<string, string>();
+            var installedPackages = new MultiDictionary<string, string>();
             var isEnabled = false;
 
             // Calling into NuGet.  Assume they may fail for any reason.
             try
             {
                 var installedPackageMetadata = _packageServices.GetInstalledPackages(dteProject);
-                installedPackages.AddRange(installedPackageMetadata.Select(m => new KeyValuePair<string, string>(m.Id, m.VersionString)));
+                foreach (var metadata in installedPackageMetadata)
+                {
+                    if (metadata.VersionString != null)
+                    {
+                        installedPackages.Add(metadata.Id, metadata.VersionString);
+                    }
+                }
+
                 isEnabled = true;
             }
             catch (ArgumentException e) when (IsKnownNugetIssue(e))
@@ -486,11 +502,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var installedVersions = new HashSet<string>();
             foreach (var state in _projectToInstalledPackageAndVersion.Values)
             {
-                string version = null;
-                if (state.InstalledPackageToVersion.TryGetValue(packageName, out version) && version != null)
-                {
-                    installedVersions.Add(version);
-                }
+                installedVersions.AddRange(state.InstalledPackageToVersion[packageName]);
             }
 
             // Order the versions with a weak heuristic so that 'newer' versions come first.
@@ -536,7 +548,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             foreach (var kvp in this._projectToInstalledPackageAndVersion)
             {
                 var state = kvp.Value;
-                if (state.InstalledPackageToVersion.TryGetValue(packageName, out var installedVersion) && installedVersion == version)
+                var versionSet = state.InstalledPackageToVersion[packageName];
+                if (versionSet.Contains(version))
                 {
                     var project = solution.GetProject(kvp.Key);
                     if (project != null)

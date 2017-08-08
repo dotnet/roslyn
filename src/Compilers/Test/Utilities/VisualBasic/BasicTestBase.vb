@@ -414,20 +414,6 @@ End Class
 Public MustInherit Class BasicTestBaseBase
     Inherits CommonTestBase
 
-    Friend Overrides Function ReferencesToModuleSymbols(references As IEnumerable(Of MetadataReference), Optional importOptions As MetadataImportOptions = MetadataImportOptions.Public) As IEnumerable(Of IModuleSymbol)
-        Dim options = DirectCast(CompilationOptionsReleaseDll, VisualBasicCompilationOptions).WithMetadataImportOptions(importOptions)
-        Dim tc1 = VisualBasicCompilation.Create("Dummy", references:=references, options:=options)
-        Return references.Select(
-            Function(r)
-                If r.Properties.Kind = MetadataImageKind.Assembly Then
-                    Dim assemblySymbol = tc1.GetReferencedAssemblySymbol(r)
-                    Return If(assemblySymbol Is Nothing, Nothing, assemblySymbol.Modules(0))
-                Else
-                    Return tc1.GetReferencedModuleSymbol(r)
-                End If
-            End Function)
-    End Function
-
     Protected Overrides ReadOnly Property CompilationOptionsReleaseDll As CompilationOptions
         Get
             Return TestOptions.ReleaseDll

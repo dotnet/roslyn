@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         protected override bool IsInAttributeArgumentInitializer(ExpressionSyntax expression)
         {
             // Don't call the base here.  We want to let the user extract a constant if they've
-            // said "Foo(a = 10)"
+            // said "Goo(a = 10)"
             var attributeArgument = expression.GetAncestorOrThis<AttributeArgumentSyntax>();
             if (attributeArgument != null)
             {

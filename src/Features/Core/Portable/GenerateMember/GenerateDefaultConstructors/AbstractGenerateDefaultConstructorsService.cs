@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
         {
         }
 
-        protected abstract bool TryInitializeState(SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken, out SyntaxNode baseTypeNode, out INamedTypeSymbol classType);
+        protected abstract bool TryInitializeState(SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken, out INamedTypeSymbol classType);
 
         public async Task<ImmutableArray<CodeAction>> GenerateDefaultConstructorsAsync(
             Document document,
@@ -28,29 +28,25 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
+                var result = ArrayBuilder<CodeAction>.GetInstance();
                 if (textSpan.IsEmpty)
                 {
                     var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
                     if (state != null)
                     {
-                        return GetActions(document, state).AsImmutableOrNull();
+                        foreach (var constructor in state.UnimplementedConstructors)
+                        {
+                            result.Add(new GenerateDefaultConstructorCodeAction((TService)this, document, state, constructor));
+                        }
+
+                        if (state.UnimplementedConstructors.Length > 1)
+                        {
+                            result.Add(new CodeActionAll((TService)this, document, state, state.UnimplementedConstructors));
+                        }
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
-            }
-        }
-
-        private IEnumerable<CodeAction> GetActions(Document document, State state)
-        {
-            foreach (var constructor in state.UnimplementedConstructors)
-            {
-                yield return new GenerateDefaultConstructorCodeAction((TService)this, document, state, constructor);
-            }
-
-            if (state.UnimplementedConstructors.Count > 1)
-            {
-                yield return new CodeActionAll((TService)this, document, state, state.UnimplementedConstructors);
+                return result.ToImmutableAndFree();
             }
         }
     }

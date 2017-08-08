@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         #region Analysis
 
         private static readonly Regex s_omittedSyntaxKindRegex =
-            new Regex(@"None|Trivia|Token|Keyword|List|Xml|Cref|Compilation|Namespace|Class|Struct|Enum|Interface|Delegate|Field|Property|Indexer|Event|Operator|Constructor|Access|Incomplete|Attribute|Filter|InterpolatedString|TupleType|TupleElement|TupleExpression.*");
+            new Regex(@"None|Trivia|Token|Keyword|List|Xml|Cref|Compilation|Namespace|Class|Struct|Enum|Interface|Delegate|Field|Property|Indexer|Event|Operator|Constructor|Access|Incomplete|Attribute|Filter|InterpolatedString");
 
         private bool FilterByAbstractName(Entry entry, string abstractMemberName)
         {
@@ -89,10 +89,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return !s_omittedSyntaxKindRegex.IsMatch(syntaxKind.ToString());
         }
 
-        public void VerifyAnalyzeNodeCalledForAllSyntaxKinds(HashSet<TLanguageKindEnum> syntaxKindsPatterns)
+        public void VerifyAnalyzeNodeCalledForAllSyntaxKinds(HashSet<TLanguageKindEnum> expectedMissingSyntaxKinds)
         {
             var expectedSyntaxKinds = AllSyntaxKinds.Where(IsAnalyzeNodeSupported);
-            var actualSyntaxKinds = _callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind).Concat(syntaxKindsPatterns).Distinct();
+            var actualSyntaxKinds = new HashSet<TLanguageKindEnum>(_callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind));
+            var savedSyntaxKindsPatterns = new HashSet<TLanguageKindEnum>(expectedMissingSyntaxKinds);
+            expectedMissingSyntaxKinds.IntersectWith(actualSyntaxKinds);
+            Assert.True(expectedMissingSyntaxKinds.Count == 0, "AllInOne test contains ignored SyntaxKinds: " + string.Join(", ", expectedMissingSyntaxKinds));
+            actualSyntaxKinds.UnionWith(savedSyntaxKindsPatterns);
             AssertIsSuperset(expectedSyntaxKinds, actualSyntaxKinds);
         }
 

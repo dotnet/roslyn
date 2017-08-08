@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -1108,7 +1109,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Diagnostics
 
-        internal static readonly CompilationStage DefaultDiagnosticsStage = CompilationStage.Compile;
+        internal const CompilationStage DefaultDiagnosticsStage = CompilationStage.Compile;
 
         /// <summary>
         /// Gets the diagnostics produced during the parsing stage.
@@ -2101,6 +2102,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream, nameof(metadataPEStream));
             }
 
+            if (metadataPEStream == null && options?.EmitMetadataOnly == false && options?.IncludePrivateMembers == false)
+            {
+                throw new ArgumentException(CodeAnalysisResources.MustIncludePrivateMembersUnlessRefAssembly, nameof(options.IncludePrivateMembers));
+            }
+
             if (options?.DebugInformationFormat == DebugInformationFormat.Embedded &&
                 options?.EmitMetadataOnly == true)
             {
@@ -2243,7 +2249,7 @@ namespace Microsoft.CodeAnalysis
                         metadataOnly: options.EmitMetadataOnly,
                         includePrivateMembers: options.IncludePrivateMembers,
                         emitTestCoverageData: options.EmitTestCoverageData,
-                        pdbFilePath: options.PdbFilePath,
+                        pePdbFilePath: options.PdbFilePath,
                         cancellationToken: cancellationToken);
                 }
             }
@@ -2406,7 +2412,7 @@ namespace Microsoft.CodeAnalysis
             bool metadataOnly,
             bool includePrivateMembers,
             bool emitTestCoverageData,
-            string pdbFilePath,
+            string pePdbFilePath,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -2424,20 +2430,15 @@ namespace Microsoft.CodeAnalysis
             // PDB Stream provider should not be given if PDB is to be embedded into the PE file:
             Debug.Assert(moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Embedded || pdbStreamProvider == null);
 
-            string pdbPath = (pdbStreamProvider != null || moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded) ?
-                (pdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
+            if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || pdbStreamProvider != null)
+            {
+                pePdbFilePath = pePdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb");
+            }
 
-            // The PDB path is emitted in it's entirety into the PE.  This makes it impossible to have deterministic
-            // builds that occur in different source directories.  To enable this we shave all path information from
-            // the PDB when specified by the user.  
-            //
-            // This is a temporary work around to allow us to make progress with determinism.  The following issue 
-            // tracks getting an official solution here.
-            //
-            // https://github.com/dotnet/roslyn/issues/9813
-            string pePdbPath = (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || Feature("pdb-path-determinism") != null) && !string.IsNullOrEmpty(pdbPath)
-                ? Path.GetFileName(pdbPath)
-                : pdbPath;
+            if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded && !string.IsNullOrEmpty(pePdbFilePath))
+            {
+                pePdbFilePath = Path.GetFileName(pePdbFilePath);
+            }
 
             try
             {
@@ -2448,7 +2449,7 @@ namespace Microsoft.CodeAnalysis
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
                     // only a Stream value.
-                    nativePdbWriter = new Cci.PdbWriter(pdbPath, testSymWriterFactory, deterministic);
+                    nativePdbWriter = new Cci.PdbWriter(pePdbFilePath, testSymWriterFactory, deterministic);
                 }
 
                 Func<Stream> getPortablePdbStream;
@@ -2544,7 +2545,7 @@ namespace Microsoft.CodeAnalysis
                         getRefPeStream,
                         getPortablePdbStream,
                         nativePdbWriter,
-                        pePdbPath,
+                        pePdbFilePath,
                         metadataOnly,
                         includePrivateMembers,
                         deterministic,
@@ -2733,6 +2734,11 @@ namespace Microsoft.CodeAnalysis
                 catch (Cci.PdbWritingException e)
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PdbWritingFailed, Location.None, e.Message));
+                    return null;
+                }
+                catch (Cci.PeWritingException e)
+                {
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException.ToString()));
                     return null;
                 }
                 catch (PermissionSetFileReadException e)

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class EditorFeaturesResources {
@@ -932,6 +932,33 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Inline_Rename {
             get {
                 return ResourceManager.GetString("Inline_Rename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inline Rename Conflict.
+        /// </summary>
+        internal static string Inline_Rename_Conflict {
+            get {
+                return ResourceManager.GetString("Inline_Rename_Conflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inline Rename Field Background and Border.
+        /// </summary>
+        internal static string Inline_Rename_Field_Background_and_Border {
+            get {
+                return ResourceManager.GetString("Inline_Rename_Field_Background_and_Border", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inline Rename Field Text.
+        /// </summary>
+        internal static string Inline_Rename_Field_Text {
+            get {
+                return ResourceManager.GetString("Inline_Rename_Field_Text", resourceCulture);
             }
         }
         

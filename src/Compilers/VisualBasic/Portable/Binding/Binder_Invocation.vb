@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1769,14 +1770,14 @@ ProduceBoundNode:
             For i As Integer = 0 To bestSymbols.Length - 1 Step 1
 
                 ' in delegate context we just output for each candidates
-                ' BC30794: No accessible 'foo' is most specific: 
-                '     Public Sub foo(p As Integer)
-                '     Public Sub foo(p As Integer)
+                ' BC30794: No accessible 'goo' is most specific: 
+                '     Public Sub goo(p As Integer)
+                '     Public Sub goo(p As Integer)
                 '
                 ' in other contexts we give more information, e.g.
-                ' BC30794: No accessible 'foo' is most specific: 
-                '     Public Sub foo(p As Integer): <reason>
-                '     Public Sub foo(p As Integer): <reason>
+                ' BC30794: No accessible 'goo' is most specific: 
+                '     Public Sub goo(p As Integer): <reason>
+                '     Public Sub goo(p As Integer): <reason>
                 Dim bestSymbol As Symbol = bestSymbols(i)
                 Dim bestSymbolIsExtension As Boolean = bestSymbol.IsReducedExtensionMethod
 
@@ -1874,9 +1875,9 @@ ProduceBoundNode:
                     ' When reporting errors for an AddressOf, Dev 10 shows different error messages depending on how many
                     ' errors there are per candidate.
                     ' One narrowing error will be shown like:
-                    '     'Public Sub foo6(p As Integer, p2 As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
+                    '     'Public Sub goo6(p As Integer, p2 As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
                     ' More than one narrowing issues in the parameters are abbreviated with:
-                    '     'Public Sub foo6(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
+                    '     'Public Sub goo6(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
 
                     If delegateSymbol Is Nothing OrElse Not sealedCandidateDiagnostics.Skip(1).Any() Then
                         If isExtension Then

@@ -10,8 +10,8 @@ using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
         /// Note:  will never return null;
         /// </summary>
-        public static Task<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        public static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             Checksum checksum,
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var metadataId = GetMetadataIdNoThrow(reference);
             if (metadataId == null)
             {
-                return Task.FromResult(CreateEmpty(checksum));
+                return CreateEmpty(checksum);
             }
 
             // Try to acquire the data outside the lock.  That way we can avoid any sort of 
@@ -92,17 +92,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // the lock is not being held most of the time).
             if (s_metadataIdToInfo.TryGetValue(metadataId, out var infoTask))
             {
-                return infoTask;
+                var info = await infoTask.ConfigureAwait(false);
+                if (info.Checksum == checksum)
+                {
+                    return info;
+                }
             }
 
             var metadata = GetMetadataNoThrow(reference);
             if (metadata == null)
             {
-                return Task.FromResult(CreateEmpty(checksum));
+                return CreateEmpty(checksum);
             }
 
-            return GetInfoForMetadataReferenceSlowAsync(
-                solution, reference, checksum, loadOnly, metadata, cancellationToken);
+            return await GetInfoForMetadataReferenceSlowAsync(
+                solution, reference, checksum, loadOnly, metadata, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
@@ -117,7 +121,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
                 if (s_metadataIdToInfo.TryGetValue(metadata.Id, out var infoTask))
                 {
-                    return await infoTask.ConfigureAwait(false);
+                    var oldInfo = await infoTask.ConfigureAwait(false);
+                    if (oldInfo.Checksum == checksum)
+                    {
+                        return oldInfo;
+                    }
                 }
 
                 var info = await TryLoadOrCreateMetadataSymbolTreeInfoAsync(
@@ -130,6 +138,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Cache the result in our dictionary.  Store it as a completed task so that 
                 // future callers don't need to allocate to get the result back.
                 infoTask = Task.FromResult(info);
+                s_metadataIdToInfo.Remove(metadata.Id);
                 s_metadataIdToInfo.Add(metadata.Id, infoTask);
 
                 return info;
@@ -141,9 +150,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // We can reuse the index for any given reference as long as it hasn't changed.
             // So our checksum is just the checksum for the PEReference itself.
-            var serializer = new Serializer(solution.Workspace);
-            var checksum = serializer.CreateChecksum(reference, cancellationToken);
-            return checksum;
+            return ChecksumCache.GetOrCreate(reference, _ =>
+            {
+                var serializer = new Serializer(solution.Workspace);
+                var checksum = serializer.CreateChecksum(reference, cancellationToken);
+                return checksum;
+            });
         }
 
         private static Task<SymbolTreeInfo> TryLoadOrCreateMetadataSymbolTreeInfoAsync(
@@ -596,7 +608,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         return FirstEntityHandleProvider.Instance.GetTypeFromSpecification(
                             _metadataReader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle);
                     default:
-                        return default(EntityHandle);
+                        return default;
                 }
             }
 

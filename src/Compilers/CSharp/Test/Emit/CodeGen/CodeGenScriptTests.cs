@@ -469,8 +469,8 @@ public abstract class C
         [Fact]
         public void ExprStmtWithMethodCall()
         {
-            var s0 = CreateSubmission("int Foo() { return 2;}");
-            var s1 = CreateSubmission("(4 + 5) * Foo()", previous: s0);
+            var s0 = CreateSubmission("int Goo() { return 2;}");
+            var s1 = CreateSubmission("(4 + 5) * Goo()", previous: s0);
 
             s0.VerifyEmitDiagnostics();
             s1.VerifyEmitDiagnostics();
@@ -525,16 +525,17 @@ public abstract class C
             Assert.True(methodData.Method.ReturnsVoid);
             methodData.VerifyIL(
 @"{
-  // Code size       24 (0x18)
+  // Code size       25 (0x19)
   .maxstack  1
-  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+  .locals init (System.Runtime.CompilerServices.TaskAwaiter<object> V_0)
   IL_0000:  newobj     "".ctor()""
   IL_0005:  callvirt   ""System.Threading.Tasks.Task<object> <Initialize>()""
-  IL_000a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+  IL_000a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<object> System.Threading.Tasks.Task<object>.GetAwaiter()""
   IL_000f:  stloc.0
   IL_0010:  ldloca.s   V_0
-  IL_0012:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-  IL_0017:  ret
+  IL_0012:  call       ""object System.Runtime.CompilerServices.TaskAwaiter<object>.GetResult()""
+  IL_0017:  pop
+  IL_0018:  ret
 }");
         }
 
@@ -599,12 +600,24 @@ public abstract class C
         [Fact]
         public void ScriptEntryPoint_MissingMethods()
         {
-            var source =
-@"System.Console.WriteLine(1);";
+            var source = "System.Console.WriteLine(1);";
             var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1));
+            compilation.VerifyEmitDiagnostics(
+                // (1,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1' is not defined or imported
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1").WithLocation(1, 1),
+                // (1,1): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Create'
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1", "Create").WithLocation(1, 1),
+                // (1,1): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Task'
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1", "Task").WithLocation(1, 1),
+                // (1,1): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext'
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "MoveNext").WithLocation(1, 1),
+                // (1,1): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine'
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(1, 1));
         }
     }
 }

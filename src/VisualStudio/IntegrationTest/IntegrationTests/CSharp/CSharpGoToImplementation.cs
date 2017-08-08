@@ -25,16 +25,16 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.cs");
             VisualStudio.Editor.SetText(
-@"class Implementation : IFoo
+@"class Implementation : IGoo
 {
 }");
             VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.cs");
             VisualStudio.Editor.SetText(
-@"interface IFoo 
+@"interface IGoo 
 {
 }");
-            VisualStudio.Editor.PlaceCaret("interface IFoo");
+            VisualStudio.Editor.PlaceCaret("interface IGoo");
             VisualStudio.Editor.GoToImplementation();
             VisualStudio.Editor.Verify.TextContains(@"class Implementation$$", assertCaretPosition: true);
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
@@ -49,7 +49,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.SetText(
 @"class Implementation : IBar
 {
-}");
+}
+");
             VisualStudio.SolutionExplorer.CloseFile(project, "FileImplementation.cs", saveFile: true);
             VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.cs");

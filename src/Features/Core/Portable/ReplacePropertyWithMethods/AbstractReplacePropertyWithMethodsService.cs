@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         public async Task ReplaceReferenceAsync(
             Document document,
-            SyntaxEditor editor, SyntaxToken nameToken,
+            SyntaxEditor editor, SyntaxNode identifierName,
             IPropertySymbol property, IFieldSymbol propertyBackingField,
             string desiredGetMethodName, string desiredSetMethodName,
             CancellationToken cancellationToken)
@@ -55,10 +55,9 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var referenceReplacer = new ReferenceReplacer(
-                this, semanticModel, syntaxFacts, semanticFacts,
-                editor, nameToken, property, propertyBackingField, 
-                desiredGetMethodName, desiredSetMethodName,
-                cancellationToken);
+                this, semanticModel, syntaxFacts, semanticFacts, editor, 
+                (TIdentifierNameSyntax)identifierName, property, propertyBackingField, 
+                desiredGetMethodName, desiredSetMethodName, cancellationToken);
             referenceReplacer.Do();
         }
 
@@ -71,7 +70,6 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private readonly ISyntaxFactsService _syntaxFacts;
             private readonly ISemanticFactsService _semanticFacts;
             private readonly SyntaxEditor _editor;
-            private readonly SyntaxToken _nameToken;
             private readonly IPropertySymbol _property;
             private readonly IFieldSymbol _propertyBackingField;
             private readonly string _desiredGetMethodName;
@@ -87,7 +85,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 SemanticModel semanticModel,
                 ISyntaxFactsService syntaxFacts,
                 ISemanticFactsService semanticFacts,
-                SyntaxEditor editor, SyntaxToken nameToken,
+                SyntaxEditor editor, 
+                TIdentifierNameSyntax identifierName,
                 IPropertySymbol property, IFieldSymbol propertyBackingField,
                 string desiredGetMethodName,
                 string desiredSetMethodName,
@@ -98,14 +97,13 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 _syntaxFacts = syntaxFacts;
                 _semanticFacts = semanticFacts;
                 _editor = editor;
-                _nameToken = nameToken;
+                _identifierName = identifierName;
                 _property = property;
                 _propertyBackingField = propertyBackingField;
                 _desiredGetMethodName = desiredGetMethodName;
                 _desiredSetMethodName = desiredSetMethodName;
                 _cancellationToken = cancellationToken;
 
-                _identifierName = (TIdentifierNameSyntax)nameToken.Parent;
                 _expression = _identifierName;
                 _cref = _service.TryGetCrefSyntax(_identifierName);
                 if (_syntaxFacts.IsNameOfMemberAccessExpression(_expression))
@@ -251,6 +249,13 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         readExpression);
 
                     _editor.ReplaceNode(declarator, newDeclarator);
+                }
+                else if (_syntaxFacts.IsRightSideOfQualifiedName(_identifierName))
+                {
+                    // Found a reference in a qualified name.  This happens for VB explicit interface
+                    // names.  We don't want to update this.  (The "Implement IGoo.Bar" clause will be
+                    // updated when we generate the actual Get/Set methods.
+                    return;
                 }
                 else
                 {

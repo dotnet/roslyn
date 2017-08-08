@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,19 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         protected override bool IsSimpleNameGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return node is SimpleNameSyntax;
-        }
+            => node is SimpleNameSyntax;
 
         protected override bool IsConstructorInitializerGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return node is ConstructorInitializerSyntax;
-        }
-
-        protected override bool IsClassDeclarationGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return node is ClassDeclarationSyntax;
-        }
+            => node is ConstructorInitializerSyntax;
 
         protected override bool TryInitializeConstructorInitializerGeneration(
             SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken,
@@ -58,35 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             arguments = default(ImmutableArray<ArgumentSyntax>);
             typeToGenerateIn = null;
             return false;
-        }
-
-        protected override bool TryInitializeClassDeclarationGenerationState(
-            SemanticDocument document,
-            SyntaxNode node,
-            CancellationToken cancellationToken,
-            out SyntaxToken token,
-            out IMethodSymbol delegatedConstructor,
-            out INamedTypeSymbol typeToGenerateIn)
-        {
-            token = default(SyntaxToken);
-            typeToGenerateIn = null;
-            delegatedConstructor = null;
-
-            var semanticModel = document.SemanticModel;
-            var classDeclaration = (ClassDeclarationSyntax)node;
-            var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration, cancellationToken);
-
-            var baseType = classSymbol.BaseType;
-            var constructor = baseType.Constructors.FirstOrDefault(c => IsSymbolAccessible(c, document));
-            if (constructor == null)
-            {
-                return false;
-            }
-
-            typeToGenerateIn = classSymbol;
-            delegatedConstructor = constructor;
-            token = classDeclaration.Identifier;
-            return true;
         }
 
         protected override bool TryInitializeSimpleNameGenerationState(
@@ -180,10 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             => semanticModel.GenerateNameForArgument(argument, cancellationToken);
 
         protected override RefKind GetRefKind(ArgumentSyntax argument)
-        {
-            return argument.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword ? RefKind.Ref :
-                   argument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword ? RefKind.Out : RefKind.None;
-        }
+            => argument.GetRefKind();
 
         protected override bool IsNamedArgument(ArgumentSyntax argument)
         {

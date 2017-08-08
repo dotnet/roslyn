@@ -35,11 +35,11 @@ Class C1
     Public Shared field2 as integer = 23
     Public field3 as new C2(12)
     Public field4, field5 as new C2(42)
-    Public field6 as integer = C1.Foo()
-    Public field7 as integer = Foo
+    Public field6 as integer = C1.Goo()
+    Public field7 as integer = Goo
     Public field8 as C2 = New C2(20120421)
 
-    Public Shared Function Foo() as Integer
+    Public Shared Function Goo() as Integer
         return 2
     End Function
 
@@ -92,11 +92,11 @@ imports system
 Class C1
     Public Delegate Sub SubDel(p as integer)
     
-    Public Shared Sub foo(p as Integer)
+    Public Shared Sub goo(p as Integer)
         Console.WriteLine("DelegateField works :) " + p.ToString())
     End Sub
 
-    Public delfield1 as SubDel = AddressOf C1.foo
+    Public delfield1 as SubDel = AddressOf C1.goo
 
     Public sub DumpFields()
         delfield1(23)
@@ -164,7 +164,7 @@ Class C1
     private f1 as integer = 21
     private f2 as integer = Me.f1 + 1
     private f3, f4 as new C2(Me.f1)
-    private f5, f6 as new C2(foo)
+    private f5, f6 as new C2(goo)
     private f7, f8 as new C2(prop)
 
     Public ReadOnly Property prop As Integer
@@ -175,7 +175,7 @@ Class C1
     End Property
 
 
-    public function foo() as Integer
+    public function goo() as Integer
         return 12
     end function
 
@@ -232,7 +232,7 @@ Option Infer On
 imports system
 
 Class C1
-    private const c1s = "foo"
+    private const c1s = "goo"
     Private const c2 as object = 1
     Private const c3 = c2 
     private shared c4 as integer = 1 + cint(c2) + cint(c3)
@@ -240,12 +240,12 @@ Class C1
 
     Public Delegate Sub SubDel(p as integer)
     
-    Public Shared Sub foo(p as Integer)
+    Public Shared Sub goo(p as Integer)
         Console.writeline(c1s)
         Console.WriteLine("DelegateField works :) " + c1s + p.ToString() + " " + c4.ToString())
     End Sub
 
-    Public delfield1 as SubDel = AddressOf C1.foo
+    Public delfield1 as SubDel = AddressOf C1.goo
 
     Public sub DumpFields()
         delfield1(23)
@@ -261,8 +261,8 @@ End Class
 
             CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
-foo
-DelegateField works :) foo23 3
+goo
+DelegateField works :) goo23 3
 ]]>)
         End Sub
 
@@ -520,8 +520,8 @@ option infer <%= infer %>
 imports system
 
         Class C1
-            Public Const f1 = "foo"
-            Public Const f2 As Object = "foo"
+            Public Const f1 = "goo"
+            Public Const f2 As Object = "goo"
             Public Const f3 = 23
             Public Const f4 As Object = 42
             public const f5 as integer = nothing
@@ -540,8 +540,8 @@ imports system
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
-foo
-foo
+goo
+goo
 23
 42
 0
@@ -559,10 +559,10 @@ Option strict on
 Imports system
 
 Public Class C1
-    Public Const foo as New C1()
+    Public Const goo as New C1()
     
     ' make sure you only get error message about wrong type, NOT about wrong parameters
-    Public Const foo2 as New C1(23,23)
+    Public Const goo2 as New C1(23,23)
 
     Public shared Sub Main(args() as string)
     End sub
@@ -575,10 +575,10 @@ End Class
             AssertTheseDiagnostics(c1,
 <expected>
 BC30424: Constants must be of an intrinsic or enumerated type, not a class, structure, type parameter, or array type.
-    Public Const foo as New C1()
+    Public Const goo as New C1()
                             ~~
 BC30424: Constants must be of an intrinsic or enumerated type, not a class, structure, type parameter, or array type.
-    Public Const foo2 as New C1(23,23)
+    Public Const goo2 as New C1(23,23)
                              ~~
 </expected>)
         End Sub
@@ -804,7 +804,7 @@ End Structure
 Option strict on
 Class C1
     Public f1 As New With { .Name = "John Smith", .Age = 34 }
-    Public Property foo As New With { .Name2 = "John Smith", .Age2 = 34 }
+    Public Property goo As New With { .Name2 = "John Smith", .Age2 = 34 }
 
     public shared sub main()
     end sub
@@ -820,7 +820,7 @@ BC30180: Keyword does not name a type.
     Public f1 As New With { .Name = "John Smith", .Age = 34 }
                      ~~~~
 BC30180: Keyword does not name a type.
-    Public Property foo As New With { .Name2 = "John Smith", .Age2 = 34 }
+    Public Property goo As New With { .Name2 = "John Smith", .Age2 = 34 }
                                ~~~~
 </expected>)
         End Sub
@@ -834,7 +834,7 @@ BC30180: Keyword does not name a type.
 Option strict on
 Class C1
     Public f1 As New 
-    Public Property foo As New 
+    Public Property goo As New 
 
     public shared sub main()
     end sub
@@ -850,7 +850,7 @@ BC30182: Type expected.
     Public f1 As New 
                      ~
 BC30182: Type expected.
-    Public Property foo As New 
+    Public Property goo As New 
                                ~    
 </expected>)
         End Sub

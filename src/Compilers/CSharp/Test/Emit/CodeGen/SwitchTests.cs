@@ -895,6 +895,7 @@ public class Test
             );
         }
 
+        [Fact]
         public void DegenerateSwitch007()
         {
             var text = @"using System;
@@ -2350,10 +2351,10 @@ class Program
                 break;
         }
 
-        Foo(1);
+        Goo(1);
     }
 
-    static void Foo(sbyte? p)
+    static void Goo(sbyte? p)
     {
         switch (p)
         {
@@ -2394,7 +2395,7 @@ class Program
   IL_0035:  ldc.i4.1
   IL_0036:  conv.i1
   IL_0037:  newobj     ""sbyte?..ctor(sbyte)""
-  IL_003c:  call       ""void Program.Foo(sbyte?)""
+  IL_003c:  call       ""void Program.Goo(sbyte?)""
   IL_0041:  ret
 }");
         }
@@ -2408,11 +2409,11 @@ class Program
 {
     static void Main()
     {
-        Foo(null);
-        Foo(100);
+        Goo(null);
+        Goo(100);
     }
 
-    static void Foo(short? p)
+    static void Goo(short? p)
     {
         switch (p)
         {
@@ -2494,7 +2495,7 @@ class Program
 }
 ";
             var verifier = CompileAndVerify(text, expectedOutput: "null default 100 default ");
-            verifier.VerifyIL("Program.Foo", @"
+            verifier.VerifyIL("Program.Goo", @"
 {
   // Code size      373 (0x175)
   .maxstack  2
@@ -2746,14 +2747,14 @@ class Program
     {
         switch (x)
         {
-            case (int)Foo.X:
+            case (int)Goo.X:
                 return true;
             default:
                 return false;
         }
     }
 
-    public enum Foo : int { X  = 1 }
+    public enum Goo : int { X  = 1 }
 
     static void Main()
     {
@@ -3665,7 +3666,7 @@ class Test
             var text = @"
 using System;
 
-class Foo
+class Goo
 {
   public static void Main()
   {
@@ -6338,22 +6339,22 @@ class SwitchTest
     public static int Main()
     {
         int n = 3;
-        int foo;        // unassigned foo
+        int goo;        // unassigned goo
 
         switch (n)
         {
             case 1:
             case 2:
-                foo = n;
+                goo = n;
                 break;
             case 3:
             default:
-                foo = 0;
+                goo = 0;
                 break;
         }
         
-        Console.Write(foo);     // foo must be definitely assigned here        
-        return foo;
+        Console.Write(goo);     // goo must be definitely assigned here        
+        return goo;
     }
 }
 ";
@@ -6364,7 +6365,7 @@ class SwitchTest
   // Code size       28 (0x1c)
   .maxstack  2
   .locals init (int V_0, //n
-                int V_1) //foo
+                int V_1) //goo
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
@@ -6399,13 +6400,13 @@ class SwitchTest
     {
         int n = 3;
         int cost = 0;
-        int foo;        // unassigned foo
+        int goo;        // unassigned goo
 
         switch (n)
         {
             case 1:
                 cost = 1;
-                foo = n;
+                goo = n;
                 break;
             case 2:
                 cost = 2;
@@ -6414,7 +6415,7 @@ class SwitchTest
                 cost = 3;
                 if(cost > n)
                 {
-                    foo = n - 1;
+                    goo = n - 1;
                 }
                 else
                 {
@@ -6424,13 +6425,13 @@ class SwitchTest
 
             default:
                 cost = 4;
-                foo = n - 1;
+                goo = n - 1;
                 break;
         }
 
-        if (foo != n)       // foo must be reported as definitely assigned
+        if (goo != n)       // goo must be reported as definitely assigned
         {
-            Console.Write(foo);
+            Console.Write(goo);
         }
         else
         {
@@ -6452,7 +6453,7 @@ class SwitchTest
   .maxstack  2
   .locals init (int V_0, //n
   int V_1, //cost
-  int V_2) //foo
+  int V_2) //goo
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.0
@@ -6516,7 +6517,7 @@ class SwitchTest
 {
     public static int Main()
     {
-        int foo;        // unassigned foo
+        int goo;        // unassigned goo
         switch (3)
         {
             case 1:
@@ -6527,7 +6528,7 @@ class SwitchTest
                 }
                 catch(Exception)
                 {
-                    foo = 0;
+                    goo = 0;
                 }
                 break;
             case 2:
@@ -6542,8 +6543,8 @@ class SwitchTest
                 break;
         }
 
-        Console.Write(foo);    // foo should be definitely assigned here
-        return foo;
+        Console.Write(goo);    // goo should be definitely assigned here
+        return goo;
     }
 }
 ";
@@ -6562,7 +6563,7 @@ class SwitchTest
                 {
                     // Code size       20 (0x14)
                     .maxstack  1
-                    .locals init (int V_0) //foo
+                    .locals init (int V_0) //goo
                     IL_0000:  nop
                     .try
                     {
@@ -6595,7 +6596,7 @@ class SwitchTest
 
 class A
 {
-    static void Foo(DayOfWeek x)
+    static void Goo(DayOfWeek x)
     {
         switch (x)
         {
@@ -6615,7 +6616,7 @@ class A
             //                 goto case 1; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'System.DayOfWeek'
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 1;").WithArguments("System.DayOfWeek"));
 
-            compVerifier.VerifyIL("A.Foo", @"
+            compVerifier.VerifyIL("A.Goo", @"
 {
   // Code size        7 (0x7)
   .maxstack  2
@@ -7272,7 +7273,7 @@ class Program {
     static string boo(int i) {
         switch (i) {
             case 42:
-                var x = ""foo"";
+                var x = ""goo"";
                 if (x != ""bar"")
                 break;
             return x;
@@ -7296,7 +7297,7 @@ class Program {
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.s   42
   IL_0003:  bne.un.s   IL_001a
-  IL_0005:  ldstr      ""foo""
+  IL_0005:  ldstr      ""goo""
   IL_000a:  stloc.0
   IL_000b:  ldloc.0
   IL_000c:  ldstr      ""bar""
@@ -7322,7 +7323,7 @@ class Program {
     static string boo(int i) {
         switch (i) {
             case 42:
-                var x = ""foo"";
+                var x = ""goo"";
                 if (x != ""bar"")
                 break;
              break;
@@ -7345,7 +7346,7 @@ class Program {
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.s   42
   IL_0003:  bne.un.s   IL_0015
-  IL_0005:  ldstr      ""foo""
+  IL_0005:  ldstr      ""goo""
   IL_000a:  ldstr      ""bar""
   IL_000f:  call       ""bool string.op_Inequality(string, string)""
   IL_0014:  pop
@@ -7368,7 +7369,7 @@ class Program {
         var ii = i;
         switch (++ii) {
             case 42:
-                var x = ""foo"";
+                var x = ""goo"";
                 if (x != ""bar"")
                 {
                     return false;
@@ -7398,7 +7399,7 @@ class Program {
   IL_0004:  ldloc.0
   IL_0005:  ldc.i4.s   42
   IL_0007:  bne.un.s   IL_001c
-  IL_0009:  ldstr      ""foo""
+  IL_0009:  ldstr      ""goo""
   IL_000e:  ldstr      ""bar""
   IL_0013:  call       ""bool string.op_Inequality(string, string)""
   IL_0018:  brfalse.s  IL_001c
@@ -7423,7 +7424,7 @@ class Program {
         var ii = i;
         switch (ii++) {
             case 42:
-                var x = ""foo"";
+                var x = ""goo"";
                 if (x != ""bar"")
                 {
                     return false;
@@ -7451,7 +7452,7 @@ class Program {
   IL_0002:  ldloc.0
   IL_0003:  ldc.i4.s   42
   IL_0005:  bne.un.s   IL_001a
-  IL_0007:  ldstr      ""foo""
+  IL_0007:  ldstr      ""goo""
   IL_000c:  ldstr      ""bar""
   IL_0011:  call       ""bool string.op_Inequality(string, string)""
   IL_0016:  brfalse.s  IL_001a
@@ -7653,23 +7654,26 @@ public class Program
                 expectedOutput: "RemoveEmptyEntries");
             compVerifier.VerifyIL("Program.Main",
 @"{
-  // Code size       24 (0x18)
+  // Code size       26 (0x1a)
   .maxstack  1
   .locals init (object V_0,
-                object V_1) //o
+                object V_1, //o
+                System.StringSplitOptions V_2)
   IL_0000:  nop
   IL_0001:  ldc.i4.1
-  IL_0002:  box        ""System.StringSplitOptions""
-  IL_0007:  stloc.0
-  IL_0008:  br.s       IL_000a
-  IL_000a:  ldloc.0
-  IL_000b:  stloc.1
-  IL_000c:  br.s       IL_000e
-  IL_000e:  ldloc.1
-  IL_000f:  call       ""void System.Console.WriteLine(object)""
-  IL_0014:  nop
-  IL_0015:  br.s       IL_0017
-  IL_0017:  ret
+  IL_0002:  stloc.2
+  IL_0003:  ldc.i4.1
+  IL_0004:  box        ""System.StringSplitOptions""
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  stloc.1
+  IL_000e:  br.s       IL_0010
+  IL_0010:  ldloc.1
+  IL_0011:  call       ""void System.Console.WriteLine(object)""
+  IL_0016:  nop
+  IL_0017:  br.s       IL_0019
+  IL_0019:  ret
 }"
             );
         }
@@ -7704,30 +7708,24 @@ public class Program
                 expectedOutput: "null1");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size       47 (0x2f)
+  // Code size       37 (0x25)
   .maxstack  1
   .locals init (int? V_0,
-                int V_1,
-                int? V_2)
+                int V_1)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
   IL_0004:  call       ""bool int?.HasValue.get""
-  IL_0009:  brfalse.s  IL_0024
-  IL_000b:  ldloc.0
-  IL_000c:  stloc.2
-  IL_000d:  ldloca.s   V_2
-  IL_000f:  call       ""int int?.GetValueOrDefault()""
-  IL_0014:  stloc.1
-  IL_0015:  ldloca.s   V_2
-  IL_0017:  call       ""bool int?.HasValue.get""
-  IL_001c:  pop
-  IL_001d:  ldloc.1
-  IL_001e:  call       ""void System.Console.Write(int)""
-  IL_0023:  ret
-  IL_0024:  ldstr      ""null""
-  IL_0029:  call       ""void System.Console.Write(string)""
-  IL_002e:  ret
+  IL_0009:  brfalse.s  IL_001a
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int int?.GetValueOrDefault()""
+  IL_0012:  stloc.1
+  IL_0013:  ldloc.1
+  IL_0014:  call       ""void System.Console.Write(int)""
+  IL_0019:  ret
+  IL_001a:  ldstr      ""null""
+  IL_001f:  call       ""void System.Console.Write(string)""
+  IL_0024:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -7735,13 +7733,12 @@ public class Program
                 expectedOutput: "null1");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size       65 (0x41)
+  // Code size       53 (0x35)
   .maxstack  1
   .locals init (int? V_0,
                 int V_1,
                 int V_2, //i
-                int? V_3,
-                int? V_4)
+                int? V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
@@ -7750,28 +7747,23 @@ public class Program
   IL_0005:  ldloca.s   V_0
   IL_0007:  call       ""bool int?.HasValue.get""
   IL_000c:  brtrue.s   IL_0010
-  IL_000e:  br.s       IL_0033
-  IL_0010:  ldloc.0
-  IL_0011:  stloc.s    V_4
-  IL_0013:  ldloca.s   V_4
-  IL_0015:  call       ""int int?.GetValueOrDefault()""
-  IL_001a:  stloc.1
-  IL_001b:  ldloca.s   V_4
-  IL_001d:  call       ""bool int?.HasValue.get""
-  IL_0022:  brfalse.s  IL_0026
-  IL_0024:  br.s       IL_0026
-  IL_0026:  ldloc.1
-  IL_0027:  stloc.2
-  IL_0028:  br.s       IL_002a
-  IL_002a:  ldloc.2
-  IL_002b:  call       ""void System.Console.Write(int)""
-  IL_0030:  nop
-  IL_0031:  br.s       IL_0040
-  IL_0033:  ldstr      ""null""
-  IL_0038:  call       ""void System.Console.Write(string)""
-  IL_003d:  nop
-  IL_003e:  br.s       IL_0040
-  IL_0040:  ret
+  IL_000e:  br.s       IL_0027
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""int int?.GetValueOrDefault()""
+  IL_0017:  stloc.1
+  IL_0018:  br.s       IL_001a
+  IL_001a:  ldloc.1
+  IL_001b:  stloc.2
+  IL_001c:  br.s       IL_001e
+  IL_001e:  ldloc.2
+  IL_001f:  call       ""void System.Console.Write(int)""
+  IL_0024:  nop
+  IL_0025:  br.s       IL_0034
+  IL_0027:  ldstr      ""null""
+  IL_002c:  call       ""void System.Console.Write(string)""
+  IL_0031:  nop
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ret
 }"
             );
         }
@@ -7872,7 +7864,7 @@ public class Program
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size       25 (0x19)
+  // Code size       31 (0x1f)
   .maxstack  1
   .locals init (int? V_0,
                 System.IComparable V_1)
@@ -7880,13 +7872,14 @@ public class Program
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
   IL_0004:  call       ""bool int?.HasValue.get""
-  IL_0009:  brfalse.s  IL_0018
-  IL_000b:  ldloc.0
-  IL_000c:  box        ""int?""
-  IL_0011:  stloc.1
-  IL_0012:  ldloc.1
-  IL_0013:  call       ""void System.Console.Write(object)""
-  IL_0018:  ret
+  IL_0009:  brfalse.s  IL_001e
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int int?.GetValueOrDefault()""
+  IL_0012:  box        ""int""
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  call       ""void System.Console.Write(object)""
+  IL_001e:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -7894,7 +7887,7 @@ public class Program
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size       41 (0x29)
+  // Code size       47 (0x2f)
   .maxstack  1
   .locals init (int? V_0,
                 System.IComparable V_1,
@@ -7908,26 +7901,27 @@ public class Program
   IL_0005:  ldloca.s   V_0
   IL_0007:  call       ""bool int?.HasValue.get""
   IL_000c:  brtrue.s   IL_0010
-  IL_000e:  br.s       IL_0019
-  IL_0010:  ldloc.0
-  IL_0011:  box        ""int?""
-  IL_0016:  stloc.1
-  IL_0017:  br.s       IL_001b
-  IL_0019:  br.s       IL_0028
-  IL_001b:  ldloc.1
-  IL_001c:  stloc.2
-  IL_001d:  br.s       IL_001f
-  IL_001f:  ldloc.2
-  IL_0020:  call       ""void System.Console.Write(object)""
-  IL_0025:  nop
-  IL_0026:  br.s       IL_0028
-  IL_0028:  ret
+  IL_000e:  br.s       IL_001f
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""int int?.GetValueOrDefault()""
+  IL_0017:  box        ""int""
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0021
+  IL_001f:  br.s       IL_002e
+  IL_0021:  ldloc.1
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  call       ""void System.Console.Write(object)""
+  IL_002b:  nop
+  IL_002c:  br.s       IL_002e
+  IL_002e:  ret
 }"
             );
         }
 
         [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
-        public void UnoxInPatternSwitch_06()
+        public void UnboxInPatternSwitch_06()
         {
             var source = @"using System;
 
@@ -7954,28 +7948,32 @@ public class Program
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size       41 (0x29)
-  .maxstack  1
+  // Code size       38 (0x26)
+  .maxstack  2
   .locals init (object V_0,
                 int V_1,
-                int? V_2)
+                object V_2)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  brfalse.s  IL_0028
+  IL_0003:  brfalse.s  IL_0025
   IL_0005:  ldloc.0
-  IL_0006:  isinst     ""int?""
-  IL_000b:  unbox.any  ""int?""
-  IL_0010:  stloc.2
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  call       ""int int?.GetValueOrDefault()""
-  IL_0018:  stloc.1
-  IL_0019:  ldloca.s   V_2
-  IL_001b:  call       ""bool int?.HasValue.get""
-  IL_0020:  brfalse.s  IL_0028
-  IL_0022:  ldloc.1
-  IL_0023:  call       ""void System.Console.Write(int)""
-  IL_0028:  ret
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  isinst     ""int""
+  IL_000d:  ldnull
+  IL_000e:  cgt.un
+  IL_0010:  dup
+  IL_0011:  brtrue.s   IL_0016
+  IL_0013:  ldc.i4.0
+  IL_0014:  br.s       IL_001c
+  IL_0016:  ldloc.2
+  IL_0017:  unbox.any  ""int""
+  IL_001c:  stloc.1
+  IL_001d:  brfalse.s  IL_0025
+  IL_001f:  ldloc.1
+  IL_0020:  call       ""void System.Console.Write(int)""
+  IL_0025:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -7983,13 +7981,13 @@ public class Program
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size       58 (0x3a)
-  .maxstack  1
+  // Code size       57 (0x39)
+  .maxstack  2
   .locals init (object V_0,
                 int V_1,
                 int V_2, //i
                 object V_3,
-                int? V_4)
+                object V_4)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
@@ -7997,27 +7995,31 @@ public class Program
   IL_0004:  stloc.0
   IL_0005:  ldloc.0
   IL_0006:  brtrue.s   IL_000a
-  IL_0008:  br.s       IL_002a
+  IL_0008:  br.s       IL_0029
   IL_000a:  ldloc.0
-  IL_000b:  isinst     ""int?""
-  IL_0010:  unbox.any  ""int?""
-  IL_0015:  stloc.s    V_4
-  IL_0017:  ldloca.s   V_4
-  IL_0019:  call       ""int int?.GetValueOrDefault()""
-  IL_001e:  stloc.1
-  IL_001f:  ldloca.s   V_4
-  IL_0021:  call       ""bool int?.HasValue.get""
-  IL_0026:  brfalse.s  IL_002a
-  IL_0028:  br.s       IL_002c
-  IL_002a:  br.s       IL_0039
-  IL_002c:  ldloc.1
-  IL_002d:  stloc.2
-  IL_002e:  br.s       IL_0030
-  IL_0030:  ldloc.2
-  IL_0031:  call       ""void System.Console.Write(int)""
-  IL_0036:  nop
-  IL_0037:  br.s       IL_0039
-  IL_0039:  ret
+  IL_000b:  stloc.s    V_4
+  IL_000d:  ldloc.s    V_4
+  IL_000f:  isinst     ""int""
+  IL_0014:  ldnull
+  IL_0015:  cgt.un
+  IL_0017:  dup
+  IL_0018:  brtrue.s   IL_001d
+  IL_001a:  ldc.i4.0
+  IL_001b:  br.s       IL_0024
+  IL_001d:  ldloc.s    V_4
+  IL_001f:  unbox.any  ""int""
+  IL_0024:  stloc.1
+  IL_0025:  brfalse.s  IL_0029
+  IL_0027:  br.s       IL_002b
+  IL_0029:  br.s       IL_0038
+  IL_002b:  ldloc.1
+  IL_002c:  stloc.2
+  IL_002d:  br.s       IL_002f
+  IL_002f:  ldloc.2
+  IL_0030:  call       ""void System.Console.Write(int)""
+  IL_0035:  nop
+  IL_0036:  br.s       IL_0038
+  IL_0038:  ret
 }"
             );
         }
@@ -8457,12 +8459,12 @@ class Program
 }
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (13,21): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                // (13,21): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t ? t : default(T);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7", "7.1").WithLocation(13, 21),
-                // (19,18): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7", "7.1").WithLocation(19, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(19, 18)
                 );
             var compVerifier = CompileAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
@@ -8659,12 +8661,12 @@ class Program
     }
 }";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (13,21): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7. Please use language version 7.1 or greater.
+                // (13,21): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is int t ? t : default(int);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7", "7.1").WithLocation(13, 21),
-                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7.0", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7.0. Please use language version 7.1 or greater.
                 //             case int t:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7", "7.1").WithLocation(19, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7.0", "7.1").WithLocation(19, 18)
                 );
             var compVerifier = CompileAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
@@ -8672,54 +8674,62 @@ class Program
                 expectedOutput: "2300");
             compVerifier.VerifyIL("Program.M1<T>",
 @"{
-  // Code size       38 (0x26)
-  .maxstack  1
+  // Code size       35 (0x23)
+  .maxstack  2
   .locals init (int V_0, //t
-                int? V_1)
+                object V_1)
   IL_0000:  ldarg.0
   IL_0001:  box        ""T""
-  IL_0006:  isinst     ""int?""
-  IL_000b:  unbox.any  ""int?""
-  IL_0010:  stloc.1
-  IL_0011:  ldloca.s   V_1
-  IL_0013:  call       ""int int?.GetValueOrDefault()""
-  IL_0018:  stloc.0
-  IL_0019:  ldloca.s   V_1
-  IL_001b:  call       ""bool int?.HasValue.get""
-  IL_0020:  brtrue.s   IL_0024
-  IL_0022:  ldc.i4.0
-  IL_0023:  ret
-  IL_0024:  ldloc.0
-  IL_0025:  ret
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  isinst     ""int""
+  IL_000d:  ldnull
+  IL_000e:  cgt.un
+  IL_0010:  dup
+  IL_0011:  brtrue.s   IL_0016
+  IL_0013:  ldc.i4.0
+  IL_0014:  br.s       IL_001c
+  IL_0016:  ldloc.1
+  IL_0017:  unbox.any  ""int""
+  IL_001c:  stloc.0
+  IL_001d:  brtrue.s   IL_0021
+  IL_001f:  ldc.i4.0
+  IL_0020:  ret
+  IL_0021:  ldloc.0
+  IL_0022:  ret
 }"
             );
             compVerifier.VerifyIL("Program.M2<T>",
 @"{
-  // Code size       48 (0x30)
-  .maxstack  1
+  // Code size       45 (0x2d)
+  .maxstack  2
   .locals init (T V_0,
                 int V_1,
-                int? V_2)
+                object V_2)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
   IL_0003:  box        ""T""
-  IL_0008:  brfalse.s  IL_002e
+  IL_0008:  brfalse.s  IL_002b
   IL_000a:  ldloc.0
   IL_000b:  box        ""T""
-  IL_0010:  isinst     ""int?""
-  IL_0015:  unbox.any  ""int?""
-  IL_001a:  stloc.2
-  IL_001b:  ldloca.s   V_2
-  IL_001d:  call       ""int int?.GetValueOrDefault()""
-  IL_0022:  stloc.1
-  IL_0023:  ldloca.s   V_2
-  IL_0025:  call       ""bool int?.HasValue.get""
-  IL_002a:  brfalse.s  IL_002e
-  IL_002c:  ldloc.1
-  IL_002d:  ret
-  IL_002e:  ldc.i4.0
-  IL_002f:  ret
+  IL_0010:  stloc.2
+  IL_0011:  ldloc.2
+  IL_0012:  isinst     ""int""
+  IL_0017:  ldnull
+  IL_0018:  cgt.un
+  IL_001a:  dup
+  IL_001b:  brtrue.s   IL_0020
+  IL_001d:  ldc.i4.0
+  IL_001e:  br.s       IL_0026
+  IL_0020:  ldloc.2
+  IL_0021:  unbox.any  ""int""
+  IL_0026:  stloc.1
+  IL_0027:  brfalse.s  IL_002b
+  IL_0029:  ldloc.1
+  IL_002a:  ret
+  IL_002b:  ldc.i4.0
+  IL_002c:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -8728,41 +8738,45 @@ class Program
                 expectedOutput: "2300");
             compVerifier.VerifyIL("Program.M1<T>",
 @"{
-  // Code size       44 (0x2c)
-  .maxstack  1
+  // Code size       41 (0x29)
+  .maxstack  2
   .locals init (int V_0, //t
-                int? V_1,
+                object V_1,
                 int V_2)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  box        ""T""
-  IL_0007:  isinst     ""int?""
-  IL_000c:  unbox.any  ""int?""
-  IL_0011:  stloc.1
-  IL_0012:  ldloca.s   V_1
-  IL_0014:  call       ""int int?.GetValueOrDefault()""
-  IL_0019:  stloc.0
-  IL_001a:  ldloca.s   V_1
-  IL_001c:  call       ""bool int?.HasValue.get""
-  IL_0021:  brtrue.s   IL_0026
-  IL_0023:  ldc.i4.0
-  IL_0024:  br.s       IL_0027
-  IL_0026:  ldloc.0
-  IL_0027:  stloc.2
-  IL_0028:  br.s       IL_002a
-  IL_002a:  ldloc.2
-  IL_002b:  ret
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  isinst     ""int""
+  IL_000e:  ldnull
+  IL_000f:  cgt.un
+  IL_0011:  dup
+  IL_0012:  brtrue.s   IL_0017
+  IL_0014:  ldc.i4.0
+  IL_0015:  br.s       IL_001d
+  IL_0017:  ldloc.1
+  IL_0018:  unbox.any  ""int""
+  IL_001d:  stloc.0
+  IL_001e:  brtrue.s   IL_0023
+  IL_0020:  ldc.i4.0
+  IL_0021:  br.s       IL_0024
+  IL_0023:  ldloc.0
+  IL_0024:  stloc.2
+  IL_0025:  br.s       IL_0027
+  IL_0027:  ldloc.2
+  IL_0028:  ret
 }"
             );
             compVerifier.VerifyIL("Program.M2<T>",
 @"{
-  // Code size       71 (0x47)
-  .maxstack  1
+  // Code size       70 (0x46)
+  .maxstack  2
   .locals init (T V_0,
                 int V_1,
                 int V_2, //t
                 T V_3,
-                int? V_4,
+                object V_4,
                 int V_5)
   IL_0000:  nop
   IL_0001:  ldarg.0
@@ -8772,31 +8786,35 @@ class Program
   IL_0005:  ldloc.0
   IL_0006:  box        ""T""
   IL_000b:  brtrue.s   IL_000f
-  IL_000d:  br.s       IL_0034
+  IL_000d:  br.s       IL_0033
   IL_000f:  ldloc.0
   IL_0010:  box        ""T""
-  IL_0015:  isinst     ""int?""
-  IL_001a:  unbox.any  ""int?""
-  IL_001f:  stloc.s    V_4
-  IL_0021:  ldloca.s   V_4
-  IL_0023:  call       ""int int?.GetValueOrDefault()""
-  IL_0028:  stloc.1
-  IL_0029:  ldloca.s   V_4
-  IL_002b:  call       ""bool int?.HasValue.get""
-  IL_0030:  brfalse.s  IL_0034
-  IL_0032:  br.s       IL_0036
-  IL_0034:  br.s       IL_003f
-  IL_0036:  ldloc.1
-  IL_0037:  stloc.2
-  IL_0038:  br.s       IL_003a
-  IL_003a:  ldloc.2
-  IL_003b:  stloc.s    V_5
-  IL_003d:  br.s       IL_0044
-  IL_003f:  ldc.i4.0
-  IL_0040:  stloc.s    V_5
-  IL_0042:  br.s       IL_0044
-  IL_0044:  ldloc.s    V_5
-  IL_0046:  ret
+  IL_0015:  stloc.s    V_4
+  IL_0017:  ldloc.s    V_4
+  IL_0019:  isinst     ""int""
+  IL_001e:  ldnull
+  IL_001f:  cgt.un
+  IL_0021:  dup
+  IL_0022:  brtrue.s   IL_0027
+  IL_0024:  ldc.i4.0
+  IL_0025:  br.s       IL_002e
+  IL_0027:  ldloc.s    V_4
+  IL_0029:  unbox.any  ""int""
+  IL_002e:  stloc.1
+  IL_002f:  brfalse.s  IL_0033
+  IL_0031:  br.s       IL_0035
+  IL_0033:  br.s       IL_003e
+  IL_0035:  ldloc.1
+  IL_0036:  stloc.2
+  IL_0037:  br.s       IL_0039
+  IL_0039:  ldloc.2
+  IL_003a:  stloc.s    V_5
+  IL_003c:  br.s       IL_0043
+  IL_003e:  ldc.i4.0
+  IL_003f:  stloc.s    V_5
+  IL_0041:  br.s       IL_0043
+  IL_0043:  ldloc.s    V_5
+  IL_0045:  ret
 }"
             );
         }
@@ -8875,12 +8893,12 @@ class B : A
 class X : B { }
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (14,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                // (14,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t ? t : default(T);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7", "7.1").WithLocation(14, 21),
-                // (20,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(14, 21),
+                // (20,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7", "7.1").WithLocation(20, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(20, 18)
                 );
             var compVerifier = CompileAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
@@ -8930,12 +8948,12 @@ class B : A
 class X : B { }
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (14,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                // (14,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t ? t : default(T);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7", "7.1").WithLocation(14, 21),
-                // (20,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(14, 21),
+                // (20,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7", "7.1").WithLocation(20, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(20, 18)
                 );
             var compVerifier = CompileAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
@@ -8983,12 +9001,64 @@ struct B : I1
 }
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (13,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                // (13,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t;
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7", "7.1").WithLocation(13, 21),
-                // (19,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7", "7.1").WithLocation(19, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(19, 18)
+                );
+            var compilation = CreateStandardCompilation(source,
+                    options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                    parseOptions: TestOptions.Regular7_1)
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation,
+                expectedOutput: "FalseFalseTrueTrue");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestMatchWithTypeParameter_07()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(M1<B>(new A()));
+        Console.Write(M2<B>(new A()));
+        Console.Write(M1<A>(new A()));
+        Console.Write(M2<A>(new A()));
+    }
+    public static bool M1<T>(A o) where T : new()
+    {
+        return o is T t;
+    }
+    public static bool M2<T>(A o) where T : new()
+    {
+        switch (o)
+        {
+            case T t:
+                return true;
+            default:
+                return false;
+        }
+    }
+}
+struct A
+{
+}
+struct B
+{
+}
+";
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (13,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //         return o is T t;
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(19, 18)
                 );
             var compilation = CreateStandardCompilation(source,
                     options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
@@ -9095,20 +9165,18 @@ Generic<long>.Color.Red
 Generic<dynamic>.Color.Blue
 None
 Generic<object>.Color.Red");
-            compVerifier.VerifyDiagnostics();
             compVerifier.VerifyIL("Program.M2",
 @"{
-  // Code size      150 (0x96)
+  // Code size      148 (0x94)
   .maxstack  2
   .locals init (object V_0,
                 Generic<long>.Color V_1,
                 Generic<object>.Color V_2,
                 Generic<long>.Color V_3, //c
                 object V_4,
-                Generic<long>.Color? V_5,
-                Generic<object>.Color? V_6,
-                int V_7,
-                string V_8)
+                object V_5,
+                int V_6,
+                string V_7)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.s    V_4
@@ -9116,60 +9184,115 @@ Generic<object>.Color.Red");
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brtrue.s   IL_000c
-  IL_000a:  br.s       IL_005e
+  IL_000a:  br.s       IL_005c
   IL_000c:  ldloc.0
-  IL_000d:  isinst     ""Generic<long>.Color?""
-  IL_0012:  unbox.any  ""Generic<long>.Color?""
-  IL_0017:  stloc.s    V_5
-  IL_0019:  ldloca.s   V_5
-  IL_001b:  call       ""Generic<long>.Color Generic<long>.Color?.GetValueOrDefault()""
-  IL_0020:  stloc.1
-  IL_0021:  ldloca.s   V_5
-  IL_0023:  call       ""bool Generic<long>.Color?.HasValue.get""
-  IL_0028:  brfalse.s  IL_002c
-  IL_002a:  br.s       IL_0060
-  IL_002c:  ldloc.0
-  IL_002d:  isinst     ""Generic<object>.Color?""
-  IL_0032:  unbox.any  ""Generic<object>.Color?""
-  IL_0037:  stloc.s    V_6
-  IL_0039:  ldloca.s   V_6
-  IL_003b:  call       ""Generic<object>.Color Generic<object>.Color?.GetValueOrDefault()""
-  IL_0040:  stloc.2
-  IL_0041:  ldloca.s   V_6
-  IL_0043:  call       ""bool Generic<object>.Color?.HasValue.get""
-  IL_0048:  brfalse.s  IL_005e
-  IL_004a:  ldloc.2
-  IL_004b:  stloc.s    V_7
-  IL_004d:  ldloc.s    V_7
-  IL_004f:  brfalse.s  IL_005a
-  IL_0051:  br.s       IL_0053
-  IL_0053:  ldloc.s    V_7
-  IL_0055:  ldc.i4.1
-  IL_0056:  beq.s      IL_005c
-  IL_0058:  br.s       IL_005e
-  IL_005a:  br.s       IL_0078
-  IL_005c:  br.s       IL_0081
-  IL_005e:  br.s       IL_008a
-  IL_0060:  ldloc.1
-  IL_0061:  stloc.3
-  IL_0062:  br.s       IL_0064
-  IL_0064:  ldstr      ""Generic<long>.Color.""
-  IL_0069:  ldloc.3
-  IL_006a:  box        ""Generic<long>.Color""
-  IL_006f:  call       ""string string.Concat(object, object)""
-  IL_0074:  stloc.s    V_8
-  IL_0076:  br.s       IL_0093
-  IL_0078:  ldstr      ""Generic<object>.Color.Red""
-  IL_007d:  stloc.s    V_8
-  IL_007f:  br.s       IL_0093
-  IL_0081:  ldstr      ""Generic<dynamic>.Color.Blue""
-  IL_0086:  stloc.s    V_8
-  IL_0088:  br.s       IL_0093
-  IL_008a:  ldstr      ""None""
-  IL_008f:  stloc.s    V_8
-  IL_0091:  br.s       IL_0093
-  IL_0093:  ldloc.s    V_8
-  IL_0095:  ret
+  IL_000d:  stloc.s    V_5
+  IL_000f:  ldloc.s    V_5
+  IL_0011:  isinst     ""Generic<long>.Color""
+  IL_0016:  ldnull
+  IL_0017:  cgt.un
+  IL_0019:  dup
+  IL_001a:  brtrue.s   IL_001f
+  IL_001c:  ldc.i4.0
+  IL_001d:  br.s       IL_0026
+  IL_001f:  ldloc.s    V_5
+  IL_0021:  unbox.any  ""Generic<long>.Color""
+  IL_0026:  stloc.1
+  IL_0027:  brfalse.s  IL_002b
+  IL_0029:  br.s       IL_005e
+  IL_002b:  ldloc.0
+  IL_002c:  stloc.s    V_5
+  IL_002e:  ldloc.s    V_5
+  IL_0030:  isinst     ""Generic<object>.Color""
+  IL_0035:  ldnull
+  IL_0036:  cgt.un
+  IL_0038:  dup
+  IL_0039:  brtrue.s   IL_003e
+  IL_003b:  ldc.i4.0
+  IL_003c:  br.s       IL_0045
+  IL_003e:  ldloc.s    V_5
+  IL_0040:  unbox.any  ""Generic<object>.Color""
+  IL_0045:  stloc.2
+  IL_0046:  brfalse.s  IL_005c
+  IL_0048:  ldloc.2
+  IL_0049:  stloc.s    V_6
+  IL_004b:  ldloc.s    V_6
+  IL_004d:  brfalse.s  IL_0058
+  IL_004f:  br.s       IL_0051
+  IL_0051:  ldloc.s    V_6
+  IL_0053:  ldc.i4.1
+  IL_0054:  beq.s      IL_005a
+  IL_0056:  br.s       IL_005c
+  IL_0058:  br.s       IL_0076
+  IL_005a:  br.s       IL_007f
+  IL_005c:  br.s       IL_0088
+  IL_005e:  ldloc.1
+  IL_005f:  stloc.3
+  IL_0060:  br.s       IL_0062
+  IL_0062:  ldstr      ""Generic<long>.Color.""
+  IL_0067:  ldloc.3
+  IL_0068:  box        ""Generic<long>.Color""
+  IL_006d:  call       ""string string.Concat(object, object)""
+  IL_0072:  stloc.s    V_7
+  IL_0074:  br.s       IL_0091
+  IL_0076:  ldstr      ""Generic<object>.Color.Red""
+  IL_007b:  stloc.s    V_7
+  IL_007d:  br.s       IL_0091
+  IL_007f:  ldstr      ""Generic<dynamic>.Color.Blue""
+  IL_0084:  stloc.s    V_7
+  IL_0086:  br.s       IL_0091
+  IL_0088:  ldstr      ""None""
+  IL_008d:  stloc.s    V_7
+  IL_008f:  br.s       IL_0091
+  IL_0091:  ldloc.s    V_7
+  IL_0093:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(16129, "https://github.com/dotnet/roslyn/issues/16129")]
+        public void ExactPatternMatch()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static void Main()
+    {
+        if (TrySomething() is ValueTuple<string, bool> v && v.Item2)
+        {
+            System.Console.Write(v.Item1 == null);
+        }
+    }
+
+    static (string Value, bool Success) TrySomething()
+    {
+        return (null, true);
+    }
+}";
+            var compilation = CreateStandardCompilation(source,
+                    options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                    references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation,
+                expectedOutput: @"True");
+            compVerifier.VerifyIL("C.Main",
+@"{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (System.ValueTuple<string, bool> V_0) //v
+  IL_0000:  call       ""(string Value, bool Success) C.TrySomething()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
+  IL_000c:  brfalse.s  IL_001c
+  IL_000e:  ldloc.0
+  IL_000f:  ldfld      ""string System.ValueTuple<string, bool>.Item1""
+  IL_0014:  ldnull
+  IL_0015:  ceq
+  IL_0017:  call       ""void System.Console.Write(bool)""
+  IL_001c:  ret
 }"
             );
         }
@@ -9178,7 +9301,6 @@ Generic<object>.Color.Red");
         public void ShareLikeKindedTemps_01()
         {
             var source = @"using System;
-
 public class Program
 {
     public static void Main()
@@ -9205,85 +9327,101 @@ public class Program
                 expectedOutput: "");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size      203 (0xcb)
-  .maxstack  1
+  // Code size      191 (0xbf)
+  .maxstack  2
   .locals init (object V_0,
                 int V_1,
-                int? V_2)
+                object V_2)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  brfalse    IL_0094
+  IL_0003:  brfalse    IL_0088
   IL_0008:  ldloc.0
-  IL_0009:  isinst     ""int?""
-  IL_000e:  unbox.any  ""int?""
-  IL_0013:  stloc.2
-  IL_0014:  ldloca.s   V_2
-  IL_0016:  call       ""int int?.GetValueOrDefault()""
-  IL_001b:  stloc.1
-  IL_001c:  ldloca.s   V_2
-  IL_001e:  call       ""bool int?.HasValue.get""
-  IL_0023:  brfalse.s  IL_0094
-  IL_0025:  br.s       IL_008d
+  IL_0009:  stloc.2
+  IL_000a:  ldloc.2
+  IL_000b:  isinst     ""int""
+  IL_0010:  ldnull
+  IL_0011:  cgt.un
+  IL_0013:  dup
+  IL_0014:  brtrue.s   IL_0019
+  IL_0016:  ldc.i4.0
+  IL_0017:  br.s       IL_001f
+  IL_0019:  ldloc.2
+  IL_001a:  unbox.any  ""int""
+  IL_001f:  stloc.1
+  IL_0020:  brfalse.s  IL_0088
+  IL_0022:  br.s       IL_0081
+  IL_0024:  ldloc.0
+  IL_0025:  brfalse.s  IL_0098
   IL_0027:  ldloc.0
-  IL_0028:  brfalse.s  IL_00a4
-  IL_002a:  ldloc.0
-  IL_002b:  isinst     ""int?""
-  IL_0030:  unbox.any  ""int?""
-  IL_0035:  stloc.2
-  IL_0036:  ldloca.s   V_2
-  IL_0038:  call       ""int int?.GetValueOrDefault()""
-  IL_003d:  stloc.1
-  IL_003e:  ldloca.s   V_2
-  IL_0040:  call       ""bool int?.HasValue.get""
-  IL_0045:  brfalse.s  IL_00a4
-  IL_0047:  br.s       IL_009d
-  IL_0049:  ldloc.0
-  IL_004a:  brfalse.s  IL_00b4
-  IL_004c:  ldloc.0
-  IL_004d:  isinst     ""int?""
-  IL_0052:  unbox.any  ""int?""
-  IL_0057:  stloc.2
-  IL_0058:  ldloca.s   V_2
-  IL_005a:  call       ""int int?.GetValueOrDefault()""
-  IL_005f:  stloc.1
-  IL_0060:  ldloca.s   V_2
-  IL_0062:  call       ""bool int?.HasValue.get""
-  IL_0067:  brfalse.s  IL_00b4
-  IL_0069:  br.s       IL_00ad
-  IL_006b:  ldloc.0
-  IL_006c:  brfalse.s  IL_00c4
-  IL_006e:  ldloc.0
-  IL_006f:  isinst     ""int?""
-  IL_0074:  unbox.any  ""int?""
-  IL_0079:  stloc.2
-  IL_007a:  ldloca.s   V_2
-  IL_007c:  call       ""int int?.GetValueOrDefault()""
-  IL_0081:  stloc.1
-  IL_0082:  ldloca.s   V_2
-  IL_0084:  call       ""bool int?.HasValue.get""
-  IL_0089:  brfalse.s  IL_00c4
-  IL_008b:  br.s       IL_00bd
-  IL_008d:  ldsfld     ""bool Program.b""
-  IL_0092:  brtrue.s   IL_00ca
-  IL_0094:  ldsfld     ""bool Program.b""
-  IL_0099:  brtrue.s   IL_00ca
-  IL_009b:  br.s       IL_0027
-  IL_009d:  ldsfld     ""bool Program.b""
-  IL_00a2:  brtrue.s   IL_00ca
-  IL_00a4:  ldsfld     ""bool Program.b""
-  IL_00a9:  brtrue.s   IL_00ca
-  IL_00ab:  br.s       IL_0049
-  IL_00ad:  ldsfld     ""bool Program.b""
-  IL_00b2:  brtrue.s   IL_00ca
-  IL_00b4:  ldsfld     ""bool Program.b""
-  IL_00b9:  brtrue.s   IL_00ca
-  IL_00bb:  br.s       IL_006b
-  IL_00bd:  ldsfld     ""bool Program.b""
-  IL_00c2:  brtrue.s   IL_00ca
-  IL_00c4:  ldsfld     ""bool Program.b""
-  IL_00c9:  pop
-  IL_00ca:  ret
+  IL_0028:  stloc.2
+  IL_0029:  ldloc.2
+  IL_002a:  isinst     ""int""
+  IL_002f:  ldnull
+  IL_0030:  cgt.un
+  IL_0032:  dup
+  IL_0033:  brtrue.s   IL_0038
+  IL_0035:  ldc.i4.0
+  IL_0036:  br.s       IL_003e
+  IL_0038:  ldloc.2
+  IL_0039:  unbox.any  ""int""
+  IL_003e:  stloc.1
+  IL_003f:  brfalse.s  IL_0098
+  IL_0041:  br.s       IL_0091
+  IL_0043:  ldloc.0
+  IL_0044:  brfalse.s  IL_00a8
+  IL_0046:  ldloc.0
+  IL_0047:  stloc.2
+  IL_0048:  ldloc.2
+  IL_0049:  isinst     ""int""
+  IL_004e:  ldnull
+  IL_004f:  cgt.un
+  IL_0051:  dup
+  IL_0052:  brtrue.s   IL_0057
+  IL_0054:  ldc.i4.0
+  IL_0055:  br.s       IL_005d
+  IL_0057:  ldloc.2
+  IL_0058:  unbox.any  ""int""
+  IL_005d:  stloc.1
+  IL_005e:  brfalse.s  IL_00a8
+  IL_0060:  br.s       IL_00a1
+  IL_0062:  ldloc.0
+  IL_0063:  brfalse.s  IL_00b8
+  IL_0065:  ldloc.0
+  IL_0066:  stloc.2
+  IL_0067:  ldloc.2
+  IL_0068:  isinst     ""int""
+  IL_006d:  ldnull
+  IL_006e:  cgt.un
+  IL_0070:  dup
+  IL_0071:  brtrue.s   IL_0076
+  IL_0073:  ldc.i4.0
+  IL_0074:  br.s       IL_007c
+  IL_0076:  ldloc.2
+  IL_0077:  unbox.any  ""int""
+  IL_007c:  stloc.1
+  IL_007d:  brfalse.s  IL_00b8
+  IL_007f:  br.s       IL_00b1
+  IL_0081:  ldsfld     ""bool Program.b""
+  IL_0086:  brtrue.s   IL_00be
+  IL_0088:  ldsfld     ""bool Program.b""
+  IL_008d:  brtrue.s   IL_00be
+  IL_008f:  br.s       IL_0024
+  IL_0091:  ldsfld     ""bool Program.b""
+  IL_0096:  brtrue.s   IL_00be
+  IL_0098:  ldsfld     ""bool Program.b""
+  IL_009d:  brtrue.s   IL_00be
+  IL_009f:  br.s       IL_0043
+  IL_00a1:  ldsfld     ""bool Program.b""
+  IL_00a6:  brtrue.s   IL_00be
+  IL_00a8:  ldsfld     ""bool Program.b""
+  IL_00ad:  brtrue.s   IL_00be
+  IL_00af:  br.s       IL_0062
+  IL_00b1:  ldsfld     ""bool Program.b""
+  IL_00b6:  brtrue.s   IL_00be
+  IL_00b8:  ldsfld     ""bool Program.b""
+  IL_00bd:  pop
+  IL_00be:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -9291,8 +9429,8 @@ public class Program
                 expectedOutput: "");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size      276 (0x114)
-  .maxstack  1
+  // Code size      272 (0x110)
+  .maxstack  2
   .locals init (object V_0,
                 int V_1,
                 int V_2, //i
@@ -9300,7 +9438,7 @@ public class Program
                 int V_4, //i
                 int V_5, //i
                 object V_6,
-                int? V_7)
+                object V_7)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.s    V_6
@@ -9308,106 +9446,122 @@ public class Program
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brtrue.s   IL_000c
-  IL_000a:  br.s       IL_002c
+  IL_000a:  br.s       IL_002b
   IL_000c:  ldloc.0
-  IL_000d:  isinst     ""int?""
-  IL_0012:  unbox.any  ""int?""
-  IL_0017:  stloc.s    V_7
-  IL_0019:  ldloca.s   V_7
-  IL_001b:  call       ""int int?.GetValueOrDefault()""
-  IL_0020:  stloc.1
-  IL_0021:  ldloca.s   V_7
-  IL_0023:  call       ""bool int?.HasValue.get""
-  IL_0028:  brfalse.s  IL_002c
-  IL_002a:  br.s       IL_00a8
-  IL_002c:  br         IL_00b8
-  IL_0031:  ldloc.0
-  IL_0032:  brtrue.s   IL_0036
-  IL_0034:  br.s       IL_0056
-  IL_0036:  ldloc.0
-  IL_0037:  isinst     ""int?""
-  IL_003c:  unbox.any  ""int?""
-  IL_0041:  stloc.s    V_7
-  IL_0043:  ldloca.s   V_7
-  IL_0045:  call       ""int int?.GetValueOrDefault()""
-  IL_004a:  stloc.1
-  IL_004b:  ldloca.s   V_7
-  IL_004d:  call       ""bool int?.HasValue.get""
-  IL_0052:  brfalse.s  IL_0056
-  IL_0054:  br.s       IL_00c6
-  IL_0056:  br.s       IL_00d3
-  IL_0058:  ldloc.0
-  IL_0059:  brtrue.s   IL_005d
-  IL_005b:  br.s       IL_007d
-  IL_005d:  ldloc.0
-  IL_005e:  isinst     ""int?""
-  IL_0063:  unbox.any  ""int?""
-  IL_0068:  stloc.s    V_7
-  IL_006a:  ldloca.s   V_7
-  IL_006c:  call       ""int int?.GetValueOrDefault()""
-  IL_0071:  stloc.1
-  IL_0072:  ldloca.s   V_7
-  IL_0074:  call       ""bool int?.HasValue.get""
-  IL_0079:  brfalse.s  IL_007d
-  IL_007b:  br.s       IL_00e1
-  IL_007d:  br.s       IL_00ef
-  IL_007f:  ldloc.0
-  IL_0080:  brtrue.s   IL_0084
-  IL_0082:  br.s       IL_00a4
-  IL_0084:  ldloc.0
-  IL_0085:  isinst     ""int?""
-  IL_008a:  unbox.any  ""int?""
-  IL_008f:  stloc.s    V_7
-  IL_0091:  ldloca.s   V_7
-  IL_0093:  call       ""int int?.GetValueOrDefault()""
-  IL_0098:  stloc.1
-  IL_0099:  ldloca.s   V_7
-  IL_009b:  call       ""bool int?.HasValue.get""
-  IL_00a0:  brfalse.s  IL_00a4
-  IL_00a2:  br.s       IL_00fa
-  IL_00a4:  br.s       IL_0108
-  IL_00a6:  br.s       IL_0113
-  IL_00a8:  ldloc.1
-  IL_00a9:  stloc.2
-  IL_00aa:  ldsfld     ""bool Program.b""
-  IL_00af:  brtrue.s   IL_00b6
-  IL_00b1:  br         IL_002c
-  IL_00b6:  br.s       IL_0113
-  IL_00b8:  ldsfld     ""bool Program.b""
-  IL_00bd:  brtrue.s   IL_00c4
-  IL_00bf:  br         IL_0031
-  IL_00c4:  br.s       IL_0113
-  IL_00c6:  ldloc.1
-  IL_00c7:  stloc.3
-  IL_00c8:  ldsfld     ""bool Program.b""
-  IL_00cd:  brtrue.s   IL_00d1
-  IL_00cf:  br.s       IL_0056
-  IL_00d1:  br.s       IL_0113
-  IL_00d3:  ldsfld     ""bool Program.b""
-  IL_00d8:  brtrue.s   IL_00df
-  IL_00da:  br         IL_0058
-  IL_00df:  br.s       IL_0113
-  IL_00e1:  ldloc.1
-  IL_00e2:  stloc.s    V_4
-  IL_00e4:  ldsfld     ""bool Program.b""
-  IL_00e9:  brtrue.s   IL_00ed
-  IL_00eb:  br.s       IL_007d
-  IL_00ed:  br.s       IL_0113
-  IL_00ef:  ldsfld     ""bool Program.b""
-  IL_00f4:  brtrue.s   IL_00f8
-  IL_00f6:  br.s       IL_007f
-  IL_00f8:  br.s       IL_0113
-  IL_00fa:  ldloc.1
-  IL_00fb:  stloc.s    V_5
-  IL_00fd:  ldsfld     ""bool Program.b""
-  IL_0102:  brtrue.s   IL_0106
-  IL_0104:  br.s       IL_00a4
-  IL_0106:  br.s       IL_0113
-  IL_0108:  ldsfld     ""bool Program.b""
-  IL_010d:  brtrue.s   IL_0111
-  IL_010f:  br.s       IL_00a6
-  IL_0111:  br.s       IL_0113
-  IL_0113:  ret
+  IL_000d:  stloc.s    V_7
+  IL_000f:  ldloc.s    V_7
+  IL_0011:  isinst     ""int""
+  IL_0016:  ldnull
+  IL_0017:  cgt.un
+  IL_0019:  dup
+  IL_001a:  brtrue.s   IL_001f
+  IL_001c:  ldc.i4.0
+  IL_001d:  br.s       IL_0026
+  IL_001f:  ldloc.s    V_7
+  IL_0021:  unbox.any  ""int""
+  IL_0026:  stloc.1
+  IL_0027:  brfalse.s  IL_002b
+  IL_0029:  br.s       IL_00a4
+  IL_002b:  br         IL_00b4
+  IL_0030:  ldloc.0
+  IL_0031:  brtrue.s   IL_0035
+  IL_0033:  br.s       IL_0054
+  IL_0035:  ldloc.0
+  IL_0036:  stloc.s    V_7
+  IL_0038:  ldloc.s    V_7
+  IL_003a:  isinst     ""int""
+  IL_003f:  ldnull
+  IL_0040:  cgt.un
+  IL_0042:  dup
+  IL_0043:  brtrue.s   IL_0048
+  IL_0045:  ldc.i4.0
+  IL_0046:  br.s       IL_004f
+  IL_0048:  ldloc.s    V_7
+  IL_004a:  unbox.any  ""int""
+  IL_004f:  stloc.1
+  IL_0050:  brfalse.s  IL_0054
+  IL_0052:  br.s       IL_00c2
+  IL_0054:  br.s       IL_00cf
+  IL_0056:  ldloc.0
+  IL_0057:  brtrue.s   IL_005b
+  IL_0059:  br.s       IL_007a
+  IL_005b:  ldloc.0
+  IL_005c:  stloc.s    V_7
+  IL_005e:  ldloc.s    V_7
+  IL_0060:  isinst     ""int""
+  IL_0065:  ldnull
+  IL_0066:  cgt.un
+  IL_0068:  dup
+  IL_0069:  brtrue.s   IL_006e
+  IL_006b:  ldc.i4.0
+  IL_006c:  br.s       IL_0075
+  IL_006e:  ldloc.s    V_7
+  IL_0070:  unbox.any  ""int""
+  IL_0075:  stloc.1
+  IL_0076:  brfalse.s  IL_007a
+  IL_0078:  br.s       IL_00dd
+  IL_007a:  br.s       IL_00eb
+  IL_007c:  ldloc.0
+  IL_007d:  brtrue.s   IL_0081
+  IL_007f:  br.s       IL_00a0
+  IL_0081:  ldloc.0
+  IL_0082:  stloc.s    V_7
+  IL_0084:  ldloc.s    V_7
+  IL_0086:  isinst     ""int""
+  IL_008b:  ldnull
+  IL_008c:  cgt.un
+  IL_008e:  dup
+  IL_008f:  brtrue.s   IL_0094
+  IL_0091:  ldc.i4.0
+  IL_0092:  br.s       IL_009b
+  IL_0094:  ldloc.s    V_7
+  IL_0096:  unbox.any  ""int""
+  IL_009b:  stloc.1
+  IL_009c:  brfalse.s  IL_00a0
+  IL_009e:  br.s       IL_00f6
+  IL_00a0:  br.s       IL_0104
+  IL_00a2:  br.s       IL_010f
+  IL_00a4:  ldloc.1
+  IL_00a5:  stloc.2
+  IL_00a6:  ldsfld     ""bool Program.b""
+  IL_00ab:  brtrue.s   IL_00b2
+  IL_00ad:  br         IL_002b
+  IL_00b2:  br.s       IL_010f
+  IL_00b4:  ldsfld     ""bool Program.b""
+  IL_00b9:  brtrue.s   IL_00c0
+  IL_00bb:  br         IL_0030
+  IL_00c0:  br.s       IL_010f
+  IL_00c2:  ldloc.1
+  IL_00c3:  stloc.3
+  IL_00c4:  ldsfld     ""bool Program.b""
+  IL_00c9:  brtrue.s   IL_00cd
+  IL_00cb:  br.s       IL_0054
+  IL_00cd:  br.s       IL_010f
+  IL_00cf:  ldsfld     ""bool Program.b""
+  IL_00d4:  brtrue.s   IL_00db
+  IL_00d6:  br         IL_0056
+  IL_00db:  br.s       IL_010f
+  IL_00dd:  ldloc.1
+  IL_00de:  stloc.s    V_4
+  IL_00e0:  ldsfld     ""bool Program.b""
+  IL_00e5:  brtrue.s   IL_00e9
+  IL_00e7:  br.s       IL_007a
+  IL_00e9:  br.s       IL_010f
+  IL_00eb:  ldsfld     ""bool Program.b""
+  IL_00f0:  brtrue.s   IL_00f4
+  IL_00f2:  br.s       IL_007c
+  IL_00f4:  br.s       IL_010f
+  IL_00f6:  ldloc.1
+  IL_00f7:  stloc.s    V_5
+  IL_00f9:  ldsfld     ""bool Program.b""
+  IL_00fe:  brtrue.s   IL_0102
+  IL_0100:  br.s       IL_00a0
+  IL_0102:  br.s       IL_010f
+  IL_0104:  ldsfld     ""bool Program.b""
+  IL_0109:  brtrue.s   IL_010d
+  IL_010b:  br.s       IL_00a2
+  IL_010d:  br.s       IL_010f
+  IL_010f:  ret
 }"
             );
             compVerifier.VerifyPdb(
@@ -9421,8 +9575,8 @@ public class Program
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -9433,7 +9587,7 @@ public class Program
         <forward declaringType=""Program"" methodName=""Main"" />
         <encLocalSlotMap>
           <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""46"" />
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""0"" offset=""55"" />
           <slot kind=""0"" offset=""133"" />
           <slot kind=""0"" offset=""211"" />
@@ -9443,43 +9597,43 @@ public class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""19"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" />
         <entry offset=""0x4"" hidden=""true"" />
-        <entry offset=""0xa8"" hidden=""true"" />
-        <entry offset=""0xaa"" startLine=""13"" startColumn=""24"" endLine=""13"" endColumn=""30"" />
-        <entry offset=""0xb6"" startLine=""13"" startColumn=""32"" endLine=""13"" endColumn=""38"" />
-        <entry offset=""0xb8"" startLine=""14"" startColumn=""24"" endLine=""14"" endColumn=""30"" />
-        <entry offset=""0xc4"" startLine=""14"" startColumn=""32"" endLine=""14"" endColumn=""38"" />
-        <entry offset=""0xc6"" hidden=""true"" />
-        <entry offset=""0xc8"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""30"" />
-        <entry offset=""0xd1"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""38"" />
-        <entry offset=""0xd3"" startLine=""16"" startColumn=""24"" endLine=""16"" endColumn=""30"" />
-        <entry offset=""0xdf"" startLine=""16"" startColumn=""32"" endLine=""16"" endColumn=""38"" />
-        <entry offset=""0xe1"" hidden=""true"" />
-        <entry offset=""0xe4"" startLine=""17"" startColumn=""24"" endLine=""17"" endColumn=""30"" />
-        <entry offset=""0xed"" startLine=""17"" startColumn=""32"" endLine=""17"" endColumn=""38"" />
-        <entry offset=""0xef"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""30"" />
-        <entry offset=""0xf8"" startLine=""18"" startColumn=""32"" endLine=""18"" endColumn=""38"" />
-        <entry offset=""0xfa"" hidden=""true"" />
-        <entry offset=""0xfd"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""30"" />
-        <entry offset=""0x106"" startLine=""19"" startColumn=""32"" endLine=""19"" endColumn=""38"" />
-        <entry offset=""0x108"" startLine=""20"" startColumn=""24"" endLine=""20"" endColumn=""30"" />
-        <entry offset=""0x111"" startLine=""20"" startColumn=""32"" endLine=""20"" endColumn=""38"" />
-        <entry offset=""0x113"" startLine=""22"" startColumn=""5"" endLine=""22"" endColumn=""6"" />
+        <entry offset=""0xa4"" hidden=""true"" />
+        <entry offset=""0xa6"" startLine=""12"" startColumn=""24"" endLine=""12"" endColumn=""30"" />
+        <entry offset=""0xb2"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""38"" />
+        <entry offset=""0xb4"" startLine=""13"" startColumn=""24"" endLine=""13"" endColumn=""30"" />
+        <entry offset=""0xc0"" startLine=""13"" startColumn=""32"" endLine=""13"" endColumn=""38"" />
+        <entry offset=""0xc2"" hidden=""true"" />
+        <entry offset=""0xc4"" startLine=""14"" startColumn=""24"" endLine=""14"" endColumn=""30"" />
+        <entry offset=""0xcd"" startLine=""14"" startColumn=""32"" endLine=""14"" endColumn=""38"" />
+        <entry offset=""0xcf"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""30"" />
+        <entry offset=""0xdb"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""38"" />
+        <entry offset=""0xdd"" hidden=""true"" />
+        <entry offset=""0xe0"" startLine=""16"" startColumn=""24"" endLine=""16"" endColumn=""30"" />
+        <entry offset=""0xe9"" startLine=""16"" startColumn=""32"" endLine=""16"" endColumn=""38"" />
+        <entry offset=""0xeb"" startLine=""17"" startColumn=""24"" endLine=""17"" endColumn=""30"" />
+        <entry offset=""0xf4"" startLine=""17"" startColumn=""32"" endLine=""17"" endColumn=""38"" />
+        <entry offset=""0xf6"" hidden=""true"" />
+        <entry offset=""0xf9"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""30"" />
+        <entry offset=""0x102"" startLine=""18"" startColumn=""32"" endLine=""18"" endColumn=""38"" />
+        <entry offset=""0x104"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""30"" />
+        <entry offset=""0x10d"" startLine=""19"" startColumn=""32"" endLine=""19"" endColumn=""38"" />
+        <entry offset=""0x10f"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x114"">
-        <scope startOffset=""0xa8"" endOffset=""0xb8"">
-          <local name=""i"" il_index=""2"" il_start=""0xa8"" il_end=""0xb8"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x110"">
+        <scope startOffset=""0xa4"" endOffset=""0xb4"">
+          <local name=""i"" il_index=""2"" il_start=""0xa4"" il_end=""0xb4"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0xc6"" endOffset=""0xd3"">
-          <local name=""i"" il_index=""3"" il_start=""0xc6"" il_end=""0xd3"" attributes=""0"" />
+        <scope startOffset=""0xc2"" endOffset=""0xcf"">
+          <local name=""i"" il_index=""3"" il_start=""0xc2"" il_end=""0xcf"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0xe1"" endOffset=""0xef"">
-          <local name=""i"" il_index=""4"" il_start=""0xe1"" il_end=""0xef"" attributes=""0"" />
+        <scope startOffset=""0xdd"" endOffset=""0xeb"">
+          <local name=""i"" il_index=""4"" il_start=""0xdd"" il_end=""0xeb"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0xfa"" endOffset=""0x108"">
-          <local name=""i"" il_index=""5"" il_start=""0xfa"" il_end=""0x108"" attributes=""0"" />
+        <scope startOffset=""0xf6"" endOffset=""0x104"">
+          <local name=""i"" il_index=""5"" il_start=""0xf6"" il_end=""0x104"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -9488,7 +9642,7 @@ public class Program
         <forward declaringType=""Program"" methodName=""Main"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""27"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""27"" />
       </sequencePoints>
     </method>
   </methods>

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -195,7 +195,7 @@ class Test
             var source = @"
 class Test
 {
-    void Foo(int p)
+    void Goo(int p)
     {
         System.Func<int> f1 = () => p;
         f1();
@@ -207,7 +207,7 @@ class Test
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Test"" name=""Foo"" parameterNames=""p"">
+    <method containingType=""Test"" name=""Goo"" parameterNames=""p"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -234,9 +234,9 @@ class Test
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass0_0"" name=""&lt;Foo&gt;b__0"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass0_0"" name=""&lt;Goo&gt;b__0"">
       <customDebugInfo>
-        <forward declaringType=""Test"" methodName=""Foo"" parameterNames=""p"" />
+        <forward declaringType=""Test"" methodName=""Goo"" parameterNames=""p"" />
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""37"" endLine=""6"" endColumn=""38"" />
@@ -1128,11 +1128,11 @@ class C
         </encLocalSlotMap>
         <encLambdaMap>
           <methodOrdinal>1</methodOrdinal>
-          <closure offset=""102"" />
           <closure offset=""41"" />
-          <lambda offset=""149"" closure=""0"" />
-          <lambda offset=""73"" closure=""1"" />
-          <lambda offset=""87"" closure=""1"" />
+          <closure offset=""102"" />
+          <lambda offset=""149"" closure=""1"" />
+          <lambda offset=""73"" closure=""0"" />
+          <lambda offset=""87"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
@@ -1314,8 +1314,10 @@ class C
         <entry offset=""0x4f"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""25"" />
         <entry offset=""0x61"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" />
         <entry offset=""0x64"" hidden=""true"" />
+        <entry offset=""0x78"" hidden=""true"" />
         <entry offset=""0x79"" hidden=""true"" />
         <entry offset=""0x7b"" hidden=""true"" />
+        <entry offset=""0x8f"" hidden=""true"" />
         <entry offset=""0x90"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x91"">

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         private static readonly string s_defaultSdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
         private static readonly string s_compilerVersion = typeof(Csc).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
         private static readonly string s_compilerShortCommitHash =
-            CommonCompiler.ExtractShortCommitHash(typeof(CSharpCompiler).GetTypeInfo().Assembly.GetCustomAttribute<CommitHashAttribute>().Hash);
+            CommonCompiler.ExtractShortCommitHash(typeof(CSharpCompiler).GetTypeInfo().Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash);
 
         private readonly string _baseDirectory = TempRoot.Root;
 
@@ -175,7 +175,7 @@ a.cs
             var dirX = baseDir.CreateDirectory("x");
             var dirAB = baseDir.CreateDirectory("a b");
             var dirSubDir = baseDir.CreateDirectory("subdir");
-            var dirFoo = parentDir.CreateDirectory("foo");
+            var dirGoo = parentDir.CreateDirectory("goo");
             var dirBar = parentDir.CreateDirectory("bar");
 
             string basePath = baseDir.Path;
@@ -188,7 +188,7 @@ a.cs
 /r:..\v4.0.30319\System.dll
 /r:.\System.Data.dll 
 a.cs @""..\c.rsp"" @\d.rsp
-/libpaths:..\foo;../bar;""a b""
+/libpaths:..\goo;../bar;""a b""
 "
                 },
                 { Path.Combine(dirSubDir.Path, @"b.rsp"), @"
@@ -216,7 +216,7 @@ d.cs
 
             AssertEx.Equal(new[] { "first.cs", "second.cs", "b.cs", "a.cs", "c.cs", "d.cs", "last.cs" }.Select(prependBasePath), resolvedSourceFiles);
             AssertEx.Equal(new[] { typeof(object).Assembly.Location, @"..\v4.0.30319\System.dll", @".\System.Data.dll" }, references);
-            AssertEx.Equal(new[] { RuntimeEnvironment.GetRuntimeDirectory() }.Concat(new[] { @"x", @"..\foo", @"../bar", @"a b" }.Select(prependBasePath)), args.ReferencePaths.ToArray());
+            AssertEx.Equal(new[] { RuntimeEnvironment.GetRuntimeDirectory() }.Concat(new[] { @"x", @"..\goo", @"../bar", @"a b" }.Select(prependBasePath)), args.ReferencePaths.ToArray());
             Assert.Equal(basePath, args.BaseDirectory);
         }
 
@@ -398,7 +398,7 @@ d.cs
 
             args = new string[]
             {
-                @"/Win32Res:foo.win32data:bar.win32data2"
+                @"/Win32Res:goo.win32data:bar.win32data2"
             };
 
             parsedArgs = DefaultParse(args, _baseDirectory);
@@ -409,7 +409,7 @@ d.cs
 
             args = new string[]
             {
-                @"/Win32icon:foo.win32data:bar.win32data2"
+                @"/Win32icon:goo.win32data:bar.win32data2"
             };
 
             parsedArgs = DefaultParse(args, _baseDirectory);
@@ -420,7 +420,7 @@ d.cs
 
             args = new string[]
             {
-                @"/Win32manifest:foo.win32data:bar.win32data2"
+                @"/Win32manifest:goo.win32data:bar.win32data2"
             };
 
             parsedArgs = DefaultParse(args, _baseDirectory);
@@ -433,11 +433,11 @@ d.cs
         [Fact]
         public void Win32ResConflicts()
         {
-            var parsedArgs = DefaultParse(new[] { "/win32res:foo", "/win32icon:foob", "a.cs" }, _baseDirectory);
+            var parsedArgs = DefaultParse(new[] { "/win32res:goo", "/win32icon:goob", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Length);
             Assert.Equal((int)ErrorCode.ERR_CantHaveWin32ResAndIcon, parsedArgs.Errors.First().Code);
 
-            parsedArgs = DefaultParse(new[] { "/win32res:foo", "/win32manifest:foob", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/win32res:goo", "/win32manifest:goob", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Length);
             Assert.Equal((int)ErrorCode.ERR_CantHaveWin32ResAndManifest, parsedArgs.Errors.First().Code);
 
@@ -456,7 +456,7 @@ d.cs
             Assert.Equal((int)ErrorCode.ERR_NoFileSpec, parsedArgs.Errors.First().Code);
             Assert.Equal(1, parsedArgs.Errors.First().Arguments.Count);
 
-            parsedArgs = DefaultParse(new[] { "/win32Manifest:foo", "/noWin32Manifest", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/win32Manifest:goo", "/noWin32Manifest", "a.cs" }, _baseDirectory);
             Assert.Equal(0, parsedArgs.Errors.Length);
             Assert.True(parsedArgs.NoWin32Manifest);
             Assert.Equal(null, parsedArgs.Win32Manifest);
@@ -531,74 +531,74 @@ d.cs
         {
             var diags = new List<Diagnostic>();
 
-            ResourceDescription desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.foo.bar", _baseDirectory, diags, embedded: false);
+            ResourceDescription desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar", _baseDirectory, diags, embedded: false);
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.foo.bar", desc.FileName);
-            Assert.Equal("someFile.foo.bar", desc.ResourceName);
+            Assert.Equal(@"someFile.goo.bar", desc.FileName);
+            Assert.Equal("someFile.goo.bar", desc.ResourceName);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.foo.bar,someName", _baseDirectory, diags, embedded: false);
+            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,someName", _baseDirectory, diags, embedded: false);
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.foo.bar", desc.FileName);
+            Assert.Equal(@"someFile.goo.bar", desc.FileName);
             Assert.Equal("someName", desc.ResourceName);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\s""ome Fil""e.foo.bar,someName", _baseDirectory, diags, embedded: false);
+            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\s""ome Fil""e.goo.bar,someName", _baseDirectory, diags, embedded: false);
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"some File.foo.bar", desc.FileName);
+            Assert.Equal(@"some File.goo.bar", desc.FileName);
             Assert.Equal("someName", desc.ResourceName);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.foo.bar,""some Name"",public", _baseDirectory, diags, embedded: false);
+            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,""some Name"",public", _baseDirectory, diags, embedded: false);
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.foo.bar", desc.FileName);
+            Assert.Equal(@"someFile.goo.bar", desc.FileName);
             Assert.Equal("some Name", desc.ResourceName);
             Assert.True(desc.IsPublic);
 
             // Use file name in place of missing resource name.
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.foo.bar,,private", _baseDirectory, diags, embedded: false);
+            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded: false);
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.foo.bar", desc.FileName);
-            Assert.Equal("someFile.foo.bar", desc.ResourceName);
+            Assert.Equal(@"someFile.goo.bar", desc.FileName);
+            Assert.Equal("someFile.goo.bar", desc.ResourceName);
             Assert.False(desc.IsPublic);
 
             // Quoted accessibility is fine.
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.foo.bar,,""private""", _baseDirectory, diags, embedded: false);
+            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,,""private""", _baseDirectory, diags, embedded: false);
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.foo.bar", desc.FileName);
-            Assert.Equal("someFile.foo.bar", desc.ResourceName);
+            Assert.Equal(@"someFile.goo.bar", desc.FileName);
+            Assert.Equal("someFile.goo.bar", desc.ResourceName);
             Assert.False(desc.IsPublic);
 
             // Leading commas are not ignored...
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @",,\somepath\someFile.foo.bar,,private", _baseDirectory, diags, embedded: false);
+            desc = CSharpCommandLineParser.ParseResourceDescription("", @",,\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded: false);
             diags.Verify(
-                // error CS1906: Invalid option '\somepath\someFile.foo.bar'; Resource visibility must be either 'public' or 'private'
-                Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(@"\somepath\someFile.foo.bar"));
+                // error CS1906: Invalid option '\somepath\someFile.goo.bar'; Resource visibility must be either 'public' or 'private'
+                Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(@"\somepath\someFile.goo.bar"));
             diags.Clear();
             Assert.Null(desc);
 
             // ...even if there's whitespace between them.
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @", ,\somepath\someFile.foo.bar,,private", _baseDirectory, diags, embedded: false);
+            desc = CSharpCommandLineParser.ParseResourceDescription("", @", ,\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded: false);
             diags.Verify(
-                // error CS1906: Invalid option '\somepath\someFile.foo.bar'; Resource visibility must be either 'public' or 'private'
-                Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(@"\somepath\someFile.foo.bar"));
+                // error CS1906: Invalid option '\somepath\someFile.goo.bar'; Resource visibility must be either 'public' or 'private'
+                Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(@"\somepath\someFile.goo.bar"));
             diags.Clear();
             Assert.Null(desc);
 
             // Trailing commas are ignored...
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.foo.bar,,private", _baseDirectory, diags, embedded: false);
+            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded: false);
             diags.Verify();
             diags.Clear();
-            Assert.Equal("someFile.foo.bar", desc.FileName);
-            Assert.Equal("someFile.foo.bar", desc.ResourceName);
+            Assert.Equal("someFile.goo.bar", desc.FileName);
+            Assert.Equal("someFile.goo.bar", desc.ResourceName);
             Assert.False(desc.IsPublic);
 
             // ...even if there's whitespace between them.
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.foo.bar,,private, ,", _baseDirectory, diags, embedded: false);
+            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,,private, ,", _baseDirectory, diags, embedded: false);
             diags.Verify();
             diags.Clear();
-            Assert.Equal("someFile.foo.bar", desc.FileName);
-            Assert.Equal("someFile.foo.bar", desc.ResourceName);
+            Assert.Equal("someFile.goo.bar", desc.FileName);
+            Assert.Equal("someFile.goo.bar", desc.ResourceName);
             Assert.False(desc.IsPublic);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.foo.bar,someName,publi", _baseDirectory, diags, embedded: false);
+            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,someName,publi", _baseDirectory, diags, embedded: false);
             diags.Verify(Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments("publi"));
             Assert.Null(desc);
             diags.Clear();
@@ -1110,6 +1110,12 @@ d.cs
             Assert.True(parsedArgs.DisplayVersion);
             Assert.False(parsedArgs.SourceFiles.Any());
 
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/langversion:?" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2007: Unrecognized option: '/langversion:?'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/langversion:?").WithLocation(1, 1)
+                );
+
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/version", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.DisplayVersion);
@@ -1166,10 +1172,10 @@ d.cs
             Assert.False(parsedArgs.DisplayHelp);
             Assert.True(parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/define:foo", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/define:goo", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
-                // error CS2007: Unrecognized option: '/define:foo'
-                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/define:foo"));
+                // error CS2007: Unrecognized option: '/define:goo'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/define:goo"));
             Assert.False(parsedArgs.DisplayHelp);
             Assert.True(parsedArgs.SourceFiles.Any());
 
@@ -1268,8 +1274,9 @@ d.cs
         public void LangVersion_BadVersion(string value)
         {
             DefaultParse(new[] { $"/langversion:{value}", "a.cs" }, _baseDirectory).Errors.Verify(
-                // error CS1617: Invalid option 'XXX' for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.1.
-                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments(value).WithLocation(1, 1));
+                // error CS1617: Invalid option 'XXX' for /langversion. Use '/langversion:?' to list supported values.
+                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments(value).WithLocation(1, 1)
+                );
         }
 
         [Theory]
@@ -1296,6 +1303,19 @@ d.cs
         }
 
         [Fact]
+        public void LangVersion_LangVersions()
+        {
+            var args = DefaultParse(new[] { "/langversion:?" }, _baseDirectory);
+            args.Errors.Verify(
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1)
+                );
+            Assert.True(args.DisplayLangVersions);
+        }
+
+        [Fact]
         public void LanguageVersionAdded_Canary()
         {
             // When a new version is added, this test will break. This list must be checked:
@@ -1304,7 +1324,7 @@ d.cs
             // - update the IDE drop-down for selecting Language Version
             // - update all the tests that call this canary
             // - update the command-line documentation (CommandLine.md)
-            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7", "7.1", "latest" },
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "latest" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions, the format should be "x.y", such as "7.1"
         }
@@ -1325,7 +1345,8 @@ d.cs
                 ErrorCode.ERR_FeatureNotAvailableInVersion5,
                 ErrorCode.ERR_FeatureNotAvailableInVersion6,
                 ErrorCode.ERR_FeatureNotAvailableInVersion7,
-                ErrorCode.ERR_FeatureNotAvailableInVersion7_1
+                ErrorCode.ERR_FeatureNotAvailableInVersion7_1,
+                ErrorCode.ERR_FeatureNotAvailableInVersion7_2
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1345,9 +1366,10 @@ d.cs
             Assert.Equal(LanguageVersion.CSharp6, LanguageVersion.CSharp6.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.CSharp7.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.CSharp7_1.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2.MapSpecifiedToEffectiveVersion());
 
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7_2, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
 
             // The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary();
@@ -1374,6 +1396,7 @@ d.cs
             InlineData("7.0", true, LanguageVersion.CSharp7),
             InlineData("07", false, LanguageVersion.Default),
             InlineData("7.1", true, LanguageVersion.CSharp7_1),
+            InlineData("7.2", true, LanguageVersion.CSharp7_2),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
             InlineData("latest", true, LanguageVersion.Latest),
@@ -1389,29 +1412,36 @@ d.cs
         }
 
         [Fact]
-        public void LanguageVersion_CommandLineUsage()
+        public void LanguageVersion_TryParseTurkishDisplayString()
         {
+            var originalCulture = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR");
+            Assert.True("ISO-1".TryParse(out var version));
+            Assert.Equal(LanguageVersion.CSharp1, version);
+            Thread.CurrentThread.CurrentCulture = originalCulture;
+        }
+
+        [Fact]
+        public void LangVersion_ListLangVersions()
+        {
+            var dir = Temp.CreateDirectory();
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/langversion:?" });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
             var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>()
-                .Where(v => v != LanguageVersion.CSharp1 && v != LanguageVersion.CSharp2)
                 .Select(v => v.ToDisplayString());
-            string help = CSharpResources.IDS_CSCHelp;
 
-            var rangeStart = help.IndexOf("/langversion");
-            var rangeEnd = help.IndexOf("/delaysign");
-            Assert.True(rangeEnd > rangeStart);
-
-            string helpRange = help.Substring(rangeStart, rangeEnd - rangeStart).ToLowerInvariant();
-            var acceptableSurroundingChar = new[] { '\r', '\n', ',' , ' '};
+            var actual = outWriter.ToString();
+            var acceptableSurroundingChar = new[] { '\r', '\n', '(' , ')', ' '};
             foreach (var version in expected)
             {
-                var foundIndex = helpRange.IndexOf(version);
+                var foundIndex = actual.IndexOf(version);
                 Assert.True(foundIndex > 0, $"Missing version '{version}'");
-                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange[foundIndex - 1]) >= 0);
-                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange[foundIndex + version.Length]) >= 0);
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex - 1]) >= 0);
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex + version.Length]) >= 0);
             }
-
-            // The canary check is a reminder that this test needs to be updated when a language version is added
-            LanguageVersionAdded_Canary();
         }
 
         [Fact]
@@ -1422,21 +1452,21 @@ d.cs
             Assert.Equal(0, parsedArgs.ParseOptions.PreprocessorSymbolNames.Count());
             Assert.False(parsedArgs.Errors.Any());
 
-            parsedArgs = DefaultParse(new[] { "/d:FOO", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/d:GOO", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.ParseOptions.PreprocessorSymbolNames.Count());
-            Assert.Contains("FOO", parsedArgs.ParseOptions.PreprocessorSymbolNames);
+            Assert.Contains("GOO", parsedArgs.ParseOptions.PreprocessorSymbolNames);
             Assert.False(parsedArgs.Errors.Any());
 
-            parsedArgs = DefaultParse(new[] { "/d:FOO;BAR,ZIP", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/d:GOO;BAR,ZIP", "a.cs" }, _baseDirectory);
             Assert.Equal(3, parsedArgs.ParseOptions.PreprocessorSymbolNames.Count());
-            Assert.Contains("FOO", parsedArgs.ParseOptions.PreprocessorSymbolNames);
+            Assert.Contains("GOO", parsedArgs.ParseOptions.PreprocessorSymbolNames);
             Assert.Contains("BAR", parsedArgs.ParseOptions.PreprocessorSymbolNames);
             Assert.Contains("ZIP", parsedArgs.ParseOptions.PreprocessorSymbolNames);
             Assert.False(parsedArgs.Errors.Any());
 
-            parsedArgs = DefaultParse(new[] { "/d:FOO;4X", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/d:GOO;4X", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.ParseOptions.PreprocessorSymbolNames.Count());
-            Assert.Contains("FOO", parsedArgs.ParseOptions.PreprocessorSymbolNames);
+            Assert.Contains("GOO", parsedArgs.ParseOptions.PreprocessorSymbolNames);
             Assert.Equal(1, parsedArgs.Errors.Length);
             Assert.Equal((int)ErrorCode.WRN_DefineIdentifierRequired, parsedArgs.Errors.First().Code);
             Assert.Equal("4X", parsedArgs.Errors.First().Arguments[0]);
@@ -2063,51 +2093,51 @@ print Goodbye, World";
         [Fact]
         public void ParseReferences()
         {
-            var parsedArgs = DefaultParse(new string[] { "/r:foo.dll", "a.cs" }, _baseDirectory);
+            var parsedArgs = DefaultParse(new string[] { "/r:goo.dll", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(2, parsedArgs.MetadataReferences.Length);
 
-            parsedArgs = DefaultParse(new string[] { "/r:foo.dll;", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new string[] { "/r:goo.dll;", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(2, parsedArgs.MetadataReferences.Length);
 
             Assert.Equal(typeof(object).Assembly.Location, parsedArgs.MetadataReferences[0].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly, parsedArgs.MetadataReferences[0].Properties);
 
-            Assert.Equal("foo.dll", parsedArgs.MetadataReferences[1].Reference);
+            Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly, parsedArgs.MetadataReferences[1].Properties);
 
 
-            parsedArgs = DefaultParse(new string[] { @"/l:foo.dll", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new string[] { @"/l:goo.dll", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(2, parsedArgs.MetadataReferences.Length);
 
             Assert.Equal(typeof(object).Assembly.Location, parsedArgs.MetadataReferences[0].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly, parsedArgs.MetadataReferences[0].Properties);
 
-            Assert.Equal("foo.dll", parsedArgs.MetadataReferences[1].Reference);
+            Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly.WithEmbedInteropTypes(true), parsedArgs.MetadataReferences[1].Properties);
 
 
-            parsedArgs = DefaultParse(new string[] { @"/addmodule:foo.dll", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new string[] { @"/addmodule:goo.dll", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(2, parsedArgs.MetadataReferences.Length);
 
             Assert.Equal(typeof(object).Assembly.Location, parsedArgs.MetadataReferences[0].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly, parsedArgs.MetadataReferences[0].Properties);
 
-            Assert.Equal("foo.dll", parsedArgs.MetadataReferences[1].Reference);
+            Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Module, parsedArgs.MetadataReferences[1].Properties);
 
 
-            parsedArgs = DefaultParse(new string[] { @"/r:a=foo.dll", "/l:b=bar.dll", "/addmodule:c=mod.dll", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new string[] { @"/r:a=goo.dll", "/l:b=bar.dll", "/addmodule:c=mod.dll", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(4, parsedArgs.MetadataReferences.Length);
 
             Assert.Equal(typeof(object).Assembly.Location, parsedArgs.MetadataReferences[0].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly, parsedArgs.MetadataReferences[0].Properties);
 
-            Assert.Equal("foo.dll", parsedArgs.MetadataReferences[1].Reference);
+            Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly.WithAliases(new[] { "a" }), parsedArgs.MetadataReferences[1].Properties);
 
             Assert.Equal("bar.dll", parsedArgs.MetadataReferences[2].Reference);
@@ -2122,25 +2152,25 @@ print Goodbye, World";
         [Fact]
         public void ParseAnalyzers()
         {
-            var parsedArgs = DefaultParse(new string[] { @"/a:foo.dll", "a.cs" }, _baseDirectory);
+            var parsedArgs = DefaultParse(new string[] { @"/a:goo.dll", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(1, parsedArgs.AnalyzerReferences.Length);
-            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
+            Assert.Equal("goo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
 
-            parsedArgs = DefaultParse(new string[] { @"/analyzer:foo.dll", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new string[] { @"/analyzer:goo.dll", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(1, parsedArgs.AnalyzerReferences.Length);
-            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
+            Assert.Equal("goo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
 
-            parsedArgs = DefaultParse(new string[] { "/analyzer:\"foo.dll\"", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new string[] { "/analyzer:\"goo.dll\"", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(1, parsedArgs.AnalyzerReferences.Length);
-            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
+            Assert.Equal("goo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
 
-            parsedArgs = DefaultParse(new string[] { @"/a:foo.dll;bar.dll", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new string[] { @"/a:goo.dll;bar.dll", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(2, parsedArgs.AnalyzerReferences.Length);
-            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
+            Assert.Equal("goo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
             Assert.Equal("bar.dll", parsedArgs.AnalyzerReferences[1].FilePath);
 
             parsedArgs = DefaultParse(new string[] { @"/a:", "a.cs" }, _baseDirectory);
@@ -2796,33 +2826,33 @@ class C
 {
         public static void Main()
         {
-            Foo(0);
+            Goo(0);
 #line 10 ""c:\temp\a\1.cs""
-            Foo(1);
+            Goo(1);
 #line 20 ""C:\a\..\b.cs""
-            Foo(2);
+            Goo(2);
 #line 30 ""C:\a\../B.cs""
-            Foo(3);
+            Goo(3);
 #line 40 ""../b.cs""
-            Foo(4);
+            Goo(4);
 #line 50 ""..\b.cs""
-            Foo(5);
+            Goo(5);
 #line 60 ""C:\X.cs""
-            Foo(6);
+            Goo(6);
 #line 70 ""C:\x.cs""
-            Foo(7);
+            Goo(7);
 #line 90 ""      ""
-		    Foo(9);
+		    Goo(9);
 #line 100 ""C:\*.cs""
-		    Foo(10);
+		    Goo(10);
 #line 110 """"
-		    Foo(11);
+		    Goo(11);
 #line hidden
-            Foo(12);
+            Goo(12);
 #line default
-            Foo(13);
+            Goo(13);
 #line 140 ""***""
-            Foo(14);
+            Goo(14);
         }
     }
 ";
@@ -2836,20 +2866,20 @@ class C
 
             // with /fullpaths off
             string expected = @"
-a.cs(8,13): error CS0103: The name 'Foo' does not exist in the current context
-c:\temp\a\1.cs(10,13): error CS0103: The name 'Foo' does not exist in the current context
-C:\b.cs(20,13): error CS0103: The name 'Foo' does not exist in the current context
-C:\B.cs(30,13): error CS0103: The name 'Foo' does not exist in the current context
-" + Path.GetFullPath(Path.Combine(dir.Path, @"..\b.cs")) + @"(40,13): error CS0103: The name 'Foo' does not exist in the current context
-" + Path.GetFullPath(Path.Combine(dir.Path, @"..\b.cs")) + @"(50,13): error CS0103: The name 'Foo' does not exist in the current context
-C:\X.cs(60,13): error CS0103: The name 'Foo' does not exist in the current context
-C:\x.cs(70,13): error CS0103: The name 'Foo' does not exist in the current context
-      (90,7): error CS0103: The name 'Foo' does not exist in the current context
-C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current context
-(110,7): error CS0103: The name 'Foo' does not exist in the current context
-(112,13): error CS0103: The name 'Foo' does not exist in the current context
-a.cs(32,13): error CS0103: The name 'Foo' does not exist in the current context
-***(140,13): error CS0103: The name 'Foo' does not exist in the current context";
+a.cs(8,13): error CS0103: The name 'Goo' does not exist in the current context
+c:\temp\a\1.cs(10,13): error CS0103: The name 'Goo' does not exist in the current context
+C:\b.cs(20,13): error CS0103: The name 'Goo' does not exist in the current context
+C:\B.cs(30,13): error CS0103: The name 'Goo' does not exist in the current context
+" + Path.GetFullPath(Path.Combine(dir.Path, @"..\b.cs")) + @"(40,13): error CS0103: The name 'Goo' does not exist in the current context
+" + Path.GetFullPath(Path.Combine(dir.Path, @"..\b.cs")) + @"(50,13): error CS0103: The name 'Goo' does not exist in the current context
+C:\X.cs(60,13): error CS0103: The name 'Goo' does not exist in the current context
+C:\x.cs(70,13): error CS0103: The name 'Goo' does not exist in the current context
+      (90,7): error CS0103: The name 'Goo' does not exist in the current context
+C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current context
+(110,7): error CS0103: The name 'Goo' does not exist in the current context
+(112,13): error CS0103: The name 'Goo' does not exist in the current context
+a.cs(32,13): error CS0103: The name 'Goo' does not exist in the current context
+***(140,13): error CS0103: The name 'Goo' does not exist in the current context";
 
             AssertEx.Equal(
                 expected.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries),
@@ -2863,20 +2893,20 @@ a.cs(32,13): error CS0103: The name 'Foo' does not exist in the current context
             Assert.Equal(1, exitCode);
 
             expected = @"
-" + Path.Combine(dir.Path, @"a.cs") + @"(8,13): error CS0103: The name 'Foo' does not exist in the current context
-c:\temp\a\1.cs(10,13): error CS0103: The name 'Foo' does not exist in the current context
-C:\b.cs(20,13): error CS0103: The name 'Foo' does not exist in the current context
-C:\B.cs(30,13): error CS0103: The name 'Foo' does not exist in the current context
-" + Path.GetFullPath(Path.Combine(dir.Path, @"..\b.cs")) + @"(40,13): error CS0103: The name 'Foo' does not exist in the current context
-" + Path.GetFullPath(Path.Combine(dir.Path, @"..\b.cs")) + @"(50,13): error CS0103: The name 'Foo' does not exist in the current context
-C:\X.cs(60,13): error CS0103: The name 'Foo' does not exist in the current context
-C:\x.cs(70,13): error CS0103: The name 'Foo' does not exist in the current context
-      (90,7): error CS0103: The name 'Foo' does not exist in the current context
-C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current context
-(110,7): error CS0103: The name 'Foo' does not exist in the current context
-(112,13): error CS0103: The name 'Foo' does not exist in the current context
-" + Path.Combine(dir.Path, @"a.cs") + @"(32,13): error CS0103: The name 'Foo' does not exist in the current context
-***(140,13): error CS0103: The name 'Foo' does not exist in the current context";
+" + Path.Combine(dir.Path, @"a.cs") + @"(8,13): error CS0103: The name 'Goo' does not exist in the current context
+c:\temp\a\1.cs(10,13): error CS0103: The name 'Goo' does not exist in the current context
+C:\b.cs(20,13): error CS0103: The name 'Goo' does not exist in the current context
+C:\B.cs(30,13): error CS0103: The name 'Goo' does not exist in the current context
+" + Path.GetFullPath(Path.Combine(dir.Path, @"..\b.cs")) + @"(40,13): error CS0103: The name 'Goo' does not exist in the current context
+" + Path.GetFullPath(Path.Combine(dir.Path, @"..\b.cs")) + @"(50,13): error CS0103: The name 'Goo' does not exist in the current context
+C:\X.cs(60,13): error CS0103: The name 'Goo' does not exist in the current context
+C:\x.cs(70,13): error CS0103: The name 'Goo' does not exist in the current context
+      (90,7): error CS0103: The name 'Goo' does not exist in the current context
+C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current context
+(110,7): error CS0103: The name 'Goo' does not exist in the current context
+(112,13): error CS0103: The name 'Goo' does not exist in the current context
+" + Path.Combine(dir.Path, @"a.cs") + @"(32,13): error CS0103: The name 'Goo' does not exist in the current context
+***(140,13): error CS0103: The name 'Goo' does not exist in the current context";
 
             AssertEx.Equal(
                 expected.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries),
@@ -3562,22 +3592,22 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         [Fact]
         public void ModuleAssemblyName()
         {
-            var parsedArgs = DefaultParse(new[] { @"/target:module", "/moduleassemblyname:foo", "a.cs" }, _baseDirectory);
+            var parsedArgs = DefaultParse(new[] { @"/target:module", "/moduleassemblyname:goo", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal("foo", parsedArgs.CompilationName);
+            Assert.Equal("goo", parsedArgs.CompilationName);
             Assert.Equal("a.netmodule", parsedArgs.CompilationOptions.ModuleName);
 
-            parsedArgs = DefaultParse(new[] { @"/target:library", "/moduleassemblyname:foo", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { @"/target:library", "/moduleassemblyname:goo", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS0734: The /moduleassemblyname option may only be specified when building a target type of 'module'
                 Diagnostic(ErrorCode.ERR_AssemblyNameOnNonModule));
 
-            parsedArgs = DefaultParse(new[] { @"/target:exe", "/moduleassemblyname:foo", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { @"/target:exe", "/moduleassemblyname:goo", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS0734: The /moduleassemblyname option may only be specified when building a target type of 'module'
                 Diagnostic(ErrorCode.ERR_AssemblyNameOnNonModule));
 
-            parsedArgs = DefaultParse(new[] { @"/target:winexe", "/moduleassemblyname:foo", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { @"/target:winexe", "/moduleassemblyname:goo", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS0734: The /moduleassemblyname option may only be specified when building a target type of 'module'
                 Diagnostic(ErrorCode.ERR_AssemblyNameOnNonModule));
@@ -3586,9 +3616,9 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         [Fact]
         public void ModuleName()
         {
-            var parsedArgs = DefaultParse(new[] { @"/target:module", "/modulename:foo", "a.cs" }, _baseDirectory);
+            var parsedArgs = DefaultParse(new[] { @"/target:module", "/modulename:goo", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal("foo", parsedArgs.CompilationOptions.ModuleName);
+            Assert.Equal("goo", parsedArgs.CompilationOptions.ModuleName);
 
             parsedArgs = DefaultParse(new[] { @"/target:library", "/modulename:bar", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
@@ -3598,9 +3628,9 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             parsedArgs.Errors.Verify();
             Assert.Equal("CommonLanguageRuntimeLibrary", parsedArgs.CompilationOptions.ModuleName);
 
-            parsedArgs = DefaultParse(new[] { @"/target:winexe", "/modulename:foo", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { @"/target:winexe", "/modulename:goo", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal("foo", parsedArgs.CompilationOptions.ModuleName);
+            Assert.Equal("goo", parsedArgs.CompilationOptions.ModuleName);
 
             parsedArgs = DefaultParse(new[] { @"/target:exe", "/modulename:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
@@ -3968,17 +3998,17 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         {
             CSharpCommandLineArguments parsedArgs;
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:Foo.Bar" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:Goo.Bar" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            AssertEx.Equal(new[] { "Foo.Bar" }, parsedArgs.CompilationOptions.Usings.AsEnumerable());
+            AssertEx.Equal(new[] { "Goo.Bar" }, parsedArgs.CompilationOptions.Usings.AsEnumerable());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:Foo.Bar;Baz", "/using:System.Core;System" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:Goo.Bar;Baz", "/using:System.Core;System" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            AssertEx.Equal(new[] { "Foo.Bar", "Baz", "System.Core", "System" }, parsedArgs.CompilationOptions.Usings.AsEnumerable());
+            AssertEx.Equal(new[] { "Goo.Bar", "Baz", "System.Core", "System" }, parsedArgs.CompilationOptions.Usings.AsEnumerable());
 
-            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:Foo;;Bar" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:Goo;;Bar" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            AssertEx.Equal(new[] { "Foo", "Bar" }, parsedArgs.CompilationOptions.Usings.AsEnumerable());
+            AssertEx.Equal(new[] { "Goo", "Bar" }, parsedArgs.CompilationOptions.Usings.AsEnumerable());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
@@ -4717,10 +4747,10 @@ class Test { static void Main() {} }").Path;
             Assert.Null(parsedArgs.CompilationOptions.CryptoKeyContainer);
 
             // KEYFILE
-            parsedArgs = DefaultParse(new[] { @"/keyfile:\somepath\s""ome Fil""e.foo.bar", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { @"/keyfile:\somepath\s""ome Fil""e.goo.bar", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             //EDMAURER let's not set the option in the event that there was an error.
-            //Assert.Equal(@"\somepath\some File.foo.bar", parsedArgs.CompilationOptions.CryptoKeyFile);
+            //Assert.Equal(@"\somepath\some File.goo.bar", parsedArgs.CompilationOptions.CryptoKeyFile);
 
             parsedArgs = DefaultParse(new[] { "/keyFile", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
@@ -5070,10 +5100,10 @@ class myClass
 
             // Quoting inside argument is valid.
             responseFile = new string[] {
-                @"  /o:""foo.cs"" /o:""abc def""\baz ""/o:baz bar""bing",
+                @"  /o:""goo.cs"" /o:""abc def""\baz ""/o:baz bar""bing",
             };
             args = CSharpCommandLineParser.ParseResponseLines(responseFile);
-            AssertEx.Equal(new[] { @"/o:""foo.cs""", @"/o:""abc def""\baz", @"""/o:baz bar""bing" }, args);
+            AssertEx.Equal(new[] { @"/o:""goo.cs""", @"/o:""abc def""\baz", @"""/o:baz bar""bing" }, args);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
@@ -6986,11 +7016,11 @@ static void Main() { }
             var fileName = Path.GetFileName(source);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/target:library", "/out:foo.dll", "/nowarn:2008" }).Run(outWriter);
+            int exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/target:library", "/out:goo.dll", "/nowarn:2008" }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
-            System.IO.File.Delete(System.IO.Path.Combine(baseDir, "foo.dll"));
+            System.IO.File.Delete(System.IO.Path.Combine(baseDir, "goo.dll"));
             CleanupAllGeneratedFiles(source);
         }
 
@@ -7691,14 +7721,14 @@ public class C { }
         [Fact]
         public void ErrorLineEnd()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("class C public { }", path: "foo");
+            var tree = SyntaxFactory.ParseSyntaxTree("class C public { }", path: "goo");
 
             var comp = new MockCSharpCompiler(null, _baseDirectory, new[] { "/errorendlocation" });
             var loc = new SourceLocation(tree.GetCompilationUnitRoot().FindToken(6));
             var diag = new CSDiagnostic(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_MetadataNameTooLong), loc);
             var text = comp.DiagnosticFormatter.Format(diag);
 
-            string stringStart = "foo(1,7,1,8)";
+            string stringStart = "goo(1,7,1,8)";
 
             Assert.Equal(stringStart, text.Substring(0, stringStart.Length));
         }
@@ -7822,12 +7852,12 @@ using System*
             Assert.True(text.StartsWith(".>", StringComparison.Ordinal));
 
             sampleProgram = @"
-#line 10 ""http://foo.bar/baz.aspx"" //URI
+#line 10 ""http://goo.bar/baz.aspx"" //URI
 using System*
 ";
             syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "filename.cs");
             text = comp.DiagnosticFormatter.Format(syntaxTree.GetDiagnostics().First());
-            Assert.True(text.StartsWith("http://foo.bar/baz.aspx", StringComparison.Ordinal));
+            Assert.True(text.StartsWith("http://goo.bar/baz.aspx", StringComparison.Ordinal));
         }
 
         [WorkItem(1119609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")]
@@ -9069,6 +9099,7 @@ class C {
                 paths);
         }
 
+        [CompilerTrait(CompilerFeature.Determinism)]
         [Fact]
         public void PathMapParser()
         {
@@ -9100,6 +9131,82 @@ class C {
             parsedArgs = DefaultParse(new[] { "/pathmap:k=v=bad", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Determinism)]
+        public void PathMapPdbParser()
+        {
+            var dir = Path.Combine(_baseDirectory, "a");
+            var parsedArgs = DefaultParse(new[] { $@"/pathmap:{dir}=b:\", "a.cs", @"/pdb:a\data.pdb", "/debug:full" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(dir, @"data.pdb"), parsedArgs.PdbPath);
+
+            // This value is calculate during Emit phases and should be null even in the face of a pathmap targeting it.
+            Assert.Null(parsedArgs.EmitOptions.PdbFilePath);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Determinism)]
+        public void PathMapPdbEmit()
+        {
+            void AssertPdbEmit(TempDirectory dir, string pdbPath, string pePdbPath, params string[] extraArgs)
+            {
+                var source = @"class Program { static void Main() { } }";
+                var src = dir.CreateFile("a.cs").WriteAllText(source);
+                var defaultArgs = new[] { "/nologo", "a.cs", "/out:a.exe", "/debug:full", $"/pdb:{pdbPath}" };
+                var isDeterministic = extraArgs.Contains("/deterministic");
+                var args = defaultArgs.Concat(extraArgs).ToArray();
+                var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+                var csc = new MockCSharpCompiler(null, dir.Path, args);
+                int exitCode = csc.Run(outWriter);
+                Assert.Equal(0, exitCode);
+
+                var exePath = Path.Combine(dir.Path, "a.exe");
+                Assert.True(File.Exists(exePath));
+                Assert.True(File.Exists(pdbPath));
+                using (var peStream = File.OpenRead(exePath))
+                {
+                    PdbValidation.ValidateDebugDirectory(peStream, null, pePdbPath, isDeterministic);
+                }
+            }
+
+            // Case with no mappings
+            using (var dir = new DisposableDirectory(Temp))
+            {
+                var pdbPath = Path.Combine(dir.Path, "a.pdb");
+                AssertPdbEmit(dir, pdbPath, pdbPath);
+            }
+
+            // Simple mapping
+            using (var dir = new DisposableDirectory(Temp))
+            {
+                var pdbPath = Path.Combine(dir.Path, "a.pdb");
+                AssertPdbEmit(dir, pdbPath, @"q:\a.pdb", $@"/pathmap:{dir.Path}=q:\");
+            }
+
+            // Simple mapping deterministic
+            using (var dir = new DisposableDirectory(Temp))
+            {
+                var pdbPath = Path.Combine(dir.Path, "a.pdb");
+                AssertPdbEmit(dir, pdbPath, @"q:\a.pdb", $@"/pathmap:{dir.Path}=q:\", "/deterministic");
+            }
+
+            // Partial mapping
+            using (var dir = new DisposableDirectory(Temp))
+            {
+                dir.CreateDirectory("pdb");
+                var pdbPath = Path.Combine(dir.Path, @"pdb\a.pdb");
+                AssertPdbEmit(dir, pdbPath, @"q:\pdb\a.pdb", $@"/pathmap:{dir.Path}=q:\");
+            }
+
+            // Legacy feature flag
+            using (var dir = new DisposableDirectory(Temp))
+            {
+                var pdbPath = Path.Combine(dir.Path, "a.pdb");
+                AssertPdbEmit(dir, pdbPath, @"a.pdb", $@"/features:pdb-path-determinism");
+            }
         }
 
         [WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")]
@@ -9328,7 +9435,7 @@ class C
         {
             var parsedArgs = DefaultParse(new[] { "/langversion:1000", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
-                // error CS1617: Invalid option '1000' for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 6.
+                // error CS1617: Invalid option '1000' for /langversion. Use '/langversion:?' to list supported values.
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("1000").WithLocation(1, 1));
         }
 

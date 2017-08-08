@@ -64,12 +64,12 @@
 - Overload resolution, override/hide/implement (OHI)
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
-- Tuples
+- Tuple types and literals (elements with explicit or inferred names, long tuples)
 - Local functions
 - Unsafe code
 - LINQ
 - Constructors, properties, indexers, events, operators, and destructors.
-- Async
+- Async (task-like types)
 - Lvalues: the synthesized fields are mutable 
     - Ref / out parameters
     - Compound operators (+=, /=, etc ..) 
@@ -83,6 +83,7 @@
 - COM interop
 - modopt and modreq
 - ref assemblies
+- telemetry
 
 # Testing in interaction with other components
 Interaction with IDE, Debugger, and EnC should be worked out with relevant teams. A few highlights:
@@ -91,6 +92,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - Typing experience and dealing with incomplete code
     - Intellisense (squiggles, dot completion)
     - "go to" and renaming
+    - UpgradeProject code fixer
     - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
 
 - Debugger / EE
@@ -105,6 +107,8 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
 	- Assigning values in Locals/Autos/Watch windows
  
 - Edit-and-continue
+
+- Live Unit Testing (instrumentation)
 
 # Eric's cheatsheet
 

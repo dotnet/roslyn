@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         return true;
                     }
 
-                    // Also, we special case 0.  that's because if the user has "Foo(" and foo takes no
+                    // Also, we special case 0.  that's because if the user has "Goo(" and goo takes no
                     // arguments, then we'll see that it's arg count is 0.  We still want to consider
                     // any item applicable here though.
                     return argumentCount == 0;

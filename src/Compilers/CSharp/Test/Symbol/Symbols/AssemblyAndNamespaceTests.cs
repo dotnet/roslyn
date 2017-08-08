@@ -133,11 +133,11 @@ namespace N1 {
             var text = @"using Gen = System.Collections.Generic;
 
 namespace NS {
-    public interface IFoo {}
+    public interface IGoo {}
 }
 
 namespace NS.NS1 {
-    using F = NS.IFoo;
+    using F = NS.IGoo;
     class A : F { }
 }
 ";
@@ -163,13 +163,13 @@ namespace NS.NS1 {
 
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("NS").Single() as NamespaceSymbol;
-            Assert.Equal(1, ns.GetTypeMembers().Length); // IFoo
-            Assert.Equal(3, ns.GetMembers().Length); // NS1, NS2, IFoo
+            Assert.Equal(1, ns.GetTypeMembers().Length); // IGoo
+            Assert.Equal(3, ns.GetMembers().Length); // NS1, NS2, IGoo
 
             var ns1 = ns.GetMembers("NS1").Single() as NamespaceSymbol;
             var type1 = ns1.GetTypeMembers("A").SingleOrDefault() as NamedTypeSymbol;
             Assert.Equal(1, type1.Interfaces.Length);
-            Assert.Equal("IFoo", type1.Interfaces[0].Name);
+            Assert.Equal("IGoo", type1.Interfaces[0].Name);
 
             var ns2 = ns.GetMembers("NS2").Single() as NamespaceSymbol;
             var type2 = ns2.GetTypeMembers("C").SingleOrDefault() as NamedTypeSymbol;
@@ -187,12 +187,12 @@ namespace NS.NS1 {
 ";
             var text2 = @"namespace N1
 {
-    interface IFoo {}
+    interface IGoo {}
 }
 ";
             var text3 = @"namespace N1
 {
-    struct SFoo {}
+    struct SGoo {}
 }
 ";
             var comp1 = CreateStandardCompilation(text1, assemblyName: "Compilation1");
@@ -208,7 +208,7 @@ namespace NS.NS1 {
 
             var global = comp.GlobalNamespace; // throw
             var ns = global.GetMembers("N1").Single() as NamespaceSymbol;
-            Assert.Equal(3, ns.GetTypeMembers().Length); // A, IFoo & SFoo
+            Assert.Equal(3, ns.GetTypeMembers().Length); // A, IGoo & SGoo
             Assert.Equal(NamespaceKind.Compilation, ns.Extent.Kind);
 
             var constituents = ns.ConstituentNamespaces;
@@ -235,12 +235,12 @@ namespace NS.NS1 {
 ";
             var text2 = @"namespace N1
 {
-    interface IFoo {}
+    interface IGoo {}
 }
 ";
             var text3 = @"namespace N1
 {
-    struct SFoo {}
+    struct SGoo {}
 }
 ";
 
@@ -256,7 +256,7 @@ namespace NS.NS1 {
 
             var global = comp.GlobalNamespace; // throw
             var ns = global.GetMembers("N1").Single() as NamespaceSymbol;
-            Assert.Equal(3, ns.GetTypeMembers().Length); // A, IFoo & SFoo
+            Assert.Equal(3, ns.GetTypeMembers().Length); // A, IGoo & SGoo
             Assert.Equal(NamespaceKind.Compilation, ns.Extent.Kind);
 
             var constituents = ns.ConstituentNamespaces;
@@ -338,7 +338,7 @@ namespace NS
         public void GenericNamespace()
         {
             var compilation = CreateCompilation(@"
-namespace Foo<T>
+namespace Goo<T>
 {
     class Program    
     {        
@@ -350,7 +350,7 @@ namespace Foo<T>
 ");
             var global = compilation.GlobalNamespace;
 
-            var @namespace = global.GetMember<NamespaceSymbol>("Foo");
+            var @namespace = global.GetMember<NamespaceSymbol>("Goo");
             Assert.NotNull(@namespace);
 
             var @class = @namespace.GetMember<NamedTypeSymbol>("Program");
@@ -366,7 +366,7 @@ namespace Foo<T>
         {
             var source = @"public class C { }";
 
-            var aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Foo"));
+            var aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"));
 
             var comp = CreateCompilation(source, new[] { aliasedCorlib });
 

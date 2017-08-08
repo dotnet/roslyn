@@ -2,6 +2,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -14,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Private ReadOnly _pool As ObjectPool(Of IReductionRewriter)
 
             Protected CancellationToken As CancellationToken
+            Protected Property ParseOptions As VisualBasicParseOptions
             Private _simplificationOptions As OptionSet
 
             Private ReadOnly _processedParentNodes As HashSet(Of SyntaxNode) = New HashSet(Of SyntaxNode)()
@@ -26,12 +28,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 _pool = pool
             End Sub
 
-            Public Sub Initialize(optionSet As OptionSet, cancellationToken As CancellationToken) Implements IReductionRewriter.Initialize
+            Public Sub Initialize(parseOptions As ParseOptions, optionSet As OptionSet, cancellationToken As CancellationToken) Implements IReductionRewriter.Initialize
+                Me.ParseOptions = DirectCast(parseOptions, VisualBasicParseOptions)
                 _simplificationOptions = optionSet
                 cancellationToken = cancellationToken
             End Sub
 
             Public Sub Dispose() Implements IDisposable.Dispose
+                ParseOptions = Nothing
                 _simplificationOptions = Nothing
                 CancellationToken = CancellationToken.None
                 _processedParentNodes.Clear()

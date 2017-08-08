@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
@@ -61,8 +62,27 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
 
             var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
-            var definitionItem = symbol.ToClassifiedDefinitionItemAsync(
-                solution, includeHiddenLocations: true, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+
+            // Going to a symbol may end up actually showing the symbol in the Find-Usages window.
+            // This happens when there is more than one location for the symbol (i.e. for partial
+            // symbols) and we don't know the best place to take you to.
+            //
+            // The FindUsages window supports showing the classified text for an item.  It does this
+            // in two ways.  Either the item can pass along its classified text (and the window will
+            // defer to that), or the item will have no classified text, and the window will compute
+            // it in the BG.
+            //
+            // Passing along the classified information is valuable for OOP scenarios where we want
+            // all that expensive computation done on the OOP side and not in the VS side.
+            // 
+            // However, Go To Definition is all in-process, and is also synchronous.  So we do not
+            // want to fetch the classifications here.  It slows down the command and leads to a 
+            // measurable delay in our perf tests.
+            // 
+            // So, if we only have a single location to go to, this does no unnecessary work.  And,
+            // if we do have multiple locations to show, it will just be done in the BG, unblocking
+            // this command thread so it can return the user faster.
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
 
             if (thirdPartyNavigationAllowed)
             {

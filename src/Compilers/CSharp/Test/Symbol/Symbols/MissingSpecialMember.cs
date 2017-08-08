@@ -858,7 +858,8 @@ namespace System
                     case WellKnownMember.System_Array__Empty:
                         // Not yet in the platform.
                         continue;
-                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload:
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles:
                         // Not always available.
                         continue;
                 }
@@ -2008,10 +2009,7 @@ public class X
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "x is bool is bool").WithArguments("bool").WithLocation(16, 38),
                 // (12,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //         {if (x is int y) Console.WriteLine("4. {0}", y);}
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(12, 19),
-                // (15,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
-                //         {if (x is int y) Console.WriteLine("6. {0}", y);}
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(15, 19)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(12, 19)
                 );
         }
 

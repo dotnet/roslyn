@@ -222,7 +222,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b')
         Public Sub VerifyOperationTree_IfStatement()
             Dim source = <![CDATA[
 Class C
-    Sub Foo(x As Integer)
+    Sub Goo(x As Integer)
         If x <> 0 Then'BIND:"If x <> 0 Then"
             System.Console.Write(x)
         End If
@@ -251,7 +251,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
         Public Sub VerifyOperationTree_ForStatement()
             Dim source = <![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         For i = 0 To 10'BIND:"For i = 0 To 10"
             System.Console.Write(i)
         Next

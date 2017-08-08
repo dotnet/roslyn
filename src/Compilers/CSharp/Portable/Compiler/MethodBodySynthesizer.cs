@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: ImmutableArray<int>.Empty,
                         resultKind: LookupResultKind.Viable,
+                        binderOpt: null,
                         type: objectType)
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = true };
@@ -162,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Construct a body for an auto-property accessor (updating or returning the backing field).
         /// </summary>
-        internal static BoundBlock ConstructAutoPropertyAccessorBody(SourceMethodSymbol accessor)
+        internal static BoundBlock ConstructAutoPropertyAccessorBody(SourceMemberMethodSymbol accessor)
         {
             Debug.Assert(accessor.MethodKind == MethodKind.PropertyGet || accessor.MethodKind == MethodKind.PropertySet);
 

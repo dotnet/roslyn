@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -29,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => diagnostic.Severity != DiagnosticSeverity.Hidden;
+            => diagnostic.Severity != DiagnosticSeverity.Hidden ||
+               diagnostic.Properties.ContainsKey(UseExpressionBodyDiagnosticAnalyzer.FixesError);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -51,26 +54,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
+            var accessorLists = new HashSet<AccessorListSyntax>();
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(editor, diagnostic, options, cancellationToken);
+                AddEdits(editor, diagnostic, options, accessorLists, cancellationToken);
+            }
+
+            // Ensure that if we changed any accessors that the accessor lists they're contained
+            // in are formatted properly as well.  Do this as a last pass so that we see all 
+            // individual changes made to the child accessors if we're doing a fix-all.
+            foreach (var accessorList in accessorLists)
+            {
+                editor.ReplaceNode(accessorList, (current, _) => current.WithAdditionalAnnotations(Formatter.Annotation));
             }
         }
 
         private void AddEdits(
-            SyntaxEditor editor, Diagnostic diagnostic, 
-            OptionSet options, CancellationToken cancellationToken)
+            SyntaxEditor editor, Diagnostic diagnostic,
+            OptionSet options, HashSet<AccessorListSyntax> accessorLists,
+            CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
             var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
             var declaration = declarationLocation.FindNode(cancellationToken);
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
+            var parseOptions = declaration.SyntaxTree.Options;
 
-            var updatedDeclaration = helper.Update(declaration, options, useExpressionBody)
+            var updatedDeclaration = helper.Update(declaration, options, parseOptions, useExpressionBody)
                                            .WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(declaration, updatedDeclaration);
+
+            if (declaration.Parent is AccessorListSyntax accessorList)
+            {
+                accessorLists.Add(accessorList);
+            }
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

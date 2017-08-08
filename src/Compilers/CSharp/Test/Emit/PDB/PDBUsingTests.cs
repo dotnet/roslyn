@@ -1734,7 +1734,7 @@ public class Test : IDisposable
     IL_000e:  ldloc.0
     IL_000f:  callvirt   ""void System.IDisposable.Dispose()""
     IL_0014:  nop
-    IL_0015:  endfinally
+   ~IL_0015:  endfinally
   }
  -IL_0016:  ret
 }", sequencePoints: "Test.Main");
@@ -2029,7 +2029,7 @@ using System;
 
 using DICT1 = System.Collections.Generic.Dictionary<int, int>;
 
-namespace foo
+namespace goo
 {
     using ACT = System.Action<DICT1, DICT1, DICT1, DICT1, DICT1, DICT1, DICT1>;
     
@@ -2214,7 +2214,7 @@ class C
             var emitResult1 = c.Emit(peStream: peStream1, pdbStream: pdbStream);
             var emitResult2 = c.Emit(peStream: peStream2);
 
-            PdbValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
+            MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
         }
 
         [Fact]
@@ -2226,7 +2226,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 [assembly: Guid(""11111111-1111-1111-1111-111111111111"")]
-[assembly: ImportedFromTypeLib(""Foo"")]
+[assembly: ImportedFromTypeLib(""Goo"")]
 [assembly: TypeLibVersion(1, 0)]
 
 namespace N

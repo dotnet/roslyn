@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
     // `(T, ...) id;` starts with tuple type
     // `(T, ...)[] id;` starts with a tuple type array
     // `(E, ...) = ...;` is a deconstruction-assignment
-    // `(E, ...).Foo();` starts with a tuple literal/expression
+    // `(E, ...).Goo();` starts with a tuple literal/expression
     // `(E, ...) + ...` also starts with a tuple literal/expression
     // `(T, ...)? id;` starts with a tuple type
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         (x).ToString();
     }
@@ -111,7 +111,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         (Int32 a, Int64 b) x;
     }
@@ -189,7 +189,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         (Int32, Int64) x;
     }
@@ -265,7 +265,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         (Int32, Int64)[] x;
     }
@@ -353,9 +353,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        (Int32, Int64).Foo();
+        (Int32, Int64).Goo();
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -437,9 +437,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        (x, y) = foo;
+        (x, y) = goo;
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -512,9 +512,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        for(Int32 x = foo; ; ) { }
+        for(Int32 x = goo; ; ) { }
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -530,7 +530,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -557,7 +557,7 @@ class C
                                             N(SyntaxKind.EqualsToken);
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "foo");
+                                                N(SyntaxKind.IdentifierToken, "goo");
                                             }
                                         }
                                     }
@@ -588,9 +588,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        (x, (y, z)) = foo;
+        (x, (y, z)) = goo;
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -680,9 +680,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        (Int32 a, Int64 b) = foo;
+        (Int32 a, Int64 b) = goo;
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -698,7 +698,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -748,7 +748,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -770,9 +770,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        ((Int32 a, Int64 b), Int32 c) = foo;
+        ((Int32 a, Int64 b), Int32 c) = goo;
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -788,7 +788,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -861,7 +861,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -883,9 +883,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        var (a, b) = foo;
+        var (a, b) = goo;
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -901,7 +901,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -938,7 +938,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -960,9 +960,9 @@ class C
             var tree = UsingTree(@"
         class C
         {
-            void Foo()
+            void Goo()
             {
-                var ((a, b), c) = foo;
+                var ((a, b), c) = goo;
             }
         }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -978,7 +978,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1025,7 +1025,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -1047,7 +1047,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         var(a, b);
     }
@@ -1065,7 +1065,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1121,9 +1121,9 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        (Int32 x, var (y, z)) = foo;
+        (Int32 x, var (y, z)) = goo;
     }
 }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -1139,7 +1139,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1199,7 +1199,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -1220,9 +1220,9 @@ class C
             var tree = UsingTree(@"
         class C
         {
-            void Foo()
+            void Goo()
             {
-                for ((Int32 x, Int64 y) = foo; ; ) { }
+                for ((Int32 x, Int64 y) = goo; ; ) { }
             }
         }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -1238,7 +1238,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1290,7 +1290,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -1318,9 +1318,9 @@ class C
             var tree = UsingTree(@"
         class C
         {
-            void Foo()
+            void Goo()
             {
-                for (var (x, y) = foo; ; ) { }
+                for (var (x, y) = goo; ; ) { }
             }
         }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -1336,7 +1336,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1375,7 +1375,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "foo");
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -1403,9 +1403,9 @@ class C
             var tree = UsingTree(@"
         class C
         {
-            void Foo()
+            void Goo()
             {
-                foreach ((int x, var y) in foo) { }
+                foreach ((int x, var y) in goo) { }
             }
         }");
             N(SyntaxKind.CompilationUnit);
@@ -1421,7 +1421,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1471,7 +1471,7 @@ class C
                                 N(SyntaxKind.InKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "foo");
+                                    N(SyntaxKind.IdentifierToken, "goo");
                                 }
                                 N(SyntaxKind.CloseParenToken);
                                 N(SyntaxKind.Block);
@@ -1496,9 +1496,9 @@ class C
             var tree = UsingTree(@"
         class C
         {
-            void Foo()
+            void Goo()
             {
-                foreach (var (x, y) in foo) { }
+                foreach (var (x, y) in goo) { }
             }
         }", options: TestOptions.Regular.WithTuplesFeature());
             N(SyntaxKind.CompilationUnit);
@@ -1514,7 +1514,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1551,7 +1551,7 @@ class C
                                 N(SyntaxKind.InKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "foo");
+                                    N(SyntaxKind.IdentifierToken, "goo");
                                 }
                                 N(SyntaxKind.CloseParenToken);
                                 N(SyntaxKind.Block);
@@ -1751,7 +1751,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         (int _, var _, var (_, _), _) = e;
     }
@@ -1769,7 +1769,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1936,7 +1936,7 @@ class C
         [Fact]
         public void CastWithTupleType()
         {
-            var text = "(((x, y))z).Foo();";
+            var text = "(((x, y))z).Goo();";
             var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
@@ -2028,7 +2028,7 @@ class C
         [WorkItem(12402, "https://github.com/dotnet/roslyn/issues/12402")]
         public void ConfusedForWithDeconstruction()
         {
-            var text = "for ((int x, var (y, z)) in foo) { }";
+            var text = "for ((int x, var (y, z)) in goo) { }";
             var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
 
             // This expectation is wrong. We should expect a foreach statement (because the 'in' keyword is there)
@@ -2144,42 +2144,232 @@ class C
         var (x, y) = e; // ok, deconstruction declaration
         var(x, y); // ok, invocation
         int x = var(x, y); // ok, invocation
+    }
+}";
+            ParseAndValidate(source);
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_1()
+        {
+            var source =
+@"
+class C
+{
+    void M(string e)
+    {
         var(x, y) += e;            // error 1
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var(x, y) += e;            // error 1
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 9),
+                // (6,9): error CS0103: The name 'var' does not exist in the current context
+                //         var(x, y) += e;            // error 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 9),
+                // (6,13): error CS0103: The name 'x' does not exist in the current context
+                //         var(x, y) += e;            // error 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,16): error CS0103: The name 'y' does not exist in the current context
+                //         var(x, y) += e;            // error 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 16));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_2()
+        {
+            var source =
+@"
+class C
+{
+    void M(string e)
+    {
         var(x, y)++;               // error 2
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var(x, y)++;               // error 2
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 9),
+                // (6,9): error CS0103: The name 'var' does not exist in the current context
+                //         var(x, y)++;               // error 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 9),
+                // (6,13): error CS0103: The name 'x' does not exist in the current context
+                //         var(x, y)++;               // error 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,16): error CS0103: The name 'y' does not exist in the current context
+                //         var(x, y)++;               // error 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 16));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_3()
+        {
+            var source =
+@"
+class C
+{
+    void M(string e)
+    {
         ++var(x, y);               // error 3
-        M(out var(x, y));          // error 4
-        M(ref var(x, y));          // error 5
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,11): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         ++var(x, y);               // error 3
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 11),
+                // (6,11): error CS0103: The name 'var' does not exist in the current context
+                //         ++var(x, y);               // error 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 11),
+                // (6,15): error CS0103: The name 'x' does not exist in the current context
+                //         ++var(x, y);               // error 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 15),
+                // (6,18): error CS0103: The name 'y' does not exist in the current context
+                //         ++var(x, y);               // error 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_4()
+        {
+            var source =
+@"
+class C
+{
+    void M(string e)
+    {
+        X(out var(x, y));          // error 4
+    }
+
+    void X(out object x) { x = null; }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,15): error CS0103: The name 'var' does not exist in the current context
+                //         X(out var(x, y));          // error 4
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 15),
+                // (6,19): error CS0103: The name 'x' does not exist in the current context
+                //         X(out var(x, y));          // error 4
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 19),
+                // (6,22): error CS0103: The name 'y' does not exist in the current context
+                //         X(out var(x, y));          // error 4
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 22),
+                // (6,15): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         X(out var(x, y));          // error 4
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_5()
+        {
+            var source =
+@"
+class C
+{
+    void M(string e)
+    {
+        X(ref var(x, y));          // error 5
+    }
+
+    void X(ref object x) { x = null; }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,15): error CS0103: The name 'var' does not exist in the current context
+                //         X(ref var(x, y));          // error 5
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 15),
+                // (6,19): error CS0103: The name 'x' does not exist in the current context
+                //         X(ref var(x, y));          // error 5
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 19),
+                // (6,22): error CS0103: The name 'y' does not exist in the current context
+                //         X(ref var(x, y));          // error 5
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 22),
+                // (6,15): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         X(ref var(x, y));          // error 5
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_6()
+        {
+            var source =
+@"
+class C
+{
+    ref object M(string e)
+    {
         return ref var(x, y);      // error 6
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,20): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         return ref var(x, y);      // error 6
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 20),
+                // (6,20): error CS0103: The name 'var' does not exist in the current context
+                //         return ref var(x, y);      // error 6
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 20),
+                // (6,24): error CS0103: The name 'x' does not exist in the current context
+                //         return ref var(x, y);      // error 6
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 24),
+                // (6,27): error CS0103: The name 'y' does not exist in the current context
+                //         return ref var(x, y);      // error 6
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 27));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_7()
+        {
+            var source =
+@"
+class C
+{
+    void M(string e)
+    {
         ref int x = ref var(x, y); // error 7
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,25): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         ref int x = ref var(x, y); // error 7
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 25),
+                // (6,25): error CS0103: The name 'var' does not exist in the current context
+                //         ref int x = ref var(x, y); // error 7
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 25),
+                // (6,32): error CS0103: The name 'y' does not exist in the current context
+                //         ref int x = ref var(x, y); // error 7
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 32),
+                // (6,29): error CS0165: Use of unassigned local variable 'x'
+                //         ref int x = ref var(x, y); // error 7
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(6, 29));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_8()
+        {
+            var source =
+@"
+class C
+{
+    void object M(string e)
+    {
         var (x, 1) = e;            // error 8
     }
 }";
-            ParseAndValidate(source,
-                    // (9,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         var(x, y) += e;            // error 1
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(9, 9),
-                    // (10,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         var(x, y)++;               // error 2
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(10, 9),
-                    // (11,11): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         ++var(x, y);               // error 3
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(11, 11),
-                    // (12,15): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         M(out var(x, y));          // error 4
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(12, 15),
-                    // (13,15): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         M(ref var(x, y));          // error 5
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(13, 15),
-                    // (14,20): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         return ref var(x, y);      // error 6
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(14, 20),
-                    // (15,25): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         ref int x = ref var(x, y); // error 7
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(15, 25),
-                    // (16,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         var (x, 1) = e;            // error 8
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x, 1)").WithLocation(16, 9)
-                );
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (4,10): error CS1519: Invalid token 'object' in class, struct, or interface member declaration
+                //     void object M(string e)
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "object").WithArguments("object").WithLocation(4, 10),
+                // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var (x, 1) = e;            // error 8
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x, 1)").WithLocation(6, 9),
+                // (6,9): error CS0103: The name 'var' does not exist in the current context
+                //         var (x, 1) = e;            // error 8
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 9),
+                // (6,14): error CS0103: The name 'x' does not exist in the current context
+                //         var (x, 1) = e;            // error 8
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 14),
+                // (4,17): error CS0161: 'C.M(string)': not all code paths return a value
+                //     void object M(string e)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M(string)").WithLocation(4, 17));
         }
 
         [Fact]

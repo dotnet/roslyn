@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -2519,8 +2519,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 Debug.Assert(newNode.Parent.Parent is BasePropertyDeclarationSyntax);
 
                 ClassifyMethodBodyRudeUpdate(
-                    oldNode.Body,
-                    newNode.Body,
+                    (SyntaxNode)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
+                    (SyntaxNode)newNode.Body ?? newNode.ExpressionBody?.Expression,
                     containingMethodOpt: null,
                     containingType: (TypeDeclarationSyntax)newNode.Parent.Parent.Parent);
             }
@@ -2546,8 +2546,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 ClassifyMethodBodyRudeUpdate(
-                    oldNode.Body,
-                    newNode.Body,
+                    (SyntaxNode)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
+                    (SyntaxNode)newNode.Body ?? newNode.ExpressionBody?.Expression,
                     containingMethodOpt: null,
                     containingType: (TypeDeclarationSyntax)newNode.Parent);
             }
@@ -2555,8 +2555,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             private void ClassifyUpdate(DestructorDeclarationSyntax oldNode, DestructorDeclarationSyntax newNode)
             {
                 ClassifyMethodBodyRudeUpdate(
-                    oldNode.Body,
-                    newNode.Body,
+                    (SyntaxNode)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
+                    (SyntaxNode)newNode.Body ?? newNode.ExpressionBody?.Expression,
                     containingMethodOpt: null,
                     containingType: (TypeDeclarationSyntax)newNode.Parent);
             }
@@ -3269,73 +3269,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return true;
-        }
-
-        internal override void ReportMemberBodySemanticRudeEdits(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, List<RudeEditDiagnostic> diagnostics)
-        {
-            var foundNode = FindUnsupportedV7Switch(oldModel, oldNode, diagnostics);
-            if (foundNode != null)
-            {
-                AddRudeUpdateInCSharp7Method(diagnostics, foundNode);
-            }
-            else if ((foundNode = FindUnsupportedV7Switch(newModel, newNode, diagnostics)) != null)
-            {
-                AddRudeUpdateAroundActiveStatement(diagnostics, foundNode);
-            }
-        }
-
-        private SyntaxNode FindUnsupportedV7Switch(SemanticModel model, SyntaxNode syntaxNode, List<RudeEditDiagnostic> diagnostics)
-        {
-            foreach (var node in syntaxNode.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.SwitchStatement))
-            {
-                var switchExpression = ((SwitchStatementSyntax)node).Expression;
-                ITypeSymbol governingType = model.GetTypeInfo(switchExpression).Type;
-
-                if (!IsValidV6SwitchGoverningType(governingType))
-                {
-                    return node;
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Returns true iff the supplied type is sbyte, byte, short, ushort, int, uint,
-        /// long, ulong, bool, char, string, or an enum-type, or if it is the nullable type
-        /// corresponding to one of those types. These types were permitted as the governing
-        /// type of a switch statement in C# 6.
-        /// </summary>
-        private static bool IsValidV6SwitchGoverningType(ITypeSymbol type)
-        {
-            Debug.Assert(type != null);
-
-            if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-            {
-                type = ((INamedTypeSymbol)type).TypeArguments[0];
-            }
-
-            if (type.TypeKind == TypeKind.Enum)
-            {
-                type = ((INamedTypeSymbol)type).EnumUnderlyingType;
-            }
-
-            switch (type.SpecialType)
-            {
-                case SpecialType.System_SByte:
-                case SpecialType.System_Byte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_Char:
-                case SpecialType.System_String:
-                case SpecialType.System_Boolean:
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         #endregion

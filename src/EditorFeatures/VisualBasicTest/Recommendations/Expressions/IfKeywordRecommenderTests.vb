@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class IfKeywordRecommenderTests
@@ -17,22 +17,22 @@ If({VBWorkspaceResources.condition} As Boolean, {VBWorkspaceResources.expression
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IfAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, "If")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "If")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IfAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar, |</MethodBody>, "If")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "If")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IfAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar + |</MethodBody>, "If")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "If")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IfAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(Not |</MethodBody>, "If")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "If")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -111,10 +111,10 @@ Loop Until |</MethodBody>, "If")
 <File>
 Module Program
     Sub Main(args As String())
-        Dim f1 As New Foo2( |
+        Dim f1 As New Goo2( |
     End Sub
 
-    Delegate Sub Foo2()
+    Delegate Sub Goo2()
 
     Function Bar2() As Object
         Return Nothing
