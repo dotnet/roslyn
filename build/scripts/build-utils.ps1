@@ -136,7 +136,7 @@ function Ensure-NuGet() {
 # Checks to see if a particular version of the SDK is available on %PATH%. This is 
 # how MSBuild locates the SDK. 
 function Test-SdkInPath([string]$version) {
-    foreach ($part in ${env:PATH}.Split(';')) {
+    foreach ($part in ${env:PATH}.Split(';', [System.StringSplitOptions]::RemoveEmptyEntries)) {
         $dotnetExe = Join-Path $part "dotnet.exe"
         if (Test-Path $dotnetExe) {
             $sdkPath = Join-Path $part "sdk"
