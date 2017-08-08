@@ -164,7 +164,8 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Re
   Expression: IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpression, Type: null, IsInvalid) (Syntax: 'RemoveHandl ... AddressOf M')
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: null
-      Handler: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: 'AddressOf M')
+      Handler: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: 'AddressOf M')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M')
 ]]>.Value
 
