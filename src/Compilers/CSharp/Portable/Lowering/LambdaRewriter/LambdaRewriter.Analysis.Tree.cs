@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -25,14 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             [DebuggerDisplay("{ToString(), nq}")]
             public sealed class Scope
             {
-                public Scope Parent { get; }
+                public readonly Scope Parent;
 
-                public ArrayBuilder<Scope> NestedScopes { get; } = ArrayBuilder<Scope>.GetInstance();
+                public readonly ArrayBuilder<Scope> NestedScopes = ArrayBuilder<Scope>.GetInstance();
 
                 /// <summary>
                 /// A list of all closures (all lambdas and local functions) declared in this scope.
                 /// </summary>
-                public ArrayBuilder<Closure> Closures { get; } = ArrayBuilder<Closure>.GetInstance();
+                public readonly ArrayBuilder<Closure> Closures = ArrayBuilder<Closure>.GetInstance();
 
                 /// <summary>
                 /// A list of all locals or parameters that were declared in this scope and captured
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// non-deterministic compilation, and if we generate duplicate proxies we'll generate
                 /// wasteful code in the best case and incorrect code in the worst.
                 /// </remarks>
-                public SetWithInsertionOrder<Symbol> DeclaredVariables { get; } = new SetWithInsertionOrder<Symbol>();
+                public readonly SetWithInsertionOrder<Symbol> DeclaredVariables = new SetWithInsertionOrder<Symbol>();
 
                 /// <summary>
                 /// The bound node representing this scope. This roughly corresponds to the bound
@@ -53,13 +54,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// methods/closures are introduced into their Body's scope and do not get their
                 /// own scope.
                 /// </summary>
-                public BoundNode BoundNode { get; }
+                public readonly BoundNode BoundNode;
 
                 /// <summary>
                 /// The closure that this scope is nested inside. Null if this scope is not nested
                 /// inside a closure.
                 /// </summary>
-                public Closure ContainingClosureOpt { get; }
+                public readonly Closure ContainingClosureOpt;
+
+                /// <summary>
+                /// Environments created in this scope to hold <see cref="DeclaredVariables"/>.
+                /// </summary>
+                public readonly ArrayBuilder<ClosureEnvironment> DeclaredEnvironments
+                    = ArrayBuilder<ClosureEnvironment>.GetInstance();
 
                 public Scope(Scope parent, BoundNode boundNode, Closure containingClosure)
                 {
@@ -83,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         closure.Free();
                     }
                     Closures.Free();
+                    DeclaredEnvironments.Free();
                 }
 
                 public override string ToString() => BoundNode.Syntax.GetText().ToString();
@@ -102,9 +110,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// <summary>
                 /// The method symbol for the original lambda or local function.
                 /// </summary>
-                public MethodSymbol OriginalMethodSymbol { get; }
+                public readonly MethodSymbol OriginalMethodSymbol;
 
-                public PooledHashSet<Symbol> CapturedVariables { get; } = PooledHashSet<Symbol>.GetInstance();
+                public readonly PooledHashSet<Symbol> CapturedVariables = PooledHashSet<Symbol>.GetInstance();
+
+                public readonly ArrayBuilder<ClosureEnvironment> CapturedEnvironments
+                    = ArrayBuilder<ClosureEnvironment>.GetInstance();
+
+                public ClosureEnvironment ContainingEnvironmentOpt;
 
                 public Closure(MethodSymbol symbol)
                 {
@@ -115,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public void Free()
                 {
                     CapturedVariables.Free();
+                    CapturedEnvironments.Free();
                 }
             }
 
@@ -164,17 +178,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                // True if there are any closures in the tree which
+                // capture 'this' and another variable
+                bool captureMoreThanThis = false;
+
                 VisitClosures(ScopeTree, (scope, closure) =>
                 {
                     if (!capturesVariable.Contains(closure.OriginalMethodSymbol))
                     {
                         closure.CapturedVariables.Clear();
                     }
+
                     if (capturesThis.Contains(closure.OriginalMethodSymbol))
                     {
                         closure.CapturedVariables.Add(thisParam);
+                        if (closure.CapturedVariables.Count > 1)
+                        {
+                            captureMoreThanThis |= true;
+                        }
                     }
                 });
+
+                if (!captureMoreThanThis && capturesThis.Count > 0)
+                {
+                    // If we have closures which capture 'this', and nothing else, we can
+                    // remove 'this' from the declared variables list, since we don't need
+                    // to create an environment to hold 'this' (since we can emit the
+                    // lowered methods directly onto the containing class)
+                    bool removed = ScopeTree.DeclaredVariables.Remove(thisParam);
+                    Debug.Assert(removed);
+                }
             }
 
             /// <summary>
@@ -190,6 +223,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var nested in scope.NestedScopes)
                 {
                     VisitClosures(nested, action);
+                }
+            }
+
+            /// <summary>
+            /// Visit the tree with the given root and run the <paramref name="action"/>
+            /// </summary>
+            public static void VisitScopeTree(Scope treeRoot, Action<Scope> action)
+            {
+                action(treeRoot);
+
+                foreach (var nested in treeRoot.NestedScopes)
+                {
+                    VisitScopeTree(nested, action);
                 }
             }
 
@@ -267,6 +313,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Set up the current method locals
                     DeclareLocals(_currentScope, _topLevelMethod.Parameters);
+                    // Treat 'this' as a formal parameter of the top-level method
+                    if (_topLevelMethod.TryGetThisParameter(out var thisParam))
+                    {
+                        DeclareLocals(_currentScope, ImmutableArray.Create<Symbol>(thisParam));
+                    }
+
                     Visit(_currentScope.BoundNode);
                 }
 
@@ -464,12 +516,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // No need to record where local functions live: that was recorded
                         // in the Closures list in each scope
                         if (symbol.Kind == SymbolKind.Method)
-                        {
-                            return;
-                        }
-
-                        // The 'this' parameter isn't declared in method scope
-                        if (symbol is ParameterSymbol param && param.IsThis)
                         {
                             return;
                         }
