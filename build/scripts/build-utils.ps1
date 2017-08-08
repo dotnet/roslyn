@@ -158,7 +158,7 @@ function Ensure-SdkInPath() {
 
     $toolsDir = Join-Path $binariesDir "Tools"
     $cliDir = Join-Path $toolsDir "dotnet"
-    $dotnetExe = Join-Path
+    $dotnetExe = Join-Path $cliDir "dotnet.exe"
     if (-not (Test-Path $dotnetExe)) { 
         Write-Host "Downloading CLI $sdkVersion"
         Create-Directory $cliDir
