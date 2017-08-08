@@ -471,7 +471,7 @@
 
     <Error 
       Text="The 2.0 SDK is required to build this repo"
-      Condition="'$(UsingMicrosoftNETSdk)' == ''" />
+      Condition="'$(UsingMicrosoftNETSdk)' == '' AND '$(RoslynSdkProject)' == 'true'" />
   </Target> 
 
   <!-- Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
