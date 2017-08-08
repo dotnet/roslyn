@@ -26,16 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 return _dataCache.Keys.ToImmutableArrayOrEmpty();
             }
 
-            public ImmutableArray<TodoItem> GetItems_TestingOnly(DocumentId documentId)
-            {
-                if (this._dataCache.TryGetValue(documentId, out var entry) && entry.HasCachedData)
-                {
-                    return entry.Data.Items;
-                }
-
-                return ImmutableArray<TodoItem>.Empty;
-            }
-
             public async Task<Data> TryGetExistingDataAsync(Document document, CancellationToken cancellationToken)
             {
                 if (!_dataCache.TryGetValue(document.Id, out var entry))
@@ -52,13 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
                 try
                 {
-                    var storage = entry.Storage;
-                    if (storage == null)
-                    {
-                        return default;
-                    }
-
-                    using (var stream = await storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false))
+                    using (var stream = await entry.Storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false))
                     {
                         return TryGetExistingData(stream, document, cancellationToken);
                     }
