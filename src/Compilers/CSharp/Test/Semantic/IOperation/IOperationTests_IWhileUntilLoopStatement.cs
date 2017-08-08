@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -283,7 +283,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while ((i = ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '(i = value) >= 0')
       Left: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = value')
@@ -300,12 +300,14 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                   InConversion: null
                   OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument) (Syntax: 'i')
-                  IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'i')
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'i')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
                   InConversion: null
                   OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument) (Syntax: 'value')
-                  IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'value')
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'value')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
                   InConversion: null
                   OutConversion: null
@@ -332,9 +334,10 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'while (numb ... }')
-  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'number')
+  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'number')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILocalReferenceExpression: number (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'number')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
@@ -366,7 +369,8 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+
+string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (true ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -383,6 +387,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'number++;')
         Expression: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'number++')
             Left: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
+
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -458,9 +463,10 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'while () ... }')
-  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
+  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
           Children(0)
   Body: IBlockStatement (2 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -501,12 +507,13 @@ class ContinueTest
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while(i <=  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i <= 10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -880,10 +887,11 @@ public class TryCatchFinally
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (x--  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x-- > 0')
-      Left: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'x--')
+      Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'x--')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: IIncrementExpression (UnaryOperandKind.IntegerPostfixDecrement) (OperationKind.IncrementExpression, Type: System.SByte) (Syntax: 'x--')
               Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.SByte) (Syntax: 'x')
       Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -893,9 +901,11 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y = (sbyte)(x / 2);')
               Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.SByte) (Syntax: 'y = (sbyte)(x / 2)')
                   Left: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.SByte) (Syntax: 'y')
-                  Right: IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: System.SByte) (Syntax: '(sbyte)(x / 2)')
+                  Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte) (Syntax: '(sbyte)(x / 2)')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: IBinaryOperatorExpression (BinaryOperationKind.IntegerDivide) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x / 2')
-                          Left: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'x')
+                          Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'x')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.SByte) (Syntax: 'x')
                           Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         Catch clauses(0)
@@ -939,7 +949,7 @@ public class X
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (Dumm ... }')
   Condition: IInvocationExpression (System.Boolean X.Dummy(System.Boolean x, System.Object y, System.Object z)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'Dummy(f, Ta ... ar x1), x1)')
       Instance Receiver: null
@@ -949,7 +959,8 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             InConversion: null
             OutConversion: null
           IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'TakeOutPara ... out var x1)')
-            IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'TakeOutPara ... out var x1)')
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'TakeOutPara ... out var x1)')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: IInvocationExpression (System.Boolean X.TakeOutParam<System.Int32>(System.Int32 y, out System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'TakeOutPara ... out var x1)')
                   Instance Receiver: null
                   Arguments(2):
@@ -967,7 +978,8 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             InConversion: null
             OutConversion: null
           IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'x1')
-            IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'x1')
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'x1')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: ILocalReferenceExpression: x1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x1')
             InConversion: null
             OutConversion: null

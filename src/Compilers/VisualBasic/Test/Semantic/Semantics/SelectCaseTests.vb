@@ -581,14 +581,17 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+  Switch expression: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case Functi ... e("Failed")')
           Clauses:
               ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.Invalid) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause) (Syntax: 'Function() 5')
-                Value: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Function() 5')
-                    Operand: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: Function <generated method>() As System.Int32) (Syntax: 'Function() 5')
+                Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Function() 5')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Function <generated method>() As System.Int32) (Syntax: 'Function() 5')
+                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: ILambdaExpression (Signature: Function () As System.Int32) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function() 5')
                             IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() 5')
                               Locals: Local_1: <anonymous local> As System.Int32
@@ -639,7 +642,7 @@ Class C
         Dim day2 = day
         Select Case day 'BIND:"day"
             Case DayOfWeek.A
-            Case 
+            Case
         End Select
     End Sub
     Enum DayOfWeek

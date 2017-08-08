@@ -116,7 +116,8 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '.Property2 = 1')
                     Left: IPropertyReferenceExpression: Property F.Property2 As B (OperationKind.PropertyReferenceExpression, Type: B) (Syntax: 'Property2')
                         Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New F() Wit ... perty2 = 1}')
-                    Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: B, IsInvalid) (Syntax: '1')
+                    Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B, IsInvalid) (Syntax: '1')
+                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim e2 = Ne ... ) From {""}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'e2')
@@ -207,7 +208,8 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.Collections.Generic.List(Of System.Int32)).Add(item As System.Collections.Generic.List(Of System.Int32))) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '{x, y}.ToList')
             Arguments(1):
                 IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).ToList() As System.Collections.Generic.List(Of System.Int32)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.List(Of System.Int32)) (Syntax: '{x, y}.ToList')
-                  Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: '{x, y}')
+                  Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: '{x, y}')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: '{x, y}')
                           Dimension Sizes(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '{x, y}')

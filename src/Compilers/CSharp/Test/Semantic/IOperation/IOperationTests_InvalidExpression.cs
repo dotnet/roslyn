@@ -174,7 +174,8 @@ class Program
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'string y /* ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'string y /* ... *</bind>*/;')
     Variables: Local_1: System.String y
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: 'x.i1')
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: 'x.i1')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
             Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
 ";
@@ -215,7 +216,8 @@ class Program
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Program y / ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Program y / ... *</bind>*/;')
     Variables: Local_1: Program y
-    Initializer: IConversionExpression (ConversionKind.Invalid, Explicit) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: '(Program)x.i1')
+    Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: '(Program)x.i1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
             Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
 ";
@@ -392,7 +394,8 @@ class Program
 ";
             string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 Program.x) (OperationKind.FieldInitializer, IsInvalid) (Syntax: '= Program')
-  IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
+  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
+    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid) (Syntax: 'Program')
         Children(1):
             IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
@@ -427,14 +430,17 @@ IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Synt
   Element Values(2):
       IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ { 1, 1 } }')
         Element Values(1):
-            IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '{ 1, 1 }')
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '{ 1, 1 }')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '{ 1, 1 }')
                   Children(1):
                       IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ 1, 1 }')
                         Element Values(2):
-                            IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '1')
+                            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '1')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-                            IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '1')
+                            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '1')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
       IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{ 2, 2 }')
         Element Values(2):
@@ -474,12 +480,14 @@ IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpressio
             IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
   Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ { 1 } }')
       Element Values(1):
-          IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: X, IsInvalid) (Syntax: '{ 1 }')
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: X, IsInvalid) (Syntax: '{ 1 }')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '{ 1 }')
                 Children(1):
                     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ 1 }')
                       Element Values(1):
-                          IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '1')
+                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '1')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

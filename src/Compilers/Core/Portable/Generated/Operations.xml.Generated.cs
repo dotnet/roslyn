@@ -1208,32 +1208,21 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseConversionExpression : Operation, IHasOperatorMethodExpression, IConversionExpression
     {
-        protected BaseConversionExpression(ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseConversionExpression(bool isExplicitInCode, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ConversionExpression, semanticModel, syntax, type, constantValue)
         {
-            ConversionKind = conversionKind;
-            IsExplicit = isExplicit;
-            UsesOperatorMethod = usesOperatorMethod;
-            OperatorMethod = operatorMethod;
+            IsExplicitInCode = isExplicitInCode;
+            IsTryCast = isTryCast;
+            IsChecked = isChecked;
         }
 
-        protected abstract IOperation OperandImpl { get; }
-        /// <summary>
-        /// Kind of conversion.
-        /// </summary>
-        public ConversionKind ConversionKind { get; }
-        /// <summary>
-        /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
-        /// </summary>
-        public bool IsExplicit { get; }
-        /// <summary>
-        /// True if and only if the operation is performed by an operator method.
-        /// </summary>
-        public bool UsesOperatorMethod { get; }
-        /// <summary>
-        /// Operation method used by the operation, null if the operation does not use an operator method.
-        /// </summary>
-        public IMethodSymbol OperatorMethod { get; }
+        public abstract IOperation OperandImpl { get; }
+        public abstract CommonConversion Conversion { get; }
+        public bool IsExplicitInCode { get; }
+        public bool IsTryCast { get; }
+        public bool IsChecked { get; }
+        public bool UsesOperatorMethod => Conversion.IsUserDefined;
+        public IMethodSymbol OperatorMethod => Conversion.MethodSymbol;
         public override IEnumerable<IOperation> Children
         {
             get
@@ -1253,35 +1242,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitConversionExpression(this, argument);
         }
-    }
-
-    /// <summary>
-    /// Represents a conversion operation.
-    /// </summary>
-    internal sealed partial class ConversionExpression : BaseConversionExpression, IHasOperatorMethodExpression, IConversionExpression
-    {
-        public ConversionExpression(IOperation operand, ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(conversionKind, isExplicit, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
-        {
-            OperandImpl = operand;
-        }
-
-        protected override IOperation OperandImpl { get; }
-    }
-
-    /// <summary>
-    /// Represents a conversion operation.
-    /// </summary>
-    internal sealed partial class LazyConversionExpression : BaseConversionExpression, IHasOperatorMethodExpression, IConversionExpression
-    {
-        private readonly Lazy<IOperation> _lazyOperand;
-
-        public LazyConversionExpression(Lazy<IOperation> operand, ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(conversionKind, isExplicit, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
-        {
-            _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
-        }
-
-        protected override IOperation OperandImpl => _lazyOperand.Value;
     }
 
     /// <remarks>

@@ -139,7 +139,8 @@ class C
 ";
             string expectedOperationTree = @"
 IParameterInitializer (Parameter: params System.Int32[] p2) (OperationKind.ParameterInitializer) (Syntax: '= null')
-  IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null) (Syntax: 'null')
+  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null) (Syntax: 'null')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
     Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

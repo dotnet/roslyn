@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -57,7 +57,8 @@ IInvocationExpression ( Sub Program.F(x As System.Int32)) (OperationKind.Invocat
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'F')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'String.Empty')
-        IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'String.Empty')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'String.Empty')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: IFieldReferenceExpression: System.String.Empty As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'String.Empty')
               Instance Receiver: null
         InConversion: null
@@ -148,7 +149,8 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: 'x.i1')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: 'x.i1')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IFieldReferenceExpression: Program.i1 As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
       Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
 ]]>.Value
@@ -177,11 +179,11 @@ Class Program
     End Sub
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: 'DirectCast( ... 1, Program)')
+Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: 'DirectCast( ... 1, Program)')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IFieldReferenceExpression: Program.i1 As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
-      Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
-]]>.Value
+      Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC30311: Value of type 'Integer' cannot be converted to 'Program'.
@@ -273,8 +275,9 @@ Class Program
     End Sub
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: Function <generated method>() As ?, IsInvalid) (Syntax: 'Function() F()')
+Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Function <generated method>() As ?, IsInvalid) (Syntax: 'Function() F()')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: ILambdaExpression (Signature: Function () As ?) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Function() F()')
       IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function() F()')
         Locals: Local_1: <anonymous local> As ?
@@ -287,8 +290,7 @@ IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.Conversi
         ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'Function() F()')
           LabeledStatement: null
         IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function() F()')
-          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: ?, IsInvalid) (Syntax: 'Function() F()')
-]]>.Value
+          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: ?, IsInvalid) (Syntax: 'Function() F()')]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC30491: Expression does not produce a value.
@@ -318,7 +320,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializer (Field: Program.x As System.Int32) (OperationKind.FieldInitializer, IsInvalid) (Syntax: '= Program')
-  IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
+  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
+    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
 ]]>.Value
 
@@ -375,7 +378,8 @@ End Class]]>.Value
 IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpression, Type: X(), IsInvalid) (Syntax: 'New X(Program - 1) {{1}}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program - 1')
-        Left: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program - 1')
+        Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program - 1')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'Program - 1')
                 Left: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
                 Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
