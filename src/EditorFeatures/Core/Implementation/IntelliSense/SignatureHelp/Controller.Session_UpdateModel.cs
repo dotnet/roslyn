@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         return true;
                     }
 
-                    // Also, we special case 0.  that's because if the user has "Foo(" and foo takes no
+                    // Also, we special case 0.  that's because if the user has "Goo(" and goo takes no
                     // arguments, then we'll see that it's arg count is 0.  We still want to consider
                     // any item applicable here though.
                     return argumentCount == 0;

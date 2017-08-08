@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     class C
     {
         public C() { }
-        public void Foo()
+        public void Goo()
         {
             var x = new B();
             x.Run();

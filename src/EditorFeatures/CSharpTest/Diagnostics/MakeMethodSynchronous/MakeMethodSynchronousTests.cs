@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    async Task [|Foo|]()
+    async Task [|Goo|]()
     {
     }
 }",
@@ -33,7 +33,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 }",
@@ -49,7 +49,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    async Task<int> [|Foo|]()
+    async Task<int> [|Goo|]()
     {
     }
 }",
@@ -58,7 +58,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    int Foo()
+    int Goo()
     {
     }
 }",
@@ -74,7 +74,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    public async Task [|Foo|]()
+    public async Task [|Goo|]()
     {
     }
 }",
@@ -83,7 +83,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }",
@@ -99,7 +99,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    async public Task [|Foo|]()
+    async public Task [|Goo|]()
     {
     }
 }",
@@ -108,7 +108,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }",
@@ -125,7 +125,7 @@ using System.Threading.Tasks;
 class C
 {
     async // comment
-    Task [|Foo|]()
+    Task [|Goo|]()
     {
     }
 }",
@@ -134,7 +134,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 }",
@@ -150,7 +150,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 }",
@@ -159,7 +159,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 }",
@@ -175,13 +175,13 @@ using System.Threading.Tasks;
 
 class C
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     void Bar()
     {
-        FooAsync();
+        GooAsync();
     }
 }",
 @"
@@ -189,13 +189,13 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 
     void Bar()
     {
-        Foo();
+        Goo();
     }
 }",
 ignoreTrivia: false);
@@ -210,7 +210,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
             async () [|=>|] { };
@@ -221,7 +221,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
             () => { };
@@ -239,7 +239,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
             async a [|=>|] { };
@@ -250,7 +250,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
             a => { };
@@ -268,7 +268,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
             async a [|=>|] 1;
@@ -279,7 +279,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
             a => 1;
@@ -297,7 +297,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
             async [|delegate|] { };
@@ -308,7 +308,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
             delegate { };
@@ -325,28 +325,28 @@ ignoreTrivia: false);
 
 public class Class1
 {
-    {|FixAllInDocument:async Task FooAsync()
+    {|FixAllInDocument:async Task GooAsync()
     {
         BarAsync();
     }
 
     async Task<int> BarAsync()
     {
-        FooAsync();
+        GooAsync();
     }|}
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
         Bar();
     }
 
     int Bar()
     {
-        Foo();
+        Goo();
     }
 }", ignoreTrivia: false, fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
         }
@@ -360,26 +360,26 @@ public class Class1
 
 public class Class1
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     async void BarAsync()
     {
-        await FooAsync();
+        await GooAsync();
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
     }
 
     async void BarAsync()
     {
-        Foo();
+        Goo();
     }
 }", ignoreTrivia: false);
         }
@@ -393,26 +393,26 @@ public class Class1
 
 public class Class1
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     async void BarAsync()
     {
-        await FooAsync().ConfigureAwait(false);
+        await GooAsync().ConfigureAwait(false);
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
     }
 
     async void BarAsync()
     {
-        Foo();
+        Goo();
     }
 }", ignoreTrivia: false);
         }
@@ -426,26 +426,26 @@ public class Class1
 
 public class Class1
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     async void BarAsync()
     {
-        await this.FooAsync();
+        await this.GooAsync();
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
     }
 
     async void BarAsync()
     {
-        this.Foo();
+        this.Goo();
     }
 }", ignoreTrivia: false);
         }
@@ -459,26 +459,26 @@ public class Class1
 
 public class Class1
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     async void BarAsync()
     {
-        await this.FooAsync().ConfigureAwait(false);
+        await this.GooAsync().ConfigureAwait(false);
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
     }
 
     async void BarAsync()
     {
-        this.Foo();
+        this.Goo();
     }
 }", ignoreTrivia: false);
         }
@@ -492,26 +492,26 @@ public class Class1
 
 public class Class1
 {
-    async Task<int> [|FooAsync|](int i)
+    async Task<int> [|GooAsync|](int i)
     {
     }
 
     async void BarAsync()
     {
-        await this.FooAsync(await this.FooAsync(0));
+        await this.GooAsync(await this.GooAsync(0));
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    int Foo(int i)
+    int Goo(int i)
     {
     }
 
     async void BarAsync()
     {
-        this.Foo(this.Foo(0));
+        this.Goo(this.Goo(0));
     }
 }", ignoreTrivia: false);
         }
@@ -525,26 +525,26 @@ public class Class1
 
 public class Class1
 {
-    async Task<int> [|FooAsync|](int i)
+    async Task<int> [|GooAsync|](int i)
     {
     }
 
     async void BarAsync()
     {
-        await this.FooAsync(await this.FooAsync(0).ConfigureAwait(false)).ConfigureAwait(false);
+        await this.GooAsync(await this.GooAsync(0).ConfigureAwait(false)).ConfigureAwait(false);
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    int Foo(int i)
+    int Goo(int i)
     {
     }
 
     async void BarAsync()
     {
-        this.Foo(this.Foo(0));
+        this.Goo(this.Goo(0));
     }
 }", ignoreTrivia: false);
         }

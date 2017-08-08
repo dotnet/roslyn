@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
-            // foo?[$$]
+            // goo?[$$]
             if (expressionSymbol is INamedTypeSymbol namedType)
             {
                 if (namedType.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T &&
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         /// Error tolerance case for
-        ///     "foo[$$]" or "foo?[$$]"
+        ///     "goo[$$]" or "goo?[$$]"
         /// which is parsed as an ArrayTypeSyntax variable declaration instead of an ElementAccessExpression  
         private static class IncompleteElementAccessExpression
         {

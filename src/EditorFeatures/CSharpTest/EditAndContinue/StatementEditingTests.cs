@@ -912,41 +912,41 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Using1()
         {
-            string src1 = @"using (a) { using (b) { Foo(); } }";
-            string src2 = @"using (a) { using (c) { using (b) { Foo(); } } }";
+            string src1 = @"using (a) { using (b) { Goo(); } }";
+            string src2 = @"using (a) { using (c) { using (b) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [using (c) { using (b) { Foo(); } }]@14",
-                "Insert [{ using (b) { Foo(); } }]@24",
-                "Move [using (b) { Foo(); }]@14 -> @26");
+                "Insert [using (c) { using (b) { Goo(); } }]@14",
+                "Insert [{ using (b) { Goo(); } }]@24",
+                "Move [using (b) { Goo(); }]@14 -> @26");
         }
 
         [Fact]
         public void Using_DeleteHeader()
         {
-            string src1 = @"using (a) { Foo(); }";
-            string src2 = @"{ Foo(); }";
+            string src1 = @"using (a) { Goo(); }";
+            string src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Move [{ Foo(); }]@12 -> @2",
-                "Delete [using (a) { Foo(); }]@2");
+                "Move [{ Goo(); }]@12 -> @2",
+                "Delete [using (a) { Goo(); }]@2");
         }
 
         [Fact]
         public void Using_InsertHeader()
         {
-            string src1 = @"{ Foo(); }";
-            string src2 = @"using (a) { Foo(); }";
+            string src1 = @"{ Goo(); }";
+            string src2 = @"using (a) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [using (a) { Foo(); }]@2",
-                "Move [{ Foo(); }]@2 -> @12");
+                "Insert [using (a) { Goo(); }]@2",
+                "Move [{ Goo(); }]@2 -> @12");
         }
 
         #endregion
@@ -956,41 +956,41 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Lock1()
         {
-            string src1 = @"lock (a) { lock (b) { Foo(); } }";
-            string src2 = @"lock (a) { lock (c) { lock (b) { Foo(); } } }";
+            string src1 = @"lock (a) { lock (b) { Goo(); } }";
+            string src2 = @"lock (a) { lock (c) { lock (b) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [lock (c) { lock (b) { Foo(); } }]@13",
-                "Insert [{ lock (b) { Foo(); } }]@22",
-                "Move [lock (b) { Foo(); }]@13 -> @24");
+                "Insert [lock (c) { lock (b) { Goo(); } }]@13",
+                "Insert [{ lock (b) { Goo(); } }]@22",
+                "Move [lock (b) { Goo(); }]@13 -> @24");
         }
 
         [Fact]
         public void Lock_DeleteHeader()
         {
-            string src1 = @"lock (a) { Foo(); }";
-            string src2 = @"{ Foo(); }";
+            string src1 = @"lock (a) { Goo(); }";
+            string src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Move [{ Foo(); }]@11 -> @2",
-                "Delete [lock (a) { Foo(); }]@2");
+                "Move [{ Goo(); }]@11 -> @2",
+                "Delete [lock (a) { Goo(); }]@2");
         }
 
         [Fact]
         public void Lock_InsertHeader()
         {
-            string src1 = @"{ Foo(); }";
-            string src2 = @"lock (a) { Foo(); }";
+            string src1 = @"{ Goo(); }";
+            string src2 = @"lock (a) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [lock (a) { Foo(); }]@2",
-                "Move [{ Foo(); }]@2 -> @11");
+                "Insert [lock (a) { Goo(); }]@2",
+                "Move [{ Goo(); }]@2 -> @11");
         }
 
         #endregion
@@ -1000,25 +1000,25 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void ForEach1()
         {
-            string src1 = @"foreach (var a in e) { foreach (var b in f) { Foo(); } }";
-            string src2 = @"foreach (var a in e) { foreach (var c in g) { foreach (var b in f) { Foo(); } } }";
+            string src1 = @"foreach (var a in e) { foreach (var b in f) { Goo(); } }";
+            string src2 = @"foreach (var a in e) { foreach (var c in g) { foreach (var b in f) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [foreach (var c in g) { foreach (var b in f) { Foo(); } }]@25",
-                "Insert [{ foreach (var b in f) { Foo(); } }]@46",
-                "Move [foreach (var b in f) { Foo(); }]@25 -> @48");
+                "Insert [foreach (var c in g) { foreach (var b in f) { Goo(); } }]@25",
+                "Insert [{ foreach (var b in f) { Goo(); } }]@46",
+                "Move [foreach (var b in f) { Goo(); }]@25 -> @48");
 
             var actual = ToMatchingPairs(edits.Match);
 
             var expected = new MatchingPairs
             {
-                { "foreach (var a in e) { foreach (var b in f) { Foo(); } }", "foreach (var a in e) { foreach (var c in g) { foreach (var b in f) { Foo(); } } }" },
-                { "{ foreach (var b in f) { Foo(); } }", "{ foreach (var c in g) { foreach (var b in f) { Foo(); } } }" },
-                { "foreach (var b in f) { Foo(); }", "foreach (var b in f) { Foo(); }" },
-                { "{ Foo(); }", "{ Foo(); }" },
-                { "Foo();", "Foo();" }
+                { "foreach (var a in e) { foreach (var b in f) { Goo(); } }", "foreach (var a in e) { foreach (var c in g) { foreach (var b in f) { Goo(); } } }" },
+                { "{ foreach (var b in f) { Goo(); } }", "{ foreach (var c in g) { foreach (var b in f) { Goo(); } } }" },
+                { "foreach (var b in f) { Goo(); }", "foreach (var b in f) { Goo(); }" },
+                { "{ Goo(); }", "{ Goo(); }" },
+                { "Goo();", "Goo();" }
             };
 
             expected.AssertEqual(actual);
@@ -1027,25 +1027,25 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void ForEach_Swap1()
         {
-            string src1 = @"foreach (var a in e) { foreach (var b in f) { Foo(); } }";
-            string src2 = @"foreach (var b in f) { foreach (var a in e) { Foo(); } }";
+            string src1 = @"foreach (var a in e) { foreach (var b in f) { Goo(); } }";
+            string src2 = @"foreach (var b in f) { foreach (var a in e) { Goo(); } }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Move [foreach (var b in f) { Foo(); }]@25 -> @2",
-                "Move [foreach (var a in e) { foreach (var b in f) { Foo(); } }]@2 -> @25",
-                "Move [Foo();]@48 -> @48");
+                "Move [foreach (var b in f) { Goo(); }]@25 -> @2",
+                "Move [foreach (var a in e) { foreach (var b in f) { Goo(); } }]@2 -> @25",
+                "Move [Goo();]@48 -> @48");
 
             var actual = ToMatchingPairs(edits.Match);
 
             var expected = new MatchingPairs
             {
-                { "foreach (var a in e) { foreach (var b in f) { Foo(); } }", "foreach (var a in e) { Foo(); }" },
-                { "{ foreach (var b in f) { Foo(); } }", "{ Foo(); }" },
-                { "foreach (var b in f) { Foo(); }", "foreach (var b in f) { foreach (var a in e) { Foo(); } }" },
-                { "{ Foo(); }", "{ foreach (var a in e) { Foo(); } }" },
-                { "Foo();", "Foo();" }
+                { "foreach (var a in e) { foreach (var b in f) { Goo(); } }", "foreach (var a in e) { Goo(); }" },
+                { "{ foreach (var b in f) { Goo(); } }", "{ Goo(); }" },
+                { "foreach (var b in f) { Goo(); }", "foreach (var b in f) { foreach (var a in e) { Goo(); } }" },
+                { "{ Goo(); }", "{ foreach (var a in e) { Goo(); } }" },
+                { "Goo();", "Goo();" }
             };
 
             expected.AssertEqual(actual);
@@ -1054,27 +1054,27 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
         [Fact]
         public void Foreach_DeleteHeader()
         {
-            string src1 = @"foreach (var a in b) { Foo(); }";
-            string src2 = @"{ Foo(); }";
+            string src1 = @"foreach (var a in b) { Goo(); }";
+            string src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Move [{ Foo(); }]@23 -> @2",
-                "Delete [foreach (var a in b) { Foo(); }]@2");
+                "Move [{ Goo(); }]@23 -> @2",
+                "Delete [foreach (var a in b) { Goo(); }]@2");
         }
 
         [Fact]
         public void Foreach_InsertHeader()
         {
-            string src1 = @"{ Foo(); }";
-            string src2 = @"foreach (var a in b) { Foo(); }";
+            string src1 = @"{ Goo(); }";
+            string src2 = @"foreach (var a in b) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [foreach (var a in b) { Foo(); }]@2",
-                "Move [{ Foo(); }]@2 -> @23");
+                "Insert [foreach (var a in b) { Goo(); }]@2",
+                "Move [{ Goo(); }]@2 -> @23");
         }
 
         [Fact]
@@ -1212,32 +1212,32 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For1()
         {
-            string src1 = @"for (int a = 0; a < 10; a++) { for (int a = 0; a < 20; a++) { Foo(); } }";
-            string src2 = @"for (int a = 0; a < 10; a++) { for (int b = 0; b < 10; b++) { for (int a = 0; a < 20; a++) { Foo(); } } }";
+            string src1 = @"for (int a = 0; a < 10; a++) { for (int a = 0; a < 20; a++) { Goo(); } }";
+            string src2 = @"for (int a = 0; a < 10; a++) { for (int b = 0; b < 10; b++) { for (int a = 0; a < 20; a++) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [for (int b = 0; b < 10; b++) { for (int a = 0; a < 20; a++) { Foo(); } }]@33",
+                "Insert [for (int b = 0; b < 10; b++) { for (int a = 0; a < 20; a++) { Goo(); } }]@33",
                 "Insert [int b = 0]@38",
                 "Insert [b < 10]@49",
                 "Insert [b++]@57",
-                "Insert [{ for (int a = 0; a < 20; a++) { Foo(); } }]@62",
+                "Insert [{ for (int a = 0; a < 20; a++) { Goo(); } }]@62",
                 "Insert [b = 0]@42",
-                "Move [for (int a = 0; a < 20; a++) { Foo(); }]@33 -> @64");
+                "Move [for (int a = 0; a < 20; a++) { Goo(); }]@33 -> @64");
         }
 
         [Fact]
         public void For_DeleteHeader()
         {
-            string src1 = @"for (int i = 10, j = 0; i > j; i--, j++) { Foo(); }";
-            string src2 = @"{ Foo(); }";
+            string src1 = @"for (int i = 10, j = 0; i > j; i--, j++) { Goo(); }";
+            string src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Move [{ Foo(); }]@43 -> @2",
-                "Delete [for (int i = 10, j = 0; i > j; i--, j++) { Foo(); }]@2",
+                "Move [{ Goo(); }]@43 -> @2",
+                "Delete [for (int i = 10, j = 0; i > j; i--, j++) { Goo(); }]@2",
                 "Delete [int i = 10, j = 0]@7",
                 "Delete [i = 10]@11",
                 "Delete [j = 0]@19",
@@ -1249,18 +1249,18 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void For_InsertHeader()
         {
-            string src1 = @"{ Foo(); }";
-            string src2 = @"for (int i = 10, j = 0; i > j; i--, j++) { Foo(); }";
+            string src1 = @"{ Goo(); }";
+            string src2 = @"for (int i = 10, j = 0; i > j; i--, j++) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [for (int i = 10, j = 0; i > j; i--, j++) { Foo(); }]@2",
+                "Insert [for (int i = 10, j = 0; i > j; i--, j++) { Goo(); }]@2",
                 "Insert [int i = 10, j = 0]@7",
                 "Insert [i > j]@26",
                 "Insert [i--]@33",
                 "Insert [j++]@38",
-                "Move [{ Foo(); }]@2 -> @43",
+                "Move [{ Goo(); }]@2 -> @43",
                 "Insert [i = 10]@11",
                 "Insert [j = 0]@19");
         }
@@ -1471,41 +1471,41 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void While1()
         {
-            string src1 = @"while (a) { while (b) { Foo(); } }";
-            string src2 = @"while (a) { while (c) { while (b) { Foo(); } } }";
+            string src1 = @"while (a) { while (b) { Goo(); } }";
+            string src2 = @"while (a) { while (c) { while (b) { Goo(); } } }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [while (c) { while (b) { Foo(); } }]@14",
-                "Insert [{ while (b) { Foo(); } }]@24",
-                "Move [while (b) { Foo(); }]@14 -> @26");
+                "Insert [while (c) { while (b) { Goo(); } }]@14",
+                "Insert [{ while (b) { Goo(); } }]@24",
+                "Move [while (b) { Goo(); }]@14 -> @26");
         }
 
         [Fact]
         public void While_DeleteHeader()
         {
-            string src1 = @"while (a) { Foo(); }";
-            string src2 = @"{ Foo(); }";
+            string src1 = @"while (a) { Goo(); }";
+            string src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Move [{ Foo(); }]@12 -> @2",
-                "Delete [while (a) { Foo(); }]@2");
+                "Move [{ Goo(); }]@12 -> @2",
+                "Delete [while (a) { Goo(); }]@2");
         }
 
         [Fact]
         public void While_InsertHeader()
         {
-            string src1 = @"{ Foo(); }";
-            string src2 = @"while (a) { Foo(); }";
+            string src1 = @"{ Goo(); }";
+            string src2 = @"while (a) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [while (a) { Foo(); }]@2",
-                "Move [{ Foo(); }]@2 -> @12");
+                "Insert [while (a) { Goo(); }]@2",
+                "Move [{ Goo(); }]@2 -> @12");
         }
 
         #endregion
@@ -1515,41 +1515,41 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void Do1()
         {
-            string src1 = @"do { do { Foo(); } while (b); } while (a);";
-            string src2 = @"do { do { do { Foo(); } while(b); } while(c); } while(a);";
+            string src1 = @"do { do { Goo(); } while (b); } while (a);";
+            string src2 = @"do { do { do { Goo(); } while(b); } while(c); } while(a);";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [do { do { Foo(); } while(b); } while(c);]@7",
-                "Insert [{ do { Foo(); } while(b); }]@10",
-                "Move [do { Foo(); } while (b);]@7 -> @12");
+                "Insert [do { do { Goo(); } while(b); } while(c);]@7",
+                "Insert [{ do { Goo(); } while(b); }]@10",
+                "Move [do { Goo(); } while (b);]@7 -> @12");
         }
 
         [Fact]
         public void Do_DeleteHeader()
         {
-            string src1 = @"do { Foo(); } while (a);";
-            string src2 = @"{ Foo(); }";
+            string src1 = @"do { Goo(); } while (a);";
+            string src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Move [{ Foo(); }]@5 -> @2",
-                "Delete [do { Foo(); } while (a);]@2");
+                "Move [{ Goo(); }]@5 -> @2",
+                "Delete [do { Goo(); } while (a);]@2");
         }
 
         [Fact]
         public void Do_InsertHeader()
         {
-            string src1 = @"{ Foo(); }";
-            string src2 = @"do { Foo(); } while (a);";
+            string src1 = @"{ Goo(); }";
+            string src2 = @"do { Goo(); } while (a);";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [do { Foo(); } while (a);]@2",
-                "Move [{ Foo(); }]@2 -> @5");
+                "Insert [do { Goo(); } while (a);]@2",
+                "Move [{ Goo(); }]@2 -> @5");
         }
 
         #endregion
@@ -1597,94 +1597,94 @@ foreach (var (a, b) in e1) { }
         [Fact]
         public void If1()
         {
-            string src1 = @"if (a) if (b) Foo();";
-            string src2 = @"if (a) if (c) if (b) Foo();";
+            string src1 = @"if (a) if (b) Goo();";
+            string src2 = @"if (a) if (c) if (b) Goo();";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [if (c) if (b) Foo();]@9",
-                "Move [if (b) Foo();]@9 -> @16");
+                "Insert [if (c) if (b) Goo();]@9",
+                "Move [if (b) Goo();]@9 -> @16");
         }
 
         [Fact]
         public void If_DeleteHeader()
         {
-            string src1 = @"if (a) { Foo(); }";
-            string src2 = @"{ Foo(); }";
+            string src1 = @"if (a) { Goo(); }";
+            string src2 = @"{ Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Move [{ Foo(); }]@9 -> @2",
-                "Delete [if (a) { Foo(); }]@2");
+                "Move [{ Goo(); }]@9 -> @2",
+                "Delete [if (a) { Goo(); }]@2");
         }
 
         [Fact]
         public void If_InsertHeader()
         {
-            string src1 = @"{ Foo(); }";
-            string src2 = @"if (a) { Foo(); }";
+            string src1 = @"{ Goo(); }";
+            string src2 = @"if (a) { Goo(); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [if (a) { Foo(); }]@2",
-                "Move [{ Foo(); }]@2 -> @9");
+                "Insert [if (a) { Goo(); }]@2",
+                "Move [{ Goo(); }]@2 -> @9");
         }
 
         [Fact]
         public void Else_DeleteHeader()
         {
-            string src1 = @"if (a) { Foo(/*1*/); } else { Foo(/*2*/); }";
-            string src2 = @"if (a) { Foo(/*1*/); } { Foo(/*2*/); }";
+            string src1 = @"if (a) { Goo(/*1*/); } else { Goo(/*2*/); }";
+            string src2 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Move [{ Foo(/*2*/); }]@30 -> @25",
-                "Delete [else { Foo(/*2*/); }]@25");
+                "Move [{ Goo(/*2*/); }]@30 -> @25",
+                "Delete [else { Goo(/*2*/); }]@25");
         }
 
         [Fact]
         public void Else_InsertHeader()
         {
-            string src1 = @"if (a) { Foo(/*1*/); } { Foo(/*2*/); }";
-            string src2 = @"if (a) { Foo(/*1*/); } else { Foo(/*2*/); }";
+            string src1 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
+            string src2 = @"if (a) { Goo(/*1*/); } else { Goo(/*2*/); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [else { Foo(/*2*/); }]@25",
-                "Move [{ Foo(/*2*/); }]@25 -> @30");
+                "Insert [else { Goo(/*2*/); }]@25",
+                "Move [{ Goo(/*2*/); }]@25 -> @30");
         }
 
         [Fact]
         public void ElseIf_DeleteHeader()
         {
-            string src1 = @"if (a) { Foo(/*1*/); } else if (b) { Foo(/*2*/); }";
-            string src2 = @"if (a) { Foo(/*1*/); } { Foo(/*2*/); }";
+            string src1 = @"if (a) { Goo(/*1*/); } else if (b) { Goo(/*2*/); }";
+            string src2 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Move [{ Foo(/*2*/); }]@37 -> @25",
-                "Delete [else if (b) { Foo(/*2*/); }]@25",
-                "Delete [if (b) { Foo(/*2*/); }]@30");
+                "Move [{ Goo(/*2*/); }]@37 -> @25",
+                "Delete [else if (b) { Goo(/*2*/); }]@25",
+                "Delete [if (b) { Goo(/*2*/); }]@30");
         }
 
         [Fact]
         public void ElseIf_InsertHeader()
         {
-            string src1 = @"if (a) { Foo(/*1*/); } { Foo(/*2*/); }";
-            string src2 = @"if (a) { Foo(/*1*/); } else if (b) { Foo(/*2*/); }";
+            string src1 = @"if (a) { Goo(/*1*/); } { Goo(/*2*/); }";
+            string src2 = @"if (a) { Goo(/*1*/); } else if (b) { Goo(/*2*/); }";
 
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [else if (b) { Foo(/*2*/); }]@25",
-                "Insert [if (b) { Foo(/*2*/); }]@30",
-                "Move [{ Foo(/*2*/); }]@25 -> @37");
+                "Insert [else if (b) { Goo(/*2*/); }]@25",
+                "Insert [if (b) { Goo(/*2*/); }]@30",
+                "Move [{ Goo(/*2*/); }]@25 -> @37");
         }
 
         [Fact]

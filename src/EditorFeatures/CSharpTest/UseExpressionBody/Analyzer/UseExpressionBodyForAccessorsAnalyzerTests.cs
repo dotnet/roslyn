@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get => Bar();
     }
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo => Bar();
+    int Goo => Bar();
 }", parameters: new TestParameters(options: UseExpressionBodyIncludingPropertiesAndIndexers));
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         set
         {
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         set => [|Bar|]();
         }
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         set => [|Bar|]();
     }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get => throw new NotImplementedException();
         }
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get => throw new NotImplementedException(); // comment
     }
@@ -213,14 +213,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get [|=>|] Bar();
     }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -236,14 +236,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         set [|=>|] Bar();
         }
     }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         set
         {
@@ -259,14 +259,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get [|=>|] throw new NotImplementedException();
         }
     }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -282,14 +282,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get [|=>|] throw new NotImplementedException(); // comment
     }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -306,11 +306,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo { get [|=>|] Bar(); }
+    int Goo { get [|=>|] Bar(); }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -327,11 +327,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo { get {|FixAllInDocument:=>|} Bar(); set => Bar(); }
+    int Goo { get {|FixAllInDocument:=>|} Bar(); set => Bar(); }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -355,13 +355,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 using System;
 class C
 {
-    int Foo { get [|=>|] throw new NotImplementedException(); }
+    int Goo { get [|=>|] throw new NotImplementedException(); }
 }",
 @"
 using System;
 class C
 {
-    int Foo 
+    int Goo 
     {
         get
         {
@@ -380,14 +380,14 @@ class C
 using System;
 class C
 {
-    int Foo { get {|FixAllInDocument:=>|} throw new NotImplementedException(); }
+    int Goo { get {|FixAllInDocument:=>|} throw new NotImplementedException(); }
     int Bar { get => throw new NotImplementedException(); }
 }",
 @"
 using System;
 class C
 {
-    int Foo 
+    int Goo 
     {
         get
         {

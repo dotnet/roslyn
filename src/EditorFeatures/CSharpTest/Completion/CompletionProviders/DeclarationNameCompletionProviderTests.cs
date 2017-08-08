@@ -126,13 +126,13 @@ public class C
         public async void WordBreaking4()
         {
             var markup = @"
-interface IFoo {}
+interface IGoo {}
 public class C
 {
-    IFoo $$
+    IGoo $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "Foo");
+            await VerifyItemExistsAsync(markup, "Goo");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -163,7 +163,7 @@ public class C
 using System.Threading;
 public class C
 {
-    void Foo(CancellationToken $$
+    void Goo(CancellationToken $$
 }
 ";
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
@@ -176,7 +176,7 @@ public class C
 using System.Threading;
 public class C
 {
-    void Foo(int x, CancellationToken c$$
+    void Goo(int x, CancellationToken c$$
 }
 ";
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
@@ -190,7 +190,7 @@ public class C
 using System.Threading;
 public class C
 {
-    void Foo(CancellationToken c$$) {}
+    void Goo(CancellationToken c$$) {}
 }
 ";
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
@@ -204,7 +204,7 @@ public class C
 using System.Text;
 public class C
 {
-    void Foo(StringBuilder $$) {}
+    void Goo(StringBuilder $$) {}
 }
 ";
             await VerifyItemExistsAsync(markup, "stringBuilder", glyph: (int) Glyph.Parameter);
@@ -220,7 +220,7 @@ public class C
 class For { }
 public class C
 {
-    void Foo(For $$) {}
+    void Goo(For $$) {}
 }
 ";
             await VerifyItemExistsAsync(markup, "@for", glyph: (int) Glyph.Parameter);
@@ -234,7 +234,7 @@ public class C
 class For { }
 public class C
 {
-    void foo()
+    void goo()
     {
         For $$
     }
@@ -251,7 +251,7 @@ public class C
 using System.Text;
 public class C
 {
-    void foo()
+    void goo()
     {
         StringBuilder $$
     }
@@ -499,7 +499,7 @@ public class C
             var markup = @"
 public class C
 {
-    void foo()
+    void goo()
     {
         var $$
     }
@@ -586,7 +586,7 @@ public class C
             var markup = @"
 class Test
 {
-    void Do(out Test foo)
+    void Do(out Test goo)
     {
         Do(out var $$
     }
@@ -602,7 +602,7 @@ class Test
             var markup = @"
 class Test
 {
-    void Do(out Test foo)
+    void Do(out Test goo)
     {
         Do(out Test $$
     }
@@ -618,7 +618,7 @@ class Test
             var markup = @"
 class Test
 {
-    void Do<T>(out T foo)
+    void Do<T>(out T goo)
     {
         Do(out Test $$
     }

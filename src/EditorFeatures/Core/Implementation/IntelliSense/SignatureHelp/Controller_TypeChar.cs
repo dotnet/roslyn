@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 if (textuallyTriggeredProviders.Any())
                 {
                     // The character typed was something like "(".  It can both filter a list if
-                    // it was in a string like: Foo(bar, "(
+                    // it was in a string like: Goo(bar, "(
                     //
                     // Or it can trigger a new list. Ask the computation to compute again.
                     sessionOpt.ComputeModel(

@@ -1592,7 +1592,7 @@ class Program
             Console.Write(x);
         }
         Label:
-        Action foo = Local;
+        Action goo = Local;
     }
     static void Main(string[] args)
     {
@@ -1604,7 +1604,7 @@ class Program
                 //         int x = 2;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(9, 9),
                 // (15,22): error CS0165: Use of unassigned local variable 'x'
-                //         Action foo = Local;
+                //         Action goo = Local;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "Local").WithArguments("x").WithLocation(15, 22)
     );
         }
@@ -2152,7 +2152,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        int Foo
+        int Goo
         {
             get
             {
@@ -2165,7 +2165,7 @@ class Program
 ";
             VerifyDiagnostics(source,
     // (6,16): error CS1002: ; expected
-    //         int Foo
+    //         int Goo
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 16),
     // (8,16): error CS1002: ; expected
     //             get
@@ -2188,9 +2188,9 @@ class Program
     // (13,9): warning CS0162: Unreachable code detected
     //         int Bar => 2;
     Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(13, 9),
-    // (6,13): warning CS0168: The variable 'Foo' is declared but never used
-    //         int Foo
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 13),
+    // (6,13): warning CS0168: The variable 'Goo' is declared but never used
+    //         int Goo
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Goo").WithArguments("Goo").WithLocation(6, 13),
     // (13,13): warning CS0168: The variable 'Bar' is declared but never used
     //         int Bar => 2;
     Diagnostic(ErrorCode.WRN_UnreferencedVar, "Bar").WithArguments("Bar").WithLocation(13, 13)

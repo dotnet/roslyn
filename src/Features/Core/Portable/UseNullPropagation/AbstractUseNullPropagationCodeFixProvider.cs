@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         // They're calling ".Value" off of a nullable.  Because we're moving to ?.
                         // we want to remove the .Value as well.  i.e. we should generate:
                         //
-                        //      foo?.Bar()  not   foo?.Value.Bar();
+                        //      goo?.Bar()  not   goo?.Value.Bar();
                         return CreateConditionalAccessExpression(
                             syntaxFacts, generator, whenPart, match,
                             memberAccess.Parent, currentConditional);

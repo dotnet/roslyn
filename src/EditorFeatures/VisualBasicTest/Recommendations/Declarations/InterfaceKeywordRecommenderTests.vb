@@ -143,7 +143,7 @@ End Interface
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InterfaceNotAfterPrivateInNamespaceTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Namespace Foo
+Namespace Goo
     Private |
 End Namespace</File>, "Interface")
         End Function

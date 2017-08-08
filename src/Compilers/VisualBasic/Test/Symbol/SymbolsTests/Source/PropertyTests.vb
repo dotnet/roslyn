@@ -3698,7 +3698,7 @@ Module Program
     Sub Main()
         Obj = New VBDefaultMembers()
         Obj(1) = 4
-        System.Console.WriteLine(Foo(1))
+        System.Console.WriteLine(Goo(1))
 
         Dim dd As DefaultDefaultMember = New DefaultDefaultMember
         dd.Item = Obj
@@ -3706,7 +3706,7 @@ Module Program
 
         ' bind-position
     End Sub
-    Function Foo() As VBDefaultMembers
+    Function Goo() As VBDefaultMembers
         Return Obj
     End Function 
     Function Bar() As Integer()
@@ -3736,10 +3736,10 @@ End Class
             Dim position = (source...<file>.Single().Value.IndexOf("' bind-position", StringComparison.Ordinal))
 
             Dim bindings = compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "a.vb"))
-            Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("Foo().Items(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)
-            Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("Foo.Items(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)
-            Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("Foo()(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)
-            Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("Foo(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)
+            Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("Goo().Items(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)
+            Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("Goo.Items(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)
+            Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("Goo()(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)
+            Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("Goo(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)
             Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("dd.Item(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)
             Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("Bar(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[
@@ -3804,23 +3804,23 @@ BC30057: Too many arguments to 'Private Function C() As Integer'.
 <compilation>
     <file name="a.vb">
 Class C1
-    Public Function Foo() As Integer()
+    Public Function Goo() As Integer()
         Return Nothing
     End Function
 
     Public Sub TST()
-        Dim a As Integer = Foo(Of Integer)(1)
+        Dim a As Integer = Goo(Of Integer)(1)
     End Sub
 End Class
 
 Class C2
-    Public Function Foo(Of T)() As Integer()
+    Public Function Goo(Of T)() As Integer()
         Return Nothing
     End Function
 
     Public Sub TST()
-        Dim a As Integer = Foo(1)
-        Call Foo(1)
+        Dim a As Integer = Goo(1)
+        Call Goo(1)
     End Sub
 End Class
     </file>
@@ -3829,21 +3829,21 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC32045: 'Public Function Foo() As Integer()' has no type parameters and so cannot have type arguments.
-        Dim a As Integer = Foo(Of Integer)(1)
+BC32045: 'Public Function Goo() As Integer()' has no type parameters and so cannot have type arguments.
+        Dim a As Integer = Goo(Of Integer)(1)
                               ~~~~~~~~~~~~
-BC30057: Too many arguments to 'Public Function Foo(Of T)() As Integer()'.
-        Dim a As Integer = Foo(1)
+BC30057: Too many arguments to 'Public Function Goo(Of T)() As Integer()'.
+        Dim a As Integer = Goo(1)
                                ~
-BC30057: Too many arguments to 'Public Function Foo(Of T)() As Integer()'.
-        Call Foo(1)
+BC30057: Too many arguments to 'Public Function Goo(Of T)() As Integer()'.
+        Call Goo(1)
                  ~
 </expected>)
 
             '  WARNING!!! Dev10 generates:
             '
-            '  BC32045: 'Public Function Foo() As Integer()' has no type parameters and so cannot have type arguments.
-            '  BC32050: BC32050: Type parameter 'T' for 'Public Function Foo(Of T)() As Integer()' cannot be inferred.
+            '  BC32045: 'Public Function Goo() As Integer()' has no type parameters and so cannot have type arguments.
+            '  BC32050: BC32050: Type parameter 'T' for 'Public Function Goo(Of T)() As Integer()' cannot be inferred.
 
         End Sub
 
@@ -3856,7 +3856,7 @@ BC30057: Too many arguments to 'Public Function Foo(Of T)() As Integer()'.
 Imports System
 
 Class C
-    Public ReadOnly Property Foo As Func(Of String, Integer)
+    Public ReadOnly Property Goo As Func(Of String, Integer)
         Get
             Return AddressOf Impl
         End Get
@@ -3867,14 +3867,14 @@ Class C
     End Function
 
     Public Sub TST()
-        Dim a As Integer = Foo()("abc")
-        Dim b As Integer = Foo("abc")
-        Dim c = Foo()
-        Dim d = Foo
-        Call Foo()("abc")
-        Call Foo("abc")
-        Call Foo()
-        Call Foo
+        Dim a As Integer = Goo()("abc")
+        Dim b As Integer = Goo("abc")
+        Dim c = Goo()
+        Dim d = Goo
+        Call Goo()("abc")
+        Call Goo("abc")
+        Call Goo()
+        Call Goo
     End Sub
 End Class
     </file>
@@ -3883,14 +3883,14 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30057: Too many arguments to 'Public ReadOnly Property Foo As Func(Of String, Integer)'.
-        Call Foo("abc")
+BC30057: Too many arguments to 'Public ReadOnly Property Goo As Func(Of String, Integer)'.
+        Call Goo("abc")
                  ~~~~~
 BC30545: Property access must assign to the property or use its value.
-        Call Foo()
+        Call Goo()
              ~~~~~
 BC30545: Property access must assign to the property or use its value.
-        Call Foo
+        Call Goo
              ~~~
 </expected>)
         End Sub
@@ -3904,7 +3904,7 @@ BC30545: Property access must assign to the property or use its value.
 Imports System
 
 Class C
-    Public Function Foo() As Func(Of String, Integer)
+    Public Function Goo() As Func(Of String, Integer)
         Return AddressOf Impl
     End Function
 
@@ -3913,14 +3913,14 @@ Class C
     End Function
 
     Public Sub TST()
-        Dim a As Integer = Foo()("abc")
-        Dim b As Integer = Foo("abc")
-        Dim c = Foo()
-        Dim d = Foo()
-        Foo()("abc")
-        Foo("abc")
-        Foo()
-        Foo
+        Dim a As Integer = Goo()("abc")
+        Dim b As Integer = Goo("abc")
+        Dim c = Goo()
+        Dim d = Goo()
+        Goo()("abc")
+        Goo("abc")
+        Goo()
+        Goo
     End Sub
 End Class
     </file>
@@ -3929,8 +3929,8 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30057: Too many arguments to 'Public Function Foo() As Func(Of String, Integer)'.
-        Foo("abc")
+BC30057: Too many arguments to 'Public Function Goo() As Func(Of String, Integer)'.
+        Goo("abc")
             ~~~~~
 </expected>)
         End Sub
@@ -3942,19 +3942,19 @@ BC30057: Too many arguments to 'Public Function Foo() As Func(Of String, Integer
 <compilation>
     <file name="a.vb">
 Module Program
-    Public Function Foo() As Integer()
+    Public Function Goo() As Integer()
         Dim arr As Integer() = New Integer(4) {}
         arr(2) = 234
         Return arr
     End Function
 
-    Public Sub Foo(i As Integer)
+    Public Sub Goo(i As Integer)
         System.Console.WriteLine(i)
     End Sub
 
     Public Sub Main()
-        Dim a As Integer = Foo(2)
-        Call Foo(a)
+        Dim a As Integer = Goo(2)
+        Call Goo(a)
     End Sub
 End Module
     </file>
@@ -3971,18 +3971,18 @@ End Module
 <compilation>
     <file name="a.vb">
 Class CLS
-    Public Overloads Function Foo(Of T)() As Integer()
+    Public Overloads Function Goo(Of T)() As Integer()
         Return Nothing
     End Function
-    Public Overloads Function Foo() As Integer()
+    Public Overloads Function Goo() As Integer()
         Return Nothing
     End Function
 
     Public Sub TST()
-        Dim a As Integer = Foo(Of Integer)(1)
-        Dim b As Integer = Foo(1)
-        Call Foo(Of Integer)(1)
-        Call Foo(1)
+        Dim a As Integer = Goo(Of Integer)(1)
+        Dim b As Integer = Goo(1)
+        Call Goo(Of Integer)(1)
+        Call Goo(1)
     End Sub
 End Class
     </file>
@@ -3991,20 +3991,20 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30057: Too many arguments to 'Public Overloads Function Foo(Of Integer)() As Integer()'.
-        Call Foo(Of Integer)(1)
+BC30057: Too many arguments to 'Public Overloads Function Goo(Of Integer)() As Integer()'.
+        Call Goo(Of Integer)(1)
                              ~
-BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-        Call Foo(1)
+BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+        Call Goo(1)
              ~~~
 </expected>)
 
             '  WARNING!!! Dev10 generates:
             '
-            '  BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-            '  BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-            '  BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-            '  BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
+            '  BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+            '  BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+            '  BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+            '  BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
 
         End Sub
 
@@ -4015,7 +4015,7 @@ BC30516: Overload resolution failed because no accessible 'Foo' accepts this num
 <compilation>
     <file name="a.vb">
 Class CBase
-    Public Function Foo(Of T)() As Integer()
+    Public Function Goo(Of T)() As Integer()
         Return Nothing
     End Function
 End Class
@@ -4023,15 +4023,15 @@ End Class
 Class CDerived
     Inherits CBase
 
-    Public Overloads Function Foo() As Integer()
+    Public Overloads Function Goo() As Integer()
         Return Nothing
     End Function
 
     Public Sub TST()
-        Dim a As Integer = Foo(Of Integer)(1)
-        Dim b As Integer = Foo(1)
-        Call Foo(Of Integer)(1)
-        Call Foo(1)
+        Dim a As Integer = Goo(Of Integer)(1)
+        Dim b As Integer = Goo(1)
+        Call Goo(Of Integer)(1)
+        Call Goo(1)
     End Sub
 End Class
     </file>
@@ -4040,19 +4040,19 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30057: Too many arguments to 'Public Function Foo(Of Integer)() As Integer()'.
-        Call Foo(Of Integer)(1)
+BC30057: Too many arguments to 'Public Function Goo(Of Integer)() As Integer()'.
+        Call Goo(Of Integer)(1)
                              ~
-BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-        Call Foo(1)
+BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+        Call Goo(1)
              ~~~
 </expected>)
 
             '  WARNING!!! Dev10 generates:
             '
-            '  BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-            '  BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-            '  BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
+            '  BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+            '  BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+            '  BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
 
         End Sub
 
@@ -4063,7 +4063,7 @@ BC30516: Overload resolution failed because no accessible 'Foo' accepts this num
 <compilation>
     <file name="a.vb">
 Class CBase
-    Public Function Foo(Of T)() As Integer()
+    Public Function Goo(Of T)() As Integer()
         Return Nothing
     End Function
 End Class
@@ -4071,15 +4071,15 @@ End Class
 Class CDerived
     Inherits CBase
 
-    Public Overloads Function Foo(Of X, Y)() As Integer()
+    Public Overloads Function Goo(Of X, Y)() As Integer()
         Return Nothing
     End Function
 
     Public Sub TST()
-        Dim a As Integer = Foo(Of Integer)(1)
-        Dim b As Integer = Foo(1)
-        Call Foo(Of Integer)(1)
-        Call Foo(1)
+        Dim a As Integer = Goo(Of Integer)(1)
+        Dim b As Integer = Goo(1)
+        Call Goo(Of Integer)(1)
+        Call Goo(1)
     End Sub
 End Class
     </file>
@@ -4088,24 +4088,24 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-        Dim b As Integer = Foo(1)
+BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+        Dim b As Integer = Goo(1)
                            ~~~
-BC30057: Too many arguments to 'Public Function Foo(Of Integer)() As Integer()'.
-        Call Foo(Of Integer)(1)
+BC30057: Too many arguments to 'Public Function Goo(Of Integer)() As Integer()'.
+        Call Goo(Of Integer)(1)
                              ~
-BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-        Call Foo(1)
+BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+        Call Goo(1)
              ~~~
 </expected>)
 
             '  WARNING!!! Dev10 generates:
             '
-            '  BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-            '  BC32050: Type parameter 'X' for 'Public Overloads Function Foo(Of X, Y)() As Integer()' cannot be inferred.
-            '  BC32050: Type parameter 'Y' for 'Public Overloads Function Foo(Of X, Y)() As Integer()' cannot be inferred.
-            '  BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-            '  BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
+            '  BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+            '  BC32050: Type parameter 'X' for 'Public Overloads Function Goo(Of X, Y)() As Integer()' cannot be inferred.
+            '  BC32050: Type parameter 'Y' for 'Public Overloads Function Goo(Of X, Y)() As Integer()' cannot be inferred.
+            '  BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+            '  BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
 
         End Sub
 
@@ -4116,30 +4116,30 @@ BC30516: Overload resolution failed because no accessible 'Foo' accepts this num
 <compilation>
     <file name="a.vb">
 Interface IBase
-    Property Foo As Integer()
+    Property Goo As Integer()
 End Interface
 
 Class CBase
-    Public Property Foo As Integer()
+    Public Property Goo As Integer()
 End Class
 
 Class CDerived
     Inherits CBase
     Implements IBase
 
-    Public Overloads Property Foo2 As Integer() Implements IBase.Foo
+    Public Overloads Property Goo2 As Integer() Implements IBase.Goo
 
-    Public Overloads Property Foo As Integer()
+    Public Overloads Property Goo As Integer()
 
     Public Sub TST()
-        Dim a As Integer = Foo()(1)
-        Dim b As Integer = Foo(1)
-        Dim c As Integer() = Foo()
-        Dim d As Integer() = Foo
-        Call Foo()(1)
-        Call Foo(1)
-        Call Foo()
-        Call Foo
+        Dim a As Integer = Goo()(1)
+        Dim b As Integer = Goo(1)
+        Dim c As Integer() = Goo()
+        Dim d As Integer() = Goo
+        Call Goo()(1)
+        Call Goo(1)
+        Call Goo()
+        Call Goo
     End Sub
 End Class    
     </file>
@@ -4149,16 +4149,16 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30454: Expression is not a method.
-        Call Foo()(1)
+        Call Goo()(1)
              ~~~~~
-BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-        Call Foo(1)
+BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+        Call Goo(1)
              ~~~
 BC30545: Property access must assign to the property or use its value.
-        Call Foo()
+        Call Goo()
              ~~~~~
 BC30545: Property access must assign to the property or use its value.
-        Call Foo
+        Call Goo
              ~~~
 </expected>)
 
@@ -4178,11 +4178,11 @@ BC30545: Property access must assign to the property or use its value.
 <compilation>
     <file name="a.vb">
 Interface IBase
-    WriteOnly Property Foo As Integer()
+    WriteOnly Property Goo As Integer()
 End Interface
 
 Class CBase
-    Public WriteOnly Property Foo As Integer()
+    Public WriteOnly Property Goo As Integer()
         Set(value As Integer())
         End Set
     End Property
@@ -4192,21 +4192,21 @@ Class CDerived
     Inherits CBase
     Implements IBase
 
-    Public WriteOnly Property Foo2 As Integer() Implements IBase.Foo
+    Public WriteOnly Property Goo2 As Integer() Implements IBase.Goo
         Set(value As Integer())
         End Set
     End Property
 
-    Public Overloads WriteOnly Property Foo As Integer()
+    Public Overloads WriteOnly Property Goo As Integer()
         Set(value As Integer())
         End Set
     End Property
 
     Public Sub TST()
-        Dim a As Integer = Foo()(1)
-        Dim b As Integer = Foo(1)
-        Dim c As Integer() = Foo()
-        Dim d As Integer() = Foo
+        Dim a As Integer = Goo()(1)
+        Dim b As Integer = Goo(1)
+        Dim c As Integer() = Goo()
+        Dim d As Integer() = Goo
     End Sub
 End Class
     </file>
@@ -4215,17 +4215,17 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30524: Property 'Foo' is 'WriteOnly'.
-        Dim a As Integer = Foo()(1)
+BC30524: Property 'Goo' is 'WriteOnly'.
+        Dim a As Integer = Goo()(1)
                            ~~~~~
-BC30524: Property 'Foo' is 'WriteOnly'.
-        Dim b As Integer = Foo(1)
+BC30524: Property 'Goo' is 'WriteOnly'.
+        Dim b As Integer = Goo(1)
                            ~~~
-BC30524: Property 'Foo' is 'WriteOnly'.
-        Dim c As Integer() = Foo()
+BC30524: Property 'Goo' is 'WriteOnly'.
+        Dim c As Integer() = Goo()
                              ~~~~~
-BC30524: Property 'Foo' is 'WriteOnly'.
-        Dim d As Integer() = Foo
+BC30524: Property 'Goo' is 'WriteOnly'.
+        Dim d As Integer() = Goo
                              ~~~
 </expected>)
         End Sub
@@ -4704,35 +4704,35 @@ End Module
         Public Sub PropertyAccessorDoesNotHideMethod()
             Dim vbSource = <compilation><file name="c.vb">
 Interface IA
-    Function get_Foo() As String
+    Function get_Goo() As String
 End Interface
 
 Interface IB
     Inherits IA
-    ReadOnly Property Foo() As Integer
+    ReadOnly Property Goo() As Integer
 End Interface
 
 Class Program
     Private Shared Sub Main()
         Dim x As IB = Nothing
-        Dim s As String = x.get_Foo().ToLower()
+        Dim s As String = x.get_Goo().ToLower()
     End Sub
 End Class
 </file></compilation>
 
             CompileAndVerify(vbSource).VerifyDiagnostics(
-                Diagnostic(ERRID.WRN_SynthMemberShadowsMember5, "Foo").WithArguments("property", "Foo", "get_Foo", "interface", "IA"))
+                Diagnostic(ERRID.WRN_SynthMemberShadowsMember5, "Goo").WithArguments("property", "Goo", "get_Goo", "interface", "IA"))
         End Sub
 
         <Fact>
         Public Sub PropertyAccessorDoesNotConflictWithMethod()
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Interface IA
-    Function get_Foo() As String
+    Function get_Goo() As String
 End Interface
 
 Interface IB
-    ReadOnly Property Foo() As Integer
+    ReadOnly Property Goo() As Integer
 End Interface
 
 Interface IC
@@ -4743,7 +4743,7 @@ End Interface
 Class Program
     Private Shared Sub Main()
         Dim x As IC = Nothing
-        Dim s As String = x.get_Foo().ToLower()
+        Dim s As String = x.get_Goo().ToLower()
     End Sub
 End Class
 ]]></file></compilation>
@@ -4756,19 +4756,19 @@ End Class
         Public Sub PropertyAccessorCannotBeCalledAsMethod()
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Interface I
-    ReadOnly Property Foo() As Integer
+    ReadOnly Property Goo() As Integer
 End Interface
 
 Class Program
     Private Shared Sub Main()
         Dim x As I = Nothing
-        Dim s As String = x.get_Foo()
+        Dim s As String = x.get_Goo()
     End Sub
 End Class
 ]]></file></compilation>
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(vbSource)
             compilation.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_NameNotMember2, "x.get_Foo").WithArguments("get_Foo", "I"))
+                Diagnostic(ERRID.ERR_NameNotMember2, "x.get_Goo").WithArguments("get_Goo", "I"))
             Assert.False(compilation.Emit(IO.Stream.Null).Success)
         End Sub
 
@@ -4776,14 +4776,14 @@ End Class
         Public Sub CanReadInstancePropertyWithStaticGetterAsStatic()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property instance int32 Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property instance int32 Goo() { .get int32 A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Integer = A.Foo
+        Dim x As Integer = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -4795,14 +4795,14 @@ End Class
         Public Sub CanNotReadInstancePropertyWithStaticGetterAsInstance()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property instance int32 Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property instance int32 Goo() { .get int32 A::get_Goo() }
 }
 ]]>
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Integer = A.Foo
+        Dim x As Integer = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -4814,21 +4814,21 @@ End Class
         Public Sub PropertyWithPinnedModifierIsBogus()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property instance int32 pinned Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property instance int32 pinned Goo() { .get int32 A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Object = A.Foo
+        Dim x As Object = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
             CreateCompilationWithCustomILSource(vbSource, ilSource).AssertTheseDiagnostics(
 <expected>
-BC30643: Property 'Foo' is of an unsupported type.
-        Dim x As Object = A.Foo
+BC30643: Property 'Goo' is of an unsupported type.
+        Dim x As Object = A.Goo
                             ~~~
 </expected>)
         End Sub
@@ -4838,14 +4838,14 @@ BC30643: Property 'Foo' is of an unsupported type.
         Public Sub PropertyWithMismatchedReturnTypeOfGetterIsBogus()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property string Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property string Goo() { .get int32 A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Object = A.Foo
+        Dim x As Object = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -4860,14 +4860,14 @@ End Class
 .class public E extends E { }
 
 .class public A {
-  .method public static class E get_Foo() { ldnull throw }
-  .property class E Foo() { .get class E A::get_Foo() }
+  .method public static class E get_Goo() { ldnull throw }
+  .property class E Goo() { .get class E A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Object = A.Foo
+        Dim x As Object = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -4875,7 +4875,7 @@ End Class
 
             ' Dev10 errors:
             ' error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
-            ' error CS0570: 'A.Foo' is not supported by the language
+            ' error CS0570: 'A.Goo' is not supported by the language
         End Sub
 
         <WorkItem(527664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527664")>
@@ -4885,13 +4885,13 @@ End Class
 .class public E<T> { }
 
 .class public A {
-  .method public static class E<class E> get_Foo() { ldnull throw }
-  .property class E<class E> Foo() { .get class E<class E> A::get_Foo() }
+  .method public static class E<class E> get_Goo() { ldnull throw }
+  .property class E<class E> Goo() { .get class E<class E> A::get_Goo() }
 }]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Object = A.Foo
+        Dim x As Object = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -4903,14 +4903,14 @@ End Class
         Public Sub Dev10IgnoresSentinelInPropertySignature()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property int32 Foo(...) { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property int32 Goo(...) { .get int32 A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Integer = A.Foo
+        Dim x As Integer = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -4921,14 +4921,14 @@ End Class
         Public Sub CanReadModOptProperty()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 modopt(int32) get_Foo() { ldnull throw }
-  .property int32 modopt(int32) Foo() { .get int32 modopt(int32) A::get_Foo() }
+  .method public static int32 modopt(int32) get_Goo() { ldnull throw }
+  .property int32 modopt(int32) Goo() { .get int32 modopt(int32) A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Integer = A.Foo
+        Dim x As Integer = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -4942,14 +4942,14 @@ End Class
 .class public E extends class [mscorlib]System.Collections.Generic.List`1<int32> modopt(int8) { }
 
 .class public A  {
-  .method public static class E get_Foo() { ldnull throw }
-  .property class E Foo() { .get class E A::get_Foo() }
+  .method public static class E get_Goo() { ldnull throw }
+  .property class E Goo() { .get class E A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Object = A.Foo
+        Dim x As Object = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -4960,14 +4960,14 @@ End Class
         Public Sub CanReadPropertyOfArrayTypeWithModOptElement()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 modopt(int32)[] get_Foo() { ldnull throw }
-  .property int32 modopt(int32)[] Foo() { .get int32 modopt(int32)[] A::get_Foo() }
+  .method public static int32 modopt(int32)[] get_Goo() { ldnull throw }
+  .property int32 modopt(int32)[] Goo() { .get int32 modopt(int32)[] A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Integer() = A.Foo
+        Dim x As Integer() = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -4978,14 +4978,14 @@ End Class
         Public Sub CanReadModOptPropertyWithNonModOptGetter()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property int32 modopt(int32) Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property int32 modopt(int32) Goo() { .get int32 A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Integer = A.Foo
+        Dim x As Integer = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -4997,14 +4997,14 @@ End Class
         Public Sub CanReadNonModOptPropertyWithOpenGenericModOptGetter()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 modopt(class [mscorlib]System.IComparable`1) get_Foo() { ldnull throw }
-  .property int32 Foo() { .get int32 modopt(class [mscorlib]System.IComparable`1) A::get_Foo() }
+  .method public static int32 modopt(class [mscorlib]System.IComparable`1) get_Goo() { ldnull throw }
+  .property int32 Goo() { .get int32 modopt(class [mscorlib]System.IComparable`1) A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Integer = A.Foo
+        Dim x As Integer = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -5015,14 +5015,14 @@ End Class
         Public Sub CanReadNonModOptPropertyWithModOptGetter()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 modopt(int32) get_Foo() { ldnull throw }
-  .property int32 Foo() { .get int32 modopt(int32) A::get_Foo() }
+  .method public static int32 modopt(int32) get_Goo() { ldnull throw }
+  .property int32 Goo() { .get int32 modopt(int32) A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Integer = A.Foo
+        Dim x As Integer = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -5033,14 +5033,14 @@ End Class
         Public Sub CanReadModOptPropertyWithDifferentModOptGetter()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 modopt(int32) get_Foo() { ldnull throw }
-  .property int32 modopt(string) Foo() { .get int32 modopt(int32) A::get_Foo() }
+  .method public static int32 modopt(int32) get_Goo() { ldnull throw }
+  .property int32 modopt(string) Goo() { .get int32 modopt(int32) A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Integer = A.Foo
+        Dim x As Integer = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -5056,21 +5056,21 @@ End Class
         Public Sub CanReadPropertyWithMultipleAndNestedModOpts()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 modopt(int32) get_Foo() { ldnull throw }
-  .property int32 modopt(int8) modopt(native int modopt(uint8)*[] modopt(void)) Foo() { .get int32 modopt(int32) A::get_Foo() }
+  .method public static int32 modopt(int32) get_Goo() { ldnull throw }
+  .property int32 modopt(int8) modopt(native int modopt(uint8)*[] modopt(void)) Goo() { .get int32 modopt(int32) A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Integer = A.Foo
+        Dim x As Integer = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
             CreateCompilationWithCustomILSource(vbSource, ilSource).AssertTheseDiagnostics(
 <expected>
-BC30643: Property 'Foo' is of an unsupported type.
-        Dim x As Integer = A.Foo
+BC30643: Property 'Goo' is of an unsupported type.
+        Dim x As Integer = A.Goo
                              ~~~
 </expected>)
         End Sub
@@ -5083,21 +5083,21 @@ BC30643: Property 'Foo' is of an unsupported type.
         Public Sub CanReadPropertyWithModReqsNestedWithinModOpts()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 modopt(int32) get_Foo() { ldnull throw }
-  .property int32 modopt(class [mscorlib]System.IComparable`1<method void*()[]> modreq(bool)) Foo() { .get int32 modopt(int32) A::get_Foo() }
+  .method public static int32 modopt(int32) get_Goo() { ldnull throw }
+  .property int32 modopt(class [mscorlib]System.IComparable`1<method void*()[]> modreq(bool)) Goo() { .get int32 modopt(int32) A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Integer = A.Foo
+        Dim x As Integer = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
             CreateCompilationWithCustomILSource(vbSource, ilSource).AssertTheseDiagnostics(
 <expected>
-BC30643: Property 'Foo' is of an unsupported type.
-        Dim x As Integer = A.Foo
+BC30643: Property 'Goo' is of an unsupported type.
+        Dim x As Integer = A.Goo
                              ~~~
 </expected>)
         End Sub
@@ -5107,26 +5107,26 @@ BC30643: Property 'Foo' is of an unsupported type.
         Public Sub CanNotReadPropertyWithModReq()
             Dim ilSource = <![CDATA[
 .class public A {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property int32 modreq(int8) Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property int32 modreq(int8) Goo() { .get int32 A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Object = A.Foo
-        x = A.get_Foo()
+        Dim x As Object = A.Goo
+        x = A.get_Goo()
     End Sub
 End Class
 ]]></file></compilation>
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(vbSource, ilSource)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30643: Property 'Foo' is of an unsupported type.
-        Dim x As Object = A.Foo
+BC30643: Property 'Goo' is of an unsupported type.
+        Dim x As Object = A.Goo
                             ~~~
-BC30456: 'get_Foo' is not a member of 'A'.
-        x = A.get_Foo()
+BC30456: 'get_Goo' is not a member of 'A'.
+        x = A.get_Goo()
             ~~~~~~~~~
 </expected>)
         End Sub
@@ -5139,14 +5139,14 @@ BC30456: 'get_Foo' is not a member of 'A'.
 .class public E extends class [mscorlib]System.Collections.Generic.List`1<int32 modreq(int8)[]> { }
 
 .class public A {
-  .method public static class E get_Foo() { ldnull throw }
-  .property class E Foo() { .get class E A::get_Foo() }
+  .method public static class E get_Goo() { ldnull throw }
+  .property class E Goo() { .get class E A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Private Shared Sub Main()
-        Dim x As Object = A.Foo
+        Dim x As Object = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -5157,24 +5157,24 @@ End Class
         Public Sub VoidReturningPropertyHidesMembersFromBase()
             Dim ilSource = <![CDATA[
 .class public B {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property int32 Foo() { .get int32 B::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property int32 Goo() { .get int32 B::get_Goo() }
 }
 
 .class public A extends B {
-  .method public static void get_Foo() { ldnull throw }
-  .property void Foo() { .get void A::get_Foo() }
+  .method public static void get_Goo() { ldnull throw }
+  .property void Goo() { .get void A::get_Goo() }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class B
     Shared Sub Main()
-        Dim x As Object = A.Foo
+        Dim x As Object = A.Goo
     End Sub
 End Class
 ]]></file></compilation>
             CreateCompilationWithCustomILSource(vbSource, ilSource).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_VoidValue, "A.Foo"))
+                Diagnostic(ERRID.ERR_VoidValue, "A.Goo"))
         End Sub
 
         <WorkItem(527663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527663")>
@@ -5182,19 +5182,19 @@ End Class
         Public Sub CanNotReadPropertyFromAmbiguousGenericClass()
             Dim ilSource = <![CDATA[
 .class public A`1<T> {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property int32 Foo() { .get int32 A`1::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property int32 Goo() { .get int32 A`1::get_Goo() }
 }
 
 .class public A<T> {
-  .method public static int32 get_Foo() { ldnull throw }
-  .property int32 Foo() { .get int32 A::get_Foo() }
+  .method public static int32 get_Goo() { ldnull throw }
+  .property int32 Goo() { .get int32 A::get_Goo() }
 }
 ]]>
             Dim source = <compilation><file name="c.vb"><![CDATA[
 Class B
     Shared Sub Main()
-        Dim x As Object = A(Of Integer).Foo
+        Dim x As Object = A(Of Integer).Goo
     End Sub
 End Class
 ]]></file></compilation>
@@ -5213,18 +5213,18 @@ End Class
     ret
   }
 
-  .property int32 Foo() { }
+  .property int32 Goo() { }
 }
 ]]>.Value
             Dim vbSource = <compilation><file name="c.vb"><![CDATA[
 Class C
     Private Shared Sub Main()
-        Dim foo As Object = B.Foo
+        Dim goo As Object = B.Goo
     End Sub
 End Class
 ]]></file></compilation>
             CreateCompilationWithCustomILSource(vbSource, ilSource).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_NameNotMember2, "B.Foo").WithArguments("Foo", "B"))
+                Diagnostic(ERRID.ERR_NameNotMember2, "B.Goo").WithArguments("Goo", "B"))
         End Sub
 
         <WorkItem(538946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538946")>
@@ -5232,7 +5232,7 @@ End Class
         Public Sub FalseAmbiguity()
             Dim text = <compilation><file name="c.vb"><![CDATA[
 Interface IA
-    ReadOnly Property Foo() As Integer
+    ReadOnly Property Goo() As Integer
 End Interface
 
 Interface IB(Of T)
@@ -5247,7 +5247,7 @@ End Interface
 Class C
     Private Shared Sub Main()
         Dim x As IC = Nothing
-        Dim y As Integer = x.Foo
+        Dim y As Integer = x.Goo
     End Sub
 End Class
 ]]></file></compilation>

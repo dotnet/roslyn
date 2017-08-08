@@ -34,7 +34,7 @@ Imports System.Linq
 Module Module1
     Sub Main()
         Dim names(2) As String
-        names(0) = ""foo""
+        names(0) = ""goo""
         names(1) = ""bar""
 
         For index = 0 To names.GetUpperBound(0)
@@ -49,7 +49,7 @@ End Module
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.Editor.ReplaceText("names(0)", "names(1)");
             VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
-            VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"foo\"");
+            VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"goo\"");
             VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
             VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"bar\"");
         }
@@ -61,10 +61,10 @@ End Module
 Imports System
 Module Module1
     Sub Main()
-        Foo()
+        Goo()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Console.WriteLine(1)
     End Sub
 End Module");
@@ -245,20 +245,20 @@ End Module
 Imports System
 Module Module1
     Sub Main()
-        Dim foo As String = ""abc""
-        Console.WriteLine(foo)
+        Dim goo As String = ""abc""
+        Console.WriteLine(goo)
     End Sub
 End Module
 ");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.Debugger.SetBreakPoint(module1FileName, "End Sub");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.Editor.ReplaceText("Dim foo As String = \"abc\"", "Dim foo As Single = 10");
+            VisualStudio.Editor.ReplaceText("Dim goo As String = \"abc\"", "Dim goo As Single = 10");
             VisualStudio.Editor.SelectTextInCurrentDocument("Sub Main()");
             VisualStudio.Debugger.SetNextStatement();
             VisualStudio.Debugger.Go(waitForBreakMode: true);
 
-            VisualStudio.LocalsWindow.Verify.CheckEntry("foo", "Single", "10");
+            VisualStudio.LocalsWindow.Verify.CheckEntry("goo", "Single", "10");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19441")]

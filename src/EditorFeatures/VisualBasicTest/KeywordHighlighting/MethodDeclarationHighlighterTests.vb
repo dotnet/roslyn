@@ -47,7 +47,7 @@ End Class</Text>)
         Public Async Function TestMethodExample2_1() As Task
             Await TestAsync(<Text>
 Public Class C1
-    {|Cursor:[|Public Shared Sub|]|} Foo()
+    {|Cursor:[|Public Shared Sub|]|} Goo()
         [|Exit Sub|]
     [|End Sub|]
 End Class</Text>)
@@ -57,7 +57,7 @@ End Class</Text>)
         Public Async Function TestMethodExample2_2() As Task
             Await TestAsync(<Text>
 Public Class C1
-    [|Public Shared Sub|] Foo()
+    [|Public Shared Sub|] Goo()
         {|Cursor:[|Exit Sub|]|}
     [|End Sub|]
 End Class</Text>)
@@ -67,7 +67,7 @@ End Class</Text>)
         Public Async Function TestMethodExample2_3() As Task
             Await TestAsync(<Text>
 Public Class C1
-    [|Public Shared Sub|] Foo()
+    [|Public Shared Sub|] Goo()
         [|Exit Sub|]
     {|Cursor:[|End Sub|]|}
 End Class</Text>)
@@ -329,7 +329,7 @@ End Class
 Imports System.Threading.Tasks
 
 Class AsyncExample
-    {|Cursor:[|Async Sub|]|} Foo()
+    {|Cursor:[|Async Sub|]|} Goo()
         Dim t = Task.FromResult(Task.FromResult(1))
         Dim value = [|Await Await|] t
     [|End Sub|]
@@ -345,7 +345,7 @@ End Class
 Imports System.Threading.Tasks
 
 Class AsyncExample
-    [|Async Sub|] Foo()
+    [|Async Sub|] Goo()
         Dim t = Task.FromResult(Task.FromResult(1))
         Dim value = {|Cursor:[|Await Await|]|} t
     [|End Sub|]
@@ -361,7 +361,7 @@ End Class
 Imports System.Threading.Tasks
 
 Class AsyncExample
-    [|Async Sub|] Foo()
+    [|Async Sub|] Goo()
         Dim t = Task.FromResult(Task.FromResult(1))
         Dim value = [|Await Await|] t
     {|Cursor:[|End Sub|]|}

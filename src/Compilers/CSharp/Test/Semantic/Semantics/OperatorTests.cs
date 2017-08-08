@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         AllProperties = FilePath | Visibility
     }
     class C {
-         public void Foo(){
+         public void Goo(){
             var x = TestEnum.FilePath | TestEnum.Visibility;
         }
     }
@@ -838,18 +838,18 @@ class Program
     static void Main()
     {
         Action<object> a = null;
-        Foo(c => c == a);
+        Goo(c => c == a);
     }
  
-    static void Foo(Func<Action<object>, IComparable> x) { }
-    static void Foo(Func<Action<dynamic>, IConvertible> x) { }
+    static void Goo(Func<Action<object>, IComparable> x) { }
+    static void Goo(Func<Action<dynamic>, IConvertible> x) { }
 }
 ";
-            // Dev11 considers Action<object> == Action<dynamic> ambiguous and thus chooses Foo(Func<Action<object>, IComparable>) overload.
+            // Dev11 considers Action<object> == Action<dynamic> ambiguous and thus chooses Goo(Func<Action<object>, IComparable>) overload.
 
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Foo(System.Func<System.Action<object>, System.IComparable>)' and 'Program.Foo(System.Func<System.Action<dynamic>, System.IConvertible>)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("Program.Foo(System.Func<System.Action<object>, System.IComparable>)", "Program.Foo(System.Func<System.Action<dynamic>, System.IConvertible>)"));
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(System.Func<System.Action<object>, System.IComparable>)' and 'Program.Goo(System.Func<System.Action<dynamic>, System.IConvertible>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Program.Goo(System.Func<System.Action<object>, System.IComparable>)", "Program.Goo(System.Func<System.Action<dynamic>, System.IConvertible>)"));
         }
 
         [Fact]
@@ -3191,7 +3191,7 @@ namespace N2
         public static void Main()
         {
         }
-        public static DateTime Foo()
+        public static DateTime Goo()
         {
             return default(DateTime);
         }
@@ -3452,10 +3452,10 @@ class Program
 {
     static void Main()
     {
-        Foo<Action>();
+        Goo<Action>();
     }
 
-    static void Foo<T>() where T : class
+    static void Goo<T>() where T : class
     {
         object o = Main() as T;
     }
@@ -3479,10 +3479,10 @@ class Program
 {
     static void Main()
     {
-        Foo<Action>();
+        Goo<Action>();
     }
 
-    static void Foo<T>() where T : class
+    static void Goo<T>() where T : class
     {
         bool b = Main() is T;
     }
@@ -3509,7 +3509,7 @@ class Program
             var source = @"
 class Program
 {
-    static void Foo<T>(
+    static void Goo<T>(
         Outer<T>.C c1, Outer<int>.C c2,
         Outer<T>.S s1, Outer<int>.S s2,
         Outer<T>.E e1, Outer<int>.E e2)
@@ -3579,7 +3579,7 @@ class Outer<T>
             var source = @"
 class Program
 {
-    static void Foo<T>(Outer<T>.S s1, Outer<T[]>.S s2)
+    static void Goo<T>(Outer<T>.S s1, Outer<T[]>.S s2)
     {
         bool b;
         b = s1 is Outer<int[]>.S;   // T -> int[]
@@ -3611,7 +3611,7 @@ using System;
 
 class Program
 {
-    static void Foo<T, TClass, TStruct>(Outer<T>.E e1, Outer<int>.E e2, int i, T t, TClass tc, TStruct ts)
+    static void Goo<T, TClass, TStruct>(Outer<T>.E e1, Outer<int>.E e2, int i, T t, TClass tc, TStruct ts)
         where TClass : class
         where TStruct : struct
     {
@@ -3718,10 +3718,10 @@ class Program
 {
     static void Main()
     {
-        Foo<Action, Action>(null);
+        Goo<Action, Action>(null);
     }
 
-    static U Foo<T, U>(T t)
+    static U Goo<T, U>(T t)
         where T : U
         where U : class
     {
@@ -3774,9 +3774,9 @@ False");
             var source = @"
 // conversion.cs
 
-class Foo { public Foo(Bar b){} }
+class Goo { public Goo(Bar b){} }
 
-class Foo2 { public Foo2(Bar b){} }
+class Goo2 { public Goo2(Bar b){} }
 
 struct Bar
 {
@@ -3786,16 +3786,16 @@ struct Bar
        return new Bar();
     }
     
-    // Declare an explicit conversion from a Bar to Foo
-    static public explicit operator Foo(Bar value)
+    // Declare an explicit conversion from a Bar to Goo
+    static public explicit operator Goo(Bar value)
     {
-       return new Foo(value);
+       return new Goo(value);
     }
 
-    // Declare an implicit conversion from a Bar to Foo2
-    static public implicit operator Foo2(Bar value)
+    // Declare an implicit conversion from a Bar to Goo2
+    static public implicit operator Goo2(Bar value)
     {
-       return new Foo2(value);
+       return new Goo2(value);
     }
 }
 
@@ -3807,36 +3807,36 @@ class Test
 
         numeral = 10;
 
-        object a1 = numeral as Foo;
+        object a1 = numeral as Goo;
         object a2 = 1 as Bar;
-        object a3 = numeral as Foo2;
+        object a3 = numeral as Goo2;
 
-        bool b1 = numeral is Foo;
+        bool b1 = numeral is Goo;
         bool b2 = 1 is Bar;
-        bool b3 = numeral is Foo2;
+        bool b3 = numeral is Goo2;
     }
 }
 ";
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (37,21): error CS0039: Cannot convert type 'Bar' to 'Foo' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
-                //         object a1 = numeral as Foo;
-                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "numeral as Foo").WithArguments("Bar", "Foo"),
+                // (37,21): error CS0039: Cannot convert type 'Bar' to 'Goo' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         object a1 = numeral as Goo;
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "numeral as Goo").WithArguments("Bar", "Goo"),
                 // (38,21): error CS0077: The as operator must be used with a reference type or nullable type ('Bar' is a non-nullable value type)
                 //         object a2 = 1 as Bar;
                 Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "1 as Bar").WithArguments("Bar"),
-                // (39,21): error CS0039: Cannot convert type 'Bar' to 'Foo2' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
-                //         object a3 = numeral as Foo2;
-                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "numeral as Foo2").WithArguments("Bar", "Foo2"),
-                // (41,19): warning CS0184: The given expression is never of the provided ('Foo') type
-                //         bool b1 = numeral is Foo;
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "numeral is Foo").WithArguments("Foo"),
+                // (39,21): error CS0039: Cannot convert type 'Bar' to 'Goo2' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         object a3 = numeral as Goo2;
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "numeral as Goo2").WithArguments("Bar", "Goo2"),
+                // (41,19): warning CS0184: The given expression is never of the provided ('Goo') type
+                //         bool b1 = numeral is Goo;
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "numeral is Goo").WithArguments("Goo"),
                 // (42,19): warning CS0184: The given expression is never of the provided ('Bar') type
                 //         bool b2 = 1 is Bar;
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1 is Bar").WithArguments("Bar"),
-                // (43,19): warning CS0184: The given expression is never of the provided ('Foo2') type
-                //         bool b3 = numeral is Foo2;
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "numeral is Foo2").WithArguments("Foo2"));
+                // (43,19): warning CS0184: The given expression is never of the provided ('Goo2') type
+                //         bool b3 = numeral is Goo2;
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "numeral is Goo2").WithArguments("Goo2"));
         }
 
         [WorkItem(543455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543455")]
@@ -3997,13 +3997,13 @@ class C<T>
 public struct NonGenericStruct { }
 public struct GenericStruct<T> { }
 
-public class Foo
+public class Goo
 {
     public NonGenericStruct? ngsq;
     public GenericStruct<int>? gsiq;
 }
 
-public class GenFoo<T>
+public class GenGoo<T>
 {
     public GenericStruct<T>? gstq;
 }
@@ -4012,11 +4012,11 @@ public class Test
 {
     public static bool Run()
     {
-        Foo f = new Foo();
+        Goo f = new Goo();
         f.ngsq = new NonGenericStruct();
         f.gsiq = new GenericStruct<int>();
 
-        GenFoo<int> gf = new GenFoo<int>();
+        GenGoo<int> gf = new GenGoo<int>();
         gf.gstq = new GenericStruct<int>();
 
         return (f.ngsq != null) && (f.gsiq != null) && (gf.gstq != null);
@@ -4268,13 +4268,13 @@ False";
 @"
 public class Test
 {
-    public static bool Foo(decimal? deq)
+    public static bool Goo(decimal? deq)
     {
         return deq == null;
     }
     public static void Main()
     {
-        Foo(null);
+        Goo(null);
     }
 }
 ";
@@ -8862,7 +8862,7 @@ class EnumRepro
 {
     public static void Main()
     {
-        EnumWrapper<FlagsEnum> wrappedEnum = FlagsEnum.Foo;
+        EnumWrapper<FlagsEnum> wrappedEnum = FlagsEnum.Goo;
         wrappedEnum |= FlagsEnum.Bar;
         System.Console.Write(wrappedEnum.Enum);
     }
@@ -8888,11 +8888,11 @@ public struct EnumWrapper<T>
 public enum FlagsEnum
 {
     None = 0,
-    Foo = 1,
+    Goo = 1,
     Bar = 2,
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: "Foo, Bar");
+            var verifier = CompileAndVerify(source, expectedOutput: "Goo, Bar");
             verifier.VerifyDiagnostics();
         }
 
@@ -8904,7 +8904,7 @@ public enum FlagsEnum
 {
     public static void Main(string[] args)
     {
-        const string d = ""foo"";
+        const string d = ""goo"";
         var x = d is string;
     }
 }
