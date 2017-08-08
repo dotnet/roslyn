@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // C# 7.2 features.
-                case MessageID.IDS_FeatureNonTrailingNamedArguments:
+                case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check
                     return LanguageVersion.CSharp7_2;
 
                 // C# 7.1 features.
