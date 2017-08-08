@@ -501,5 +501,70 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "TimeSpan");
         }
+
+        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InPropertyWithSameNameAsGenericTypeArgument1()
+        {
+            var markup =
+@"namespace ConsoleApplication1
+{
+    class Program
+    {
+        public static List<Bar> Bar { get; set; }
+
+        static void Main(string[] args)
+        {
+            Bar = new $$
+        }
+    }
+
+    class Bar
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "List<Bar>");
+        }
+
+        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InPropertyWithSameNameAsGenericTypeArgument2()
+        {
+            var markup =
+@"namespace ConsoleApplication1
+{
+    class Program
+    {
+        public static List<Bar> Bar { get; set; } = new $$
+    }
+
+    class Bar
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "List<Bar>");
+        }
+
+        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InPropertyWithSameNameAsGenericTypeArgument3()
+        {
+            var markup =
+@"namespace ConsoleApplication1
+{
+    class Program
+    {
+        public static List<Bar> Bar { get; set; } => new $$
+    }
+
+    class Bar
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "List<Bar>");
+        }
     }
 }

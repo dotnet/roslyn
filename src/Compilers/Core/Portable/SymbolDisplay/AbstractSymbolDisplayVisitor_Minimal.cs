@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolDisplay
@@ -47,11 +48,21 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             var type1 = GetSymbolType(normalSymbol);
             var type2 = GetSymbolType(typeOnlySymbol);
 
-            return
+            return (
                 type1 != null &&
                 type2 != null &&
                 type1.Equals(type2) &&
-                typeOnlySymbol.Equals(symbol.OriginalDefinition);
+                typeOnlySymbol.Equals(symbol.OriginalDefinition)) || IsGenericTypeArgument(type1, symbol);
+        }
+
+        private bool IsGenericTypeArgument(ITypeSymbol typeSymbol, INamedTypeSymbol symbol)
+        {
+            if (GetSymbolType(typeSymbol) is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
+            {
+                return namedTypeSymbol.TypeArguments.Contains(symbol) || namedTypeSymbol.TypeArguments.Any(typeArgument => IsGenericTypeArgument(typeArgument, symbol));
+            }
+
+            return false;
         }
 
         private static ISymbol SingleSymbolWithArity(ImmutableArray<ISymbol> candidates, int desiredArity)
