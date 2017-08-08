@@ -13,6 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
+        /// <summary>
+        /// constants used to designate escaping scopes.
+        /// </summary>
+        internal const uint ExternalScope = 0;
+        internal const uint TopLevelScope = 1;
+
         // Some value kinds are semantically the same and the only distinction is how errors are reported
         // for those purposes we reserve lowest 3 bits
         private const int ValueKindInsignificantBits = 3;
@@ -459,7 +465,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             LocalSymbol localSymbol = local.LocalSymbol;
 
-            if (escapeTo == ExternalScope)
+            if (localSymbol.RefEscapeScope <= escapeTo)
+            {
+                return true;
+            }
+
+            if (escapeTo == Binder.ExternalScope)
             {
                 if (localSymbol.RefKind == RefKind.None)
                 {
@@ -474,21 +485,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (!localSymbol.IsReturnable)
+                if (checkingReceiver)
                 {
-                    if (checkingReceiver)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnNonreturnableLocal2, local.Syntax, localSymbol);
-                    }
-                    else
-                    {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnNonreturnableLocal, node, localSymbol);
-                    }
-                    return false;
+                    Error(diagnostics, ErrorCode.ERR_RefReturnNonreturnableLocal2, local.Syntax, localSymbol);
                 }
+                else
+                {
+                    Error(diagnostics, ErrorCode.ERR_RefReturnNonreturnableLocal, node, localSymbol);
+                }
+                return false;
             }
 
-            return true;
+            // TODO: VS NYI, escaping scope
+            throw ExceptionUtilities.Unreachable;
         }
 
         private bool CheckParameterValueKind(SyntaxNode node, BoundParameter parameter, BindValueKind valueKind, bool checkingReceiver, DiagnosticBag diagnostics)
@@ -522,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var paramKind = parameterSymbol.RefKind;
 
             // byval parameters are not ref-returnable
-            if (escapeTo == ExternalScope && parameterSymbol.RefKind == RefKind.None)
+            if (escapeTo == Binder.ExternalScope && parameterSymbol.RefKind == RefKind.None)
             {
                 if (checkingReceiver)
                 {
@@ -985,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint scopeOfTheContainingExpression)
         {
             //by default it is safe to return
-            uint refEscape = ExternalScope;
+            uint refEscape = Binder.ExternalScope;
 
             // check all arguments that are not passed by value
             if (!argRefKinds.IsDefault)
@@ -1190,7 +1199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         static private ErrorCode GetStandardRValueRefEscapeError(uint escapeTo)
         {
-            if (escapeTo == ExternalScope)
+            if (escapeTo == Binder.ExternalScope)
             { 
                 return ErrorCode.ERR_RefReturnLvalueExpected;
             }
@@ -1267,9 +1276,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, ReadOnlyErrors[index], node, symbolKind, symbol);
         }
 
-        private const uint ExternalScope = 0;
-        private const uint TopLevelScope = 1;
-
         internal BoundExpression CheckRefEscape(BoundExpression expr, uint escapeTo, DiagnosticBag diagnostics)
         {
             if (CheckRefEscape(expr.Syntax, expr, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
@@ -1337,7 +1343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }                        
 
                     //"this" is not returnable by reference in a struct.
-                    if (escapeTo == ExternalScope)
+                    if (escapeTo == Binder.ExternalScope)
                     {
                         Error(diagnostics, ErrorCode.ERR_RefReturnStructThis, node, ThisParameterSymbol.SymbolName);
                     }
@@ -1440,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expr.HasAnyErrors)
             {
                 // cannot infer anything from errors
-                return ExternalScope;
+                return Binder.ExternalScope;
             }
 
             Debug.Assert(expr.Type.GetSpecialTypeSafe() != SpecialType.System_Void);
@@ -1456,7 +1462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.PointerElementAccess:
                     // array elements and pointer dereferencing are readwrite varaibles
-                    return ExternalScope;
+                    return Binder.ExternalScope;
 
                 case BoundKind.RefValueOperator:
                     // The undocumented __refvalue(tr, T) expression results in a variable of type T.
@@ -1477,20 +1483,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // byval parameters can escape to method's top level.
                     // others can be escape further.
                     return parameter.RefKind == RefKind.None ?
-                        TopLevelScope :
-                        ExternalScope;
+                        Binder.TopLevelScope :
+                        Binder.ExternalScope;
 
                 case BoundKind.Local:
-                    var local = ((BoundLocal)expr).LocalSymbol;
-
-                    //TODO: VS hack
-                    return local.RefKind == RefKind.None ?
-                        TopLevelScope :
-                        local.IsReturnable? ExternalScope: TopLevelScope;
-
-                    //return local.LocalSymbol.RefKind == RefKind.None ?
-                    //    local.DeclaredScope :
-                    //    local.RefEscapeScope;
+                    return ((BoundLocal)expr).LocalSymbol.RefEscapeScope;
 
                 case BoundKind.ThisReference:
                     var thisref = (BoundThisReference)expr;
@@ -1503,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     //"this" is not returnable by reference in a struct.
                     // can ref escape to any other level
-                    return TopLevelScope;
+                    return Binder.TopLevelScope;
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
@@ -1526,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // fields that are static or belong to reference types can ref escape anywhere
                     if (fieldSymbol.IsStatic || fieldSymbol.ContainingType.IsReferenceType)
                     {
-                        return ExternalScope;
+                        return Binder.ExternalScope;
                     }
 
                     // for other fields defer to the receiver.
@@ -1545,7 +1542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // field-like events that are static or belong to reference types can ref escape anywhere
                     if (eventSymbol.IsStatic || eventSymbol.ContainingType.IsReferenceType)
                     {
-                        return ExternalScope;
+                        return Binder.ExternalScope;
                     }
 
                     // for other events defer to the receiver.

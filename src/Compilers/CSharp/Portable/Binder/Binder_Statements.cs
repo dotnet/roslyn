@@ -947,17 +947,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             localSymbol.SetType(declTypeOpt);
 
-            if (localSymbol.RefKind != RefKind.None && initializerOpt != null)
+            if (initializerOpt != null)
             {
-                var ignoredDiagnostics = DiagnosticBag.GetInstance();
+                var currentScope = Binder.TopLevelScope;
 
-                //TODO: VS current scope
-                if (this.GetRefEscape(initializerOpt, TopLevelScope) == ExternalScope)
+                var valEscape = localSymbol.Type.IsByRefLikeType ?
+                    Binder.ExternalScope :  //TODO: VS compute this
+                    Binder.ExternalScope;   // no need to compute, it is safe to return by value
+
+                localSymbol.SetValEscape(valEscape);
+
+                if (localSymbol.RefKind != RefKind.None)
                 {
-                    localSymbol.SetReturnable();
+                    localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
                 }
-
-                ignoredDiagnostics.Free();
             }
 
             ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, localDiagnostics);
@@ -2318,7 +2321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (refKind != RefKind.None)
                 {
-                    arg = CheckRefEscape(arg, ExternalScope, diagnostics);
+                    arg = CheckRefEscape(arg, Binder.ExternalScope, diagnostics);
                 }
             }
             else
@@ -2798,7 +2801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (refKind != RefKind.None)
             {
-                expression = CheckRefEscape(expression, ExternalScope, diagnostics);
+                expression = CheckRefEscape(expression, Binder.ExternalScope, diagnostics);
             }
 
             return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
@@ -2819,7 +2822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (refKind != RefKind.None)
             {
-                expression = CheckRefEscape(expression, ExternalScope, diagnostics);
+                expression = CheckRefEscape(expression, Binder.ExternalScope, diagnostics);
             }
 
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
