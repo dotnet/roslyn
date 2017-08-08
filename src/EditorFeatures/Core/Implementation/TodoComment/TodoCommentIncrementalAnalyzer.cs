@@ -174,9 +174,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                    document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, existingData.SyntaxVersion);
         }
 
-        internal ImmutableArray<TodoItem> GetItems_TestingOnly(DocumentId documentId)
+        internal ImmutableArray<TodoItem> GetItems_TestingOnly(Document document)
         {
-            return _state.GetItems_TestingOnly(documentId);
+            return _state.TryGetExistingDataAsync(document, CancellationToken.None).Result.Items;
         }
 
         private void RaiseTaskListUpdated(Workspace workspace, Solution solution, DocumentId documentId, ImmutableArray<TodoItem> items)
