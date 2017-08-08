@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18077"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidVariableDeclarationStatement()
             Dim source = <![CDATA[
@@ -38,6 +39,7 @@ BC30203: Identifier expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidSwitchStatementExpression()
             Dim source = <![CDATA[
@@ -70,6 +72,7 @@ BC30109: 'Program' is a class type and cannot be used as an expression.
             VerifyOperationTreeAndDiagnosticsForTest(Of SelectBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidSwitchStatementCaseLabel()
             Dim source = <![CDATA[
@@ -107,6 +110,7 @@ BC30311: Value of type 'Program' cannot be converted to 'String'.
             VerifyOperationTreeAndDiagnosticsForTest(Of SelectBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidIfStatement()
             Dim source = <![CDATA[
@@ -140,6 +144,7 @@ BC30452: Operator '=' is not defined for types 'Program' and 'Program'.
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidIfElseIfStatement()
             Dim source = <![CDATA[
@@ -190,6 +195,7 @@ BC30454: Expression is not a method.
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidForStatement_MissingConditionAndStep()
             Dim source = <![CDATA[
@@ -237,6 +243,7 @@ BC30035: Syntax error.
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidForStatement_MissingConditionAndInitialization()
             Dim source = <![CDATA[
@@ -310,6 +317,7 @@ BC30249: '=' expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidForStatement_InvalidConditionAndStep()
             Dim source = <![CDATA[
@@ -370,6 +378,7 @@ BC30451: 'x' is not declared. It may be inaccessible due to its protection level
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidGotoStatement_MissingLabel()
             Dim source = <![CDATA[
@@ -398,6 +407,7 @@ BC30132: Label 'Label1' is not defined.
             VerifyOperationTreeAndDiagnosticsForTest(Of GoToStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidExitStatement_OutsideLoopOrSwitch()
             Dim source = <![CDATA[
@@ -421,6 +431,7 @@ BC30096: 'Exit For' can only appear inside a 'For' statement.
             VerifyOperationTreeAndDiagnosticsForTest(Of ExitStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidContinueStatement_OutsideLoopOrSwitch()
             Dim source = <![CDATA[
@@ -447,6 +458,7 @@ BC30781: 'Continue' must be followed by 'Do', 'For' or 'While'.
             VerifyOperationTreeAndDiagnosticsForTest(Of ContinueStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18225"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidCaseStatement_OutsideSwitchBlock()
             Dim source = <![CDATA[
@@ -470,6 +482,7 @@ BC30072: 'Case' can only appear inside a 'Select Case' statement.
             VerifyOperationTreeAndDiagnosticsForTest(Of CaseStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidElseIfStatement_NoPrecedingIfStatement()
             Dim source = <![CDATA[

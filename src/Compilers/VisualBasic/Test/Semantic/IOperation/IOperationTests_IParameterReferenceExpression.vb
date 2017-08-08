@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_TupleExpression()
             Dim source = <![CDATA[
@@ -33,6 +34,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (x As System.Int32, Syste
             VerifyOperationTreeAndDiagnosticsForTest(Of TupleExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_AnonymousObjectCreation()
             Dim source = <![CDATA[
@@ -65,6 +67,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_QueryExpression()
             Dim source = <![CDATA[
@@ -117,6 +120,7 @@ IOperation:  (OperationKind.None) (Syntax: 'From cust I ... t cust.Name')
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_QueryExpressionAggregateClause()
             Dim source = <![CDATA[
@@ -164,6 +168,7 @@ IOperation:  (OperationKind.None) (Syntax: 'Aggregate y ... nto Count()')
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_QueryExpressionOrderByClause()
             Dim source = <![CDATA[
@@ -215,6 +220,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_QueryExpressionGroupByClause()
             Dim source = <![CDATA[
@@ -286,6 +292,7 @@ IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_ObjectAndCollectionInitializer()
             Dim source = <![CDATA[
@@ -356,6 +363,7 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_DelegateCreationExpressionWithLambdaArgument()
             Dim source = <![CDATA[
@@ -388,6 +396,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_DelegateCreationExpressionWithMethodArgument()
             Dim source = <![CDATA[
@@ -412,6 +421,7 @@ IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.Conve
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_DelegateCreationExpressionWithInvalidArgument()
             Dim source = <![CDATA[
@@ -440,6 +450,7 @@ BC32008: Delegate 'EventHandler' requires an 'AddressOf' expression or lambda ex
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NameOfExpression()
             Dim source = <![CDATA[
@@ -459,6 +470,7 @@ INameOfExpression (OperationKind.NameOfExpression, Type: System.String, Constant
             VerifyOperationTreeAndDiagnosticsForTest(Of NameOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NameOfExpression_ErrorCase()
             Dim source = <![CDATA[
@@ -484,6 +496,7 @@ BC37244: This expression does not have a name.
             VerifyOperationTreeAndDiagnosticsForTest(Of NameOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_LateBoundIndexerAccess()
             Dim source = <![CDATA[
@@ -510,6 +523,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd(x)')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_LateBoundMemberAccess()
             Dim source = <![CDATA[
@@ -536,6 +550,7 @@ IOperation:  (OperationKind.None) (Syntax: 'x.M(y)')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_LateBoundInvocation()
             Dim source = <![CDATA[
@@ -562,6 +577,7 @@ IOperation:  (OperationKind.None) (Syntax: 'x(y)')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_InterpolatedStringExpression()
             Dim source = <![CDATA[
@@ -601,6 +617,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_MidAssignmentStatement()
             Dim source = <![CDATA[
@@ -630,6 +647,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Mid(str, st .
             VerifyOperationTreeAndDiagnosticsForTest(Of AssignmentStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_MisplacedCaseStatement()
             Dim source = <![CDATA[
@@ -655,6 +673,7 @@ BC30072: 'Case' can only appear inside a 'Select Case' statement.
             VerifyOperationTreeAndDiagnosticsForTest(Of CaseStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_RedimStatement()
             Dim source = <![CDATA[
@@ -689,6 +708,7 @@ IOperation:  (OperationKind.None) (Syntax: 'ReDim intArray(x, x, x)')
             VerifyOperationTreeAndDiagnosticsForTest(Of ReDimStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_EraseStatement()
             Dim source = <![CDATA[
@@ -715,6 +735,7 @@ IOperation:  (OperationKind.None) (Syntax: 'Erase x')
             VerifyOperationTreeAndDiagnosticsForTest(Of EraseStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19024"), WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_UnstructuredExceptionHandlingStatement()
             Dim source = <![CDATA[
@@ -737,6 +758,7 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Public S
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_LateAddressOfOperator()
             Dim source = <![CDATA[
@@ -764,6 +786,7 @@ IOperation:  (OperationKind.None) (Syntax: 'AddressOf x.Method')
             VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NullableIsTrueOperator()
             Dim source = <![CDATA[
@@ -790,6 +813,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x Then'B ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NoPiaObjectCreation()
             Dim sources0 = <compilation>

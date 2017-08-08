@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementSimpleIf()
         {
@@ -45,6 +46,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementSimpleIfWithElse()
         {
@@ -91,6 +93,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementSimpleIfWithConditionEvaluationTrue()
         {
@@ -130,6 +133,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (1 == 1) ... }')
 
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementSimpleIfNested1()
         {
@@ -188,6 +192,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m > 10) ... }')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementSimpleIfNested2()
         {
@@ -245,6 +250,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m > 10) ... }')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithMultipleCondition()
         {
@@ -289,6 +295,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m >= n  ... }')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithElseIfCondition()
         {
@@ -358,6 +365,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (n > 20) ... }')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithElseIfConditionOutVar()
         {
@@ -435,6 +443,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (int.Try ... , s ={s}"");'
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithOutVar()
         {
@@ -481,6 +490,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... eLine(A());')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementExplictEmbeddedOutVar()
         {
@@ -534,6 +544,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementImplicitEmbeddedOutVar()
         {
@@ -582,6 +593,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ...  int i, 1);')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithConditionPattern()
         {
@@ -622,6 +634,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (obj is  ... }')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithPattern()
         {
@@ -662,6 +675,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... A(25);')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithEmbeddedPattern()
         {
@@ -712,6 +726,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithElseMissing()
         {
@@ -762,6 +777,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (obj is  ... el
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithConditionMissing()
         {
@@ -813,6 +829,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... }')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithStatementMissing()
         {
@@ -861,6 +878,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (a == 1) ... el
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithFuncCall()
         {
@@ -907,6 +925,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... B();')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithDynamic()
         {

@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidInvocationExpression_BadReceiver()
         {
@@ -41,6 +42,7 @@ IInvocationExpression ( ? ?.()) (OperationKind.InvocationExpression, Type: ?, Is
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidInvocationExpression_OverloadResolutionFailureBadArgument()
         {
@@ -78,6 +80,7 @@ IInvocationExpression ( void Program.F(System.Int32 x)) (OperationKind.Invocatio
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8813"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidInvocationExpression_OverloadResolutionFailureExtraArgument()
         {
@@ -109,6 +112,7 @@ IInvocationExpression ( void Program.F()) (OperationKind.InvocationExpression, T
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidFieldReferenceExpression()
         {
@@ -145,6 +149,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidConversionExpression_ImplicitCast()
         {
@@ -186,6 +191,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidConversionExpression_ExplicitCast()
         {
@@ -227,6 +233,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18056"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidUnaryExpression()
         {
@@ -260,6 +267,7 @@ IIncrementExpression (UnaryOperandKind.Invalid) (BinaryOperationKind.Invalid) (O
             VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidBinaryExpression()
         {
@@ -297,6 +305,7 @@ IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOpe
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18057"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidLambdaBinding_UnboundLambda()
         {
@@ -333,6 +342,7 @@ IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationSt
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidLambdaBinding_LambdaExpression()
         {
@@ -368,6 +378,7 @@ ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression
             VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedLambdaExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidFieldInitializer()
         {
@@ -401,6 +412,7 @@ IFieldInitializer (Field: System.Int32 Program.x) (OperationKind.FieldInitialize
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidArrayInitializer()
         {
@@ -447,6 +459,7 @@ IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Synt
             VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidArrayCreation()
         {
@@ -492,6 +505,7 @@ IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpressio
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18059"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidParameterDefaultValueInitializer()
         {

@@ -9,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_SimpleForLoopsTest()
             Dim source = <![CDATA[
@@ -63,6 +64,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_SimpleForLoopsTestConversion()
             Dim source = <![CDATA[
@@ -134,6 +136,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForLoopStepIsFloatNegativeVar()
             Dim source = <![CDATA[
@@ -196,6 +199,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForLoopObject()
             Dim source = <![CDATA[
@@ -260,6 +264,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For ctr
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForLoopNested()
             Dim source = <![CDATA[
@@ -354,6 +359,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For AVa
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ChangeOuterVarInInnerFor()
             Dim source = <![CDATA[
@@ -425,6 +431,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_InnerForRefOuterForVar()
             Dim source = <![CDATA[
@@ -493,6 +500,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ExitNestedFor()
             Dim source = <![CDATA[
@@ -560,6 +568,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_EnumAsStart()
             Dim source = <![CDATA[
@@ -603,6 +612,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_PropertyAsStart()
             Dim source = <![CDATA[
@@ -660,6 +670,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_FieldNameAsIteration()
             Dim source = <![CDATA[
@@ -702,6 +713,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For glo
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_SingleLine()
             Dim source = <![CDATA[
@@ -737,6 +749,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_VarDeclOutOfForeach()
             Dim source = <![CDATA[
@@ -776,6 +789,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For Y =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_GetDeclaredSymbolOfForStatement()
             Dim source = <![CDATA[
@@ -820,6 +834,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For ele
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForLoopContinue()
             Dim source = <![CDATA[
@@ -873,6 +888,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForReverse()
             Dim source = <![CDATA[
@@ -919,6 +935,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For X =
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_InValid()
             Dim source = <![CDATA[
@@ -967,6 +984,7 @@ BC30337: 'For' loop control variable cannot be of type 'String' because the type
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForCombined()
             Dim source = <![CDATA[
@@ -1022,6 +1040,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For A =
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop1()
             Dim source = <![CDATA[
@@ -1062,6 +1081,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop2()
             Dim source = <![CDATA[
@@ -1117,6 +1137,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop3()
             Dim source = <![CDATA[
@@ -1159,6 +1180,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop4()
             Dim source = <![CDATA[
@@ -1212,6 +1234,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop5()
             Dim source = <![CDATA[
@@ -1264,6 +1287,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop6()
             Dim source = <![CDATA[
@@ -1318,6 +1342,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop7()
             Dim source = <![CDATA[
@@ -1372,6 +1397,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop8()
             Dim source = <![CDATA[

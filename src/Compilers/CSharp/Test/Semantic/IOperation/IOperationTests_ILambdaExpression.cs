@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ILambdaExpression_BoundLambda_HasValidLambdaExpressionTree()
         {
@@ -48,6 +49,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ILambdaExpression_UnboundLambdaAsVar_HasValidLambdaExpressionTree()
         {
@@ -86,6 +88,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ILambdaExpression_UnboundLambdaAsDelegate_HasValidLambdaExpressionTree()
         {
@@ -126,6 +129,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ILambdaExpression_UnboundLambda_ReferenceEquality()
         {

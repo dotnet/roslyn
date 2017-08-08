@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidInvocationExpression_BadReceiver()
             Dim source = <![CDATA[
@@ -38,6 +39,7 @@ BC30456: 'WriteLine2' is not a member of 'Console'.
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidInvocationExpression_OverloadResolutionFailureBadArgument()
             Dim source = <![CDATA[
@@ -72,6 +74,7 @@ BC30369: Cannot refer to an instance member of a class from within a shared meth
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidInvocationExpression_OverloadResolutionFailureExtraArgument()
             Dim source = <![CDATA[
@@ -101,6 +104,7 @@ BC30057: Too many arguments to 'Private Sub F()'.
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidFieldReferenceExpression()
             Dim source = <![CDATA[
@@ -129,6 +133,7 @@ BC30456: 'MissingField' is not a member of 'Program'.
             VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidConversionExpression_ImplicitCast()
             Dim source = <![CDATA[
@@ -159,6 +164,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Program'.
             VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidConversionExpression_ExplicitCast()
             Dim source = <![CDATA[
@@ -173,12 +179,11 @@ Class Program
     End Sub
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: 'DirectCast( ... 1, Program)')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IFieldReferenceExpression: Program.i1 As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
-      Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
-]]>.Value
+      Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC30311: Value of type 'Integer' cannot be converted to 'Program'.
@@ -189,6 +194,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Program'.
             VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidUnaryExpression()
             Dim source = <![CDATA[
@@ -218,6 +224,7 @@ BC30487: Operator '+' is not defined for type 'Program'.
             VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidBinaryExpression()
             Dim source = <![CDATA[
@@ -253,6 +260,7 @@ BC30451: 'y' is not declared. It may be inaccessible due to its protection level
             VerifyOperationTreeAndDiagnosticsForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidLambdaBinding_UnboundLambda()
             Dim source = <![CDATA[
@@ -267,7 +275,7 @@ Class Program
     End Sub
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Function <generated method>() As ?, IsInvalid) (Syntax: 'Function() F()')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: ILambdaExpression (Signature: Function () As ?) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Function() F()')
@@ -282,8 +290,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
         ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'Function() F()')
           LabeledStatement: null
         IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function() F()')
-          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: ?, IsInvalid) (Syntax: 'Function() F()')
-]]>.Value
+          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: ?, IsInvalid) (Syntax: 'Function() F()')]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC30491: Expression does not produce a value.
@@ -294,6 +301,7 @@ BC30491: Expression does not produce a value.
             VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidFieldInitializer()
             Dim source = <![CDATA[
@@ -329,6 +337,7 @@ BC30109: 'Program' is a class type and cannot be used as an expression.
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18074"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidArrayInitializer()
             Dim source = <![CDATA[
@@ -355,6 +364,7 @@ BC30566: Array initializer has too many dimensions.
             VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidArrayCreation()
             Dim source = <![CDATA[
@@ -398,6 +408,7 @@ BC30566: Array initializer has too many dimensions.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidParameterDefaultValueInitializer()
             Dim source = <![CDATA[

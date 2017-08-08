@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -8,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSingleLineIf()
             Dim source = <![CDATA[
@@ -37,6 +39,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... lue = count')
             VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineIfStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementMultiLineIf()
             Dim source = <![CDATA[
@@ -69,6 +72,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSingleLineIfAndElse()
             Dim source = <![CDATA[
@@ -106,6 +110,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... ata - count')
             VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineIfStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSingleLineIfAndElseNested()
             Dim source = <![CDATA[
@@ -142,6 +147,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If m > 10 T ... rnValue = n')
             VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineIfStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSimpleIfWithConditionEvaluationTrue()
             Dim source = <![CDATA[
@@ -172,6 +178,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 = 1 Th ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSimpleIfWithConditionConstantFalse()
             Dim source = <![CDATA[
@@ -200,6 +207,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If False Th ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSingleLineWithOperator()
             Dim source = <![CDATA[
@@ -235,6 +243,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10  ... rnValue = n')
             VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineIfStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementMultiLineIfWithElse()
             Dim source = <![CDATA[
@@ -273,6 +282,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSimpleIfNested1()
             Dim source = <![CDATA[
@@ -330,6 +340,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10) ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementIfNested2()
             Dim source = <![CDATA[
@@ -387,6 +398,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10) ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithMultipleCondition()
             Dim source = <![CDATA[
@@ -430,6 +442,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m >= n  ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithElseIfCondition()
             Dim source = <![CDATA[
@@ -493,6 +506,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithElseIfSingleLine()
             Dim source = <![CDATA[
@@ -554,6 +568,7 @@ BC30205: End of statement expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineIfStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithElseMissing()
             Dim source = <![CDATA[
@@ -594,6 +609,7 @@ BC30081: 'If' must end with a matching 'End If'.
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithConditionMissing()
             Dim source = <![CDATA[
@@ -635,6 +651,7 @@ BC30201: Expression expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithStatementMissing()
             Dim source = <![CDATA[
@@ -664,6 +681,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m = 9)  ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithFuncCall()
             Dim source = <![CDATA[

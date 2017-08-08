@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18077"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidVariableDeclarationStatement()
         {
@@ -51,6 +52,7 @@ IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationSt
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18080"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidSwitchStatementExpression()
         {
@@ -84,6 +86,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'switch (Pro ... }')
             VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidSwitchStatementCaseLabel()
         {
@@ -127,6 +130,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
             VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidIfStatement()
         {
@@ -165,6 +169,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x = nul ... }'
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidIfElseStatement()
         {
@@ -222,6 +227,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... else')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidForStatement()
         {
@@ -266,6 +272,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
             VerifyOperationTreeAndDiagnosticsForTest<ForStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidGotoCaseStatement_MissingLabel()
         {
@@ -299,6 +306,7 @@ IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto cas
             VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18225"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidGotoCaseStatement_OutsideSwitchStatement()
         {
@@ -326,6 +334,7 @@ IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto cas
             VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidBreakStatement_OutsideLoopOrSwitch()
         {
@@ -353,6 +362,7 @@ IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'break;')
             VerifyOperationTreeAndDiagnosticsForTest<BreakStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidContinueStatement_OutsideLoopOrSwitch()
         {

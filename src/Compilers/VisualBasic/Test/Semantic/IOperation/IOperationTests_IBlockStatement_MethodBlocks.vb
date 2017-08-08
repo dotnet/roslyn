@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -8,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_SubMethodBlock()
             Dim source = <![CDATA[
@@ -37,6 +39,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub Meth
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_SubNewBlock()
             Dim source = <![CDATA[
@@ -66,6 +69,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub New(
             VerifyOperationTreeAndDiagnosticsForTest(Of ConstructorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_FunctionMethodBlock()
             Dim source = <![CDATA[
@@ -100,6 +104,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_PropertyGetBlock()
             Dim source = <![CDATA[
@@ -136,6 +141,7 @@ BC42355: Property 'Prop' doesn't return a value on all code paths. Are you missi
             VerifyOperationTreeAndDiagnosticsForTest(Of AccessorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_PropertySetBlock()
             Dim source = <![CDATA[
@@ -167,6 +173,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Set(Valu
             VerifyOperationTreeAndDiagnosticsForTest(Of AccessorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_CustomEventAddBlock()
             Dim source = <![CDATA[
@@ -206,6 +213,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'AddHandl
             VerifyOperationTreeAndDiagnosticsForTest(Of AccessorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_CustomEventRemoveBlock()
             Dim source = <![CDATA[
@@ -245,6 +253,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'RemoveHa
             VerifyOperationTreeAndDiagnosticsForTest(Of AccessorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_CustomEventRaiseBlock()
             Dim source = <![CDATA[
@@ -284,6 +293,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'RaiseEve
             VerifyOperationTreeAndDiagnosticsForTest(Of AccessorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_OperatorBlock()
             Dim source = <![CDATA[
@@ -318,6 +328,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
             VerifyOperationTreeAndDiagnosticsForTest(Of OperatorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_MustOverrideSubMethodStatement()
             Dim source = "
@@ -328,6 +339,7 @@ End Class"
             VerifyNoOperationTreeForTest(Of MethodStatementSyntax)(source)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_InterfaceSub()
             Dim source = "
@@ -338,6 +350,7 @@ End Interface"
             VerifyNoOperationTreeForTest(Of MethodStatementSyntax)(source)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_InterfaceFunction()
             Dim source = "
@@ -348,6 +361,7 @@ End Interface"
             VerifyNoOperationTreeForTest(Of MethodStatementSyntax)(source)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_NormalEvent()
             Dim source = "

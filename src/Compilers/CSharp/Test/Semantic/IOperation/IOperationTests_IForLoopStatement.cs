@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ForSimpleLoop()
         {
@@ -26,7 +28,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 3')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -55,6 +57,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_TrueCondition()
         {
@@ -74,7 +77,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (j = 0; ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Before:
@@ -101,6 +104,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (j 
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_FalseCondition()
         {
@@ -120,7 +124,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (j = 0; ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
   Before:
@@ -147,6 +151,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (j 
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_WithContinue()
         {
@@ -166,7 +171,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (i = 0, ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -204,6 +209,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (i 
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_WithBreak()
         {
@@ -223,7 +229,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (i = 0, ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -261,6 +267,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (i 
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_WithNoStatement()
         {
@@ -279,7 +286,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (;;) ... }')
   Condition: null
   Before(0)
@@ -301,6 +308,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (;;
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_MultipleInitializer()
         {
@@ -318,7 +326,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (i = i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 2')
       Left: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
@@ -354,6 +362,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (i 
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_InitializerMissing()
         {
@@ -370,7 +379,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (; i <  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -388,6 +397,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (; 
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_DecreasingIterator()
         {
@@ -403,7 +413,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int k  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'k > 100')
       Left: ILocalReferenceExpression: k (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'k')
@@ -426,6 +436,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_MethodCall()
         {
@@ -445,7 +456,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (Initia ... }')
   Condition: IInvocationExpression (System.Boolean C.Conditional()) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'Conditional()')
       Instance Receiver: null
@@ -465,6 +476,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (In
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_MissingForBody()
         {
@@ -477,7 +489,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ...  = i + 1) ;')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 100')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -500,6 +512,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_Nested()
         {
@@ -517,7 +530,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 100')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -558,6 +571,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ChangeOuterVariableInInnerLoop()
         {
@@ -577,7 +591,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -622,6 +636,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_InnerLoopRefOuterIteration()
         {
@@ -640,7 +655,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -683,6 +698,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_BreakFromNestedLoop()
         {
@@ -703,7 +719,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -750,6 +766,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ContinueForNestedLoop()
         {
@@ -771,7 +788,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -834,6 +851,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_GotoForNestedLoop_1()
         {
@@ -855,7 +873,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -904,6 +922,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ThrowException()
         {
@@ -923,7 +942,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -962,6 +981,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ReturnInFor()
         {
@@ -981,7 +1001,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -1012,6 +1032,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ChangeValueOfInit()
         {
@@ -1028,7 +1049,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -1059,6 +1080,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ChangeValueOfCondition()
         {
@@ -1077,7 +1099,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 50 - x')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -1114,6 +1136,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_UnreachableCode1()
         {
@@ -1129,7 +1152,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (; fals ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
   Before(0)
@@ -1147,6 +1170,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (; 
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ObjectInitAsInitializer()
         {
@@ -1167,7 +1191,7 @@ public class F
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (F f =  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'f.i < 5')
       Left: IFieldReferenceExpression: System.Int32 F.i (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'f.i')
@@ -1203,6 +1227,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (F 
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_DynamicInFor()
         {
@@ -1243,7 +1268,7 @@ public class myFor
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (d.Init ... }')
   Condition: IUnaryOperatorExpression (UnaryOperationKind.DynamicTrue) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'd.Done')
       Operand: IDynamicMemberReferenceExpression (Member Name: ""Done"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Done')
@@ -1269,6 +1294,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (d.
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_VarInFor()
         {
@@ -1282,7 +1308,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (var i  ...  = i + 1) ;')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -1305,6 +1331,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (va
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_QueryInInit()
         {
@@ -1329,7 +1356,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (IEnume ... }')
   Condition: null
   Locals: Local_1: System.Collections.Generic.IEnumerable<System.String> str
@@ -1432,6 +1459,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (IE
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_QueryInBody()
         {
@@ -1462,7 +1490,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -1554,6 +1582,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ExpressiontreeInInit()
         {
@@ -1573,7 +1602,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (e = x  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -1620,6 +1649,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (e 
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ExpressiontreeInIterator()
         {
@@ -1638,7 +1668,7 @@ class C
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -1693,6 +1723,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_CustomerTypeInFor()
         {
@@ -1712,7 +1743,7 @@ public class C1
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (C1 i = ... l; i++) { }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.ObjectEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i == null')
       Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'i')
@@ -1738,6 +1769,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (C1
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_PostFixIncrementInFor()
         {
@@ -1754,7 +1786,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int j  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 5')
       Left: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
@@ -1783,6 +1815,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_PreFixIncrementInFor()
         {
@@ -1800,7 +1833,7 @@ class Program
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int j  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 5')
       Left: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
@@ -1829,6 +1862,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_PreFixIncrementInCondition()
         {
@@ -1844,7 +1878,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '++i < 5')
       Left: IIncrementExpression (UnaryOperandKind.IntegerPrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++i')
@@ -1870,6 +1904,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_PostFixDecrementInCondition()
         {
@@ -1890,7 +1925,7 @@ class Program
 }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'foo(i--) > -5')
       Left: IInvocationExpression (System.Int32 Program.foo(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'foo(i--)')
@@ -1923,6 +1958,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_InfiniteLoopVerify()
         {
@@ -1938,7 +1974,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (; true ... }')
   Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Before(0)
@@ -1956,6 +1992,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (; 
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_InvalidExpression()
         {
@@ -1970,7 +2007,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'for (int k  ... 100, j > 5;')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid) (Syntax: 'k < 100')
       Left: ILocalReferenceExpression: k (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'k')
@@ -1998,6 +2035,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_ConditionOutVar()
         {
@@ -2014,7 +2052,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (var j  ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')

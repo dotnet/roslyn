@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_VarPatternDeclaration()
         {
@@ -33,6 +34,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_PrimitiveTypePatternDeclaration()
         {
@@ -57,6 +59,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ReferenceTypePatternDeclaration()
         {
@@ -80,6 +83,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_TypeParameterTypePatternDeclaration()
         {
@@ -103,6 +107,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_DynamicTypePatternDeclaration()
         {
@@ -130,6 +135,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ConstantPattern()
         {
@@ -155,6 +161,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ConstantPatternWithConversion()
         {
@@ -182,6 +189,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ConstantPatternWithNoImplicitConversion()
         {
@@ -213,6 +221,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ConstantPatternWithNoValidImplicitOrExplicitConversion()
         {
@@ -244,6 +253,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_UndefinedTypeInPatternDeclaration()
         {
@@ -272,6 +282,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidConstantPatternDeclaration()
         {
@@ -301,6 +312,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidTypeInPatternDeclaration()
         {
@@ -329,6 +341,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_DuplicateLocalInPatternDeclaration()
         {
@@ -357,6 +370,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidMultipleLocalsInPatternDeclaration()
         {
@@ -403,6 +417,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidConstDeclarationInPatternDeclaration()
         {
@@ -456,6 +471,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInDefaultParameterInitializer()
         {
@@ -483,6 +499,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInFieldInitializer()
         {
@@ -508,6 +525,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInConstructorInitializer()
         {
@@ -538,6 +556,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInAttributeArgument()
         {

@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithMemberInitializers()
         {
@@ -146,6 +147,7 @@ IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithCollectionInitializer()
         {
@@ -187,6 +189,7 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.I
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithNestedCollectionInitializer()
         {
@@ -245,6 +248,7 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.C
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithMemberAndCollectionInitializers()
         {

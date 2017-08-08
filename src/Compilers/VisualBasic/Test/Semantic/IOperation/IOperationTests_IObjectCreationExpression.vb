@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -8,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")>
         Public Sub ObjectCreationWithMemberInitializers()
             Dim source = <![CDATA[
@@ -145,6 +147,7 @@ BC36718: Cannot initialize the type 'F' with a collection initializer because it
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")>
         Public Sub ObjectCreationWithCollectionInitializer()
             Dim source = <![CDATA[
@@ -181,6 +184,7 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")>
         Public Sub ObjectCreationWithNestedCollectionInitializer()
             Dim source = <![CDATA[
@@ -231,6 +235,7 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")>
         Public Sub ObjectCreationWithMemberAndCollectionInitializers()
             Dim source = <![CDATA[

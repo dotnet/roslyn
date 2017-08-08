@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void NoInitializers()
         {
@@ -35,6 +36,7 @@ class C
             }
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ConstantInitializers_StaticField()
         {
@@ -57,6 +59,7 @@ IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (S
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ConstantInitializers_InstanceField()
         {
@@ -82,6 +85,7 @@ IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializer) (S
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ConstantInitializers_Property()
         {
@@ -100,6 +104,7 @@ IPropertyInitializer (Property: System.Int32 C.P1 { get; }) (OperationKind.Prope
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ConstantInitializers_DefaultValueParameter()
         {
@@ -122,6 +127,7 @@ IParameterInitializer (Parameter: [System.Int32 p1 = 0]) (OperationKind.Paramete
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ConstantInitializers_DefaultValueParamsArray()
         {
@@ -146,6 +152,7 @@ IParameterInitializer (Parameter: params System.Int32[] p2) (OperationKind.Param
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ExpressionInitializers_StaticField()
         {
@@ -170,6 +177,7 @@ IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (S
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ExpressionInitializers_InstanceField()
         {
@@ -196,6 +204,7 @@ IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (S
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ExpressionInitializers_Property()
         {
@@ -220,6 +229,7 @@ IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializer) (S
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void PartialClasses_StaticField()
         {
@@ -258,6 +268,7 @@ IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (S
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void PartialClasses_InstanceField()
         {
@@ -296,6 +307,7 @@ IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializer) (S
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void Events_StaticField()
         {
@@ -322,6 +334,7 @@ IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializer) (S
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void Events_InstanceField()
         {

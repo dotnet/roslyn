@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub NoInitializers()
             Dim source = <compilation>
@@ -36,6 +37,7 @@ End Class
             Next
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ConstantInitializers_StaticField()
             Dim source = <![CDATA[
@@ -53,6 +55,7 @@ IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer)
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ConstantInitializers_InstanceField()
             Dim source = <![CDATA[
@@ -70,6 +73,7 @@ IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializer)
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ConstantInitializers_Property()
             Dim source = <![CDATA[
@@ -87,6 +91,7 @@ IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.Pr
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ConstantInitializers_DefaultValueParameter()
             Dim source = <![CDATA[
@@ -112,6 +117,7 @@ BC30046: Method cannot have both a ParamArray and Optional parameters.
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ConstantInitializers_DefaultValueParamsArray()
             Dim source = <![CDATA[
@@ -139,6 +145,7 @@ BC30046: Method cannot have both a ParamArray and Optional parameters.
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17813"), WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
         Public Sub MultipleFieldInitializers()
             Dim source = <![CDATA[
@@ -158,6 +165,7 @@ IFieldInitializer (2 initialized fields) (OperationKind.FieldInitializer)  (Synt
             VerifyOperationTreeAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ExpressionInitializers_StaticField()
             Dim source = <![CDATA[
@@ -183,6 +191,7 @@ IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer)
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ExpressionInitializers_InstanceField()
             Dim source = <![CDATA[
@@ -208,6 +217,7 @@ IFieldInitializer (Field: C.i1 As System.Int32) (OperationKind.FieldInitializer)
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ExpressionInitializers_Property()
             Dim source = <![CDATA[
@@ -233,6 +243,7 @@ IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.Pr
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub PartialClasses_StaticField()
             Dim source = <![CDATA[
@@ -255,6 +266,7 @@ IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer)
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub PartialClasses_InstanceField()
             Dim source = <![CDATA[

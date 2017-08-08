@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_TupleExpression()
         {
@@ -39,6 +40,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.I
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_TupleDeconstruction()
         {
@@ -85,6 +87,7 @@ IOperation:  (OperationKind.None) (Syntax: 'var (x, y) = point')
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_AnonymousObjectCreation()
         {
@@ -116,6 +119,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
             VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_QueryExpression()
         {
@@ -170,6 +174,7 @@ IOperation:  (OperationKind.None) (Syntax: 'from cust i ... t cust.Name')
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_ObjectAndCollectionInitializer()
         {
@@ -236,6 +241,7 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DelegateCreationExpressionWithLambdaArgument()
         {
@@ -254,7 +260,7 @@ class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
   Children(1):
       ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => ... }')
@@ -271,6 +277,7 @@ IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DelegateCreationExpressionWithMethodArgument()
         {
@@ -291,7 +298,7 @@ class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'new Delegate(Method2)')
   Children(1):
       IOperation:  (OperationKind.None) (Syntax: 'Method2')
@@ -301,6 +308,7 @@ IOperation:  (OperationKind.None) (Syntax: 'new Delegate(Method2)')
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DelegateCreationExpressionWithInvalidArgument()
         {
@@ -331,6 +339,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: Class.Delegate, IsInv
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DynamicCollectionInitializer()
         {
@@ -365,6 +374,7 @@ IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitia
             VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_NameOfExpression()
         {
@@ -386,6 +396,7 @@ INameOfExpression (OperationKind.NameOfExpression, Type: System.String, Constant
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_PointerIndirectionExpression()
         {
@@ -411,6 +422,7 @@ IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenc
             VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_FixedLocalInitializer()
         {
@@ -445,6 +457,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_RefTypeOperator()
         {
@@ -467,6 +480,7 @@ IOperation:  (OperationKind.None) (Syntax: '__reftype(x)')
             VerifyOperationTreeAndDiagnosticsForTest<RefTypeExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_MakeRefOperator()
         {
@@ -489,6 +503,7 @@ IOperation:  (OperationKind.None) (Syntax: '__makeref(x)')
             VerifyOperationTreeAndDiagnosticsForTest<MakeRefExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_RefValueOperator()
         {
@@ -511,6 +526,7 @@ IOperation:  (OperationKind.None) (Syntax: '__refvalue(x, int)')
             VerifyOperationTreeAndDiagnosticsForTest<RefValueExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DynamicIndexerAccess()
         {
@@ -537,6 +553,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DynamicMemberAccess()
         {
@@ -562,6 +579,7 @@ IOperation:  (OperationKind.None) (Syntax: 'x.M(y)')
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DynamicInvocation()
         {
@@ -585,6 +603,7 @@ IOperation:  (OperationKind.None) (Syntax: 'x(y)')
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DynamicObjectCreation()
         {
@@ -616,6 +635,7 @@ IDynamicObjectCreationExpression (Name: Class) (OperationKind.TypeParameterObjec
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_StackAllocArrayCreation()
         {
@@ -644,6 +664,7 @@ IOperation:  (OperationKind.None) (Syntax: 'stackalloc int[x]')
             VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_InterpolatedStringExpression()
         {
@@ -685,6 +706,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_ThrowExpression()
         {
@@ -715,6 +737,7 @@ IThrowExpression (OperationKind.ThrowExpression, Type: null) (Syntax: 'throw new
             VerifyOperationTreeAndDiagnosticsForTest<ThrowExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_PatternSwitchStatement()
         {
@@ -750,6 +773,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
             VerifyOperationTreeAndDiagnosticsForTest<SwitchSectionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DefaultPatternSwitchStatement()
         {
@@ -793,6 +817,7 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
             VerifyOperationTreeAndDiagnosticsForTest<DefaultSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_UserDefinedLogicalConditionalOperator()
         {
@@ -835,6 +860,7 @@ IOperation:  (OperationKind.None) (Syntax: 'x && y')
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_NoPiaObjectCreation()
         {
@@ -887,6 +913,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'new I(x)')
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation1, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_ArgListOperator()
         {
@@ -915,6 +942,7 @@ IOperation:  (OperationKind.None) (Syntax: '__arglist(x, y)')
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19790, "https://github.com/dotnet/roslyn/issues/19790")]
         public void ParameterReference_IsPatternExpression()
         {
@@ -937,6 +965,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19902, "https://github.com/dotnet/roslyn/issues/19902")]
         public void ParameterReference_LocalFunctionStatement()
         {

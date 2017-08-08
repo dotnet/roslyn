@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region Implicit Conversions
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_IdentityConversionDynamic()
         {
@@ -45,6 +46,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         /// <summary>
         /// This test documents the fact that there is no IConversionExpression between two objects of the same type.
         /// </summary>
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_IdentityConversion()
         {
@@ -69,6 +71,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_NumericConversion_Valid()
         {
@@ -96,6 +99,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_NumericConversion_InvalidIllegalTypes()
         {
@@ -158,6 +162,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_EnumConversion_ZeroToEnum()
         {
@@ -191,6 +196,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_EnumConversion_IntToEnum_Invalid()
         {
@@ -226,6 +232,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_EnumConversion_OneToEnum_Invalid()
         {
@@ -292,6 +299,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ThrowExpressionConversion()
         {
@@ -372,6 +380,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_NullToClassConversion()
         {
@@ -402,6 +411,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_NullToNullableValueConversion()
         {
@@ -436,6 +446,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_NullToNonNullableConversion_Invalid()
         {
@@ -466,6 +477,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_DefaultToValueConversion()
         {
@@ -499,6 +511,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_DefaultOfImplicitlyConvertableTypeToValueConversion()
         {
@@ -534,6 +547,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         /// <summary>
         /// This test documents the fact that `default(T)` is already T, and does not introduce a conversion
         /// </summary>
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_DefaultToClassNoConversion()
         {
@@ -563,6 +577,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_NullableFromConstantConversion()
         {
@@ -593,6 +608,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_NullableToNullableConversion()
         {
@@ -620,6 +636,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_NullableFromNonNullableConversion()
         {
@@ -647,6 +664,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_NullableToNonNullableConversion_Invalid()
         {
@@ -678,6 +696,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_InterpolatedStringToIFormattableExpression()
         {
@@ -712,6 +731,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceToObjectConversion()
         {
@@ -742,6 +762,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceToDynamicConversion()
         {
@@ -772,6 +793,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceClassToClassConversion()
         {
@@ -806,6 +828,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceClassToClassConversion_Invalid()
         {
@@ -844,6 +867,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceConversion_InvalidSyntax()
         {
@@ -880,6 +904,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceClassToInterfaceConversion()
         {
@@ -914,6 +939,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceClassToInterfaceConversion_Invalid()
         {
@@ -952,6 +978,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceInterfaceToClassConversion_Invalid()
         {
@@ -989,6 +1016,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceInterfaceToInterfaceConversion()
         {
@@ -1026,6 +1054,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceInterfaceToInterfaceConversion_Invalid()
         {
@@ -1067,6 +1096,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceArrayToArrayConversion()
         {
@@ -1100,6 +1130,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceArrayToArrayConversion_InvalidDimenionMismatch()
         {
@@ -1137,6 +1168,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceArrayToArrayConversion_InvalidNoReferenceConversion()
         {
@@ -1174,6 +1206,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceArrayToArrayConversion_InvalidValueTypeToReferenceType()
         {
@@ -1217,6 +1250,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceArrayToSystemArrayConversion()
         {
@@ -1248,6 +1282,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceArrayToSystemArrayConversion_MultiDimensionalArray()
         {
@@ -1279,6 +1314,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceArrayToSystemArrayConversion_InvalidNotArrayType()
         {
@@ -1313,6 +1349,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceArrayToIListTConversion()
         {
@@ -1344,6 +1381,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceArrayToIListTConversion_InvalidNonArrayType()
         {
@@ -1378,6 +1416,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceDelegateTypeToSystemDelegateConversion()
         {
@@ -1412,6 +1451,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceDelegateTypeToSystemDelegateConversion_InvalidNonDelegateType()
         {
@@ -1491,6 +1531,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         /// <summary>
         /// This method is documenting the fact that there is no conversion expression here.
         /// </summary>
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceMethodToDelegateConversion_NoConversion()
         {
@@ -1518,6 +1559,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceMethodToDelegateConversion_InvalidIdentifier()
         {
@@ -1550,6 +1592,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConversion()
         {
@@ -1582,6 +1625,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConversion_InvalidMismatchedTypes()
         {
@@ -1615,6 +1659,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             Func<int, float> f = (int num) => num;
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConversion_InvalidSyntax()
         {
@@ -1656,6 +1701,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         /// This is documenting the fact that there are currently not conversion expressions in this tree. Once
         /// https://github.com/dotnet/roslyn/issues/18839 is addressed, there should be.
         /// </summary>
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConstructor_NoConversion()
         {
@@ -1684,6 +1730,7 @@ IOperation:  (OperationKind.None) (Syntax: 'new Action(() => { })')
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceTransitiveConversion()
         {
@@ -1720,6 +1767,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceCovarianceTransitiveConversion()
         {
@@ -1763,6 +1811,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceCovarianceTransitiveConversion_Invalid()
         {
@@ -1810,6 +1859,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceContravarianceTransitiveConversion()
         {
@@ -1853,6 +1903,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceContravarianceTransitiveConversion_Invalid()
         {
@@ -1900,6 +1951,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceInvariantTransitiveConversion()
         {
@@ -1930,6 +1982,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceTypeParameterClassConversion()
         {
@@ -1962,6 +2015,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceTypeParameterClassConversion_InvalidConversion()
         {
@@ -1998,6 +2052,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceTypeParameterInterfaceConversion()
         {
@@ -2029,6 +2084,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceTypeParameterToInterfaceConversion_InvalidConversion()
         {
@@ -2064,6 +2120,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceTypeParameterToConstraintParameterConversion()
         {
@@ -2096,6 +2153,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceTypeParameterToConstraintParameter_InvalidConversion()
         {
@@ -2132,6 +2190,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceTypeParameterFromNull()
         {
@@ -2167,6 +2226,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceTypeParameterFromNull_InvalidNoReferenceConstraint()
         {
@@ -2202,6 +2262,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_BoxingNonNullableValueToObjectConversion()
         {
@@ -2230,6 +2291,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_BoxingNonNullableValueToDynamicConversion()
         {
@@ -2258,6 +2320,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_BoxingValueToSystemValueTypeConversion()
         {
@@ -2289,6 +2352,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_BoxingNonNullableValueToSystemValueTypeConversion_InvalidNonValueType()
         {
@@ -2324,6 +2388,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_BoxingNonNullableValueToImplementingInterfaceConversion()
         {
@@ -2356,6 +2421,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_BoxingNonNullableValueToImplementingInterfaceConversion_InvalidNotImplementing()
         {
@@ -2392,6 +2458,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_BoxingNullableValueToImplementingInterfaceConversion()
         {
@@ -2423,6 +2490,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_BoxingNullableValueToImplementingInterfaceConversion_InvalidNotImplementing()
         {
@@ -2458,6 +2526,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_BoxingEnumToSystemEnumConversion()
         {
@@ -2493,6 +2562,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_BoxingEnumToSystemEnumConversion_InvalidNotEnum()
         {
@@ -2531,6 +2601,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_DynamicConversionToClass()
         {
@@ -2558,6 +2629,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_DynamicConversionToValueType()
         {
@@ -2585,6 +2657,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ConstantExpressionConversion()
         {
@@ -2616,6 +2689,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                     AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ConstantExpressionConversion_InvalidValueTooLarge()
         {
@@ -2647,6 +2721,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ConstantExpressionConversion_InvalidNonConstantExpression()
         {
@@ -2678,6 +2753,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_UserDefinedConversion()
         {
@@ -2712,6 +2788,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_UserDefinedMultiImplicitStepConversion()
         {
@@ -2752,6 +2829,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 }.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_UserDefinedMultiImplicitAndExplicitStepConversion()
         {
@@ -2799,6 +2877,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_UserDefinedMultiImplicitAndExplicitStepConversion_InvalidMissingExplicitConversion()
         {
@@ -2845,6 +2924,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_UserDefinedMultipleCandidateConversion()
         {
@@ -2888,6 +2968,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_DelegateExpressionWithoutParamsToDelegateConversion()
         {
@@ -2919,6 +3000,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_DelegateExpressionWithParamsToDelegateConversion()
         {
@@ -2950,6 +3032,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_DelegateExpressionWithParamsToDelegateConversion_InvalidMismatchedTypes()
         {
@@ -2983,6 +3066,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_PointerFromNullConversion()
         {
@@ -3011,6 +3095,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_PointerToVoidConversion()
         {
@@ -3041,6 +3126,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_PointerFromVoidConversion_Invalid()
         {
@@ -3075,6 +3161,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_PointerFromIntegerConversion_Invalid()
         {
@@ -3108,6 +3195,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ExpressionTreeConversion()
         {
@@ -3183,6 +3271,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ExpressionTreeConversion_InvalidSyntax()
         {
@@ -3222,6 +3311,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReturnStatementConversion()
         {
@@ -3247,6 +3337,7 @@ IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return i;')
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReturnStatementConversion_InvalidConversion()
         {
@@ -3315,6 +3406,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         #region Explicit Conversion
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ExplicitIdentityConversionCreatesIConversionExpression()
         {
@@ -3345,6 +3437,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ImplicitAndExplicitConversion()
         {
@@ -3377,6 +3470,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_SimpleNumericCast()
         {
@@ -3403,6 +3497,7 @@ IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.Conve
             VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_SimpleNumericConversion_InvalidNoImplicitConversion()
         {
@@ -3434,6 +3529,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_SimpleNumericConversion_InvalidSyntax()
         {
@@ -3466,6 +3562,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_EnumFromNumericLiteralConversion()
         {
@@ -3500,6 +3597,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_EnumToNumericTypeConversion()
         {
@@ -3535,6 +3633,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_EnumToEnumConversion()
         {
@@ -3575,6 +3674,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_EnumToEnumConversion_InvalidOutOfRange()
         {
@@ -3621,6 +3721,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_NullableToNullableConversion()
         {
@@ -3647,6 +3748,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_NullableToNonNullableConversion()
         {
@@ -3673,6 +3775,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceFromObjectConversion()
         {
@@ -3699,6 +3802,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceFromDynamicConversion()
         {
@@ -3725,6 +3829,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceFromSuperclassConversion()
         {
@@ -3755,6 +3860,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceFromSuperclassConversion_InvalidNoConversion()
         {
@@ -3789,6 +3895,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceFromImplementedInterfaceConversion()
         {
@@ -3817,6 +3924,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceFromUnimplementedInterfaceConversion()
         {
@@ -3845,6 +3953,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceFromUnimplementedInterfaceConversion_InvalidSealedClass()
         {
@@ -3877,6 +3986,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceFromInterfaceToInterfaceConversion()
         {
@@ -3907,6 +4017,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceConversion_InvalidSyntax()
         {
@@ -3939,6 +4050,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceArrayTypeToArrayTypeConversion()
         {
@@ -3967,6 +4079,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceArrayTypeToArrayTypeConversion_InvalidNoElementTypeConversion()
         {
@@ -3999,6 +4112,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceArrayTypeToArrayTypeConversion_InvalidMismatchedSized()
         {
@@ -4029,6 +4143,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceSystemArrayToArrayTypeConversion()
         {
@@ -4057,6 +4172,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceArrayToIListConversion()
         {
@@ -4086,6 +4202,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceArrayToIListConversion_InvalidMismatchedDimensions()
         {
@@ -4119,6 +4236,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceIListToArrayTypeConversion()
         {
@@ -4148,6 +4266,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceIListToArrayTypeConversion_InvalidMismatchedDimensions()
         {
@@ -4181,6 +4300,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceDelegateToDelegateTypeConversion()
         {
@@ -4209,6 +4329,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReferenceContravarianceConversion()
         {
@@ -4251,6 +4372,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_UnboxingObjectToValueTypeConversion()
         {
@@ -4277,6 +4399,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_UnboxingDynamicToValueTypeConversion()
         {
@@ -4303,6 +4426,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_UnboxingSystemValueTypeToValueTypeConversion()
         {
@@ -4331,6 +4455,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_UnboxingSystemEnumToEnumConversion()
         {
@@ -4364,6 +4489,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_UnboxingReferenceToNullableTypeConversion()
         {
@@ -4397,6 +4523,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_UnboxingReferenceToNullableTypeConversion_InvalidNoConversionToNonNullableType()
         {
@@ -4436,6 +4563,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_UnboxingValueTypeFromInterfaceConversion()
         {
@@ -4468,6 +4596,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_UnboxingValueTypeFromInterfaceConversion_InvalidNoConversion()
         {
@@ -4504,6 +4633,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_UnboxingVarianceConversion()
         {
@@ -4537,6 +4667,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_TypeParameterConstraintConversion()
         {
@@ -4564,6 +4695,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_TypeParameterConversion_InvalidNoConversion()
         {
@@ -4595,6 +4727,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_TypeParameterToInterfaceConversion()
         {
@@ -4622,6 +4755,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_TypeParameterFromInterfaceConversion()
         {
@@ -4649,6 +4783,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ImplicitUserDefinedConversionAsExplicitConversion()
         {
@@ -4679,6 +4814,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ExplicitUserDefinedConversion()
         {
@@ -4709,6 +4845,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ExplicitUserDefinedConversion_WithImplicitConversionAfter()
         {
@@ -4743,6 +4880,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_DelegateFromLambdaExplicitCastConversion()
         {
@@ -4773,6 +4911,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_DelegateFromLambdaExplicitCastConversion_InvalidIncorrectReturnType()
         {
@@ -4809,6 +4948,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_DelegateFromLambdaExplicitCastConversion_InvalidParameters()
         {
@@ -4841,6 +4981,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_DelegateCreationFromLambdaExplicitCastConversion()
         {
@@ -4870,6 +5011,7 @@ IOperation:  (OperationKind.None) (Syntax: 'new Action( ... () => { }))')
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_DelegateCreationFromLambdaExplicitCastConversion_InvalidReturnType()
         {
@@ -4905,6 +5047,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_DelegateCreationFromLambdaExplicitCastConversion_InvalidMismatchedParameters()
         {
@@ -4936,6 +5079,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_DelegateFromMethodReferenceExplicitCastConversion()
         {
@@ -4964,6 +5108,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_DelegateFromMethodReferenceExplicitCastConversion_InvalidMismatchedParameter()
         {
@@ -4997,6 +5142,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_DelegateFromMethodReferenceExplicitCastConversion_InvalidReturnType()
         {
@@ -5032,6 +5178,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_DelegateCreationFromMethodReferenceExplicitCastConversion()
         {
@@ -5062,6 +5209,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_DelegateCreationFromMethodBindingConversion_InvalidMismatchedParameters()
         {
@@ -5094,6 +5242,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_DelegateCreationFromMethodBindingConversion_InvalidReturnType()
         {
@@ -5128,6 +5277,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReturnConversion()
         {
@@ -5153,6 +5303,7 @@ IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return (int)1.0;')
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReturnConversion_InvalidConversion()
         {
@@ -5182,6 +5333,7 @@ IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return (in
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Explicit_ReturnConversion_InvalidSyntax()
         {

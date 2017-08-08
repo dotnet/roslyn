@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NoArgument()
         {
@@ -33,6 +34,7 @@ IInvocationExpression (void P.M2()) (OperationKind.InvocationExpression, Type: S
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void PositionalArgument()
         {
@@ -65,6 +67,7 @@ IInvocationExpression (void P.M2(System.Int32 x, System.Double y)) (OperationKin
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void PositionalArgumentWithDefaultValue()
         {
@@ -97,6 +100,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) (Operat
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentListedInParameterOrder()
         {
@@ -129,6 +133,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) (Operat
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentListedOutOfParameterOrder()
         {
@@ -190,6 +195,7 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentOutOfParameterOrderWithDefaultValue()
         {
@@ -226,6 +232,7 @@ IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [Sy
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedAndPositionalArgumentsWithDefaultValue()
         {
@@ -263,6 +270,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(9, z: 10);
             VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void PositionalRefAndOutArguments()
         {
@@ -297,6 +305,7 @@ IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (Oper
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedRefAndOutArgumentsInParameterOrder()
         {
@@ -330,6 +339,7 @@ IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (Oper
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedRefAndOutArgumentsOutOfParameterOrder()
         {
@@ -364,6 +374,7 @@ IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (Oper
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultValueOfNewStruct()
         {
@@ -393,6 +404,7 @@ IInvocationExpression ( void P.M2([S sobj = default(S)])) (OperationKind.Invocat
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultValueOfDefaultStruct()
         {
@@ -422,6 +434,7 @@ IInvocationExpression ( void P.M2([S sobj = default(S)])) (OperationKind.Invocat
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultValueOfConstant()
         {
@@ -451,6 +464,7 @@ IInvocationExpression ( void P.M2([System.Double s = 3.14])) (OperationKind.Invo
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void PositionalArgumentForExtensionMethod()
         {
@@ -491,6 +505,7 @@ IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [Syste
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentOutOfParameterOrderForExtensionMethod()
         {
@@ -532,6 +547,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'this.E1(y: 1,
             VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentWithDefaultValueForExtensionMethod()
         {
@@ -572,6 +588,7 @@ IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [Syste
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ParamsArrayArgumentInNormalForm()
         {
@@ -605,6 +622,7 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ParamsArrayArgumentInExpandedForm()
         {
@@ -643,6 +661,7 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ParamsArrayArgumentInExpandedFormWithNoArgument()
         {
@@ -679,6 +698,7 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultValueAndParamsArrayArgumentInExpandedFormWithNoArgument()
         {
@@ -716,6 +736,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultValueAndNamedParamsArrayArgumentInNormalForm()
         {
@@ -749,6 +770,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultValueAndNamedParamsArrayArgumentInExpandedForm()
         {
@@ -788,6 +810,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void PositionalArgumentAndNamedParamsArrayArgumentInNormalForm()
         {
@@ -821,6 +844,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void PositionalArgumentAndNamedParamsArrayArgumentInExpandedForm()
         {
@@ -860,6 +884,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentAndNamedParamsArrayArgumentInNormalFormOutOfParameterOrder()
         {
@@ -894,6 +919,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(array: a, 
             VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentAndNamedParamsArrayArgumentInExpandedFormOutOfParameterOrder()
         {
@@ -933,6 +959,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CallerInfoAttributesInvokedInMethod()
         {
@@ -975,6 +1002,7 @@ IInvocationExpression ( void P.M2([System.String memberName = null], [System.Str
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CallerInfoAttributesInvokedInProperty()
         {
@@ -1016,6 +1044,7 @@ IInvocationExpression ( System.Boolean P.M2([System.String memberName = null], [
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CallerInfoAttributesInvokedInFieldInitializer()
         {
@@ -1057,6 +1086,7 @@ IInvocationExpression (System.Boolean P.M2([System.String memberName = null], [S
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CallerInfoAttributesInvokedInEventMethods()
         {
@@ -1110,6 +1140,7 @@ IInvocationExpression (System.Boolean P.M2([System.String memberName = null], [S
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ExtraArgument()
         {
@@ -1147,6 +1178,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0])) (OperationKind.Invocati
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void WrongArgumentType()
         {
@@ -1181,6 +1213,7 @@ IInvocationExpression ( void P.M2(System.String x)) (OperationKind.InvocationExp
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void VarArgsCall()
         {
@@ -1239,6 +1272,7 @@ IInvocationExpression (void System.Console.Write(System.String format, System.Ob
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void InvalidConversionForDefaultArgument_InSource()
         {
@@ -1272,6 +1306,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = default(System.Int32)])) (Op
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AssigningToIndexer()
         {
@@ -1305,6 +1340,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ReadingFromIndexer()
         {
@@ -1338,6 +1374,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultArgumentForIndexerGetter()
         {
@@ -1376,6 +1413,7 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [System.
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ReadingFromWriteOnlyIndexer()
         {
@@ -1412,6 +1450,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AssigningToReadOnlyIndexer()
         {
@@ -1449,6 +1488,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void OverridingIndexerWithDefaultArgument()
         {
@@ -1501,6 +1541,7 @@ IPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [S
             CompileAndVerify(new[] { source }, new[] { SystemRef }, expectedOutput: expectedOutput);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void OmittedParamArrayArgumentInIndexerAccess()
         {
@@ -1541,6 +1582,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, params System.
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AssigningToReturnsByRefIndexer()
         {
@@ -2066,6 +2108,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [S s = null])) (OperationKind.I
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(18722, "https://github.com/dotnet/roslyn/issues/18722")]
         public void DefaultValueForGenericWithUndefinedTypeArgument()
@@ -2112,6 +2155,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [G<S> s = null])) (OperationKin
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(18722, "https://github.com/dotnet/roslyn/issues/18722")]
         public void DefaultValueForNullableGenericWithUndefinedTypeArgument()

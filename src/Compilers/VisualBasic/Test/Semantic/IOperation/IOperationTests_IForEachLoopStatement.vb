@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_SimpleForLoopsTest()
             Dim source = <![CDATA[
@@ -45,6 +46,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithList()
             Dim source = <![CDATA[
@@ -79,6 +81,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithBreak()
             Dim source = <![CDATA[
@@ -123,6 +126,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithContinue()
             Dim source = <![CDATA[
@@ -170,6 +174,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Nested()
             Dim source = <![CDATA[
@@ -209,6 +214,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Nested1()
             Dim source = <![CDATA[
@@ -247,6 +253,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Interface()
             Dim source = <![CDATA[
@@ -293,6 +300,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_String()
             Dim source = <![CDATA[
@@ -324,6 +332,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_IterateStruct()
             Dim source = <![CDATA[
@@ -365,6 +374,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_QueryExpression()
             Dim source = <![CDATA[
@@ -463,6 +473,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
 
 
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Multidimensional()
             Dim source = <![CDATA[
@@ -533,6 +544,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_LateBinding()
             Dim source = <![CDATA[
@@ -568,6 +580,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Pattern()
             Dim source = <![CDATA[
@@ -618,6 +631,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_lamda()
             Dim source = <![CDATA[
@@ -673,6 +687,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_InvalidConversion()
             Dim source = <![CDATA[
@@ -704,6 +719,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Throw()
             Dim source = <![CDATA[
@@ -753,6 +769,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithReturn()
             Dim source = <![CDATA[

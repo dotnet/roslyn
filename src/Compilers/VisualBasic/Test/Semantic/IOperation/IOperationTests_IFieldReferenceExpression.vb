@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub FieldReference_Attribute()
             Dim source = <![CDATA[

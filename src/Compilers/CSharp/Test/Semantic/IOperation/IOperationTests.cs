@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(382240, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")]
         public void NullInPlaceOfParamArray()
@@ -70,6 +71,7 @@ public class Cls
         OutConversion: null");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructionAssignmentFromTuple()
         {
@@ -113,6 +115,7 @@ public class C
             Assert.False(operation3 is ISimpleAssignmentExpression);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestClone()
         {
@@ -125,6 +128,7 @@ public class C
             VerifyClone(model);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestParentOperations()
         {

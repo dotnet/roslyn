@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region Variable Declarations
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void SingleVariableDeclaration()
         {
@@ -38,6 +39,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void SingleVariableDeclarationWithInitializer()
         {
@@ -65,6 +67,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void SingleVariableDeclarationWithInvalidInitializer()
         {
@@ -95,6 +98,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void MultipleDeclarations()
         {
@@ -128,6 +132,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void MultipleDeclarationsWithInitializers()
         {
@@ -161,6 +166,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void MultipleDeclarationsWithInvalidInitializer()
         {
@@ -197,6 +203,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void InvalidMultipleVariableDeclaration()
         {
@@ -230,6 +237,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void SingleVariableDeclarationExpressionInitializer()
         {
@@ -257,6 +265,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void MutlipleVariableDeclarationsExpressionInitializers()
         {
@@ -289,6 +298,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void SingleVariableDeclarationLocalReferenceInitializer()
         {
@@ -315,6 +325,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void MultipleDeclarationsLocalReferenceInitializers()
         {
@@ -344,6 +355,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void InvalidArrayDeclaration()
         {
@@ -377,6 +389,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void InvalidArrayMultipleDeclaration()
         {
@@ -420,6 +433,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
 
         #region Fixed Statements
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementDeclaration()
         {
@@ -459,6 +473,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementMultipleDeclaration()
         {
@@ -501,6 +516,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementInvalidAssignment()
         {
@@ -543,6 +559,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementMultipleDeclarationsInvalidInitializers()
         {
@@ -595,6 +612,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementNoInitializer()
         {
@@ -635,6 +653,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementMultipleDeclarationsNoInitializers()
         {
@@ -683,6 +702,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementInvalidMulipleDeclarations()
         {
@@ -735,6 +755,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
 
         #region Using Statements
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementDeclaration()
         {
@@ -764,6 +785,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarations()
         {
@@ -796,6 +818,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementInvalidInitializer()
         {
@@ -830,6 +853,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarationsInvalidInitializers()
         {
@@ -871,6 +895,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementNoInitializer()
         {
@@ -903,6 +928,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarationsNoInitializers()
         {
@@ -940,6 +966,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementInvalidMultipleDeclarations()
         {
@@ -978,6 +1005,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementExpressionInitializer()
         {
@@ -1009,6 +1037,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarationsExpressionInitializers()
         {
@@ -1043,6 +1072,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementLocalReferenceInitializer()
         {
@@ -1073,6 +1103,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarationsLocalReferenceInitializers()
         {
@@ -1110,6 +1141,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
 
         #region For Loops
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopDeclaration()
         {
@@ -1136,6 +1168,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarations()
         {
@@ -1168,6 +1201,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopInvalidInitializer()
         {
@@ -1199,6 +1233,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarationsInvalidInitializers()
         {
@@ -1237,6 +1272,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopNoInitializer()
         {
@@ -1266,6 +1302,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarationsNoInitializer()
         {
@@ -1300,6 +1337,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopInvalidMultipleDeclarations()
         {
@@ -1336,6 +1374,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopExpressionInitializer()
         {
@@ -1364,6 +1403,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarationsExpressionInitializers()
         {
@@ -1399,6 +1439,7 @@ class Program
 
         #region Const Local Declarations
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalDeclaration()
         {
@@ -1426,6 +1467,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalMultipleDeclarations()
         {
@@ -1462,6 +1504,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalDeclarationInvalidInitializer()
         {
@@ -1492,6 +1535,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalMultipleDeclarationsInvalidInitializers()
         {
@@ -1531,6 +1575,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalDeclarationNoInitializer()
         {
@@ -1561,6 +1606,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalMutlipleDeclarationsNoInitializers()
         {
@@ -1600,6 +1646,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalInvalidMultipleDeclarations()
         {
@@ -1639,6 +1686,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalDeclarationExpressionInitializer()
         {
@@ -1670,6 +1718,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalMultipleDeclarationsExpressionInitializers()
         {
@@ -1709,6 +1758,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalDeclarationLocalReferenceInitializer()
         {
@@ -1739,6 +1789,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ConstLocalMultipleDeclarationsLocalReferenceInitializers()
         {
