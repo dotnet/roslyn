@@ -1097,7 +1097,6 @@ class C
         int fibonacci(int v)
         {
             bool isTrue(bool b) => b;
-
             return fibonacci(v - 1, v - 2);
         }
     }

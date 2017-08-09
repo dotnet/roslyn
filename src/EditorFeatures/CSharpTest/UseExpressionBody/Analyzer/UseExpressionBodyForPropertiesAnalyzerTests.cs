@@ -180,7 +180,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     int Goo
     {
-        get { return Bar(); }
+        get
+        {
+            return Bar();
+        }
     }
 }", options: UseBlockBodyExceptAccessor);
         }
@@ -381,7 +384,7 @@ class C
 using System;
 class C
 {
-    int Goo 
+    int Goo
     {
         get
         {
@@ -407,7 +410,7 @@ class C
 using System;
 class C
 {
-    int Goo 
+    int Goo
     {
         get
         {
@@ -415,7 +418,7 @@ class C
         }
     }
 
-    int Bar 
+    int Bar
     {
         get
         {

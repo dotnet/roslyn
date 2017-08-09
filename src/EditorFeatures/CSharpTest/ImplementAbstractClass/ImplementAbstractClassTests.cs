@@ -1386,11 +1386,8 @@ class [|T|] : A
 
 class T : A
 {
-    public override int M
-    {
-        get => throw new System.NotImplementedException();
-        }
-    }", options: OptionsSet(
+    public override int M { get => throw new System.NotImplementedException(); }
+}", options: OptionsSet(
     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption.None),
     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption.None)));
         }
@@ -1415,11 +1412,8 @@ class [|T|] : A
 
 class T : A
 {
-    public override int M
-    {
-        set => throw new System.NotImplementedException();
-        }
-    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+    public override int M { set => throw new System.NotImplementedException(); }
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1442,12 +1436,8 @@ class [|T|] : A
 
 class T : A
 {
-    public override int M
-    {
-        get => throw new System.NotImplementedException();
-        set => throw new System.NotImplementedException();
-        }
-    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+    public override int M { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]

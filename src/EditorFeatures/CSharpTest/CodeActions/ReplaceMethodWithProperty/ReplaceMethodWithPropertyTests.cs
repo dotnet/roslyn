@@ -70,7 +70,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 }",
 @"class C
 {
-    int Goo { get { return 0; } }
+    int Goo
+    {
+        get
+        {
+            return 0;
+        }
+    }
 }");
         }
 
@@ -204,7 +210,6 @@ ignoreTrivia: false);
 }",
 @"class C
 {
-#if true
     int Goo
     {
         get
@@ -737,6 +742,7 @@ class C
 
 class C
 {
+
     int Goo
     {
         get
@@ -776,6 +782,7 @@ class C
 
 class C
 {
+
     int Goo
     {
         get
@@ -815,6 +822,7 @@ class C
 
 class C
 {
+
     public int Goo
     {
         get
@@ -885,6 +893,7 @@ class C
 
 class C
 {
+
     int Goo
     {
         get
@@ -925,6 +934,7 @@ class C
 
 class C
 {
+
     int Goo
     {
         get
@@ -961,6 +971,7 @@ class C
 
 class C
 {
+
     int Goo
     {
         get
@@ -997,6 +1008,7 @@ class C
 
 class C
 {
+
     int Goo
     {
         get
@@ -1181,6 +1193,7 @@ class C
 
 class C
 {
+
     int Goo
     {
         get
@@ -1236,6 +1249,7 @@ class C
 
 class C
 {
+
     (int, string) Goo
     {
         get
@@ -1270,6 +1284,7 @@ class C
 
 class C
 {
+
     (int a, string b) Goo
     {
         get
@@ -1488,10 +1503,7 @@ ignoreTrivia: false);
 }",
 @"class C
 {
-    int Goo
-    {
-        get => 1;
-    }
+    int Goo { get => 1; }
 }", options: PreferExpressionBodiedAccessors);
         }
 
@@ -1550,11 +1562,8 @@ ignoreTrivia: false);
 }",
 @"class C
 {
-    int Goo
-    {
-        get => 1;
-        set => _i = value;
-    }
+
+    int Goo { get => 1; set => _i = value; }
 }", 
 index: 1,
 options: PreferExpressionBodiedAccessors);
@@ -1579,10 +1588,18 @@ options: PreferExpressionBodiedAccessors);
 }",
 @"class C
 {
+
     int Goo
     {
-        get { return 1; }
-        set { _i = value; }
+        get
+        {
+            return 1;
+        }
+
+        set
+        {
+            _i = value;
+        }
     }
 }", 
 index: 1,
@@ -1608,11 +1625,8 @@ options: PreferExpressionBodiedProperties);
 }",
 @"class C
 {
-    int Goo
-    {
-        get => 1;
-        set => _i = value;
-    }
+
+    int Goo { get => 1; set => _i = value; }
 }",
 index: 1,
 options: PreferExpressionBodiedAccessorsAndProperties);
@@ -1707,8 +1721,8 @@ options: PreferExpressionBodiedAccessorsAndProperties);
     {
         get
         {
-            throw e + 
-                e;
+            throw e +
+   e;
         }
     }
 }", options: OptionsSet(

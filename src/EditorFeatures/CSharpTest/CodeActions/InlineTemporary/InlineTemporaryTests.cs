@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 @"{ int [||]x = 0;
 
 Console.WriteLine(x); }",
-                       @"{ Console.WriteLine(0); }");
+@"{
+        Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -127,7 +128,8 @@ Console.WriteLine(x); }",
 @"{ int [||]@x = 0;
 
 Console.WriteLine(x); }",
-                       @"{ Console.WriteLine(0); }");
+@"{
+        Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -137,7 +139,8 @@ Console.WriteLine(x); }",
 @"{ int [||]@x = 0;
 
 Console.WriteLine(@x); }",
-                       @"{ Console.WriteLine(0); }");
+@"{
+        Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -147,7 +150,8 @@ Console.WriteLine(@x); }",
 @"{ int [||]x = 0;
 
 Console.WriteLine(@x); }",
-                       @"{ Console.WriteLine(0); }");
+@"{
+        Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -361,7 +365,8 @@ class C
 @"{ var [||]x = 0;
 
 Console.WriteLine(x); }",
-                       @"{ Console.WriteLine(0); }");
+@"{
+        Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -646,7 +651,12 @@ class Program
     5
 };
 int a = Array.IndexOf(x, 3); }",
-                       @"{ int a = Array.IndexOf(new int[] { 3, 4, 5 }, 3);  }");
+@"{
+        int a = Array.IndexOf(new int[] {
+        3,
+        4,
+        5
+    }, 3); }");
         }
 
         [WorkItem(545657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545657")]
@@ -1341,15 +1351,16 @@ class C
 
     int a = x;
 }",
-                       @"{
+@"
+{
         int
 #if true
-            y,
+        y,
 #endif
-            z;
+        z;
 
         int a = 1;
-    }",
+}",
 ignoreTrivia: false);
         }
 
@@ -1366,15 +1377,14 @@ ignoreTrivia: false);
 
     int a = x;
 }",
-                       @"{
+@"
+{
         int y,
-#if true
-
 #endif
-            z;
+        z;
 
         int a = 1;
-    }",
+}",
 ignoreTrivia: false);
         }
 
@@ -1391,15 +1401,14 @@ ignoreTrivia: false);
 
     int a = x;
 }",
-                       @"{
+@"
+{
         int y,
 #if true
-            z
-#endif
-            ;
+        z;
 
         int a = 1;
-    }",
+}",
 ignoreTrivia: false);
         }
 
@@ -4095,7 +4104,7 @@ class Program
 {
     static void Main()
     {
-        var(x1, x2) = KVP.Create(42, ""hello"");
+        var (x1, x2) = KVP.Create(42, ""hello"");
     }
 }
 public static class KVP

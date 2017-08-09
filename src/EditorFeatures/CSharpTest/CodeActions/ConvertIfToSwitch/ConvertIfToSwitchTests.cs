@@ -897,8 +897,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2: return;
-            case 10: return;
+            case 1 when i == 2:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -925,8 +927,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3: return;
-            case 10: return;
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -953,8 +957,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && (i == 3): return;
-            case 10: return;
+            case 1 when i == 2 && (i == 3):
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -981,8 +987,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3: return;
-            case 10: return;
+            case 1 when (i == 2) && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1009,8 +1017,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && (i == 3): return;
-            case 10: return;
+            case 1 when (i == 2) && (i == 3):
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1037,8 +1047,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3: return;
-            case 10: return;
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1065,8 +1077,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && (i == 3): return;
-            case 10: return;
+            case 1 when i == 2 && (i == 3):
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1093,8 +1107,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3: return;
-            case 10: return;
+            case 1 when (i == 2) && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1121,8 +1137,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && (i == 3): return;
-            case 10: return;
+            case 1 when (i == 2) && (i == 3):
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1149,8 +1167,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3: return;
-            case 10: return;
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1177,8 +1197,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3: return;
-            case 10: return;
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1205,8 +1227,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3: return;
-            case 10: return;
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1233,8 +1257,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3: return;
-            case 10: return;
+            case 1 when (i == 2) && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1261,8 +1287,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && (i == 3): return;
-            case 10: return;
+            case 1 when (i == 2) && (i == 3):
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1289,8 +1317,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3: return;
-            case 10: return;
+            case 1 when (i == 2) && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1317,8 +1347,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && (i == 3): return;
-            case 10: return;
+            case 1 when i == 2 && (i == 3):
+                return;
+            case 10:
+                return;
         }
     }
 }");

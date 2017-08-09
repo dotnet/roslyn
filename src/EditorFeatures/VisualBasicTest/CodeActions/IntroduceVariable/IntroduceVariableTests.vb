@@ -341,8 +341,8 @@ End Module"
         Dim GooMember1 As String
     End Structure
     Sub Main(x As Integer)
-        Const {|Rename:V|} As String = ""t"" + ""test"" 
- Dim f1 = New GooStruct With {.GooMember1 = V}
+        Const {|Rename:V|} As String = ""t"" + ""test""
+        Dim f1 = New GooStruct With {.GooMember1 = V}
     End Sub
 End Module"
             Await TestInRegularAndScriptAsync(source, expected, index:=2)
@@ -393,8 +393,8 @@ End Module
  End Sub
 End Class"
             Dim expected = "Class Program
-    Private Const {|Rename:V|} As String = ""t"" + ""test"" 
- Dim q = New With {.str = V}
+    Private Const {|Rename:V|} As String = ""t"" + ""test""
+    Dim q = New With {.str = V}
     Dim r = New With {.str = V}
     Sub Goo()
         Dim x = V
@@ -466,6 +466,7 @@ End Class"
 End Module"
             Dim expected = "Module Module1
     Private Const {|Rename:V|} As Integer = 42
+
     Sub Goo(Optional x As Integer = V)
     End Sub
 End Module"
@@ -483,6 +484,7 @@ End Module"
 End Module"
             Dim expected = "Module Module1
     Private Const {|Rename:V|} As Integer = 42
+
     Sub Bar(Optional x As Integer = V)
     End Sub
     Sub Goo(Optional x As Integer = V)
@@ -692,6 +694,7 @@ count:=2)
 End Class",
 "Class Goo
     Private Const {|Rename:V|} As Integer = 2 + 2
+
     Sub New()
         Me.New(V)
     End Sub
@@ -827,6 +830,7 @@ End Class")
 End Class",
 "Class Goo
     Private Const {|Rename:X|} As Integer = 42
+
     Sub New()
         MyClass.New(X)
     End Sub
@@ -1014,6 +1018,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Dim q As Object
+
         If True Then
             Dim {|Rename:p|} As Object = Sub()
                               End Sub
@@ -1111,10 +1116,11 @@ count:=2)
 NewLines(input),
 "Module Program
     Private Const {|Rename:V|} As String = """"
-    <Obsolete(V)>
-    Sub Main(args As String())
-    End Sub
-End Module")
+
+    <Obsolete(V)> 
+ Sub Main(args As String()) 
+ End Sub 
+ End Module")
         End Function
 
         <WorkItem(542947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542947")>
@@ -1257,10 +1263,9 @@ End Module",
 "Imports System
 Module Program
     Sub Main
-        Dim a = Sub(x As Integer)
-                    Dim {|Rename:value|} As Integer = x + 1
-                    Console.WriteLine(value) ' Introduce local 
-                End Sub
+        Dim a = Sub(x As Integer) Dim {|Rename:value|} As Integer = x + 1
+                    Console.WriteLine(value)
+                End Sub ' Introduce local 
     End Sub
 End Module")
         End Function
@@ -1279,6 +1284,7 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer)
+
                     If True Then
                         Dim {|Rename:value|} As Integer = x + 1
                         Console.WriteLine(value)
@@ -1304,6 +1310,7 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer)
+
                     If True Then
                         Console.WriteLine()
                     Else
@@ -1350,8 +1357,7 @@ index:=1)
 End Module",
 "Module Program
     Sub Main(args As String())
-        Dim query = Sub(a)
-                        Dim {|Rename:arg1|} As Object = a Or a
+        Dim query = Sub(a) Dim {|Rename:arg1|} As Object = a Or a
                         a = New With {Key .Key = Function(ByVal arg As Integer) As Integer
                                                      Return arg
                                                  End Function}.Key.Invoke(arg1)
@@ -1442,7 +1448,8 @@ End Class",
 "Imports System.Linq
 Public Class Base
     Public Function Sample(ByVal arg As Integer) As Integer
-        Dim results = From s In New Integer() {1} Let {|Rename:v|} = Sample(s)
+        Dim results = From s In New Integer() {1}
+                      Let {|Rename:v|} = Sample(s)
                       Select v
         Return 0
     End Function
@@ -1480,8 +1487,8 @@ End Class",
 "Imports System.Linq
 Public Class Base
     Public Function Sample(ByVal arg As Integer) As Integer
-        Dim results = From s In New Integer() {1} Let {|Rename:v|} = Sample(s)
-                      Where v > 21
+        Dim results = From s In New Integer() {1}
+                      Let {|Rename:v|} = Sample(s) Where v > 21
                       Select Sample(s)
         Return 0
     End Function
@@ -1504,8 +1511,8 @@ End Class",
 "Imports System.Linq
 Public Class Base
     Public Function Sample(ByVal arg As Integer) As Integer
-        Dim results = From s In New Integer() {1} Let {|Rename:v|} = Sample(s)
-                      Where v > 21
+        Dim results = From s In New Integer() {1}
+                      Let {|Rename:v|} = Sample(s) Where v > 21
                       Select v
         Return 0
     End Function
@@ -1530,7 +1537,8 @@ End Class",
 Public Class Base
     Public Function Sample(ByVal arg As Integer) As Integer
         Dim results = From s In New Integer() {1}
-                      Where Sample(s) > 21 Let {|Rename:v|} = Sample(s)
+                      Where Sample(s) > 21
+                      Let {|Rename:v|} = Sample(s)
                       Select v
         Return 0
     End Function
@@ -1552,7 +1560,8 @@ End Class",
 "Imports System.Linq
 Public Class Base
     Public Function Sample(ByVal arg As Integer) As Integer
-        Dim results = From s In New Integer() {1} Let {|Rename:v|} = Sample(s)
+        Dim results = From s In New Integer() {1}
+                      Let {|Rename:v|} = Sample(s)
                       Where v > 21
                       Select v
         Return 0
@@ -1776,8 +1785,8 @@ End Module")
     Property Prop As New List(Of String) From {[|""One""|], ""two""}
 End Module",
 "Module Module1
-    Private Const {|Rename:V|} As String = ""One"" 
- Property Prop As New List(Of String) From {V, ""two""}
+    Private Const {|Rename:V|} As String = ""One""
+    Property Prop As New List(Of String) From {V, ""two""}
 End Module")
         End Function
 
@@ -1993,8 +2002,9 @@ Partial Class C
     End Sub
 End Class",
 "Partial Class C
-    Private Const {|Rename:V|} As String = ""HELLO"" 
- Sub goo1(Optional x As String = V)
+    Private Const {|Rename:V|} As String = ""HELLO""
+
+    Sub goo1(Optional x As String = V)
     End Sub
 End Class
 Partial Class C
@@ -2071,6 +2081,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Private Const {|Rename:V|} As Boolean = True
+
     Sub Main(args As String())
         If V Then
         End If

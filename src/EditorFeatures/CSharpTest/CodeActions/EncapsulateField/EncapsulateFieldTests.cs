@@ -190,12 +190,7 @@ class goo
 {
     private int bar;
 
-    public int Bar
-    {
-        get => bar;
-
-        set => bar = value;
-    }
+    public int Bar { get => bar; set => bar = value; }
 
     void baz()
     {
@@ -999,7 +994,7 @@ partial class Program {
 partial class Program {}
 
 partial class Program {
-    private int x;
+   private int x;
 
     public int X
     {
@@ -1007,6 +1002,7 @@ partial class Program {
         {
             return x;
         }
+
         set
         {
             x = value;
@@ -1080,7 +1076,8 @@ namespace ConsoleApplication1
             }
         }
     }
-}";
+}
+";
 
             await TestAllOptionsOffAsync(text, expected);
         }

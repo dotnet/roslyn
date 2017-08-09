@@ -66,6 +66,7 @@ Namespace SomeNamespace
     End Class
 End Namespace",
 "Imports SomeNamespace
+
 Class Class1
     Dim v As SomeClass1
 End Class
@@ -88,8 +89,7 @@ Class Class1
     Inherits [|Textbox|]
 
 End Class",
-"
-Imports N1
+"Imports N1
 
 Namespace N1
     Public Class TextBox
@@ -109,6 +109,7 @@ End Class", priority:=CodeActionPriority.Medium)
     Dim v As [|Thread|]
 End Class",
 "Imports System.Threading
+
 Class Class1
     Dim v As Thread
 End Class")
@@ -133,6 +134,7 @@ End Namespace
 Class SomeClass(Of x As [|Base|])
 End Class",
 "Imports SomeNamespace
+
 Namespace SomeNamespace
     Class Base
     End Class
@@ -156,6 +158,7 @@ Class Goo
     End Sub
 End Class",
 "Imports SomeNamespace
+
 Namespace SomeNamespace
     Class SomeClass
     End Class
@@ -181,6 +184,7 @@ Class Goo
     End Sub
 End Class",
 "Imports SomeNamespace
+
 Namespace SomeNamespace
     Class SomeClass
     End Class
@@ -206,6 +210,7 @@ Class Goo
     End Sub
 End Class",
 "Imports SomeNamespace
+
 Namespace SomeNamespace
     Class SomeClass
     End Class
@@ -231,6 +236,7 @@ Namespace SomeNamespace
     End Class
 End Namespace",
 "Imports SomeNamespace
+
 <Something()>
 Class Goo
 End Class
@@ -257,6 +263,7 @@ Namespace SomeNamespace
     End Class
 End Namespace",
 "Imports SomeNamespace
+
 <Existing()>
 <Something()>
 Class Goo
@@ -287,6 +294,7 @@ Namespace SomeNamespace
     End Class
 End Namespace",
 "Imports SomeNamespace
+
 <Something()>
 <Existing()>
 Class Goo
@@ -312,6 +320,7 @@ Namespace [Namespace]
     End Class
 End Namespace",
 "Imports [Namespace]
+
 Class SomeClass
     Dim x As Something
 End Class
@@ -334,6 +343,7 @@ Namespace Outer
     End Namespace
 End Namespace",
 "Imports Outer.Namespace
+
 Class SomeClass
     Dim x As Something
 End Class
@@ -395,6 +405,7 @@ Namespace SomeNamespace
     End Class
 End Namespace",
 "Imports SomeNamespace
+
 Class Goo
     Dim x As SomeClass
 End Class
@@ -412,6 +423,7 @@ End Namespace")
     End Function
 End Class",
 "Imports System.Collections
+
 Class Goo
     Function F() As IDictionary
     End Function
@@ -426,6 +438,7 @@ End Class")
     End Function
 End Class",
 "Imports System.Collections.Generic
+
 Class Goo
     Function F() As IDictionary
     End Function
@@ -441,6 +454,7 @@ index:=1)
     End Function
 End Class",
 "Imports System.Collections.Generic
+
 Class Goo
     Function F() As List
     End Function
@@ -455,6 +469,7 @@ End Class")
     End Function
 End Class",
 "Imports System.Collections.Generic
+
 Class Goo
     Function F() As List(Of Integer)
     End Function
@@ -488,6 +503,7 @@ End Class")
     End Sub
 End Class",
 "Imports System.Collections.Generic
+
 Class Goo
     Sub Test()
         Dim x As New List(Of Integer)
@@ -504,6 +520,7 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class Goo
     Sub Test()
         Dim x As New List(Of Int32)
@@ -522,6 +539,7 @@ Class Goo
 End Class",
 "Imports System
 Imports System.Collections.Generic
+
 Class Goo
     Sub Test()
         Dim x As New List(Of Integer)
@@ -542,6 +560,7 @@ Namespace NS
 End Namespace",
 "Imports System
 Imports System.Collections.Generic
+
 Namespace NS
     Class Goo
         Sub Test()
@@ -598,6 +617,7 @@ Class Test
 End Class",
 "Imports System.Collections.Generic
 Imports System.Linq
+
 Class Test
     Private Sub Method(args As IList(Of Integer))
         args.Where()
@@ -662,6 +682,7 @@ Namespace SomeNamespace
     End Namespace
 End Namespace",
 "Imports SomeNamespace
+
 Class GOo
     Sub bar()
         Dim q As InnerNamespace.SomeClass
@@ -690,6 +711,7 @@ Namespace SomeNamespace
     End Namespace
 End Namespace",
 "Imports SomeNamespace
+
 Class GOo
     Sub bar()
         Dim q As InnerNamespace.SomeClass
@@ -719,6 +741,7 @@ Namespace OUTER
     End Namespace
 End Namespace",
 "Imports OUTER.INNER
+
 Module Program
     Sub Main(args As String())
         Dim x As GOO
@@ -786,6 +809,7 @@ ignoreTrivia:=False)
     End Sub
 End Class",
 "Imports System.Linq
+
 Class Program
     Public Sub Linq1()
         Dim numbers() As Integer = New Integer(9) {5, 4, 1, 3, 9, 8, 6, 7, 2, 0}
@@ -809,6 +833,7 @@ Class Program
 End Class",
 "Imports System.Collections.Generic
 Imports System.Linq
+
 Class Program
     Public Sub Linq1()
         Dim numbers() As Integer = New Integer(9) {5, 4, 1, 3, 9, 8, 6, 7, 2, 0}
@@ -840,6 +865,7 @@ End Class")
     End Sub
 End Module",
 "Imports System.IO
+
 Module Program
     Sub Main(args As String())
         File
@@ -860,11 +886,11 @@ Class C
 #End ExternalSource
     End Sub
 End Class",
-"#ExternalSource (""Default.aspx"", 1) 
+"#ExternalSource (""Default.aspx"", 1)
 Imports System
 Imports System.IO
 #End ExternalSource
-#ExternalSource (""Default.aspx"", 2) 
+#ExternalSource (""Default.aspx"", 2)
 Class C
     Sub Goo()
         Dim x As New [|StreamReader|]
@@ -945,6 +971,7 @@ ignoreTrivia:=False)
     End Sub
 End Module",
 "Imports System.IO
+
 Module Goo
     Sub Bar(args As String())
         Dim a = From f In args
@@ -964,6 +991,7 @@ End Module")
     End Sub
 End Module",
 "Imports System.IO
+
 Module Goo
     Sub Bar(args As String())
         Dim a = From f In args
@@ -988,6 +1016,7 @@ Class C
 End Class",
 "Imports System.Diagnostics
 Imports N
+
 Namespace N
     Public Class Log
     End Class
@@ -1006,6 +1035,7 @@ End Class", index:=1)
 "<[|Description|]> Public Class Description
 End Class",
 "Imports System.ComponentModel
+
 <[|Description|]> Public Class Description
 End Class")
         End Function
@@ -1038,6 +1068,7 @@ End Namespace",
 "Option Strict On
 Imports System.Runtime.CompilerServices
 Imports NS2
+
 Namespace NS1
     Class Program
         Sub main()
@@ -1088,6 +1119,7 @@ End Namespace",
 "Option Strict On
 Imports System.Runtime.CompilerServices
 Imports NS2
+
 Namespace NS1
     Class Program
         Sub main()
@@ -1148,6 +1180,7 @@ End Namespace",
 Imports System.Runtime.CompilerServices
 Imports NS2
 Imports NS3
+
 Namespace NS1
     Class Program
         Sub main()
@@ -1477,7 +1510,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
     End Class
 End Namespace",
 "Imports System
-Imports Microsoft.VisualStudio.Utilities 
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.Utilities
     Public Class ContentTypeAttribute
@@ -1877,6 +1910,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -1919,6 +1953,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -1961,6 +1996,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2003,6 +2039,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2045,6 +2082,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2094,6 +2132,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2150,6 +2189,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext2
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2197,6 +2237,7 @@ End Namespace",
 "Imports System.Linq
 Imports System.Runtime.CompilerServices
 Imports X
+
 Module Program
     Sub Main(args As String())
         Dim i = 0.All()
@@ -2235,6 +2276,7 @@ End Namespace",
 "Imports System.Linq
 Imports System.Runtime.CompilerServices
 Imports X
+
 Module Program
     Sub Main(args As String())
         Dim a = New Integer?
@@ -2282,6 +2324,7 @@ End Namespace",
 "Imports System.Runtime.CompilerServices
 Imports X
 Imports Y
+
 Module Program
     Sub Main(args As String())
         Dim a = 0
@@ -2337,6 +2380,7 @@ End Namespace",
 "Imports System.Runtime.CompilerServices
 Imports X
 Imports Y
+
 Module Program
     Sub Main(args As String())
         Dim a = New Integer?
@@ -2436,6 +2480,7 @@ End Namespace", placeSystemFirst:=True)
     <[|Extension|]>
 End Class",
 "Imports System.Runtime.CompilerServices
+
 Class Class1
     <Extension>
 End Class")
@@ -2452,6 +2497,7 @@ End Class")
     <C([|List(Of Integer)|])>
 End Class",
 "Imports System.Collections.Generic
+
 Class C
     Inherits Attribute
     Public Sub New(x As System.Type)
@@ -2468,6 +2514,7 @@ End Class")
     <[|Tasks.Task|]>
 End Class",
 "Imports System.Threading
+
 Class Class1
     <Tasks.Task>
 End Class")
@@ -2481,6 +2528,7 @@ End Class")
     <[|Extension|]>
 End Module",
 "Imports System.Runtime.CompilerServices
+
 Module Goo
     <Extension>
 End Module")
@@ -2490,6 +2538,7 @@ End Module")
     <[|Extension()|]>
 End Module",
 "Imports System.Runtime.CompilerServices
+
 Module Goo
     <Extension()>
 End Module")
@@ -2526,6 +2575,7 @@ Namespace T
     End Class
 End Namespace",
 "Imports T
+
 Class A
     Dim a As Action = Sub()
                           Try
@@ -2554,6 +2604,7 @@ Class C
                               Dim a = New [|Test|]()",
 "Imports System.Linq
 Imports X
+
 Namespace X
     Class Test
     End Class

@@ -877,6 +877,7 @@ End Namespace",
 Namespace N1
     Class Test
         Private a As List(Of String()(,)(,,,))
+
     End Class
 End Namespace")
         End Function
@@ -1604,7 +1605,7 @@ End Namespace
 Namespace bar
     Module b
         Sub m()
-             goo.Main(Nothing)
+            goo.Main(Nothing)
         End Sub
     End Module
 End Namespace
@@ -1921,7 +1922,7 @@ Public Class Test_Dev11
     '''&lt;summary&gt;
     ''' &lt;see cref="Microsoft.VisualBasic.Left"/&gt;
     ''' &lt;/Code&gt;
-        Public Async Function Testtestscenarios() As Task
+    Public Async Function Testtestscenarios() As Task
         End Sub
     End Class
 </Code>
