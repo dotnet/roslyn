@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
+        public async Task<IReadOnlyList<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
+        public async Task<IReadOnlyList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
             string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
+        public async Task<IReadOnlyList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
+        public async Task<IReadOnlyList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
             ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())

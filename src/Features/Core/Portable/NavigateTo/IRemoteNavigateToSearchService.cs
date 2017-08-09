@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal interface IRemoteNavigateToSearchService
     {
-        Task<ImmutableArray<SerializableNavigateToSearchResult>> SearchDocumentAsync(DocumentId documentId, string searchPattern, CancellationToken cancellationToken);
-        Task<ImmutableArray<SerializableNavigateToSearchResult>> SearchProjectAsync(ProjectId projectId, string searchPattern, CancellationToken cancellationToken);
+        Task<IReadOnlyList<SerializableNavigateToSearchResult>> SearchDocumentAsync(DocumentId documentId, string searchPattern, CancellationToken cancellationToken);
+        Task<IReadOnlyList<SerializableNavigateToSearchResult>> SearchProjectAsync(ProjectId projectId, string searchPattern, CancellationToken cancellationToken);
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,21 +40,21 @@ namespace Microsoft.CodeAnalysis.AddImport
                 throw new NotImplementedException();
             }
 
-            public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+            public Task<IReadOnlyList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
                 return _symbolSearchService.FindPackagesWithTypeAsync(
                     source, name, arity, cancellationToken);
             }
 
-            public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+            public Task<IReadOnlyList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string name, CancellationToken cancellationToken)
             {
                 return _symbolSearchService.FindPackagesWithAssemblyAsync(
                     source, name, cancellationToken);
             }
 
-            public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+            public Task<IReadOnlyList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity, CancellationToken cancellationToken)
             {
                 return _symbolSearchService.FindReferenceAssembliesWithTypeAsync(
