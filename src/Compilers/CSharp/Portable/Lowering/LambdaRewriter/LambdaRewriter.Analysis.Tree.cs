@@ -119,12 +119,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public ClosureEnvironment ContainingEnvironmentOpt;
 
+                private bool _capturesThis;
                 /// <summary>
                 /// True if this closure directly or transitively captures 'this' (captures
                 /// a local function which directly or indirectly captures 'this').
                 /// Calculated in <see cref="MakeAndAssignEnvironments"/>.
                 /// </summary>
-                public bool CapturesThis;
+                public bool CapturesThis
+                {
+                    get => _capturesThis;
+                    set
+                    {
+                        Debug.Assert(value);
+                        _capturesThis = value;
+                    }
+                }
 
                 public Closure(MethodSymbol symbol)
                 {

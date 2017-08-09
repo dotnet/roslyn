@@ -53,7 +53,15 @@ namespace Roslyn.Utilities
                 {
                     return false;
                 }
-                _elements.Insert(index, value);
+                try
+                {
+                    _elements.Insert(index, value);
+                }
+                catch
+                {
+                    _set.Remove(value);
+                    throw;
+                }
             }
             return true;
         }
