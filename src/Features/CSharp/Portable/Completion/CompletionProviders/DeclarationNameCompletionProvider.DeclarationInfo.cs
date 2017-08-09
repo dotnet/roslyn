@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 result = IsLastTokenOfType<ParameterSyntax>(
                     token, semanticModel,
                     p => p.Type,
-                    _ => default,
+                    _ => default(SyntaxTokenList),
                     _ => ImmutableArray.Create(SymbolKind.Parameter),
                     cancellationToken);
                 return result.Type != null;
