@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                     return GetNewBlock(statement, lockSyntax.Statement);
             }
 
-            return default(SyntaxNode);
+            return default;
         }
 
         private SyntaxNode GetNewBlock(SyntaxNode statement, StatementSyntax statementBody) 

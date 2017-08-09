@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
                     else
                     {
-                        span = default(TextSpan);
+                        span = default;
                         return false;
                     }
 
@@ -1116,11 +1116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (kind)
             {
                 case SyntaxKind.CompilationUnit:
-                    return default(TextSpan);
+                    return default;
 
                 case SyntaxKind.GlobalStatement:
                     // TODO:
-                    return default(TextSpan);
+                    return default;
 
                 case SyntaxKind.ExternAliasDirective:
                 case SyntaxKind.UsingDirective:
@@ -3140,7 +3140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 RudeEditKind.UpdateAroundActiveStatement,
-                default(TextSpan), // no span since the offending node is in the old syntax
+                default, // no span since the offending node is in the old syntax
                 oldCSharp7Syntax,
                 new[] { GetStatementDisplayName(oldCSharp7Syntax, EditKind.Update) }));
         }

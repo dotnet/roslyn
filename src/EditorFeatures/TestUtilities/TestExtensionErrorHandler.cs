@@ -16,14 +16,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public void HandleError(object sender, Exception exception)
         {
-            if (exception is ArgumentOutOfRangeException && ((ArgumentOutOfRangeException)exception).ParamName == "span")
+            if (exception == null)
             {
-                // TODO: this is known bug 655591, fixed by Jack in changeset 931906
-                // Remove this workaround once the fix reaches the DP branch and we all move over.
-                return;
+                // Log an exception saying we didn't get an exception. I'd consider throwing here, but double-faults are just caught and consumed by
+                // the editor so that won't give a good debugging experience either.
+                _exceptions.Add(new Exception($"{nameof(TestExtensionErrorHandler)}.{nameof(HandleError)} called with null exception"));
             }
-
-            _exceptions.Add(exception);
+            else
+            {
+                _exceptions.Add(exception);
+            }
         }
 
         public ICollection<Exception> GetExceptions()
