@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public async Task<IList<DesignerAttributeDocumentData>> ScanDesignerAttributesAsync(ProjectId projectId, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<DesignerAttributeDocumentData>> ScanDesignerAttributesAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, projectId.DebugName, cancellationToken))
             {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 if (data.Count == 0)
                 {
-                    return SpecializedCollections.EmptyList<DesignerAttributeDocumentData>();
+                    return SpecializedCollections.EmptyReadOnlyList<DesignerAttributeDocumentData>();
                 }
 
                 return data.Values.ToList();
