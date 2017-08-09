@@ -596,14 +596,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (modifiersOpt.Any(SyntaxKind.ConstKeyword))
             {
                 // no sequence points are emitted for const fields/locals
-                return default;
+                return default(TextSpan?);
             }
 
             if (variableDeclaration.Variables.Count == 1)
             {
                 if (variableDeclaration.Variables[0].Initializer == null)
                 {
-                    return default;
+                    return default(TextSpan?);
                 }
 
                 return CreateSpan(modifiersOpt, variableDeclaration, semicolonOpt);
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             var declarator = FindClosestDeclaratorWithInitializer(variableDeclaration.Variables, position);
             if (declarator == null)
             {
-                return default;
+                return default(TextSpan?);
             }
 
             if (declarator == variableDeclaration.Variables[0])
