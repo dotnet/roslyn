@@ -1513,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         GetRefEscape(conditional.Alternative, scopeOfTheContainingExpression));
                     }
 
-                    // reprot standard lvalue error
+                    // report standard lvalue error
                     break;
 
                 case BoundKind.FieldAccess:

@@ -62,10 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
 
-            // unless there are initializers everything is returnable.
             _refEscapeScope = this._refKind == RefKind.None?
-                                        Binder.TopLevelScope:   //TODO: VS get current scope
-                                        Binder.ExternalScope;
+                                        scopeBinder.LocalScopeDepth :  
+                                        Binder.ExternalScope; // default to returnable, unless there is initializer
 
             // we do not know the type yet. 
             // assume this is returnable in case we never get to know our type.
@@ -382,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // to handle error self-referential cases we will default to current scope
             _valEscapeScope = _type.IsByRefLikeType ?
-                                Binder.TopLevelScope :  //TODO: VS compute current scope
+                                _scopeBinder.LocalScopeDepth : 
                                 Binder.ExternalScope;
         }
 
@@ -515,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _initializerBinder = initializerBinder;
 
                 // default to the current scope in case we need to handle self-referential error cases.
-                _refEscapeScope = Binder.TopLevelScope;   //TODO: VS get current scope
+                _refEscapeScope = _scopeBinder.LocalScopeDepth; 
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)

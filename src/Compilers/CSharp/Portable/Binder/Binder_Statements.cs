@@ -949,10 +949,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initializerOpt != null)
             {
-                var currentScope = Binder.TopLevelScope;
+                var currentScope = LocalScopeDepth;
 
                 var valEscape = localSymbol.Type.IsByRefLikeType ?
-                    Binder.ExternalScope :  //TODO: VS compute this
+                    currentScope :  // default to the current scope
                     Binder.ExternalScope;   // no need to compute, it is safe to return by value
 
                 localSymbol.SetValEscape(valEscape);
@@ -1412,6 +1412,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Next.LookupLocalFunction(nameToken);
         }
+
+        /// <summary>
+        /// Returns a value that tells how many local scopes are visible, including the current.
+        /// I.E. outside of any method will be 0
+        ///      immediately inside a method - 1
+        /// </summary>
+        internal virtual uint LocalScopeDepth => Next.LocalScopeDepth;
 
         internal BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
