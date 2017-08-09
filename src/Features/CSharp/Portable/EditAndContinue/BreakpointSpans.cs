@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var expression = node as ExpressionSyntax;
                     if (expression != null)
                     {
-                        return IsBreakableExpression(expression) ? CreateSpan(expression) : default;
+                        return IsBreakableExpression(expression) ? CreateSpan(expression) : default(TextSpan?);
                     }
 
                     var statement = node as StatementSyntax;
