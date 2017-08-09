@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 foreach (var argument in this.AnalyzerResult.MethodParameters)
                 {
                     var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
-                    var refOrOut = modifier == SyntaxKind.None ? default(SyntaxToken) : SyntaxFactory.Token(modifier);
+                    var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
 
                     arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
                 }
