@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public ClosureEnvironment ContainingEnvironmentOpt;
 
                 private bool _capturesThis;
+
                 /// <summary>
                 /// True if this closure directly or transitively captures 'this' (captures
                 /// a local function which directly or indirectly captures 'this').
@@ -152,13 +153,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 public readonly SetWithInsertionOrder<Symbol> CapturedVariables;
 
+                private bool _capturesParent;
+
                 /// <summary>
                 /// Represents a <see cref="SynthesizedEnvironment"/> that had its environment
                 /// pointer (a local pointing to the environment) captured like a captured
                 /// variable. Assigned in
                 /// <see cref="ComputeLambdaScopesAndFrameCaptures(ParameterSymbol)"/>
                 /// </summary>
-                public bool CapturesParent;
+                public bool CapturesParent
+                {
+                    get => _capturesParent;
+                    set
+                    {
+                        Debug.Assert(value);
+                        _capturesParent = value;
+                    }
+                }
 
                 public readonly bool IsStruct;
                 internal SynthesizedClosureEnvironment SynthesizedEnvironment;
