@@ -1749,6 +1749,28 @@ class C : IGoo
 }");
         }
 
+        [WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestMetadataOverride()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+    public override string [||]ToString()
+    {
+    }
+}",
+@"class C
+{
+    public override string {|Warning:ToString|}
+    {
+        get
+        {
+        }
+    }
+}");
+        }
+
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup, 
             ParseOptions parseOptions = null, int index = 0, 

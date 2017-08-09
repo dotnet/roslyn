@@ -679,5 +679,21 @@ Class C
     End Property
 End Class")
         End Function
+
+        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestMetadataOverride() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    public overrides function [||]ToString() as string
+    End function
+End class",
+"class C
+    public overrides ReadOnly Property {|Warning:ToString|} as string
+        Get
+        End Get
+    End Property
+End class")
+        End Function
     End Class
 End Namespace
