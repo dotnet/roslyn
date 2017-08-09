@@ -566,5 +566,30 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "List<Bar>");
         }
+
+        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InPropertyWithSameNameAsGenericTypeArgument4()
+        {
+            var markup =
+@"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static C<A> B { get; set; }
+        static C<B> A { get; set; }
+
+        static void Main(string[] args)
+        {
+            B = new $$
+        }
+    }
+    class A { }
+    class B { }
+    class C<T> { }
+}
+";
+            await VerifyItemExistsAsync(markup, "C<A>");
+        }
     }
 }
