@@ -259,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 ' convert Right to IOperation temporarily. we do this to get right operand, operator method and etc
                 Dim temporaryRight = DirectCast(Create(boundAssignmentOperator.Right), IBinaryOperatorExpression)
 
-                Dim binaryOperationKind As BinaryOperationKind = temporaryRight.BinaryOperationKind
+                Dim operatorKind As BinaryOperatorKind = temporaryRight.OperatorKind
                 Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Left))
 
                 ' right now, parent of right operand is set to the temporary IOperation, reset the parent
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim syntax As SyntaxNode = boundAssignmentOperator.Syntax
                 Dim type As ITypeSymbol = boundAssignmentOperator.Type
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
-                Return New LazyCompoundAssignmentExpression(binaryOperationKind, boundAssignmentOperator.Type.IsNullableType(), target, value, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue)
+                Return New LazyCompoundAssignmentExpression(operatorKind, boundAssignmentOperator.Type.IsNullableType(), target, value, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue)
             Else
                 Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Left))
                 Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Right))
@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundMyBaseReferenceOperation(boundMyBaseReference As BoundMyBaseReference) As IInstanceReferenceExpression
-            Dim instanceReferenceKind As InstanceReferenceKind = instanceReferenceKind.BaseClass
+            Dim instanceReferenceKind As InstanceReferenceKind = InstanceReferenceKind.BaseClass
             Dim syntax As SyntaxNode = boundMyBaseReference.Syntax
             Dim type As ITypeSymbol = boundMyBaseReference.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundMyBaseReference.ConstantValueOpt)
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundMyClassReferenceOperation(boundMyClassReference As BoundMyClassReference) As IInstanceReferenceExpression
-            Dim instanceReferenceKind As InstanceReferenceKind = instanceReferenceKind.ThisClass
+            Dim instanceReferenceKind As InstanceReferenceKind = InstanceReferenceKind.ThisClass
             Dim syntax As SyntaxNode = boundMyClassReference.Syntax
             Dim type As ITypeSymbol = boundMyClassReference.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundMyClassReference.ConstantValueOpt)
@@ -388,19 +388,20 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundUnaryOperatorOperation(boundUnaryOperator As BoundUnaryOperator) As IUnaryOperatorExpression
-            Dim unaryOperationKind As UnaryOperationKind = Helper.DeriveUnaryOperationKind(boundUnaryOperator.OperatorKind, boundUnaryOperator.Operand)
+            Dim operatorKind As UnaryOperatorKind = Helper.DeriveUnaryOperatorKind(boundUnaryOperator.OperatorKind)
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUnaryOperator.Operand))
             Dim usesOperatorMethod As Boolean = False
             Dim operatorMethod As IMethodSymbol = Nothing
             Dim syntax As SyntaxNode = boundUnaryOperator.Syntax
             Dim type As ITypeSymbol = boundUnaryOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUnaryOperator.ConstantValueOpt)
-            Dim isLifted = (boundUnaryOperator.OperatorKind And UnaryOperatorKind.Lifted) <> 0
-            Return New LazyUnaryOperatorExpression(unaryOperationKind, operand, isLifted, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue)
+            Dim isLifted = (boundUnaryOperator.OperatorKind And VisualBasic.UnaryOperatorKind.Lifted) <> 0
+            Dim isChecked = boundUnaryOperator.Checked
+            Return New LazyUnaryOperatorExpression(operatorKind, operand, isLifted, isChecked, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundUserDefinedUnaryOperatorOperation(boundUserDefinedUnaryOperator As BoundUserDefinedUnaryOperator) As IUnaryOperatorExpression
-            Dim unaryOperationKind As UnaryOperationKind = Helper.DeriveUnaryOperationKind(boundUserDefinedUnaryOperator.OperatorKind)
+            Dim operatorKind As UnaryOperatorKind = Helper.DeriveUnaryOperatorKind(boundUserDefinedUnaryOperator.OperatorKind)
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function()
                                                                              If boundUserDefinedUnaryOperator.UnderlyingExpression.Kind = BoundKind.Call Then
                                                                                  Return Create(boundUserDefinedUnaryOperator.Operand)
@@ -413,12 +414,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundUserDefinedUnaryOperator.Syntax
             Dim type As ITypeSymbol = boundUserDefinedUnaryOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedUnaryOperator.ConstantValueOpt)
-            Dim isLifted = (boundUserDefinedUnaryOperator.OperatorKind And UnaryOperatorKind.Lifted) <> 0
-            Return New LazyUnaryOperatorExpression(unaryOperationKind, operand, isLifted, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue)
+            Dim isLifted = (boundUserDefinedUnaryOperator.OperatorKind And VisualBasic.UnaryOperatorKind.Lifted) <> 0
+            Dim isChecked = False
+            Return New LazyUnaryOperatorExpression(operatorKind, operand, isLifted, isChecked, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundBinaryOperatorOperation(boundBinaryOperator As BoundBinaryOperator) As IBinaryOperatorExpression
-            Dim binaryOperationKind As BinaryOperationKind = Helper.DeriveBinaryOperationKind(boundBinaryOperator.OperatorKind, boundBinaryOperator.Left)
+            Dim operatorKind As BinaryOperatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind)
             Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundBinaryOperator.Left))
             Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundBinaryOperator.Right))
             Dim usesOperatorMethod As Boolean = False
@@ -426,12 +428,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundBinaryOperator.Syntax
             Dim type As ITypeSymbol = boundBinaryOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundBinaryOperator.ConstantValueOpt)
-            Dim isLifted = (boundBinaryOperator.OperatorKind And BinaryOperatorKind.Lifted) <> 0
-            Return New LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, isLifted, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue)
+            Dim isLifted = (boundBinaryOperator.OperatorKind And VisualBasic.BinaryOperatorKind.Lifted) <> 0
+            Dim isChecked = boundBinaryOperator.Checked
+            Dim isCompareText = (boundBinaryOperator.OperatorKind And VisualBasic.BinaryOperatorKind.CompareText) <> 0
+            Return New LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundUserDefinedBinaryOperatorOperation(boundUserDefinedBinaryOperator As BoundUserDefinedBinaryOperator) As IBinaryOperatorExpression
-            Dim binaryOperationKind As BinaryOperationKind = Helper.DeriveBinaryOperationKind(boundUserDefinedBinaryOperator.OperatorKind)
+            Dim operatorKind As BinaryOperatorKind = Helper.DeriveBinaryOperatorKind(boundUserDefinedBinaryOperator.OperatorKind)
             Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(boundUserDefinedBinaryOperator, 0))
             Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(boundUserDefinedBinaryOperator, 1))
             Dim operatorMethod As IMethodSymbol = If(boundUserDefinedBinaryOperator.UnderlyingExpression.Kind = BoundKind.Call, boundUserDefinedBinaryOperator.Call.Method, Nothing)
@@ -439,8 +443,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundUserDefinedBinaryOperator.Syntax
             Dim type As ITypeSymbol = boundUserDefinedBinaryOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedBinaryOperator.ConstantValueOpt)
-            Dim isLifted = (boundUserDefinedBinaryOperator.OperatorKind And BinaryOperatorKind.Lifted) <> 0
-            Return New LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, isLifted, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue)
+            Dim isLifted = (boundUserDefinedBinaryOperator.OperatorKind And VisualBasic.BinaryOperatorKind.Lifted) <> 0
+            Dim isChecked = boundUserDefinedBinaryOperator.Checked
+            Dim isCompareText = (boundUserDefinedBinaryOperator.OperatorKind And VisualBasic.BinaryOperatorKind.CompareText) <> 0
+            Return New LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundBinaryConditionalExpressionOperation(boundBinaryConditionalExpression As BoundBinaryConditionalExpression) As INullCoalescingExpression
@@ -453,7 +459,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundUserDefinedShortCircuitingOperatorOperation(boundUserDefinedShortCircuitingOperator As BoundUserDefinedShortCircuitingOperator) As IBinaryOperatorExpression
-            Dim binaryOperationKind As BinaryOperationKind = If((boundUserDefinedShortCircuitingOperator.BitwiseOperator.OperatorKind And BinaryOperatorKind.And) <> 0, binaryOperationKind.OperatorMethodConditionalAnd, binaryOperationKind.OperatorMethodConditionalOr)
+            Dim operatorKind As BinaryOperatorKind = If((boundUserDefinedShortCircuitingOperator.BitwiseOperator.OperatorKind And VisualBasic.BinaryOperatorKind.And) <> 0, BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr)
             Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUserDefinedShortCircuitingOperator.LeftOperand))
             Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUserDefinedShortCircuitingOperator.BitwiseOperator.Right))
             Dim usesOperatorMethod As Boolean = True
@@ -461,8 +467,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundUserDefinedShortCircuitingOperator.Syntax
             Dim type As ITypeSymbol = boundUserDefinedShortCircuitingOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedShortCircuitingOperator.ConstantValueOpt)
-            Dim isLifted = (boundUserDefinedShortCircuitingOperator.BitwiseOperator.OperatorKind And BinaryOperatorKind.Lifted) <> 0
-            Return New LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, isLifted, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue)
+            Dim isLifted = (boundUserDefinedShortCircuitingOperator.BitwiseOperator.OperatorKind And VisualBasic.BinaryOperatorKind.Lifted) <> 0
+            Dim isChecked = False
+            Dim isCompareText = False
+            Return New LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidExpression
@@ -790,12 +798,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundSimpleCaseClauseOperation(boundSimpleCaseClause As BoundSimpleCaseClause) As ISingleValueCaseClause
             Dim clauseValue = GetSingleValueCaseClauseValue(boundSimpleCaseClause)
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(clauseValue))
-            Dim equality As BinaryOperationKind = GetSingleValueCaseClauseEquality(clauseValue)
             Dim CaseKind As CaseKind = CaseKind.SingleValue
             Dim syntax As SyntaxNode = boundSimpleCaseClause.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazySingleValueCaseClause(value, equality, CaseKind, _semanticModel, syntax, type, constantValue)
+            Return New LazySingleValueCaseClause(value, CaseKind, _semanticModel, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundRangeCaseClauseOperation(boundRangeCaseClause As BoundRangeCaseClause) As IRangeCaseClause
@@ -839,7 +846,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundRelationalCaseClauseOperation(boundRelationalCaseClause As BoundRelationalCaseClause) As IRelationalCaseClause
             Dim valueExpression = GetRelationalCaseClauseValue(boundRelationalCaseClause)
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(valueExpression))
-            Dim relation As BinaryOperationKind = If(valueExpression IsNot Nothing, Helper.DeriveBinaryOperationKind(boundRelationalCaseClause.OperatorKind, valueExpression), BinaryOperationKind.Invalid)
+            Dim relation As BinaryOperatorKind = If(valueExpression IsNot Nothing, Helper.DeriveBinaryOperatorKind(boundRelationalCaseClause.OperatorKind), BinaryOperatorKind.Invalid)
             Dim CaseKind As CaseKind = CaseKind.Relational
             Dim syntax As SyntaxNode = boundRelationalCaseClause.Syntax
             Dim type As ITypeSymbol = Nothing
@@ -1010,7 +1017,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundGotoStatementOperation(boundGotoStatement As BoundGotoStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundGotoStatement.Label
-            Dim branchKind As BranchKind = branchKind.GoTo
+            Dim branchKind As BranchKind = BranchKind.GoTo
             Dim syntax As SyntaxNode = boundGotoStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1019,7 +1026,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundContinueStatementOperation(boundContinueStatement As BoundContinueStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundContinueStatement.Label
-            Dim branchKind As BranchKind = branchKind.Continue
+            Dim branchKind As BranchKind = BranchKind.Continue
             Dim syntax As SyntaxNode = boundContinueStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1028,7 +1035,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundExitStatementOperation(boundExitStatement As BoundExitStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundExitStatement.Label
-            Dim branchKind As BranchKind = branchKind.Break
+            Dim branchKind As BranchKind = BranchKind.Break
             Dim syntax As SyntaxNode = boundExitStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()

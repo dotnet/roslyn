@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClause operation, object argument)
         {
-            return new SingleValueCaseClause(Visit(operation.Value), operation.Equality, operation.CaseKind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+            return new SingleValueCaseClause(Visit(operation.Value), operation.CaseKind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
         public override IOperation VisitRelationalCaseClause(IRelationalCaseClause operation, object argument)
@@ -261,12 +261,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitUnaryOperatorExpression(IUnaryOperatorExpression operation, object argument)
         {
-            return new UnaryOperatorExpression(operation.UnaryOperationKind, Visit(operation.Operand), operation.IsLifted, operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+            return new UnaryOperatorExpression(operation.OperatorKind, Visit(operation.Operand), operation.IsLifted, operation.IsChecked, operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
         public override IOperation VisitBinaryOperatorExpression(IBinaryOperatorExpression operation, object argument)
         {
-            return new BinaryOperatorExpression(operation.BinaryOperationKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.IsLifted, operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+            return new BinaryOperatorExpression(operation.OperatorKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.IsLifted, operation.IsChecked, operation.IsCompareText, operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
         public override IOperation VisitConditionalChoiceExpression(IConditionalChoiceExpression operation, object argument)
@@ -381,12 +381,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation, object argument)
         {
-            return new CompoundAssignmentExpression(operation.BinaryOperationKind, operation.IsLifted, Visit(operation.Target), Visit(operation.Value), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+            return new CompoundAssignmentExpression(operation.OperatorKind, operation.IsLifted, Visit(operation.Target), Visit(operation.Value), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
         public override IOperation VisitIncrementExpression(IIncrementExpression operation, object argument)
         {
-            return new IncrementExpression(operation.IncrementOperationKind, Visit(operation.Target), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+            return new IncrementExpression(operation.IsDecrement, operation.IsPostfix, Visit(operation.Target), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
         public override IOperation VisitParenthesizedExpression(IParenthesizedExpression operation, object argument)

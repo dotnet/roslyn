@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents an increment expression.
+    /// Represents an increment or decrement expression in C#.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
@@ -19,9 +19,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         IOperation Target { get; }
 
         /// <summary>
-        /// Kind of increment.
+        /// <code>true</code> if this is a decrement expression.
+        /// <code>false</code> if this is an increment expression.
         /// </summary>
-        UnaryOperationKind IncrementOperationKind { get; }
+        bool IsDecrement { get; }
+
+        /// <summary>
+        /// <code>true</code> if this is a postfix expression.
+        /// <code>false</code> if this is a prefix expression.
+        /// </summary>
+        bool IsPostfix { get; }
     }
 }
 
