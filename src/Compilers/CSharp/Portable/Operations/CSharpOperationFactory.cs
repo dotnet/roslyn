@@ -426,11 +426,10 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ILiteralExpression CreateBoundLiteralOperation(BoundLiteral boundLiteral)
         {
-            string text = boundLiteral.Syntax.ToString();
             SyntaxNode syntax = boundLiteral.Syntax;
             ITypeSymbol type = boundLiteral.Type;
             Optional<object> constantValue = ConvertToOptional(boundLiteral.ConstantValue);
-            return new LiteralExpression(text, _semanticModel, syntax, type, constantValue);
+            return new LiteralExpression(_semanticModel, syntax, type, constantValue);
         }
 
         private IAnonymousObjectCreationExpression CreateBoundAnonymousObjectCreationExpressionOperation(BoundAnonymousObjectCreationExpression boundAnonymousObjectCreationExpression)

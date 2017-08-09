@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public static ILiteralExpression CreateLiteralExpression(long value, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax)
         {
-            return new LiteralExpression(value.ToString(), semanticModel, syntax, resultType, constantValue: new Optional<object>(value));
+            return new LiteralExpression(semanticModel, syntax, resultType, constantValue: new Optional<object>(value));
         }
 
         public static ILiteralExpression CreateLiteralExpression(ConstantValue value, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax)
         {
-            return new LiteralExpression(value.GetValueToDisplay(), semanticModel, syntax, resultType, new Optional<object>(value.Value));
+            return new LiteralExpression(semanticModel, syntax, resultType, new Optional<object>(value.Value));
         }
 
         public static IBinaryOperatorExpression CreateBinaryOperatorExpression(

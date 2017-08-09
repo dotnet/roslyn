@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             ITypeSymbol type = increment.Type;
             Optional<object> constantValue = new Optional<object>(1);
 
-            return new LiteralExpression(text, semanticModel, syntax, type, constantValue);
+            return new LiteralExpression(semanticModel, syntax, type, constantValue);
         }
 
         private static int Abs(int value)
@@ -2107,7 +2107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var literal = (ILiteralExpression)operationContext.Operation;
-                     operationContext.ReportDiagnostic(Diagnostic.Create(LiteralDescriptor, literal.Syntax.GetLocation(), literal.Text));
+                     operationContext.ReportDiagnostic(Diagnostic.Create(LiteralDescriptor, literal.Syntax.GetLocation(), literal.Syntax.ToString()));
                  },
                  OperationKind.LiteralExpression);
         }

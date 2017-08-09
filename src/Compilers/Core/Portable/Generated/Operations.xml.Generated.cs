@@ -2794,15 +2794,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LiteralExpression : Operation, ILiteralExpression
     {
-        public LiteralExpression(string text, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public LiteralExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.LiteralExpression, semanticModel, syntax, type, constantValue)
         {
-            Text = text;
         }
-        /// <summary>
-        /// Textual representation of the literal.
-        /// </summary>
-        public string Text { get; }
         public override IEnumerable<IOperation> Children
         {
             get
