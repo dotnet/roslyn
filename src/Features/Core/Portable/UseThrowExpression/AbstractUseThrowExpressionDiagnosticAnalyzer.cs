@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 s_registerOperationActionInfo.Invoke(startContext, new object[]
                 {
                     new Action<OperationAnalysisContext>(operationContext => AnalyzeOperation(operationContext, expressionTypeOpt)),
-                    ImmutableArray.Create(OperationKind.ThrowStatement)
+                    ImmutableArray.Create(OperationKind.ExpressionStatement)
                 });
             });
         }
@@ -77,7 +77,12 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var cancellationToken = context.CancellationToken;
 
-            var throwOperation = (IThrowStatement)context.Operation;
+            var throwOperation = (IExpressionStatement)context.Operation;
+            if (throwOperation.Expression.Kind != OperationKind.ThrowExpression)
+            {
+                return;
+            }
+
             var throwStatement = throwOperation.Syntax;
             var options = context.Options;
             var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
@@ -159,7 +164,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var allLocations = ImmutableArray.Create(
                 ifOperation.Syntax.GetLocation(),
-                throwOperation.ThrownObject.Syntax.GetLocation(),
+                throwOperation.Expression.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
             var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
@@ -293,7 +298,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         }
 
         private IIfStatement GetContainingIfOperation(
-            SemanticModel semanticModel, IThrowStatement throwOperation,
+            SemanticModel semanticModel, IExpressionStatement throwOperation,
             CancellationToken cancellationToken)
         {
             var throwStatement = throwOperation.Syntax;
