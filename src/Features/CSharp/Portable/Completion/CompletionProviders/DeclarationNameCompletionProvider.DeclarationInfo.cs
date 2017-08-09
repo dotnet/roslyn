@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 result = IsLastTokenOfType<ExpressionStatementSyntax>(
                     token, semanticModel,
                     e => e.Expression,
-                    _ => default,
+                    _ => default(SyntaxTokenList?),
                     _ => ImmutableArray.Create(SymbolKind.Local),
                     cancellationToken);
                 return result.Type != null;
