@@ -1751,18 +1751,31 @@ class C : IGoo
 
         [WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public async Task TestMetadataOverride()
+        public async Task TestSystemObjectMetadataOverride()
         {
-            await TestWithAllCodeStyleOff(
+            await TestMissingAsync(
 @"class C
 {
     public override string [||]ToString()
     {
     }
-}",
-@"class C
+}");
+        }
+
+        [WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestMetadataOverride()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C : System.Type
 {
-    public override string {|Warning:ToString|}
+    public override int [||]GetArrayRank()
+    {
+    }
+}",
+@"class C : System.Type
+{
+    public override int {|Warning:ArrayRank|}
     {
         get
         {
