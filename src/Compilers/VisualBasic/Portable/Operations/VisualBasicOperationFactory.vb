@@ -963,12 +963,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyReturnStatement(OperationKind.ReturnStatement, returnedValue, _semanticModel, syntax, type, constantValue)
         End Function
 
-        Private Function CreateBoundThrowStatementOperation(boundThrowStatement As BoundThrowStatement) As IThrowStatement
+        Private Function CreateBoundThrowStatementOperation(boundThrowStatement As BoundThrowStatement) As IExpressionStatement
             Dim thrownObject As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundThrowStatement.ExpressionOpt))
             Dim syntax As SyntaxNode = boundThrowStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
+            Dim expressionType As ITypeSymbol = boundThrowStatement.ExpressionOpt?.Type
+            Dim statementType As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyThrowStatement(thrownObject, _semanticModel, syntax, type, constantValue)
+            Dim throwExpression As IOperation = New LazyThrowExpression(thrownObject, _semanticModel, syntax, expressionType, constantValue)
+            Return New ExpressionStatement(throwExpression, _semanticModel, syntax, statementType, constantValue)
         End Function
 
         Private Function CreateBoundWhileStatementOperation(boundWhileStatement As BoundWhileStatement) As IWhileUntilLoopStatement

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -973,10 +973,11 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
                 Initializer: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         AtLoopBottom(0)
         Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-            IThrowStatement (OperationKind.ThrowStatement) (Syntax: 'throw new S ... xception();')
-              ThrownObject: IObjectCreationExpression (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'new System.Exception()')
-                  Arguments(0)
-                  Initializer: null
+            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'throw new S ... xception();')
+              Expression: IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'throw new S ... xception();')
+                  IObjectCreationExpression (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'new System.Exception()')
+                    Arguments(0)
+                    Initializer: null
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }

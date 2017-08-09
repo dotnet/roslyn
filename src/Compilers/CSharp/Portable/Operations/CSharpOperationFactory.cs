@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IEventAssignmentExpression CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
-            Lazy<IEventReferenceExpression> eventReference = new Lazy<IEventReferenceExpression>(() => CreateBoundEventAccessOperation(boundEventAssignmentOperator));                
+            Lazy<IEventReferenceExpression> eventReference = new Lazy<IEventReferenceExpression>(() => CreateBoundEventAccessOperation(boundEventAssignmentOperator));
             Lazy<IOperation> handlerValue = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Argument));
             SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
             bool adds = boundEventAssignmentOperator.IsAddition;
@@ -1190,13 +1190,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyUsingStatement(body, declaration, value, _semanticModel, syntax, type, constantValue);
         }
 
-        private IThrowStatement CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
+        private IExpressionStatement CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
         {
             Lazy<IOperation> thrownObject = new Lazy<IOperation>(() => Create(boundThrowStatement.ExpressionOpt));
             SyntaxNode syntax = boundThrowStatement.Syntax;
-            ITypeSymbol type = null;
+            ITypeSymbol throwExpressionType = boundThrowStatement.ExpressionOpt?.Type;
+            ITypeSymbol statementType = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyThrowStatement(thrownObject, _semanticModel, syntax, type, constantValue);
+            IOperation throwExpression = new LazyThrowExpression(thrownObject, _semanticModel, syntax, throwExpressionType, constantValue);
+            return new ExpressionStatement(throwExpression, _semanticModel, syntax, statementType, constantValue);
         }
 
         private IReturnStatement CreateBoundReturnStatementOperation(BoundReturnStatement boundReturnStatement)

@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis
         BranchStatement = 0x8,
         /// <summary>Indicates an <see cref="IEmptyStatement"/>.</summary>
         EmptyStatement = 0x9,
-        /// <summary>Indicates an <see cref="IThrowStatement"/>.</summary>
-        ThrowStatement = 0xa,
+        // 0xa open for usage, was IThrowStatement.
         /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
         ReturnStatement = 0xb,
         /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
