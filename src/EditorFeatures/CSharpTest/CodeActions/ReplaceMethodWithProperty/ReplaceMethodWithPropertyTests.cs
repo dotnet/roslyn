@@ -1749,6 +1749,41 @@ class C : IGoo
 }");
         }
 
+        [WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestSystemObjectMetadataOverride()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    public override string [||]ToString()
+    {
+    }
+}");
+        }
+
+        [WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestMetadataOverride()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C : System.Type
+{
+    public override int [||]GetArrayRank()
+    {
+    }
+}",
+@"class C : System.Type
+{
+    public override int {|Warning:ArrayRank|}
+    {
+        get
+        {
+        }
+    }
+}");
+        }
+
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup, 
             ParseOptions parseOptions = null, int index = 0, 
