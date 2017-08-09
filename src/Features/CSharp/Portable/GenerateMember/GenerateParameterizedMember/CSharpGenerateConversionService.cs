@@ -67,15 +67,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             if (TryGetConversionMethodAndTypeToGenerateIn(document, expression, classInterfaceModuleStructTypes, cancellationToken, out methodSymbol, out typeToGenerateIn))
             {
                 identifierToken = SyntaxFactory.Token(
-                    default(SyntaxTriviaList),
+                    default,
                     SyntaxKind.ImplicitKeyword,
                     WellKnownMemberNames.ImplicitConversionName,
                     WellKnownMemberNames.ImplicitConversionName,
-                    default(SyntaxTriviaList));
+                    default);
                 return true;
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             methodSymbol = null;
             typeToGenerateIn = null;
             return false;
@@ -93,15 +93,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             if (TryGetConversionMethodAndTypeToGenerateIn(document, expression, classInterfaceModuleStructTypes, cancellationToken, out methodSymbol, out typeToGenerateIn))
             {
                 identifierToken = SyntaxFactory.Token(
-                    default(SyntaxTriviaList),
+                    default,
                     SyntaxKind.ImplicitKeyword,
                     WellKnownMemberNames.ExplicitConversionName,
                     WellKnownMemberNames.ExplicitConversionName,
-                    default(SyntaxTriviaList));
+                    default);
                 return true;
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             methodSymbol = null;
             typeToGenerateIn = null;
             return false;
@@ -209,8 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: ImmutableArray<AttributeData>.Empty,
-                accessibility: default(Accessibility),
-                modifiers: default(DeclarationModifiers),
+                accessibility: default,
+                modifiers: default,
                 returnType: typeToGenerateIn,
                 returnsByRef: false,
                 explicitInterfaceImplementations: default,
