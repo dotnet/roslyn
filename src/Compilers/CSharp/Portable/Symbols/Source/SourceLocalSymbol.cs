@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Interlocked.CompareExchange(ref _type, newType, null);
             }
 
-            // to handle error self-referential cases we will default to current scope
+            // to handle error self-referential cases we will default to the current scope
             _valEscapeScope = _type.IsByRefLikeType ?
                                 _scopeBinder.LocalScopeDepth : 
                                 Binder.ExternalScope;

@@ -951,11 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var currentScope = LocalScopeDepth;
 
-                var valEscape = localSymbol.Type.IsByRefLikeType ?
-                    currentScope :  // default to the current scope
-                    Binder.ExternalScope;   // no need to compute, it is safe to return by value
-
-                localSymbol.SetValEscape(valEscape);
+                localSymbol.SetValEscape(GetValEscape(initializerOpt, currentScope));
 
                 if (localSymbol.RefKind != RefKind.None)
                 {
