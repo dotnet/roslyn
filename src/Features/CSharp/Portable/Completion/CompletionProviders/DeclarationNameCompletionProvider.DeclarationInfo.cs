@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 result = IsFollowingTypeOrComma<VariableDeclarationSyntax>(token, semanticModel,
                     v => v.Type,
-                    v => v.Parent is FieldDeclarationSyntax f ? f.Modifiers : default,
+                    v => v.Parent is FieldDeclarationSyntax f ? f.Modifiers : default(SyntaxTokenList?),
                     GetPossibleDeclarations,
                     cancellationToken);
                 return result.Type != null;
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 result = IsFollowingTypeOrComma<VariableDeclarationSyntax>(token, semanticModel,
                      v => v.Type,
-                     v => v.Parent is LocalDeclarationStatementSyntax l ? l.Modifiers : default,
+                     v => v.Parent is LocalDeclarationStatementSyntax l ? l.Modifiers : default(SyntaxTokenList?),
                      d => ImmutableArray.Create(SymbolKind.Local),
                      cancellationToken);
                 return result.Type != null;
