@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         Friend Overloads Async Function TestAsync(initialMarkup As String,
                                                   expectedMarkup As String,
                                                   Optional index As Integer = 0,
-                                                  Optional ignoreTrivia As Boolean = True,
+                                                  Optional ignoreTrivia As Boolean = False,
                                                   Optional priority As CodeActionPriority? = Nothing,
                                                   Optional placeSystemFirst As Boolean = True) As Task
             Await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, placeSystemFirst, outOfProcess:=False)

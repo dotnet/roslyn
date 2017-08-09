@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 return string.Join(" ", tokens);
             }
 
-            public void VerifyResult(MetadataAsSourceFile file, string expected, bool ignoreTrivia = true)
+            public void VerifyResult(MetadataAsSourceFile file, string expected, bool ignoreTrivia = false)
             {
                 var actual = File.ReadAllText(file.FilePath).Trim();
                 var actualSpan = file.IdentifierLocation.SourceSpan;
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 Assert.Equal(expected, actual);
             }
 
-            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, bool ignoreTrivia = true, Project project = null)
+            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, bool ignoreTrivia = false, Project project = null)
             {
                 var result = await GenerateSourceAsync(symbolMetadataName, project);
                 VerifyResult(result, expected, ignoreTrivia);

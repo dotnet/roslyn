@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             CodeActionPriority? priority = null,
             IDictionary<OptionKey, object> options = null)
         {

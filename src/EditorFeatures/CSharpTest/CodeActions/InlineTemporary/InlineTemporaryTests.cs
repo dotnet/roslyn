@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new InlineTemporaryCodeRefactoringProvider();
 
-        private async Task TestFixOneAsync(string initial, string expected, bool ignoreTrivia = true)
+        private async Task TestFixOneAsync(string initial, string expected, bool ignoreTrivia = false)
         {
             await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
         }

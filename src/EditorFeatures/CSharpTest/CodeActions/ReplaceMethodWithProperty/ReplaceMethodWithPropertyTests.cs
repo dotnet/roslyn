@@ -1787,7 +1787,7 @@ class C : IGoo
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup, 
             ParseOptions parseOptions = null, int index = 0, 
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             await TestAsync(
                 initialMarkup, expectedMarkup, parseOptions,
