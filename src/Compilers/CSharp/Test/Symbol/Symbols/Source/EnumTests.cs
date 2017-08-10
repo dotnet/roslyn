@@ -204,12 +204,12 @@ ValueC = 257 // Out of underlying range
             //VerifyEnumsValue(text, "TestEnum", 0, 1);
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                // (6,13): error CS1004: Duplicate 'private' modifier
-                //     private private enum Figure4 { One = 1 };   // Duplicate modifier is not OK
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "private").WithArguments("private").WithLocation(6, 13),
                 // (5,19): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract enum Figure3 { Zero };             // abstract not valid
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Figure3").WithArguments("abstract").WithLocation(5, 19),
+                // (6,13): error CS1004: Duplicate 'private' modifier
+                //     private private enum Figure4 { One = 1 };   // Duplicate modifier is not OK
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "private").WithArguments("private").WithLocation(6, 13),
                 // (7,25): error CS0107: More than one protection modifier
                 //     private public enum Figure5 { };  // More than one protection modifiers is not OK
                 Diagnostic(ErrorCode.ERR_BadMemberProtection, "Figure5").WithLocation(7, 25),

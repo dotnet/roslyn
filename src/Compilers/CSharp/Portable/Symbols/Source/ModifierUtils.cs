@@ -239,24 +239,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     seenNoDuplicates = false;
                 }
             }
-            else
-            {
-                if ((allModifiers & DeclarationModifiers.AccessibilityMask) != 0 && (modifierKind & DeclarationModifiers.AccessibilityMask) != 0)
-                {
-                    // Can't have two different access modifiers.
-                    // Exception: "internal protected" or "protected internal" is allowed.
-                    if (!(((modifierKind == DeclarationModifiers.Protected) && (allModifiers & DeclarationModifiers.Internal) != 0) ||
-                          ((modifierKind == DeclarationModifiers.Internal) && (allModifiers & DeclarationModifiers.Protected) != 0)))
-                    {
-                        if (seenNoAccessibilityDuplicates)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_BadMemberProtection, modifierToken.GetLocation());
-                        }
-
-                        seenNoAccessibilityDuplicates = false;
-                    }
-                }
-            }
         }
 
         internal static CSDiagnosticInfo CheckAccessibility(DeclarationModifiers modifiers)
