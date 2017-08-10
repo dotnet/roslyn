@@ -4224,7 +4224,7 @@ public class MemberInitializerTest
     public static void GenericMethod<T>() { }
     public static void Run()
     {
-        Foo f = new Foo {
+        Goo f = new Goo {
             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
         };
     }
@@ -4237,12 +4237,12 @@ public class MemberInitializerTest
                 // (9,123): error CS1525: Invalid expression term '}'
                 //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}"),
-                // (8,9): error CS0246: The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)
-                //         Foo f = new Foo {
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Foo").WithArguments("Foo"),
-                // (8,21): error CS0246: The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)
-                //         Foo f = new Foo {
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Foo").WithArguments("Foo"),
+                // (8,9): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
+                //         Goo f = new Goo {
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo"),
+                // (8,21): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
+                //         Goo f = new Goo {
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo"),
                 // (9,20): error CS0030: Cannot convert type 'method' to 'MemberInitializerTest.D<int>'
                 //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D<int>) GenericMethod").WithArguments("method", "MemberInitializerTest.D<int>"));
@@ -4271,11 +4271,11 @@ class Program
 {
     static void Main()
     {
-        int result = Foo<S>();
+        int result = Goo<S>();
         Console.WriteLine(result);
     }
 
-    static int Foo<T>() where T : I, new()
+    static int Goo<T>() where T : I, new()
     {
         Expression<Func<T>> f1 = () => new T { X = 1 };
         var b = f1.Compile()();
@@ -5453,7 +5453,7 @@ public class Derived : Base
     public override int X { get { return 42; } }
 }
 
-public class Foo
+public class Goo
 {
     static Derived Bug(IQueryable<int> query)
     {
@@ -5491,7 +5491,7 @@ public class Derived : Base
     public override int X { set { System.Console.Write(value); } }
 }
 
-public class Foo
+public class Goo
 {
     static int Bug(IQueryable<int> query)
     {
@@ -6047,19 +6047,19 @@ class C //: TestBase
     {
         static void Main(string[] args)
         {
-            Expression<Func<int>> e = () => foo((int)E1.b);
+            Expression<Func<int>> e = () => goo((int)E1.b);
 
             System.Console.WriteLine(e);
         }
 
-        static int foo(int x)
+        static int goo(int x)
         {
             return x;
         }
     }
 }";
 
-            const string expectedOutput = @"() => foo(1)";
+            const string expectedOutput = @"() => goo(1)";
             CompileAndVerify(
                 new[] {
                     source,

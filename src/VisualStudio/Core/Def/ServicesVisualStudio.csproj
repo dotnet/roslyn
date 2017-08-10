@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
@@ -8,7 +8,6 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices</AssemblyName>
@@ -42,207 +41,35 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
       <Link>Shared\ConcurrentLruCache.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" />
     <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="Experimentation\IVsExperimentationService.cs" />
-    <Compile Include="Experimentation\VisualStudioExperimentationService.cs" />
-    <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyResults.cs" />
-    <Compile Include="IAnalyzerNodeSetup.cs" />
-    <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyChecker.cs" />
-    <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyCheckingService.cs" />
-    <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyConflict.cs" />
-    <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyIdentityList.cs" />
-    <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNameList.cs" />
-    <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNamePrefixList.cs" />
-    <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
-    <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.AnalyzerAssemblyLoader.cs" />
-    <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
-    <Compile Include="Implementation\AnalyzerDependency\IIgnorableAssemblyList.cs" />
-    <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
-    <Compile Include="Implementation\Experimentation\AnalyzerVsixSuggestedActionCallback.cs" />
-    <Compile Include="Implementation\Extensions\ServiceProviderExtensions.cs" />
-    <Compile Include="ID.InteractiveCommands.cs" />
-    <Compile Include="Implementation\FindReferences\VisualStudioDefinitionsAndReferencesFactory.cs" />
-    <Compile Include="Implementation\Interactive\CSharpResetInteractiveMenuCommand.cs" />
-    <Compile Include="Implementation\Interactive\AbstractResetInteractiveMenuCommand.cs" />
-    <Compile Include="Implementation\Interactive\VisualBasicResetInteractiveMenuCommand.cs" />
-    <Compile Include="Implementation\Interop\CleanableWeakComHandleTable.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageBlock.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractPackage.cs" />
-    <Compile Include="Implementation\Library\AbstractLibraryService.cs" />
-    <Compile Include="Implementation\Library\ClassView\AbstractSyncClassViewCommandHandler.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\DefinitionTreeItem.cs" />
-    <Compile Include="Implementation\Library\ILibraryService.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\ObjectBrowserTaskExtensions.cs" />
-    <Compile Include="Implementation\Library\VsNavInfo\NavInfoNodeEnum.cs" />
-    <Compile Include="Implementation\Library\VsNavInfo\Extensions.cs" />
-    <Compile Include="Implementation\Library\VsNavInfo\NavInfo.cs" />
-    <Compile Include="Implementation\Library\VsNavInfo\NavInfoFactory.cs" />
-    <Compile Include="Implementation\Library\VsNavInfo\NavInfoNode.cs" />
-    <Compile Include="Implementation\Log\VisualStudioErrorLogger.cs" />
-    <Compile Include="Implementation\AnalyzerDependency\MissingAnalyzerDependency.cs" />
-    <Compile Include="Implementation\Options\LocalUserRegistryOptionPersister.cs" />
-    <Compile Include="Implementation\Options\RoamingVisualStudioProfileOptionPersister.cs" />
-    <Compile Include="Implementation\PickMembers\PickMembersDialog.xaml.cs">
+    <Compile Update="Implementation\PickMembers\PickMembersDialog.xaml.cs">
       <DependentUpon>PickMembersDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Implementation\PickMembers\PickMembersDialogViewModel.cs" />
-    <Compile Include="Implementation\PickMembers\VisualStudioPickMembersService.cs" />
-    <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
-    <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
-    <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
-    <Compile Include="Implementation\Preview\ReferenceChange.cs" />
-    <Compile Include="Implementation\ProjectSystem\CPS\ICodeModelFactory.cs" />
-    <Compile Include="Implementation\ProjectSystem\IDeferredProjectWorkspaceService.cs" />
-    <Compile Include="Implementation\ProjectSystem\IEntryPointFinderService.cs" />
-    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_ICompilerOptionsHostObject.cs" />
-    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IIntellisenseBuildTarget.cs" />
-    <Compile Include="Implementation\ProjectSystem\CPS\IWorkspaceProjectContextFactory.cs" />
-    <Compile Include="Implementation\ProjectSystem\CPS\IWorkspaceProjectContext.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractProject_Options.cs" />
-    <Compile Include="Implementation\ProjectSystem\Interop\IIntellisenseBuildTarget.cs" />
-    <Compile Include="Implementation\ProjectSystem\Interop\ICompilerOptionsHostObject.cs" />
-    <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkingFolder.cs" />
-    <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkspaceHost2.cs" />
-    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject.cs" />
-    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IAnalyzerHost.cs" />
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerAssemblyLoaderService.cs" />
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioFrameworkAssemblyPathResolverFactory.cs" />
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
-    <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl_IVsSolutionWorkingFoldersEvents.cs" />
-    <Compile Include="Implementation\Extensions\VisualStudioWorkspaceImplExtensions.cs" />
-    <Compile Include="Implementation\Options\LanguageSettingsPersister.cs" />
-    <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.DeferredInitialization.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AbstractAddDocumentUndoUnit.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AbstractRemoveDocumentUndoUnit.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AddAdditionalDocumentUndoUnit.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AddDocumentUndoUnit.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.RemoveAdditionalDocumentUndoUnit.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.RemoveDocumentUndoUnit.cs" />
-    <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.cs" />
-    <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
-    <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.SolutionChecksumUpdater.cs" />
-    <Compile Include="Implementation\Remote\RemoteHostOptions.cs" />
-    <Compile Include="Implementation\RQName\RQName.cs" />
-    <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.AggregateDiagnosticTableControlEventProcessor.cs" />
-    <Compile Include="Implementation\TableDataSource\Suppression\IVisualStudioDiagnosticListSuppressionStateService.cs" />
-    <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioDiagnosticListTableCommandHandler.cs" />
-    <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioDiagnosticListSuppressionStateService.cs" />
-    <Compile Include="Implementation\TableDataSource\Suppression\DiagnosticTableControlEventProcessorProvider.SuppressionStateProcessor.cs" />
-    <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioSuppressionFixService.cs" />
-    <Compile Include="Implementation\TableDataSource\Suppression\IVisualStudioSuppressionFixService.cs" />
-    <Compile Include="Implementation\TableDataSource\Suppression\SuppressionStateColumnDefinition.cs" />
-    <Compile Include="Implementation\TableDataSource\AbstractTableDataSource.cs" />
-    <Compile Include="Implementation\TableDataSource\AbstractTableEntriesSource.cs" />
-    <Compile Include="Implementation\TableDataSource\Extensions.cs" />
-    <Compile Include="Implementation\TableDataSource\SharedInfoCache.cs" />
-    <Compile Include="Implementation\TableDataSource\TableItem.cs" />
-    <Compile Include="Implementation\TableDataSource\MiscDiagnosticTableControlEventProcessorProvider.cs" />
-    <Compile Include="Implementation\TableDataSource\MiscellaneousDiagnosticListTable.cs" />
-    <Compile Include="Implementation\TableDataSource\MiscellaneousTodoListTable.cs" />
-    <Compile Include="Implementation\TableDataSource\OpenDocumentTracker.cs" />
-    <Compile Include="Implementation\ProjectInfo\DefaultProjectInfoService.cs" />
-    <Compile Include="Implementation\ProjectInfo\DefaultProjectInfoServiceFactory.cs" />
-    <Compile Include="Implementation\TableDataSource\MiscTodoListTableControlEventProcessorProvider.cs" />
-    <Compile Include="Implementation\TableDataSource\UriNavigator.cs" />
-    <Compile Include="Implementation\TableDataSource\ValueTypeCache.cs" />
-    <Compile Include="Implementation\TableDataSource\VisualStudioBaseDiagnosticListTable.LiveTableDataSource.cs" />
-    <Compile Include="Implementation\TableDataSource\VisualStudioDiagnosticListTable.BuildTableDataSource.cs" />
-    <Compile Include="Implementation\TableDataSource\VisualStudioDiagnosticListTable.cs" />
-    <Compile Include="Implementation\TableDataSource\VisualStudioTodoListTable.cs" />
-    <Compile Include="Implementation\Utilities\BrowserHelper.cs" />
-    <Compile Include="Implementation\Utilities\AutomationDelegatingListView.cs" />
-    <Compile Include="Implementation\Utilities\HyperlinkStyleHelper.cs" />
-    <Compile Include="Implementation\Venus\VenusTaskExtensions.cs" />
-    <Compile Include="Implementation\ContainedLanguageRefactorNotifyService.cs" />
-    <Compile Include="Implementation\VirtualMemoryNotificationListener.cs" />
-    <Compile Include="Implementation\Watson\WatsonReporter.cs" />
-    <Compile Include="Implementation\Workspace\DetailedErrorInfoDialog.xaml.cs">
+    <Compile Update="Implementation\Workspace\DetailedErrorInfoDialog.xaml.cs">
       <DependentUpon>DetailedErrorInfoDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.ExceptionFormatting.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioErrorReportingServiceFactory.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.cs" />
-    <Compile Include="Implementation\InfoBar\VisualStudioInfoBarService.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioNavigationOptions.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioTaskSchedulerFactory.cs" />
-    <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
-    <Compile Include="Packaging\IPackageServicesProxy.cs" />
-    <Compile Include="Packaging\PackageInstallerService.ProjectState.cs" />
-    <Compile Include="Storage\VisualStudioPersistentStorageLocationService.cs" />
-    <Compile Include="SymbolSearch\AbstractDelayStartedService.cs" />
-    <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
-    <Compile Include="Packaging\PackageInstallerServiceFactory_UndoRedo.cs" />
-    <Compile Include="SymbolSearch\VisualStudioSymbolSearchService.cs" />
-    <Compile Include="RoslynPackage.cs" />
-    <Compile Include="ServicesVSResources.Designer.cs">
+    <Compile Update="ServicesVSResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ServicesVSResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Shared\LogicalStringComparer.cs" />
-    <Compile Include="Shared\VisualStudioImageMonikerService.cs" />
-    <Compile Include="SolutionEventMonitor.cs" />
-    <Compile Include="SymbolSearch\VisualStudioSymbolSearchService.LogService.cs" />
-    <Compile Include="Telemetry\CodeMarkerLogger.cs" />
-    <Compile Include="Telemetry\ProjectTypeLookupService.cs" />
-    <Compile Include="Telemetry\ProjectTelemetryIncrementalAnalyzerProvider.cs" />
-    <Compile Include="Telemetry\RoslynTelemetrySetup.cs" />
-    <Compile Include="Telemetry\VSTelemetryCache.cs" />
-    <Compile Include="Telemetry\VSTelemetryLogger.cs" />
-    <Compile Include="Utilities\IVsEditorAdaptersFactoryServiceExtensions.cs" />
-    <Compile Include="Implementation\WorkspaceCacheService.cs" />
-    <Compile Include="Implementation\Workspace\WorkspaceFailureOutputPane.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AbstractAddRemoveUndoUnit.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AddMetadataReferenceUndoUnit.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AddProjectReferenceUndoUnit.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.RemoveMetadataReferenceUndoUnit.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.RemoveProjectReferenceUndoUnit.cs" />
-    <Compile Include="VSPackage.Designer.cs">
+    <Compile Update="VSPackage.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>VSPackage.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
-      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
-      <Name>Workspaces.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
-      <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
-      <Name>CSharpWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
-      <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
-      <Name>EditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
-      <Name>Workspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
-      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
-      <Name>Features</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
-      <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
-      <Name>TextEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
-      <Project>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</Project>
-      <Name>BasicWorkspace</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.ComponentModel.Composition" />
@@ -311,7 +138,6 @@
     <Reference Include="WindowsFormsIntegration" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
-    <PackageReference Include="ManagedEsent" Version="$(ManagedEsentVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
@@ -358,303 +184,18 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeMarkers\ManagedCodeMarkers.cs" />
-    <Compile Include="Guids.cs" />
-    <Compile Include="HACK_ThemeColorFixer.cs" />
-    <Compile Include="ID.Bitmap.cs" />
-    <Compile Include="ID.CSharpCommands.cs" />
-    <Compile Include="ID.Menu.cs" />
-    <Compile Include="ID.MenuGroup.cs" />
-    <Compile Include="ID.RoslynCommands.cs" />
-    <Compile Include="IInvisibleEditor.cs" />
-    <Compile Include="Implementation\AbstractCodePageEditorFactory.cs" />
-    <Compile Include="Implementation\AbstractEditorFactory.cs" />
-    <Compile Include="Implementation\AbstractOleCommandTarget.cs" />
-    <Compile Include="Implementation\AbstractOleCommandTarget.Execute.cs" />
-    <Compile Include="Implementation\AbstractOleCommandTarget.Query.cs" />
-    <Compile Include="Implementation\AbstractVsTextViewFilter.cs" />
-    <Compile Include="Implementation\AbstractVsTextViewFilter`2.cs" />
-    <Compile Include="Implementation\AnalyzerDependency\AnalyzerFileWatcherService.cs" />
-    <Compile Include="Implementation\CallHierarchy\CallHierarchyPresenter.cs" />
-    <Compile Include="Implementation\ChangeSignature\ChangeSignatureDialog.xaml.cs">
+    <Compile Update="Implementation\ChangeSignature\ChangeSignatureDialog.xaml.cs">
       <DependentUpon>ChangeSignatureDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Implementation\ChangeSignature\ChangeSignatureDialogViewModel.cs" />
-    <Compile Include="Implementation\ChangeSignature\VisualStudioChangeSignatureOptionsService.cs" />
-    <Compile Include="Implementation\PreviewPane\PreviewPane.xaml.cs">
+    <Compile Update="Implementation\PreviewPane\PreviewPane.xaml.cs">
       <DependentUpon>PreviewPane.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Implementation\PreviewPane\PreviewPaneService.cs" />
-    <Compile Include="Implementation\DebuggerIntelliSense\AbstractDebuggerIntelliSenseContext.cs" />
-    <Compile Include="Implementation\DebuggerIntelliSense\DebuggerIntelliSenseFilter.cs" />
-    <Compile Include="Implementation\DebuggerIntelliSense\DebuggerIntelliSenseHelpers.cs" />
-    <Compile Include="Implementation\DebuggerIntelliSense\DebuggerIntelliSenseWorkspace.cs" />
-    <Compile Include="Implementation\DebuggerIntelliSense\DebuggerTextView.cs" />
-    <Compile Include="Implementation\DebuggerIntelliSense\DebuggerTextView.HACK_CompletionSession.cs" />
-    <Compile Include="Implementation\Debugging\AbstractBreakpointResolver.cs" />
-    <Compile Include="Implementation\Debugging\AbstractBreakpointResolver.NameAndArity.cs" />
-    <Compile Include="Implementation\Debugging\CachedProximityExpressionsGetter.cs" />
-    <Compile Include="Implementation\Debugging\DebugMode.cs" />
-    <Compile Include="Implementation\Debugging\IProximityExpressionsService.cs" />
-    <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzer.cs" />
-    <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.cs" />
-    <Compile Include="Implementation\Diagnostics\VisualStudioDiagnosticAnalyzerService.cs" />
-    <Compile Include="Implementation\Diagnostics\IVisualStudioDiagnosticAnalyzerService.cs" />
-    <Compile Include="Implementation\DocumentationComments\VisualStudioDocumentationProvider.cs" />
-    <Compile Include="Implementation\EditAndContinue\DebugLogMessage.cs" />
-    <Compile Include="Implementation\EditAndContinue\Interop\IDebugEncNotify.cs" />
-    <Compile Include="Implementation\EditAndContinue\Interop\IDebugUpdateInMemoryPE.cs" />
-    <Compile Include="Implementation\EditAndContinue\Interop\IENCDebugInfo.cs" />
-    <Compile Include="Implementation\EditAndContinue\Interop\IENCSymbolReaderProvider.cs" />
-    <Compile Include="Implementation\EditAndContinue\Interop\IVsENCRebuildableProjectCfg2.cs" />
-    <Compile Include="Implementation\EditAndContinue\Interop\IVsENCRebuildableProjectCfg4.cs" />
-    <Compile Include="Implementation\EditAndContinue\VsENCRebuildableProjectImpl.cs" />
-    <Compile Include="Implementation\EditAndContinue\VsReadOnlyDocumentTracker.cs" />
-    <Compile Include="Implementation\Extensions\DocumentExtensions.cs" />
-    <Compile Include="Implementation\Extensions\ITextSnapshotExtensions.cs" />
-    <Compile Include="Implementation\Extensions\SnapshotSpanExtensions.cs" />
-    <Compile Include="Implementation\Extensions\SourceTextExtensions.cs" />
-    <Compile Include="Implementation\Extensions\VirtualTreePointExtensions.cs" />
-    <Compile Include="Implementation\Extensions\VsTextSpanExtensions.cs" />
-    <Compile Include="Implementation\ExtractInterface\ExtractInterfaceDialog.xaml.cs">
+    <Compile Update="Implementation\ExtractInterface\ExtractInterfaceDialog.xaml.cs">
       <DependentUpon>ExtractInterfaceDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Implementation\ExtractInterface\ExtractInterfaceDialogViewModel.cs" />
-    <Compile Include="Implementation\ExtractInterface\VisualStudioExtractInterfaceOptionsService.cs" />
-    <Compile Include="Implementation\F1Help\AbstractHelpContextService.cs" />
-    <Compile Include="Implementation\F1Help\IHelpContextService.cs" />
-    <Compile Include="Implementation\FindReferences\DefinitionsAndReferencesPresenter.cs" />
-    <Compile Include="Implementation\GCManager.cs" />
-    <Compile Include="Implementation\GenerateType\GenerateTypeDialog.xaml.cs">
+    <Compile Update="Implementation\GenerateType\GenerateTypeDialog.xaml.cs">
       <DependentUpon>GenerateTypeDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Implementation\GenerateType\GenerateTypeDialogViewModel.cs" />
-    <Compile Include="Implementation\GenerateType\VisualStudioGenerateTypeOptionsServiceFactory.cs" />
-    <Compile Include="Implementation\GoToDefinition\NavigableItemsPresenter.cs" />
-    <Compile Include="Implementation\Interop\Feedback.cs" />
-    <Compile Include="Implementation\LanguageService\HACK_AbstractCreateServicesOnUiThread.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\AbstractListItemFactory.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager_ListItems.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\Lists\SymbolListItem`1.cs" />
-    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IVsHierarchyEvents.cs" />
-    <Compile Include="Implementation\ProjectSystem\LinkedFileUtilities.cs" />
-    <Compile Include="Implementation\ProjectSystem\RuleSets\IRuleSetFile.cs" />
-    <Compile Include="Implementation\ProjectSystem\RuleSets\VisualStudioRuleSetManager.cs" />
-    <Compile Include="Implementation\ProjectSystem\RuleSets\VisualStudioRuleSetManagerFactory.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioAnalyzer.cs" />
-    <Compile Include="Implementation\ProjectSystem\RuleSets\VisualStudioRuleSetManager.RuleSetFile.cs" />
-    <Compile Include="Implementation\TableDataSource\AbstractTable.cs" />
-    <Compile Include="Implementation\TableDataSource\AbstractTableControlEventProcessorProvider.cs" />
-    <Compile Include="Implementation\TableDataSource\AbstractRoslynTableDataSource.cs" />
-    <Compile Include="Implementation\TableDataSource\TableEntriesFactory.cs" />
-    <Compile Include="Implementation\TableDataSource\AbstractTableEntriesSnapshot.cs" />
-    <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.cs" />
-    <Compile Include="Implementation\TableDataSource\TodoListTableControlEventProcessorProvider.cs" />
-    <Compile Include="Implementation\TableDataSource\VisualStudioBaseDiagnosticListTable.cs" />
-    <Compile Include="Implementation\TableDataSource\VisualStudioBaseTodoListTable.cs" />
-    <Compile Include="Implementation\TaskList\HostDiagnosticUpdateSource.cs" />
-    <Compile Include="Implementation\Venus\IAdditionalFormattingRuleLanguageService.cs" />
-    <Compile Include="Implementation\ICodeModelNavigationPointService.cs" />
-    <Compile Include="Implementation\InlineRename\InlineRenameUndoManager.cs" />
-    <Compile Include="Implementation\Interop\ComAggregate.cs" />
-    <Compile Include="Implementation\Interop\ComHandle.cs" />
-    <Compile Include="Implementation\Interop\WeakComHandle.cs" />
-    <Compile Include="Implementation\Interop\WrapperPolicy.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService.IVsAutoOutliningClient.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageContextProvider.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageInfo.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageTextOps.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.VsCodeWindowManager.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsContainedLanguageFactory.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsDebuggerEvents.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsImmediateStatementCompletion2.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageDebugInfo.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageDebugInfo2.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.VsLanguageDebugInfo.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractPackage`2.cs" />
-    <Compile Include="Implementation\Library\AbstractLibraryManager.cs" />
-    <Compile Include="Implementation\Library\AbstractLibraryManager_IOleCommandTarget.cs" />
-    <Compile Include="Implementation\Library\AbstractLibraryManager_IVsLibrary.cs" />
-    <Compile Include="Implementation\Library\AbstractLibraryManager_IVsLibrary2.cs" />
-    <Compile Include="Implementation\Library\AbstractLibraryManager_IVsLibraryMgr.cs" />
-    <Compile Include="Implementation\Library\AbstractLibraryManager_IVsSimpleLibrary2.cs" />
-    <Compile Include="Implementation\Library\AbstractObjectList.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractTreeItem.cs" />
-    <Compile Include="Implementation\Library\FindResults\LibraryManager.cs" />
-    <Compile Include="Implementation\Library\FindResults\LibraryManager_FindReferences.cs" />
-    <Compile Include="Implementation\Library\FindResults\LibraryManager_GoToDefinition.cs" />
-    <Compile Include="Implementation\Library\FindResults\NavInfo.cs" />
-    <Compile Include="Implementation\Library\FindResults\ObjectList.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\SourceReferenceTreeItem.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\AbstractDescriptionBuilder.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\AbstractDescriptionBuilder.LinkFlags.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager_Description.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager_Search.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\Helpers.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\Lists\FolderListItem.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\Lists\MemberKind.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\Lists\MemberListItem.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\Lists\NamespaceListItem.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\Lists\ProjectListItem.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\Lists\ReferenceListItem.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\Lists\SymbolListItem.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\Lists\TypeListItem.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\ObjectList.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\ObjectListItem.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\ObjectListKind.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\Extensions.cs" />
-    <Compile Include="Implementation\Log\LoggerOptions.cs" />
-    <Compile Include="Implementation\NavigateTo\VisualStudioNavigateToPreviewService.cs" />
-    <Compile Include="Implementation\NavigateTo\VisualStudioNavigateToPreviewServiceFactory.cs" />
-    <Compile Include="Implementation\NavigationBar\NavigationBarClient.cs" />
-    <Compile Include="Implementation\Notification\VSNotificationServiceFactory.cs" />
-    <Compile Include="Implementation\Preview\AbstractChange.cs" />
-    <Compile Include="Implementation\Preview\ChangeList.cs" />
-    <Compile Include="Implementation\Preview\FileChange.cs" />
-    <Compile Include="Implementation\Preview\PreviewEngine.cs" />
-    <Compile Include="Implementation\Preview\PreviewService.cs" />
-    <Compile Include="Implementation\Preview\PreviewUpdater.cs" />
-    <Compile Include="Implementation\Preview\PreviewUpdater.PreviewDialogWorkspace.cs" />
-    <Compile Include="Implementation\Preview\PreviewUpdater.Tagger.cs" />
-    <Compile Include="Implementation\Preview\SpanChange.cs" />
-    <Compile Include="Implementation\Preview\Tagging\HighlightTag.cs" />
-    <Compile Include="Implementation\Preview\Tagging\PreviewTaggerProvider.cs" />
-    <Compile Include="Implementation\Preview\TopLevelChange.cs" />
-    <Compile Include="Implementation\Progression\GraphBuilder.cs" />
-    <Compile Include="Implementation\Progression\GraphFormattedLabelExtension.cs" />
-    <Compile Include="Implementation\Progression\GraphNavigatorExtension.cs" />
-    <Compile Include="Implementation\Progression\GraphNodeIdCreation.cs" />
-    <Compile Include="Implementation\Progression\GraphProvider.cs" />
-    <Compile Include="Implementation\Progression\GraphQueries\CallsGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\GraphQueries\ContainsChildrenGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\GraphQueries\ContainsGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\GraphQueries\ImplementedByGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\GraphQueries\ImplementsGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\GraphQueries\InheritedByGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\GraphQueries\InheritsGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\GraphQueries\IsCalledByGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\GraphQueries\IsUsedByGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\GraphQueries\OverriddenByGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\GraphQueries\OverridesGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\GraphQueries\SearchGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\GraphQueryManager.cs" />
-    <Compile Include="Implementation\Progression\IconHelper.cs" />
-    <Compile Include="Implementation\Progression\IGraphQuery.cs" />
-    <Compile Include="Implementation\Progression\IProgressionLanguageService.cs" />
-    <Compile Include="Implementation\Progression\IProgressionPrimaryWorkspaceProvider.cs" />
-    <Compile Include="Implementation\Progression\RoslynGraphCategories.cs" />
-    <Compile Include="Implementation\Progression\RoslynGraphProperties.cs" />
-    <Compile Include="Implementation\Progression\SymbolContainment.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractEntryPointFinder.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractProject.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractProject_Analyzers.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractProject_IVsENCRebuildableProjectCfg.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractProject_IVsReportExternalErrors.cs" />
-    <Compile Include="Implementation\ProjectSystem\ComEventSink.cs" />
-    <Compile Include="Implementation\ProjectSystem\DocumentKey.cs" />
-    <Compile Include="Implementation\ProjectSystem\DocumentProvider.cs" />
-    <Compile Include="Implementation\ProjectSystem\DocumentProvider.RunningDocTableEventsSink.cs" />
-    <Compile Include="Implementation\ProjectSystem\DocumentProvider.StandardTextDocument.cs" />
-    <Compile Include="Implementation\ProjectSystem\DocumentProvider.TextBufferDataEventsSink.cs" />
-    <Compile Include="Implementation\ProjectSystem\Extensions\IVsHierarchyExtensions.cs" />
-    <Compile Include="Implementation\ProjectSystem\Extensions\IVsRunningDocumentTableExtensions.cs" />
-    <Compile Include="Implementation\ProjectSystem\Extensions\ProjectExtensions.cs" />
-    <Compile Include="Implementation\ProjectSystem\Extensions\ProjectItemExtensions.cs" />
-    <Compile Include="Implementation\ProjectSystem\Extensions\ProjectItemsExtensions.cs" />
-    <Compile Include="Implementation\ProjectSystem\Extensions\ServiceProviderExtensions.cs" />
-    <Compile Include="Implementation\ProjectSystem\FileChangeTracker.cs" />
-    <Compile Include="Implementation\ProjectSystem\HierarchyEventsSink.cs" />
-    <Compile Include="Implementation\ProjectSystem\IComEventSink.cs" />
-    <Compile Include="Implementation\ProjectSystem\Interop\IAnalyzerHost.cs" />
-    <Compile Include="Implementation\ProjectSystem\Interop\IIntPtrReturningVsInvisibleEditorManager.cs" />
-    <Compile Include="Implementation\ProjectSystem\InvisibleEditor.cs" />
-    <Compile Include="Implementation\ProjectSystem\IVisualStudioHostDocument.cs" />
-    <Compile Include="Implementation\ProjectSystem\IVisualStudioHostProject.cs" />
-    <Compile Include="Implementation\ProjectSystem\IVisualStudioHostProjectContainer.cs" />
-    <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkspaceHost.cs" />
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.cs" />
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.MetadataCache.cs" />
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.NativeMethods.cs" />
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.RecoverableMetadataValueSource.cs" />
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReference.cs" />
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReference.Snapshot.cs" />
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceProviderServiceFactory.cs" />
-    <Compile Include="Implementation\ProjectSystem\MiscellaneousFilesWorkspace.cs" />
-    <Compile Include="Implementation\ProjectSystem\MiscellaneousFilesWorkspace.HostProject.cs" />
-    <Compile Include="Implementation\ProjectSystem\ReiteratedVersionSnapshotTracker.cs" />
-    <Compile Include="Implementation\ProjectSystem\ViewEventArgs.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioProjectManagementService.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker.WorkspaceHostState.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl_IVsSolutionEvents.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl_IVsSolutionLoadEvents.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspace.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.cs" />
-    <Compile Include="Implementation\ProjectSystem\WorkspaceBackgroundWork.cs" />
-    <Compile Include="Implementation\ProvideAutomationPropertiesAttribute.cs" />
-    <Compile Include="Implementation\VisualStudioDocumentSupportsSuggestionService.cs" />
-    <Compile Include="Implementation\SaveEventsService.cs" />
-    <Compile Include="Implementation\Snippets\AbstractSnippetCommandHandler.cs" />
-    <Compile Include="Implementation\Snippets\AbstractSnippetExpansionClient.cs" />
-    <Compile Include="Implementation\Snippets\AbstractSnippetInfoService.cs" />
-    <Compile Include="Implementation\Snippets\IVsContainedLanguageHostInternal.cs" />
-    <Compile Include="Implementation\Snippets\IVsExpansionSessionInternal.cs" />
-    <Compile Include="Implementation\Snippets\SnippetFunctions\AbstractSnippetFunction.cs" />
-    <Compile Include="Implementation\Snippets\SnippetFunctions\AbstractSnippetFunction.IVsExpansionFunction.cs" />
-    <Compile Include="Implementation\Snippets\SnippetFunctions\AbstractSnippetFunctionClassName.cs" />
-    <Compile Include="Implementation\Snippets\SnippetFunctions\AbstractSnippetFunctionGenerateSwitchCases.cs" />
-    <Compile Include="Implementation\Snippets\SnippetFunctions\AbstractSnippetFunctionSimpleTypeName.cs" />
-    <Compile Include="Implementation\StandaloneCommandFilter.cs" />
-    <Compile Include="Implementation\TaskList\CommentTaskTokenSerializer.cs" />
-    <Compile Include="Implementation\TaskList\ExternalErrorDiagnosticUpdateSource.cs" />
-    <Compile Include="Implementation\TaskList\ProjectExternalErrorReporter.cs" />
-    <Compile Include="Implementation\Utilities\AbstractNotifyPropertyChanged.cs" />
-    <Compile Include="Implementation\Utilities\Exceptions.cs" />
-    <Compile Include="Implementation\Utilities\GlyphExtensions.cs" />
-    <Compile Include="Implementation\Utilities\IVsEnumDebugName.cs" />
-    <Compile Include="Implementation\Utilities\IVsLanguageDebugInfo.cs" />
-    <Compile Include="Implementation\Utilities\TaskItemsEnum.cs" />
-    <Compile Include="Implementation\Utilities\TimeSlice.cs" />
-    <Compile Include="Implementation\Utilities\VisualStudioWaitContext.Callback.cs" />
-    <Compile Include="Implementation\Utilities\VisualStudioWaitContext.cs" />
-    <Compile Include="Implementation\Utilities\VisualStudioWaitIndicator.cs" />
-    <Compile Include="Implementation\Utilities\VsDebugName.cs" />
-    <Compile Include="Implementation\Utilities\VsEnumBSTR.cs" />
-    <Compile Include="Implementation\Utilities\VsEnumDebugName.cs" />
-    <Compile Include="Implementation\Venus\AbstractContainedLanguage.cs" />
-    <Compile Include="Implementation\Venus\CodeBlockEnumerator.cs" />
-    <Compile Include="Implementation\Venus\ContainedDocument.cs" />
-    <Compile Include="Implementation\Venus\ContainedDocumentPreserveFormattingRule.cs" />
-    <Compile Include="Implementation\Venus\ContainedLanguage.cs" />
-    <Compile Include="Implementation\Venus\ContainedLanguage.IVsContainedCode.cs" />
-    <Compile Include="Implementation\Venus\ContainedLanguage.IVsContainedLanguage.cs" />
-    <Compile Include="Implementation\Venus\ContainedLanguage.IVsContainedLanguageCodeSupport.cs" />
-    <Compile Include="Implementation\Venus\ContainedLanguageCodeSupport.cs" />
-    <Compile Include="Implementation\Venus\IVsContainedLanguageCodeSupport.cs" />
-    <Compile Include="Implementation\Venus\IVsContainedLanguageStaticEventBinding.cs" />
-    <Compile Include="Implementation\Venus\VenusCommandFilter.cs" />
-    <Compile Include="Implementation\VisualStudioMetadataAsSourceFileSupportService.cs" />
-    <Compile Include="Implementation\VsRefactorNotifyService.cs" />
-    <Compile Include="Implementation\Workspace\GlobalOperationNotificationServiceFactory.cs" />
-    <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.cs" />
-    <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.NoOpUndoPrimitive.cs" />
-    <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.WorkspaceGlobalUndoTransaction.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioSymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioFormattingRuleFactoryServiceFactory.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioDocumentNavigationService.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioDocumentNavigationServiceFactory.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioDocumentTrackingService.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioDocumentTrackingServiceFactory.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioSymbolNavigationService.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioSymbolNavigationServiceFactory.cs" />
-    <Compile Include="Implementation\Workspace\VisualStudioTextUndoHistoryWorkspaceServiceFactory.cs" />
-    <Compile Include="Progression\GraphNodeCreation.cs" />
-    <Compile Include="Utilities\SpanExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="Implementation\ChangeSignature\ChangeSignatureDialog.xaml">
@@ -683,12 +224,12 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ServicesVSResources.resx">
+    <EmbeddedResource Update="ServicesVSResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>ServicesVSResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="VSPackage.resx">
+    <EmbeddedResource Update="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
       <Generator>ResXFileCodeGenerator</Generator>

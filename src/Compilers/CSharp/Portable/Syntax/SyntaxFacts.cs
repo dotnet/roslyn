@@ -393,11 +393,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case IdentifierName:
                     return syntax.IsMissing;
 
-                // TODO: The native implementation also disallows delegate
-                // creation expressions with the ERR_IllegalStatement error, 
-                // so that needs to go into the semantic analysis somewhere
-                // if we intend to carry it forward.
-
                 default:
                     return false;
             }

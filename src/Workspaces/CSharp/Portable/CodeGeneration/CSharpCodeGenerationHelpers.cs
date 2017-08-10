@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TSyntaxNode node,
             ISymbol symbol,
             CodeGenerationOptions options,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
             where TSyntaxNode : SyntaxNode
         {
             if (!options.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))

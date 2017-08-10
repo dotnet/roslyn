@@ -251,7 +251,7 @@ ValueC = 257 // Out of underlying range
             text =
 @"enum ColorA
 {
-void foo()
+void goo()
     {}
 }
 ";
@@ -737,7 +737,7 @@ partial class EnumPartial
 enum ABC { a, b, c }
 class c1
 {
-    public int Foo(ABC o = ABC.a | ABC.b)
+    public int Goo(ABC o = ABC.a | ABC.b)
     {
         return 0;
     }

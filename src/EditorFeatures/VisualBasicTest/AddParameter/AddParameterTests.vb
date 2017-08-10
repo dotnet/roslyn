@@ -54,6 +54,34 @@ class D
 end class")
         End Function
 
+        <WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        Public Async Function TestNothingArgument1() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public sub new(i as integer)
+    end sub
+end class
+
+class D
+    sub M()
+        dim a = new C(nothing, [|1|])
+    end sub
+end class",
+"
+class C
+    public sub new(i as integer, v As Integer)
+    end sub
+end class
+
+class D
+    sub M()
+        dim a = new C(nothing, 1)
+    end sub
+end class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestNamedArg() As Task
             Await TestInRegularAndScriptAsync(
@@ -211,7 +239,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, [|0|])
     end sub
 end class",
@@ -222,7 +250,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
 end class",
@@ -239,7 +267,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, [|0|])
     end sub
 end class",
@@ -250,7 +278,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, 0)
     end sub
 end class",
@@ -267,7 +295,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, [|true|])
     end sub
 end class",
@@ -278,7 +306,7 @@ class C
                    v As Boolean)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, true)
     end sub
 end class",
@@ -296,7 +324,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, [|0|])
     end sub
 end class",
@@ -308,7 +336,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
 end class",
@@ -326,7 +354,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, [|0|])
     end sub
 end class",
@@ -338,7 +366,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, 0)
     end sub
 end class",
@@ -356,7 +384,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, [|true|])
     end sub
 end class",
@@ -368,7 +396,7 @@ class C
         v As Boolean)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, true)
     end sub
 end class",

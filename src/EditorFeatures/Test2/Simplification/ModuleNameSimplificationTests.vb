@@ -58,21 +58,21 @@ Namespace N
     Namespace M
         Module K
             Class C
-                Shared Sub Foo()
+                Shared Sub Goo()
                 End Sub
             End Class
         End Module
         Namespace L
             Module K
                 Class C
-                    Shared Sub Foo()
+                    Shared Sub Goo()
 
                     End Sub
                 End Class
             End Module
             Class C
-                Shared Sub Foo()
-                    {|SimplifyExtension:N.M.K.C.Foo|}()
+                Shared Sub Goo()
+                    {|SimplifyExtension:N.M.K.C.Goo|}()
                 End Sub
             End Class
         End Namespace
@@ -88,21 +88,21 @@ Namespace N
     Namespace M
         Module K
             Class C
-                Shared Sub Foo()
+                Shared Sub Goo()
                 End Sub
             End Class
         End Module
         Namespace L
             Module K
                 Class C
-                    Shared Sub Foo()
+                    Shared Sub Goo()
 
                     End Sub
                 End Class
             End Module
             Class C
-                Shared Sub Foo()
-                    M.C.Foo()
+                Shared Sub Goo()
+                    M.C.Goo()
                 End Sub
             End Class
         End Namespace
@@ -123,7 +123,7 @@ Imports System
 Namespace N
     Module M
         Class C
-            Shared Sub Foo()
+            Shared Sub Goo()
 
             End Function
         End Class
@@ -132,7 +132,7 @@ End Namespace
 Module Program
     Delegate Sub myDel()
     Sub Main(args As String())
-        Dim m As myDel = AddressOf {|SimplifyExtension:N.M.C.Foo|}
+        Dim m As myDel = AddressOf {|SimplifyExtension:N.M.C.Goo|}
     End Sub
 End Module
                 </Document>
@@ -145,7 +145,7 @@ Imports System
 Namespace N
     Module M
         Class C
-            Shared Sub Foo()
+            Shared Sub Goo()
 
             End Function
         End Class
@@ -154,7 +154,7 @@ End Namespace
 Module Program
     Delegate Sub myDel()
     Sub Main(args As String())
-        Dim m As myDel = AddressOf N.C.Foo
+        Dim m As myDel = AddressOf N.C.Goo
     End Sub
 End Module
             </text>

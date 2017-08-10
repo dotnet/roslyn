@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -151,9 +150,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // We can reuse the index for any given reference as long as it hasn't changed.
             // So our checksum is just the checksum for the PEReference itself.
-            var serializer = new Serializer(solution.Workspace);
-            var checksum = serializer.CreateChecksum(reference, cancellationToken);
-            return checksum;
+            return ChecksumCache.GetOrCreate(reference, _ =>
+            {
+                var serializer = new Serializer(solution.Workspace);
+                var checksum = serializer.CreateChecksum(reference, cancellationToken);
+                return checksum;
+            });
         }
 
         private static Task<SymbolTreeInfo> TryLoadOrCreateMetadataSymbolTreeInfoAsync(
@@ -606,7 +608,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         return FirstEntityHandleProvider.Instance.GetTypeFromSpecification(
                             _metadataReader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle);
                     default:
-                        return default(EntityHandle);
+                        return default;
                 }
             }
 

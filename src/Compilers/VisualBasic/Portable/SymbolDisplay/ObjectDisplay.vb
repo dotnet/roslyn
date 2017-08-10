@@ -382,6 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 Dim wellKnown As String
                 Dim shouldEscape As Boolean
                 Dim isCrLf As Boolean
+                Dim copyPair = False
 
                 If Not escapeNonPrintable Then
                     wellKnown = Nothing
@@ -392,6 +393,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                     shouldEscape = True
                     isCrLf = True
                     i += 1
+                ElseIf CharUnicodeInfo.GetUnicodeCategory(c) = UnicodeCategory.Surrogate AndAlso IsPrintable(CharUnicodeInfo.GetUnicodeCategory(str, i - 1)) Then
+                    ' copy properly paired surrogates directly into the resulting output
+                    wellKnown = Nothing
+                    shouldEscape = False
+                    isCrLf = False
+                    copyPair = True
                 Else
                     wellKnown = GetWellKnownCharacterName(c)
                     shouldEscape = wellKnown IsNot Nothing OrElse Not IsPrintable(c)
@@ -462,6 +469,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                         Yield Quotes()
                     Else
                         Yield Character(c)
+                        If copyPair Then
+                            ' copy the second character of a Unicode surrogate pair
+                            c = str(i)
+                            i += 1
+                            Yield Character(c)
+                        End If
                     End If
                 End If
             End While
@@ -472,8 +485,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         End Function
 
         Friend Function IsPrintable(c As Char) As Boolean
-            Dim category = CharUnicodeInfo.GetUnicodeCategory(c)
-            Return category <> UnicodeCategory.OtherNotAssigned AndAlso category <> UnicodeCategory.ParagraphSeparator AndAlso category <> UnicodeCategory.Control
+            Return IsPrintable(CharUnicodeInfo.GetUnicodeCategory(c))
+        End Function
+
+        Private Function IsPrintable(category As UnicodeCategory) As Boolean
+            Select Case category
+                Case UnicodeCategory.OtherNotAssigned,
+                     UnicodeCategory.ParagraphSeparator,
+                     UnicodeCategory.Control,
+                     UnicodeCategory.LineSeparator,
+                     UnicodeCategory.Surrogate
+                    Return False
+                Case Else
+                    Return True
+            End Select
         End Function
 
         Friend Function GetWellKnownCharacterName(c As Char) As String

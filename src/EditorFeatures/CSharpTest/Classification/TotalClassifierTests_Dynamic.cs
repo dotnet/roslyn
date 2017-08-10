@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
 class C
 {
-    dynamic::Foo a;
+    dynamic::Goo a;
 }",
                 Keyword("extern"),
                 Keyword("alias"),
@@ -151,7 +151,7 @@ class C
                 Punctuation.OpenCurly,
                 Identifier("dynamic"),
                 Operators.Text("::"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Identifier("a"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);

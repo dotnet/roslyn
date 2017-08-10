@@ -236,17 +236,17 @@ $$
         public async Task UnionOfItemsFromBothContexts()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 class C
 {
-#if FOO
-    void foo() {
+#if GOO
+    void goo() {
 #endif
 
 $$
 
-#if FOO
+#if GOO
     }
 #endif
 }
@@ -339,6 +339,45 @@ class Program
             await VerifyItemExistsAsync(text, "string");
             await VerifyItemExistsAsync(text, "byte");
             await VerifyItemExistsAsync(text, "char");
+        }
+    
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PrivateOrProtectedModifiers()
+        {
+            var text = @"
+class C
+{
+$$
+}";
+
+            await VerifyItemExistsAsync(text, "private");
+            await VerifyItemExistsAsync(text, "protected");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PrivateProtectedModifier()
+        {
+            System.Diagnostics.Debugger.Break();
+            var text = @"
+class C
+{
+    private $$
+}";
+
+            await VerifyItemExistsAsync(text, "protected");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ProtectedPrivateModifier()
+        {
+            System.Diagnostics.Debugger.Break();
+            var text = @"
+class C
+{
+    protected $$
+}";
+
+            await VerifyItemExistsAsync(text, "private");
         }
     }
 }

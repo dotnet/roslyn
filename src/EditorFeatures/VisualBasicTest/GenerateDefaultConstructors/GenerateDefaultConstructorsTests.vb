@@ -194,7 +194,7 @@ End Structure")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestNotOfferedForIncorrectlyParentedInheritsStatement() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Inherits [||]Foo")
+"Inherits [||]Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>

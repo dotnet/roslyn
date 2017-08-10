@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     {
         public FileCodeImportTests()
             : base(@"using System;
-using Foo = System.Data;")
+using Goo = System.Data;")
         {
         }
 
@@ -64,7 +64,7 @@ using Foo = System.Data;")
         {
             CodeImport import = GetCodeImport(2);
 
-            Assert.Equal("Foo", import.Alias);
+            Assert.Equal("Goo", import.Alias);
         }
 
         [ConditionalWpfFact(typeof(x86))]

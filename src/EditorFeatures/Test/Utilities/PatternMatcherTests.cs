@@ -26,37 +26,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [Fact]
         public void BreakIntoCharacterParts_SimpleIdentifier()
         {
-            VerifyBreakIntoCharacterParts("foo", "foo");
+            VerifyBreakIntoCharacterParts("goo", "goo");
         }
 
         [Fact]
         public void BreakIntoCharacterParts_PrefixUnderscoredIdentifier()
         {
-            VerifyBreakIntoCharacterParts("_foo", "_", "foo");
+            VerifyBreakIntoCharacterParts("_goo", "_", "goo");
         }
 
         [Fact]
         public void BreakIntoCharacterParts_UnderscoredIdentifier()
         {
-            VerifyBreakIntoCharacterParts("f_oo", "f", "_", "oo");
+            VerifyBreakIntoCharacterParts("g_oo", "g", "_", "oo");
         }
 
         [Fact]
         public void BreakIntoCharacterParts_PostfixUnderscoredIdentifier()
         {
-            VerifyBreakIntoCharacterParts("foo_", "foo", "_");
+            VerifyBreakIntoCharacterParts("goo_", "goo", "_");
         }
 
         [Fact]
         public void BreakIntoCharacterParts_PrefixUnderscoredIdentifierWithCapital()
         {
-            VerifyBreakIntoCharacterParts("_Foo", "_", "Foo");
+            VerifyBreakIntoCharacterParts("_Goo", "_", "Goo");
         }
 
         [Fact]
         public void BreakIntoCharacterParts_MUnderscorePrefixed()
         {
-            VerifyBreakIntoCharacterParts("m_foo", "m", "_", "foo");
+            VerifyBreakIntoCharacterParts("m_goo", "m", "_", "goo");
         }
 
         [Fact]
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [Fact]
         public void BreakIntoCharacterParts_NumberSuffixedIdentifier()
         {
-            VerifyBreakIntoCharacterParts("Foo42", "Foo", "42");
+            VerifyBreakIntoCharacterParts("Goo42", "Goo", "42");
         }
 
         [Fact]
@@ -172,16 +172,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private const bool CaseInsensitive = !CaseSensitive;
 
         [Theory]
-        [InlineData("[|Foo|]", "Foo", PatternMatchKind.Exact, CaseSensitive)]
-        [InlineData("[|foo|]", "Foo", PatternMatchKind.Exact, CaseInsensitive)]
-        [InlineData("[|Foo|]", "foo", PatternMatchKind.Exact, CaseInsensitive)]
+        [InlineData("[|Goo|]", "Goo", PatternMatchKind.Exact, CaseSensitive)]
+        [InlineData("[|goo|]", "Goo", PatternMatchKind.Exact, CaseInsensitive)]
+        [InlineData("[|Goo|]", "goo", PatternMatchKind.Exact, CaseInsensitive)]
 
         [InlineData("[|Fo|]o", "Fo", PatternMatchKind.Prefix, CaseSensitive)]
         [InlineData("[|Fog|]Bar", "Fog", PatternMatchKind.Prefix, CaseSensitive)]
 
         [InlineData("[|Fo|]o", "fo", PatternMatchKind.Prefix, CaseInsensitive)]
         [InlineData("[|Fog|]Bar", "fog", PatternMatchKind.Prefix, CaseInsensitive)]
-        [InlineData("[|fog|]BarFoo", "Fog", PatternMatchKind.Prefix, CaseInsensitive)]
+        [InlineData("[|fog|]BarGoo", "Fog", PatternMatchKind.Prefix, CaseInsensitive)]
 
         [InlineData("[|system.ref|]lection", "system.ref", PatternMatchKind.Prefix, CaseSensitive)]
 
@@ -201,7 +201,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("[|AbCd|]xxx[|Ef|]Cd[|Gh|]", "AbCdEfGh", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseSensitive)]
 
         [InlineData("A[|BCD|]EFGH", "bcd", PatternMatchKind.Substring, CaseInsensitive)]
-        [InlineData("Abcdefghij[|EfgHij|]", "efghij", PatternMatchKind.CamelCaseSubstring, CaseInsensitive)]
+        [InlineData("FogBar[|ChangedEventArgs|]", "changedeventargs", PatternMatchKind.Substring, CaseInsensitive)]
+        [InlineData("Abcdefghij[|EfgHij|]", "efghij", PatternMatchKind.Substring, CaseInsensitive)]
 
         [InlineData("[|F|]og[|B|]ar", "FB", PatternMatchKind.CamelCaseExact, CaseSensitive)]
         [InlineData("[|Fo|]g[|B|]ar", "FoB", PatternMatchKind.CamelCaseExact, CaseSensitive)]
@@ -220,7 +221,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("[|F|]og[|_B|]ar", "F_b", PatternMatchKind.CamelCaseExact, CaseInsensitive)]
         [InlineData("[|_F|]og[|B|]ar", "_fB", PatternMatchKind.CamelCaseExact, CaseInsensitive)]
         [InlineData("[|F|]og[|_B|]ar", "f_B", PatternMatchKind.CamelCaseExact, CaseInsensitive)]
-        [InlineData("FogBar[|ChangedEventArgs|]", "changedeventargs", PatternMatchKind.CamelCaseSubstring, CaseInsensitive)]
 
         [InlineData("[|Si|]mple[|UI|]Element", "SiUI", PatternMatchKind.CamelCaseExact, CaseSensitive)]
 
@@ -237,13 +237,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [InlineData("my[|_b|]utton", "_B", PatternMatchKind.CamelCaseSubstring, CaseInsensitive)]
         [InlineData("[|_|]my_[|b|]utton", "_B", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseInsensitive)]
-        public void TestNonFuzzyMatch(
-            string candidate, string pattern, int matchKindInt, bool isCaseSensitive)
+        // Test is internal as PatternMatchKind is internal, but this is still ran.
+        internal void TestNonFuzzyMatch(
+            string candidate, string pattern, PatternMatchKind matchKind, bool isCaseSensitive)
         {
             var match = TestNonFuzzyMatch(candidate, pattern);
             Assert.NotNull(match);
 
-            var matchKind = (PatternMatchKind)matchKindInt;
             Assert.Equal(matchKind, match.Value.Kind);
             Assert.Equal(isCaseSensitive, match.Value.IsCaseSensitive);
         }
@@ -252,8 +252,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("CodeFixObjectProvider", "ficopro")]
         [InlineData("FogBar", "FBB")]
         [InlineData("FogBarBaz", "ZZ")]
-        [InlineData("FogBar", "FoooB")]
-        [InlineData("FooActBarCatAlp", "FooAlpBarCat")]
+        [InlineData("FogBar", "GoooB")]
+        [InlineData("GooActBarCatAlp", "GooAlpBarCat")]
         [InlineData("Abcdefghijefghij", "efghij")]
         [InlineData("Fog_Bar", "F__B")]
         [InlineData("FogBarBaz", "FZ")]
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [Fact]
         public void MatchMultiWordPattern_LowercaseSubstring2()
         {
-            var match = TryMatchMultiWordPattern("Foo[|A|]ttribute", "a");
+            var match = TryMatchMultiWordPattern("Goo[|A|]ttribute", "a");
             AssertContainsType(PatternMatchKind.Substring, match);
             Assert.False(match.First().IsCaseSensitive);
         }
@@ -472,23 +472,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private static IList<string> PartListToSubstrings(string identifier, StringBreaks parts)
+        private static ImmutableArray<string> PartListToSubstrings(string identifier, ArrayBuilder<TextSpan> parts)
         {
-            var result = new List<string>();
-            for (int i = 0, n = parts.GetCount(); i < n; i++)
+            var result = ArrayBuilder<string>.GetInstance();
+            foreach (var span in parts)
             {
-                var span = parts[i];
                 result.Add(identifier.Substring(span.Start, span.Length));
             }
 
-            return result;
+            parts.Free();
+            return result.ToImmutableAndFree();
         }
 
-        private static IList<string> BreakIntoCharacterParts(string identifier)
-            => PartListToSubstrings(identifier, StringBreaker.BreakIntoCharacterParts(identifier));
+        private static ImmutableArray<string> BreakIntoCharacterParts(string identifier)
+            => PartListToSubstrings(identifier, StringBreaker.GetCharacterParts(identifier));
 
-        private static IList<string> BreakIntoWordParts(string identifier)
-            => PartListToSubstrings(identifier, StringBreaker.BreakIntoWordParts(identifier));
+        private static ImmutableArray<string> BreakIntoWordParts(string identifier)
+            => PartListToSubstrings(identifier, StringBreaker.GetWordParts(identifier));
 
         private static PatternMatch? TestNonFuzzyMatch(string candidate, string pattern)
         {

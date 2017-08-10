@@ -4228,7 +4228,7 @@ Imports System.Xml.Linq
 Module Module1
     Dim stuff As XElement =
         <root>
-            <output someattrib="foo1">
+            <output someattrib="goo1">
                 <value>1</value>
             </output>
             <output>
@@ -4260,7 +4260,7 @@ End Module]]>
             CompileAndVerify(comp, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine &
                                                    "1" & Environment.NewLine & "2" & Environment.NewLine &
                                                    "1" & Environment.NewLine & "2" & Environment.NewLine &
-                                                   "foo1")
+                                                   "goo1")
         End Sub
 
         <Fact(), WorkItem(530882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530882")>
@@ -4302,13 +4302,13 @@ End Module
 Imports System.Xml.Linq
 
 Class scen1(Of T As XElement)
-    Sub foo(ByVal o As T)
+    Sub goo(ByVal o As T)
         Dim res = o.<moo>
     End Sub
 End Class
     ]]></file>
 </compilation>, additionalRefs:=XmlReferences, options:=TestOptions.ReleaseDll).
-            VerifyIL("scen1(Of T).foo(T)",
+            VerifyIL("scen1(Of T).goo(T)",
             <![CDATA[
 {
   // Code size       30 (0x1e)
@@ -4418,7 +4418,7 @@ BC30518: Overload resolution failed because no accessible 'New' can be called wi
 Imports System        
 Module Program
     Sub Main()
-        Console.Write(<?foo                       ?>.ToString() = "<?foo                       ?>")
+        Console.Write(<?goo                       ?>.ToString() = "<?goo                       ?>")
     End Sub
 End Module
 ]]>

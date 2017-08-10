@@ -37,9 +37,6 @@
     <PackageReference Include="System.Reflection.Metadata">
       <Version>$(SystemReflectionMetadataVersion)</Version>
     </PackageReference>
-    <PackageReference Include="ManagedEsent">
-      <Version>$(ManagedEsentVersion)</Version>
-    </PackageReference>
     <PackageReference Include="System.AppContext">
       <Version>$(SystemAppContextVersion)</Version>
     </PackageReference>

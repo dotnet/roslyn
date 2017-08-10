@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             ISyntaxFactsService syntaxFacts,
             Option<CodeStyleOption<string>> option,
             AbstractOrderModifiersHelpers helpers)
-            : base(IDEDiagnosticIds.OrderModifiers,
+            : base(IDEDiagnosticIds.OrderModifiersDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Order_modifiers), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Modifiers_are_not_ordered), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

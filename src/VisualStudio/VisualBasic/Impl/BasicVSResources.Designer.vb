@@ -380,6 +380,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Prefer &apos;Is Nothing&apos; over &apos;Object.ReferenceEquals(..., Nothing)&apos;.
+        '''</summary>
+        Friend Shared ReadOnly Property Prefer_Is_Nothing_over_ReferenceEquals() As String
+            Get
+                Return ResourceManager.GetString("Prefer_Is_Nothing_over_ReferenceEquals", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Prefer &apos;Me.&apos;.
         '''</summary>
         Friend Shared ReadOnly Property Prefer_Me() As String
@@ -439,6 +448,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Regular() As String
             Get
                 Return ResourceManager.GetString("Regular", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Report invalid placeholders in &apos;String.Format&apos; calls.
+        '''</summary>
+        Friend Shared ReadOnly Property Report_invalid_placeholders_in_string_dot_format_calls() As String
+            Get
+                Return ResourceManager.GetString("Report_invalid_placeholders_in_string_dot_format_calls", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Separate import directive groups.
+        '''</summary>
+        Friend Shared ReadOnly Property Separate_import_directive_groups() As String
+            Get
+                Return ResourceManager.GetString("Separate_import_directive_groups", resourceCulture)
             End Get
         End Property
         

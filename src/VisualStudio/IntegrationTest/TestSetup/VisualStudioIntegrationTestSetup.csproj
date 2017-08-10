@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x86</Platform>
     <PlatformTarget>x86</PlatformTarget>
-    <ProjectGuid>{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Setup</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.IntegrationTest.Setup</AssemblyName>
@@ -21,7 +20,6 @@
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'" />
@@ -35,11 +33,6 @@
     <Compile Include="..\..\Setup\ProvideRoslynBindingRedirection.cs">
       <Link>ProvideRoslynBindingRedirection.cs</Link>
     </Compile>
-    <Compile Include="BindingAttributes.cs" />
-    <Compile Include="IntegrationTestServiceCommands.cs" />
-    <Compile Include="IntegrationTestServicePackage.cs" />
-    <Compile Include="TestExtensionErrorHandler.cs" />
-    <Compile Include="TestExtensionManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="IntegrationTestServiceCommands.vsct">
@@ -48,7 +41,7 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="IntegrationTestServicePackage.resx">
+    <EmbeddedResource Update="IntegrationTestServicePackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>IntegrationTestServicePackage</ManifestResourceName>
       <SubType>Designer</SubType>
@@ -66,23 +59,19 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Test\Diagnostics\Diagnostics.csproj">
-      <Project>{e2e889a5-2489-4546-9194-47c63e49eaeb}</Project>
       <Name>Diagnostics</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
       <Name>Workspaces</Name>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Setup\VisualStudioSetup.csproj">
-      <Project>{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}</Project>
       <Name>VisualStudioSetup</Name>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\VisualStudioIntegrationTestUtilities.csproj">
-      <Project>{3bed15fd-d608-4573-b432-1569c1026f6d}</Project>
       <Name>VisualStudioIntegrationTestUtilities</Name>
     </ProjectReference>
   </ItemGroup>

@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -154,7 +154,7 @@ $$");
             await VerifyKeywordAsync(AddInsideMethod(
 @"switch (expr) {
     default:
-      if (foo) {
+      if (goo) {
       } else {
       }
     $$"));
@@ -185,7 +185,7 @@ $$");
             await VerifyKeywordAsync(AddInsideMethod(
 @"switch (expr) {
     default:
-      if (foo)
+      if (goo)
         Console.WriteLine();
     $$"));
         }
@@ -196,7 +196,7 @@ $$");
             await VerifyKeywordAsync(AddInsideMethod(
 @"switch (expr) {
     default:
-      if (foo)
+      if (goo)
         $$"));
         }
 

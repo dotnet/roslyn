@@ -23,13 +23,13 @@ Imports System.Runtime.CompilerServices
 
 Class C
     Function Bar(tag As Integer) As C
-        Return {|Replacement:Me.{|Resolved:Foo|}(1).{|Resolved:Foo|}(2)|}
+        Return {|Replacement:Me.{|Resolved:Goo|}(1).{|Resolved:Goo|}(2)|}
     End Function
 End Class
 
 Module M
     <Extension()>
-    Function [|$$Foo|](x As C, tag As Integer) As C
+    Function [|$$Goo|](x As C, tag As Integer) As C
         Return New C()
     End Function
 End Module
@@ -56,13 +56,13 @@ Imports System.Runtime.CompilerServices
 
 Class C
     Function Bar(Of T)() As C
-        Return {|Replacement:Me.{|Resolved:Foo|}(Of Integer)()|}
+        Return {|Replacement:Me.{|Resolved:Goo|}(Of Integer)()|}
     End Function
 End Class
 
 Module M
     <Extension()>
-    Function [|$$Foo|](Of T)(x As C) As C
+    Function [|$$Goo|](Of T)(x As C) As C
         Return New C()
     End Function
 End Module
@@ -89,13 +89,13 @@ Imports System.Runtime.CompilerServices
 
 Class C
     Function Bar(Of T)(y As T) As C
-        Return {|Replacement:Me.{|Resolved:Foo|}(42)|}
+        Return {|Replacement:Me.{|Resolved:Goo|}(42)|}
     End Function
 End Class
 
 Module M
     <Extension()>
-    Function [|$$Foo|](Of T)(x As C, y As T) As C
+    Function [|$$Goo|](Of T)(x As C, y As T) As C
         Return New C()
     End Function
 End Module

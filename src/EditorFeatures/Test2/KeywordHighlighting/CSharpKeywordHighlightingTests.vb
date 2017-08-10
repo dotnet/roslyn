@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class Foo
+                            class Goo
                             {
                                 void M()
                                 {
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class Foo
+                            class Goo
                             {
                                 void M()
                                 {

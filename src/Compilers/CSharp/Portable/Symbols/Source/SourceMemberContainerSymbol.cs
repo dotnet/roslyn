@@ -187,6 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeKind typeKind = declaration.Kind.ToTypeKind();
             var modifiers = MakeModifiers(typeKind, diagnostics);
 
+            foreach (var singleDeclaration in declaration.Declarations)
+            {
+                diagnostics.AddRange(singleDeclaration.Diagnostics);
+            }
+
             int access = (int)(modifiers & DeclarationModifiers.AccessibilityMask);
             if ((access & (access - 1)) != 0)
             {   // more than one access modifier
@@ -207,11 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)containingType != null && containingType.IsSealed && this.DeclaredAccessibility.HasProtected())
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), Locations[0], this);
-            }
-
-            foreach (var singleDeclaration in declaration.Declarations)
-            {
-                diagnostics.AddRange(singleDeclaration.Diagnostics);
             }
 
             state.NotePartComplete(CompletionPart.TypeArguments); // type arguments need not be computed separately
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? DeclarationModifiers.Internal
                 : DeclarationModifiers.Private;
 
-            var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Partial;
+            var allowedModifiers = DeclarationModifiers.AccessibilityMask;
 
             if (ContainingSymbol is TypeSymbol)
             {
@@ -259,11 +259,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Submission:
-                    // static, sealed, and abstract allowed if a class
-                    allowedModifiers |= DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe;
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe;
                     break;
                 case TypeKind.Struct:
                 case TypeKind.Interface:
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+                    break;
                 case TypeKind.Delegate:
                     allowedModifiers |= DeclarationModifiers.Unsafe;
                     break;
@@ -333,7 +334,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!modifierErrors)
                 {
-                    mods = ModifierUtils.CheckModifiers(mods, allowedModifiers, declaration.Declarations[i].NameLocation, diagnostics, out modifierErrors);
+                    mods = ModifierUtils.CheckModifiers(
+                        mods, allowedModifiers, declaration.Declarations[i].NameLocation, diagnostics,
+                        modifierTokensOpt: null, modifierErrors: out modifierErrors);
 
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)

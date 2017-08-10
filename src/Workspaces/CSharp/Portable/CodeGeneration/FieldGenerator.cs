@@ -17,18 +17,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             SyntaxList<MemberDeclarationSyntax> members,
             FieldDeclarationSyntax fieldDeclaration)
         {
-            var lastConst = members.AsEnumerable()
-                              .OfType<FieldDeclarationSyntax>()
-                              .Where(f => f.Modifiers.Any(SyntaxKind.ConstKeyword)).LastOrDefault();
+            var lastConst = members.OfType<FieldDeclarationSyntax>()
+                                   .Where(f => f.Modifiers.Any(SyntaxKind.ConstKeyword))
+                                   .LastOrDefault();
 
-            // Place a const after the last existing const.
+            // Place a const after the last existing const.  If we don't have a last const
+            // we'll just place the const before the first member in the type.
             if (fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
             {
                 return lastConst;
             }
 
-            // Place a field after the last field, or after the last const.
-            return CSharpCodeGenerationHelpers.LastField(members) ?? lastConst;
+            var lastReadOnly = members.OfType<FieldDeclarationSyntax>()
+                                      .Where(f => f.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
+                                      .LastOrDefault();
+
+            var lastNormal = members.OfType<FieldDeclarationSyntax>()
+                                    .Where(f => !f.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) && !f.Modifiers.Any(SyntaxKind.ConstKeyword))
+                                    .LastOrDefault();
+
+            // Place a readonly field after the last readonly field if we have one.  Otherwise
+            // after the last field/const.
+            return fieldDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword)
+                ? lastReadOnly ?? lastConst ?? lastNormal
+                : lastNormal ?? lastReadOnly ?? lastConst;
         }
 
         internal static CompilationUnitSyntax AddFieldTo(
@@ -95,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxFactory.SingletonSeparatedList(
                         AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer)))));
 
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, options));
         }
 

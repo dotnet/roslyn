@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -16,46 +17,45 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class SetWithInsertionOrder<T> : IEnumerable<T>, IReadOnlySet<T>
     {
-        private HashSet<T> _set = new HashSet<T>();
-        private uint _nextElementValue = 0;
-        private T[] _elements = null;
+        private HashSet<T> _set = null;
+        private ArrayBuilder<T> _elements = null;
 
         public bool Add(T value)
         {
-            if (!_set.Add(value)) return false;
-            var thisValue = _nextElementValue++;
-            if (_elements == null)
+            if (_set == null)
             {
-                _elements = new T[10];
-            }
-            else if (_elements.Length <= thisValue)
-            {
-                Array.Resize(ref _elements, _elements.Length * 2);
+                _set = new HashSet<T>();
+                _elements = new ArrayBuilder<T>();
             }
 
-            _elements[thisValue] = value;
+            if (!_set.Add(value))
+            {
+                return false;
+            }
+
+            _elements.Add(value);
             return true;
         }
 
-        public int Count => (int)_nextElementValue;
+        public bool Remove(T value)
+        {
+            if (!_set.Remove(value))
+            {
+                return false;
+            }
+            _elements.RemoveAt(_elements.IndexOf(value));
+            return true;
+        }
 
-        public bool Contains(T value) => _set.Contains(value);
+        public int Count => _elements?.Count ?? 0;
+
+        public bool Contains(T value) => _set?.Contains(value) ?? false;
 
         public IEnumerator<T> GetEnumerator()
-        {
-            for (int i = 0; i < _nextElementValue; i++) yield return _elements[i];
-        }
+            => _elements?.GetEnumerator() ?? SpecializedCollections.EmptyEnumerator<T>();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        /// <summary>
-        /// An enumerable that yields the set's elements in insertion order.
-        /// </summary>
-        public SetWithInsertionOrder<T> InInsertionOrder => this;
-
-        public ImmutableArray<T> AsImmutable()
-        {
-            return (_elements == null) ? ImmutableArray<T>.Empty : ImmutableArray.Create(_elements, 0, (int)_nextElementValue);
-        }
+        public ImmutableArray<T> AsImmutable() => _elements.ToImmutableArrayOrEmpty();
     }
 }
