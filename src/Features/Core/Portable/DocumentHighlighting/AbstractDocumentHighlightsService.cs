@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 return (succeeded: false, ImmutableArray<DocumentHighlights>.Empty);
             }
 
-            return (true, result.Select(h => h.Rehydrate(document.Project.Solution)).ToImmutableArray());
+            return (true, result.SelectAsArray(h => h.Rehydrate(document.Project.Solution)));
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
