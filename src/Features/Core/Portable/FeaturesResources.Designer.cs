@@ -3599,6 +3599,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Method overrides symbol from metadata.
+        /// </summary>
+        internal static string Warning_Method_overrides_symbol_from_metadata {
+            get {
+                return ResourceManager.GetString("Warning_Method_overrides_symbol_from_metadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You can only change the signature of a constructor, indexer, method or delegate..
         /// </summary>
         internal static string You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate {
