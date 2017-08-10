@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                     var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(accessor));
                     return propertyDeclaration.WithAccessorList(accessorList)
                                               .WithExpressionBody(null)
-                                              .WithSemicolonToken(default(SyntaxToken));
+                                              .WithSemicolonToken(default);
                 }
             }
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                         block: out var block))
                 {
                     return accessorDeclaration.WithExpressionBody(null)
-                                              .WithSemicolonToken(default(SyntaxToken))
+                                              .WithSemicolonToken(default)
                                               .WithBody(block)
                                               .WithAdditionalAnnotations(Formatter.Annotation);
                 }
