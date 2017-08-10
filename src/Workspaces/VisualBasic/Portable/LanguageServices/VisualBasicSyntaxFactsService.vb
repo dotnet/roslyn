@@ -1610,8 +1610,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return trivia.Kind() = SyntaxKind.DocumentationCommentExteriorTrivia
         End Function
 
-        Private Function ISyntaxFactsService_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, cancellationToken As CancellationToken) As String Implements ISyntaxFactsService.GetBannerText
-            Return GetBannerText(documentationCommentTriviaSyntax, cancellationToken)
+        Private Function ISyntaxFactsService_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, maxBannerLength As Integer, cancellationToken As CancellationToken) As String Implements ISyntaxFactsService.GetBannerText
+            Return GetBannerText(documentationCommentTriviaSyntax, maxBannerLength, cancellationToken)
         End Function
 
         Public Function GetModifiers(node As SyntaxNode) As SyntaxTokenList Implements ISyntaxFactsService.GetModifiers
