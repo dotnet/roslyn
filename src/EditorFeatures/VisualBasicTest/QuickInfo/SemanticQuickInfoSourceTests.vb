@@ -2089,5 +2089,24 @@ End Class
 ",
                  Documentation("String http://microsoft.com Nothing cat"))
         End Function
+
+        <WorkItem(13462, "https://github.com/dotnet/roslyn/issues/13462")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestQuickInfoSharedOnInstance() As Task
+            Await TestAsync(<Text><![CDATA[Module M
+    Sub Main()
+        Dim s As New C()
+        s.M$$()
+    End Sub
+    Class C
+        Public Sub M()
+        End Sub
+        Public Shared Sub M(i As Integer)
+        End Sub
+    End Class
+End Module]]></Text>.NormalizedValue,
+            MainDescription("Sub C.M()"))
+        End Function
+
     End Class
 End Namespace

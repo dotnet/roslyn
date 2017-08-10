@@ -288,8 +288,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                                        .GetSymbols(includeType: true);
 
             var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
-            var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
-
+            var parentSymbol = semanticModel.GetSymbolInfo(bindableParent).Symbol;
+            var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken)
+                                         .Where(s => parentSymbol == null || enclosingType.InheritsFromOrEquals(parentSymbol.ContainingType) || s.IsStatic == parentSymbol.IsStatic);
+            
             symbols = symbols.Where(IsOk)
                              .Where(s => IsAccessible(s, enclosingType))
                              .Concat(overloads)
