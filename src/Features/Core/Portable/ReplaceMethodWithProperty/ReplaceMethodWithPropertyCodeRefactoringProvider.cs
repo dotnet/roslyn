@@ -121,7 +121,21 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 !getMethod.IsAsync &&
                 getMethod.Parameters.Length == 0 &&
                 !getMethod.ReturnsVoid &&
-                getMethod.DeclaringSyntaxReferences.Length == 1;
+                getMethod.DeclaringSyntaxReferences.Length == 1 &&
+                !OverridesMethodFromSystemObject(getMethod);
+        }
+
+        private static bool OverridesMethodFromSystemObject(IMethodSymbol method)
+        {
+            for (var current = method; current != null; current = current.OverriddenMethod)
+            {
+                if (current.ContainingType.SpecialType == SpecialType.System_Object)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool IsValidSetMethod(IMethodSymbol setMethod, IMethodSymbol getMethod)

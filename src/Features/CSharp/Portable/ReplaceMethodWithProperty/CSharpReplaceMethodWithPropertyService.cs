@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProperty
 {
     [ExportLanguageService(typeof(IReplaceMethodWithPropertyService), LanguageNames.CSharp), Shared]
-    internal class CSharpReplaceMethodWithPropertyService : IReplaceMethodWithPropertyService
+    internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWithPropertyService, IReplaceMethodWithPropertyService
     {
         public string GetMethodName(SyntaxNode methodNode)
             => ((MethodDeclarationSyntax)methodNode).Identifier.ValueText;
@@ -135,10 +135,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             var getAccessor = CreateGetAccessor(getAndSetMethods, documentOptions, parseOptions);
             var setAccessor = CreateSetAccessor(semanticModel, generator, getAndSetMethods, documentOptions, parseOptions);
 
+            var nameToken = GetPropertyName(getMethodDeclaration.Identifier, propertyName, nameChanged);
+            var warning = GetWarning(getAndSetMethods);
+            if (warning != null)
+            {
+                nameToken = nameToken.WithAdditionalAnnotations(WarningAnnotation.Create(warning));
+            }
+
             var property = SyntaxFactory.PropertyDeclaration(
                 getMethodDeclaration.AttributeLists, getMethodDeclaration.Modifiers,
                 getMethodDeclaration.ReturnType, getMethodDeclaration.ExplicitInterfaceSpecifier,
-                GetPropertyName(getMethodDeclaration.Identifier, propertyName, nameChanged), accessorList: null);
+                nameToken, accessorList: null);
 
             IEnumerable<SyntaxTrivia> trivia = getMethodDeclaration.GetLeadingTrivia();
             var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;
