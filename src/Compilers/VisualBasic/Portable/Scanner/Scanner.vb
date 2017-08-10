@@ -2097,16 +2097,14 @@ FullWidthRepeat2:
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Overflow)), SyntaxToken)
             ElseIf UnderscoreInWrongPlace Then
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Syntax)), SyntaxToken)
-            End If
-
-            If UnderscoreUsed Then
+            ElseIf LeadingUnderscoreUsed Then
+                result = CheckFeatureAvailability(result, Feature.LeadingDigitSeparator)
+            ElseIf UnderscoreUsed Then
                 result = CheckFeatureAvailability(result, Feature.DigitSeparators)
             End If
+
             If Base = LiteralBase.Binary Then
                 result = CheckFeatureAvailability(result, Feature.BinaryLiterals)
-            End If
-            If LeadingUnderscoreUsed Then
-                result = CheckFeatureAvailability(result, Feature.LeadingDigitSeparator)
             End If
             Return result
         End Function

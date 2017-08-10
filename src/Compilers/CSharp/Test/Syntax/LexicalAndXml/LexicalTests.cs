@@ -2639,6 +2639,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, token.Errors().Length);
             Assert.Equal(1, token.Value);
             Assert.Equal(text, token.Text);
+
+            text = "0x__A_1L";
+            token = LexToken(text, _options72);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, token.Errors().Length);
+            Assert.Equal(0xA1L, token.Value);
+            Assert.Equal(text, token.Text);
+
+            text = "0b__1_1L";
+            token = LexToken(text, _options72);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, token.Errors().Length);
+            Assert.Equal(0b11L, token.Value);
+            Assert.Equal(text, token.Text);
         }
 
         [Fact]
@@ -2661,6 +2679,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FeatureNotAvailableInVersion7, errors[0].Code);
+            Assert.Equal(text, token.Text);
+
+            text = "0x_1";
+            token = LexToken(text, _options6);
+
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_FeatureNotAvailableInVersion6, errors[0].Code);
             Assert.Equal(text, token.Text);
         }
 
@@ -2758,6 +2785,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             text = "0b1_";
             token = LexToken(text, _binaryUnderscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+
+            text = "0x_";
+            token = LexToken(text, _options72);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());

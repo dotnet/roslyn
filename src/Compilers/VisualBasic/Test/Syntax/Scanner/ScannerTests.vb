@@ -16,6 +16,10 @@ Public Class ScannerTests
         Return SyntaxFactory.ParseToken(str, startStatement:=startStatement)
     End Function
 
+    Private Function ScanOnce(str As String, languageVersion As VisualBasic.LanguageVersion) As SyntaxToken
+        Return SyntaxFactory.ParseTokens(str, options:=New VisualBasicParseOptions(languageVersion:=languageVersion)).First()
+    End Function
+
     Private Function AsString(tokens As IEnumerable(Of SyntaxToken)) As String
         Dim str = String.Concat(From t In tokens Select t.ToFullString())
         Return str
@@ -1063,6 +1067,27 @@ End If]]>.Value,
         Assert.Equal(&O1, tk.Value)
         Assert.Equal(" &O_1 ", tk.ToFullString())
 
+        Str = " &H__1_1L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Hexadecimal, tk.GetBase())
+        Assert.Equal(&H1, tk.Value)
+        Assert.Equal(" &H__1_1L ", tk.ToFullString())
+
+        Str = " &B__1_1L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Binary, tk.GetBase())
+        Assert.Equal(&B11, tk.Value)
+        Assert.Equal(" &B__1_1L ", tk.ToFullString())
+
+        Str = " &O__1_1L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Octal, tk.GetBase())
+        Assert.Equal(&O11, tk.Value)
+        Assert.Equal(" &O__1_1L ", tk.ToFullString())
+
         Str = " &H42L &H42& "
         Dim tks = ScanAllCheckDw(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tks(0).Kind)
@@ -1265,6 +1290,25 @@ End If]]>.Value,
         Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
         Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
         Assert.Equal(0, CInt(tk.Value))
+
+        Str = "&H_"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Dim errors = tk.Errors()
+        Assert.Equal(1, errors.Count)
+        Assert.Equal(30035, errors.First().Code)
+        Assert.Equal(0, CInt(tk.Value))
+    End Sub
+
+    <Fact>
+    Public Sub Scanner_UnderscoreFeatureFlag()
+        Dim Str = "&H_1"
+        Dim tk = ScanOnce(Str, LanguageVersion.VisualBasic14)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Dim errors = tk.Errors()
+        Assert.Equal(1, errors.Count)
+        Assert.Equal(36716, errors.First().Code)
+        Assert.Equal(1, CInt(tk.Value))
     End Sub
 
     <Fact>

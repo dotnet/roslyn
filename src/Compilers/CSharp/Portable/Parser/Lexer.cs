@@ -932,14 +932,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return start < TextWindow.Position; 
         }
 
-        // Allows underscores in integers, except at beginning and end
+        // Allows underscores in integers, except at beginning for decimal and end
         private void ScanNumericLiteralSingleInteger(ref bool underscoreInWrongPlace, ref bool usedUnderscore, bool isHex, bool isBinary)
         {
+            bool firstCharWasUnderscore = false;
             if (TextWindow.PeekChar() == '_')
             {
                 if (isHex || isBinary)
                 {
-                    CheckFeatureAvailability(MessageID.IDS_FeatureLeadingDigitSeparator);
+                    firstCharWasUnderscore = true;
                 }
                 else
                 {
@@ -947,11 +948,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            char ch;
             bool lastCharWasUnderscore = false;
             while (true)
             {
-                ch = TextWindow.PeekChar();
+                char ch = TextWindow.PeekChar();
                 if (ch == '_')
                 {
                     usedUnderscore = true;
@@ -971,9 +971,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TextWindow.AdvanceChar();
             }
 
-            if (lastCharWasUnderscore)
+            if (lastCharWasUnderscore && !firstCharWasUnderscore)
             {
                 underscoreInWrongPlace = true;
+            }
+            else if (firstCharWasUnderscore)
+            {
+                CheckFeatureAvailability(MessageID.IDS_FeatureLeadingDigitSeparator);
+                // No need for cascading feature error
+                usedUnderscore = false;
             }
         }
 
