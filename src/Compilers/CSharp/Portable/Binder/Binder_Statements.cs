@@ -2324,7 +2324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (refKind != RefKind.None)
                 {
-                    arg = CheckRefEscape(arg, Binder.ExternalScope, diagnostics);
+                    arg = EnsureRefEscape(arg, Binder.ExternalScope, diagnostics);
                 }
             }
             else
@@ -2804,7 +2804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (refKind != RefKind.None)
             {
-                expression = CheckRefEscape(expression, Binder.ExternalScope, diagnostics);
+                expression = EnsureRefEscape(expression, Binder.ExternalScope, diagnostics);
             }
 
             return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
@@ -2825,7 +2825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (refKind != RefKind.None)
             {
-                expression = CheckRefEscape(expression, Binder.ExternalScope, diagnostics);
+                expression = EnsureRefEscape(expression, Binder.ExternalScope, diagnostics);
             }
 
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -918,9 +919,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint escapeTo,
             DiagnosticBag diagnostics)
         {
-            //TODO: VS optional "in" arguments - scopeOfTheContainingExpression
-
             //TODO: VS ref-like receiver
+
+            ArrayBuilder<bool> inParametersMatchedWithValueArgs = null;
 
             // check all arguments that are not passed by value
             if (!args.IsDefault)
@@ -934,6 +935,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (parameters[paramIndex].RefKind == RefKind.RefReadOnly)
                         {
                             effectiveRefKind = RefKind.RefReadOnly;
+                            inParametersMatchedWithValueArgs = inParametersMatchedWithValueArgs ?? ArrayBuilder<bool>.GetInstance(parameters.Length, fillWithValue: false);
+                            inParametersMatchedWithValueArgs[paramIndex] = true;
                         }
                     }
 
@@ -941,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var argument = args[argIndex];
                     var valid = effectiveRefKind != RefKind.None ?
                                         CheckRefEscape(argument.Syntax, argument, escapeTo, false, diagnostics) :
-                                        true; // CheckRefEscape(argument.Syntax, argument, escapeTo, false, diagnostics); //TODO: VS should be CheckVal
+                                        CheckValEscape(argument.Syntax, argument, escapeTo, false, diagnostics);
 
                     if (!valid)
                     {
@@ -953,7 +956,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
- 
+
+            // handle omitted optional "in" parameters if there are any
+            if (!parameters.IsDefault)
+            {
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    var parameter = parameters[i];
+                    if (parameter.IsParams)
+                    {
+                        break;
+                    }
+
+                    if (parameter.RefKind == RefKind.RefReadOnly && inParametersMatchedWithValueArgs?[i] != true)
+                    {
+                        // unmatched "in" parameter is an RValue 
+                        var errorCode = checkingReceiver ? ErrorCode.ERR_RefReturnCall2 : ErrorCode.ERR_RefReturnCall;
+                        var parameterName = parameters[i].Name;
+                        Error(diagnostics, errorCode, syntax, symbol, parameterName);
+
+                        inParametersMatchedWithValueArgs?.Free();
+                        return false;
+                    }
+                }
+            }
+
+            inParametersMatchedWithValueArgs?.Free();
             return true;
         }
 
@@ -970,6 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //by default it is safe to escape
             uint escapeScope = Binder.ExternalScope;
+            ArrayBuilder<bool> inParametersMatchedWithValueArgs = null;
 
             if (!args.IsDefault)
             {
@@ -979,9 +1008,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (effectiveRefKind == RefKind.None && argIndex < parameters.Length)
                     {
                         var paramIndex = argToParamsOpt.IsDefault ? argIndex : argToParamsOpt[argIndex];
+
                         if (parameters[paramIndex].RefKind == RefKind.RefReadOnly)
                         {
                             effectiveRefKind = RefKind.RefReadOnly;
+                            inParametersMatchedWithValueArgs = inParametersMatchedWithValueArgs ?? ArrayBuilder<bool>.GetInstance(parameters.Length, fillWithValue: false);
+                            inParametersMatchedWithValueArgs[paramIndex] = true;
                         }
                     }
 
@@ -995,11 +1027,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (escapeScope >= scopeOfTheContainingExpression)
                     {
                         // can't get any worse
+                        inParametersMatchedWithValueArgs?.Free();
                         return escapeScope;
                     }
                 }
             }
 
+            // handle omitted optional "in" parameters if there are any
+            if (!parameters.IsDefault)
+            {
+                for(int i = 0; i < parameters.Length; i++)
+                {
+                    var parameter = parameters[i];
+                    if (parameter.IsParams)
+                    {
+                        break;
+                    }
+
+                    if (parameter.RefKind == RefKind.RefReadOnly && inParametersMatchedWithValueArgs?[i] != true)
+                    {
+                        // unmatched "in" parameter is an RValue 
+                        inParametersMatchedWithValueArgs?.Free();
+                        return scopeOfTheContainingExpression;
+                    }
+                }
+            }
+
+            inParametersMatchedWithValueArgs?.Free();
             return escapeScope;
         }
 
@@ -1222,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, ReadOnlyErrors[index], node, symbolKind, symbol);
         }
 
-        internal BoundExpression CheckRefEscape(BoundExpression expr, uint escapeTo, DiagnosticBag diagnostics)
+        internal BoundExpression EnsureRefEscape(BoundExpression expr, uint escapeTo, DiagnosticBag diagnostics)
         {
             if (CheckRefEscape(expr.Syntax, expr, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
             {
@@ -1242,7 +1296,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Debug.Assert(expr.Type.GetSpecialTypeSafe() != SpecialType.System_Void);
+            // void references cannot escape (error cases)
+            if (expr.Type?.GetSpecialTypeSafe() == SpecialType.System_Void)
+            {
+                Error(diagnostics, GetStandardRValueRefEscapeError(escapeTo), node);
+                return false;
+            }
 
             // references to constants/literals cannot escape anywhere.
             if (expr.ConstantValue != null)
@@ -1545,6 +1604,114 @@ namespace Microsoft.CodeAnalysis.CSharp
             return scopeOfTheContainingExpression;
         }
 
+        internal bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
+
+            // cannot infer anything from errors
+            if (expr.HasAnyErrors)
+            {
+                return true;
+            }
+
+            // constants/literals cannot refer to local state
+            if (expr.ConstantValue != null)
+            {
+                return true;
+            }
+
+            // to have local-referring values an expression must have a ref-like type
+            if (expr.Type?.IsByRefLikeType != true)
+            {
+                return true;
+            }
+
+            // cover case that can refer to local state
+            // otherwise default to ExternalScope (ordinary values)
+            switch (expr.Kind)
+            {
+                case BoundKind.Local:
+                    if (((BoundLocal)expr).LocalSymbol.ValEscapeScope > escapeTo)
+                    {
+                        //TODO: VS right error
+                        Error(diagnostics, GetStandardRValueRefEscapeError(escapeTo), node);
+                    }
+                    return true;
+
+                case BoundKind.ConditionalOperator:
+                    var conditional = (BoundConditionalOperator)expr;
+
+                    // byref conditional defers to its operands
+                    // TODO: VS when do we do with no-mixing? 
+                    return CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &
+                           CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                case BoundKind.FieldAccess:
+                    var fieldAccess = (BoundFieldAccess)expr;
+                    var fieldSymbol = fieldAccess.FieldSymbol;
+
+                    Debug.Assert(!fieldSymbol.IsStatic && fieldSymbol.ContainingType.IsByRefLikeType);
+
+                    // for ref-like fields defer to the receiver.
+                    return CheckValEscape(node, fieldAccess.ReceiverOpt, escapeTo, true, diagnostics);
+
+                case BoundKind.Call:
+                    var call = (BoundCall)expr;
+
+                    var methodSymbol = call.Method;
+                    if (methodSymbol.RefKind == RefKind.None)
+                    {
+                        break;
+                    }
+
+                    return CheckInvocationEscape(
+                        call.Syntax,
+                        methodSymbol,
+                        methodSymbol.Parameters,
+                        call.Arguments,
+                        call.ArgumentRefKindsOpt,
+                        call.ArgsToParamsOpt,
+                        checkingReceiver,
+                        escapeTo,
+                        diagnostics);
+
+                case BoundKind.IndexerAccess:
+                    var indexerAccess = (BoundIndexerAccess)expr;
+                    var indexerSymbol = indexerAccess.Indexer;
+
+                    return CheckInvocationEscape(
+                        indexerAccess.Syntax,
+                        indexerSymbol,
+                        indexerSymbol.Parameters,
+                        indexerAccess.Arguments,
+                        indexerAccess.ArgumentRefKindsOpt,
+                        indexerAccess.ArgsToParamsOpt,
+                        checkingReceiver,
+                        escapeTo,
+                        diagnostics);
+
+                case BoundKind.PropertyAccess:
+                    var propertyAccess = (BoundPropertyAccess)expr;
+                    var propertySymbol = propertyAccess.PropertySymbol;
+
+                    // not passing any arguments/parameters
+                    return CheckInvocationEscape(
+                        propertyAccess.Syntax,
+                        propertySymbol,
+                        default,
+                        default,
+                        default,
+                        default,
+                        checkingReceiver,
+                        escapeTo,
+                        diagnostics);
+            }
+
+            // At this point we should have covered all the possible cases for anything that is not a strict RValue.
+            Error(diagnostics, GetStandardRValueRefEscapeError(escapeTo), node);
+            return false;
+        }
+
         internal uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
             // cannot infer anything from errors
@@ -1556,26 +1723,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // constants/literals cannot refer to local state
             if (expr.ConstantValue != null)
             {
-                return Binder.ExternalScope; ;
+                return Binder.ExternalScope;
             }
 
             // to have local-referring values an expression must have a ref-like type
             if (expr.Type?.IsByRefLikeType != true)
             {
-                return Binder.ExternalScope; ;
+                return Binder.ExternalScope;
             }
 
             // cover case that can refer to local state
             // otherwise default to ExternalScope (ordinary values)
             switch (expr.Kind)
             {
-                case BoundKind.RefValueOperator:
-                    // The undocumented __refvalue(tr, T) expression results in a variable of type T.
-                    // it is a readwrite variable, but could refer to unknown local data
-                    // we will constrain it to the current scope
-                    // TODO: VS is this right?
-                    return scopeOfTheContainingExpression;
-
                 case BoundKind.Local:
                     return ((BoundLocal)expr).LocalSymbol.ValEscapeScope;
 
@@ -1631,6 +1791,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
                 //TODO: VS other exprs with operands - Obj creations, binary, unary, parenthesized?, etc...
+
+                //TODO: __refvalue. It is not possible to __makeref(span), but it is allowed to do __refvalue(tr, Span), perhaps it shoudl not be allowed, looks like a bug.
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
