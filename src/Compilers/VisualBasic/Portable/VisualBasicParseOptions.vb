@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             languageVersion As LanguageVersion,
             documentationMode As DocumentationMode,
             kind As SourceCodeKind,
-            preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)),
+            preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object)),
             features As ImmutableDictionary(Of String, String))
 
             MyBase.New(kind, documentationMode)

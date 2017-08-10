@@ -76,6 +76,28 @@ class C
 }", expectedOutput: 
 @"0
 1");
+            verifier.VerifyIL("C.M()", @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldarg.0
+  IL_0003:  stfld      ""C C.<>c__DisplayClass2_0.<>4__this""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.0
+  IL_000b:  stfld      ""int C.<>c__DisplayClass2_0.var1""
+  IL_0010:  ldarg.0
+  IL_0011:  ldfld      ""int C._x""
+  IL_0016:  call       ""void System.Console.WriteLine(int)""
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""void C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)""
+  IL_0022:  ldarg.0
+  IL_0023:  ldfld      ""int C._x""
+  IL_0028:  call       ""void System.Console.WriteLine(int)""
+  IL_002d:  ret
+}");
+
             // L1
             verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)", @"
 {

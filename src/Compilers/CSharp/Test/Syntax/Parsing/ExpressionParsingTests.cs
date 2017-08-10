@@ -1852,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(qs.Body.Continuation);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
+        [Fact]
         public void TestFromGroupBy()
         {
             var text = "from a in A group b by c";
@@ -1864,10 +1864,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
 
             var qs = (QueryExpressionSyntax)expr;
-            Assert.Equal(1, qs.Body.Clauses.Count);
-            Assert.Equal(SyntaxKind.FromClause, qs.Body.Clauses[0].Kind());
+            Assert.Equal(0, qs.Body.Clauses.Count);
 
-            var fs = (FromClauseSyntax)qs.Body.Clauses[0];
+            var fs = qs.FromClause;
             Assert.NotNull(fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
@@ -1892,7 +1891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(qs.Body.Continuation);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
+        [Fact]
         public void TestFromGroupByIntoSelect()
         {
             var text = "from a in A group b by c into d select e";
@@ -1904,10 +1903,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
 
             var qs = (QueryExpressionSyntax)expr;
-            Assert.Equal(1, qs.Body.Clauses.Count);
-            Assert.Equal(SyntaxKind.FromClause, qs.Body.Clauses[0].Kind());
+            Assert.Equal(0, qs.Body.Clauses.Count);
 
-            var fs = (FromClauseSyntax)qs.Body.Clauses[0];
+            var fs = qs.FromClause;
             Assert.NotNull(fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);

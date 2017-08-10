@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class LambdaFrameConstructor : SynthesizedInstanceConstructor, ISynthesizedMethodBodyImplementationSymbol
     {
-        internal LambdaFrameConstructor(LambdaFrame frame)
+        internal LambdaFrameConstructor(ClosureEnvironment frame)
             : base(frame)
         {
         }
