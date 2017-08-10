@@ -596,7 +596,7 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case
                             IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() 5')
                               Locals: Local_1: <anonymous local> As System.Int32
                               IReturnStatement (OperationKind.ReturnStatement) (Syntax: '5')
-                                ReturnedValue: ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+                                ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
                               ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'Function() 5')
                                 LabeledStatement: null
                               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function() 5')
