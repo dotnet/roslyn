@@ -1229,6 +1229,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     op2 = conversion;
                 }
+
+                if (op1.Type.IsByRefLikeType)
+                {
+                    var leftEscape = GetValEscape(op1, this.LocalScopeDepth);
+                    op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics: diagnostics);
+                }
             }
 
             TypeSymbol type;
@@ -2321,11 +2327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
                 arg = BindValue(expressionSyntax, diagnostics, requiredValueKind);
-
-                if (refKind != RefKind.None)
-                {
-                    arg = EnsureRefEscape(arg, Binder.ExternalScope, diagnostics);
-                }
+                arg = ValidateEscape(arg, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
             }
             else
             {
@@ -2801,11 +2803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-
-            if (refKind != RefKind.None)
-            {
-                expression = EnsureRefEscape(expression, Binder.ExternalScope, diagnostics);
-            }
+            expression = ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
 
             return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
         }
@@ -2822,11 +2820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expressionSyntax = body.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-
-            if (refKind != RefKind.None)
-            {
-                expression = EnsureRefEscape(expression, Binder.ExternalScope, diagnostics);
-            }
+            expression = ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
 
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }

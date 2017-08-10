@@ -1399,9 +1399,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsBadLocalOrParameterCapture(Symbol symbol, RefKind refKind)
+        private bool IsBadLocalOrParameterCapture(Symbol symbol, TypeSymbol type, RefKind refKind)
         {
-            if (refKind != RefKind.None)
+            if (refKind != RefKind.None || type.IsByRefLikeType )
             {
                 var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
                 if ((object)containingMethod != null && (object)symbol.ContainingSymbol != (object)containingMethod)
@@ -1514,8 +1514,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             type = localSymbol.Type;
-                            if (IsBadLocalOrParameterCapture(localSymbol, localSymbol.RefKind))
+                            if (IsBadLocalOrParameterCapture(localSymbol, type, localSymbol.RefKind))
                             {
+                                isError = true;
+                                //PROTOTYPE(span): need a better error message for invalid span captures (should not say ref)
                                 Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseLocal, node, localSymbol);
                             }
                         }
@@ -1528,8 +1530,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                     {
                         var parameter = (ParameterSymbol)symbol;
-                        if (IsBadLocalOrParameterCapture(parameter, parameter.RefKind))
+                        if (IsBadLocalOrParameterCapture(parameter, parameter.Type, parameter.RefKind))
                         {
+                            isError = true;
+                            //PROTOTYPE(span): need a better error message for invalid in/span captures (should not say ref/out)
                             Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
                         }
                         return new BoundParameter(node, parameter, hasErrors: isError);

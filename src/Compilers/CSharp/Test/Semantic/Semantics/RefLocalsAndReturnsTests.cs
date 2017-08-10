@@ -903,9 +903,6 @@ public class Test
                 // (16,54): error CS8175: Cannot use ref local 'r' inside an anonymous method, lambda expression, or query expression
                 //         ref char Moo1(ref char a, ref char b) => ref r;
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "r").WithArguments("r").WithLocation(16, 54),
-                // (16,54): error CS8151: The return expression must be of type 'char' because this method returns by reference
-                //         ref char Moo1(ref char a, ref char b) => ref r;
-                Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, "r").WithArguments("char").WithLocation(16, 54),
                 // (17,46): error CS8175: Cannot use ref local 'r' inside an anonymous method, lambda expression, or query expression
                 //         char Moo3(ref char a, ref char b) => r;
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "r").WithArguments("r").WithLocation(17, 46),
@@ -926,7 +923,8 @@ public class Test
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Moo1").WithArguments("Moo1").WithLocation(16, 18),
                 // (17,14): warning CS8321: The local function 'Moo3' is declared but never used
                 //         char Moo3(ref char a, ref char b) => r;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Moo3").WithArguments("Moo3").WithLocation(17, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Moo3").WithArguments("Moo3").WithLocation(17, 14)
+                );
         }
 
         [Fact, WorkItem(13062, "https://github.com/dotnet/roslyn/issues/13062")]
