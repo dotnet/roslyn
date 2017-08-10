@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal interface IRemoteAddImportFeatureService
     {
-        Task<IReadOnlyList<AddImportFixData>> GetFixesAsync(
+        Task<IList<AddImportFixData>> GetFixesAsync(
             DocumentId documentId, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
-            bool searchReferenceAssemblies, IReadOnlyList<PackageSource> packageSources, CancellationToken cancellationToken);
+            bool searchReferenceAssemblies, IList<PackageSource> packageSources, CancellationToken cancellationToken);
     }
 }

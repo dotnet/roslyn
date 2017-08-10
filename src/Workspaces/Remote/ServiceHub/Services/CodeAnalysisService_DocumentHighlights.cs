@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteDocumentHighlights
     {
-        public async Task<IReadOnlyList<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
+        public async Task<IList<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
             DocumentId documentId, int position, DocumentId[] documentIdsToSearch, CancellationToken cancellationToken)
         {
             // NOTE: In projection scenarios, we might get a set of documents to search

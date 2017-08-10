@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         protected abstract string GetNormalizedText(string message);
         protected abstract int GetCommentStartingIndex(string message);
-        protected abstract void AppendTodoComments(IReadOnlyList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList);
+        protected abstract void AppendTodoComments(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList);
 
-        public async Task<IReadOnlyList<TodoComment>> GetTodoCommentsAsync(Document document, IReadOnlyList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        public async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             // make sure given input is right one
             Contract.ThrowIfFalse(_workspace == document.Project.Solution.Workspace);
@@ -58,17 +58,17 @@ namespace Microsoft.CodeAnalysis.TodoComments
             return await GetTodoCommentsInCurrentProcessAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<IReadOnlyList<TodoComment>> GetTodoCommentsInRemoteHostAsync(
-            RemoteHostClient client, Document document, IReadOnlyList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        private async Task<IList<TodoComment>> GetTodoCommentsInRemoteHostAsync(
+            RemoteHostClient client, Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             var keepAliveSession = await TryGetKeepAliveSessionAsync(client, cancellationToken).ConfigureAwait(false);
 
-            var result = await keepAliveSession.TryInvokeAsync<IReadOnlyList<TodoComment>>(
+            var result = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
                 nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
                 document.Project.Solution,
                 new object[] { document.Id, commentDescriptors }, cancellationToken).ConfigureAwait(false);
 
-            return result ?? SpecializedCollections.EmptyReadOnlyList<TodoComment>();
+            return result ?? SpecializedCollections.EmptyList<TodoComment>();
         }
 
         private async Task<KeepAliveSession> TryGetKeepAliveSessionAsync(RemoteHostClient client, CancellationToken cancellationToken)
@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
             }
         }
 
-        private async Task<IReadOnlyList<TodoComment>> GetTodoCommentsInCurrentProcessAsync(
-            Document document, IReadOnlyList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        private async Task<IList<TodoComment>> GetTodoCommentsInCurrentProcessAsync(
+            Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             return PreprocessorHasComment(trivia) || IsSingleLineComment(trivia) || IsMultilineComment(trivia);
         }
 
-        protected void AppendTodoCommentInfoFromSingleLine(IReadOnlyList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, string message, int start, List<TodoComment> todoList)
+        protected void AppendTodoCommentInfoFromSingleLine(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, string message, int start, List<TodoComment> todoList)
         {
             var index = GetCommentStartingIndex(message);
             if (index >= message.Length)
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             }
         }
 
-        protected void ProcessMultilineComment(IReadOnlyList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, int postfixLength, List<TodoComment> todoList)
+        protected void ProcessMultilineComment(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, int postfixLength, List<TodoComment> todoList)
         {
             // this is okay since we know it is already alive
             var text = document.Text;

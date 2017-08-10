@@ -40,21 +40,21 @@ namespace Microsoft.CodeAnalysis.AddImport
                 throw new NotImplementedException();
             }
 
-            public Task<IReadOnlyList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+            public Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
                 return _symbolSearchService.FindPackagesWithTypeAsync(
                     source, name, arity, cancellationToken);
             }
 
-            public Task<IReadOnlyList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+            public Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string name, CancellationToken cancellationToken)
             {
                 return _symbolSearchService.FindPackagesWithAssemblyAsync(
                     source, name, cancellationToken);
             }
 
-            public Task<IReadOnlyList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+            public Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity, CancellationToken cancellationToken)
             {
                 return _symbolSearchService.FindReferenceAssembliesWithTypeAsync(

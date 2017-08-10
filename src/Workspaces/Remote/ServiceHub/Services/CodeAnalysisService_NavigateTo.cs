@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService : IRemoteNavigateToSearchService
     {
-        public async Task<IReadOnlyList<SerializableNavigateToSearchResult>> SearchDocumentAsync(
+        public async Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(
             DocumentId documentId, string searchPattern, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<IReadOnlyList<SerializableNavigateToSearchResult>> SearchProjectAsync(
+        public async Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(
             ProjectId projectId, string searchPattern, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())

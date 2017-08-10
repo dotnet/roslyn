@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
         }
 
-        public async Task<IReadOnlyList<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
+        public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
         {
             var results = await _updateEngine.FindPackagesWithTypeAsync(
                 source, name, arity, cancellationToken).ConfigureAwait(false);
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return results;
         }
 
-        public async Task<IReadOnlyList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
+        public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         {
             var results = await _updateEngine.FindPackagesWithAssemblyAsync(
                 source, assemblyName, cancellationToken).ConfigureAwait(false);
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return results;
         }
 
-        public async Task<IReadOnlyList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
+        public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
         {
             var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
                 name, arity, cancellationToken).ConfigureAwait(false);

@@ -87,19 +87,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             }
         }
 
-        private async Task<IReadOnlyList<TodoComment>> GetTodoCommentsAsync(Document document, IReadOnlyList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
+        private async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<ITodoCommentService>();
             if (service == null)
             {
                 // no inproc support
-                return SpecializedCollections.EmptyReadOnlyList<TodoComment>();
+                return SpecializedCollections.EmptyList<TodoComment>();
             }
 
             return await service.GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<TodoItem>> CreateItemsAsync(Document document, IReadOnlyList<TodoComment> comments, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<TodoItem>> CreateItemsAsync(Document document, IList<TodoComment> comments, CancellationToken cancellationToken)
         {
             var items = ImmutableArray.CreateBuilder<TodoItem>();
             if (comments != null)

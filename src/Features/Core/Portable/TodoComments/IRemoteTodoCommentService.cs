@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// </summary>
     internal interface IRemoteTodoCommentService
     {
-        Task<IReadOnlyList<TodoComment>> GetTodoCommentsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, IReadOnlyList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
+        Task<IList<TodoComment>> GetTodoCommentsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
     }
 }

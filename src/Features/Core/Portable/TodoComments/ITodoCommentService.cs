@@ -42,6 +42,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
     internal interface ITodoCommentService : ILanguageService
     {
-        Task<IReadOnlyList<TodoComment>> GetTodoCommentsAsync(Document document, IReadOnlyList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
+        Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
     }
 }

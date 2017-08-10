@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
                 allReferences.Add(new AssemblyReference(
-                    _owner, new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), result));
+                    _owner, new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames.ToReadOnlyList(), weight), result));
             }
 
             private void HandleNugetReference(
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
                 allReferences.Add(new PackageReference(_owner,
-                    new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight),
+                    new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames.ToReadOnlyList(), weight),
                     source, result.PackageName, result.Version));
             }
 

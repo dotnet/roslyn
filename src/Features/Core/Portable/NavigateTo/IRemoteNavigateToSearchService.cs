@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal interface IRemoteNavigateToSearchService
     {
-        Task<IReadOnlyList<SerializableNavigateToSearchResult>> SearchDocumentAsync(DocumentId documentId, string searchPattern, CancellationToken cancellationToken);
-        Task<IReadOnlyList<SerializableNavigateToSearchResult>> SearchProjectAsync(ProjectId projectId, string searchPattern, CancellationToken cancellationToken);
+        Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(DocumentId documentId, string searchPattern, CancellationToken cancellationToken);
+        Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(ProjectId projectId, string searchPattern, CancellationToken cancellationToken);
     }
 }

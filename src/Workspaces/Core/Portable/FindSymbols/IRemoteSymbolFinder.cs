@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs, CancellationToken cancellationToken);
         Task FindLiteralReferencesAsync(object value, TypeCode typeCode, CancellationToken cancellationToken);
 
-        Task<IReadOnlyList<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
+        Task<IList<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria, CancellationToken cancellationToken);
 
-        Task<IReadOnlyList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
+        Task<IList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
             string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken);
 
-        Task<IReadOnlyList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
+        Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken);
 
-        Task<IReadOnlyList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
+        Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
             ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken);
     }
 }

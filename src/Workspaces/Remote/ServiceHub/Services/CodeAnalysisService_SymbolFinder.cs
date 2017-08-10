@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<IReadOnlyList<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
+        public async Task<IList<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<IReadOnlyList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
+        public async Task<IList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
             string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<IReadOnlyList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
+        public async Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<IReadOnlyList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
+        public async Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
             ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())

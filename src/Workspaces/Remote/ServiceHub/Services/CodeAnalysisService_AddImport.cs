@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService : IRemoteAddImportFeatureService
     {
-        public async Task<IReadOnlyList<AddImportFixData>> GetFixesAsync(
+        public async Task<IList<AddImportFixData>> GetFixesAsync(
             DocumentId documentId, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
-            bool searchReferenceAssemblies, IReadOnlyList<PackageSource> packageSources, CancellationToken cancellationToken)
+            bool searchReferenceAssemblies, IList<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
             {
@@ -55,28 +55,28 @@ namespace Microsoft.CodeAnalysis.Remote
                 this.codeAnalysisService = codeAnalysisService;
             }
 
-            public async Task<IReadOnlyList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+            public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
-                var result = await codeAnalysisService.Rpc.InvokeAsync<IReadOnlyList<PackageWithTypeResult>>(
+                var result = await codeAnalysisService.Rpc.InvokeAsync<IList<PackageWithTypeResult>>(
                     nameof(FindPackagesWithTypeAsync), source, name, arity).ConfigureAwait(false);
 
                 return result;
             }
 
-            public async Task<IReadOnlyList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+            public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string assemblyName, CancellationToken cancellationToken)
             {
-                var result = await codeAnalysisService.Rpc.InvokeAsync<IReadOnlyList<PackageWithAssemblyResult>>(
+                var result = await codeAnalysisService.Rpc.InvokeAsync<IList<PackageWithAssemblyResult>>(
                     nameof(FindPackagesWithAssemblyAsync), source, assemblyName).ConfigureAwait(false);
 
                 return result;
             }
 
-            public async Task<IReadOnlyList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+            public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity, CancellationToken cancellationToken)
             {
-                var result = await codeAnalysisService.Rpc.InvokeAsync<IReadOnlyList<ReferenceAssemblyWithTypeResult>>(
+                var result = await codeAnalysisService.Rpc.InvokeAsync<IList<ReferenceAssemblyWithTypeResult>>(
                     nameof(FindReferenceAssembliesWithTypeAsync), name, arity).ConfigureAwait(false);
 
                 return result;

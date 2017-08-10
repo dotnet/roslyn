@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
     internal interface IRemoteDocumentHighlights
     {
-        Task<IReadOnlyList<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
+        Task<IList<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
             DocumentId documentId, int position, DocumentId[] documentIdsToSearch, CancellationToken cancellationToken);
     }
 
     internal struct SerializableDocumentHighlights
     {
         public DocumentId DocumentId;
-        public IReadOnlyList<HighlightSpan> HighlightSpans;
+        public IList<HighlightSpan> HighlightSpans;
 
         public DocumentHighlights Rehydrate(Solution solution)
             => new DocumentHighlights(solution.GetDocument(DocumentId), HighlightSpans.ToImmutableArray());
