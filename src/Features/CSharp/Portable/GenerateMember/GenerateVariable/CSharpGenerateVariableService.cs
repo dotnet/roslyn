@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 }
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             propertySymbol = null;
             typeToGenerateIn = null;
             return false;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 return true;
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             simpleNameOrMemberAccessExpression = null;
             isInExecutableBlock = false;
             isConditionalAccessExpression = false;

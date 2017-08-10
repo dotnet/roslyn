@@ -679,5 +679,35 @@ Class C
     End Property
 End Class")
         End Function
+
+        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestSystemObjectMetadataOverride() As Task
+            Await TestMissingAsync(
+"class C
+    public overrides function [||]ToString() as string
+    End function
+End class")
+        End Function
+
+        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestMetadataOverride() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    inherits system.type
+
+    public overrides function [||]GetArrayRank() as integer
+    End function
+End class",
+"class C
+    inherits system.type
+
+    public overrides ReadOnly Property {|Warning:ArrayRank|} as integer
+        Get
+        End Get
+    End Property
+End class")
+        End Function
     End Class
 End Namespace

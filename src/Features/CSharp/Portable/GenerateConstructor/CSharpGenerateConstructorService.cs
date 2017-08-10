@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 return typeToGenerateIn != null;
             }
 
-            token = default(SyntaxToken);
-            arguments = default(ImmutableArray<ArgumentSyntax>);
+            token = default;
+            arguments = default;
             typeToGenerateIn = null;
             return false;
         }
@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 }
             }
 
-            token = default(SyntaxToken);
-            arguments = default(ImmutableArray<ArgumentSyntax>);
+            token = default;
+            arguments = default;
             typeToGenerateIn = null;
             return false;
         }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                         arguments = attributeArguments.Select(
                             x => SyntaxFactory.Argument(
                                 x.NameColon ?? (x.NameEquals != null ? SyntaxFactory.NameColon(x.NameEquals.Name) : null),
-                                default(SyntaxToken), x.Expression)).ToImmutableArray();
+                                default, x.Expression)).ToImmutableArray();
 
                         typeToGenerateIn = symbolInfo.CandidateSymbols.FirstOrDefault().ContainingSymbol as INamedTypeSymbol;
                         return typeToGenerateIn != null;
@@ -120,9 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 }
             }
 
-            token = default(SyntaxToken);
-            arguments = default(ImmutableArray<ArgumentSyntax>);
-            attributeArguments = default(ImmutableArray<AttributeArgumentSyntax>);
+            token = default;
+            arguments = default;
+            attributeArguments = default;
             typeToGenerateIn = null;
             return false;
         }
